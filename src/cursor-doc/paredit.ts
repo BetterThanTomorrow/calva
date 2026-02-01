@@ -13,6 +13,14 @@ import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
+import {
+  PareditConfig,
+  KeywordPairForm,
+  FlatPairForm,
+  groupedDefaultPairForms,
+  defaultBindingForms,
+  defaultThreadingMacros,
+} from './paredit-config';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
 
@@ -1373,7 +1381,7 @@ export function growSelection(
       return [start, end];
     } else {
       // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
-      if (isInPairsList(startC, bindingForms, config)) {
+      if (isInPairsList(startC, defaultBindingForms, config)) {
         // Use the selection start to determine the pair
         const pairRange = currentSexpsRange(doc, startC, start, true, config);
         // Only expand to pair if current selection is smaller than the pair
@@ -1606,154 +1614,6 @@ export async function transpose(
   }
 }
 
-export interface VectorBindingForm {
-  type: 'vector-binding';
-  name: string;
-}
-
-export interface KeywordPairForm {
-  type: 'keyword';
-  keyword: string;
-  validParents?: string[];
-}
-
-export interface FlatPairForm {
-  type: 'flat';
-  name: string;
-  offset: number;
-  tripleMarker?: string;
-}
-
-export type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
-
-export type GroupedPairForms = {
-  'vector-binding': VectorBindingForm[];
-  keyword: KeywordPairForm[];
-  flat: FlatPairForm[];
-};
-
-export interface ThreadingMacrosConfig {
-  firstArg: string[];
-  lastArg: string[];
-}
-
-export interface PareditConfig {
-  pairForms: GroupedPairForms;
-  threadingMacros: ThreadingMacrosConfig;
-}
-
-const defaultPairForms: PairFormConfig[] = [
-  // Vector Binding forms
-  { type: 'vector-binding', name: 'let' },
-  { type: 'vector-binding', name: 'for' },
-  { type: 'vector-binding', name: 'loop' },
-  { type: 'vector-binding', name: 'binding' },
-  { type: 'vector-binding', name: 'with-local-vars' },
-  { type: 'vector-binding', name: 'doseq' },
-  { type: 'vector-binding', name: 'with-redefs' },
-
-  // Keyword-based modifiers
-  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
-
-  // flat
-  { type: 'flat', name: 'cond', offset: 1 },
-  { type: 'flat', name: 'cond->', offset: 2 },
-  { type: 'flat', name: 'cond->>', offset: 2 },
-  { type: 'flat', name: 'case', offset: 2 },
-  { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
-  { type: 'flat', name: 'assoc', offset: 2 },
-];
-
-const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
-  (acc, form) => {
-    switch (form.type) {
-      case 'vector-binding':
-        acc['vector-binding'].push(form);
-        break;
-      case 'keyword':
-        acc.keyword.push(form);
-        break;
-      case 'flat':
-        acc.flat.push(form);
-        break;
-    }
-    return acc;
-  },
-  { 'vector-binding': [], keyword: [], flat: [] }
-);
-
-export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
-
-/**
- * Groups pair forms by type for efficient lookups.
- */
-export function groupPairForms(forms: PairFormConfig[]): GroupedPairForms {
-  return forms.reduce<GroupedPairForms>(
-    (acc, form) => {
-      switch (form.type) {
-        case 'vector-binding':
-          acc['vector-binding'].push(form);
-          break;
-        case 'keyword':
-          acc.keyword.push(form);
-          break;
-        case 'flat':
-          acc.flat.push(form);
-          break;
-      }
-      return acc;
-    },
-    { 'vector-binding': [], keyword: [], flat: [] }
-  );
-}
-
-/**
- * Merges custom pair forms with defaults.
- * Custom forms override defaults with the same type+name/keyword.
- */
-function mergePairForms(defaults: PairFormConfig[], customs: PairFormConfig[]): PairFormConfig[] {
-  // Generate unique key for each form based on type and identifier
-  const getKey = (f: PairFormConfig) => `${f.type}:${f.type === 'keyword' ? f.keyword : f.name}`;
-
-  // Map custom forms by key for quick lookup
-  const customsByKey = new Map(customs.map((f) => [getKey(f), f]));
-
-  // Replace defaults with custom versions where they exist
-  const merged = defaults.map((d) => customsByKey.get(getKey(d)) ?? d);
-
-  // Add custom forms that don't override any defaults
-  for (const [key, form] of customsByKey) {
-    if (!merged.some((m) => getKey(m) === key)) {
-      merged.push(form);
-    }
-  }
-
-  return merged;
-}
-
-/**
- * Creates a complete paredit configuration by merging custom forms and threading macros
- * with defaults.
- */
-export function createPareditConfig(
-  customPairForms: PairFormConfig[] = [],
-  customThreadingMacros: Partial<ThreadingMacrosConfig> = {}
-): PareditConfig {
-  const mergedForms = mergePairForms(defaultPairForms, customPairForms);
-  return {
-    pairForms: groupPairForms(mergedForms),
-    threadingMacros: {
-      firstArg: [...threadingMacros.firstArg, ...(customThreadingMacros.firstArg ?? [])],
-      lastArg: [...threadingMacros.lastArg, ...(customThreadingMacros.lastArg ?? [])],
-    },
-  };
-}
-
-const threadingMacros = {
-  firstArg: ['->', 'some->'],
-  lastArg: ['->>', 'some->>'],
-};
-
 /**
  * Detects if cursor's form is the direct child of a threading macro.
  * Returns:
@@ -1767,7 +1627,7 @@ function getDirectThreadingMacroStyle(
   cursor: LispTokenCursor,
   config?: PareditConfig
 ): 'firstArg' | 'lastArg' | null {
-  const macros = config?.threadingMacros ?? threadingMacros;
+  const macros = config?.threadingMacros ?? defaultThreadingMacros;
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
@@ -2120,7 +1980,7 @@ export function currentSexpsRange(
 
 export async function dragSexprBackward(
   doc: EditableDocument,
-  pairForms = bindingForms,
+  pairForms = defaultBindingForms,
   left = doc.selections[0].anchor,
   right = doc.selections[0].active,
   config?: PareditConfig
@@ -2148,7 +2008,7 @@ export async function dragSexprBackward(
 
 export async function dragSexprForward(
   doc: EditableDocument,
-  pairForms = bindingForms,
+  pairForms = defaultBindingForms,
   left = doc.selections[0].anchor,
   right = doc.selections[0].active,
   config?: PareditConfig

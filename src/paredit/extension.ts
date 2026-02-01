@@ -18,7 +18,8 @@ import * as config from '../formatter-config';
 import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
-import { createPareditConfig, PareditConfig } from '../cursor-doc/paredit';
+import { createPareditConfig, defaultBindingForms } from '../cursor-doc/paredit-config';
+import type { PareditConfig } from '../cursor-doc/paredit-config';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -299,7 +300,7 @@ const pareditCommands = [
     handler: (doc: EditableDocument) =>
       paredit.dragSexprBackward(
         doc,
-        paredit.bindingForms,
+        defaultBindingForms,
         doc.selections[0].anchor,
         doc.selections[0].active,
         getPareditConfig()
@@ -310,7 +311,7 @@ const pareditCommands = [
     handler: (doc: EditableDocument) =>
       paredit.dragSexprForward(
         doc,
-        paredit.bindingForms,
+        defaultBindingForms,
         doc.selections[0].anchor,
         doc.selections[0].active,
         getPareditConfig()

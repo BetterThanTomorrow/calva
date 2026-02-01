@@ -1,0 +1,135 @@
+/**
+ * Types
+ */
+
+export interface ThreadingMacrosConfig {
+  firstArg: string[];
+  lastArg: string[];
+}
+
+export interface VectorBindingForm {
+  type: 'vector-binding';
+  name: string;
+}
+
+export interface KeywordPairForm {
+  type: 'keyword';
+  keyword: string;
+  validParents?: string[];
+}
+
+export interface FlatPairForm {
+  type: 'flat';
+  name: string;
+  offset: number;
+  tripleMarker?: string;
+}
+
+export type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
+
+export type GroupedPairForms = {
+  'vector-binding': VectorBindingForm[];
+  keyword: KeywordPairForm[];
+  flat: FlatPairForm[];
+};
+
+export interface PareditConfig {
+  pairForms: GroupedPairForms;
+  threadingMacros: ThreadingMacrosConfig;
+}
+
+/**
+ * Default Configurations
+ */
+
+const defaultPairForms: PairFormConfig[] = [
+  // Vector Binding forms
+  { type: 'vector-binding', name: 'let' },
+  { type: 'vector-binding', name: 'for' },
+  { type: 'vector-binding', name: 'loop' },
+  { type: 'vector-binding', name: 'binding' },
+  { type: 'vector-binding', name: 'with-local-vars' },
+  { type: 'vector-binding', name: 'doseq' },
+  { type: 'vector-binding', name: 'with-redefs' },
+
+  // Keyword-based modifiers
+  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
+
+  // flat
+  { type: 'flat', name: 'cond', offset: 1 },
+  { type: 'flat', name: 'cond->', offset: 2 },
+  { type: 'flat', name: 'cond->>', offset: 2 },
+  { type: 'flat', name: 'case', offset: 2 },
+  { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
+  { type: 'flat', name: 'assoc', offset: 2 },
+];
+
+const threadingMacros = {
+  firstArg: ['->', 'some->'],
+  lastArg: ['->>', 'some->>'],
+};
+
+/**
+ * Merges custom pair forms with defaults.
+ * Custom forms override defaults with the same type+name/keyword.
+ */
+function mergePairForms(defaults: PairFormConfig[], customs: PairFormConfig[]): PairFormConfig[] {
+  // Generate unique key for each form based on type and identifier
+  const getKey = (f: PairFormConfig) => `${f.type}:${f.type === 'keyword' ? f.keyword : f.name}`;
+
+  // Map custom forms by key for quick lookup
+  const customsByKey = new Map(customs.map((f) => [getKey(f), f]));
+
+  // Replace defaults with custom versions where they exist
+  const merged = defaults.map((d) => customsByKey.get(getKey(d)) ?? d);
+
+  // Add custom forms that don't override any defaults
+  for (const [key, form] of customsByKey) {
+    if (!merged.some((m) => getKey(m) === key)) {
+      merged.push(form);
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Groups pair forms by type for efficient lookups.
+ */
+export function groupPairForms(forms: PairFormConfig[]): GroupedPairForms {
+  return forms.reduce<GroupedPairForms>(
+    (acc, form) => {
+      switch (form.type) {
+        case 'vector-binding':
+          acc['vector-binding'].push(form);
+          break;
+        case 'keyword':
+          acc.keyword.push(form);
+          break;
+        case 'flat':
+          acc.flat.push(form);
+          break;
+      }
+      return acc;
+    },
+    { 'vector-binding': [], keyword: [], flat: [] }
+  );
+}
+
+/**
+ * Creates a complete paredit configuration by merging custom forms and threading macros
+ * with defaults.
+ */
+export function createPareditConfig(
+  customPairForms: PairFormConfig[] = [],
+  customThreadingMacros: Partial<ThreadingMacrosConfig> = {}
+): PareditConfig {
+  const mergedForms = mergePairForms(defaultPairForms, customPairForms);
+  return {
+    pairForms: groupPairForms(mergedForms),
+    threadingMacros: {
+      firstArg: [...threadingMacros.firstArg, ...(customThreadingMacros.firstArg ?? [])],
+      lastArg: [...threadingMacros.lastArg, ...(customThreadingMacros.lastArg ?? [])],
+    },
+  };
+}
