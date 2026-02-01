@@ -3,8 +3,6 @@
  * This module handles custom user configurations that extend the built-in defaults.
  */
 
-import { getConfig } from '../config';
-
 // ============================================================================
 // Type Definitions
 // ============================================================================
