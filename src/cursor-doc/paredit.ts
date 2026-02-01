@@ -945,22 +945,52 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
   const tk = cursor.getPrevToken();
-  if (tk.type == 'open') {
-    const offset = cursor.clone().previous().offsetStart;
-    const open = cursor.getPrevToken().raw;
-    cursor.previous();
-    cursor.backwardSexp(true, true);
-    cursor.forwardWhitespace(false);
-    if (offset !== cursor.offsetStart) {
-      return [
-        new ModelEdit('changeRange', [offset, offset + tk.raw.length, '']),
-        new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, open]),
-      ];
-    } else {
-      return backwardSlurpSexpEdits(doc, cursor.offsetStart);
-    }
-  } else {
+  if (tk.type !== 'open') {
     return [];
+  }
+
+  const openBracketOffset = cursor.clone().previous().offsetStart;
+  const open = tk.raw;
+
+  // Check if form is empty/whitespace-only and find close bracket position
+  const insideCursor = cursor.clone();
+  insideCursor.forwardWhitespace(false);
+  const isFormEmpty = insideCursor.getToken().type === 'close';
+
+  // Navigate to previous sexp
+  cursor.previous();
+  cursor.backwardSexp(true, true);
+  const prevSexpStart = cursor.offsetStart;
+
+  // Skip whitespace to check if there's a previous sexp to slurp
+  cursor.forwardWhitespace(false);
+  const afterWhitespace = cursor.offsetStart;
+
+  if (openBracketOffset === afterWhitespace) {
+    // No previous sexp at this level, try enclosing form
+    return backwardSlurpSexpEdits(doc, prevSexpStart);
+  }
+
+  if (isFormEmpty) {
+    // Empty form: remove whitespace + open bracket + internal whitespace, insert open at sexp start
+
+    // Find end of previous sexp
+    const sexpEndCursor = cursor.clone();
+    sexpEndCursor.forwardSexp(true, true);
+    const prevSexpEnd = sexpEndCursor.offsetStart;
+
+    const closeOffset = insideCursor.offsetStart;
+
+    return [
+      new ModelEdit('changeRange', [prevSexpEnd, closeOffset, '']),
+      new ModelEdit('changeRange', [prevSexpStart, prevSexpStart, open]),
+    ];
+  } else {
+    // Non-empty form: remove open bracket, insert at whitespace end (preserves one space)
+    return [
+      new ModelEdit('changeRange', [openBracketOffset, openBracketOffset + open.length, '']),
+      new ModelEdit('changeRange', [afterWhitespace, afterWhitespace, open]),
+    ];
   }
 }
 

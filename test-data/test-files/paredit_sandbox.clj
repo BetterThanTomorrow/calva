@@ -160,6 +160,33 @@ string. "
   #{0 6 7} :>> inc
   #{5 9}   :>> dec)
 
+;; === Slurp Backward
+
+;; Slurp backward into empty string
+;; Before: foo "|"
+;; Expected: "foo|" (no trailing space)
+foo ""
+
+;; Slurp backward into non-empty string
+;; Before: (str) "fo|o"
+;; Expected: "(str) fo|o"
+(str) "fo|o"
+
+;; Slurp backward into empty list
+;; Before: foo (|)
+;; Expected: (foo|) (no trailing space)
+foo (|)
+
+;; Slurp backward into whitespace-only list
+;; Before: foo (|   )
+;; Expected: (foo|) (whitespace removed)
+foo (|   )
+
+;; Slurp backward into empty vector
+;; Before: foo [|]
+;; Expected: [foo|] (no trailing space)
+foo [|]
+
 (comment
   (a b (c
         d) e)
