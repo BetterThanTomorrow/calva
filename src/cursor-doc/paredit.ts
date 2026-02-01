@@ -1568,30 +1568,89 @@ export async function transpose(
   }
 }
 
-export const bindingForms = [
-  'let',
-  'for',
-  'loop',
-  'binding',
-  'with-local-vars',
-  'doseq',
-  'with-redefs',
+interface VectorPairForm {
+  type: 'function';
+  name: string;
+}
+
+interface KeywordPairForm {
+  type: 'keyword';
+  keyword: string;
+  validParents?: string[]; // Only valid inside these functions
+}
+
+type VectorBindingConfig = VectorPairForm | KeywordPairForm;
+
+const defaultVectorPairForms: VectorBindingConfig[] = [
+  // Function-based binding forms
+  { type: 'function', name: 'let' },
+  { type: 'function', name: 'for' },
+  { type: 'function', name: 'loop' },
+  { type: 'function', name: 'binding' },
+  { type: 'function', name: 'with-local-vars' },
+  { type: 'function', name: 'doseq' },
+  { type: 'function', name: 'with-redefs' },
+
+  // Keyword-based modifiers
+  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq'] },
 ];
 
-function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+// Backward compatibility
+export const bindingForms = defaultVectorPairForms
+  .filter((f): f is VectorPairForm => f.type === 'function')
+  .map((f) => f.name);
+
+/**
+ * Checks if a vector is preceded by a keyword pair form (like `:let`).
+ * Returns the matching KeywordPairForm if found and valid, otherwise null.
+ */
+function isPrecededByKeywordPairForm(
+  cursor: LispTokenCursor,
+  keywordForms: KeywordPairForm[]
+): KeywordPairForm | null {
   const testCursor = cursor.clone();
-  // helper: move one token left from current position and skip whitespace
+
   function stepLeftAndSkipWs() {
     testCursor.previous();
     testCursor.backwardWhitespace();
   }
+
   stepLeftAndSkipWs();
   let precedingToken = testCursor.getPrevToken();
   while (precedingToken && precedingToken.type === 'comment') {
     stepLeftAndSkipWs();
     precedingToken = testCursor.getPrevToken();
   }
-  return !!precedingToken && String(precedingToken.raw) === ':let';
+
+  if (!precedingToken) {
+    return null;
+  }
+
+  const matchingForm = keywordForms.find((f) => f.keyword === precedingToken.raw);
+  if (!matchingForm) {
+    return null;
+  }
+
+  // Validate parent if specified - search up through lists until we find a function call
+  if (matchingForm.validParents?.length) {
+    const parentCursor = cursor.clone();
+    while (parentCursor.backwardUpList()) {
+      parentCursor.backwardList();
+      const opening = parentCursor.getPrevToken().raw;
+      if (opening.endsWith('(')) {
+        // Found a function call, check if it's a valid parent
+        const parentFn = parentCursor.getFunctionName();
+        if (parentFn && matchingForm.validParents.includes(parentFn)) {
+          return matchingForm;
+        }
+        return null; // Found a function call but not a valid parent
+      }
+      // Not a function call (e.g., a vector), continue searching up
+    }
+    return null; // No valid parent function found
+  }
+
+  return matchingForm;
 }
 
 const conditionalForms = ['cond', 'cond->', 'cond->>', 'case', 'condp'];
@@ -1624,7 +1683,11 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
   return 0;
 }
 
-export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+export function isInPairsList(
+  cursor: LispTokenCursor,
+  pairForms: string[],
+  vectorConfigs: VectorBindingConfig[] = defaultVectorPairForms
+): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1632,7 +1695,9 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
-      if (isPrecededByLetKeyword(probeCursor)) {
+      // Check keyword modifiers first (like :let)
+      const keywordForms = vectorConfigs.filter((f): f is KeywordPairForm => f.type === 'keyword');
+      if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
 
