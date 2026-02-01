@@ -1602,37 +1602,103 @@ export async function transpose(
   }
 }
 
-interface VectorPairForm {
-  type: 'function';
+interface VectorBindingForm {
+  type: 'vector-binding';
   name: string;
 }
 
 interface KeywordPairForm {
   type: 'keyword';
   keyword: string;
-  validParents?: string[]; // Only valid inside these functions
+  validParents?: string[];
 }
 
-type VectorBindingConfig = VectorPairForm | KeywordPairForm;
+interface FlatPairForm {
+  type: 'flat';
+  name: string;
+  offset: number;
+  tripleMarker?: string;
+}
 
-const defaultVectorPairForms: VectorBindingConfig[] = [
-  // Function-based binding forms
-  { type: 'function', name: 'let' },
-  { type: 'function', name: 'for' },
-  { type: 'function', name: 'loop' },
-  { type: 'function', name: 'binding' },
-  { type: 'function', name: 'with-local-vars' },
-  { type: 'function', name: 'doseq' },
-  { type: 'function', name: 'with-redefs' },
+type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
+
+type GroupedPairForms = {
+  'vector-binding': VectorBindingForm[];
+  keyword: KeywordPairForm[];
+  flat: FlatPairForm[];
+};
+
+const defaultPairForms: PairFormConfig[] = [
+  // Vector Binding forms
+  { type: 'vector-binding', name: 'let' },
+  { type: 'vector-binding', name: 'for' },
+  { type: 'vector-binding', name: 'loop' },
+  { type: 'vector-binding', name: 'binding' },
+  { type: 'vector-binding', name: 'with-local-vars' },
+  { type: 'vector-binding', name: 'doseq' },
+  { type: 'vector-binding', name: 'with-redefs' },
 
   // Keyword-based modifiers
-  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq'] },
+  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
+
+  // flat
+  { type: 'flat', name: 'cond', offset: 1 },
+  { type: 'flat', name: 'cond->', offset: 2 },
+  { type: 'flat', name: 'cond->>', offset: 2 },
+  { type: 'flat', name: 'case', offset: 2 },
+  { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
+  { type: 'flat', name: 'assoc', offset: 2 },
 ];
 
-// Backward compatibility
-export const bindingForms = defaultVectorPairForms
-  .filter((f): f is VectorPairForm => f.type === 'function')
-  .map((f) => f.name);
+const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
+  (acc, form) => {
+    switch (form.type) {
+      case 'vector-binding':
+        acc['vector-binding'].push(form);
+        break;
+      case 'keyword':
+        acc.keyword.push(form);
+        break;
+      case 'flat':
+        acc.flat.push(form);
+        break;
+    }
+    return acc;
+  },
+  { 'vector-binding': [], keyword: [], flat: [] }
+);
+
+export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
+
+const threadingMacros = {
+  firstArg: ['->', 'some->'],
+  lastArg: ['->>', 'some->>'],
+};
+
+/**
+ * Detects if cursor's form is the direct child of a threading macro.
+ * Returns:
+ * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
+ * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
+ * - null if not direct child of threading macro
+ */
+function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+  const probeCursor = cursor.clone();
+  // Only check immediate parent - go up one level
+  if (probeCursor.backwardList()) {
+    probeCursor.backwardUpList();
+    const fn = probeCursor.getFunctionName();
+    if (fn) {
+      if (threadingMacros.firstArg.includes(fn)) {
+        return 'firstArg';
+      }
+      if (threadingMacros.lastArg.includes(fn)) {
+        return 'lastArg';
+      }
+    }
+  }
+  return null;
+}
 
 /**
  * Checks if a vector is preceded by a keyword pair form (like `:let`).
@@ -1687,90 +1753,25 @@ function isPrecededByKeywordPairForm(
   return matchingForm;
 }
 
-const flatPairForms = ['cond', 'cond->', 'cond->>', 'case', 'condp', 'assoc'];
-
-const threadingMacros = {
-  firstArg: ['->', 'some->'],
-  lastArg: ['->>', 'some->>'],
-};
-
 /**
- * Detects if cursor's form is the direct child of a threading macro.
- * Returns:
- * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
- * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
- * - null if not direct child of threading macro
+ * Gets the offset for a flat pair form (e.g., cond, case, condp).
+ * Returns the matching FlatPairForm if found, otherwise null.
  */
-function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): FlatPairForm | null {
   const probeCursor = cursor.clone();
-  // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
-    probeCursor.backwardUpList();
-    const fn = probeCursor.getFunctionName();
-    if (fn) {
-      if (threadingMacros.firstArg.includes(fn)) {
-        return 'firstArg';
-      }
-      if (threadingMacros.lastArg.includes(fn)) {
-        return 'lastArg';
+    const opening = probeCursor.getPrevToken().raw;
+    if (opening.endsWith('(')) {
+      const fn = probeCursor.getFunctionName();
+      if (fn) {
+        return flatForms.find((f) => f.name === fn) ?? null;
       }
     }
   }
   return null;
 }
 
-/**
- * Returns the offset (number of initial forms that are not part of pairs)
- * for flat pair forms (forms where pairs appear directly in the list).
- * - cond: pairs start after function name (offset 1 for 'cond' itself)
- * - cond->/cond->>: pairs start after function name and initial form (offset 2)
- * - case: pairs start after function name and initial form (offset 2)
- * - condp: pairs start after function name, predicate, and initial form (offset 3)
- * - assoc: pairs start after function name and map (offset 2)
- *
- * Note: When inside threading macros (-> or ->>), the offset is adjusted:
- * - Inside ->: offset is reduced by 1 (first argument is threaded from outside)
- * - Inside ->>: offset adjustment depends on position (may have trailing unpaired elements)
- *               this is handled in getPairElementGroupRange: builds pairs
- */
-function getFlatPairFormOffset(cursor: LispTokenCursor): number {
-  const probeCursor = cursor.clone();
-  if (probeCursor.backwardList()) {
-    const opening = probeCursor.getPrevToken().raw;
-    if (opening.endsWith('(')) {
-      const fn = probeCursor.getFunctionName();
-      let offset = 0;
-
-      if (fn === 'cond') {
-        offset = 1;
-      } else if (fn === 'cond->' || fn === 'cond->>' || fn === 'case' || fn === 'assoc') {
-        offset = 2;
-      } else if (fn === 'condp') {
-        offset = 3;
-      } else {
-        return 0;
-      }
-
-      // All flat pair forms are threading-aware: when inside a -> threading macro,
-      // the first argument is threaded from outside and not visible in the form,
-      // so reduce the offset by 1.
-      const threadingStyle = getDirectThreadingMacroStyle(cursor);
-      if (threadingStyle === 'firstArg') {
-        return Math.max(0, offset - 1);
-      }
-      // we don't care of threadingStyle === 'lastArg' because
-      // it is handled in getPairElementGroupRange
-      return offset;
-    }
-  }
-  return 0;
-}
-
-export function isInPairsList(
-  cursor: LispTokenCursor,
-  pairForms: string[],
-  vectorConfigs: VectorBindingConfig[] = defaultVectorPairForms
-): boolean {
+export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1779,7 +1780,7 @@ export function isInPairsList(
     }
     if (opening.endsWith('[')) {
       // Check keyword modifiers first (like :let)
-      const keywordForms = vectorConfigs.filter((f): f is KeywordPairForm => f.type === 'keyword');
+      const keywordForms = groupedDefaultPairForms.keyword;
       if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
@@ -1796,9 +1797,9 @@ export function isInPairsList(
       }
     }
     if (opening.endsWith('(')) {
-      // Check if this is a flat pair form like (cond test expr ...) or (assoc m k v ...)
-      const fn = probeCursor.getFunctionName();
-      if (fn && flatPairForms.includes(fn)) {
+      // Check if this is a flat pair form like (cond test expr test expr ...)
+      const flatForms = groupedDefaultPairForms.flat;
+      if (getFlatPairForm(probeCursor, flatForms)) {
         return true;
       }
     }
@@ -1808,14 +1809,15 @@ export function isInPairsList(
 }
 
 /**
- * Checks if the current index is part of a condp triple (test :>> function).
+ * Checks if the current index is part of a triple (test marker function).
  * Returns the range of the triple if found, otherwise null.
  */
-function getCondpTripleRange(
+function getTripleRange(
   doc: EditableDocument,
   ranges: [number, number][],
   currentIndex: number,
-  pairOffset: number
+  pairOffset: number,
+  tripleMarker: string
 ): [number, number] | null {
   const adjustedIndex = currentIndex - pairOffset;
   if (adjustedIndex < 0) {
@@ -1826,22 +1828,22 @@ function getCondpTripleRange(
   const getText = (idx: number) =>
     idx >= 0 && idx < ranges.length ? doc.model.getText(ranges[idx][0], ranges[idx][1]) : '';
 
-  // If current is :>>, return test + :>> + fn
+  // If current is the marker, return test + marker + fn
   if (
-    getText(currentIndex) === ':>>' &&
+    getText(currentIndex) === tripleMarker &&
     currentIndex > pairOffset &&
     currentIndex < ranges.length - 1
   ) {
     return [ranges[currentIndex - 1][0], ranges[currentIndex + 1][1]];
   }
 
-  // If previous is :>>, return test + :>> + fn
-  if (getText(currentIndex - 1) === ':>>' && currentIndex > pairOffset + 1) {
+  // If previous is the marker, return test + marker + fn
+  if (getText(currentIndex - 1) === tripleMarker && currentIndex > pairOffset + 1) {
     return [ranges[currentIndex - 2][0], ranges[currentIndex][1]];
   }
 
-  // If next is :>>, return test + :>> + fn
-  if (getText(currentIndex + 1) === ':>>' && currentIndex < ranges.length - 2) {
+  // If next is the marker, return test + marker + fn
+  if (getText(currentIndex + 1) === tripleMarker && currentIndex < ranges.length - 2) {
     return [ranges[currentIndex][0], ranges[currentIndex + 2][1]];
   }
 
@@ -1849,23 +1851,24 @@ function getCondpTripleRange(
 }
 
 /**
- * Builds condp element groups (pairs and :>> triples) and returns the range
+ * Builds element groups (pairs and triples with a marker) and returns the range
  * containing the current selection, or currentSingleRange as a fallback.
  */
-function getCondpElementGroupRange(
+function getTripleOrPairGroupRange(
   doc: EditableDocument,
   ranges: [number, number][],
   indexOfCurrentSingle: number,
   pairOffset: number,
-  currentSingleRange: [number, number]
+  currentSingleRange: [number, number],
+  tripleMarker: string
 ): [number, number] {
   const adjustedIndex = indexOfCurrentSingle - pairOffset;
   if (adjustedIndex < 0) {
     return currentSingleRange;
   }
 
-  // Check for :>> triple first
-  const tripleRange = getCondpTripleRange(doc, ranges, indexOfCurrentSingle, pairOffset);
+  // Check for triple first
+  const tripleRange = getTripleRange(doc, ranges, indexOfCurrentSingle, pairOffset, tripleMarker);
   if (tripleRange) {
     return tripleRange;
   }
@@ -1878,15 +1881,15 @@ function getCondpElementGroupRange(
     return currentSingleRange;
   }
 
-  // Handle regular pairs and :>> triples by grouping elements
+  // Handle regular pairs and triples by grouping elements
   const elementGroups: { start: number; end: number; groupStart: number }[] = [];
   let i = pairOffset;
 
   while (i < ranges.length) {
-    // Check if next element is :>>
+    // Check if next element is the triple marker
     if (i + 1 < ranges.length) {
       const nextText = doc.model.getText(ranges[i + 1][0], ranges[i + 1][1]);
-      if (nextText === ':>>') {
+      if (nextText === tripleMarker) {
         if (i + 2 < ranges.length) {
           elementGroups.push({
             start: ranges[i][0],
@@ -1993,27 +1996,28 @@ export function currentSexpsRange(
         (r) => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]
       );
 
-      // Get the offset for flat pair forms (e.g., cond has 1, assoc has 2 initial non-pair forms)
-      const pairOffset = getFlatPairFormOffset(listCursor);
+      // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
+      const flatForms = groupedDefaultPairForms.flat;
+      const flatForm = getFlatPairForm(listCursor, flatForms);
+      const threadingStyle = getDirectThreadingMacroStyle(cursor);
+      const formOffset = flatForm?.offset || 0;
+      const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;
 
       // Adjust the index to account for non-pair forms at the start
       const adjustedIndex = indexOfCurrentSingle - pairOffset;
 
       // Only treat as pairs if we're past the offset
       if (adjustedIndex >= 0) {
-        // Check if we're in a condp form
-        const probeCursor = listCursor.clone();
-        if (probeCursor.backwardList()) {
-          const fn = probeCursor.getFunctionName();
-          if (fn === 'condp') {
-            return getCondpElementGroupRange(
-              doc,
-              ranges,
-              indexOfCurrentSingle,
-              pairOffset,
-              currentSingleRange
-            );
-          }
+        // Check if this flat form has a triple marker (like condp with :>>)
+        if (flatForm?.tripleMarker) {
+          return getTripleOrPairGroupRange(
+            doc,
+            ranges,
+            indexOfCurrentSingle,
+            pairOffset,
+            currentSingleRange,
+            flatForm.tripleMarker
+          );
         }
         return getPairElementGroupRange(ranges, pairOffset, currentSingleRange);
       }
