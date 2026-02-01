@@ -1,6 +1,6 @@
 import { EditableDocument, ModelEditDirectedRange } from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
-import type { PareditConfig } from '../cursor-doc/paredit';
+import type { PareditConfig } from '../cursor-doc/paredit-config';
 
 // MOVEMENT
 
