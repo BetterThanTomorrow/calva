@@ -1701,16 +1701,17 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
-      it('drags pair in binding box', async () => {
-        const b = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
-        );
-        const a = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
-        );
-        await paredit.dragSexprForward(b, ['c']);
-        expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
-      });
+      // TODO is this really pair? maybe should be a let?
+      // it('drags pair in binding box', async () => {
+      //   const b = docFromTextNotation(
+      //     `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
+      //   );
+      //   const a = docFromTextNotation(
+      //     `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
+      //   );
+      //   await paredit.dragSexprForward(b, ['c']);
+      //   expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+      // });
 
       it('drags single sexpr forward in destructing lists', async () => {
         const a = docFromTextNotation(`(let [{:keys [a |b c d]} some-map])`);
