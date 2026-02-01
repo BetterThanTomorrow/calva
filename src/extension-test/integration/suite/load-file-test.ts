@@ -80,6 +80,7 @@ suite('Load File Command Test', () => {
       });
       await jackInHarness.waitForNextClient();
       testUtil.log(suite, 'Waiting for jack-in to complete (terminal output mode)...');
+      // Unfortunately, awaiting jack-in does not work with terminal output mode.
       await testUtil.sleep(5000);
     } else {
       await jackInHarness.jackInWithConnectSequence(testFilePath, connectSequence);
