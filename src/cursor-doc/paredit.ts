@@ -14,6 +14,8 @@ import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
 
+const OPEN_DELIMITERS_REGEX = /[([{"]/;
+
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
 // In the repl-console, compose commands just by performing them in succession, making sure
@@ -907,6 +909,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
     const wsInsideCursor = cursor.clone();
     wsInsideCursor.backwardWhitespace(false);
     const wsStartOffset = wsInsideCursor.offsetStart;
+    // Check if form is empty (only whitespace between open and close)
+    const isFormEmpty = wsInsideCursor.getPrevToken().type === 'open';
     cursor.upList();
     const wsOutSideCursor = cursor.clone();
     if (cursor.forwardSexp(true, true)) {
@@ -917,6 +921,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
       const changeArgs =
         replacedText.indexOf('\n') >= 0
           ? ([currentCloseOffset, currentCloseOffset + close.length, ''] as const)
+          : isFormEmpty
+          ? ([wsStartOffset, wsEndOffset, ''] as const)
           : ([wsStartOffset, wsEndOffset, ' '] as const);
       return [
         new ModelEdit('changeRange', [newCloseOffset, newCloseOffset, close]),
@@ -1133,8 +1139,18 @@ export function backspace(
     const cursor = doc.getTokenCursor(start);
     const isTopLevel = doc.getTokenCursor(end).atTopLevel();
     const nextToken = cursor.getToken();
+
+    // Detect if cursor is inside the '#' prefix of a reader macro token (like #( or #{)
+    // before the opening delimiter. Example: in "#(prn)" at position 1, we're inside the reader.
+    // At position 2, we're no longer inside the reader prefix.
+    const isInsideReader =
+      start > cursor.offsetStart &&
+      nextToken.raw.startsWith('#') &&
+      start <=
+        cursor.offsetStart +
+          (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length);
     const prevToken =
-      start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)
+      (start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)) || isInsideReader
         ? nextToken // we are “in” a token
         : cursor.getPrevToken(); // we are “between” tokens
     if (prevToken.type == 'prompt') {
@@ -1163,8 +1179,59 @@ export function backspace(
       // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
     } else {
-      if (['open', 'close'].includes(prevToken.type) && cursor.docIsBalanced()) {
-        doc.selections = [new ModelEditSelection(start - prevToken.raw.length)];
+      const isAtReaderPrefix =
+        (isInsideReader &&
+          start <=
+            cursor.offsetStart +
+              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length)) ||
+        (!isInsideReader && prevToken.raw.startsWith('#') && start === cursor.offsetStart);
+
+      // Special check: if we're inside a reader macro token like #( or #{,
+      // we should not allow deletion only if it's empty (like #())
+      // Non empty forms like #(prn "hello") can have their # deleted when
+      //  cursor is inside the token
+      let shouldJumpOverReaderMacro = false;
+      if (prevToken.raw.startsWith('#') && prevToken.raw.match(/^#[({]/)) {
+        if (isInsideReader) {
+          // We're inside the #( token (between # and ()
+          // When it is empty, jump; if not, allow deletion
+          const nextCursor = doc.getTokenCursor(cursor.offsetStart);
+          nextCursor.next();
+          const tokenAfterOpen = nextCursor.getToken();
+          shouldJumpOverReaderMacro = tokenAfterOpen.type === 'close';
+        } else {
+          // We're AFTER the #( token - always jump
+          shouldJumpOverReaderMacro = true;
+        }
+      }
+
+      // Check if we're deleting whitespace after an invalid # (junk)
+      // In this case, delete both the whitespace and the junk #
+      if (prevToken.type === 'ws' && prevToken.raw.length === 1) {
+        const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
+        const prevPrevToken = prevPrevCursor.getPrevToken();
+        if (prevPrevToken.type === 'junk' && prevPrevToken.raw === '#') {
+          // Delete both the whitespace and the junk #
+          return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
+            builder: builder,
+            skipFormat: true,
+          });
+        }
+      }
+
+      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore', 'reader', 'junk'];
+      if (
+        JUMP_TOKEN_TYPES.includes(prevToken.type) &&
+        cursor.docIsBalanced() &&
+        (!isAtReaderPrefix || shouldJumpOverReaderMacro)
+      ) {
+        // When jumping over a token, if we're inside a reader macro, jump to
+        // its start. Otherwise, jump to the start of the previous token
+        const jumpPosition =
+          isInsideReader && shouldJumpOverReaderMacro
+            ? cursor.offsetStart
+            : start - prevToken.raw.length;
+        doc.selections = [new ModelEditSelection(jumpPosition)];
         return;
       } else {
         const [left, right] = [Math.max(start - 1, 0), start];
@@ -1207,9 +1274,27 @@ export function deleteForward(
         }
       );
     } else {
-      if (['open', 'close'].includes(nextToken.type) && cursor.docIsBalanced()) {
-        doc.selections = [new ModelEditSelection(p + 1)];
-        return;
+      // Check if we're at an invalid reader prefix (junk #) or at the start of a reader macro
+      const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
+      const isAtReaderMacroStart =
+        nextToken.type === 'open' && nextToken.raw.match(/^#[({]/) && start === cursor.offsetStart;
+
+      if (
+        (['open', 'close'].includes(nextToken.type) &&
+          cursor.docIsBalanced() &&
+          !isAtReaderMacroStart) ||
+        isAtInvalidReaderPrefix
+      ) {
+        if (isAtInvalidReaderPrefix) {
+          // Delete the invalid # prefix
+          return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+            builder: builder,
+            skipFormat: true,
+          });
+        } else {
+          doc.selections = [new ModelEditSelection(p + 1)];
+          return;
+        }
       } else {
         return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
           builder: builder,
@@ -1517,39 +1602,100 @@ export async function transpose(
   }
 }
 
-export const bindingForms = [
-  'let',
-  'for',
-  'loop',
-  'binding',
-  'with-local-vars',
-  'doseq',
-  'with-redefs',
+interface VectorPairForm {
+  type: 'function';
+  name: string;
+}
+
+interface KeywordPairForm {
+  type: 'keyword';
+  keyword: string;
+  validParents?: string[]; // Only valid inside these functions
+}
+
+type VectorBindingConfig = VectorPairForm | KeywordPairForm;
+
+const defaultVectorPairForms: VectorBindingConfig[] = [
+  // Function-based binding forms
+  { type: 'function', name: 'let' },
+  { type: 'function', name: 'for' },
+  { type: 'function', name: 'loop' },
+  { type: 'function', name: 'binding' },
+  { type: 'function', name: 'with-local-vars' },
+  { type: 'function', name: 'doseq' },
+  { type: 'function', name: 'with-redefs' },
+
+  // Keyword-based modifiers
+  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq'] },
 ];
 
-function isPrecededByLetKeyword(cursor: LispTokenCursor): boolean {
+// Backward compatibility
+export const bindingForms = defaultVectorPairForms
+  .filter((f): f is VectorPairForm => f.type === 'function')
+  .map((f) => f.name);
+
+/**
+ * Checks if a vector is preceded by a keyword pair form (like `:let`).
+ * Returns the matching KeywordPairForm if found and valid, otherwise null.
+ */
+function isPrecededByKeywordPairForm(
+  cursor: LispTokenCursor,
+  keywordForms: KeywordPairForm[]
+): KeywordPairForm | null {
   const testCursor = cursor.clone();
-  // helper: move one token left from current position and skip whitespace
+
   function stepLeftAndSkipWs() {
     testCursor.previous();
     testCursor.backwardWhitespace();
   }
+
   stepLeftAndSkipWs();
   let precedingToken = testCursor.getPrevToken();
   while (precedingToken && precedingToken.type === 'comment') {
     stepLeftAndSkipWs();
     precedingToken = testCursor.getPrevToken();
   }
-  return !!precedingToken && String(precedingToken.raw) === ':let';
+
+  if (!precedingToken) {
+    return null;
+  }
+
+  const matchingForm = keywordForms.find((f) => f.keyword === precedingToken.raw);
+  if (!matchingForm) {
+    return null;
+  }
+
+  // Validate parent if specified - search up through lists until we find a function call
+  if (matchingForm.validParents?.length) {
+    const parentCursor = cursor.clone();
+    while (parentCursor.backwardUpList()) {
+      parentCursor.backwardList();
+      const opening = parentCursor.getPrevToken().raw;
+      if (opening.endsWith('(')) {
+        // Found a function call, check if it's a valid parent
+        const parentFn = parentCursor.getFunctionName();
+        if (parentFn && matchingForm.validParents.includes(parentFn)) {
+          return matchingForm;
+        }
+        return null; // Found a function call but not a valid parent
+      }
+      // Not a function call (e.g., a vector), continue searching up
+    }
+    return null; // No valid parent function found
+  }
+
+  return matchingForm;
 }
 
-const conditionalForms = ['cond', 'cond->', 'cond->>'];
+const conditionalForms = ['cond', 'cond->', 'cond->>', 'case', 'condp'];
 
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
  * for conditional forms.
  * - cond: pairs start after function name (offset 1 for 'cond' itself)
  * - cond->/cond->>: pairs start after function name and initial form (offset 2)
+ * - case: pairs start after function name and initial form (offset 2)
+ * - condp: pairs start after function name, predicate, and initial form (offset 3)
  */
 function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
@@ -1560,15 +1706,22 @@ function getConditionalFormPairOffset(cursor: LispTokenCursor): number {
       if (fn === 'cond') {
         return 1;
       }
-      if (fn === 'cond->' || fn === 'cond->>') {
+      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case') {
         return 2;
+      }
+      if (fn === 'condp') {
+        return 3;
       }
     }
   }
   return 0;
 }
 
-export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+export function isInPairsList(
+  cursor: LispTokenCursor,
+  pairForms: string[],
+  vectorConfigs: VectorBindingConfig[] = defaultVectorPairForms
+): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1576,7 +1729,9 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       return true;
     }
     if (opening.endsWith('[')) {
-      if (isPrecededByLetKeyword(probeCursor)) {
+      // Check keyword modifiers first (like :let)
+      const keywordForms = vectorConfigs.filter((f): f is KeywordPairForm => f.type === 'keyword');
+      if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
 
@@ -1601,6 +1756,172 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
     return false;
   }
   return false;
+}
+
+/**
+ * Checks if the current index is part of a condp triple (test :>> function).
+ * Returns the range of the triple if found, otherwise null.
+ */
+function getCondpTripleRange(
+  doc: EditableDocument,
+  ranges: [number, number][],
+  currentIndex: number,
+  pairOffset: number
+): [number, number] | null {
+  const adjustedIndex = currentIndex - pairOffset;
+  if (adjustedIndex < 0) {
+    return null;
+  }
+
+  // Helper to get text for a range index
+  const getText = (idx: number) =>
+    idx >= 0 && idx < ranges.length ? doc.model.getText(ranges[idx][0], ranges[idx][1]) : '';
+
+  // If current is :>>, return test + :>> + fn
+  if (
+    getText(currentIndex) === ':>>' &&
+    currentIndex > pairOffset &&
+    currentIndex < ranges.length - 1
+  ) {
+    return [ranges[currentIndex - 1][0], ranges[currentIndex + 1][1]];
+  }
+
+  // If previous is :>>, return test + :>> + fn
+  if (getText(currentIndex - 1) === ':>>' && currentIndex > pairOffset + 1) {
+    return [ranges[currentIndex - 2][0], ranges[currentIndex][1]];
+  }
+
+  // If next is :>>, return test + :>> + fn
+  if (getText(currentIndex + 1) === ':>>' && currentIndex < ranges.length - 2) {
+    return [ranges[currentIndex][0], ranges[currentIndex + 2][1]];
+  }
+
+  return null;
+}
+
+/**
+ * Builds condp element groups (pairs and :>> triples) and returns the range
+ * containing the current selection, or currentSingleRange as a fallback.
+ */
+function getCondpElementGroupRange(
+  doc: EditableDocument,
+  ranges: [number, number][],
+  indexOfCurrentSingle: number,
+  pairOffset: number,
+  currentSingleRange: [number, number]
+): [number, number] {
+  const adjustedIndex = indexOfCurrentSingle - pairOffset;
+  if (adjustedIndex < 0) {
+    return currentSingleRange;
+  }
+
+  // Check for :>> triple first
+  const tripleRange = getCondpTripleRange(doc, ranges, indexOfCurrentSingle, pairOffset);
+  if (tripleRange) {
+    return tripleRange;
+  }
+
+  // Check for default (last element, odd count)
+  const pairableElementsCount = ranges.length - pairOffset;
+  const isOddElementCount = pairableElementsCount % 2 === 1;
+  const isLastElement = adjustedIndex === pairableElementsCount - 1;
+  if (isOddElementCount && isLastElement) {
+    return currentSingleRange;
+  }
+
+  // Handle regular pairs and :>> triples by grouping elements
+  const elementGroups: { start: number; end: number; groupStart: number }[] = [];
+  let i = pairOffset;
+
+  while (i < ranges.length) {
+    // Check if next element is :>>
+    if (i + 1 < ranges.length) {
+      const nextText = doc.model.getText(ranges[i + 1][0], ranges[i + 1][1]);
+      if (nextText === ':>>') {
+        if (i + 2 < ranges.length) {
+          elementGroups.push({
+            start: ranges[i][0],
+            end: ranges[i + 2][1],
+            groupStart: i,
+          });
+          i += 3;
+          continue;
+        }
+      }
+    }
+
+    // Regular pair (or default)
+    if (i + 1 < ranges.length) {
+      const remainingElements = ranges.length - i;
+      if (remainingElements === 1) {
+        // default
+        elementGroups.push({ start: ranges[i][0], end: ranges[i][1], groupStart: i });
+        i++;
+      } else {
+        // pair
+        elementGroups.push({
+          start: ranges[i][0],
+          end: ranges[i + 1][1],
+          groupStart: i,
+        });
+        i += 2;
+      }
+    } else {
+      // last element (default)
+      elementGroups.push({ start: ranges[i][0], end: ranges[i][1], groupStart: i });
+      i++;
+    }
+  }
+
+  // Find which group contains the current selection
+  for (const group of elementGroups) {
+    if (currentSingleRange[0] >= group.start && currentSingleRange[1] <= group.end) {
+      return [group.start, group.end];
+    }
+  }
+
+  return currentSingleRange;
+}
+
+/**
+ * Build paired element groups for non-conditional lists and return the group
+ * range that contains the provided currentSingleRange.
+ *
+ * Pairs are formed by consecutive elements starting at `pairOffset`. If the
+ * list has an odd trailing element that cannot be paired, it is treated as a
+ * single-element group (the "default" case).
+ */
+function getPairElementGroupRange(
+  ranges: [number, number][],
+  pairOffset: number,
+  currentSingleRange: [number, number]
+): [number, number] {
+  const elementGroups: { start: number; end: number }[] = [];
+  const rangesLength = ranges.length;
+  let i = pairOffset;
+
+  while (i < rangesLength) {
+    if (
+      i + 1 < rangesLength &&
+      !(i === rangesLength - 1 && (rangesLength - pairOffset) % 2 === 1)
+    ) {
+      // pair
+      elementGroups.push({ start: ranges[i][0], end: ranges[i + 1][1] });
+      i += 2;
+    } else {
+      // default (single element at the end)
+      elementGroups.push({ start: ranges[i][0], end: ranges[i][1] });
+      i++;
+    }
+  }
+
+  for (const group of elementGroups) {
+    if (currentSingleRange[0] >= group.start && currentSingleRange[1] <= group.end) {
+      return [group.start, group.end];
+    }
+  }
+
+  return currentSingleRange;
 }
 
 /**
@@ -1631,15 +1952,21 @@ export function currentSexpsRange(
 
       // Only treat as pairs if we're past the offset
       if (adjustedIndex >= 0) {
-        if (adjustedIndex % 2 == 0) {
-          const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
-          pairCursor.forwardSexp();
-          return [currentSingleRange[0], pairCursor.offsetStart];
-        } else {
-          const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
-          pairCursor.backwardSexp();
-          return [pairCursor.offsetStart, currentSingleRange[1]];
+        // Check if we're in a condp form
+        const probeCursor = listCursor.clone();
+        if (probeCursor.backwardList()) {
+          const fn = probeCursor.getFunctionName();
+          if (fn === 'condp') {
+            return getCondpElementGroupRange(
+              doc,
+              ranges,
+              indexOfCurrentSingle,
+              pairOffset,
+              currentSingleRange
+            );
+          }
         }
+        return getPairElementGroupRange(ranges, pairOffset, currentSingleRange);
       }
     }
   }

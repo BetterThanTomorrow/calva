@@ -4,10 +4,19 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: Slurp Forward no longer adds leading space when slurping into empty forms. [#1440](https://github.com/BetterThanTomorrow/calva/issues/1440) &
+[#2085](https://github.com/BetterThanTomorrow/calva/issues/2085)
 - Fix: Slurp Backward no longer adds trailing space when slurping into empty forms
-- [Grow Selection Could Consider 'Form Pairs' in :let Bindings](https://github.com/BetterThanTomorrow/calva/issues/2988)
-- Enhancement: [Grow selection now considers test/expr pairs in `cond` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
-- Enhancement: [Grow selection now considers test/expr pairs in `cond->` and `cond->>` forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+
+## [2.0.546] - 2026-01-30
+
+- [Consider form pairs in `:let` bindings when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2988)
+- [Consider test/expr pairs in `cond` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- [Consider test/expr pairs in `cond->` and `cond->>` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2991)
+- [Consider value/result pairs in `case` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2993)
+- [Consider test/result pairs and `:>>` function triples in `condp` forms when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2995)
+- [Improve backspace and deleteForward functions for reader macro hash deletion](https://github.com/BetterThanTomorrow/calva/issues/2766)
+- Bump deps.clj.jar to v1.12.4.1597
 
 ## [2.0.545] - 2026-01-17
 
