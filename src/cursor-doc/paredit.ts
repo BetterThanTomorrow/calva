@@ -1588,6 +1588,12 @@ interface FlatPairForm {
 
 type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
 
+type GroupedPairForms = {
+  'vector-binding': VectorBindingForm[];
+  keyword: KeywordPairForm[];
+  flat: FlatPairForm[];
+};
+
 const defaultPairForms: PairFormConfig[] = [
   // Vector Binding forms
   { type: 'vector-binding', name: 'let' },
@@ -1609,10 +1615,25 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
 ];
 
-// Backward compatibility
-export const bindingForms = defaultPairForms
-  .filter((f): f is VectorBindingForm => f.type === 'vector-binding')
-  .map((f) => f.name);
+const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
+  (acc, form) => {
+    switch (form.type) {
+      case 'vector-binding':
+        acc['vector-binding'].push(form);
+        break;
+      case 'keyword':
+        acc.keyword.push(form);
+        break;
+      case 'flat':
+        acc.flat.push(form);
+        break;
+    }
+    return acc;
+  },
+  { 'vector-binding': [], keyword: [], flat: [] }
+);
+
+export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
 
 /**
  * Checks if a vector is preceded by a keyword pair form (like `:let`).
@@ -1685,11 +1706,7 @@ function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): Fl
   return null;
 }
 
-export function isInPairsList(
-  cursor: LispTokenCursor,
-  pairForms: string[],
-  vectorConfigs: PairFormConfig[] = defaultPairForms
-): boolean {
+export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1698,7 +1715,7 @@ export function isInPairsList(
     }
     if (opening.endsWith('[')) {
       // Check keyword modifiers first (like :let)
-      const keywordForms = vectorConfigs.filter((f): f is KeywordPairForm => f.type === 'keyword');
+      const keywordForms = groupedDefaultPairForms.keyword;
       if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
@@ -1716,7 +1733,7 @@ export function isInPairsList(
     }
     if (opening.endsWith('(')) {
       // Check if this is a flat pair form like (cond test expr test expr ...)
-      const flatForms = vectorConfigs.filter((f): f is FlatPairForm => f.type === 'flat');
+      const flatForms = groupedDefaultPairForms.flat;
       if (getFlatPairForm(probeCursor, flatForms)) {
         return true;
       }
@@ -1915,7 +1932,7 @@ export function currentSexpsRange(
       );
 
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
-      const flatForms = defaultPairForms.filter((f): f is FlatPairForm => f.type === 'flat');
+      const flatForms = groupedDefaultPairForms.flat;
       const flatForm = getFlatPairForm(listCursor, flatForms);
       const pairOffset = flatForm?.offset ?? 0;
 
