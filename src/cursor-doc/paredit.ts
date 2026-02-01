@@ -1742,7 +1742,8 @@ export function isInPairsList(
         return false;
       }
       const fn = probeCursor.getFunctionName();
-      if (fn && pairForms.includes(fn)) {
+      const vectorBindingNames = grouped['vector-binding'].map((f) => f.name);
+      if (fn && vectorBindingNames.includes(fn)) {
         return true;
       }
     }
