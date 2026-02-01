@@ -4,6 +4,7 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
 import { EditableDocument } from '../cursor-doc/model';
+import { getPareditConfig } from '../cursor-doc/paredit-config';
 
 export type SelectionAndText = [vscode.Selection | undefined, string];
 
@@ -34,8 +35,9 @@ export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position):
   const cursorDoc = docMirror.getDocument(doc);
   const cursorPos = doc.offsetAt(pos);
   const cursor = cursorDoc.getTokenCursor(cursorPos);
-  if (paredit.isInPairsList(cursor, paredit.bindingForms)) {
-    const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true);
+  const pareditConfig = getPareditConfig();
+  if (paredit.isInPairsList(cursor, pareditConfig)) {
+    const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true, pareditConfig);
     const selection = select.selectionFromOffsetRange(doc, range);
     return [selection, doc.getText(selection)];
   } else {
