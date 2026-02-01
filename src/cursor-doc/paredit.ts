@@ -2000,9 +2000,8 @@ export function currentSexpsRange(
       const flatForms = groupedDefaultPairForms.flat;
       const flatForm = getFlatPairForm(listCursor, flatForms);
       const threadingStyle = getDirectThreadingMacroStyle(cursor);
-
-      const pairOffset =
-        threadingStyle === 'firstArg' ? Math.max(0, flatForm.offset - 1) : flatForm.offset || 0;
+      const formOffset = flatForm?.offset || 0;
+      const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;
 
       // Adjust the index to account for non-pair forms at the start
       const adjustedIndex = indexOfCurrentSingle - pairOffset;
