@@ -14,7 +14,7 @@ import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
 import * as output from './results-output/output';
 import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
-import type { PairFormConfig, ThreadingMacrosConfig } from './cursor-doc/paredit';
+import type { PairFormConfig, ThreadingMacrosConfig } from './cursor-doc/paredit-config';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
