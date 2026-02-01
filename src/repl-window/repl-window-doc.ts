@@ -613,6 +613,10 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
   if (!lastAppended.trimEnd().endsWith(prompt.trimEnd())) {
     appendLine(getPrompt(), onAppended);
   }
+  else if (onAppended) {
+    // Resolve promise though no append is actually needed
+    onAppended(undefined);
+  }
 }
 
 export function forceAppendPrompt(onAppended?: OnAppendedCallback) {
