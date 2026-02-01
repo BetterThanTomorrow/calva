@@ -909,6 +909,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
     const wsInsideCursor = cursor.clone();
     wsInsideCursor.backwardWhitespace(false);
     const wsStartOffset = wsInsideCursor.offsetStart;
+    // Check if form is empty (only whitespace between open and close)
+    const isFormEmpty = wsInsideCursor.getPrevToken().type === 'open';
     cursor.upList();
     const wsOutSideCursor = cursor.clone();
     if (cursor.forwardSexp(true, true)) {
@@ -919,6 +921,8 @@ function forwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit<
       const changeArgs =
         replacedText.indexOf('\n') >= 0
           ? ([currentCloseOffset, currentCloseOffset + close.length, ''] as const)
+          : isFormEmpty
+          ? ([wsStartOffset, wsEndOffset, ''] as const)
           : ([wsStartOffset, wsEndOffset, ' '] as const);
       return [
         new ModelEdit('changeRange', [newCloseOffset, newCloseOffset, close]),
@@ -941,22 +945,52 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   const cursor = doc.getTokenCursor(start);
   cursor.backwardList();
   const tk = cursor.getPrevToken();
-  if (tk.type == 'open') {
-    const offset = cursor.clone().previous().offsetStart;
-    const open = cursor.getPrevToken().raw;
-    cursor.previous();
-    cursor.backwardSexp(true, true);
-    cursor.forwardWhitespace(false);
-    if (offset !== cursor.offsetStart) {
-      return [
-        new ModelEdit('changeRange', [offset, offset + tk.raw.length, '']),
-        new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, open]),
-      ];
-    } else {
-      return backwardSlurpSexpEdits(doc, cursor.offsetStart);
-    }
-  } else {
+  if (tk.type !== 'open') {
     return [];
+  }
+
+  const openBracketOffset = cursor.clone().previous().offsetStart;
+  const open = tk.raw;
+
+  // Check if form is empty/whitespace-only and find close bracket position
+  const insideCursor = cursor.clone();
+  insideCursor.forwardWhitespace(false);
+  const isFormEmpty = insideCursor.getToken().type === 'close';
+
+  // Navigate to previous sexp
+  cursor.previous();
+  cursor.backwardSexp(true, true);
+  const prevSexpStart = cursor.offsetStart;
+
+  // Skip whitespace to check if there's a previous sexp to slurp
+  cursor.forwardWhitespace(false);
+  const afterWhitespace = cursor.offsetStart;
+
+  if (openBracketOffset === afterWhitespace) {
+    // No previous sexp at this level, try enclosing form
+    return backwardSlurpSexpEdits(doc, prevSexpStart);
+  }
+
+  if (isFormEmpty) {
+    // Empty form: remove whitespace + open bracket + internal whitespace, insert open at sexp start
+
+    // Find end of previous sexp
+    const sexpEndCursor = cursor.clone();
+    sexpEndCursor.forwardSexp(true, true);
+    const prevSexpEnd = sexpEndCursor.offsetStart;
+
+    const closeOffset = insideCursor.offsetStart;
+
+    return [
+      new ModelEdit('changeRange', [prevSexpEnd, closeOffset, '']),
+      new ModelEdit('changeRange', [prevSexpStart, prevSexpStart, open]),
+    ];
+  } else {
+    // Non-empty form: remove open bracket, insert at whitespace end (preserves one space)
+    return [
+      new ModelEdit('changeRange', [openBracketOffset, openBracketOffset + open.length, '']),
+      new ModelEdit('changeRange', [afterWhitespace, afterWhitespace, open]),
+    ];
   }
 }
 
@@ -1613,6 +1647,7 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'cond->>', offset: 2 },
   { type: 'flat', name: 'case', offset: 2 },
   { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
+  { type: 'flat', name: 'assoc', offset: 2 },
 ];
 
 const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
@@ -1634,6 +1669,36 @@ const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
 );
 
 export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
+
+const threadingMacros = {
+  firstArg: ['->', 'some->'],
+  lastArg: ['->>', 'some->>'],
+};
+
+/**
+ * Detects if cursor's form is the direct child of a threading macro.
+ * Returns:
+ * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
+ * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
+ * - null if not direct child of threading macro
+ */
+function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+  const probeCursor = cursor.clone();
+  // Only check immediate parent - go up one level
+  if (probeCursor.backwardList()) {
+    probeCursor.backwardUpList();
+    const fn = probeCursor.getFunctionName();
+    if (fn) {
+      if (threadingMacros.firstArg.includes(fn)) {
+        return 'firstArg';
+      }
+      if (threadingMacros.lastArg.includes(fn)) {
+        return 'lastArg';
+      }
+    }
+  }
+  return null;
+}
 
 /**
  * Checks if a vector is preceded by a keyword pair form (like `:let`).
@@ -1934,7 +1999,10 @@ export function currentSexpsRange(
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
       const flatForms = groupedDefaultPairForms.flat;
       const flatForm = getFlatPairForm(listCursor, flatForms);
-      const pairOffset = flatForm?.offset ?? 0;
+      const threadingStyle = getDirectThreadingMacroStyle(cursor);
+
+      const pairOffset =
+        threadingStyle === 'firstArg' ? Math.max(0, flatForm.offset - 1) : flatForm.offset || 0;
 
       // Adjust the index to account for non-pair forms at the start
       const adjustedIndex = indexOfCurrentSingle - pairOffset;
