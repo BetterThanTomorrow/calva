@@ -1627,17 +1627,17 @@ function getDirectThreadingMacroStyle(
   cursor: LispTokenCursor,
   config?: PareditConfig
 ): 'firstArg' | 'lastArg' | null {
-  const macros = config?.threadingMacros ?? defaultThreadingMacros;
+  const threadingMacros = config?.threadingMacros ?? defaultThreadingMacros;
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
     probeCursor.backwardUpList();
     const fn = probeCursor.getFunctionName();
     if (fn) {
-      if (macros.firstArg.includes(fn)) {
+      if (threadingMacros.firstArg.includes(fn)) {
         return 'firstArg';
       }
-      if (macros.lastArg.includes(fn)) {
+      if (threadingMacros.lastArg.includes(fn)) {
         return 'lastArg';
       }
     }
