@@ -1502,6 +1502,41 @@ describe('paredit', () => {
         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
       });
     });
+
+    describe('assoc pairs', () => {
+      it('grows selection to key/value pairs in assoc (value selected first)', () => {
+        const a = docFromTextNotation('(assoc m :a |"one"| :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m |:a "one"| :b "two")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to key/value pairs in assoc (key selected first)', () => {
+        const a = docFromTextNotation('(assoc m |:a| "one" :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m |:a "one"| :b "two")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to key/value pairs in assoc (second pair)', () => {
+        const a = docFromTextNotation('(assoc m :a "one" |:b| "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m :a "one" |:b "two"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('does not treat map argument as part of pair', () => {
+        const a = docFromTextNotation('(assoc |m| :a "one" :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(|assoc m :a "one" :b "two"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+    });
   });
 
   describe('condp pair/triple selection tests', () => {
@@ -1945,6 +1980,37 @@ describe('paredit', () => {
         const a = docFromTextNotation('(doseq [x xs :let [a 1 |b 2]] (println a b))');
         const b = docFromTextNotation('(doseq [x xs :let [|b 2 a 1]] (println a b))');
         await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('assoc forms', () => {
+      it('drags key/value pair forward in assoc', async () => {
+        const a = docFromTextNotation('(assoc m |:a "one" :b "two")');
+        const b = docFromTextNotation('(assoc m :b "two" |:a "one")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags key/value pair backward in assoc', async () => {
+        const a = docFromTextNotation('(assoc m :a "one" |:b "two")');
+        const b = docFromTextNotation('(assoc m |:b "two" :a "one")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags key/value pair forward in assoc when cursor on value', async () => {
+        const a = docFromTextNotation('(assoc m :a |"one" :b "two")');
+        const b = docFromTextNotation('(assoc m :b "two" :a |"one")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags map argument past pair when dragging forward in assoc', async () => {
+        const a = docFromTextNotation('(assoc |m :a "one" :b "two")');
+        // Map drags past the first key-value pair to maintain pair structure
+        const b = docFromTextNotation('(assoc :a "one" |m :b "two")');
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });

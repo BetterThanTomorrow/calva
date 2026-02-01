@@ -160,6 +160,8 @@ string. "
   #{0 6 7} :>> inc
   #{5 9}   :>> dec)
 
+(assoc {} :a 1 :b 2)
+
 ;; === Slurp Backward
 
 ;; Slurp backward into empty string
