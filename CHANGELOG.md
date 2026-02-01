@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: Slurp Forward no longer adds leading space when slurping into empty forms. [#1440](https://github.com/BetterThanTomorrow/calva/issues/1440) &
+[#2085](https://github.com/BetterThanTomorrow/calva/issues/2085) 
+
 ## [2.0.546] - 2026-01-30
 
 - [Consider form pairs in `:let` bindings when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/2988)
