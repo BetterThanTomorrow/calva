@@ -1,5 +1,6 @@
 import { EditableDocument, ModelEditDirectedRange } from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
+import type { PareditConfig } from '../cursor-doc/paredit';
 
 // MOVEMENT
 
@@ -64,8 +65,12 @@ export function rangeForDefun(doc: EditableDocument, isMulti: boolean) {
   const ranges = selections.map((s) => paredit.rangeForDefun(doc, s.active));
   paredit.selectRange(doc, ranges);
 }
-export function sexpRangeExpansion(doc: EditableDocument, isMulti: boolean) {
-  paredit.growSelection(doc, isMulti ? doc.selections : [doc.selections[0]]);
+export function sexpRangeExpansion(
+  doc: EditableDocument,
+  isMulti: boolean,
+  config?: PareditConfig
+) {
+  paredit.growSelection(doc, isMulti ? doc.selections : [doc.selections[0]], config);
 }
 export function sexpRangeContraction(doc: EditableDocument, isMulti: boolean) {
   paredit.shrinkSelection(doc, isMulti ? doc.selections : [doc.selections[0]]);

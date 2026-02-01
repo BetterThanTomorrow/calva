@@ -14,6 +14,7 @@ import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
 import * as output from './results-output/output';
 import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
+import type { PairFormConfig, ThreadingMacrosConfig } from './cursor-doc/paredit';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
@@ -127,8 +128,22 @@ function mergeSnippets(
 }
 
 /**
+ * Merges two threading macro configurations by concatenating their arrays.
+ */
+function mergeThreadingMacros(
+  a: Partial<ThreadingMacrosConfig>,
+  b: Partial<ThreadingMacrosConfig>
+): Partial<ThreadingMacrosConfig> {
+  return {
+    firstArg: [...(a.firstArg ?? []), ...(b.firstArg ?? [])],
+    lastArg: [...(a.lastArg ?? []), ...(b.lastArg ?? [])],
+  };
+}
+
+/**
  * Saves the EDN config in the state to be merged into the actual vsconfig.
- * Currently only `:customREPLCommandSnippets` and `customREPLHoverSnippets` are supported.
+ * Currently supports: `:customREPLCommandSnippets`, `customREPLHoverSnippets`,
+ * `:customPairForms`, and `:customThreadingMacros`.
  * @param {string} data a string representation of a clojure map
  * @returns an error of one was thrown
  */
@@ -146,6 +161,8 @@ function addEdnConfig(data: string) {
         old?.customREPLHoverSnippets ?? [],
         parsed?.customREPLHoverSnippets ?? []
       ),
+      customPairForms: parsed?.customPairForms ?? [],
+      customThreadingMacros: parsed?.customThreadingMacros ?? {},
     });
   } catch (error) {
     return error;
@@ -276,6 +293,13 @@ function getConfig() {
     basilispPath: configOptions.get<string>('basilispPath'),
     refreshNssBeforeFn: configOptions.get<string>('refreshNssBeforeFn'),
     refreshNssAfterFn: configOptions.get<string>('refreshNssAfterFn'),
+    customPairForms: pareditOptions
+      .get<PairFormConfig[]>('customPairForms', [])
+      .concat(state.getProjectConfig()?.customPairForms ?? []),
+    customThreadingMacros: mergeThreadingMacros(
+      pareditOptions.get<Partial<ThreadingMacrosConfig>>('customThreadingMacros', {}),
+      state.getProjectConfig()?.customThreadingMacros ?? {}
+    ),
   };
 }
 

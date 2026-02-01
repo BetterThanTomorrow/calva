@@ -1352,7 +1352,11 @@ export async function stringQuote(
  * built-in Expand Selection/Shrink Selection commands)
  * // TODO: Inside string should first select contents
  */
-export function growSelection(doc: EditableDocument, selections = doc.selections) {
+export function growSelection(
+  doc: EditableDocument,
+  selections = doc.selections,
+  config?: PareditConfig
+) {
   const newRanges = selections.map<[number, number]>(({ anchor: start, active: end }) => {
     const startC = doc.getTokenCursor(start),
       endC = doc.getTokenCursor(end),
@@ -1369,9 +1373,9 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       return [start, end];
     } else {
       // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
-      if (isInPairsList(startC, bindingForms)) {
+      if (isInPairsList(startC, bindingForms, config)) {
         // Use the selection start to determine the pair
-        const pairRange = currentSexpsRange(doc, startC, start, true);
+        const pairRange = currentSexpsRange(doc, startC, start, true, config);
         // Only expand to pair if current selection is smaller than the pair
         // (i.e., we have a single form selected, not already a pair or larger)
         const currentSelectionLength = end - start;
@@ -1602,31 +1606,41 @@ export async function transpose(
   }
 }
 
-interface VectorBindingForm {
+export interface VectorBindingForm {
   type: 'vector-binding';
   name: string;
 }
 
-interface KeywordPairForm {
+export interface KeywordPairForm {
   type: 'keyword';
   keyword: string;
   validParents?: string[];
 }
 
-interface FlatPairForm {
+export interface FlatPairForm {
   type: 'flat';
   name: string;
   offset: number;
   tripleMarker?: string;
 }
 
-type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
+export type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
 
-type GroupedPairForms = {
+export type GroupedPairForms = {
   'vector-binding': VectorBindingForm[];
   keyword: KeywordPairForm[];
   flat: FlatPairForm[];
 };
+
+export interface ThreadingMacrosConfig {
+  firstArg: string[];
+  lastArg: string[];
+}
+
+export interface PareditConfig {
+  pairForms: GroupedPairForms;
+  threadingMacros: ThreadingMacrosConfig;
+}
 
 const defaultPairForms: PairFormConfig[] = [
   // Vector Binding forms
@@ -1670,6 +1684,71 @@ const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
 
 export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
 
+/**
+ * Groups pair forms by type for efficient lookups.
+ */
+export function groupPairForms(forms: PairFormConfig[]): GroupedPairForms {
+  return forms.reduce<GroupedPairForms>(
+    (acc, form) => {
+      switch (form.type) {
+        case 'vector-binding':
+          acc['vector-binding'].push(form);
+          break;
+        case 'keyword':
+          acc.keyword.push(form);
+          break;
+        case 'flat':
+          acc.flat.push(form);
+          break;
+      }
+      return acc;
+    },
+    { 'vector-binding': [], keyword: [], flat: [] }
+  );
+}
+
+/**
+ * Merges custom pair forms with defaults.
+ * Custom forms override defaults with the same type+name/keyword.
+ */
+function mergePairForms(defaults: PairFormConfig[], customs: PairFormConfig[]): PairFormConfig[] {
+  // Generate unique key for each form based on type and identifier
+  const getKey = (f: PairFormConfig) => `${f.type}:${f.type === 'keyword' ? f.keyword : f.name}`;
+
+  // Map custom forms by key for quick lookup
+  const customsByKey = new Map(customs.map((f) => [getKey(f), f]));
+
+  // Replace defaults with custom versions where they exist
+  const merged = defaults.map((d) => customsByKey.get(getKey(d)) ?? d);
+
+  // Add custom forms that don't override any defaults
+  for (const [key, form] of customsByKey) {
+    if (!merged.some((m) => getKey(m) === key)) {
+      merged.push(form);
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Creates a complete paredit configuration by merging custom forms and threading macros
+ * with defaults.
+ */
+export function createPareditConfig(
+  customPairForms: PairFormConfig[] = [],
+  customThreadingMacros: Partial<ThreadingMacrosConfig> = {}
+): PareditConfig {
+  const mergedForms = mergePairForms(defaultPairForms, customPairForms);
+  return {
+    pairForms: groupPairForms(mergedForms),
+    threadingMacros: {
+      firstArg: [...threadingMacros.firstArg, ...(customThreadingMacros.firstArg ?? [])],
+      lastArg: [...threadingMacros.lastArg, ...(customThreadingMacros.lastArg ?? [])],
+    },
+  };
+}
+
 const threadingMacros = {
   firstArg: ['->', 'some->'],
   lastArg: ['->>', 'some->>'],
@@ -1681,18 +1760,24 @@ const threadingMacros = {
  * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
  * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
  * - null if not direct child of threading macro
+ * @param cursor The cursor position to check
+ * @param config Optional paredit configuration (uses defaults if not provided)
  */
-function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+function getDirectThreadingMacroStyle(
+  cursor: LispTokenCursor,
+  config?: PareditConfig
+): 'firstArg' | 'lastArg' | null {
+  const macros = config?.threadingMacros ?? threadingMacros;
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
     probeCursor.backwardUpList();
     const fn = probeCursor.getFunctionName();
     if (fn) {
-      if (threadingMacros.firstArg.includes(fn)) {
+      if (macros.firstArg.includes(fn)) {
         return 'firstArg';
       }
-      if (threadingMacros.lastArg.includes(fn)) {
+      if (macros.lastArg.includes(fn)) {
         return 'lastArg';
       }
     }
@@ -1771,7 +1856,12 @@ function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): Fl
   return null;
 }
 
-export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+export function isInPairsList(
+  cursor: LispTokenCursor,
+  pairForms: string[],
+  config?: PareditConfig
+): boolean {
+  const grouped = config?.pairForms ?? groupedDefaultPairForms;
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1780,7 +1870,7 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
     }
     if (opening.endsWith('[')) {
       // Check keyword modifiers first (like :let)
-      const keywordForms = groupedDefaultPairForms.keyword;
+      const keywordForms = grouped.keyword;
       if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
@@ -1798,7 +1888,7 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
     }
     if (opening.endsWith('(')) {
       // Check if this is a flat pair form like (cond test expr test expr ...)
-      const flatForms = groupedDefaultPairForms.flat;
+      const flatForms = grouped.flat;
       if (getFlatPairForm(probeCursor, flatForms)) {
         return true;
       }
@@ -1984,8 +2074,10 @@ export function currentSexpsRange(
   doc: EditableDocument,
   cursor: LispTokenCursor,
   offset: number,
-  usePairs = false
+  usePairs = false,
+  config?: PareditConfig
 ): [number, number] {
+  const grouped = config?.pairForms ?? groupedDefaultPairForms;
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
     // Create a fresh cursor at the offset position to ensure correct list context
@@ -1997,10 +2089,10 @@ export function currentSexpsRange(
       );
 
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
-      const flatForms = groupedDefaultPairForms.flat;
+      const flatForms = grouped.flat;
       const flatForm = getFlatPairForm(listCursor, flatForms);
-      const threadingStyle = getDirectThreadingMacroStyle(cursor);
-      const formOffset = flatForm?.offset || 0;
+      const threadingStyle = getDirectThreadingMacroStyle(cursor, config);
+      const formOffset = flatForm.offset;
       const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;
 
       // Adjust the index to account for non-pair forms at the start
@@ -2030,15 +2122,16 @@ export async function dragSexprBackward(
   doc: EditableDocument,
   pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, pairForms, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
+  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backRange[0] !== currentRange[0]) {
     // there is a sexp to the left
     const leftText = doc.model.getText(backRange[0], backRange[1]);
@@ -2057,15 +2150,22 @@ export async function dragSexprForward(
   doc: EditableDocument,
   pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, pairForms, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = currentRange[1] - right;
   const forwardCursor = doc.getTokenCursor(currentRange[1]);
   forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
+  const forwardRange = currentSexpsRange(
+    doc,
+    forwardCursor,
+    forwardCursor.offsetStart,
+    usePairs,
+    config
+  );
   if (forwardRange[0] !== currentRange[0]) {
     // there is a sexp to the right
     const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
