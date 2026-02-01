@@ -4,7 +4,7 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
 import { EditableDocument } from '../cursor-doc/model';
-import { getPareditConfig } from '../cursor-doc/paredit-config';
+import { getPareditConfig } from '../paredit/extension';
 
 export type SelectionAndText = [vscode.Selection | undefined, string];
 

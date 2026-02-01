@@ -166,18 +166,3 @@ export function createPareditConfig(
     },
   };
 }
-
-// Cache paredit configuration
-let pareditConfigCache: PareditConfig | null = null;
-
-/**
- * Gets the merged paredit configuration from VS Code settings and .calva/config.edn.
- * Results are cached and invalidated on config changes.
- */
-export function getPareditConfig(): PareditConfig {
-  if (!pareditConfigCache) {
-    const cfg = getConfig();
-    pareditConfigCache = createPareditConfig(cfg.customPairForms, cfg.customThreadingMacros);
-  }
-  return pareditConfigCache;
-}
