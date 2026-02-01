@@ -17,7 +17,7 @@ import {
   PareditConfig,
   KeywordPairForm,
   FlatPairForm,
-  groupedDefaultPairForms,
+  defaultGroupedDefaultPairForms,
   defaultBindingForms,
   defaultThreadingMacros,
 } from './paredit-config';
@@ -1381,7 +1381,7 @@ export function growSelection(
       return [start, end];
     } else {
       // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
-      if (isInPairsList(startC, defaultBindingForms, config)) {
+      if (isInPairsList(startC, config)) {
         // Use the selection start to determine the pair
         const pairRange = currentSexpsRange(doc, startC, start, true, config);
         // Only expand to pair if current selection is smaller than the pair
@@ -1716,12 +1716,8 @@ function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): Fl
   return null;
 }
 
-export function isInPairsList(
-  cursor: LispTokenCursor,
-  pairForms: string[],
-  config?: PareditConfig
-): boolean {
-  const grouped = config?.pairForms ?? groupedDefaultPairForms;
+export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): boolean {
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1938,7 +1934,7 @@ export function currentSexpsRange(
   usePairs = false,
   config?: PareditConfig
 ): [number, number] {
-  const grouped = config?.pairForms ?? groupedDefaultPairForms;
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
     // Create a fresh cursor at the offset position to ensure correct list context
@@ -1987,7 +1983,7 @@ export async function dragSexprBackward(
   config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms, config);
+  const usePairs = isInPairsList(cursor, config);
   const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
@@ -2015,7 +2011,7 @@ export async function dragSexprForward(
   config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms, config);
+  const usePairs = isInPairsList(cursor, config);
   const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = currentRange[1] - right;
   const forwardCursor = doc.getTokenCursor(currentRange[1]);
