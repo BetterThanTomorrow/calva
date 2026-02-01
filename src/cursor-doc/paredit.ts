@@ -1689,6 +1689,36 @@ function isPrecededByKeywordPairForm(
 
 const flatPairForms = ['cond', 'cond->', 'cond->>', 'case', 'condp', 'assoc'];
 
+const threadingMacros = {
+  firstArg: ['->', 'some->'],
+  lastArg: ['->>', 'some->>'],
+};
+
+/**
+ * Detects if cursor's form is the direct child of a threading macro.
+ * Returns:
+ * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
+ * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
+ * - null if not direct child of threading macro
+ */
+function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+  const probeCursor = cursor.clone();
+  // Only check immediate parent - go up one level
+  if (probeCursor.backwardList()) {
+    probeCursor.backwardUpList();
+    const fn = probeCursor.getFunctionName();
+    if (fn) {
+      if (threadingMacros.firstArg.includes(fn)) {
+        return 'firstArg';
+      }
+      if (threadingMacros.lastArg.includes(fn)) {
+        return 'lastArg';
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Returns the offset (number of initial forms that are not part of pairs)
  * for flat pair forms (forms where pairs appear directly in the list).
@@ -1697,6 +1727,11 @@ const flatPairForms = ['cond', 'cond->', 'cond->>', 'case', 'condp', 'assoc'];
  * - case: pairs start after function name and initial form (offset 2)
  * - condp: pairs start after function name, predicate, and initial form (offset 3)
  * - assoc: pairs start after function name and map (offset 2)
+ *
+ * Note: When inside threading macros (-> or ->>), the offset is adjusted:
+ * - Inside ->: offset is reduced by 1 (first argument is threaded from outside)
+ * - Inside ->>: offset adjustment depends on position (may have trailing unpaired elements)
+ *               this is handled in getPairElementGroupRange: builds pairs
  */
 function getFlatPairFormOffset(cursor: LispTokenCursor): number {
   const probeCursor = cursor.clone();
@@ -1704,15 +1739,28 @@ function getFlatPairFormOffset(cursor: LispTokenCursor): number {
     const opening = probeCursor.getPrevToken().raw;
     if (opening.endsWith('(')) {
       const fn = probeCursor.getFunctionName();
+      let offset = 0;
+
       if (fn === 'cond') {
-        return 1;
+        offset = 1;
+      } else if (fn === 'cond->' || fn === 'cond->>' || fn === 'case' || fn === 'assoc') {
+        offset = 2;
+      } else if (fn === 'condp') {
+        offset = 3;
+      } else {
+        return 0;
       }
-      if (fn === 'cond->' || fn === 'cond->>' || fn === 'case' || fn === 'assoc') {
-        return 2;
+
+      // All flat pair forms are threading-aware: when inside a -> threading macro,
+      // the first argument is threaded from outside and not visible in the form,
+      // so reduce the offset by 1.
+      const threadingStyle = getDirectThreadingMacroStyle(cursor);
+      if (threadingStyle === 'firstArg') {
+        return Math.max(0, offset - 1);
       }
-      if (fn === 'condp') {
-        return 3;
-      }
+      // we don't care of threadingStyle === 'lastArg' because
+      // it is handled in getPairElementGroupRange
+      return offset;
     }
   }
   return 0;

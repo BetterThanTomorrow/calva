@@ -135,14 +135,45 @@ string. "
   (= 2 2)  (println "two is two"))
 
 (cond->> []
- true  (cons 1)
- false (cons 2)
- true  (cons 3))
+  true  (cons 1)
+  false (cons 2)
+  true  (cons 3))
 
 (cond-> {}
   true  (assoc :a 1)
   false (assoc :b 2)
   true  (assoc :c 3))
+
+(assoc {} :a 1 :b 2 :c 3)
+
+;; threaded 
+(-> {}
+    (cond-> 
+     |true (assoc :a "one")))
+;; should select the true
+(-> {}
+    (cond->
+     |true| (assoc :a "one")|))
+;; with the true selected should select the pair
+(-> {}
+    (cond->
+     |true (assoc :a "one")|))
+
+(-> "one"
+    (case 
+     "two" "second"
+      "three" "third"
+      "one" "first"))
+
+(->> true (assoc {} :success?))
+
+(->> "two" (assoc {} :one "one" :two))
+
+(->> "default"
+     (case 1
+       :zero "zero"
+       2 "two"
+       3 "three"))
 
 (case 1
   1 "one"
