@@ -3,6 +3,8 @@
  * This module handles custom user configurations that extend the built-in defaults.
  */
 
+import { getConfig } from '../config';
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -47,7 +49,7 @@ export interface PareditConfig {
 // Default Configurations
 // ============================================================================
 
-export const defaultPairForms: PairFormConfig[] = [
+const defaultPairForms: PairFormConfig[] = [
   // Vector Binding forms
   { type: 'vector-binding', name: 'let' },
   { type: 'vector-binding', name: 'for' },
@@ -69,7 +71,7 @@ export const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'assoc', offset: 2 },
 ];
 
-export const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
+export const defaultGroupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
   (acc, form) => {
     switch (form.type) {
       case 'vector-binding':
@@ -87,7 +89,9 @@ export const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>
   { 'vector-binding': [], keyword: [], flat: [] }
 );
 
-export const defaultBindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
+export const defaultBindingForms = defaultGroupedDefaultPairForms['vector-binding'].map(
+  (f) => f.name
+);
 
 export const defaultThreadingMacros: ThreadingMacrosConfig = {
   firstArg: ['->', 'some->'],
@@ -161,4 +165,19 @@ export function createPareditConfig(
       lastArg: [...defaultThreadingMacros.lastArg, ...(customThreadingMacros.lastArg ?? [])],
     },
   };
+}
+
+// Cache paredit configuration
+let pareditConfigCache: PareditConfig | null = null;
+
+/**
+ * Gets the merged paredit configuration from VS Code settings and .calva/config.edn.
+ * Results are cached and invalidated on config changes.
+ */
+export function getPareditConfig(): PareditConfig {
+  if (!pareditConfigCache) {
+    const cfg = getConfig();
+    pareditConfigCache = createPareditConfig(cfg.customPairForms, cfg.customThreadingMacros);
+  }
+  return pareditConfigCache;
 }

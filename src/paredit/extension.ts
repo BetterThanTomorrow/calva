@@ -15,11 +15,9 @@ import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 import * as config from '../formatter-config';
-import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
-import { createPareditConfig, defaultBindingForms } from '../cursor-doc/paredit-config';
-import type { PareditConfig } from '../cursor-doc/paredit-config';
+import { defaultBindingForms, getPareditConfig } from '../cursor-doc/paredit-config';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -46,21 +44,6 @@ function shouldKillAlsoCutToClipboard(override?: boolean): boolean {
 
 function multiCursorEnabled(override?: boolean): boolean {
   return override ?? workspace.getConfiguration().get('calva.paredit.multicursor');
-}
-
-// Cache paredit configuration
-let pareditConfigCache: PareditConfig | null = null;
-
-/**
- * Gets the merged paredit configuration from VS Code settings and .calva/config.edn.
- * Results are cached and invalidated on config changes.
- */
-function getPareditConfig(): PareditConfig {
-  if (!pareditConfigCache) {
-    const cfg = mainConfig.getConfig();
-    pareditConfigCache = createPareditConfig(cfg.customPairForms, cfg.customThreadingMacros);
-  }
-  return pareditConfigCache;
 }
 
 type PareditCommand = {
