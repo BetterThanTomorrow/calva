@@ -2017,7 +2017,6 @@ export async function dragSexprBackward(
 
 export async function dragSexprForward(
   doc: EditableDocument,
-  pairForms = defaultBindingForms,
   left = doc.selections[0].anchor,
   right = doc.selections[0].active,
   config?: PareditConfig

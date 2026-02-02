@@ -1701,17 +1701,16 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
-      // TODO is this really pair? maybe should be a let?
-      // it('drags pair in binding box', async () => {
-      //   const b = docFromTextNotation(
-      //     `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
-      //   );
-      //   const a = docFromTextNotation(
-      //     `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
-      //   );
-      //   await paredit.dragSexprForward(b, ['c']);
-      //   expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
-      // });
+      it('drags pair in binding box', async () => {
+        const b = docFromTextNotation(
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
+        );
+        const a = docFromTextNotation(
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
+        );
+        await paredit.dragSexprForward(b);
+        expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+      });
 
       it('drags single sexpr forward in destructing lists', async () => {
         const a = docFromTextNotation(`(let [{:keys [a |b c d]} some-map])`);
@@ -1728,9 +1727,9 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr forward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1| 2 3]])`);
-        const b = docFromTextNotation(`(b [x [2 1| 3]])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1| 2 3]])`);
+        const b = docFromTextNotation(`(let [x [2 1| 3]])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
@@ -1742,9 +1741,9 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr forward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2| 3)])`);
-        const b = docFromTextNotation(`(b [x (1 3 2|)])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2| 3)])`);
+        const b = docFromTextNotation(`(let [x (1 3 2|)])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 

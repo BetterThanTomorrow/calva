@@ -311,7 +311,6 @@ const pareditCommands = [
     handler: (doc: EditableDocument) =>
       paredit.dragSexprForward(
         doc,
-        defaultBindingForms,
         doc.selections[0].anchor,
         doc.selections[0].active,
         getPareditConfig()

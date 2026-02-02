@@ -139,13 +139,7 @@ describe('paredit-config', () => {
         { type: 'flat', name: 'match', offset: 1 },
       ];
       const config = pareditConfig.createPareditConfig(customForms);
-      await paredit.dragSexprForward(
-        a,
-        defaultBindingForms,
-        a.selections[0].anchor,
-        a.selections[0].active,
-        config
-      );
+      await paredit.dragSexprForward(a, a.selections[0].anchor, a.selections[0].active, config);
       expect(getText(a)).toBe(getText(b));
     });
 
@@ -244,7 +238,7 @@ describe('paredit-config', () => {
         lastArg: ['->>', 'some->>'],
       },
     };
-    await paredit.dragSexprForward(a, [], undefined, undefined, customConfig);
+    await paredit.dragSexprForward(a, undefined, undefined, customConfig);
     expect(textAndSelection(a)).toEqual(textAndSelection(b));
   });
 });
