@@ -232,8 +232,129 @@ describe('paredit-config', () => {
         firstArg: ['->', 'some->'],
         lastArg: ['->>', 'some->>'],
       },
+      aliasMap: {},
     };
     await paredit.dragSexprForward(a, undefined, undefined, customConfig);
     expect(textAndSelection(a)).toEqual(textAndSelection(b));
+  });
+
+  describe('Alias resolution', () => {
+    describe('resolveAliasedSymbol', () => {
+      it('resolves aliased namespace', () => {
+        expect(pareditConfig.resolveAliasedSymbol('p/let', { p: 'promesa.core' })).toBe(
+          'promesa.core/let'
+        );
+      });
+
+      it('resolves multiple aliases', () => {
+        const aliasMap = { p: 'promesa.core', r: 'reagent.core' };
+        expect(pareditConfig.resolveAliasedSymbol('p/let', aliasMap)).toBe('promesa.core/let');
+        expect(pareditConfig.resolveAliasedSymbol('r/with-let', aliasMap)).toBe(
+          'reagent.core/with-let'
+        );
+      });
+
+      it('preserves unaliased symbols', () => {
+        expect(pareditConfig.resolveAliasedSymbol('let', { p: 'promesa.core' })).toBe('let');
+      });
+
+      it('preserves fully qualified symbols when no alias match', () => {
+        expect(pareditConfig.resolveAliasedSymbol('promesa.core/let', { p: 'other.ns' })).toBe(
+          'promesa.core/let'
+        );
+      });
+
+      it('returns original symbol when alias not in map', () => {
+        expect(pareditConfig.resolveAliasedSymbol('x/let', { p: 'promesa.core' })).toBe('x/let');
+      });
+
+      it('handles empty alias map', () => {
+        expect(pareditConfig.resolveAliasedSymbol('p/let', {})).toBe('p/let');
+      });
+    });
+
+    describe('Aliased pair forms in paredit operations', () => {
+      it('growSelection works with aliased vector-binding form', () => {
+        const a = docFromTextNotation('(p/let [x| 1 y 2])');
+        const b = docFromTextNotation('(p/let [|x 1| y 2])');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'vector-binding', name: 'promesa.core/let' },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { p: 'promesa.core' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('growSelection works with aliased flat form', () => {
+        const a = docFromTextNotation('(m/match x| 1 :one 2 :two)');
+        const b = docFromTextNotation('(m/match |x 1| :one 2 :two)');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'flat', name: 'my.ns/match', offset: 1 },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { m: 'my.ns' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('dragSexprForward works with aliased flat form', async () => {
+        const a = docFromTextNotation('(m/match |x 1 :a 2)');
+        const b = docFromTextNotation('(m/match :a 2 |x 1)');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'flat', name: 'my.ns/match', offset: 1 },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { m: 'my.ns' });
+        await paredit.dragSexprForward(a, a.selections[0].anchor, a.selections[0].active, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('dragSexprBackward works with aliased flat form', async () => {
+        const a = docFromTextNotation('(m/match x 1 |:a 2)');
+        const b = docFromTextNotation('(m/match |:a 2 x 1)');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'flat', name: 'my.ns/match', offset: 1 },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { m: 'my.ns' });
+        await paredit.dragSexprBackward(a, a.selections[0].anchor, a.selections[0].active, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with multiple aliases', () => {
+        const a = docFromTextNotation('(p/let [x 1] (r/with-let [y| 2] y))');
+        const b = docFromTextNotation('(p/let [x 1] (r/with-let [|y 2|] y))');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'vector-binding', name: 'promesa.core/let' },
+          { type: 'vector-binding', name: 'reagent.core/with-let' },
+        ];
+        const config = pareditConfig.createPareditConfig(
+          customForms,
+          {},
+          { p: 'promesa.core', r: 'reagent.core' }
+        );
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('still works with fully qualified names when alias map provided', () => {
+        const a = docFromTextNotation('(promesa.core/let [x| 1])');
+        const b = docFromTextNotation('(promesa.core/let [|x 1|])');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'vector-binding', name: 'promesa.core/let' },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { p: 'promesa.core' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with aliased form inside threading macro', () => {
+        const a = docFromTextNotation('(-> x (m/match |1 :one 2 :two))');
+        const b = docFromTextNotation('(-> x (m/match |1 :one| 2 :two))');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'flat', name: 'my.ns/match', offset: 1 },
+        ];
+        const config = pareditConfig.createPareditConfig(customForms, {}, { m: 'my.ns' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+    });
   });
 });

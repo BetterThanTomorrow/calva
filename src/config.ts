@@ -163,6 +163,7 @@ function addEdnConfig(data: string) {
       ),
       customPairForms: parsed?.customPairForms ?? [],
       customThreadingMacros: parsed?.customThreadingMacros ?? {},
+      aliasMap: parsed?.aliasMap ?? {},
     });
   } catch (error) {
     return error;
@@ -300,6 +301,10 @@ function getConfig() {
       pareditOptions.get<Partial<ThreadingMacrosConfig>>('customThreadingMacros', {}),
       state.getProjectConfig()?.customThreadingMacros ?? {}
     ),
+    aliasMap: {
+      ...(pareditOptions.get<{ [alias: string]: string }>('aliasMap') ?? {}),
+      ...(state.getProjectConfig()?.aliasMap ?? {}),
+    },
   };
 }
 

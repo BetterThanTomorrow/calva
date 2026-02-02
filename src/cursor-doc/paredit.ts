@@ -17,9 +17,10 @@ import {
   PareditConfig,
   KeywordPairForm,
   FlatPairForm,
+  AliasMapConfig,
   defaultGroupedDefaultPairForms,
-  defaultBindingForms,
   defaultThreadingMacros,
+  resolveAliasedSymbol,
 } from './paredit-config';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
@@ -1702,14 +1703,20 @@ function isPrecededByKeywordPairForm(
  * Gets the offset for a flat pair form (e.g., cond, case, condp).
  * Returns the matching FlatPairForm if found, otherwise null.
  */
-function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): FlatPairForm | null {
+function getFlatPairForm(
+  cursor: LispTokenCursor,
+  flatForms: FlatPairForm[],
+  aliasMap: AliasMapConfig = {}
+): FlatPairForm | null {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
     if (opening.endsWith('(')) {
       const fn = probeCursor.getFunctionName();
       if (fn) {
-        return flatForms.find((f) => f.name === fn) ?? null;
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        // Try resolved name first, then original
+        return flatForms.find((f) => f.name === resolvedFn || f.name === fn) ?? null;
       }
     }
   }
@@ -1730,6 +1737,7 @@ function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): Fl
  */
 export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): boolean {
   const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -1750,15 +1758,19 @@ export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): 
         return false;
       }
       const fn = probeCursor.getFunctionName();
-      const vectorBindingNames = grouped['vector-binding'].map((f) => f.name);
-      if (fn && vectorBindingNames.includes(fn)) {
-        return true;
+      if (fn) {
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        const vectorBindingNames = grouped['vector-binding'].map((f) => f.name);
+        // Check both resolved and original function names
+        if (vectorBindingNames.includes(resolvedFn) || vectorBindingNames.includes(fn)) {
+          return true;
+        }
       }
     }
     if (opening.endsWith('(')) {
       // Check if this is a flat pair form like (cond test expr test expr ...)
       const flatForms = grouped.flat;
-      if (getFlatPairForm(probeCursor, flatForms)) {
+      if (getFlatPairForm(probeCursor, flatForms, aliasMap)) {
         return true;
       }
     }
@@ -1947,6 +1959,7 @@ export function currentSexpsRange(
   config?: PareditConfig
 ): [number, number] {
   const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
     // Create a fresh cursor at the offset position to ensure correct list context
@@ -1959,7 +1972,7 @@ export function currentSexpsRange(
 
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
       const flatForms = grouped.flat;
-      const flatForm = getFlatPairForm(listCursor, flatForms);
+      const flatForm = getFlatPairForm(listCursor, flatForms, aliasMap);
       const threadingStyle = getDirectThreadingMacroStyle(cursor, config);
       const formOffset = flatForm?.offset || 0;
       const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;

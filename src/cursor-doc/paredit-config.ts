@@ -38,9 +38,12 @@ export interface ThreadingMacrosConfig {
   lastArg: string[];
 }
 
+export type AliasMapConfig = { [alias: string]: string };
+
 export interface PareditConfig {
   pairForms: GroupedPairForms;
   threadingMacros: ThreadingMacrosConfig;
+  aliasMap: AliasMapConfig;
 }
 
 // ============================================================================
@@ -126,6 +129,23 @@ export function groupPairForms(forms: PairFormConfig[]): GroupedPairForms {
 }
 
 /**
+ * Resolves an aliased symbol to its fully qualified form.
+ * Example: resolveAliasedSymbol('p/let', {p: 'promesa.core'}) => 'promesa.core/let'
+ */
+export function resolveAliasedSymbol(symbol: string, aliasMap: AliasMapConfig): string {
+  const slashIndex = symbol.indexOf('/');
+  if (slashIndex === -1) {
+    return symbol;
+  }
+
+  const nsAlias = symbol.substring(0, slashIndex);
+  const name = symbol.substring(slashIndex + 1);
+  const resolvedNs = aliasMap[nsAlias];
+
+  return resolvedNs ? `${resolvedNs}/${name}` : symbol;
+}
+
+/**
  * Appends custom pair forms to defaults.
  * Custom forms cannot override built-in defaults - they are added to the end of the array.
  * Duplicate forms (matching type+name/keyword) are filtered out to keep the array clean.
@@ -149,7 +169,8 @@ function mergePairForms(defaults: PairFormConfig[], customs: PairFormConfig[]): 
  */
 export function createPareditConfig(
   customPairForms: PairFormConfig[] = [],
-  customThreadingMacros: Partial<ThreadingMacrosConfig> = {}
+  customThreadingMacros: Partial<ThreadingMacrosConfig> = {},
+  aliasMap: AliasMapConfig = {}
 ): PareditConfig {
   const mergedForms = mergePairForms(defaultPairForms, customPairForms);
   return {
@@ -158,5 +179,6 @@ export function createPareditConfig(
       firstArg: [...defaultThreadingMacros.firstArg, ...(customThreadingMacros.firstArg ?? [])],
       lastArg: [...defaultThreadingMacros.lastArg, ...(customThreadingMacros.lastArg ?? [])],
     },
+    aliasMap,
   };
 }

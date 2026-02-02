@@ -58,7 +58,11 @@ let pareditConfigCache: PareditConfig | null = null;
 export function getPareditConfig(): PareditConfig {
   if (!pareditConfigCache) {
     const cfg = mainConfig.getConfig();
-    pareditConfigCache = createPareditConfig(cfg.customPairForms, cfg.customThreadingMacros);
+    pareditConfigCache = createPareditConfig(
+      cfg.customPairForms,
+      cfg.customThreadingMacros,
+      cfg.aliasMap
+    );
   }
   return pareditConfigCache;
 }

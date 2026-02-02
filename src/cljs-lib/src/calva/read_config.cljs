@@ -6,7 +6,8 @@
 (def ^:private updaters {:customREPLCommandSnippets [{:snippet str}]
                          :customREPLHoverSnippets   [{:snippet str}]
                          :customPairForms           [identity]
-                         :customThreadingMacros     identity})
+                         :customThreadingMacros     identity
+                         :aliasMap                  identity})
 
 (defn update-config-edn
   [config]
