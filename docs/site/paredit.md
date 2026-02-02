@@ -230,32 +230,6 @@ Calva recognizes three categories of pair forms by default:
 ]
 ```
 
-#### The Default Confguration EDN Representation
-
-```clojure
-[{:type "vector-binding", :name "let"}
- {:type "vector-binding", :name "for"}
- {:type "vector-binding", :name "loop"}
- {:type "vector-binding", :name "binding"}
- {:type "vector-binding", :name "with-local-vars"}
- {:type "vector-binding", :name "doseq"}
- {:type "vector-binding", :name "with-redefs"}
- {:type "vector-binding", :name "promesa.core/let"}
- {:type "vector-binding", :name "reagent.core/with-let"}
- {:type "keyword",
-  :keyword ":let",
-  :validParents ["for" "doseq" "dotimes"]}
- {:type "flat", :name "cond", :offset 1}
- {:type "flat", :name "cond->", :offset 2}
- {:type "flat", :name "cond->>", :offset 2}
- {:type "flat", :name "case", :offset 2}
- {:type "flat",
-  :name "condp",
-  :offset 3,
-  :tripleMarker ":>>"}
- {:type "flat", :name "assoc", :offset 2}]
-```
-
 ### Configuration
 
 You can add custom pair forms using the customPairForms` setting. Custom forms are appended to the built-in defaults and cannot override them. This is useful for adding support for custom macros or library-specific forms.
@@ -327,13 +301,6 @@ Calva recognizes these threading macros by default:
   "firstArg": ["->", "some->"],
   "lastArg": ["->>", "some->>"]
 }
-```
-
-#### The Default Configuration EDN Representation
-
-```clojure
-{"firstArg" ["->" "some->"]
-  "lastArg" ["->>" "some->>"]}
 ```
 
 ### How Threading Affects Pairs
