@@ -193,6 +193,7 @@ Calva recognizes three categories of pair forms by default:
 - `loop`, `dotimes`
 - `with-open`, `with-redefs`
 - `binding`
+- `promesa.core/let`, `reagent.core/with-let`
 
 **Keyword modifiers** (keyword): Forms like `:let` that appear within other forms
 
@@ -215,6 +216,8 @@ Calva recognizes three categories of pair forms by default:
   { "type": "vector-binding", "name": "with-local-vars" },
   { "type": "vector-binding", "name": "doseq" },
   { "type": "vector-binding", "name": "with-redefs" },
+  { "type": "vector-binding", "name": "promesa.core/let" },
+  { "type": "vector-binding", "name": "reagent.core/with-let" },
 
   { "type": "keyword", "keyword": ":let", "validParents": ["for", "doseq", "dotimes"] },
 
@@ -237,6 +240,8 @@ Calva recognizes three categories of pair forms by default:
  {:type "vector-binding", :name "with-local-vars"}
  {:type "vector-binding", :name "doseq"}
  {:type "vector-binding", :name "with-redefs"}
+ {:type "vector-binding", :name "promesa.core/let"}
+ {:type "vector-binding", :name "reagent.core/with-let"}
  {:type "keyword",
   :keyword ":let",
   :validParents ["for" "doseq" "dotimes"]}
