@@ -312,6 +312,22 @@ Calva recognizes these threading macros by default:
 
 - `->>`, `some->>`
 
+#### The Default Configuration JSON Representation
+
+```json
+{
+  "firstArg": ["->", "some->"],
+  "lastArg": ["->>", "some->>"]
+}
+```
+
+#### The Default Configuration EDN Representation
+
+```clojure
+{"firstArg" ["->" "some->"]
+  "lastArg" ["->>" "some->>"]}
+```
+
 ### How Threading Affects Pairs
 
 In `->` (thread-first), the first argument comes from outside, so the pair offset is reduced by 1:
