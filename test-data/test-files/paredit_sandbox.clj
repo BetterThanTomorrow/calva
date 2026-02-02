@@ -175,6 +175,11 @@ string. "
        2 "two"
        3 "three"))
 
+; multithreaded example
+(-> {}
+    (cond->
+     true (assoc :a "one")))
+
 (case 1
   1 "one"
   2 "two"

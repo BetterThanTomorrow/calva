@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Pair selection and drag with threaded `cond->`](https://github.com/BetterThanTomorrow/calva/issues/3018)
 ## [2.0.547] - 2026-02-02
 
 - Fix: [The 'calva.loadFile' command returns a Promise that is only completed on the first execution.](https://github.com/BetterThanTomorrow/calva/issues/2981)

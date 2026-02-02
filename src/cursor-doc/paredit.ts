@@ -1671,8 +1671,8 @@ const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
 export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
 
 const threadingMacros = {
-  firstArg: ['->', 'some->'],
-  lastArg: ['->>', 'some->>'],
+  firstArg: ['->', 'some->', 'cond->'],
+  lastArg: ['->>', 'some->>', 'cond->>'],
 };
 
 /**
