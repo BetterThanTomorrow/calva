@@ -18,17 +18,17 @@ describe('paredit-config', () => {
       expect(config.threadingMacros.lastArg).toContain('->>');
     });
 
-    it('merges custom vector-binding forms with defaults', () => {
+    it('appends custom vector-binding forms to defaults', () => {
       const customForms: pareditConfig.PairFormConfig[] = [
-        { type: 'vector-binding', name: 'promesa.core/let' },
+        { type: 'vector-binding', name: 'my.ns/custom-let' },
       ];
       const config = pareditConfig.createPareditConfig(customForms);
       const names = config.pairForms['vector-binding'].map((f) => f.name);
-      expect(names).toContain('promesa.core/let');
+      expect(names).toContain('my.ns/custom-let');
       expect(names).toContain('let'); // default still present
     });
 
-    it('merges custom flat forms with defaults', () => {
+    it('appends custom flat forms to defaults', () => {
       const customForms: pareditConfig.PairFormConfig[] = [
         { type: 'flat', name: 'match', offset: 1 },
       ];
@@ -38,16 +38,17 @@ describe('paredit-config', () => {
       expect(names).toContain('cond'); // default still present
     });
 
-    it('overrides default forms with same type and name', () => {
+    it('filters out duplicate custom forms that match defaults', () => {
       const customForms: pareditConfig.PairFormConfig[] = [
-        { type: 'flat', name: 'cond', offset: 2 }, // override default offset 1
+        { type: 'flat', name: 'cond', offset: 2 }, // duplicate of default (offset: 1)
       ];
       const config = pareditConfig.createPareditConfig(customForms);
-      const condForm = config.pairForms.flat.find((f) => f.name === 'cond');
-      expect(condForm?.offset).toBe(2); // custom override
+      const condForms = config.pairForms.flat.filter((f) => f.name === 'cond');
+      expect(condForms.length).toBe(1); // only default present, no duplicate
+      expect(condForms[0].offset).toBe(1); // default offset preserved
     });
 
-    it('merges custom keyword forms with defaults', () => {
+    it('appends custom keyword forms to defaults', () => {
       const customForms: pareditConfig.PairFormConfig[] = [
         { type: 'keyword', keyword: ':when', validParents: ['for'] },
       ];
@@ -57,7 +58,7 @@ describe('paredit-config', () => {
       expect(keywords).toContain(':let'); // default still present
     });
 
-    it('merges custom threading macros with defaults', () => {
+    it('appends custom threading macros to defaults', () => {
       const customThreading: Partial<pareditConfig.ThreadingMacrosConfig> = {
         firstArg: ['as->', 'my-custom->'],
       };
@@ -100,10 +101,10 @@ describe('paredit-config', () => {
 
   describe('Custom pair forms in paredit operations', () => {
     it('growSelection works with custom vector-binding form', () => {
-      const a = docFromTextNotation('(promesa.core/let [x| 1])');
-      const b = docFromTextNotation('(promesa.core/let [|x 1|])');
+      const a = docFromTextNotation('(my-ns/let [x| 1])');
+      const b = docFromTextNotation('(my-ns/let [|x 1|])');
       const customForms: pareditConfig.PairFormConfig[] = [
-        { type: 'vector-binding', name: 'promesa.core/let' },
+        { type: 'vector-binding', name: 'my-ns/let' },
       ];
       const config = pareditConfig.createPareditConfig(customForms);
       paredit.growSelection(a, a.selections, config);

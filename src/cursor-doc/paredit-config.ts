@@ -126,27 +126,21 @@ export function groupPairForms(forms: PairFormConfig[]): GroupedPairForms {
 }
 
 /**
- * Merges custom pair forms with defaults.
- * Custom forms override defaults with the same type+name/keyword.
+ * Appends custom pair forms to defaults.
+ * Custom forms cannot override built-in defaults - they are added to the end of the array.
+ * Duplicate forms (matching type+name/keyword) are filtered out to keep the array clean.
  */
 function mergePairForms(defaults: PairFormConfig[], customs: PairFormConfig[]): PairFormConfig[] {
   // Generate unique key for each form based on type and identifier
   const getKey = (f: PairFormConfig) => `${f.type}:${f.type === 'keyword' ? f.keyword : f.name}`;
 
-  // Map custom forms by key for quick lookup
-  const customsByKey = new Map(customs.map((f) => [getKey(f), f]));
+  // Create a set of default keys for quick lookup
+  const defaultKeys = new Set(defaults.map(getKey));
 
-  // Replace defaults with custom versions where they exist
-  const merged = defaults.map((d) => customsByKey.get(getKey(d)) ?? d);
+  // Filter out custom forms that duplicate defaults, then append the rest
+  const uniqueCustoms = customs.filter((custom) => !defaultKeys.has(getKey(custom)));
 
-  // Add custom forms that don't override any defaults
-  for (const [key, form] of customsByKey) {
-    if (!merged.some((m) => getKey(m) === key)) {
-      merged.push(form);
-    }
-  }
-
-  return merged;
+  return [...defaults, ...uniqueCustoms];
 }
 
 /**

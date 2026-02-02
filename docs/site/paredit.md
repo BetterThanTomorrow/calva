@@ -258,7 +258,7 @@ Calva recognizes three categories of pair forms by default:
 
 ### Configuration
 
-You can customize which forms Calva treats as pairs using the `calva.paredit.customPairForms` setting. This is useful for custom macros or to override defaults.
+You can add custom pair forms using the customPairForms` setting. Custom forms are appended to the built-in defaults and cannot override them. This is useful for adding support for custom macros or library-specific forms.
 
 **Via VS Code settings (JSON):**
 
@@ -302,7 +302,7 @@ You can customize which forms Calva treats as pairs using the `calva.paredit.cus
 - `validParents`: Array of parent forms where this keyword is valid. Only needed for `keyword` type.
 - `tripleMarker`: For `flat` type, specifies a special marker for triple pairs (like `:>>` in `condp`).
 
-Custom forms can be added into defaults but those cannot be removed. To override defaults, redefine them all in your configuration.
+**Note:** Custom forms are appended to the built-in defaults and cannot override or remove them. If you specify a custom form that duplicates a default (same type and name/keyword), the duplicate will be filtered out and the default will be preserved.
 
 ## Customizing Threading Macros
 
@@ -371,7 +371,7 @@ You can define custom threading macros using the `calva.paredit.customThreadingM
   :lastArg ["->>" "some->>" "my-thread-last"]}}
 ```
 
-Custom threading macros override defaults.
+**Note:** Custom threading macros are appended to the built-in defaults (`->`, `some->`, `->>`, `some->>`). This means your custom macros work alongside the defaults rather than replacing them.
 
 ## About the Keyboard Shortcuts
 
