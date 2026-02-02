@@ -94,8 +94,8 @@ export const defaultBindingForms = defaultGroupedDefaultPairForms['vector-bindin
 );
 
 export const defaultThreadingMacros: ThreadingMacrosConfig = {
-  firstArg: ['->', 'some->'],
-  lastArg: ['->>', 'some->>'],
+  firstArg: ['->', 'some->', 'cond->'],
+  lastArg: ['->>', 'some->>', 'cond->>'],
 };
 
 // ============================================================================

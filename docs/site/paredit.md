@@ -288,18 +288,18 @@ Calva recognizes these threading macros by default:
 
 **Thread-first** (threads into first argument position):
 
-- `->`, `some->`
+- `->`, `some->`, `cond->`
 
 **Thread-last** (threads into last argument position):
 
-- `->>`, `some->>`
+- `->>`, `some->>`, `cond->>`
 
 #### The Default Configuration JSON Representation
 
 ```json
 {
-  "firstArg": ["->", "some->"],
-  "lastArg": ["->>", "some->>"]
+  "firstArg": ["->", "some->", "cond->"],
+  "lastArg": ["->>", "some->>", "cond->>"]
 }
 ```
 
