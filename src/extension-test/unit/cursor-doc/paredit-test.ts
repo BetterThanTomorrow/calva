@@ -2145,6 +2145,37 @@ describe('paredit', () => {
       });
     });
   });
+
+  describe('Nested threading)', () => {
+    it('handles cond-> inside -> with assoc pairs (first expansion)', () => {
+      const a = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one")))');
+      const b = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one"|)))');
+      paredit.growSelection(a, a.selections);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond-> inside -> with assoc form (second expansion)', () => {
+      const a = docFromTextNotation('(-> {} (cond-> true |(assoc :a "one")))');
+      const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+      paredit.growSelection(a, a.selections);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond->> inside ->> with assoc pairs', () => {
+      const a = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one")))');
+      const b = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one"|)))');
+      paredit.growSelection(a, a.selections);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond->> inside ->> with condition pairs', () => {
+      const a = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")))');
+      const b = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")|))');
+      paredit.growSelection(a, a.selections);
+      expect(getText(a)).toBe(getText(b));
+    });
+  });
+
   describe('edits', () => {
     describe('Close lists', () => {
       it('Advances cursor if at end of list of the same type', async () => {

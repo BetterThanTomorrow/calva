@@ -184,7 +184,6 @@ string. "
     (cond->
      true (assoc :a "one")))
 
-
 (case 1
   1 "one"
   2 "two"
