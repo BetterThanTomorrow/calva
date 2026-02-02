@@ -193,7 +193,7 @@ There are now also `hover-` versions of most substitutions. Those currently only
 
 ## config.edn
 
-`:customREPLCommandSnippets` and `:customREPLHoverSnippets` can be also be configured in your user config at `.config/calva/config.edn` realative to your system home directory, or `.calva/config.edn` relative to the workspace root. Three things to note about this:
+`:custom-repl-command-snippets` and `:custom-repl-hover-snippets` can be also be configured in your user config at `.config/calva/config.edn` realative to your system home directory, or `.calva/config.edn` relative to the workspace root. Three things to note about this:
 
 1. None of these two configs get synced through VS Code Settings Sync.
 2. Changes to workspace `.calva/config.edn` will be automatically noticed by Calva, and refresh the config. _This will not happen with the user config file._
@@ -208,11 +208,11 @@ There is also a command to open the User config.edn, for convenience: **Calva: O
 A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.
 
 ``` clojure
-{:customREPLCommandSnippets
+{:custom-repl-command-snippets
  [{:name "edn test"
    :key "a"
    :snippet ($current-form)}]
- :customREPLHoverSnippets
+ :custom-repl-hover-snippets
  [{:name "edn hover"
    :snippet (str "$hover-tex")}
   {:name "edn hover show val"
