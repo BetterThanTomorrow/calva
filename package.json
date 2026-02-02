@@ -1269,6 +1269,15 @@
               }
             },
             "scope": "window"
+          },
+          "calva.paredit.aliasMap": {
+            "type": "object",
+            "default": {},
+            "markdownDescription": "Map of namespace aliases to fully qualified namespaces for pair form resolution. Example: `{\"p\": \"promesa.core\", \"r\": \"reagent.core\"}` allows `p/let` in code to match a configured `promesa.core/let` pair form.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "scope": "window"
           }
         }
       },
