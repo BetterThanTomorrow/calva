@@ -218,6 +218,40 @@ describe('paredit-config', () => {
     });
   });
 
+  describe('Multi-threaded examples (nested threading)', () => {
+    it('handles cond-> inside -> with assoc pairs (first expansion)', () => {
+      const a = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one")))');
+      const b = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one"|)))');
+      const config = pareditConfig.createPareditConfig();
+      paredit.growSelection(a, a.selections, config);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond-> inside -> with assoc form (second expansion)', () => {
+      const a = docFromTextNotation('(-> {} (cond-> true |(assoc :a "one")))');
+      const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+      const config = pareditConfig.createPareditConfig();
+      paredit.growSelection(a, a.selections, config);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond->> inside ->> with assoc pairs', () => {
+      const a = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one")))');
+      const b = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one"|)))');
+      const config = pareditConfig.createPareditConfig();
+      paredit.growSelection(a, a.selections, config);
+      expect(getText(a)).toBe(getText(b));
+    });
+
+    it('handles cond->> inside ->> with condition pairs', () => {
+      const a = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")))');
+      const b = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")|))');
+      const config = pareditConfig.createPareditConfig();
+      paredit.growSelection(a, a.selections, config);
+      expect(getText(a)).toBe(getText(b));
+    });
+  });
+
   it('drags individual sexp when pair behavior is disabled for assoc', async () => {
     const a = docFromTextNotation('(assoc m |:a "one" :b "two")');
     const b = docFromTextNotation('(assoc m "one" |:a :b "two")');

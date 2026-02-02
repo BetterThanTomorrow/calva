@@ -35,6 +35,6 @@
    :offset 3,
    :tripleMarker ":>>"}
   {:type "flat", :name "assoc", :offset 2}]
- :customThreadingMacros {"firstArg" ["->" "some->" "my->"]
-                         "lastArg" ["->>" "some->>"]}}
+ :customThreadingMacros {"firstArg" ["->" "some->" "cond->" "my->"]
+                         "lastArg" ["->>" "some->>" "cond->>"]}}
 
