@@ -1734,9 +1734,9 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr backward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1 2 |:a]])`);
-        const b = docFromTextNotation(`(b [x [1 |:a 2]])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1 2 |:a]])`);
+        const b = docFromTextNotation(`(let [x [1 |:a 2]])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
@@ -1748,9 +1748,9 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr backward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2 |:a)])`);
-        const b = docFromTextNotation(`(b [x (1 |:a 2)])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2 |:a)])`);
+        const b = docFromTextNotation(`(let [x (1 |:a 2)])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });

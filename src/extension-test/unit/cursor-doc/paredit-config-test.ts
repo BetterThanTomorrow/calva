@@ -150,13 +150,7 @@ describe('paredit-config', () => {
         { type: 'flat', name: 'match', offset: 1 },
       ];
       const config = pareditConfig.createPareditConfig(customForms);
-      await paredit.dragSexprBackward(
-        a,
-        defaultBindingForms,
-        a.selections[0].anchor,
-        a.selections[0].active,
-        config
-      );
+      await paredit.dragSexprBackward(a, a.selections[0].anchor, a.selections[0].active, config);
       expect(getText(a)).toBe(getText(b));
     });
   });

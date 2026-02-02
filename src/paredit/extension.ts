@@ -300,7 +300,6 @@ const pareditCommands = [
     handler: (doc: EditableDocument) =>
       paredit.dragSexprBackward(
         doc,
-        defaultBindingForms,
         doc.selections[0].anchor,
         doc.selections[0].active,
         getPareditConfig()

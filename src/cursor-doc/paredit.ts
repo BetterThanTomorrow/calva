@@ -1989,7 +1989,6 @@ export function currentSexpsRange(
 
 export async function dragSexprBackward(
   doc: EditableDocument,
-  pairForms = defaultBindingForms,
   left = doc.selections[0].anchor,
   right = doc.selections[0].active,
   config?: PareditConfig
