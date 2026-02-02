@@ -209,6 +209,18 @@ string. "
 ;; not configured: expand selection includes entire form
 (not-my-> {} (assoc |:a| 1))
 
+;; aliases 
+(r/with-let [a 1
+             b 3])
+
+(p/let [a 1
+        b 2])
+
+;without alias
+(promesa.core/let [a 1
+                   b 2])
+
+
 ;; === Slurp Backward
 
 ;; Slurp backward into empty string
