@@ -8,6 +8,7 @@ Changes to Calva.
 - Fix: Slurp Backward no longer adds trailing space when slurping into empty forms
 - [Consider form pairs in `assoc` when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/3008)
 - [Add threading macro support for flat pair forms](https://github.com/BetterThanTomorrow/calva/issues/3009)
+- [Support kebab-case keys in EDN config files for idiomatic Clojure style](https://github.com/BetterThanTomorrow/calva/issues/3016) - Users can now write `:custom-repl-command-snippets` instead of `:customREPLCommandSnippets`. Full backward compatibility maintained.
 
 ## [2.0.546] - 2026-01-30
 
