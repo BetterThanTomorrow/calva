@@ -180,7 +180,7 @@ And like so (wait for it):
 
 ## Customizing Pair Forms
 
-Calva's Paredit understands special "pair forms" where elements are organized in pairs (like key-value pairs in maps or binding pairs in `let`). This allows Calva to drag entire pairs as a unit rather than individual elements.
+Calva's Paredit understands special "pair forms" where elements are organized in pairs (like key-value pairs in maps or binding pairs in `let`). This allows Calva to drag and select entire pairs as a unit rather than individual elements.
 
 ### Default Pair Forms
 
