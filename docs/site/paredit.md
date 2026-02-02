@@ -259,29 +259,27 @@ You can customize which forms Calva treats as pairs using the `calva.paredit.cus
 
 ```json
 {
-  "calva.paredit.customPairForms": {
-    "my-custom-let": {
-      "type": "vector-binding"
-    },
-    "my-assoc": {
-      "type": "flat",
-      "offset": 1
-    },
-    ":when": {
+  "calva.paredit.customPairForms": [
+    { "type": "vector-binding", "name": "my-custom-let" },
+    { "type": "flat", "name": "my-assoc", "offset": 1 },
+    {
       "type": "keyword",
+      "keyword": ":when",
       "validParents": ["for", "doseq"]
     }
-  }
+  ]
 }
+
 ```
 
 **Via `.calva/config.edn`:**
 
 ```clojure
-{:customPairForms
- {my-custom-let {:type :vector-binding}
-  my-assoc {:type :flat :offset 1}
-  :when {:type :keyword :validParents [for doseq]}}}
+[{:type "vector-binding", :name "my-custom-let"}
+  {:type "flat", :name "my-assoc", :offset 1}
+  {:type "keyword"
+   :keyword ":when"
+   :validParents ["for" "doseq"]}]
 ```
 
 **Options:**
@@ -349,8 +347,8 @@ You can define custom threading macros using the `calva.paredit.customThreadingM
 ```json
 {
   "calva.paredit.customThreadingMacros": {
-    "my-thread-first": "firstArg",
-    "my-thread-last": "lastArg"
+    "firstArg": ["->", "some->", "my-thread-first"],
+    "lastArg": ["->>", "some->>", "my-thread-last"]
   }
 }
 ```
@@ -359,8 +357,8 @@ You can define custom threading macros using the `calva.paredit.customThreadingM
 
 ```clojure
 {:customThreadingMacros
- {my-thread-first :firstArg
-  my-thread-last :lastArg}}
+ {:firstArg ["->" "some->" "my-thread-first"]
+  :lastArg ["->>" "some->>" "my-thread-last"]}}
 ```
 
 Custom threading macros override defaults.
