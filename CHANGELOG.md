@@ -5,6 +5,10 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [The 'calva.loadFile' command returns a Promise that is only completed on the first execution.](https://github.com/BetterThanTomorrow/calva/issues/2981)
+- Fix: Slurp Forward no longer adds leading space when slurping into empty forms. [#1440](https://github.com/BetterThanTomorrow/calva/issues/1440) & [#2085](https://github.com/BetterThanTomorrow/calva/issues/2085)
+- Fix: Slurp Backward no longer adds trailing space when slurping into empty forms
+- [Consider form pairs in `assoc` when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/3008)
+- [Add threading macro support for flat pair forms](https://github.com/BetterThanTomorrow/calva/issues/3009)
 
 ## [2.0.546] - 2026-01-30
 
