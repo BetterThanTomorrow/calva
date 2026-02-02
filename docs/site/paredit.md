@@ -275,11 +275,14 @@ You can customize which forms Calva treats as pairs using the `calva.paredit.cus
 **Via `.calva/config.edn`:**
 
 ```clojure
-[{:type "vector-binding", :name "my-custom-let"}
-  {:type "flat", :name "my-assoc", :offset 1}
-  {:type "keyword"
-   :keyword ":when"
-   :validParents ["for" "doseq"]}]
+[{:type "vector-binding"
+  :name "my-custom-let"}
+ {:type "flat"
+  :name "my-assoc"
+  :offset 1}
+ {:type "keyword"
+  :keyword ":when"
+  :validParents ["for" "doseq"]}]
 ```
 
 **Options:**
@@ -288,6 +291,8 @@ You can customize which forms Calva treats as pairs using the `calva.paredit.cus
   - `vector-binding`: For forms with a binding vector like `let`
   - `flat`: For forms with inline pairs like `cond` or `assoc`
   - `keyword`: For keyword modifiers like `:let` in `for`
+- `name`: Name of the form (e.g., `let`, `assoc`)
+- `keyword`: The keyword to identify (e.g., `:let`)
 - `offset`: Number of non-paired elements at the start, including function name (default 1 for function name). Only needed for `flat` type.  
 - `validParents`: Array of parent forms where this keyword is valid. Only needed for `keyword` type.
 - `tripleMarker`: For `flat` type, specifies a special marker for triple pairs (like `:>>` in `condp`).
