@@ -197,6 +197,12 @@ string. "
 
 (assoc {} :a 1 :b 2)
 
+;; configured: expand selection includes pair
+(my-> {} (assoc |:a| 1))
+
+;; not configured: expand selection includes entire form
+(not-my-> {} (assoc |:a| 1))
+
 ;; === Slurp Backward
 
 ;; Slurp backward into empty string
