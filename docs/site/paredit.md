@@ -178,6 +178,130 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
+## Customizing Pair Forms
+
+Calva's Paredit understands special "pair forms" where elements are organized in pairs (like key-value pairs in maps or binding pairs in `let`). This allows Calva to drag entire pairs as a unit rather than individual elements.
+
+### Default Pair Forms
+
+Calva recognizes three categories of pair forms by default:
+
+**Binding forms** (vector-binding): Forms with a binding vector like `[name value ...]`
+
+- `let`, `when-let`, `if-let`, `when-some`, `if-some`
+- `for`, `doseq`
+- `loop`, `dotimes`
+- `with-open`, `with-redefs`
+- `binding`
+
+**Keyword modifiers** (keyword): Forms like `:let` that appear within other forms
+
+- `:let` (valid inside `for`, `doseq`)
+
+**Flat pair forms** (flat): Forms where pairs appear directly without nesting
+
+- `cond`, `cond->`, `cond->>`
+- `case`, `condp`
+- `assoc`, `assoc-in`
+
+### Configuration
+
+You can customize which forms Calva treats as pairs using the `calva.paredit.customPairForms` setting. This is useful for custom macros or to override defaults.
+
+**Via VS Code settings (JSON):**
+
+```json
+{
+  "calva.paredit.customPairForms": {
+    "my-custom-let": {
+      "type": "vector-binding"
+    },
+    "my-assoc": {
+      "type": "flat",
+      "offset": 1
+    },
+    ":when": {
+      "type": "keyword",
+      "validParents": ["for", "doseq"]
+    }
+  }
+}
+```
+
+**Via `.calva/config.edn`:**
+
+```clojure
+{:customPairForms
+ {my-custom-let {:type :vector-binding}
+  my-assoc {:type :flat :offset 1}
+  :when {:type :keyword :validParents [for doseq]}}}
+```
+
+**Options:**
+
+- `type`: Type of pair form
+  - `vector-binding`: For forms with a binding vector like `let`
+  - `flat`: For forms with inline pairs like `cond` or `assoc`
+  - `keyword`: For keyword modifiers like `:let` in `for`
+- `offset`: Number of non-paired elements at the start, including function name (default 1 for function name). Only needed for `flat` type.
+  
+- `validParents`: Array of parent forms where this keyword is valid. Only needed for `keyword` type.
+
+Custom forms override defaults - define a form to change or remove it from the defaults.
+
+## Customizing Threading Macros
+
+Threading macros (`->`, `->>`, `some->`, `some->>`) affect how Calva calculates pair offsets in forms like `assoc`.
+
+### Default Threading Macros
+
+Calva recognizes these threading macros by default:
+
+**Thread-first** (threads into first argument position):
+
+- `->`, `some->`
+
+**Thread-last** (threads into last argument position):
+
+- `->>`, `some->>`
+
+### How Threading Affects Pairs
+
+In `->` (thread-first), the first argument comes from outside, so the pair offset is reduced by 1:
+
+```clojure
+;; Standalone: offset 2 (function + map argument)
+(assoc my-map :a 1 :b 2)
+
+;; Inside ->: offset 1 (function only, map is threaded)
+(-> {} (assoc :a 1 :b 2))
+```
+
+### Configuration
+
+You can define custom threading macros using the `calva.paredit.customThreadingMacros` setting.
+
+**Via VS Code settings (JSON):**
+
+```json
+{
+  "calva.paredit.customThreadingMacros": {
+    "my-thread-first": "firstArg",
+    "my-thread-last": "lastArg"
+  }
+}
+```
+
+**Via `.calva/config.edn`:**
+
+```clojure
+{:customThreadingMacros
+ {my-thread-first :firstArg
+  my-thread-last :lastArg}}
+```
+
+Custom threading macros override defaults.
+
 ## About the Keyboard Shortcuts
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
