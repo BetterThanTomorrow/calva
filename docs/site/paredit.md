@@ -340,6 +340,83 @@ You can define custom threading macros using the `calva.paredit.customThreadingM
 
 **Note:** Custom threading macros are appended to the built-in defaults (`->`, `some->`, `->>`, `some->>`). This means your custom macros work alongside the defaults rather than replacing them.
 
+## Namespace Alias Resolution
+
+When working with library-specific pair forms like `promesa.core/let` or `reagent.core/with-let`, you often use namespace aliases in your code (e.g., `p/let` instead of `promesa.core/let`). To make Calva's pair form detection work with these aliases, you can configure an alias map.
+
+### Configuration
+
+The `calva.paredit.aliasMap` setting maps namespace aliases to their fully qualified namespaces, allowing aliased forms to match configured pair forms.
+
+**Via VS Code settings (JSON):**
+
+```json
+{
+  "calva.paredit.aliasMap": {
+    "p": "promesa.core",
+    "r": "reagent.core"
+  }
+}
+```
+
+**Via `.calva/config.edn`:**
+
+```clojure
+{:aliasMap {"p" "promesa.core"
+            "r" "reagent.core"}}
+```
+
+### How It Works
+
+With the alias map configured, Calva will resolve aliased forms when checking pair form definitions:
+
+```clojure
+;; Given this configuration:
+;; customPairForms: [{ type: "vector-binding", name: "promesa.core/let" }]
+;; aliasMap: { "p": "promesa.core" }
+
+;; This code using the alias will work correctly:
+(p/let [x (fetch-data)
+        y (process x)]
+  (println y))
+
+;; Calva will:
+;; 1. See the form name "p/let"
+;; 2. Resolve "p" to "promesa.core" using the alias map
+;; 3. Match it against "promesa.core/let" in the pair forms configuration
+;; 4. Apply pair-aware editing (drag, select pairs, etc.)
+```
+
+### Example: Working with Promesa
+
+```json
+{
+  "calva.paredit.aliasMap": {
+    "p": "promesa.core"
+  }
+}
+```
+
+Now when you write:
+
+```clojure
+(p/let [result (http/get "/api/data")
+        parsed (json/parse result)]
+  parsed)
+```
+
+Calva will correctly recognize `p/let` as a binding form and allow you to:
+- Grow selection to select binding pairs (`x` and its value together)
+- Drag binding pairs as units
+- Navigate and edit with pair-aware commands
+
+### Notes
+
+- The alias map merges settings from both VS Code settings and `.calva/config.edn`
+- Settings from `.calva/config.edn` take precedence over VS Code settings if the same alias is defined in both
+- Both aliased forms (like `p/let`) and fully qualified forms (like `promesa.core/let`) will work
+- This is a manual configuration. Calva does not automatically parse `ns` forms to extract aliases
+
 ## About the Keyboard Shortcuts
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
