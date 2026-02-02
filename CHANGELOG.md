@@ -8,6 +8,7 @@ Changes to Calva.
 - Fix: Slurp Backward no longer adds trailing space when slurping into empty forms
 - [Consider form pairs in `assoc` when growing the selection and when dragging forms](https://github.com/BetterThanTomorrow/calva/issues/3008)
 - [Add threading macro support for flat pair forms](https://github.com/BetterThanTomorrow/calva/issues/3009)
+- [User customizable Pair Forms](https://github.com/BetterThanTomorrow/calva/issues/3007)
 
 ## [2.0.546] - 2026-01-30
 
