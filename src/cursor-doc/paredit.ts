@@ -1716,6 +1716,18 @@ function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): Fl
   return null;
 }
 
+/**
+ * Determines whether the cursor is positioned within a list structure that should be
+ * treated as containing pairs of elements (e.g., key-value pairs, binding pairs).
+ *
+ * This function is used by structural editing operations like drag sexpr to determine
+ * whether elements should be moved individually or in pairs.
+ *
+ * @param cursor The token cursor positioned within a list structure
+ * @param config Optional paredit configuration containing custom pair form definitions
+ * @returns true if the cursor is within a recognized pairs list structure, false otherwise
+ *
+ */
 export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): boolean {
   const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
   const probeCursor = cursor.clone();
