@@ -1502,6 +1502,41 @@ describe('paredit', () => {
         expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
       });
     });
+
+    describe('assoc pairs', () => {
+      it('grows selection to key/value pairs in assoc (value selected first)', () => {
+        const a = docFromTextNotation('(assoc m :a |"one"| :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m |:a "one"| :b "two")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to key/value pairs in assoc (key selected first)', () => {
+        const a = docFromTextNotation('(assoc m |:a| "one" :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m |:a "one"| :b "two")');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('grows selection to key/value pairs in assoc (second pair)', () => {
+        const a = docFromTextNotation('(assoc m :a "one" |:b| "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(assoc m :a "one" |:b "two"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+      it('does not treat map argument as part of pair', () => {
+        const a = docFromTextNotation('(assoc |m| :a "one" :b "two")');
+        const aSelection = a.selections[0];
+        const b = docFromTextNotation('(|assoc m :a "one" :b "two"|)');
+        const bSelection = b.selections[0];
+        paredit.growSelection(a);
+        expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+      });
+    });
   });
 
   describe('condp pair/triple selection tests', () => {
@@ -1948,6 +1983,137 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
+
+    describe('assoc forms', () => {
+      it('drags key/value pair forward in assoc', async () => {
+        const a = docFromTextNotation('(assoc m |:a "one" :b "two")');
+        const b = docFromTextNotation('(assoc m :b "two" |:a "one")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags key/value pair backward in assoc', async () => {
+        const a = docFromTextNotation('(assoc m :a "one" |:b "two")');
+        const b = docFromTextNotation('(assoc m |:b "two" :a "one")');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags key/value pair forward in assoc when cursor on value', async () => {
+        const a = docFromTextNotation('(assoc m :a |"one" :b "two")');
+        const b = docFromTextNotation('(assoc m :b "two" :a |"one")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags map argument past pair when dragging forward in assoc', async () => {
+        const a = docFromTextNotation('(assoc |m :a "one" :b "two")');
+        // Map drags past the first key-value pair to maintain pair structure
+        const b = docFromTextNotation('(assoc :a "one" |m :b "two")');
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('threading macros with pairs', () => {
+      describe('assoc in -> macro', () => {
+        it('grows selection to key/value pairs in assoc inside ->', () => {
+          const a = docFromTextNotation('(-> m (assoc |:a| "one" :b "two"))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> m (assoc |:a "one"| :b "two"))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+
+        it('drags key/value pair forward in assoc inside ->', async () => {
+          const a = docFromTextNotation('(-> m (assoc |:a "one" :b "two"))');
+          const b = docFromTextNotation('(-> m (assoc :b "two" |:a "one"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
+      describe('cond-> inside -> macro (nested threading)', () => {
+        it('grows selection to pair inside cond-> which is itself inside ->', () => {
+          const a = docFromTextNotation('(-> {} (cond-> |true| (assoc :a "one")))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+
+        it('drags pair forward in cond-> which is inside ->', async () => {
+          const a = docFromTextNotation(
+            '(-> {} (cond-> |true (assoc :a "one") false (assoc :b "two")))'
+          );
+          const b = docFromTextNotation(
+            '(-> {} (cond-> false (assoc :b "two") |true (assoc :a "one")))'
+          );
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
+      describe('case inside -> macro', () => {
+        it('grows selection to value/result pair inside case>', () => {
+          const a = docFromTextNotation('(-> x (case |"x"| "one" 2 "two" "default"))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(-> x (case |"x" "one"| 2 "two" "default"))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags value/result pair backward in case inside ->', async () => {
+          const a = docFromTextNotation('(-> x (case |"x" "one" 2 "two" "default"))');
+          const b = docFromTextNotation('(-> x (case 2 "two" |"x" "one" "default"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
+      describe('assoc in ->> macro', () => {
+        it('grows selection to key/value pairs with trailing unpaired key in assoc inside ->>', () => {
+          const a = docFromTextNotation('(->> "two" (assoc {} |:one| "one" :two))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "two" (assoc {} |:one "one"| :two))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('grows selection to entire form because :two is trailing unpaired key', () => {
+          const a = docFromTextNotation('(->> "two" (assoc {} :one "one" |:two|))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "two" (|assoc {} :one "one" :two|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags key/value pair forward with trailing unpaired key in assoc inside ->>', async () => {
+          const a = docFromTextNotation('(->> "three" (assoc {} |:one "one" :two "two" :three))');
+          const b = docFromTextNotation('(->> "three" (assoc {} :two "two" |:one "one" :three))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('case inside ->> macro', () => {
+        it('grows selection to value/result pair inside case inside ->>', () => {
+          const a = docFromTextNotation('(->> "default" (case "x" :four "four" :five |"five"|))');
+          const aSelection = a.selections[0];
+          const b = docFromTextNotation('(->> "default" (case "x" :four "four" |:five "five"|))');
+          const bSelection = b.selections[0];
+          paredit.growSelection(a);
+          expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+        });
+        it('drags value/result pair backward in case inside ->>', async () => {
+          const a = docFromTextNotation('(->> "default" (case "x" |:four "four" :five "five"))');
+          const b = docFromTextNotation('(->> "default" (case "x" :five "five" |:four "four"))');
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+    });
   });
   describe('edits', () => {
     describe('Close lists', () => {
@@ -2084,9 +2250,15 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps form after empty list', async () => {
+        it('slurps form after empty list without adding leading space', async () => {
           const a = docFromTextNotation('(|) "foo"');
-          const b = docFromTextNotation('(| "foo")');
+          const b = docFromTextNotation('(|"foo")');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after whitespace-only list without adding leading space', async () => {
+          const a = docFromTextNotation('(|   ) "foo"');
+          const b = docFromTextNotation('(|"foo")');
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2103,9 +2275,9 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps form including meta and readers', async () => {
+        it('slurps form including meta and readers into empty list', async () => {
           const a = docFromTextNotation('(|) ^{:a b} #c ^d "foo"');
-          const b = docFromTextNotation('(| ^{:a b} #c ^d "foo")');
+          const b = docFromTextNotation('(|^{:a b} #c ^d "foo")');
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2127,12 +2299,66 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form after empty string without adding leading space', async () => {
+          const a = docFromTextNotation('"|"somestuff');
+          const b = docFromTextNotation('"|somestuff"');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after non-empty list with leading space', async () => {
+          const a = docFromTextNotation('(bar|) foo');
+          const b = docFromTextNotation('(bar| foo)');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after non-empty string with leading space', async () => {
+          const a = docFromTextNotation('"a|" b');
+          const b = docFromTextNotation('"a| b"');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps into nested empty list - first slurp', async () => {
+          const a = docFromTextNotation('([|]) "nested"');
+          const b = docFromTextNotation('([|] "nested")');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps into nested empty list - second slurp', async () => {
+          const a = docFromTextNotation('([|] "nested")');
+          const b = docFromTextNotation('([|"nested"])');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
-        it('slurps form before string', async () => {
+        it('slurps form before non-empty string', async () => {
           const a = docFromTextNotation('(str) "fo|o"');
           const b = docFromTextNotation('"(str) fo|o"');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty string without adding trailing space', async () => {
+          const a = docFromTextNotation('foo "|"');
+          const b = docFromTextNotation('"foo|"');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list without adding trailing space', async () => {
+          const a = docFromTextNotation('foo (|)');
+          const b = docFromTextNotation('(foo|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before whitespace-only list without adding trailing space', async () => {
+          const a = docFromTextNotation('foo (|   )');
+          const b = docFromTextNotation('(foo|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty vector without adding trailing space', async () => {
+          const a = docFromTextNotation('foo [|]');
+          const b = docFromTextNotation('[foo|]');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2144,9 +2370,7 @@ describe('paredit', () => {
         });
         it('slurps form before list including meta and readers', async () => {
           const a = docFromTextNotation('^{:a b} #c ^d "foo" (|)');
-          // TODO: Figure out how to test result after format
-          //       (Because that last space is then removed)
-          const b = docFromTextNotation('(^{:a b} #c ^d "foo" |)');
+          const b = docFromTextNotation('(^{:a b} #c ^d "foo"|)');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });

@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { glob } from 'glob';
 
 import { runTests } from '@vscode/test-electron';
@@ -8,6 +9,8 @@ async function main() {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, ...['..', '..', '..']);
+    const vscodeTestPath = path.resolve(extensionDevelopmentPath, '.vscode-test');
+    fs.rmSync(vscodeTestPath, { recursive: true, force: true });
 
     // The path to the extension test runner script
     // Passed to --extensionTestsPath
