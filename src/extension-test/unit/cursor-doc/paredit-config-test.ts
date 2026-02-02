@@ -2,7 +2,7 @@ import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as pareditConfig from '../../../cursor-doc/paredit-config';
 import * as model from '../../../cursor-doc/model';
-import { docFromTextNotation, getText } from '../common/text-notation';
+import { docFromTextNotation, getText, textAndSelection } from '../common/text-notation';
 import { defaultBindingForms } from '../../../cursor-doc/paredit-config';
 
 model.initScanner(20000);
@@ -227,5 +227,24 @@ describe('paredit-config', () => {
       paredit.growSelection(a, a.selections, config);
       expect(getText(a)).toBe(getText(b));
     });
+  });
+
+  it('drags individual sexp when pair behavior is disabled for assoc', async () => {
+    const a = docFromTextNotation('(assoc m |:a "one" :b "two")');
+    const b = docFromTextNotation('(assoc m "one" |:a :b "two")');
+    // Create config without assoc in flat pair forms
+    const customConfig = {
+      pairForms: {
+        'vector-binding': [],
+        keyword: [],
+        flat: [],
+      },
+      threadingMacros: {
+        firstArg: ['->', 'some->'],
+        lastArg: ['->>', 'some->>'],
+      },
+    };
+    await paredit.dragSexprForward(a, [], undefined, undefined, customConfig);
+    expect(textAndSelection(a)).toEqual(textAndSelection(b));
   });
 });
