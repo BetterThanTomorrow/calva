@@ -227,6 +227,30 @@ Calva recognizes three categories of pair forms by default:
 ]
 ```
 
+#### The Default Confguration EDN Representation
+
+```clojure
+[{:type "vector-binding", :name "let"}
+ {:type "vector-binding", :name "for"}
+ {:type "vector-binding", :name "loop"}
+ {:type "vector-binding", :name "binding"}
+ {:type "vector-binding", :name "with-local-vars"}
+ {:type "vector-binding", :name "doseq"}
+ {:type "vector-binding", :name "with-redefs"}
+ {:type "keyword",
+  :keyword ":let",
+  :validParents ["for" "doseq" "dotimes"]}
+ {:type "flat", :name "cond", :offset 1}
+ {:type "flat", :name "cond->", :offset 2}
+ {:type "flat", :name "cond->>", :offset 2}
+ {:type "flat", :name "case", :offset 2}
+ {:type "flat",
+  :name "condp",
+  :offset 3,
+  :tripleMarker ":>>"}
+ {:type "flat", :name "assoc", :offset 2}]
+```
+
 ### Configuration
 
 You can customize which forms Calva treats as pairs using the `calva.paredit.customPairForms` setting. This is useful for custom macros or to override defaults.
