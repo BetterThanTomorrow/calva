@@ -130,6 +130,10 @@ string. "
 
 ;; Pair selecting
 
+(test-vector-binding [a 1
+                      b 2
+                      c 3])
+
 (cond
   (= 1 1)  (println "one is one")
   (= 2 2)  (println "two is two"))
