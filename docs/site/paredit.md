@@ -297,7 +297,7 @@ You can customize which forms Calva treats as pairs using the `calva.paredit.cus
 - `validParents`: Array of parent forms where this keyword is valid. Only needed for `keyword` type.
 - `tripleMarker`: For `flat` type, specifies a special marker for triple pairs (like `:>>` in `condp`).
 
-Custom forms override defaults - define a form to change or remove it from the defaults.
+Custom forms can be added into defaults but those cannot be removed. To override defaults, redefine them all in your configuration.
 
 ## Customizing Threading Macros
 
