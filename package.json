@@ -1251,7 +1251,7 @@
           "calva.paredit.customThreadingMacros": {
             "type": "object",
             "default": {},
-            "markdownDescription": "Custom threading macros for paredit operations. Extends default `->`, `some->`, `->>`, `some->>` with custom macros.",
+            "markdownDescription": "Custom threading macros for paredit operations.\nExtends default `->`, `some->`, `cond->`, `->>`, `some->>` and `cond->>` with custom macros.",
             "properties": {
               "firstArg": {
                 "type": "array",
