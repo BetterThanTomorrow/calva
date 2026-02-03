@@ -1300,15 +1300,26 @@ export function deleteForward(
         }
       );
     } else {
-      // Check if we're at an invalid reader prefix (junk #) or at the start of a reader macro
+      // Check if we're at an invalid reader prefix (junk #) or at the start of a simple reader macro
       const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
+      // Only match simple reader macros like #(, #{, #[ (exactly 2 characters)
+      // Don't match namespaced maps like #:same{ which are longer
       const isAtReaderMacroStart =
-        nextToken.type === 'open' && nextToken.raw.match(/^#[({]/) && start === cursor.offsetStart;
+        nextToken.type === 'open' &&
+        isSimpleReaderPrefix(nextToken) &&
+        start === cursor.offsetStart;
+
+      // Check if we're at a quote prefix for an empty form like '()
+      // Option B: Delete the quote prefix, leaving the empty form
+      const isAtQuotePrefix = isQuotePrefix(nextToken) && start === cursor.offsetStart;
+
+      // For quote prefixes or reader macro prefixes, we should delete them
+      const shouldDeletePrefix = isAtReaderMacroStart || isAtQuotePrefix;
 
       if (
         (['open', 'close'].includes(nextToken.type) &&
           cursor.docIsBalanced() &&
-          !isAtReaderMacroStart) ||
+          !shouldDeletePrefix) ||
         isAtInvalidReaderPrefix
       ) {
         if (isAtInvalidReaderPrefix) {
