@@ -13,8 +13,19 @@ import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
+import { Token } from './lexer';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
+
+function isQuotePrefix(token: Token): boolean {
+  return token.type === 'open' && token.raw.startsWith("'");
+}
+
+function isSimpleReaderPrefix(token: Token): boolean {
+  return token.raw.length === 2 && token.raw.startsWith('#') && token.raw.match(/^#[[({]/)
+    ? true
+    : false;
+}
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -1179,29 +1190,35 @@ export function backspace(
       // we are at the beginning of a line, and not inside a string
       return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
     } else {
+      // isAtReaderPrefix should only be true for simple reader macros like #(, #{
+      // Not for complex forms like namespaced maps: #:same{:a 1 :b 2}
       const isAtReaderPrefix =
         (isInsideReader &&
           start <=
             cursor.offsetStart +
-              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length)) ||
-        (!isInsideReader && prevToken.raw.startsWith('#') && start === cursor.offsetStart);
+              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length) &&
+          nextToken.raw.length === 2) || // Only 2-char reader macros like #( #{
+        (!isInsideReader && isSimpleReaderPrefix(prevToken) && start === cursor.offsetStart);
 
-      // Special check: if we're inside a reader macro token like #( or #{,
-      // we should not allow deletion only if it's empty (like #())
-      // Non empty forms like #(prn "hello") can have their # deleted when
-      //  cursor is inside the token
-      let shouldJumpOverReaderMacro = false;
-      if (prevToken.raw.startsWith('#') && prevToken.raw.match(/^#[({]/)) {
+      // Check if we're at a quote prefix for an empty form like '()
+      // In this case, we want to delete the quote prefix
+      const isAtQuotePrefix =
+        isQuotePrefix(prevToken) && start === cursor.offsetStart + 1 && nextToken.type === 'close';
+
+      // Special check: if we're inside a simple reader macro token like #( or #{ or #[
+      // Always delete the prefix (both # and '), leaving the empty form
+      // But we need to be careful: #:same{ is a namespaced map (longer than 2 chars),
+      // not a simple reader prefix
+      let shouldDeletePrefix = false;
+      if (isAtQuotePrefix) {
+        // Delete the quote prefix from empty forms like '()
+        shouldDeletePrefix = true;
+      } else if (isSimpleReaderPrefix(prevToken)) {
+        // Only match simple reader prefixes like #(, #{, #[ (exactly 2 characters)
         if (isInsideReader) {
-          // We're inside the #( token (between # and ()
-          // When it is empty, jump; if not, allow deletion
-          const nextCursor = doc.getTokenCursor(cursor.offsetStart);
-          nextCursor.next();
-          const tokenAfterOpen = nextCursor.getToken();
-          shouldJumpOverReaderMacro = tokenAfterOpen.type === 'close';
-        } else {
-          // We're AFTER the #( token - always jump
-          shouldJumpOverReaderMacro = true;
+          // We're inside the #( or #{ or #[ token (between # and the opening delimiter)
+          // Always allow deletion to remove the # prefix
+          shouldDeletePrefix = true;
         }
       }
 
@@ -1219,18 +1236,27 @@ export function backspace(
         }
       }
 
-      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore', 'reader', 'junk'];
-      if (
-        JUMP_TOKEN_TYPES.includes(prevToken.type) &&
+      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore'];
+      // For 'reader' tokens, only jump if they are simple 2-char prefixes like #( or #{
+      // For complex reader tags like #:same or #inst, allow deletion
+      const shouldConsiderReaderForJump = isSimpleReaderPrefix(prevToken);
+
+      // When we're inside a complex reader token like #:same{, we should delete normally (not jump)
+      // Only jump for structural boundaries or simple 2-char readers
+      const isInComplexReaderToken =
+        isInsideReader && prevToken.raw.length > 2 && prevToken.raw.startsWith('#');
+
+      const shouldJump =
+        (JUMP_TOKEN_TYPES.includes(prevToken.type) || shouldConsiderReaderForJump) &&
         cursor.docIsBalanced() &&
-        (!isAtReaderPrefix || shouldJumpOverReaderMacro)
-      ) {
+        !shouldDeletePrefix &&
+        (!isAtReaderPrefix || !shouldDeletePrefix) &&
+        !isInComplexReaderToken; // Don't jump inside complex reader tokens like #:same{
+
+      if (shouldJump) {
         // When jumping over a token, if we're inside a reader macro, jump to
         // its start. Otherwise, jump to the start of the previous token
-        const jumpPosition =
-          isInsideReader && shouldJumpOverReaderMacro
-            ? cursor.offsetStart
-            : start - prevToken.raw.length;
+        const jumpPosition = isInsideReader ? cursor.offsetStart : start - prevToken.raw.length;
         doc.selections = [new ModelEditSelection(jumpPosition)];
         return;
       } else {
