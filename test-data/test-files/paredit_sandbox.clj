@@ -131,6 +131,7 @@ string. "
 '|()
 #|{}
 '|('(1 2 3) '(4 5 6))
+'('|(1 2 3) '(4 5 6))
 
 ; Delete forward should delete the prefix ' or #
 ('(1 2 3))
@@ -138,6 +139,7 @@ string. "
 |'()
 |#{}
 |'('(1 2 3) '(4 5 6))
+'(|'(1 2 3) '(4 5 6))
 
 ; Delete backspace should move before # without deleting it
 (#(|inc 2))
