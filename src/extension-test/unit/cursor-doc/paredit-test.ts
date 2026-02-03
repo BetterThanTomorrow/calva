@@ -2423,6 +2423,18 @@ describe('paredit', () => {
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form before empty list with ignore marker preceding', async () => {
+          const a = docFromTextNotation('#_(dosomething) (|)');
+          const b = docFromTextNotation('(#_(dosomething)|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding but does not slurp previous sexp', async () => {
+          const a = docFromTextNotation('something #_(dosomething) (|)');
+          const b = docFromTextNotation('something (#_(dosomething)|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
