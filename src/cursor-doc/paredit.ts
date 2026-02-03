@@ -1344,8 +1344,9 @@ function analyzePrefixDeletionContext(
   prevToken: Token,
   readerContext: ReaderMacroContext
 ): PrefixDeletionContext {
-  const isAtQuotePrefix =
-    isQuotePrefix(prevToken) && start === cursor.offsetStart + 1 && nextToken.type === 'close';
+  // Check if we're right after a quote prefix (for backspace)
+  // Allow deletion of quote when cursor is between ' and (, like: '|(
+  const isAtQuotePrefix = isQuotePrefix(prevToken) && start === cursor.offsetStart + 1;
 
   const shouldDeletePrefix =
     isAtQuotePrefix || (isSimpleReaderPrefix(prevToken) && readerContext.isInsideReader);
