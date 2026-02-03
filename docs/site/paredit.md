@@ -243,7 +243,9 @@ Calva recognizes three categories of pair forms by default:
   { "type": "flat", "name": "cond->>", "offset": 2 },
   { "type": "flat", "name": "case", "offset": 2 },
   { "type": "flat", "name": "condp", "offset": 3, "tripleMarker": ":>>" },
-  { "type": "flat", "name": "assoc", "offset": 2 }
+  { "type": "flat", "name": "assoc", "offset": 2 },
+  { "type": "flat", "name": "assoc!", "offset": 2 },
+  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 }
 ]
 ```
 
@@ -365,7 +367,7 @@ Threading changes where arguments come from, affecting pair calculations:
 }
 ```
 
-**Note:** You don't need to repeat the defaults - custom macros are **concatenated** with built-in defaults.
+**Note:** You don't need to repeat the defaults - custom forms are **concatenated** with built-in defaults.
 
 #### Via Project Config (EDN)
 

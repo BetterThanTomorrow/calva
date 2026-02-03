@@ -72,6 +72,8 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'case', offset: 2 },
   { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
   { type: 'flat', name: 'assoc', offset: 2 },
+  { type: 'flat', name: 'assoc!', offset: 2 },
+  { type: 'flat', name: 'medley.core/assoc-some', offset: 2 },
 ];
 
 export const defaultGroupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
