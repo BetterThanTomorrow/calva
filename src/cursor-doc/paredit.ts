@@ -1287,13 +1287,7 @@ function handleStructuralBackspace(
   prevToken: Token
 ): void {
   const readerContext = analyzeReaderMacroContext(cursor, start, nextToken, prevToken);
-  const prefixContext = analyzePrefixDeletionContext(
-    cursor,
-    start,
-    nextToken,
-    prevToken,
-    readerContext
-  );
+  const prefixContext = analyzePrefixDeletionContext(cursor, start, prevToken, readerContext);
 
   if (shouldDeleteJunkHashWithWhitespace(doc, cursor, start, prevToken)) {
     deleteJunkHashWithWhitespace(doc, builder, start);
@@ -1340,7 +1334,6 @@ function analyzeReaderMacroContext(
 function analyzePrefixDeletionContext(
   cursor: LispTokenCursor,
   start: number,
-  nextToken: Token,
   prevToken: Token,
   readerContext: ReaderMacroContext
 ): PrefixDeletionContext {
