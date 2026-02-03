@@ -1133,6 +1133,23 @@ function backspaceOnWhitespaceEdit(
   );
 }
 
+const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore'] as const;
+const SIMPLE_READER_LENGTH = 2;
+const QUOTED_QUOTE_LENGTH = 2;
+const JUNK_HASH_LENGTH = 2;
+
+interface ReaderMacroContext {
+  isInsideReader: boolean;
+  isAtReaderPrefix: boolean;
+  isInComplexReaderToken: boolean;
+  shouldConsiderForJump: boolean;
+}
+
+interface PrefixDeletionContext {
+  shouldDeletePrefix: boolean;
+  isAtQuotePrefix: boolean;
+}
+
 export function backspace(
   doc: EditableDocument,
   builder?: TextEditorEdit,
@@ -1140,134 +1157,262 @@ export function backspace(
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ): void {
-  if (start != end) {
-    const [left, right] = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
-      builder: builder,
-      skipFormat: true,
-    });
-  } else {
-    const cursor = doc.getTokenCursor(start);
-    const isTopLevel = doc.getTokenCursor(end).atTopLevel();
-    const nextToken = cursor.getToken();
-
-    // Detect if cursor is inside the '#' prefix of a reader macro token (like #( or #{)
-    // before the opening delimiter. Example: in "#(prn)" at position 1, we're inside the reader.
-    // At position 2, we're no longer inside the reader prefix.
-    const isInsideReader =
-      start > cursor.offsetStart &&
-      nextToken.raw.startsWith('#') &&
-      start <=
-        cursor.offsetStart +
-          (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length);
-    const prevToken =
-      (start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)) || isInsideReader
-        ? nextToken // we are “in” a token
-        : cursor.getPrevToken(); // we are “between” tokens
-    if (prevToken.type == 'prompt') {
-      return;
-    } else if (nextToken.type == 'prompt') {
-      return;
-    } else if (doc.model.getText(start - 2, start, true) == '\\"') {
-      // delete quoted double quote
-      return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
-        builder: builder,
-        skipFormat: true,
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      // delete empty list
-      return doc.model.editNow(
-        [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          builder: builder,
-        }
-      );
-    } else if (
-      !isTopLevel &&
-      !cursor.withinString() &&
-      onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
-    ) {
-      // we are at the beginning of a line, and not inside a string
-      return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
-    } else {
-      // isAtReaderPrefix should only be true for simple reader macros like #(, #{
-      // Not for complex forms like namespaced maps: #:same{:a 1 :b 2}
-      const isAtReaderPrefix =
-        (isInsideReader &&
-          start <=
-            cursor.offsetStart +
-              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length) &&
-          nextToken.raw.length === 2) || // Only 2-char reader macros like #( #{
-        (!isInsideReader && isSimpleReaderPrefix(prevToken) && start === cursor.offsetStart);
-
-      // Check if we're at a quote prefix for an empty form like '()
-      // In this case, we want to delete the quote prefix
-      const isAtQuotePrefix =
-        isQuotePrefix(prevToken) && start === cursor.offsetStart + 1 && nextToken.type === 'close';
-
-      // Special check: if we're inside a simple reader macro token like #( or #{ or #[
-      // Always delete the prefix (both # and '), leaving the empty form
-      // But we need to be careful: #:same{ is a namespaced map (longer than 2 chars),
-      // not a simple reader prefix
-      let shouldDeletePrefix = false;
-      if (isAtQuotePrefix) {
-        // Delete the quote prefix from empty forms like '()
-        shouldDeletePrefix = true;
-      } else if (isSimpleReaderPrefix(prevToken)) {
-        // Only match simple reader prefixes like #(, #{, #[ (exactly 2 characters)
-        if (isInsideReader) {
-          // We're inside the #( or #{ or #[ token (between # and the opening delimiter)
-          // Always allow deletion to remove the # prefix
-          shouldDeletePrefix = true;
-        }
-      }
-
-      // Check if we're deleting whitespace after an invalid # (junk)
-      // In this case, delete both the whitespace and the junk #
-      if (prevToken.type === 'ws' && prevToken.raw.length === 1) {
-        const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
-        const prevPrevToken = prevPrevCursor.getPrevToken();
-        if (prevPrevToken.type === 'junk' && prevPrevToken.raw === '#') {
-          // Delete both the whitespace and the junk #
-          return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
-            builder: builder,
-            skipFormat: true,
-          });
-        }
-      }
-
-      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore'];
-      // For 'reader' tokens, only jump if they are simple 2-char prefixes like #( or #{
-      // For complex reader tags like #:same or #inst, allow deletion
-      const shouldConsiderReaderForJump = isSimpleReaderPrefix(prevToken);
-
-      // When we're inside a complex reader token like #:same{, we should delete normally (not jump)
-      // Only jump for structural boundaries or simple 2-char readers
-      const isInComplexReaderToken =
-        isInsideReader && prevToken.raw.length > 2 && prevToken.raw.startsWith('#');
-
-      const shouldJump =
-        (JUMP_TOKEN_TYPES.includes(prevToken.type) || shouldConsiderReaderForJump) &&
-        cursor.docIsBalanced() &&
-        !shouldDeletePrefix &&
-        (!isAtReaderPrefix || !shouldDeletePrefix) &&
-        !isInComplexReaderToken; // Don't jump inside complex reader tokens like #:same{
-
-      if (shouldJump) {
-        // When jumping over a token, if we're inside a reader macro, jump to
-        // its start. Otherwise, jump to the start of the previous token
-        const jumpPosition = isInsideReader ? cursor.offsetStart : start - prevToken.raw.length;
-        doc.selections = [new ModelEditSelection(jumpPosition)];
-        return;
-      } else {
-        const [left, right] = [Math.max(start - 1, 0), start];
-        return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
-          builder: builder,
-          skipFormat: true,
-        });
-      }
-    }
+  if (start !== end) {
+    handleRangeBackspace(doc, builder, start, end);
+    return;
   }
+  handleSingleCursorBackspace(doc, builder, config, start, end);
+}
+
+function handleRangeBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  end: number
+): void {
+  const [left, right] = [Math.min(start, end), Math.max(start, end)];
+  doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function handleSingleCursorBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  config: FormatterConfig | undefined,
+  start: number,
+  end: number
+): void {
+  const cursor = doc.getTokenCursor(start);
+  const isTopLevel = doc.getTokenCursor(end).atTopLevel();
+  const nextToken = cursor.getToken();
+  const prevToken = getPreviousToken(cursor, start, nextToken);
+
+  if (prevToken.type === 'prompt' || nextToken.type === 'prompt') {
+    return;
+  }
+
+  if (shouldDeleteQuotedQuote(doc, start)) {
+    deleteQuotedQuote(doc, builder, start);
+    return;
+  }
+
+  if (shouldDeleteEmptyList(prevToken, nextToken)) {
+    deleteEmptyList(doc, builder, start, prevToken);
+    return;
+  }
+
+  if (shouldBackspaceOnWhitespace(isTopLevel, cursor, doc)) {
+    backspaceOnWhitespaceEdit(builder, doc, cursor, config);
+    return;
+  }
+
+  handleStructuralBackspace(doc, builder, cursor, start, nextToken, prevToken);
+}
+
+function getPreviousToken(cursor: LispTokenCursor, start: number, nextToken: Token): Token {
+  const isInsideReader = detectInsideReader(cursor, start, nextToken);
+  const isInToken = start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type);
+
+  return isInToken || isInsideReader ? nextToken : cursor.getPrevToken();
+}
+
+function detectInsideReader(cursor: LispTokenCursor, start: number, nextToken: Token): boolean {
+  if (start <= cursor.offsetStart || !nextToken.raw.startsWith('#')) {
+    return false;
+  }
+
+  const delimiterIndex = nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length;
+  return start <= cursor.offsetStart + delimiterIndex;
+}
+
+function shouldDeleteQuotedQuote(doc: EditableDocument, start: number): boolean {
+  return doc.model.getText(start - QUOTED_QUOTE_LENGTH, start, true) === '\\"';
+}
+
+function deleteQuotedQuote(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - QUOTED_QUOTE_LENGTH, QUOTED_QUOTE_LENGTH])],
+    {
+      builder,
+      skipFormat: true,
+    }
+  );
+}
+
+function shouldDeleteEmptyList(prevToken: Token, nextToken: Token): boolean {
+  return prevToken.type === 'open' && nextToken.type === 'close';
+}
+
+function deleteEmptyList(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  prevToken: Token
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
+    { builder }
+  );
+}
+
+function shouldBackspaceOnWhitespace(
+  isTopLevel: boolean,
+  cursor: LispTokenCursor,
+  doc: EditableDocument
+): boolean {
+  return (
+    !isTopLevel &&
+    !cursor.withinString() &&
+    onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
+  );
+}
+
+function handleStructuralBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token,
+  prevToken: Token
+): void {
+  const readerContext = analyzeReaderMacroContext(cursor, start, nextToken, prevToken);
+  const prefixContext = analyzePrefixDeletionContext(
+    cursor,
+    start,
+    nextToken,
+    prevToken,
+    readerContext
+  );
+
+  if (shouldDeleteJunkHashWithWhitespace(doc, cursor, start, prevToken)) {
+    deleteJunkHashWithWhitespace(doc, builder, start);
+    return;
+  }
+
+  const shouldJump = determineShouldJump(prevToken, cursor, prefixContext, readerContext);
+
+  if (shouldJump) {
+    performJump(doc, cursor, start, prevToken, readerContext.isInsideReader);
+  } else {
+    deleteCharacter(doc, builder, start);
+  }
+}
+
+function analyzeReaderMacroContext(
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token,
+  prevToken: Token
+): ReaderMacroContext {
+  const isInsideReader = detectInsideReader(cursor, start, nextToken);
+  const delimiterIndex = nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length;
+
+  const isAtReaderPrefix =
+    (isInsideReader &&
+      start <= cursor.offsetStart + delimiterIndex &&
+      nextToken.raw.length === SIMPLE_READER_LENGTH) ||
+    (!isInsideReader && isSimpleReaderPrefix(prevToken) && start === cursor.offsetStart);
+
+  const isInComplexReaderToken =
+    isInsideReader && prevToken.raw.length > SIMPLE_READER_LENGTH && prevToken.raw.startsWith('#');
+
+  const shouldConsiderForJump = isSimpleReaderPrefix(prevToken);
+
+  return {
+    isInsideReader,
+    isAtReaderPrefix,
+    isInComplexReaderToken,
+    shouldConsiderForJump,
+  };
+}
+
+function analyzePrefixDeletionContext(
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token,
+  prevToken: Token,
+  readerContext: ReaderMacroContext
+): PrefixDeletionContext {
+  const isAtQuotePrefix =
+    isQuotePrefix(prevToken) && start === cursor.offsetStart + 1 && nextToken.type === 'close';
+
+  const shouldDeletePrefix =
+    isAtQuotePrefix || (isSimpleReaderPrefix(prevToken) && readerContext.isInsideReader);
+
+  return { shouldDeletePrefix, isAtQuotePrefix };
+}
+
+function shouldDeleteJunkHashWithWhitespace(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  start: number,
+  prevToken: Token
+): boolean {
+  if (prevToken.type !== 'ws' || prevToken.raw.length !== 1) {
+    return false;
+  }
+
+  const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
+  const prevPrevToken = prevPrevCursor.getPrevToken();
+  return prevPrevToken.type === 'junk' && prevPrevToken.raw === '#';
+}
+
+function deleteJunkHashWithWhitespace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start - JUNK_HASH_LENGTH, JUNK_HASH_LENGTH])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function determineShouldJump(
+  prevToken: Token,
+  cursor: LispTokenCursor,
+  prefixContext: PrefixDeletionContext,
+  readerContext: ReaderMacroContext
+): boolean {
+  const isJumpableTokenType =
+    JUMP_TOKEN_TYPES.includes(prevToken.type as typeof JUMP_TOKEN_TYPES[number]) ||
+    readerContext.shouldConsiderForJump;
+
+  return (
+    isJumpableTokenType &&
+    cursor.docIsBalanced() &&
+    !prefixContext.shouldDeletePrefix &&
+    !readerContext.isInComplexReaderToken
+  );
+}
+
+function performJump(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  start: number,
+  prevToken: Token,
+  isInsideReader: boolean
+): void {
+  const jumpPosition = isInsideReader ? cursor.offsetStart : start - prevToken.raw.length;
+  doc.selections = [new ModelEditSelection(jumpPosition)];
+}
+
+function deleteCharacter(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  const left = Math.max(start - 1, 0);
+  doc.model.editNow([new ModelEdit('deleteRange', [left, start - left])], {
+    builder,
+    skipFormat: true,
+  });
 }
 
 export function deleteForward(
