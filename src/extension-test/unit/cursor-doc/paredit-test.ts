@@ -2911,6 +2911,32 @@ describe('paredit', () => {
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
+      describe('Quote prefix deletion with empty forms', () => {
+        it("Deletes ' before empty list", () => {
+          const a = docFromTextNotation("|'()");
+          const b = docFromTextNotation('|()');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty vector", () => {
+          const a = docFromTextNotation("|'[]");
+          const b = docFromTextNotation('|[]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty map", () => {
+          const a = docFromTextNotation("|'{}");
+          const b = docFromTextNotation('|{}');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before non-empty list", () => {
+          const a = docFromTextNotation("|'(foo)");
+          const b = docFromTextNotation('|(foo)');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
     });
 
     describe('killRange', () => {
