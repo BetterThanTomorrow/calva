@@ -1415,76 +1415,166 @@ function deleteCharacter(
   });
 }
 
+interface ForwardDeletionContext {
+  isAtInvalidReaderPrefix: boolean;
+  isAtReaderMacroStart: boolean;
+  isAtQuotePrefix: boolean;
+  shouldDeletePrefix: boolean;
+}
+
 export function deleteForward(
   doc: EditableDocument,
   builder?: TextEditorEdit,
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ) {
-  if (start != end) {
-    const [left, right] = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
-      builder: builder,
-    });
-  } else {
-    // Note: skipFormat, lest formatter unexpectedly move the point (eg skipping past commas)
-    const cursor = doc.getTokenCursor(start);
-    const prevToken = cursor.getPrevToken();
-    const nextToken = cursor.getToken();
-    const p = start;
-    if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return doc.model.editNow([new ModelEdit('deleteRange', [p, 2])], {
-        builder: builder,
-        skipFormat: true,
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return doc.model.editNow(
-        [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          builder: builder,
-        }
-      );
-    } else {
-      // Check if we're at an invalid reader prefix (junk #) or at the start of a simple reader macro
-      const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
-      // Only match simple reader macros like #(, #{, #[ (exactly 2 characters)
-      // Don't match namespaced maps like #:same{ which are longer
-      const isAtReaderMacroStart =
-        nextToken.type === 'open' &&
-        isSimpleReaderPrefix(nextToken) &&
-        start === cursor.offsetStart;
-
-      // Check if we're at a quote prefix for an empty form like '()
-      // Option B: Delete the quote prefix, leaving the empty form
-      const isAtQuotePrefix = isQuotePrefix(nextToken) && start === cursor.offsetStart;
-
-      // For quote prefixes or reader macro prefixes, we should delete them
-      const shouldDeletePrefix = isAtReaderMacroStart || isAtQuotePrefix;
-
-      if (
-        (['open', 'close'].includes(nextToken.type) &&
-          cursor.docIsBalanced() &&
-          !shouldDeletePrefix) ||
-        isAtInvalidReaderPrefix
-      ) {
-        if (isAtInvalidReaderPrefix) {
-          // Delete the invalid # prefix
-          return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
-            builder: builder,
-            skipFormat: true,
-          });
-        } else {
-          doc.selections = [new ModelEditSelection(p + 1)];
-          return;
-        }
-      } else {
-        return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
-          builder: builder,
-          skipFormat: true,
-        });
-      }
-    }
+  if (start !== end) {
+    handleRangeDeleteForward(doc, builder, start, end);
+    return;
   }
+
+  handleSingleCursorDeleteForward(doc, builder, start);
+}
+
+function handleRangeDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  end: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
+    builder,
+  });
+}
+
+function handleSingleCursorDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  const cursor = doc.getTokenCursor(start);
+  const prevToken = cursor.getPrevToken();
+  const nextToken = cursor.getToken();
+
+  if (shouldDeleteForwardQuotedQuote(doc, start)) {
+    deleteForwardQuotedQuote(doc, builder, start);
+    return;
+  }
+
+  if (shouldDeleteEmptyList(prevToken, nextToken)) {
+    deleteForwardEmptyList(doc, builder, start, prevToken);
+    return;
+  }
+
+  handleStructuralDeleteForward(doc, builder, cursor, start, nextToken);
+}
+
+function shouldDeleteForwardQuotedQuote(doc: EditableDocument, start: number): boolean {
+  return doc.model.getText(start, start + QUOTED_QUOTE_LENGTH, true) === '\\"';
+}
+
+function deleteForwardQuotedQuote(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, QUOTED_QUOTE_LENGTH])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function deleteForwardEmptyList(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  prevToken: Token
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
+    { builder }
+  );
+}
+
+function handleStructuralDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token
+): void {
+  const context = analyzeForwardDeletionContext(cursor, start, nextToken);
+
+  if (shouldJumpForward(cursor, nextToken, context)) {
+    if (context.isAtInvalidReaderPrefix) {
+      deleteInvalidReaderPrefix(doc, builder, start);
+    } else {
+      performForwardJump(doc, start);
+    }
+  } else {
+    deleteForwardCharacter(doc, builder, start);
+  }
+}
+
+function analyzeForwardDeletionContext(
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token
+): ForwardDeletionContext {
+  const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
+
+  const isAtReaderMacroStart =
+    nextToken.type === 'open' && isSimpleReaderPrefix(nextToken) && start === cursor.offsetStart;
+
+  const isAtQuotePrefix = isQuotePrefix(nextToken) && start === cursor.offsetStart;
+
+  const shouldDeletePrefix = isAtReaderMacroStart || isAtQuotePrefix;
+
+  return {
+    isAtInvalidReaderPrefix,
+    isAtReaderMacroStart,
+    isAtQuotePrefix,
+    shouldDeletePrefix,
+  };
+}
+
+function shouldJumpForward(
+  cursor: LispTokenCursor,
+  nextToken: Token,
+  context: ForwardDeletionContext
+): boolean {
+  const isStructuralBoundary =
+    ['open', 'close'].includes(nextToken.type) &&
+    cursor.docIsBalanced() &&
+    !context.shouldDeletePrefix;
+
+  return isStructuralBoundary || context.isAtInvalidReaderPrefix;
+}
+
+function deleteInvalidReaderPrefix(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function performForwardJump(doc: EditableDocument, start: number): void {
+  doc.selections = [new ModelEditSelection(start + 1)];
+}
+
+function deleteForwardCharacter(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+    builder,
+    skipFormat: true,
+  });
 }
 
 export async function stringQuote(
