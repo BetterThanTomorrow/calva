@@ -298,4 +298,4 @@ _
 ; slurp sexp forward command
 (|) #_(dosomething) ""
 ; should result in
-(|#_(dosomething) "")
+(|#_(dosomething)) ""
