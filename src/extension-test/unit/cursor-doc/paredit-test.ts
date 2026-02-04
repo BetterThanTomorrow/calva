@@ -2653,6 +2653,25 @@ describe('paredit', () => {
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('Deletes quote prefix from quoted list with content', () => {
+        // https://github.com/BetterThanTomorrow/calva/issues/3020
+        const a = docFromTextNotation("'('|(1 2 3) '(4 5 6) '(7 8 9))");
+        const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from nested quoted list', () => {
+        const a = docFromTextNotation("(foo '|(bar baz))");
+        const b = docFromTextNotation('(foo |(bar baz))');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from quoted vector', () => {
+        const a = docFromTextNotation("'|[1 2 3]");
+        const b = docFromTextNotation('|[1 2 3]');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
       it('Moves cursor past entire open paren, including prefix characters', () => {
         const a = docFromTextNotation('#(|foo)');
         const b = docFromTextNotation('|#(foo)');
@@ -2900,6 +2919,28 @@ describe('paredit', () => {
         const b = docFromTextNotation('{::foo |• ::bar :foo}');
         paredit.deleteForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      // https://github.com/BetterThanTomorrow/calva/issues/3020
+      describe('Quote prefix deletion', () => {
+        it('Deletes quote prefix from quoted list with content', () => {
+          const a = docFromTextNotation("'(|'(1 2 3) '(4 5 6) '(7 8 9))");
+          const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from nested quoted list', () => {
+          const a = docFromTextNotation("(foo |'(bar baz))");
+          const b = docFromTextNotation('(foo |(bar baz))');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from quoted vector', () => {
+          const a = docFromTextNotation("|'[1 2 3]");
+          const b = docFromTextNotation('|[1 2 3]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       // https://github.com/BetterThanTomorrow/calva/issues/2766
