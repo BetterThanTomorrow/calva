@@ -121,7 +121,7 @@ describe('Token Cursor', () => {
     });
     it('Does not skip ignored forms if skipIgnoredForms is false', () => {
       const a = docFromTextNotation('(a| #_1 #_2 3)');
-      const b = docFromTextNotation('(a #_|a #_2 3)');
+      const b = docFromTextNotation('(a #_1| #_2 3)');
       const cursor = a.getTokenCursor(a.selections[0].anchor);
       cursor.forwardSexp(true, true);
       expect(cursor.offsetStart).toBe(b.selections[0].anchor);

@@ -258,12 +258,18 @@ export class LispTokenCursor extends TokenCursor {
           this.next();
           break;
         case 'ignore':
+          // Always include the ignored form as part of this sexp
+          this.next();
+          this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
           if (skipIgnoredForms) {
-            this.next();
-            this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+            // Continue to next sexp when skipping ignored forms
             break;
           }
-        // eslint-disable-next-line no-fallthrough
+          // Stop here: the ignored form is the sexp we found
+          if (stack.length <= 0) {
+            return true;
+          }
+          break;
         case 'id':
         case 'lit':
         case 'kw':
