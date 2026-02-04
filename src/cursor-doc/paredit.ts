@@ -13,6 +13,15 @@ import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
+import {
+  PareditConfig,
+  KeywordPairForm,
+  FlatPairForm,
+  AliasMapConfig,
+  defaultGroupedDefaultPairForms,
+  defaultThreadingMacros,
+  resolveAliasedSymbol,
+} from './paredit-config';
 import { Token } from './lexer';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
@@ -1623,7 +1632,11 @@ export async function stringQuote(
  * built-in Expand Selection/Shrink Selection commands)
  * // TODO: Inside string should first select contents
  */
-export function growSelection(doc: EditableDocument, selections = doc.selections) {
+export function growSelection(
+  doc: EditableDocument,
+  selections = doc.selections,
+  config?: PareditConfig
+) {
   const newRanges = selections.map<[number, number]>(({ anchor: start, active: end }) => {
     const startC = doc.getTokenCursor(start),
       endC = doc.getTokenCursor(end),
@@ -1640,9 +1653,9 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       return [start, end];
     } else {
       // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
-      if (isInPairsList(startC, bindingForms)) {
+      if (isInPairsList(startC, config)) {
         // Use the selection start to determine the pair
-        const pairRange = currentSexpsRange(doc, startC, start, true);
+        const pairRange = currentSexpsRange(doc, startC, start, true, config);
         // Only expand to pair if current selection is smaller than the pair
         // (i.e., we have a single form selected, not already a pair or larger)
         const currentSelectionLength = end - start;
@@ -1873,87 +1886,20 @@ export async function transpose(
   }
 }
 
-interface VectorBindingForm {
-  type: 'vector-binding';
-  name: string;
-}
-
-interface KeywordPairForm {
-  type: 'keyword';
-  keyword: string;
-  validParents?: string[];
-}
-
-interface FlatPairForm {
-  type: 'flat';
-  name: string;
-  offset: number;
-  tripleMarker?: string;
-}
-
-type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
-
-type GroupedPairForms = {
-  'vector-binding': VectorBindingForm[];
-  keyword: KeywordPairForm[];
-  flat: FlatPairForm[];
-};
-
-const defaultPairForms: PairFormConfig[] = [
-  // Vector Binding forms
-  { type: 'vector-binding', name: 'let' },
-  { type: 'vector-binding', name: 'for' },
-  { type: 'vector-binding', name: 'loop' },
-  { type: 'vector-binding', name: 'binding' },
-  { type: 'vector-binding', name: 'with-local-vars' },
-  { type: 'vector-binding', name: 'doseq' },
-  { type: 'vector-binding', name: 'with-redefs' },
-
-  // Keyword-based modifiers
-  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
-
-  // flat
-  { type: 'flat', name: 'cond', offset: 1 },
-  { type: 'flat', name: 'cond->', offset: 2 },
-  { type: 'flat', name: 'cond->>', offset: 2 },
-  { type: 'flat', name: 'case', offset: 2 },
-  { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
-  { type: 'flat', name: 'assoc', offset: 2 },
-];
-
-const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
-  (acc, form) => {
-    switch (form.type) {
-      case 'vector-binding':
-        acc['vector-binding'].push(form);
-        break;
-      case 'keyword':
-        acc.keyword.push(form);
-        break;
-      case 'flat':
-        acc.flat.push(form);
-        break;
-    }
-    return acc;
-  },
-  { 'vector-binding': [], keyword: [], flat: [] }
-);
-
-export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
-
-const threadingMacros = {
-  firstArg: ['->', 'some->', 'cond->'],
-  lastArg: ['->>', 'some->>', 'cond->>'],
-};
-
 /**
  * Detects if cursor's form is the direct child of a threading macro.
  * Returns:
  * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
  * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
  * - null if not direct child of threading macro
+ * @param cursor The cursor position to check
+ * @param config Optional paredit configuration (uses defaults if not provided)
  */
-function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+function getDirectThreadingMacroStyle(
+  cursor: LispTokenCursor,
+  config?: PareditConfig
+): 'firstArg' | 'lastArg' | null {
+  const threadingMacros = config?.threadingMacros ?? defaultThreadingMacros;
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
@@ -2028,21 +1974,41 @@ function isPrecededByKeywordPairForm(
  * Gets the offset for a flat pair form (e.g., cond, case, condp).
  * Returns the matching FlatPairForm if found, otherwise null.
  */
-function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): FlatPairForm | null {
+function getFlatPairForm(
+  cursor: LispTokenCursor,
+  flatForms: FlatPairForm[],
+  aliasMap: AliasMapConfig = {}
+): FlatPairForm | null {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
     if (opening.endsWith('(')) {
       const fn = probeCursor.getFunctionName();
       if (fn) {
-        return flatForms.find((f) => f.name === fn) ?? null;
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        // Try resolved name first, then original
+        return flatForms.find((f) => f.name === resolvedFn || f.name === fn) ?? null;
       }
     }
   }
   return null;
 }
 
-export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+/**
+ * Determines whether the cursor is positioned within a list structure that should be
+ * treated as containing pairs of elements (e.g., key-value pairs, binding pairs).
+ *
+ * This function is used by structural editing operations like drag sexpr to determine
+ * whether elements should be moved individually or in pairs.
+ *
+ * @param cursor The token cursor positioned within a list structure
+ * @param config Optional paredit configuration containing custom pair form definitions
+ * @returns true if the cursor is within a recognized pairs list structure, false otherwise
+ *
+ */
+export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): boolean {
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
@@ -2055,7 +2021,7 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
     }
     if (opening.endsWith('[')) {
       // Check keyword modifiers first (like :let)
-      const keywordForms = groupedDefaultPairForms.keyword;
+      const keywordForms = grouped.keyword;
       if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
@@ -2068,24 +2034,29 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
         return false;
       }
       const fn = probeCursor.getFunctionName();
-      if (fn && pairForms.includes(fn)) {
-        // Verify this is the bindings vector (first argument), not a vector in the body
-        // Navigate to find the first argument in the binding form
-        const searchCursor = probeCursor.clone();
-        searchCursor.downList(); // Enter the list: (let ...
-        searchCursor.forwardSexp(); // Skip function name
-        searchCursor.forwardWhitespace();
+      if (fn) {
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        const vectorBindingNames = grouped['vector-binding'].map((f) => f.name);
+        // Check both resolved and original function names
+        if (vectorBindingNames.includes(resolvedFn) || vectorBindingNames.includes(fn)) {
+          // Verify this is the bindings vector (first argument), not a vector in the body
+          // Navigate to find the first argument in the binding form
+          const searchCursor = probeCursor.clone();
+          searchCursor.downList(); // Enter the list: (let ...
+          searchCursor.forwardSexp(); // Skip function name
+          searchCursor.forwardWhitespace();
 
-        // If our vector's opening bracket is at the position of the first argument, it's the bindings vector
-        if (vectorOpeningPos === searchCursor.offsetStart) {
-          return true;
+          // If our vector's opening bracket is at the position of the first argument, it's the bindings vector
+          if (vectorOpeningPos === searchCursor.offsetStart) {
+            return true;
+          }
         }
       }
     }
     if (opening.endsWith('(')) {
       // Check if this is a flat pair form like (cond test expr test expr ...)
-      const flatForms = groupedDefaultPairForms.flat;
-      if (getFlatPairForm(probeCursor, flatForms)) {
+      const flatForms = grouped.flat;
+      if (getFlatPairForm(probeCursor, flatForms, aliasMap)) {
         return true;
       }
     }
@@ -2270,8 +2241,11 @@ export function currentSexpsRange(
   doc: EditableDocument,
   cursor: LispTokenCursor,
   offset: number,
-  usePairs = false
+  usePairs = false,
+  config?: PareditConfig
 ): [number, number] {
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
     // Create a fresh cursor at the offset position to ensure correct list context
@@ -2283,9 +2257,9 @@ export function currentSexpsRange(
       );
 
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
-      const flatForms = groupedDefaultPairForms.flat;
-      const flatForm = getFlatPairForm(listCursor, flatForms);
-      const threadingStyle = getDirectThreadingMacroStyle(cursor);
+      const flatForms = grouped.flat;
+      const flatForm = getFlatPairForm(listCursor, flatForms, aliasMap);
+      const threadingStyle = getDirectThreadingMacroStyle(cursor, config);
       const formOffset = flatForm?.offset || 0;
       const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;
 
@@ -2314,17 +2288,17 @@ export function currentSexpsRange(
 
 export async function dragSexprBackward(
   doc: EditableDocument,
-  pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
+  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backRange[0] !== currentRange[0]) {
     // there is a sexp to the left
     const leftText = doc.model.getText(backRange[0], backRange[1]);
@@ -2341,17 +2315,23 @@ export async function dragSexprBackward(
 
 export async function dragSexprForward(
   doc: EditableDocument,
-  pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = currentRange[1] - right;
   const forwardCursor = doc.getTokenCursor(currentRange[1]);
   forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
+  const forwardRange = currentSexpsRange(
+    doc,
+    forwardCursor,
+    forwardCursor.offsetStart,
+    usePairs,
+    config
+  );
   if (forwardRange[0] !== currentRange[0]) {
     // there is a sexp to the right
     const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);

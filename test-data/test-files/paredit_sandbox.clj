@@ -146,6 +146,10 @@ string. "
 
 ;; Pair selecting
 
+(test-vector-binding [a 1
+                      b 2
+                      c 3])
+
 (cond
   (= 1 1)  (println "one is one")
   (= 2 2)  (println "two is two"))
@@ -213,6 +217,24 @@ string. "
   #{5 9}   :>> dec)
 
 (assoc {} :a 1 :b 2)
+
+;; configured: expand selection includes pair
+(my-> {} (assoc |:a| 1))
+
+;; not configured: expand selection includes entire form
+(not-my-> {} (assoc |:a| 1))
+
+;; aliases 
+(r/with-let [a 1
+             b 3])
+
+(p/let [a 1
+        b 2])
+
+;without alias
+(promesa.core/let [a 1
+                   b 2])
+
 
 ;; === Slurp Backward
 

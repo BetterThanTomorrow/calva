@@ -1716,12 +1716,12 @@ describe('paredit', () => {
 
       it('drags pair in binding box', async () => {
         const b = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
         );
         const a = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
         );
-        await paredit.dragSexprForward(b, ['c']);
+        await paredit.dragSexprForward(b);
         expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
       });
 
@@ -1740,30 +1740,30 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr forward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1| 2 3]])`);
-        const b = docFromTextNotation(`(b [x [2 1| 3]])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1| 2 3]])`);
+        const b = docFromTextNotation(`(let [x [2 1| 3]])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr backward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1 2 |:a]])`);
-        const b = docFromTextNotation(`(b [x [1 |:a 2]])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1 2 |:a]])`);
+        const b = docFromTextNotation(`(let [x [1 |:a 2]])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr forward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2| 3)])`);
-        const b = docFromTextNotation(`(b [x (1 3 2|)])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2| 3)])`);
+        const b = docFromTextNotation(`(let [x (1 3 2|)])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr backward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2 |:a)])`);
-        const b = docFromTextNotation(`(b [x (1 |:a 2)])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2 |:a)])`);
+        const b = docFromTextNotation(`(let [x (1 |:a 2)])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
@@ -2152,36 +2152,36 @@ describe('paredit', () => {
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
-    });
-  });
 
-  describe('Nested threading)', () => {
-    it('handles cond-> inside -> with assoc pairs (first expansion)', () => {
-      const a = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one")))');
-      const b = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one"|)))');
-      paredit.growSelection(a, a.selections);
-      expect(getText(a)).toBe(getText(b));
-    });
+      describe('Nested threading)', () => {
+        it('handles cond-> inside -> with assoc pairs (first expansion)', () => {
+          const a = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one")))');
+          const b = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one"|)))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
 
-    it('handles cond-> inside -> with assoc form (second expansion)', () => {
-      const a = docFromTextNotation('(-> {} (cond-> true |(assoc :a "one")))');
-      const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
-      paredit.growSelection(a, a.selections);
-      expect(getText(a)).toBe(getText(b));
-    });
+        it('handles cond-> inside -> with assoc form (second expansion)', () => {
+          const a = docFromTextNotation('(-> {} (cond-> true |(assoc :a "one")))');
+          const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
 
-    it('handles cond->> inside ->> with assoc pairs', () => {
-      const a = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one")))');
-      const b = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one"|)))');
-      paredit.growSelection(a, a.selections);
-      expect(getText(a)).toBe(getText(b));
-    });
+        it('handles cond->> inside ->> with assoc pairs', () => {
+          const a = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one")))');
+          const b = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one"|)))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
 
-    it('handles cond->> inside ->> with condition pairs', () => {
-      const a = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")))');
-      const b = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")|))');
-      paredit.growSelection(a, a.selections);
-      expect(getText(a)).toBe(getText(b));
+        it('handles cond->> inside ->> with condition pairs', () => {
+          const a = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")))');
+          const b = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")|))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
+      });
     });
   });
 

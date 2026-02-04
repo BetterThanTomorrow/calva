@@ -1207,6 +1207,77 @@
             "markdownDescription": "Experimental: Support for multiple cursors in paredit commands.\nCurrently supported commands:\n- Cursor movement\n- Cursor selection\n- Rewrap",
             "default": false,
             "scope": "window"
+          },
+          "calva.paredit.customPairForms": {
+            "type": "array",
+            "default": [],
+            "markdownDescription": "Custom pair forms for paredit operations. Extends defaults with project-specific forms like `promesa.core/let` or custom macros.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["vector-binding", "keyword", "flat"],
+                  "description": "The type of pair form"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Function/macro name (for vector-binding and flat types)"
+                },
+                "keyword": {
+                  "type": "string",
+                  "description": "Keyword name (for keyword type)"
+                },
+                "validParents": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of valid parent form names (for keyword type)"
+                },
+                "offset": {
+                  "type": "number",
+                  "description": "Offset from form start to first pair element (for flat type)"
+                },
+                "tripleMarker": {
+                  "type": "string",
+                  "description": "Marker for triple-element groupings (for keyword type)"
+                }
+              },
+              "required": ["type"]
+            },
+            "scope": "window"
+          },
+          "calva.paredit.customThreadingMacros": {
+            "type": "object",
+            "default": {},
+            "markdownDescription": "Custom threading macros for paredit operations.\nExtends default `->`, `some->`, `cond->`, `->>`, `some->>` and `cond->>` with custom macros.",
+            "properties": {
+              "firstArg": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Threading macros that thread into first argument position (like ->)"
+              },
+              "lastArg": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Threading macros that thread into last argument position (like ->>)"
+              }
+            },
+            "scope": "window"
+          },
+          "calva.paredit.aliasMap": {
+            "type": "object",
+            "default": {},
+            "markdownDescription": "Map of namespace aliases to fully qualified namespaces for pair form resolution. Example: `{\"p\": \"promesa.core\", \"r\": \"reagent.core\"}` allows `p/let` in code to match a configured `promesa.core/let` pair form.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "scope": "window"
           }
         }
       },
