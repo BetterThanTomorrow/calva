@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Error when slurping forward before commented s-expressions `(|) #_(dosomething)`](https://github.com/BetterThanTomorrow/calva/issues/2387)
+- Fix: [Inconsistent deletion of structural prefixes with empty forms](https://github.com/BetterThanTomorrow/calva/issues/3021)
 - Fix: [Slurp backward with previous commented expr](https://github.com/BetterThanTomorrow/calva/issues/3025)
 - Fix: [Pair selection and drag with threaded `cond->`](https://github.com/BetterThanTomorrow/calva/issues/3018)
 
