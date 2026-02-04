@@ -112,20 +112,36 @@ string. "
 ;Should delete entire #() form with backspace and delete
 #()
 
-; Should not delete #  
+; Should not delete # (delete backspace)
 #{|21 2}
 
-; Should delete #
+; Should delete # (delete backspace)
 #|{21}
 
-;; Backspace should delete the #
+;; Delete forward should delete the #
 [|#(prn "hello")]
 |#(prn "hello"|)
 
-;; Delete should delete space and #
-[# |(prn "hello")]
+;; Delete backspace should delete the #
+(|#(prn "hello"))
 
-; Delete should move before # without deleting it
+; Delete backspace should delete the prefix ' or #
+'|(1 2 3)
+#|{1 2 3}
+'|()
+#|{}
+'|('(1 2 3) '(4 5 6))
+'('|(1 2 3) '(4 5 6))
+
+; Delete forward should delete the prefix ' or #
+('(1 2 3))
+(|#(1 2 3))
+|'()
+|#{}
+|'('(1 2 3) '(4 5 6))
+'(|'(1 2 3) '(4 5 6))
+
+; Delete backspace should move before # without deleting it
 (#(|inc 2))
 
 ;; Pair selecting
@@ -316,3 +332,8 @@ foo [|]
 ;; Expected: ([|"nested"])
 ([|]) "nested" ;;->> ([|] "nested")->>([|] "nested")->>[(|"nested")] 
 _
+
+; slurp sexp forward command
+(|) #_(dosomething) ""
+; should result in
+(|#_(dosomething)) ""
