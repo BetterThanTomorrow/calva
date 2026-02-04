@@ -308,3 +308,8 @@ foo [|]
 ;; Expected: ([|"nested"])
 ([|]) "nested" ;;->> ([|] "nested")->>([|] "nested")->>[(|"nested")] 
 _
+
+; slurp sexp forward command
+(|) #_(dosomething) ""
+; should result in
+(|#_(dosomething)) ""

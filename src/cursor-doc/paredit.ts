@@ -971,6 +971,11 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   // Navigate to previous sexp
   cursor.previous();
   cursor.backwardSexp(true, true);
+
+  // Check if there's an ignore marker (#_) before the sexp we just found
+  // This ensures that slurping includes the ignore marker as part of the slurped form
+  cursor.backwardThroughAnyIgnore();
+
   const prevSexpStart = cursor.offsetStart;
 
   // Skip whitespace to check if there's a previous sexp to slurp

@@ -2360,6 +2360,18 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form after empty list with ignore marker following', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething)');
+          const b = docFromTextNotation('(|#_(dosomething))');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after empty list with ignore marker following but does not slurp next sexp', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething) something');
+          const b = docFromTextNotation('(|#_(dosomething)) something');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
@@ -2420,6 +2432,18 @@ describe('paredit', () => {
         it('slurps backward at multiple cursors', async () => {
           const a = docFromTextNotation('(str) (fo|o)•(str) (fo|1o)');
           const b = docFromTextNotation('((str) fo|o)•((str) fo|1o)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding', async () => {
+          const a = docFromTextNotation('#_(dosomething) (|)');
+          const b = docFromTextNotation('(#_(dosomething)|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding but does not slurp previous sexp', async () => {
+          const a = docFromTextNotation('something #_(dosomething) (|)');
+          const b = docFromTextNotation('something (#_(dosomething)|)');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
