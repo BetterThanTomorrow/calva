@@ -82,6 +82,10 @@ To have the hints automatically pop up when you are typing, set `editor.paramete
 
 See [Formatting](formatting.md) for information on how to configure this.
 
+## Paredit Pair Forms
+
+Calva's Paredit can be configured to recognize custom pair forms and threading macros for structural editing operations like dragging bindings. See [Paredit - Customizing Pair Forms](paredit.md#customizing-pair-forms) for details.
+
 ## Jack-in and Connect
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).

@@ -1390,6 +1390,19 @@ describe('paredit', () => {
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
     });
 
+    it('does not treat regular vectors in let body as pair forms', () => {
+      const a = docFromTextNotation(
+        '(let [[root left right] tree] [root |(mirror-tree left)| (mirror-tree right)])'
+      );
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation(
+        '(let [[root left right] tree] [|root (mirror-tree left) (mirror-tree right)|])'
+      );
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
     describe('cond pairs', () => {
       it('grows selection to test/expr pairs in cond (expr selected first)', () => {
         const a = docFromTextNotation('(cond true |:yes| false :no)');
@@ -1703,12 +1716,12 @@ describe('paredit', () => {
 
       it('drags pair in binding box', async () => {
         const b = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`
         );
         const a = docFromTextNotation(
-          `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
+          `(let• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`
         );
-        await paredit.dragSexprForward(b, ['c']);
+        await paredit.dragSexprForward(b);
         expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
       });
 
@@ -1727,30 +1740,30 @@ describe('paredit', () => {
       });
 
       it('drags single sexpr forward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1| 2 3]])`);
-        const b = docFromTextNotation(`(b [x [2 1| 3]])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1| 2 3]])`);
+        const b = docFromTextNotation(`(let [x [2 1| 3]])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr backward in bound vectors', async () => {
-        const a = docFromTextNotation(`(b [x [1 2 |:a]])`);
-        const b = docFromTextNotation(`(b [x [1 |:a 2]])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x [1 2 |:a]])`);
+        const b = docFromTextNotation(`(let [x [1 |:a 2]])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr forward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2| 3)])`);
-        const b = docFromTextNotation(`(b [x (1 3 2|)])`);
-        await paredit.dragSexprForward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2| 3)])`);
+        const b = docFromTextNotation(`(let [x (1 3 2|)])`);
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
       it('drags single sexpr backward in bound lists', async () => {
-        const a = docFromTextNotation(`(b [x (1 2 |:a)])`);
-        const b = docFromTextNotation(`(b [x (1 |:a 2)])`);
-        await paredit.dragSexprBackward(a, ['b']);
+        const a = docFromTextNotation(`(let [x (1 2 |:a)])`);
+        const b = docFromTextNotation(`(let [x (1 |:a 2)])`);
+        await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
@@ -1984,6 +1997,32 @@ describe('paredit', () => {
       });
     });
 
+    describe('regular vectors in let body', () => {
+      it('does not treat regular vector in let body as pairs when dragging backward', async () => {
+        // https://github.com/BetterThanTomorrow/calva/issues/2735
+        // Regular vectors in let body should not have pair semantics
+        const a = docFromTextNotation(
+          '(let [[root left right] tree] [root (mirror-tree left) |(mirror-tree right)])'
+        );
+        const b = docFromTextNotation(
+          '(let [[root left right] tree] [root |(mirror-tree right) (mirror-tree left)])'
+        );
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does NOT treat regular vector in let body as pairs when dragging forward', async () => {
+        const a = docFromTextNotation(
+          '(let [[root left right] tree] [root |(mirror-tree left) (mirror-tree right)])'
+        );
+        const b = docFromTextNotation(
+          '(let [[root left right] tree] [root (mirror-tree right) |(mirror-tree left)])'
+        );
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
     describe('assoc forms', () => {
       it('drags key/value pair forward in assoc', async () => {
         const a = docFromTextNotation('(assoc m |:a "one" :b "two")');
@@ -2113,8 +2152,39 @@ describe('paredit', () => {
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
+
+      describe('Nested threading)', () => {
+        it('handles cond-> inside -> with assoc pairs (first expansion)', () => {
+          const a = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one")))');
+          const b = docFromTextNotation('(-> {} (cond-> true (assoc |:a "one"|)))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
+
+        it('handles cond-> inside -> with assoc form (second expansion)', () => {
+          const a = docFromTextNotation('(-> {} (cond-> true |(assoc :a "one")))');
+          const b = docFromTextNotation('(-> {} (cond-> |true (assoc :a "one")|))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
+
+        it('handles cond->> inside ->> with assoc pairs', () => {
+          const a = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one")))');
+          const b = docFromTextNotation('(->> {} (cond->> true (assoc |:a "one"|)))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
+
+        it('handles cond->> inside ->> with condition pairs', () => {
+          const a = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")))');
+          const b = docFromTextNotation('(->> {} (cond->> |true (assoc :a "one")|))');
+          paredit.growSelection(a, a.selections);
+          expect(getText(a)).toBe(getText(b));
+        });
+      });
     });
   });
+
   describe('edits', () => {
     describe('Close lists', () => {
       it('Advances cursor if at end of list of the same type', async () => {
@@ -2329,6 +2399,18 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form after empty list with ignore marker following', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething)');
+          const b = docFromTextNotation('(|#_(dosomething))');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after empty list with ignore marker following but does not slurp next sexp', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething) something');
+          const b = docFromTextNotation('(|#_(dosomething)) something');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
@@ -2389,6 +2471,18 @@ describe('paredit', () => {
         it('slurps backward at multiple cursors', async () => {
           const a = docFromTextNotation('(str) (fo|o)•(str) (fo|1o)');
           const b = docFromTextNotation('((str) fo|o)•((str) fo|1o)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding', async () => {
+          const a = docFromTextNotation('#_(dosomething) (|)');
+          const b = docFromTextNotation('(#_(dosomething)|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding but does not slurp previous sexp', async () => {
+          const a = docFromTextNotation('something #_(dosomething) (|)');
+          const b = docFromTextNotation('something (#_(dosomething)|)');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2598,6 +2692,25 @@ describe('paredit', () => {
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('Deletes quote prefix from quoted list with content', () => {
+        // https://github.com/BetterThanTomorrow/calva/issues/3020
+        const a = docFromTextNotation("'('|(1 2 3) '(4 5 6) '(7 8 9))");
+        const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from nested quoted list', () => {
+        const a = docFromTextNotation("(foo '|(bar baz))");
+        const b = docFromTextNotation('(foo |(bar baz))');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from quoted vector', () => {
+        const a = docFromTextNotation("'|[1 2 3]");
+        const b = docFromTextNotation('|[1 2 3]');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
       it('Moves cursor past entire open paren, including prefix characters', () => {
         const a = docFromTextNotation('#(|foo)');
         const b = docFromTextNotation('|#(foo)');
@@ -2682,9 +2795,9 @@ describe('paredit', () => {
       });
 
       // https://github.com/BetterThanTomorrow/calva/issues/2327
-      it('Does not delete hash character to the left of a list, inside a list', () => {
+      it('Deletes hash character to the left of a list, inside a list', () => {
         const a = docFromTextNotation('(#|())');
-        const b = docFromTextNotation('(|#())');
+        const b = docFromTextNotation('(|())');
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -2713,15 +2826,15 @@ describe('paredit', () => {
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('Does not delete # inside empty anonymous function', () => {
+        it('Deletes # inside empty anonymous function', () => {
           const a = docFromTextNotation('(#|())');
-          const b = docFromTextNotation('(|#())');
+          const b = docFromTextNotation('(|())');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('Does not delete # inside empty set', () => {
+        it('Deletes # inside empty set', () => {
           const a = docFromTextNotation('(#|{})');
-          const b = docFromTextNotation('(|#{})');
+          const b = docFromTextNotation('(|{})');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2734,6 +2847,32 @@ describe('paredit', () => {
         it('Jumps over # when cursor is after opening brace', () => {
           const a = docFromTextNotation('#{|:foo}');
           const b = docFromTextNotation('|#{:foo}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Quote prefix deletion with empty forms', () => {
+        it("Deletes ' before empty list", () => {
+          const a = docFromTextNotation("'|()");
+          const b = docFromTextNotation('|()');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty vector", () => {
+          const a = docFromTextNotation("'|[]");
+          const b = docFromTextNotation('|[]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty map", () => {
+          const a = docFromTextNotation("'|{}");
+          const b = docFromTextNotation('|{}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before non-empty list", () => {
+          const a = docFromTextNotation("'|(foo)");
+          const b = docFromTextNotation('|(foo)');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2821,6 +2960,28 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
+      // https://github.com/BetterThanTomorrow/calva/issues/3020
+      describe('Quote prefix deletion', () => {
+        it('Deletes quote prefix from quoted list with content', () => {
+          const a = docFromTextNotation("'(|'(1 2 3) '(4 5 6) '(7 8 9))");
+          const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from nested quoted list', () => {
+          const a = docFromTextNotation("(foo |'(bar baz))");
+          const b = docFromTextNotation('(foo |(bar baz))');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from quoted vector', () => {
+          const a = docFromTextNotation("|'[1 2 3]");
+          const b = docFromTextNotation('|[1 2 3]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
       // https://github.com/BetterThanTomorrow/calva/issues/2766
       describe('Hash character deletion with reader macros', () => {
         it('Deletes # before non-empty anonymous function', () => {
@@ -2850,6 +3011,32 @@ describe('paredit', () => {
         it('Deletes # before empty set', () => {
           const a = docFromTextNotation('[|#{}]');
           const b = docFromTextNotation('[|{}]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Quote prefix deletion with empty forms', () => {
+        it("Deletes ' before empty list", () => {
+          const a = docFromTextNotation("|'()");
+          const b = docFromTextNotation('|()');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty vector", () => {
+          const a = docFromTextNotation("|'[]");
+          const b = docFromTextNotation('|[]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty map", () => {
+          const a = docFromTextNotation("|'{}");
+          const b = docFromTextNotation('|{}');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before non-empty list", () => {
+          const a = docFromTextNotation("|'(foo)");
+          const b = docFromTextNotation('|(foo)');
           paredit.deleteForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });

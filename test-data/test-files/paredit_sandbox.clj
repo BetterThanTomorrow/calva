@@ -112,23 +112,43 @@ string. "
 ;Should delete entire #() form with backspace and delete
 #()
 
-; Should not delete #  
+; Should not delete # (delete backspace)
 #{|21 2}
 
-; Should delete #
+; Should delete # (delete backspace)
 #|{21}
 
-;; Backspace should delete the #
+;; Delete forward should delete the #
 [|#(prn "hello")]
 |#(prn "hello"|)
 
-;; Delete should delete space and #
-[# |(prn "hello")]
+;; Delete backspace should delete the #
+(|#(prn "hello"))
 
-; Delete should move before # without deleting it
+; Delete backspace should delete the prefix ' or #
+'|(1 2 3)
+#|{1 2 3}
+'|()
+#|{}
+'|('(1 2 3) '(4 5 6))
+'('|(1 2 3) '(4 5 6))
+
+; Delete forward should delete the prefix ' or #
+('(1 2 3))
+(|#(1 2 3))
+|'()
+|#{}
+|'('(1 2 3) '(4 5 6))
+'(|'(1 2 3) '(4 5 6))
+
+; Delete backspace should move before # without deleting it
 (#(|inc 2))
 
 ;; Pair selecting
+
+(test-vector-binding [a 1
+                      b 2
+                      c 3])
 
 (cond
   (= 1 1)  (println "one is one")
@@ -175,6 +195,11 @@ string. "
        2 "two"
        3 "three"))
 
+; multithreaded example
+(-> {}
+    (cond->
+     true (assoc :a "one")))
+
 (case 1
   1 "one"
   2 "two"
@@ -192,6 +217,24 @@ string. "
   #{5 9}   :>> dec)
 
 (assoc {} :a 1 :b 2)
+
+;; configured: expand selection includes pair
+(my-> {} (assoc |:a| 1))
+
+;; not configured: expand selection includes entire form
+(not-my-> {} (assoc |:a| 1))
+
+;; aliases 
+(r/with-let [a 1
+             b 3])
+
+(p/let [a 1
+        b 2])
+
+;without alias
+(promesa.core/let [a 1
+                   b 2])
+
 
 ;; === Slurp Backward
 
@@ -289,3 +332,8 @@ foo [|]
 ;; Expected: ([|"nested"])
 ([|]) "nested" ;;->> ([|] "nested")->>([|] "nested")->>[(|"nested")] 
 _
+
+; slurp sexp forward command
+(|) #_(dosomething) ""
+; should result in
+(|#_(dosomething)) ""

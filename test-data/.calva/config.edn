@@ -1,17 +1,25 @@
 {#_#_:customREPLHoverSnippets
- [{:name "edn hover symbol"
-   :snippet (str "**EDN edn hover symbol**: " $hover-text)}
-  {:name "edn hover symbol quoted"
-   :snippet (str "**EDN edn hover symbol quoted** " '$hover-text)}
-  {:name "edn hover hover-current-form"
-   :snippet (str "**EDN edn hover hover-current-form** " "$hover-current-form")}
-  {:name "edn hover show val"
-   :snippet (str "### EDN show val\n```clojure\n" (pr-str (eval (symbol (str "$ns" "/" "$hover-top-level-defined-symbol")))) "\n```")}
-  {:name "edn hover current-form"
-   :snippet (str "**EDN edn hover current-form** " "$current-form ")}]
+   [{:name "edn hover symbol"
+     :snippet (str "**EDN edn hover symbol**: " $hover-text)}
+    {:name "edn hover symbol quoted"
+     :snippet (str "**EDN edn hover symbol quoted** " '$hover-text)}
+    {:name "edn hover hover-current-form"
+     :snippet (str "**EDN edn hover hover-current-form** " "$hover-current-form")}
+    {:name "edn hover show val"
+     :snippet (str "### EDN show val\n```clojure\n" (pr-str (eval (symbol (str "$ns" "/" "$hover-top-level-defined-symbol")))) "\n```")}
+    {:name "edn hover current-form"
+     :snippet (str "**EDN edn hover current-form** " "$current-form ")}]
  :customREPLCommandSnippets
  [{:name "EDN current form"
    :snippet (str "**EDN edn current-form**: " $current-form)}
   {:name "EDN selection"
-   :snippet (str "foo" $selection)}]}
+   :snippet (str "foo" $selection)}]
+ :customPairForms
+ [{:type "vector-binding", :name "test-vector-binding"}
+  {:type "vector-binding" :name "reagent.core/with-let"}
+  {:type "vector-binding" :name "promesa.core/let"}]
+ :customThreadingMacros {"firstArg" ["->" "some->" "cond->" "my->"]
+                         "lastArg" ["->>" "some->>" "cond->>"]}
+ :aliasMap {"p" "promesa.core"
+            "r" "reagent.core"}}
 

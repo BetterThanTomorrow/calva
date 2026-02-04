@@ -4,6 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.548] - 2026-02-04
+
+- Fix: [Error when slurping forward before commented s-expressions `(|) #_(dosomething)`](https://github.com/BetterThanTomorrow/calva/issues/2387)
+- Fix: [Slurp backward with previous commented expr](https://github.com/BetterThanTomorrow/calva/issues/3025)
+- Fix: [Inconsistent deletion of structural prefixes with empty forms](https://github.com/BetterThanTomorrow/calva/issues/3021)
+- Fix: [Delete operations with Single Quote (`'`) right after list opening `'(` e.g. `'('(1 2 3))`](https://github.com/BetterThanTomorrow/calva/issues/3020)
+- Fix: [Drag sexp backwards command causes unexpected outcome in non-binding vector inside `let`](https://github.com/BetterThanTomorrow/calva/issues/2735)
+- Fix: [Pair selection and drag with threaded `cond->`](https://github.com/BetterThanTomorrow/calva/issues/3018)
+- [User customizable Pair Forms](https://github.com/BetterThanTomorrow/calva/issues/3007)
+
 ## [2.0.547] - 2026-02-02
 
 - Fix: [The 'calva.loadFile' command returns a Promise that is only completed on the first execution.](https://github.com/BetterThanTomorrow/calva/issues/2981)

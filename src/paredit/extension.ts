@@ -15,8 +15,11 @@ import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 import { assertIsDefined } from '../utilities';
 import * as config from '../formatter-config';
+import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
+import { createPareditConfig, defaultBindingForms } from '../cursor-doc/paredit-config';
+import type { PareditConfig } from '../cursor-doc/paredit-config';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -43,6 +46,25 @@ function shouldKillAlsoCutToClipboard(override?: boolean): boolean {
 
 function multiCursorEnabled(override?: boolean): boolean {
   return override ?? workspace.getConfiguration().get('calva.paredit.multicursor');
+}
+
+// Cache paredit configuration
+let pareditConfigCache: PareditConfig | null = null;
+
+/**
+ * Gets the merged paredit configuration from VS Code settings and .calva/config.edn.
+ * Results are cached and invalidated on config changes.
+ */
+export function getPareditConfig(): PareditConfig {
+  if (!pareditConfigCache) {
+    const cfg = mainConfig.getConfig();
+    pareditConfigCache = createPareditConfig(
+      cfg.customPairForms,
+      cfg.customThreadingMacros,
+      cfg.aliasMap
+    );
+  }
+  return pareditConfigCache;
 }
 
 type PareditCommand = {
@@ -150,7 +172,7 @@ const pareditCommands = [
     command: 'paredit.sexpRangeExpansion',
     handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
       const isMulti = multiCursorEnabled(opts?.multicursor);
-      handlers.sexpRangeExpansion(doc, isMulti);
+      handlers.sexpRangeExpansion(doc, isMulti, getPareditConfig());
     },
   },
   {
@@ -279,11 +301,23 @@ const pareditCommands = [
   },
   {
     command: 'paredit.dragSexprBackward',
-    handler: paredit.dragSexprBackward,
+    handler: (doc: EditableDocument) =>
+      paredit.dragSexprBackward(
+        doc,
+        doc.selections[0].anchor,
+        doc.selections[0].active,
+        getPareditConfig()
+      ),
   },
   {
     command: 'paredit.dragSexprForward',
-    handler: paredit.dragSexprForward,
+    handler: (doc: EditableDocument) =>
+      paredit.dragSexprForward(
+        doc,
+        doc.selections[0].anchor,
+        doc.selections[0].active,
+        getPareditConfig()
+      ),
   },
   {
     command: 'paredit.dragSexprBackwardUp',
@@ -572,6 +606,9 @@ export function activate(context: ExtensionContext) {
     workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
       if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
         setKeyMapConf();
+      }
+      if (e.affectsConfiguration('calva.paredit')) {
+        pareditConfigCache = null;
       }
     }),
     ...pareditCommands.map((command) => {

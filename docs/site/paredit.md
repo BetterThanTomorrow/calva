@@ -178,6 +178,312 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
+## Customizing Paredit Behavior
+
+Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: **customPairForms**, **customThreadingMacros**, and **aliasMap**. These can be configured in two places that work together:
+
+1. **VS Code settings** (`settings.json`) - Apply globally or per-workspace
+2. **Project config** (`.calva/config.edn` or `~/.config/calva/config.edn`) - Project or user-specific overrides
+
+### Configuration Loading Order
+
+Calva loads and merges configuration in this order:
+
+1. Built-in defaults (defined in Calva's code)
+2. VS Code settings (from `settings.json`)
+3. Project config (from `.calva/config.edn` in your project root)
+4. User config (from `~/.config/calva/config.edn` in your home directory)
+
+**Key merging behavior:**
+- **customPairForms**: Custom forms are appended to defaults. Defaults cannot be overridden.
+- **customThreadingMacros**: Custom macros are concatenated with defaults for both `firstArg` and `lastArg` arrays.
+- **aliasMap**: Settings from later sources override earlier ones for the same alias key.
+
+## Customizing Pair Forms
+
+Calva's Paredit understands special "pair forms" where elements are organized in pairs (like key-value pairs in maps or binding pairs in `let`). This allows Calva to drag and select entire pairs as a unit rather than individual elements.
+
+### Default Pair Forms
+
+Calva recognizes three categories of pair forms by default:
+
+**Binding forms** (vector-binding): Forms with a binding vector like `[name value ...]`
+
+- `let`, `for`, `loop`, `binding`, `with-local-vars`, `doseq`, `with-redefs`
+- `promesa.core/let`, `reagent.core/with-let`
+
+**Keyword modifiers** (keyword): Forms like `:let` that appear within other forms
+
+- `:let` (valid inside `for`, `doseq`, `dotimes`)
+
+**Flat pair forms** (flat): Forms where pairs appear directly without nesting
+
+- `cond` (offset: 1), `cond->` (offset: 2), `cond->>` (offset: 2)
+- `case` (offset: 2), `condp` (offset: 3, tripleMarker: `:>>`)
+- `assoc` (offset: 2)
+
+#### The Default Configuration Structure
+
+```json
+[
+  { "type": "vector-binding", "name": "let" },
+  { "type": "vector-binding", "name": "for" },
+  { "type": "vector-binding", "name": "loop" },
+  { "type": "vector-binding", "name": "binding" },
+  { "type": "vector-binding", "name": "with-local-vars" },
+  { "type": "vector-binding", "name": "doseq" },
+  { "type": "vector-binding", "name": "with-redefs" },
+  { "type": "vector-binding", "name": "promesa.core/let" },
+  { "type": "vector-binding", "name": "reagent.core/with-let" },
+
+  { "type": "keyword", "keyword": ":let", "validParents": ["for", "doseq", "dotimes"] },
+
+  { "type": "flat", "name": "cond", "offset": 1 },
+  { "type": "flat", "name": "cond->", "offset": 2 },
+  { "type": "flat", "name": "cond->>", "offset": 2 },
+  { "type": "flat", "name": "case", "offset": 2 },
+  { "type": "flat", "name": "condp", "offset": 3, "tripleMarker": ":>>" },
+  { "type": "flat", "name": "assoc", "offset": 2 },
+  { "type": "flat", "name": "assoc!", "offset": 2 },
+  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 }
+]
+```
+
+### Adding Custom Pair Forms
+
+Use the `calva.paredit.customPairForms` setting to add support for custom macros or library-specific forms. Custom forms are **appended** to the built-in defaults and **cannot override** them.
+
+#### Via VS Code settings (JSON)
+
+Add to your `settings.json`:
+
+```json
+{
+  "calva.paredit.customPairForms": [
+    { "type": "vector-binding", "name": "my-custom-let" },
+    { "type": "flat", "name": "my-assoc", "offset": 1 },
+    {
+      "type": "keyword",
+      "keyword": ":when",
+      "validParents": ["for", "doseq"]
+    }
+  ]
+}
+```
+
+#### Via Project Config (EDN)
+
+Add to `.calva/config.edn` in your project root:
+
+```clojure
+{:customPairForms
+ [{:type "vector-binding"
+   :name "my-custom-let"}
+  {:type "flat"
+   :name "my-assoc"
+   :offset 1}
+  {:type "keyword"
+   :keyword ":when"
+   :validParents ["for" "doseq"]}]}
+```
+
+Or in `~/.config/calva/config.edn` for user-wide settings:
+
+```clojure
+{:customPairForms
+ [{:type "vector-binding"
+   :name "promesa.core/let"}]}
+```
+
+### Configuration Options
+
+Each pair form configuration object supports these fields:
+
+| Field | Required For | Description |
+|-------|-------------|-------------|
+| `type` | All | Type of pair form: `"vector-binding"`, `"flat"`, or `"keyword"` |
+| `name` | vector-binding, flat | Name of the form (e.g., `"let"`, `"assoc"`) |
+| `keyword` | keyword | The keyword to identify (e.g., `":let"`) |
+| `offset` | flat | Number of non-paired elements at the start (includes function name). Default: 1 |
+| `validParents` | keyword | Array of parent forms where this keyword is valid |
+| `tripleMarker` | flat (optional) | Special marker for triple pairs (like `":>>"` in `condp`) |
+
+**Type descriptions:**
+- **`vector-binding`**: For forms with a binding vector like `(let [a 1 b 2] ...)`
+- **`flat`**: For forms with inline pairs like `(cond test1 result1 test2 result2)`
+- **`keyword`**: For keyword modifiers like `(for [x xs :let [y (inc x)]] ...)`
+
+### Important Notes
+
+- Custom forms are **appended** to defaults, never replacing them
+- If you specify a custom form that duplicates a default (same type and name/keyword), the duplicate is **filtered out**
+- Both VS Code settings and `.calva/config.edn` configurations are **concatenated** together
+- Use fully qualified names (like `"promesa.core/let"`) or configure [aliases](#namespace-alias-resolution) for short forms
+
+## Customizing Threading Macros
+
+Threading macros affect how Calva calculates pair offsets in forms. For example, in `(-> {} (assoc :a 1))`, the map is threaded in as the first argument, so Calva adjusts the pair offset accordingly.
+
+### Default Threading Macros
+
+**Thread-first** (threads into first argument position):
+- `->`, `some->`, `cond->`
+
+**Thread-last** (threads into last argument position):
+- `->>`, `some->>`, `cond->>`
+
+```json
+{
+  "firstArg": ["->", "some->", "cond->"],
+  "lastArg": ["->>", "some->>", "cond->>"]
+}
+```
+
+### How Threading Affects Pair Offsets
+
+Threading changes where arguments come from, affecting pair calculations:
+
+```clojure
+;; Standalone: offset 2 (function + map argument before pairs start)
+(assoc my-map :a 1 :b 2)
+
+;; Inside thread-first: offset 1 (function only, map is threaded in)
+(-> {} (assoc :a 1 :b 2))
+
+;; Inside thread-last: offset 1 (function only, map comes at the end)
+(->> {:a 1} (merge other-map))
+```
+
+### Adding Custom Threading Macros
+
+#### Via VS Code settings (JSON)
+
+```json
+{
+  "calva.paredit.customThreadingMacros": {
+    "firstArg": ["my-thread-first"],
+    "lastArg": ["my-thread-last"]
+  }
+}
+```
+
+**Note:** You don't need to repeat the defaults - custom forms are **concatenated** with built-in defaults.
+
+#### Via Project Config (EDN)
+
+Add to `.calva/config.edn`:
+
+```clojure
+{:customThreadingMacros
+ {:firstArg ["my-thread-first"]
+  :lastArg ["my-thread-last"]}}
+```
+
+### Important Notes
+
+- Custom threading macros are **concatenated** with defaults (not replaced)
+- Both `firstArg` and `lastArg` arrays are merged independently
+- You only need to specify your custom macros; defaults remain active
+
+## Namespace Alias Resolution
+
+When using library-specific forms like `promesa.core/let`, you typically use aliases in your code (e.g., `p/let`). The alias map tells Calva how to resolve these aliases so pair form detection works correctly.
+
+### The Problem
+
+```clojure
+;; You configure this:
+{:customPairForms [{:type "vector-binding" :name "promesa.core/let"}]}
+
+;; But you write this:
+(p/let [x (fetch-data)   ; Calva doesn't know p/let = promesa.core/let
+        y (process x)]
+  (println y))
+```
+
+### The Solution: Configure Alias Mappings
+
+The `calva.paredit.aliasMap` setting maps namespace aliases to their fully qualified namespaces.
+
+#### Via VS Code settings (JSON)
+
+```json
+{
+  "calva.paredit.aliasMap": {
+    "p": "promesa.core",
+    "r": "reagent.core",
+    "str": "clojure.string"
+  }
+}
+```
+
+#### Via Project Config (EDN)
+
+Add to `.calva/config.edn`:
+
+```clojure
+{:aliasMap {"p" "promesa.core"
+            "r" "reagent.core"
+            "str" "clojure.string"}}
+```
+
+### How Alias Resolution Works
+
+When Calva encounters a form like `p/let`, it:
+
+1. Extracts the alias: `"p"`
+2. Looks up the alias in the alias map: `"p"` → `"promesa.core"`
+3. Resolves to fully qualified form: `"promesa.core/let"`
+4. Matches against configured pair forms
+5. Applies pair-aware editing features
+
+### Complete Example
+
+```json
+{
+  "calva.paredit.customPairForms": [
+    { "type": "vector-binding", "name": "promesa.core/let" }
+  ],
+  "calva.paredit.aliasMap": {
+    "p": "promesa.core"
+  }
+}
+```
+
+Now this code works perfectly:
+
+```clojure
+(p/let [result (http/get "/api/data")
+        parsed (json/parse result)]
+  ;; Paredit now understands this is a binding form!
+  ;; You can:
+  ;; - Select binding pairs as units
+  ;; - Drag pairs with alt+up/down
+  ;; - Navigate with structural commands
+  parsed)
+```
+
+### Important Notes
+
+- Alias maps from **all configuration sources are merged**
+- Later sources override earlier ones for the same alias
+- `.calva/config.edn` takes precedence over VS Code settings
+- Both aliased (`p/let`) and fully qualified (`promesa.core/let`) forms work
+- This is **manual configuration** - Calva doesn't parse `ns` forms automatically
+- Consider using `.calva/config.edn` for project-specific aliases
+
+### Configuration Priority Example
+
+```clojure
+;; ~/.config/calva/config.edn (user config)
+{:aliasMap {"p" "promesa.core"}}
+
+;; .calva/config.edn (project config) - takes precedence
+{:aliasMap {"p" "my.custom.promises"}}
+
+;; Result: "p" resolves to "my.custom.promises"
+```
+
 ## About the Keyboard Shortcuts
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.

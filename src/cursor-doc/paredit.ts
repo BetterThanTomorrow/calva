@@ -13,8 +13,28 @@ import { backspaceOnWhitespace } from './backspace-on-whitespace';
 import _ = require('lodash');
 import { isEqual, last, property } from 'lodash';
 import { TextEditorEdit } from 'vscode';
+import {
+  PareditConfig,
+  KeywordPairForm,
+  FlatPairForm,
+  AliasMapConfig,
+  defaultGroupedDefaultPairForms,
+  defaultThreadingMacros,
+  resolveAliasedSymbol,
+} from './paredit-config';
+import { Token } from './lexer';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
+
+function isQuotePrefix(token: Token): boolean {
+  return token.type === 'open' && token.raw.startsWith("'");
+}
+
+function isSimpleReaderPrefix(token: Token): boolean {
+  return token.raw.length === 2 && token.raw.startsWith('#') && token.raw.match(/^#[[({]/)
+    ? true
+    : false;
+}
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -960,6 +980,11 @@ function backwardSlurpSexpEdits(doc: EditableDocument, start: number): ModelEdit
   // Navigate to previous sexp
   cursor.previous();
   cursor.backwardSexp(true, true);
+
+  // Check if there's an ignore marker (#_) before the sexp we just found
+  // This ensures that slurping includes the ignore marker as part of the slurped form
+  cursor.backwardThroughAnyIgnore();
+
   const prevSexpStart = cursor.offsetStart;
 
   // Skip whitespace to check if there's a previous sexp to slurp
@@ -1122,6 +1147,23 @@ function backspaceOnWhitespaceEdit(
   );
 }
 
+const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore'] as const;
+const SIMPLE_READER_LENGTH = 2;
+const QUOTED_QUOTE_LENGTH = 2;
+const JUNK_HASH_LENGTH = 2;
+
+interface ReaderMacroContext {
+  isInsideReader: boolean;
+  isAtReaderPrefix: boolean;
+  isInComplexReaderToken: boolean;
+  shouldConsiderForJump: boolean;
+}
+
+interface PrefixDeletionContext {
+  shouldDeletePrefix: boolean;
+  isAtQuotePrefix: boolean;
+}
+
 export function backspace(
   doc: EditableDocument,
   builder?: TextEditorEdit,
@@ -1129,119 +1171,263 @@ export function backspace(
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ): void {
-  if (start != end) {
-    const [left, right] = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
-      builder: builder,
-      skipFormat: true,
-    });
-  } else {
-    const cursor = doc.getTokenCursor(start);
-    const isTopLevel = doc.getTokenCursor(end).atTopLevel();
-    const nextToken = cursor.getToken();
-
-    // Detect if cursor is inside the '#' prefix of a reader macro token (like #( or #{)
-    // before the opening delimiter. Example: in "#(prn)" at position 1, we're inside the reader.
-    // At position 2, we're no longer inside the reader prefix.
-    const isInsideReader =
-      start > cursor.offsetStart &&
-      nextToken.raw.startsWith('#') &&
-      start <=
-        cursor.offsetStart +
-          (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length);
-    const prevToken =
-      (start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type)) || isInsideReader
-        ? nextToken // we are “in” a token
-        : cursor.getPrevToken(); // we are “between” tokens
-    if (prevToken.type == 'prompt') {
-      return;
-    } else if (nextToken.type == 'prompt') {
-      return;
-    } else if (doc.model.getText(start - 2, start, true) == '\\"') {
-      // delete quoted double quote
-      return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
-        builder: builder,
-        skipFormat: true,
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      // delete empty list
-      return doc.model.editNow(
-        [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          builder: builder,
-        }
-      );
-    } else if (
-      !isTopLevel &&
-      !cursor.withinString() &&
-      onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
-    ) {
-      // we are at the beginning of a line, and not inside a string
-      return backspaceOnWhitespaceEdit(builder, doc, cursor, config);
-    } else {
-      const isAtReaderPrefix =
-        (isInsideReader &&
-          start <=
-            cursor.offsetStart +
-              (nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length)) ||
-        (!isInsideReader && prevToken.raw.startsWith('#') && start === cursor.offsetStart);
-
-      // Special check: if we're inside a reader macro token like #( or #{,
-      // we should not allow deletion only if it's empty (like #())
-      // Non empty forms like #(prn "hello") can have their # deleted when
-      //  cursor is inside the token
-      let shouldJumpOverReaderMacro = false;
-      if (prevToken.raw.startsWith('#') && prevToken.raw.match(/^#[({]/)) {
-        if (isInsideReader) {
-          // We're inside the #( token (between # and ()
-          // When it is empty, jump; if not, allow deletion
-          const nextCursor = doc.getTokenCursor(cursor.offsetStart);
-          nextCursor.next();
-          const tokenAfterOpen = nextCursor.getToken();
-          shouldJumpOverReaderMacro = tokenAfterOpen.type === 'close';
-        } else {
-          // We're AFTER the #( token - always jump
-          shouldJumpOverReaderMacro = true;
-        }
-      }
-
-      // Check if we're deleting whitespace after an invalid # (junk)
-      // In this case, delete both the whitespace and the junk #
-      if (prevToken.type === 'ws' && prevToken.raw.length === 1) {
-        const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
-        const prevPrevToken = prevPrevCursor.getPrevToken();
-        if (prevPrevToken.type === 'junk' && prevPrevToken.raw === '#') {
-          // Delete both the whitespace and the junk #
-          return doc.model.editNow([new ModelEdit('deleteRange', [start - 2, 2])], {
-            builder: builder,
-            skipFormat: true,
-          });
-        }
-      }
-
-      const JUMP_TOKEN_TYPES = ['open', 'close', 'ignore', 'reader', 'junk'];
-      if (
-        JUMP_TOKEN_TYPES.includes(prevToken.type) &&
-        cursor.docIsBalanced() &&
-        (!isAtReaderPrefix || shouldJumpOverReaderMacro)
-      ) {
-        // When jumping over a token, if we're inside a reader macro, jump to
-        // its start. Otherwise, jump to the start of the previous token
-        const jumpPosition =
-          isInsideReader && shouldJumpOverReaderMacro
-            ? cursor.offsetStart
-            : start - prevToken.raw.length;
-        doc.selections = [new ModelEditSelection(jumpPosition)];
-        return;
-      } else {
-        const [left, right] = [Math.max(start - 1, 0), start];
-        return doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
-          builder: builder,
-          skipFormat: true,
-        });
-      }
-    }
+  if (start !== end) {
+    handleRangeBackspace(doc, builder, start, end);
+    return;
   }
+  handleSingleCursorBackspace(doc, builder, config, start, end);
+}
+
+function handleRangeBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  end: number
+): void {
+  const [left, right] = [Math.min(start, end), Math.max(start, end)];
+  doc.model.editNow([new ModelEdit('deleteRange', [left, right - left])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function handleSingleCursorBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  config: FormatterConfig | undefined,
+  start: number,
+  end: number
+): void {
+  const cursor = doc.getTokenCursor(start);
+  const isTopLevel = doc.getTokenCursor(end).atTopLevel();
+  const nextToken = cursor.getToken();
+  const prevToken = getPreviousToken(cursor, start, nextToken);
+
+  if (prevToken.type === 'prompt' || nextToken.type === 'prompt') {
+    return;
+  }
+
+  if (shouldDeleteQuotedQuote(doc, start)) {
+    deleteQuotedQuote(doc, builder, start);
+    return;
+  }
+
+  if (shouldDeleteEmptyList(prevToken, nextToken)) {
+    deleteEmptyList(doc, builder, start, prevToken);
+    return;
+  }
+
+  if (shouldBackspaceOnWhitespace(isTopLevel, cursor, doc)) {
+    backspaceOnWhitespaceEdit(builder, doc, cursor, config);
+    return;
+  }
+
+  handleStructuralBackspace(doc, builder, cursor, start, nextToken, prevToken);
+}
+
+function getPreviousToken(cursor: LispTokenCursor, start: number, nextToken: Token): Token {
+  const isInsideReader = detectInsideReader(cursor, start, nextToken);
+  const isInToken = start > cursor.offsetStart && !['open', 'close'].includes(nextToken.type);
+
+  return isInToken || isInsideReader ? nextToken : cursor.getPrevToken();
+}
+
+function detectInsideReader(cursor: LispTokenCursor, start: number, nextToken: Token): boolean {
+  if (start <= cursor.offsetStart || !nextToken.raw.startsWith('#')) {
+    return false;
+  }
+
+  const delimiterIndex = nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length;
+  return start <= cursor.offsetStart + delimiterIndex;
+}
+
+function shouldDeleteQuotedQuote(doc: EditableDocument, start: number): boolean {
+  return doc.model.getText(start - QUOTED_QUOTE_LENGTH, start, true) === '\\"';
+}
+
+function deleteQuotedQuote(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - QUOTED_QUOTE_LENGTH, QUOTED_QUOTE_LENGTH])],
+    {
+      builder,
+      skipFormat: true,
+    }
+  );
+}
+
+function shouldDeleteEmptyList(prevToken: Token, nextToken: Token): boolean {
+  return prevToken.type === 'open' && nextToken.type === 'close';
+}
+
+function deleteEmptyList(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  prevToken: Token
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
+    { builder }
+  );
+}
+
+function shouldBackspaceOnWhitespace(
+  isTopLevel: boolean,
+  cursor: LispTokenCursor,
+  doc: EditableDocument
+): boolean {
+  return (
+    !isTopLevel &&
+    !cursor.withinString() &&
+    onlyWhitespaceLeftOfCursor(doc.selections[0].anchor, cursor)
+  );
+}
+
+function handleStructuralBackspace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token,
+  prevToken: Token
+): void {
+  const readerContext = analyzeReaderMacroContext(cursor, start, nextToken, prevToken);
+  const prefixContext = analyzePrefixDeletionContext(cursor, start, prevToken, readerContext);
+
+  if (shouldDeleteJunkHashWithWhitespace(doc, cursor, start, prevToken)) {
+    deleteJunkHashWithWhitespace(doc, builder, start);
+    return;
+  }
+
+  const shouldJump = determineShouldJump(prevToken, cursor, prefixContext, readerContext);
+
+  if (shouldJump) {
+    performJump(doc, cursor, start, prevToken, readerContext.isInsideReader);
+  } else {
+    deleteCharacter(doc, builder, start);
+  }
+}
+
+function analyzeReaderMacroContext(
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token,
+  prevToken: Token
+): ReaderMacroContext {
+  const isInsideReader = detectInsideReader(cursor, start, nextToken);
+  const delimiterIndex = nextToken.raw.match(OPEN_DELIMITERS_REGEX)?.index ?? nextToken.raw.length;
+
+  const isAtReaderPrefix =
+    (isInsideReader &&
+      start <= cursor.offsetStart + delimiterIndex &&
+      nextToken.raw.length === SIMPLE_READER_LENGTH) ||
+    (!isInsideReader && isSimpleReaderPrefix(prevToken) && start === cursor.offsetStart);
+
+  const isInComplexReaderToken =
+    isInsideReader && prevToken.raw.length > SIMPLE_READER_LENGTH && prevToken.raw.startsWith('#');
+
+  const shouldConsiderForJump = isSimpleReaderPrefix(prevToken);
+
+  return {
+    isInsideReader,
+    isAtReaderPrefix,
+    isInComplexReaderToken,
+    shouldConsiderForJump,
+  };
+}
+
+function analyzePrefixDeletionContext(
+  cursor: LispTokenCursor,
+  start: number,
+  prevToken: Token,
+  readerContext: ReaderMacroContext
+): PrefixDeletionContext {
+  // Check if we're right after a quote prefix (for backspace)
+  // Allow deletion of quote when cursor is between ' and (, like: '|(
+  const isAtQuotePrefix = isQuotePrefix(prevToken) && start === cursor.offsetStart + 1;
+
+  const shouldDeletePrefix =
+    isAtQuotePrefix || (isSimpleReaderPrefix(prevToken) && readerContext.isInsideReader);
+
+  return { shouldDeletePrefix, isAtQuotePrefix };
+}
+
+function shouldDeleteJunkHashWithWhitespace(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  start: number,
+  prevToken: Token
+): boolean {
+  if (prevToken.type !== 'ws' || prevToken.raw.length !== 1) {
+    return false;
+  }
+
+  const prevPrevCursor = doc.getTokenCursor(cursor.offsetStart - 1);
+  const prevPrevToken = prevPrevCursor.getPrevToken();
+  return prevPrevToken.type === 'junk' && prevPrevToken.raw === '#';
+}
+
+function deleteJunkHashWithWhitespace(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start - JUNK_HASH_LENGTH, JUNK_HASH_LENGTH])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function determineShouldJump(
+  prevToken: Token,
+  cursor: LispTokenCursor,
+  prefixContext: PrefixDeletionContext,
+  readerContext: ReaderMacroContext
+): boolean {
+  const isJumpableTokenType =
+    JUMP_TOKEN_TYPES.includes(prevToken.type as typeof JUMP_TOKEN_TYPES[number]) ||
+    readerContext.shouldConsiderForJump;
+
+  return (
+    isJumpableTokenType &&
+    cursor.docIsBalanced() &&
+    !prefixContext.shouldDeletePrefix &&
+    !readerContext.isInComplexReaderToken
+  );
+}
+
+function performJump(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  start: number,
+  prevToken: Token,
+  isInsideReader: boolean
+): void {
+  const jumpPosition = isInsideReader ? cursor.offsetStart : start - prevToken.raw.length;
+  doc.selections = [new ModelEditSelection(jumpPosition)];
+}
+
+function deleteCharacter(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  const left = Math.max(start - 1, 0);
+  doc.model.editNow([new ModelEdit('deleteRange', [left, start - left])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+interface ForwardDeletionContext {
+  isAtInvalidReaderPrefix: boolean;
+  isAtReaderMacroStart: boolean;
+  isAtQuotePrefix: boolean;
+  shouldDeletePrefix: boolean;
 }
 
 export function deleteForward(
@@ -1250,59 +1436,153 @@ export function deleteForward(
   start: number = doc.selections[0].anchor,
   end: number = doc.selections[0].active
 ) {
-  if (start != end) {
-    const [left, right] = [Math.min(start, end), Math.max(start, end)];
-    return doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
-      builder: builder,
-    });
-  } else {
-    // Note: skipFormat, lest formatter unexpectedly move the point (eg skipping past commas)
-    const cursor = doc.getTokenCursor(start);
-    const prevToken = cursor.getPrevToken();
-    const nextToken = cursor.getToken();
-    const p = start;
-    if (doc.model.getText(p, p + 2, true) == '\\"') {
-      return doc.model.editNow([new ModelEdit('deleteRange', [p, 2])], {
-        builder: builder,
-        skipFormat: true,
-      });
-    } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-      return doc.model.editNow(
-        [new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])],
-        {
-          builder: builder,
-        }
-      );
-    } else {
-      // Check if we're at an invalid reader prefix (junk #) or at the start of a reader macro
-      const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
-      const isAtReaderMacroStart =
-        nextToken.type === 'open' && nextToken.raw.match(/^#[({]/) && start === cursor.offsetStart;
-
-      if (
-        (['open', 'close'].includes(nextToken.type) &&
-          cursor.docIsBalanced() &&
-          !isAtReaderMacroStart) ||
-        isAtInvalidReaderPrefix
-      ) {
-        if (isAtInvalidReaderPrefix) {
-          // Delete the invalid # prefix
-          return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
-            builder: builder,
-            skipFormat: true,
-          });
-        } else {
-          doc.selections = [new ModelEditSelection(p + 1)];
-          return;
-        }
-      } else {
-        return doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
-          builder: builder,
-          skipFormat: true,
-        });
-      }
-    }
+  if (start !== end) {
+    handleRangeDeleteForward(doc, builder, start, end);
+    return;
   }
+
+  handleSingleCursorDeleteForward(doc, builder, start);
+}
+
+function handleRangeDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  end: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, end - start])], {
+    builder,
+  });
+}
+
+function handleSingleCursorDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  const cursor = doc.getTokenCursor(start);
+  const prevToken = cursor.getPrevToken();
+  const nextToken = cursor.getToken();
+
+  if (shouldDeleteForwardQuotedQuote(doc, start)) {
+    deleteForwardQuotedQuote(doc, builder, start);
+    return;
+  }
+
+  if (shouldDeleteEmptyList(prevToken, nextToken)) {
+    deleteForwardEmptyList(doc, builder, start, prevToken);
+    return;
+  }
+
+  handleStructuralDeleteForward(doc, builder, cursor, start, nextToken);
+}
+
+function shouldDeleteForwardQuotedQuote(doc: EditableDocument, start: number): boolean {
+  return doc.model.getText(start, start + QUOTED_QUOTE_LENGTH, true) === '\\"';
+}
+
+function deleteForwardQuotedQuote(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, QUOTED_QUOTE_LENGTH])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function deleteForwardEmptyList(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  prevToken: Token
+): void {
+  doc.model.editNow(
+    [new ModelEdit('deleteRange', [start - prevToken.raw.length, prevToken.raw.length + 1])],
+    { builder }
+  );
+}
+
+function handleStructuralDeleteForward(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token
+): void {
+  const context = analyzeForwardDeletionContext(cursor, start, nextToken);
+
+  if (shouldJumpForward(cursor, nextToken, context)) {
+    if (context.isAtInvalidReaderPrefix) {
+      deleteInvalidReaderPrefix(doc, builder, start);
+    } else {
+      performForwardJump(doc, start);
+    }
+  } else {
+    deleteForwardCharacter(doc, builder, start);
+  }
+}
+
+function analyzeForwardDeletionContext(
+  cursor: LispTokenCursor,
+  start: number,
+  nextToken: Token
+): ForwardDeletionContext {
+  const isAtInvalidReaderPrefix = nextToken.type === 'junk' && nextToken.raw === '#';
+
+  const isAtReaderMacroStart =
+    nextToken.type === 'open' && isSimpleReaderPrefix(nextToken) && start === cursor.offsetStart;
+
+  const isAtQuotePrefix = isQuotePrefix(nextToken) && start === cursor.offsetStart;
+
+  const shouldDeletePrefix = isAtReaderMacroStart || isAtQuotePrefix;
+
+  return {
+    isAtInvalidReaderPrefix,
+    isAtReaderMacroStart,
+    isAtQuotePrefix,
+    shouldDeletePrefix,
+  };
+}
+
+function shouldJumpForward(
+  cursor: LispTokenCursor,
+  nextToken: Token,
+  context: ForwardDeletionContext
+): boolean {
+  const isStructuralBoundary =
+    ['open', 'close'].includes(nextToken.type) &&
+    cursor.docIsBalanced() &&
+    !context.shouldDeletePrefix;
+
+  return isStructuralBoundary || context.isAtInvalidReaderPrefix;
+}
+
+function deleteInvalidReaderPrefix(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function performForwardJump(doc: EditableDocument, start: number): void {
+  doc.selections = [new ModelEditSelection(start + 1)];
+}
+
+function deleteForwardCharacter(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+    builder,
+    skipFormat: true,
+  });
 }
 
 export async function stringQuote(
@@ -1352,7 +1632,11 @@ export async function stringQuote(
  * built-in Expand Selection/Shrink Selection commands)
  * // TODO: Inside string should first select contents
  */
-export function growSelection(doc: EditableDocument, selections = doc.selections) {
+export function growSelection(
+  doc: EditableDocument,
+  selections = doc.selections,
+  config?: PareditConfig
+) {
   const newRanges = selections.map<[number, number]>(({ anchor: start, active: end }) => {
     const startC = doc.getTokenCursor(start),
       endC = doc.getTokenCursor(end),
@@ -1369,9 +1653,9 @@ export function growSelection(doc: EditableDocument, selections = doc.selections
       return [start, end];
     } else {
       // check if we need to handle pairs (binding forms, conditional forms, maps, etc.)
-      if (isInPairsList(startC, bindingForms)) {
+      if (isInPairsList(startC, config)) {
         // Use the selection start to determine the pair
-        const pairRange = currentSexpsRange(doc, startC, start, true);
+        const pairRange = currentSexpsRange(doc, startC, start, true, config);
         // Only expand to pair if current selection is smaller than the pair
         // (i.e., we have a single form selected, not already a pair or larger)
         const currentSelectionLength = end - start;
@@ -1602,87 +1886,20 @@ export async function transpose(
   }
 }
 
-interface VectorBindingForm {
-  type: 'vector-binding';
-  name: string;
-}
-
-interface KeywordPairForm {
-  type: 'keyword';
-  keyword: string;
-  validParents?: string[];
-}
-
-interface FlatPairForm {
-  type: 'flat';
-  name: string;
-  offset: number;
-  tripleMarker?: string;
-}
-
-type PairFormConfig = VectorBindingForm | KeywordPairForm | FlatPairForm;
-
-type GroupedPairForms = {
-  'vector-binding': VectorBindingForm[];
-  keyword: KeywordPairForm[];
-  flat: FlatPairForm[];
-};
-
-const defaultPairForms: PairFormConfig[] = [
-  // Vector Binding forms
-  { type: 'vector-binding', name: 'let' },
-  { type: 'vector-binding', name: 'for' },
-  { type: 'vector-binding', name: 'loop' },
-  { type: 'vector-binding', name: 'binding' },
-  { type: 'vector-binding', name: 'with-local-vars' },
-  { type: 'vector-binding', name: 'doseq' },
-  { type: 'vector-binding', name: 'with-redefs' },
-
-  // Keyword-based modifiers
-  { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
-
-  // flat
-  { type: 'flat', name: 'cond', offset: 1 },
-  { type: 'flat', name: 'cond->', offset: 2 },
-  { type: 'flat', name: 'cond->>', offset: 2 },
-  { type: 'flat', name: 'case', offset: 2 },
-  { type: 'flat', name: 'condp', offset: 3, tripleMarker: ':>>' },
-  { type: 'flat', name: 'assoc', offset: 2 },
-];
-
-const groupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
-  (acc, form) => {
-    switch (form.type) {
-      case 'vector-binding':
-        acc['vector-binding'].push(form);
-        break;
-      case 'keyword':
-        acc.keyword.push(form);
-        break;
-      case 'flat':
-        acc.flat.push(form);
-        break;
-    }
-    return acc;
-  },
-  { 'vector-binding': [], keyword: [], flat: [] }
-);
-
-export const bindingForms = groupedDefaultPairForms['vector-binding'].map((f) => f.name);
-
-const threadingMacros = {
-  firstArg: ['->', 'some->'],
-  lastArg: ['->>', 'some->>'],
-};
-
 /**
  * Detects if cursor's form is the direct child of a threading macro.
  * Returns:
  * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
  * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
  * - null if not direct child of threading macro
+ * @param cursor The cursor position to check
+ * @param config Optional paredit configuration (uses defaults if not provided)
  */
-function getDirectThreadingMacroStyle(cursor: LispTokenCursor): 'firstArg' | 'lastArg' | null {
+function getDirectThreadingMacroStyle(
+  cursor: LispTokenCursor,
+  config?: PareditConfig
+): 'firstArg' | 'lastArg' | null {
+  const threadingMacros = config?.threadingMacros ?? defaultThreadingMacros;
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
@@ -1757,49 +1974,89 @@ function isPrecededByKeywordPairForm(
  * Gets the offset for a flat pair form (e.g., cond, case, condp).
  * Returns the matching FlatPairForm if found, otherwise null.
  */
-function getFlatPairForm(cursor: LispTokenCursor, flatForms: FlatPairForm[]): FlatPairForm | null {
+function getFlatPairForm(
+  cursor: LispTokenCursor,
+  flatForms: FlatPairForm[],
+  aliasMap: AliasMapConfig = {}
+): FlatPairForm | null {
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
     if (opening.endsWith('(')) {
       const fn = probeCursor.getFunctionName();
       if (fn) {
-        return flatForms.find((f) => f.name === fn) ?? null;
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        // Try resolved name first, then original
+        return flatForms.find((f) => f.name === resolvedFn || f.name === fn) ?? null;
       }
     }
   }
   return null;
 }
 
-export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+/**
+ * Determines whether the cursor is positioned within a list structure that should be
+ * treated as containing pairs of elements (e.g., key-value pairs, binding pairs).
+ *
+ * This function is used by structural editing operations like drag sexpr to determine
+ * whether elements should be moved individually or in pairs.
+ *
+ * @param cursor The token cursor positioned within a list structure
+ * @param config Optional paredit configuration containing custom pair form definitions
+ * @returns true if the cursor is within a recognized pairs list structure, false otherwise
+ *
+ */
+export function isInPairsList(cursor: LispTokenCursor, config?: PareditConfig): boolean {
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
+    // Save the vector's opening bracket position (not the first element)
+    const openingToken = probeCursor.getPrevToken();
+    const vectorOpeningPos = probeCursor.offsetStart - openingToken.raw.length;
+
     if (opening.endsWith('{') && !opening.endsWith('#{')) {
       return true;
     }
     if (opening.endsWith('[')) {
       // Check keyword modifiers first (like :let)
-      const keywordForms = groupedDefaultPairForms.keyword;
+      const keywordForms = grouped.keyword;
       if (isPrecededByKeywordPairForm(probeCursor, keywordForms)) {
         return true;
       }
 
       // Otherwise, check if this is a binding form like (let [...] ...)
+      // and that this vector is the first argument (the bindings vector)
       probeCursor.backwardUpList();
       probeCursor.backwardList();
       if (!probeCursor.getPrevToken().raw.endsWith('(')) {
         return false;
       }
       const fn = probeCursor.getFunctionName();
-      if (fn && pairForms.includes(fn)) {
-        return true;
+      if (fn) {
+        const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+        const vectorBindingNames = grouped['vector-binding'].map((f) => f.name);
+        // Check both resolved and original function names
+        if (vectorBindingNames.includes(resolvedFn) || vectorBindingNames.includes(fn)) {
+          // Verify this is the bindings vector (first argument), not a vector in the body
+          // Navigate to find the first argument in the binding form
+          const searchCursor = probeCursor.clone();
+          searchCursor.downList(); // Enter the list: (let ...
+          searchCursor.forwardSexp(); // Skip function name
+          searchCursor.forwardWhitespace();
+
+          // If our vector's opening bracket is at the position of the first argument, it's the bindings vector
+          if (vectorOpeningPos === searchCursor.offsetStart) {
+            return true;
+          }
+        }
       }
     }
     if (opening.endsWith('(')) {
       // Check if this is a flat pair form like (cond test expr test expr ...)
-      const flatForms = groupedDefaultPairForms.flat;
-      if (getFlatPairForm(probeCursor, flatForms)) {
+      const flatForms = grouped.flat;
+      if (getFlatPairForm(probeCursor, flatForms, aliasMap)) {
         return true;
       }
     }
@@ -1984,8 +2241,11 @@ export function currentSexpsRange(
   doc: EditableDocument,
   cursor: LispTokenCursor,
   offset: number,
-  usePairs = false
+  usePairs = false,
+  config?: PareditConfig
 ): [number, number] {
+  const grouped = config?.pairForms ?? defaultGroupedDefaultPairForms;
+  const aliasMap = config?.aliasMap ?? {};
   const currentSingleRange = cursor.rangeForCurrentForm(offset);
   if (usePairs) {
     // Create a fresh cursor at the offset position to ensure correct list context
@@ -1997,9 +2257,9 @@ export function currentSexpsRange(
       );
 
       // Get the flat pair form config (e.g., cond has offset 1, condp has offset 3 and tripleMarker)
-      const flatForms = groupedDefaultPairForms.flat;
-      const flatForm = getFlatPairForm(listCursor, flatForms);
-      const threadingStyle = getDirectThreadingMacroStyle(cursor);
+      const flatForms = grouped.flat;
+      const flatForm = getFlatPairForm(listCursor, flatForms, aliasMap);
+      const threadingStyle = getDirectThreadingMacroStyle(cursor, config);
       const formOffset = flatForm?.offset || 0;
       const pairOffset = threadingStyle === 'firstArg' ? Math.max(0, formOffset - 1) : formOffset;
 
@@ -2028,17 +2288,17 @@ export function currentSexpsRange(
 
 export async function dragSexprBackward(
   doc: EditableDocument,
-  pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
+  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backRange[0] !== currentRange[0]) {
     // there is a sexp to the left
     const leftText = doc.model.getText(backRange[0], backRange[1]);
@@ -2055,17 +2315,23 @@ export async function dragSexprBackward(
 
 export async function dragSexprForward(
   doc: EditableDocument,
-  pairForms = bindingForms,
   left = doc.selections[0].anchor,
-  right = doc.selections[0].active
+  right = doc.selections[0].active,
+  config?: PareditConfig
 ) {
   const cursor = doc.getTokenCursor(right);
-  const usePairs = isInPairsList(cursor, pairForms);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+  const usePairs = isInPairsList(cursor, config);
+  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = currentRange[1] - right;
   const forwardCursor = doc.getTokenCursor(currentRange[1]);
   forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
+  const forwardRange = currentSexpsRange(
+    doc,
+    forwardCursor,
+    forwardCursor.offsetStart,
+    usePairs,
+    config
+  );
   if (forwardRange[0] !== currentRange[0]) {
     // there is a sexp to the right
     const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
