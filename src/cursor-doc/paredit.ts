@@ -1805,14 +1805,8 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
         searchCursor.forwardSexp(); // Skip function name
         searchCursor.forwardWhitespace();
 
-        // Get the position of what should be the bindings vector's opening bracket
-        const firstArgOpeningPos =
-          searchCursor.getToken().type === 'open'
-            ? searchCursor.offsetStart
-            : searchCursor.offsetStart - searchCursor.getToken().raw.length;
-
         // If our vector's opening bracket is at the position of the first argument, it's the bindings vector
-        if (vectorOpeningPos === firstArgOpeningPos) {
+        if (vectorOpeningPos === searchCursor.offsetStart) {
           return true;
         }
       }
