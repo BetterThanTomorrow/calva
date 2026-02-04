@@ -1403,6 +1403,19 @@ describe('paredit', () => {
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
 
+    it('does not treat regular vectors in doseq :let body as pair forms', () => {
+      const a = docFromTextNotation(
+        '(doseq [a (range 10) :let [aminus (dec a)]] [aminus |a| (inc a)])'
+      );
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation(
+        '(doseq [a (range 10) :let [aminus (dec a)]] [|aminus a (inc a)|])'
+      );
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
     describe('cond pairs', () => {
       it('grows selection to test/expr pairs in cond (expr selected first)', () => {
         const a = docFromTextNotation('(cond true |:yes| false :no)');
@@ -1992,6 +2005,28 @@ describe('paredit', () => {
       it('drags binding pair backward in :let within doseq', async () => {
         const a = docFromTextNotation('(doseq [x xs :let [a 1 |b 2]] (println a b))');
         const b = docFromTextNotation('(doseq [x xs :let [|b 2 a 1]] (println a b))');
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does not treat regular vectors in doseq :let body as pairs when dragging forward', async () => {
+        const a = docFromTextNotation(
+          '(doseq [a (range 10) :let [aminus (dec a)]] [|a aminus (inc a)])'
+        );
+        const b = docFromTextNotation(
+          '(doseq [a (range 10) :let [aminus (dec a)]] [aminus |a (inc a)])'
+        );
+        await paredit.dragSexprForward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does not treat regular vectors in doseq :let body as pairs when dragging backward', async () => {
+        const a = docFromTextNotation(
+          '(doseq [a (range 10) :let [aminus (dec a)]] [aminus |a (inc a)])'
+        );
+        const b = docFromTextNotation(
+          '(doseq [a (range 10) :let [aminus (dec a)]] [|a aminus (inc a)])'
+        );
         await paredit.dragSexprBackward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
