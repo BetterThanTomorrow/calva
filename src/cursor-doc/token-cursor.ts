@@ -418,6 +418,21 @@ export class LispTokenCursor extends TokenCursor {
   }
 
   /**
+   * Moves this cursor past the previous non-ws token, if it is an `ignore` token.
+   * Otherwise, this cursor is left unaffected.
+   */
+  backwardThroughAnyIgnore() {
+    const cursor = this.clone();
+    cursor.backwardWhitespace();
+    if (cursor.getPrevToken().type === 'ignore') {
+      cursor.previous();
+      this.set(cursor);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Moves this cursor past the next non-ws token, if it is a `reader` token.
    * Otherwise, this cursor is left unaffected.
    */
