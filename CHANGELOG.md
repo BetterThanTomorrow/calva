@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Pair selection and drag with threaded `cond->`](https://github.com/BetterThanTomorrow/calva/issues/3018)
-- Fix: [Drag sexp backwards command causes unexpected outcome in specific situation](https://github.com/BetterThanTomorrow/calva/issues/2735)
+- Fix: [Drag sexp backwards command causes unexpected outcome in non-binding vector inside `let`](https://github.com/BetterThanTomorrow/calva/issues/2735)
 
 ## [2.0.547] - 2026-02-02
 
