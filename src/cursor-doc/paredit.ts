@@ -2046,6 +2046,10 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
   const probeCursor = cursor.clone();
   if (probeCursor.backwardList()) {
     const opening = probeCursor.getPrevToken().raw;
+    // Save the vector's opening bracket position (not the first element)
+    const openingToken = probeCursor.getPrevToken();
+    const vectorOpeningPos = probeCursor.offsetStart - openingToken.raw.length;
+
     if (opening.endsWith('{') && !opening.endsWith('#{')) {
       return true;
     }
@@ -2057,6 +2061,7 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       }
 
       // Otherwise, check if this is a binding form like (let [...] ...)
+      // and that this vector is the first argument (the bindings vector)
       probeCursor.backwardUpList();
       probeCursor.backwardList();
       if (!probeCursor.getPrevToken().raw.endsWith('(')) {
@@ -2064,7 +2069,17 @@ export function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boo
       }
       const fn = probeCursor.getFunctionName();
       if (fn && pairForms.includes(fn)) {
-        return true;
+        // Verify this is the bindings vector (first argument), not a vector in the body
+        // Navigate to find the first argument in the binding form
+        const searchCursor = probeCursor.clone();
+        searchCursor.downList(); // Enter the list: (let ...
+        searchCursor.forwardSexp(); // Skip function name
+        searchCursor.forwardWhitespace();
+
+        // If our vector's opening bracket is at the position of the first argument, it's the bindings vector
+        if (vectorOpeningPos === searchCursor.offsetStart) {
+          return true;
+        }
       }
     }
     if (opening.endsWith('(')) {
