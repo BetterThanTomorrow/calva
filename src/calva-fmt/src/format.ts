@@ -353,8 +353,9 @@ export async function formatPosition(
 }
 
 // Debounce format-as-you-type and toss it aside if User seems still to be working
+// Increased from 250ms to 400ms to reduce cursor jumping issues
 let scheduledFormatCircumstances = undefined;
-const scheduledFormatDelayMs = 250;
+const scheduledFormatDelayMs = 400;
 
 function formatPositionCallback(extraConfig: CljFmtConfig) {
   if (
