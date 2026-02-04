@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.548",
+  "version": "2.0.549",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1217,7 +1217,11 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["vector-binding", "keyword", "flat"],
+                  "enum": [
+                    "vector-binding",
+                    "keyword",
+                    "flat"
+                  ],
                   "description": "The type of pair form"
                 },
                 "name": {
@@ -1244,7 +1248,9 @@
                   "description": "Marker for triple-element groupings (for keyword type)"
                 }
               },
-              "required": ["type"]
+              "required": [
+                "type"
+              ]
             },
             "scope": "window"
           },
