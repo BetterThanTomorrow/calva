@@ -1390,6 +1390,19 @@ describe('paredit', () => {
       expect(g.selectionsStack).toEqual([[gSelection], [hSelection]]);
     });
 
+    it('does not treat regular vectors in let body as pair forms', () => {
+      const a = docFromTextNotation(
+        '(let [[root left right] tree] [root |(mirror-tree left)| (mirror-tree right)])'
+      );
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation(
+        '(let [[root left right] tree] [|root (mirror-tree left) (mirror-tree right)|])'
+      );
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
     describe('cond pairs', () => {
       it('grows selection to test/expr pairs in cond (expr selected first)', () => {
         const a = docFromTextNotation('(cond true |:yes| false :no)');
@@ -1980,6 +1993,32 @@ describe('paredit', () => {
         const a = docFromTextNotation('(doseq [x xs :let [a 1 |b 2]] (println a b))');
         const b = docFromTextNotation('(doseq [x xs :let [|b 2 a 1]] (println a b))');
         await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('regular vectors in let body', () => {
+      it('does not treat regular vector in let body as pairs when dragging backward', async () => {
+        // https://github.com/BetterThanTomorrow/calva/issues/2735
+        // Regular vectors in let body should not have pair semantics
+        const a = docFromTextNotation(
+          '(let [[root left right] tree] [root (mirror-tree left) |(mirror-tree right)])'
+        );
+        const b = docFromTextNotation(
+          '(let [[root left right] tree] [root |(mirror-tree right) (mirror-tree left)])'
+        );
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('does NOT treat regular vector in let body as pairs when dragging forward', async () => {
+        const a = docFromTextNotation(
+          '(let [[root left right] tree] [root |(mirror-tree left) (mirror-tree right)])'
+        );
+        const b = docFromTextNotation(
+          '(let [[root left right] tree] [root (mirror-tree right) |(mirror-tree left)])'
+        );
+        await paredit.dragSexprForward(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
     });
