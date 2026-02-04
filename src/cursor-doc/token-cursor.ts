@@ -258,12 +258,18 @@ export class LispTokenCursor extends TokenCursor {
           this.next();
           break;
         case 'ignore':
+          // Always include the ignored form as part of this sexp
+          this.next();
+          this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
           if (skipIgnoredForms) {
-            this.next();
-            this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+            // Continue to next sexp when skipping ignored forms
             break;
           }
-        // eslint-disable-next-line no-fallthrough
+          // Stop here: the ignored form is the sexp we found
+          if (stack.length <= 0) {
+            return true;
+          }
+          break;
         case 'id':
         case 'lit':
         case 'kw':
@@ -409,6 +415,21 @@ export class LispTokenCursor extends TokenCursor {
       }
     }
     return hasReader;
+  }
+
+  /**
+   * Moves this cursor past the previous non-ws token, if it is an `ignore` token.
+   * Otherwise, this cursor is left unaffected.
+   */
+  backwardThroughAnyIgnore() {
+    const cursor = this.clone();
+    cursor.backwardWhitespace();
+    if (cursor.getPrevToken().type === 'ignore') {
+      cursor.previous();
+      this.set(cursor);
+      return true;
+    }
+    return false;
   }
 
   /**

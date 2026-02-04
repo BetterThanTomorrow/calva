@@ -2399,6 +2399,18 @@ describe('paredit', () => {
           await paredit.forwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps form after empty list with ignore marker following', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething)');
+          const b = docFromTextNotation('(|#_(dosomething))');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after empty list with ignore marker following but does not slurp next sexp', async () => {
+          const a = docFromTextNotation('(|) #_(dosomething) something');
+          const b = docFromTextNotation('(|#_(dosomething)) something');
+          await paredit.forwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
 
       describe('Slurping backwards', () => {
@@ -2459,6 +2471,18 @@ describe('paredit', () => {
         it('slurps backward at multiple cursors', async () => {
           const a = docFromTextNotation('(str) (fo|o)•(str) (fo|1o)');
           const b = docFromTextNotation('((str) fo|o)•((str) fo|1o)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding', async () => {
+          const a = docFromTextNotation('#_(dosomething) (|)');
+          const b = docFromTextNotation('(#_(dosomething)|)');
+          await paredit.backwardSlurpSexp(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form before empty list with ignore marker preceding but does not slurp previous sexp', async () => {
+          const a = docFromTextNotation('something #_(dosomething) (|)');
+          const b = docFromTextNotation('something (#_(dosomething)|)');
           await paredit.backwardSlurpSexp(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2668,6 +2692,25 @@ describe('paredit', () => {
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('Deletes quote prefix from quoted list with content', () => {
+        // https://github.com/BetterThanTomorrow/calva/issues/3020
+        const a = docFromTextNotation("'('|(1 2 3) '(4 5 6) '(7 8 9))");
+        const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from nested quoted list', () => {
+        const a = docFromTextNotation("(foo '|(bar baz))");
+        const b = docFromTextNotation('(foo |(bar baz))');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('Deletes quote prefix from quoted vector', () => {
+        const a = docFromTextNotation("'|[1 2 3]");
+        const b = docFromTextNotation('|[1 2 3]');
+        paredit.backspace(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
       it('Moves cursor past entire open paren, including prefix characters', () => {
         const a = docFromTextNotation('#(|foo)');
         const b = docFromTextNotation('|#(foo)');
@@ -2752,9 +2795,9 @@ describe('paredit', () => {
       });
 
       // https://github.com/BetterThanTomorrow/calva/issues/2327
-      it('Does not delete hash character to the left of a list, inside a list', () => {
+      it('Deletes hash character to the left of a list, inside a list', () => {
         const a = docFromTextNotation('(#|())');
-        const b = docFromTextNotation('(|#())');
+        const b = docFromTextNotation('(|())');
         paredit.backspace(a);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
@@ -2783,15 +2826,15 @@ describe('paredit', () => {
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('Does not delete # inside empty anonymous function', () => {
+        it('Deletes # inside empty anonymous function', () => {
           const a = docFromTextNotation('(#|())');
-          const b = docFromTextNotation('(|#())');
+          const b = docFromTextNotation('(|())');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('Does not delete # inside empty set', () => {
+        it('Deletes # inside empty set', () => {
           const a = docFromTextNotation('(#|{})');
-          const b = docFromTextNotation('(|#{})');
+          const b = docFromTextNotation('(|{})');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2804,6 +2847,32 @@ describe('paredit', () => {
         it('Jumps over # when cursor is after opening brace', () => {
           const a = docFromTextNotation('#{|:foo}');
           const b = docFromTextNotation('|#{:foo}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Quote prefix deletion with empty forms', () => {
+        it("Deletes ' before empty list", () => {
+          const a = docFromTextNotation("'|()");
+          const b = docFromTextNotation('|()');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty vector", () => {
+          const a = docFromTextNotation("'|[]");
+          const b = docFromTextNotation('|[]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty map", () => {
+          const a = docFromTextNotation("'|{}");
+          const b = docFromTextNotation('|{}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before non-empty list", () => {
+          const a = docFromTextNotation("'|(foo)");
+          const b = docFromTextNotation('|(foo)');
           paredit.backspace(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -2891,6 +2960,28 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
+      // https://github.com/BetterThanTomorrow/calva/issues/3020
+      describe('Quote prefix deletion', () => {
+        it('Deletes quote prefix from quoted list with content', () => {
+          const a = docFromTextNotation("'(|'(1 2 3) '(4 5 6) '(7 8 9))");
+          const b = docFromTextNotation("'(|(1 2 3) '(4 5 6) '(7 8 9))");
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from nested quoted list', () => {
+          const a = docFromTextNotation("(foo |'(bar baz))");
+          const b = docFromTextNotation('(foo |(bar baz))');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes quote prefix from quoted vector', () => {
+          const a = docFromTextNotation("|'[1 2 3]");
+          const b = docFromTextNotation('|[1 2 3]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+
       // https://github.com/BetterThanTomorrow/calva/issues/2766
       describe('Hash character deletion with reader macros', () => {
         it('Deletes # before non-empty anonymous function', () => {
@@ -2920,6 +3011,32 @@ describe('paredit', () => {
         it('Deletes # before empty set', () => {
           const a = docFromTextNotation('[|#{}]');
           const b = docFromTextNotation('[|{}]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Quote prefix deletion with empty forms', () => {
+        it("Deletes ' before empty list", () => {
+          const a = docFromTextNotation("|'()");
+          const b = docFromTextNotation('|()');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty vector", () => {
+          const a = docFromTextNotation("|'[]");
+          const b = docFromTextNotation('|[]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before empty map", () => {
+          const a = docFromTextNotation("|'{}");
+          const b = docFromTextNotation('|{}');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it("Deletes ' before non-empty list", () => {
+          const a = docFromTextNotation("|'(foo)");
+          const b = docFromTextNotation('|(foo)');
           paredit.deleteForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
