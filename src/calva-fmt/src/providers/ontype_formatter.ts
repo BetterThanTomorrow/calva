@@ -30,7 +30,7 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
       if (vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine')) {
         // Use calculateIndentEdit function that returns TextEdit[]
         // WIth this VS Code handles cursor positioning
-        return await formatter.calculateIndentEdit(position, document);
+        return formatter.calculateIndentEdit(position, document);
       } else {
         // Fall back to legacy behavior for old indent engine
         // This still has the cursor jumping issue but maintains compatibility

@@ -23,14 +23,14 @@ import { nsRangeFromText } from '../../util/ns-form';
  * Returns a TextEdit array suitable for returning from a formatting provider.
  * Allows VS Code to handle cursor positioning.
  */
-export async function calculateIndentEdit(
+export function calculateIndentEdit(
   position: vscode.Position,
   document: vscode.TextDocument
-): Promise<vscode.TextEdit[]> {
+): vscode.TextEdit[] {
   const indent = getIndent(
     getDocument(document).model.lineInputModel,
     getDocumentOffset(document, position),
-    await config.getConfig(document)
+    config.getConfigNow(document)
   );
   const currentIndent = document.lineAt(position.line).firstNonWhitespaceCharacterIndex;
   const delta = currentIndent - indent;
