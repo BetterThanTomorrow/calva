@@ -397,8 +397,8 @@ When using library-specific forms like `promesa.core/let`, you typically use ali
 ### The Problem
 
 ```clojure
-;; Forms are configured as fully qualified names by default
-;; For example: promesa.core/let, promesa.core/plet, promesa.core/->, etc.
+;; You configure this:
+{:customPairForms [{:type "vector-binding" :name "promesa.core/let"}]}
 
 ;; But you typically write code with aliases:
 (p/let [x (fetch-data)   ; Calva needs to know p/let = promesa.core/let
