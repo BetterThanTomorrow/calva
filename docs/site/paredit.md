@@ -397,7 +397,7 @@ When using library-specific forms like `promesa.core/let`, you typically use ali
 ### The Problem
 
 ```clojure
-;; Promesa forms are configured as fully qualified names by default
+;; Forms are configured as fully qualified names by default
 ;; For example: promesa.core/let, promesa.core/plet, promesa.core/->, etc.
 
 ;; But you typically write code with aliases:
