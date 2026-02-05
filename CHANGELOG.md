@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add support for additional Promesa forms as Default Pair Forms and Default Threading Macros:
+  - **New pair forms:** `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
+  - **New threading macros:** `promesa.core/->`, `promesa.core/->>`
+
 ## [2.0.548] - 2026-02-04
 
 - Fix: [Error when slurping forward before commented s-expressions `(|) #_(dosomething)`](https://github.com/BetterThanTomorrow/calva/issues/2387)
