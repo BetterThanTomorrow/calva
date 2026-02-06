@@ -10,13 +10,58 @@ import {
 import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
 import * as respacer from './respacer';
-import * as cursorDocUtils from '../../cursor-doc/utilities';
 import { isUndefined, cloneDeep } from 'lodash';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 import { formatIndexes } from './format-index';
 import * as state from '../../state';
 import * as healer from './healer';
 import { nsRangeFromText } from '../../util/ns-form';
+
+/**
+ * Command handler for Enter key that inserts newline + indent atomically.
+ * Falls back to default Enter behavior if format-on-type or new indent engine is disabled.
+ */
+export async function insertLineWithIndent(): Promise<void> {
+  console.log('insertLineWithIndent called');
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return;
+  }
+
+  // Check if we should use atomic indent (format-on-type + new indent engine)
+  const formatOnType = config.formatOnTypeEnabled();
+  const newIndentEngine = vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine');
+
+  if (!formatOnType || !newIndentEngine) {
+    // Fall back to default Enter behavior
+    await vscode.commands.executeCommand('default:type', { text: '\n' });
+    return;
+  }
+
+  const document = editor.document;
+
+  // Handle multiple cursors
+  await editor.edit((editBuilder) => {
+    for (const selection of editor.selections) {
+      const position = selection.active;
+
+      // Calculate indent for the new line
+      // We need to simulate where the cursor would be after the newline
+
+      const indent = getIndent(
+        getDocument(document).model.lineInputModel,
+        getDocumentOffset(document, position),
+        config.getConfigNow(document)
+      );
+
+      const indentString = ' '.repeat(indent);
+      const newText = '\n' + indentString;
+
+      // Replace selection (or insert at cursor) with newline + indent
+      editBuilder.replace(selection, newText);
+    }
+  });
+}
 
 /**
  * Calculates the indent edit needed for a position without performing it.
