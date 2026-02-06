@@ -8,6 +8,9 @@ Changes to Calva.
   - **New pair forms:** `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
   - **New threading macros:** `promesa.core/->`, `promesa.core/->>`
 - [**Threading macros now support alias resolution** - Configure `calva.paredit.aliasMap` (e.g., `"p": "promesa.core"`) and use short forms like `p/->` in your code](https://github.com/BetterThanTomorrow/calva/issues/3033)
+- [Fix text garbling when hitting a key before indentation](https://github.com/BetterThanTomorrow/calva/issues/3035). 
+Properly implements format-on-type provider to return TextEdit[] 
+instead of performing edits directly.
 
 ## [2.0.548] - 2026-02-04
 
