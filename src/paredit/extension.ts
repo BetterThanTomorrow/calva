@@ -18,8 +18,9 @@ import * as config from '../formatter-config';
 import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
-import { createPareditConfig, defaultBindingForms } from '../cursor-doc/paredit-config';
+import { createPareditConfig } from '../cursor-doc/paredit-config';
 import type { PareditConfig } from '../cursor-doc/paredit-config';
+import { insertLineWithIndent } from '../calva-fmt/src/format';
 
 const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
 
@@ -656,6 +657,9 @@ export function activate(context: ExtensionContext) {
           });
         });
     })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('calva-fmt.insertLineWithIndent', insertLineWithIndent)
   );
 }
 

@@ -2993,6 +2993,11 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
       },
       {
+        "key": "enter",
+        "command": "calva-fmt.insertLineWithIndent",
+        "when": "editorTextFocus && editorLangId == clojure && !calva:outputWindowActive"
+      },
+      {
         "command": "calva.openFiddleForSourceFile",
         "key": "ctrl+alt+c f",
         "when": "calva:keybindingsEnabled && !calva:activeEditorIsFiddle"
