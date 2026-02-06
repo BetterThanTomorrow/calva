@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.549] - 2026-02-06
+
 - [Fix text garbling when hitting a key before indentation](https://github.com/BetterThanTomorrow/calva/issues/3035)
 
 ## [2.0.548] - 2026-02-04
