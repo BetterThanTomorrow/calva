@@ -659,7 +659,10 @@ export function activate(context: ExtensionContext) {
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('calva-fmt.insertLineWithIndent', insertLineWithIndent)
+    vscode.commands.registerTextEditorCommand(
+      'calva-fmt.insertLineWithIndent',
+      insertLineWithIndent
+    )
   );
 }
 

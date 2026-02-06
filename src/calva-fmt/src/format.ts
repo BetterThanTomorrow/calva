@@ -20,47 +20,46 @@ import { nsRangeFromText } from '../../util/ns-form';
 /**
  * Command handler for Enter key that inserts newline + indent atomically.
  * Falls back to default Enter behavior if format-on-type or new indent engine is disabled.
+ *
+ * Uses synchronous TextEditorCommand to prevent keystroke ordering issues.
  */
-export async function insertLineWithIndent(): Promise<void> {
-  console.log('insertLineWithIndent called');
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return;
-  }
-
+export function insertLineWithIndent(
+  textEditor: vscode.TextEditor,
+  builder: vscode.TextEditorEdit
+): void {
   // Check if we should use atomic indent (format-on-type + new indent engine)
   const formatOnType = config.formatOnTypeEnabled();
   const newIndentEngine = vscode.workspace.getConfiguration('calva.fmt').get('newIndentEngine');
 
   if (!formatOnType || !newIndentEngine) {
     // Fall back to default Enter behavior
-    await vscode.commands.executeCommand('default:type', { text: '\n' });
+    // Note: We can't execute commands from a TextEditorCommand handler
+    // So we just insert a plain newline
+    for (const selection of textEditor.selections) {
+      builder.replace(selection, '\n');
+    }
     return;
   }
 
-  const document = editor.document;
+  const document = textEditor.document;
 
   // Handle multiple cursors
-  await editor.edit((editBuilder) => {
-    for (const selection of editor.selections) {
-      const position = selection.active;
+  for (const selection of textEditor.selections) {
+    const position = selection.active;
 
-      // Calculate indent for the new line
-      // We need to simulate where the cursor would be after the newline
+    // Calculate indent for the new line
+    const indent = getIndent(
+      getDocument(document).model.lineInputModel,
+      getDocumentOffset(document, position),
+      config.getConfigNow(document)
+    );
 
-      const indent = getIndent(
-        getDocument(document).model.lineInputModel,
-        getDocumentOffset(document, position),
-        config.getConfigNow(document)
-      );
+    const indentString = ' '.repeat(indent);
+    const newText = '\n' + indentString;
 
-      const indentString = ' '.repeat(indent);
-      const newText = '\n' + indentString;
-
-      // Replace selection (or insert at cursor) with newline + indent
-      editBuilder.replace(selection, newText);
-    }
-  });
+    // Replace selection (or insert at cursor) with newline + indent
+    builder.replace(selection, newText);
+  }
 }
 
 /**
