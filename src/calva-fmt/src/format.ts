@@ -18,6 +18,41 @@ import * as state from '../../state';
 import * as healer from './healer';
 import { nsRangeFromText } from '../../util/ns-form';
 
+/**
+ * Calculates the indent edit needed for a position without performing it.
+ * Returns a TextEdit array suitable for returning from a formatting provider.
+ * Allows VS Code to handle cursor positioning.
+ */
+export function calculateIndentEdit(
+  position: vscode.Position,
+  document: vscode.TextDocument
+): vscode.TextEdit[] {
+  const indent = getIndent(
+    getDocument(document).model.lineInputModel,
+    getDocumentOffset(document, position),
+    config.getConfigNow(document)
+  );
+  const currentIndent = document.lineAt(position.line).firstNonWhitespaceCharacterIndex;
+  const delta = currentIndent - indent;
+  const pos = new vscode.Position(position.line, 0);
+
+  if (delta > 0) {
+    // Need to remove whitespace
+    return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];
+  } else if (delta < 0) {
+    // Need to add whitespace
+    const str = ' '.repeat(-delta);
+    return [vscode.TextEdit.insert(pos, str)];
+  }
+
+  // No change needed
+  return [];
+}
+
+/**
+ * @deprecated This function performs edits directly and causes cursor jumping (issue #2071).
+ * Use calculateIndentEdit() instead for new code.
+ */
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
   const pos = new vscode.Position(position.line, 0);
@@ -318,8 +353,9 @@ export async function formatPosition(
 }
 
 // Debounce format-as-you-type and toss it aside if User seems still to be working
+// Increased from 250ms to 400ms to reduce cursor jumping issues
 let scheduledFormatCircumstances = undefined;
-const scheduledFormatDelayMs = 250;
+const scheduledFormatDelayMs = 400;
 
 function formatPositionCallback(extraConfig: CljFmtConfig) {
   if (
