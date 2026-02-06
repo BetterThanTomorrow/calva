@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Fix text garbling when hitting a key before indentation](https://github.com/BetterThanTomorrow/calva/issues/3035). 
+Properly implements format-on-type provider to return TextEdit[] 
+instead of performing edits directly.
+
 ## [2.0.548] - 2026-02-04
 
 - Fix: [Error when slurping forward before commented s-expressions `(|) #_(dosomething)`](https://github.com/BetterThanTomorrow/calva/issues/2387)
