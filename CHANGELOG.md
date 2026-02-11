@@ -12,6 +12,9 @@ Changes to Calva.
 - Add support for additional Promesa forms as Default Pair Forms and Default Threading Macros:
   - **New pair forms:** `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
   - **New threading macros:** `promesa.core/->`, `promesa.core/->>`
+- Add default pair form support for [js-interop](https://github.com/applied-science/js-interop) library:
+  - **New vector-binding form:** `applied-science.js-interop/let`
+  - **New flat pair forms:** `applied-science.js-interop/assoc!`, `applied-science.js-interop/obj`
 
 ## [2.0.549] - 2026-02-06
 

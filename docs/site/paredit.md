@@ -212,6 +212,7 @@ Calva recognizes three categories of pair forms by default:
 - `let`, `for`, `loop`, `binding`, `with-local-vars`, `doseq`, `with-redefs`
 - `promesa.core/let`, `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
 - `reagent.core/with-let`
+- `applied-science.js-interop/let`
 
 **Keyword modifiers** (keyword): Forms like `:let` that appear within other forms
 
@@ -221,7 +222,8 @@ Calva recognizes three categories of pair forms by default:
 
 - `cond` (offset: 1), `cond->` (offset: 2), `cond->>` (offset: 2)
 - `case` (offset: 2), `condp` (offset: 3, tripleMarker: `:>>`)
-- `assoc` (offset: 2)
+- `assoc` (offset: 2), `assoc!` (offset: 2), `medley.core/assoc-some` (offset: 2)
+- `applied-science.js-interop/assoc!` (offset: 2), `applied-science.js-interop/obj` (offset: 1)
 
 #### The Default Configuration Structure
 
@@ -240,6 +242,7 @@ Calva recognizes three categories of pair forms by default:
   { "type": "vector-binding", "name": "promesa.core/doseq" },
   { "type": "vector-binding", "name": "promesa.core/with-redefs" },
   { "type": "vector-binding", "name": "reagent.core/with-let" },
+  { "type": "vector-binding", "name": "applied-science.js-interop/let" },
 
   { "type": "keyword", "keyword": ":let", "validParents": ["for", "doseq", "dotimes"] },
 
@@ -250,7 +253,10 @@ Calva recognizes three categories of pair forms by default:
   { "type": "flat", "name": "condp", "offset": 3, "tripleMarker": ":>>" },
   { "type": "flat", "name": "assoc", "offset": 2 },
   { "type": "flat", "name": "assoc!", "offset": 2 },
-  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 }
+  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 },
+
+  { "type": "flat", "name": "applied-science.js-interop/assoc!", "offset": 2 },
+  { "type": "flat", "name": "applied-science.js-interop/obj", "offset": 1 }
 ]
 ```
 
