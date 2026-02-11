@@ -260,35 +260,6 @@ Calva recognizes three categories of pair forms by default:
 ]
 ```
 
-#### js-interop Library Forms
-
-[js-interop](https://github.com/applied-science/js-interop) is a ClojureScript library for JavaScript interop that provides idiomatic Clojure-style functions for working with JavaScript objects. Calva includes default support for the following js-interop pair forms:
-
-**Vector-binding forms:**
-- `applied-science.js-interop/let` - Binds local variables in a binding vector
-
-**Flat pair forms:**
-- `applied-science.js-interop/assoc!` - Mutably sets key-value pairs on a JavaScript object
-- `applied-science.js-interop/obj` - Creates a JavaScript object from key-value pairs
-
-These forms work seamlessly with structural editing commands like selection and dragging. To use these with shorter aliases like `j`, configure an alias map in your project config:
-
-```clojure
-{:aliasMap
- {"j" "applied-science.js-interop"}}
-```
-
-Then you can use the shorter forms:
-```clojure
-(j/let [name "Alice"
-        age 30]
-  (println name))
-
-(j/assoc! obj :x 1 :y 2)
-
-(j/obj :a 1 :b 2)
-```
-
 ### Adding Custom Pair Forms
 
 Use the `calva.paredit.customPairForms` setting to add support for custom macros or library-specific forms. Custom forms are **appended** to the built-in defaults and **cannot override** them.
