@@ -1655,6 +1655,35 @@ describe('paredit', () => {
     });
   });
 
+  describe('js-interop flat pair forms', () => {
+    it('applied-science.js-interop/assoc! - grows selection to key-value pairs', () => {
+      const a = docFromTextNotation('(applied-science.js-interop/assoc! obj :a 1 |:b| 2)');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(applied-science.js-interop/assoc! obj :a 1 |:b 2|)');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
+    it('applied-science.js-interop/obj - grows selection to key-value pairs starting at offset 1', () => {
+      const a = docFromTextNotation('(applied-science.js-interop/obj |:a| 1 :b 2)');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(applied-science.js-interop/obj |:a 1| :b 2)');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
+    it('applied-science.js-interop/assoc! - does not treat object argument as part of pair', () => {
+      const a = docFromTextNotation('(applied-science.js-interop/assoc! |obj| :a 1 :b 2)');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(|applied-science.js-interop/assoc! obj :a 1 :b 2|)');
+      const bSelection = b.selections[0];
+      paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+  });
+
   describe('dragSexpr', () => {
     describe('forwardAndBackwardSexpr', () => {
       // (comment\n  ['(0 1 2 "t" "f")•   "b"•             {:s "h"}•             :f]•  [:f '(0 "t") "b" :s]•  [:f 0•   "b" :s•   4 :b]•  {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b})
