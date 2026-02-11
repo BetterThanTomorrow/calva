@@ -79,6 +79,10 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'assoc', offset: 2 },
   { type: 'flat', name: 'assoc!', offset: 2 },
   { type: 'flat', name: 'medley.core/assoc-some', offset: 2 },
+
+  // js-interop forms (applied-science.js-interop - typically aliased as j)
+  { type: 'flat', name: 'applied-science.js-interop/assoc!', offset: 2 },
+  { type: 'flat', name: 'applied-science.js-interop/obj', offset: 1 },
 ];
 
 export const defaultGroupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
