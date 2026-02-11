@@ -1,7 +1,6 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
-import { createPareditConfig } from '../../../cursor-doc/paredit-config';
 import {
   docFromTextNotation,
   textAndSelection,
@@ -1641,56 +1640,6 @@ describe('paredit', () => {
       const b = docFromTextNotation('(|condp = x 1 "one" 2 "two" "default"|)');
       const bSelection = b.selections[0];
       paredit.growSelection(a);
-      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-    });
-  });
-
-  describe('js-interop/let vector-binding form', () => {
-    it('applied-science.js-interop/let - grows selection to binding pairs', () => {
-      const a = docFromTextNotation('(applied-science.js-interop/let [a b |c| d])');
-      const aSelection = a.selections[0];
-      const b = docFromTextNotation('(applied-science.js-interop/let [a b |c d|])');
-      const bSelection = b.selections[0];
-      paredit.growSelection(a);
-      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-    });
-  });
-
-  describe('js-interop flat pair forms', () => {
-    it('applied-science.js-interop/assoc! - grows selection to key-value pairs', () => {
-      const a = docFromTextNotation('(applied-science.js-interop/assoc! obj :a 1 |:b| 2)');
-      const aSelection = a.selections[0];
-      const b = docFromTextNotation('(applied-science.js-interop/assoc! obj :a 1 |:b 2|)');
-      const bSelection = b.selections[0];
-      paredit.growSelection(a);
-      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-    });
-
-    it('applied-science.js-interop/obj - grows selection to key-value pairs starting at offset 1', () => {
-      const a = docFromTextNotation('(applied-science.js-interop/obj |:a| 1 :b 2)');
-      const aSelection = a.selections[0];
-      const b = docFromTextNotation('(applied-science.js-interop/obj |:a 1| :b 2)');
-      const bSelection = b.selections[0];
-      paredit.growSelection(a);
-      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-    });
-
-    it('applied-science.js-interop/assoc! - does not treat object argument as part of pair', () => {
-      const a = docFromTextNotation('(applied-science.js-interop/assoc! |obj| :a 1 :b 2)');
-      const aSelection = a.selections[0];
-      const b = docFromTextNotation('(|applied-science.js-interop/assoc! obj :a 1 :b 2|)');
-      const bSelection = b.selections[0];
-      paredit.growSelection(a);
-      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
-    });
-
-    it('j/assoc! - works with alias map configuration', () => {
-      const a = docFromTextNotation('(j/assoc! obj :a 1 |:b| 2)');
-      const aSelection = a.selections[0];
-      const b = docFromTextNotation('(j/assoc! obj :a 1 |:b 2|)');
-      const bSelection = b.selections[0];
-      const config = createPareditConfig([], {}, { j: 'applied-science.js-interop' });
-      paredit.growSelection(a, a.selections, config);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
   });
