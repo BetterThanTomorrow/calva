@@ -120,6 +120,24 @@ export class DocumentModel implements EditableModel {
     }
   }
 
+  /**
+   * Rebuilds the model from the VS Code document when version tracking is out of sync.
+   * This is a recovery mechanism
+   * Under normal operation, processChanges keeps the model in sync.
+   */
+  resync(document: vscode.TextDocument): void {
+    const text = document.getText().replace(/\r\n/g, '\n');
+    const newModel = new LineInputModel(this.lineEndingLength);
+    newModel.insertString(0, text);
+    newModel.flushChanges();
+    newModel.dirtyLines = [];
+    newModel.insertedLines.clear();
+    newModel.deletedLines.clear();
+    this.lineInputModel = newModel;
+    this.documentVersion = document.version;
+    this.staleDocumentVersion = undefined;
+  }
+
   private editNowTextOnly(
     modelEdits: ModelEdit<ModelEditFunction>[],
     options: ModelEditOptions
