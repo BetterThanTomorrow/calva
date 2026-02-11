@@ -1474,6 +1474,11 @@ function handleSingleCursorDeleteForward(
     return;
   }
 
+  if (nextToken.type === 'ignore' && start === cursor.offsetStart) {
+    deleteForwardIgnoreMarker(doc, builder, start, nextToken);
+    return;
+  }
+
   handleStructuralDeleteForward(doc, builder, cursor, start, nextToken);
 }
 
@@ -1580,6 +1585,18 @@ function deleteForwardCharacter(
   start: number
 ): void {
   doc.model.editNow([new ModelEdit('deleteRange', [start, 1])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function deleteForwardIgnoreMarker(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  token: Token
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start, token.raw.length])], {
     builder,
     skipFormat: true,
   });
