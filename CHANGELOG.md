@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Backspace does not delete discard comment (`#_`) token](https://github.com/BetterThanTomorrow/calva/issues/3040)
 - Fix: [Jack-in dependencies not finding latest versions](https://github.com/BetterThanTomorrow/calva/issues/2979)
 
 ## [2.0.549] - 2026-02-06
