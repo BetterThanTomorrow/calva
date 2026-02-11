@@ -1303,6 +1303,11 @@ function handleStructuralBackspace(
     return;
   }
 
+  if (prevToken.type === 'ignore') {
+    deleteIgnoreMarker(doc, builder, start, prevToken);
+    return;
+  }
+
   const shouldJump = determineShouldJump(prevToken, cursor, prefixContext, readerContext);
 
   if (shouldJump) {
@@ -1418,6 +1423,18 @@ function deleteCharacter(
 ): void {
   const left = Math.max(start - 1, 0);
   doc.model.editNow([new ModelEdit('deleteRange', [left, start - left])], {
+    builder,
+    skipFormat: true,
+  });
+}
+
+function deleteIgnoreMarker(
+  doc: EditableDocument,
+  builder: TextEditorEdit | undefined,
+  start: number,
+  token: Token
+): void {
+  doc.model.editNow([new ModelEdit('deleteRange', [start - token.raw.length, token.raw.length])], {
     builder,
     skipFormat: true,
   });
