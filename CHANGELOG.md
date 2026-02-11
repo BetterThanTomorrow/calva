@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Unable to delete expressions after pressing CTRL+backspace](https://github.com/BetterThanTomorrow/calva/issues/2973)
 - Fix: [Forward delete only deletes first character of discard comment (`#_`)](https://github.com/BetterThanTomorrow/calva/issues/3041)
 - Fix: [Jack-in dependencies not finding latest versions](https://github.com/BetterThanTomorrow/calva/issues/2979)
 - Fix: [Threading macros now support alias resolution](https://github.com/BetterThanTomorrow/calva/issues/3033)
