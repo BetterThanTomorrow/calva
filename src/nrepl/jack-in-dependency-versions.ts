@@ -147,15 +147,6 @@ function getDefaultJackInDependencyVersions(): JackInDependencyVersions {
   return inspected?.defaultValue;
 }
 
-function isFullyPopulated(
-  versions: JackInDependencyVersions
-): versions is Record<JackInDependencyKey, string> {
-  return JACK_IN_DEPENDENCY_KEYS.every((key) => {
-    const value = versions[key];
-    return typeof value === 'string' && value.trim().length > 0;
-  });
-}
-
 export type VersionSource = 'configured' | 'stored' | 'default';
 
 export type JackInVersionsDetail = {
@@ -229,26 +220,12 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
     return refreshPromise;
   }
 
-  const stored = getStoredJackInDependencyVersions();
-  if (isFullyPopulated(stored)) {
-    console.info(
-      '[Calva] Jack-in dependency versions already populated in global storage:',
-      stored
-    );
-    return;
-  }
-
-  const missingKeys = JACK_IN_DEPENDENCY_KEYS.filter((key) => {
-    const value = stored[key];
-    return !(typeof value === 'string' && value.trim().length > 0);
-  });
-
-  console.info('[Calva] Refreshing jack-in dependency versions. Missing keys:', missingKeys);
+  console.info('[Calva] Refreshing jack-in dependency versions');
 
   const promise = (async () => {
     const fetched: JackInDependencyVersions = {};
 
-    for (const key of missingKeys) {
+    for (const key of JACK_IN_DEPENDENCY_KEYS) {
       const lib = JACK_IN_DEPENDENCY_LIBRARIES[key];
       try {
         const version = await fetchLatestVersion(lib);
