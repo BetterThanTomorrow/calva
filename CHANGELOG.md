@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Forward delete only deletes first character of discard comment (`#_`)](https://github.com/BetterThanTomorrow/calva/issues/3041)
 - Fix: [Jack-in dependencies not finding latest versions](https://github.com/BetterThanTomorrow/calva/issues/2979)
 
 ## [2.0.549] - 2026-02-06
