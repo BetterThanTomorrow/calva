@@ -1,6 +1,7 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
+import { createPareditConfig } from '../../../cursor-doc/paredit-config';
 import {
   docFromTextNotation,
   textAndSelection,
@@ -1680,6 +1681,16 @@ describe('paredit', () => {
       const b = docFromTextNotation('(|applied-science.js-interop/assoc! obj :a 1 :b 2|)');
       const bSelection = b.selections[0];
       paredit.growSelection(a);
+      expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
+    });
+
+    it('j/assoc! - works with alias map configuration', () => {
+      const a = docFromTextNotation('(j/assoc! obj :a 1 |:b| 2)');
+      const aSelection = a.selections[0];
+      const b = docFromTextNotation('(j/assoc! obj :a 1 |:b 2|)');
+      const bSelection = b.selections[0];
+      const config = createPareditConfig([], {}, { j: 'applied-science.js-interop' });
+      paredit.growSelection(a, a.selections, config);
       expect(a.selectionsStack).toEqual([[aSelection], [bSelection]]);
     });
   });
