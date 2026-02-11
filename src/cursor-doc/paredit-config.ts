@@ -65,6 +65,7 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'vector-binding', name: 'promesa.core/doseq' },
   { type: 'vector-binding', name: 'promesa.core/with-redefs' },
   { type: 'vector-binding', name: 'reagent.core/with-let' },
+  { type: 'vector-binding', name: 'applied-science.js-interop/let' },
 
   // Keyword-based modifiers
   { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
