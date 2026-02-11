@@ -5,6 +5,10 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Jack-in dependencies not finding latest versions](https://github.com/BetterThanTomorrow/calva/issues/2979)
+- Fix: [Threading macros now support alias resolution](https://github.com/BetterThanTomorrow/calva/issues/3033)
+- Add support for additional Promesa forms as Default Pair Forms and Default Threading Macros:
+  - **New pair forms:** `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
+  - **New threading macros:** `promesa.core/->`, `promesa.core/->>`
 
 ## [2.0.549] - 2026-02-06
 
