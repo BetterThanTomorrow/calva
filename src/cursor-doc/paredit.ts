@@ -1904,7 +1904,7 @@ export async function transpose(
 }
 
 /**
- * Detects if cursor's form is the direct child of a threading macro.
+ * Checks if a form is directly inside a threading macro.
  * Returns:
  * - 'firstArg' if form is direct child of -> style macro (threads to first position, offset -1)
  * - 'lastArg' if form is direct child of ->> style macro (threads to last position)
@@ -1917,18 +1917,26 @@ function getDirectThreadingMacroStyle(
   config?: PareditConfig
 ): 'firstArg' | 'lastArg' | null {
   const threadingMacros = config?.threadingMacros ?? defaultThreadingMacros;
+  const aliasMap = config?.aliasMap ?? {};
   const probeCursor = cursor.clone();
   // Only check immediate parent - go up one level
   if (probeCursor.backwardList()) {
     probeCursor.backwardUpList();
     const fn = probeCursor.getFunctionName();
     if (fn) {
-      if (threadingMacros.firstArg.includes(fn)) {
-        return 'firstArg';
-      }
-      if (threadingMacros.lastArg.includes(fn)) {
-        return 'lastArg';
-      }
+      // Resolve aliased function name (e.g., p/-> => promesa.core/->)
+      const resolvedFn = resolveAliasedSymbol(fn, aliasMap);
+
+      const getStyle = (name: string): 'firstArg' | 'lastArg' | null => {
+        if (threadingMacros.firstArg.includes(name)) {
+          return 'firstArg';
+        }
+        if (threadingMacros.lastArg.includes(name)) {
+          return 'lastArg';
+        }
+        return null;
+      };
+      return getStyle(resolvedFn) || getStyle(fn);
     }
   }
   return null;

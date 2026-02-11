@@ -337,3 +337,7 @@ _
 (|) #_(dosomething) ""
 ; should result in
 (|#_(dosomething)) ""
+
+; aliased threading macros
+(p/-> {} (assoc :a 1 :b 2))
+(pr/-> {} (assoc :a 1 :b 2))

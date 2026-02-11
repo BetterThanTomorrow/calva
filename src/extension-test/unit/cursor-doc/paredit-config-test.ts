@@ -356,5 +356,95 @@ describe('paredit-config', () => {
         expect(getText(a)).toBe(getText(b));
       });
     });
+
+    describe('Aliased threading macros', () => {
+      it('applies offset reduction for aliased thread-first macro', () => {
+        const a = docFromTextNotation('(m/-> {} (assoc :a 1| :b 2))');
+        const b = docFromTextNotation('(m/-> {} (assoc |:a 1| :b 2))');
+        const customThreading = {
+          firstArg: ['my.lib/thread-through'],
+        };
+        const config = pareditConfig.createPareditConfig([], customThreading, {
+          m: 'my.lib',
+        });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with default promesa thread-first using alias', () => {
+        const a = docFromTextNotation('(p/-> {} (|assoc :a 1 :b 2))');
+        const b = docFromTextNotation('(p/-> {} (|assoc :a 1| :b 2))');
+        const config = pareditConfig.createPareditConfig([], {}, { p: 'promesa.core' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with multiple aliased threading macros', () => {
+        const a = docFromTextNotation('(p/-> x (m/thread-through (assoc |:a 1 :b 2)))');
+        const b = docFromTextNotation('(p/-> x (m/thread-through (assoc |:a 1| :b 2)))');
+        const customThreading = {
+          firstArg: ['my.lib/thread-through'],
+        };
+        const config = pareditConfig.createPareditConfig([], customThreading, {
+          p: 'promesa.core',
+          m: 'my.lib',
+        });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with aliased threading macro containing aliased pair form', () => {
+        const a = docFromTextNotation('(p/-> x (m/match |1 :one 2 :two))');
+        const b = docFromTextNotation('(p/-> x (m/match |1 :one| 2 :two))');
+        const customForms: pareditConfig.PairFormConfig[] = [
+          { type: 'flat', name: 'my.ns/match', offset: 1 },
+        ];
+        const config = pareditConfig.createPareditConfig(
+          customForms,
+          {},
+          {
+            p: 'promesa.core',
+            m: 'my.ns',
+          }
+        );
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('dragSexprForward works inside aliased threading macro', async () => {
+        const a = docFromTextNotation('(m/-> {} (assoc |:a 1 :b 2))');
+        const b = docFromTextNotation('(m/-> {} (assoc :b 2 |:a 1))');
+        const config = pareditConfig.createPareditConfig(
+          [],
+          { firstArg: ['my-ns/->'] },
+          {
+            m: 'my-ns',
+          }
+        );
+        await paredit.dragSexprForward(a, a.selections[0].anchor, a.selections[0].active, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('dragSexprBackward works inside aliased threading macro', async () => {
+        const a = docFromTextNotation('(m/-> {} (assoc :a 1 |:b 2))');
+        const b = docFromTextNotation('(m/-> {} (assoc |:b 2 :a 1))');
+        const customThreading: Partial<pareditConfig.ThreadingMacrosConfig> = {
+          firstArg: ['my-ns/->'],
+        };
+        const config = pareditConfig.createPareditConfig([], customThreading, {
+          m: 'my-ns',
+        });
+        await paredit.dragSexprBackward(a, a.selections[0].anchor, a.selections[0].active, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+
+      it('works with default promesa thread-last using alias', () => {
+        const a = docFromTextNotation('(p/->> x (assoc {} :a 1 :b|))');
+        const b = docFromTextNotation('(p/->> x (|assoc {} :a 1 :b|))');
+        const config = pareditConfig.createPareditConfig([], {}, { p: 'promesa.core' });
+        paredit.growSelection(a, a.selections, config);
+        expect(getText(a)).toBe(getText(b));
+      });
+    });
   });
 });
