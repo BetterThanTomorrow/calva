@@ -244,6 +244,7 @@ async function activate(context: vscode.ExtensionContext) {
       return connector.connectNonProjectREPLCommand(context);
     },
     continueComment: edit.continueCommentCommand,
+    toggleLineComment: edit.toggleLineCommentCommand,
     convertDart2Clj: converters.dart2clj,
     convertJs2Cljs: converters.js2cljs,
     convertHtml2Hiccup: converters.html2hiccup,
