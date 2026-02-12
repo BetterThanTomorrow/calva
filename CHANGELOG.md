@@ -15,6 +15,7 @@ Changes to Calva.
 - Add default pair form support for [js-interop](https://github.com/applied-science/js-interop) library:
   - **New vector-binding form:** `applied-science.js-interop/let`
   - **New flat pair forms:** `applied-science.js-interop/assoc!`, `applied-science.js-interop/obj`
+- Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
 
 ## [2.0.549] - 2026-02-06
 
