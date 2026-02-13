@@ -153,12 +153,12 @@ function rangeReformatChanges(
     const fullDocument = startIndex === 0 && endIndex === document.getText().length;
 
     if (fullDocument) {
-      const formattedText = formatCode(originalText, document.eol);
+      const formattedText = formatCode(originalText, document.eol, true);
       return whitespaceAndNsEdits(eol, startIndex, originalText, formattedText);
     }
 
     const healing = healer.bandage(originalText, originalRange.start.character, eol);
-    const formattedHealedText = formatCode(healing.healedText, document.eol);
+    const formattedHealedText = formatCode(healing.healedText, document.eol, false);
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
     // unbandage aligned top-level forms flush-left, except the first one.
     return whitespaceAndNsEdits(eol, startIndex, originalText, newTextDraft);
@@ -400,7 +400,7 @@ export function scheduleFormatAsType(editor: vscode.TextEditor, extraConfig: Clj
 }
 
 export function formatPositionCommand(editor: vscode.TextEditor) {
-  void formatPosition(editor);
+  void formatPosition(editor), false, { 'full-document?': false };
 }
 
 export function alignPositionCommand(editor: vscode.TextEditor) {
@@ -411,11 +411,11 @@ export function trimWhiteSpacePositionCommand(editor: vscode.TextEditor) {
   void formatPosition(editor, false, { 'remove-multiple-non-indenting-spaces?': true });
 }
 
-export function formatCode(code: string, eol: number) {
+export function formatCode(code: string, eol: number, fullDocument: boolean = true) {
   const d = {
     'range-text': code,
     eol: _convertEolNumToStringNotation(eol),
-    config: config.getConfigNow(),
+    config: { ...config.getConfigNow(), 'full-document?': fullDocument },
   };
   const result = jsify(formatText(d));
   if (!result['error']) {
@@ -437,7 +437,7 @@ async function _formatRange(
     'all-text': allText,
     range: range,
     eol: eol,
-    config: await config.getConfig(),
+    config: { ...(await config.getConfig()), 'full-document?': false },
   };
   const result = jsify(formatTextAtRange(d));
   if (!result['error']) {
