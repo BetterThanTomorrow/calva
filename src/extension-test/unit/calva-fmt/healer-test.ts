@@ -33,4 +33,10 @@ describe('calva-fmt', () => {
     const replacement = healer.unbandage(healing, formattedHealed);
     expect(replacement).toEqual('(def a\n      42)');
   });
+
+  it('Preserves trailing newlines in healed text', () => {
+    const originalFrag = '(def a 1)\n\n\n';
+    const healing = healer.bandage(originalFrag, 0, '\n');
+    expect(healing.healedText).toEqual('(def a 1)\n\n\n');
+  });
 });
