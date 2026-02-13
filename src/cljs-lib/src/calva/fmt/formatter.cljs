@@ -195,10 +195,20 @@
         padding (apply str (repeat indent-before " "))
         range-text (extract-range-text m)
         padded-text (str padding range-text)
-        formatted-m (format-text (assoc m :range-text padded-text))
-        formatted-text (subs (:range-text formatted-m) indent-before)]
+        format-non-eof-range? (< (second (:range m)) (count (:all-text m)))
+        format-input (cond-> (assoc m :range-text padded-text)
+                       format-non-eof-range?
+                       (assoc-in [:config :cljfmt-options :normalize-newlines-at-file-end?] false))
+        formatted-m (format-text format-input)
+        formatted-text (subs (:range-text formatted-m) indent-before)
+        final-range-text (if (and format-non-eof-range?
+                                  (some? (:eol m))
+                                  (not (clojure.string/ends-with? range-text (:eol m)))
+                                  (clojure.string/ends-with? formatted-text (:eol m)))
+                           (subs formatted-text 0 (- (count formatted-text) (count (:eol m))))
+                           formatted-text)]
     (-> (assoc formatted-m
-               :range-text formatted-text)
+               :range-text final-range-text)
         (dissoc :all-text))))
 
 (comment
