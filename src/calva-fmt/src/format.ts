@@ -149,6 +149,14 @@ function rangeReformatChanges(
   if (startIndex == 0 || (!cursor.withinString() && !cursor.withinComment())) {
     const eol = _convertEolNumToStringNotation(document.eol);
     const originalText = document.getText(originalRange);
+    const endIndex = document.offsetAt(originalRange.end);
+    const fullDocument = startIndex === 0 && endIndex === document.getText().length;
+
+    if (fullDocument) {
+      const formattedText = formatCode(originalText, document.eol);
+      return whitespaceAndNsEdits(eol, startIndex, originalText, formattedText);
+    }
+
     const healing = healer.bandage(originalText, originalRange.start.character, eol);
     const formattedHealedText = formatCode(healing.healedText, document.eol);
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
