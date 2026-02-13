@@ -51,22 +51,31 @@ export function continueCommentCommand() {
  */
 export async function toggleLineCommentCommand() {
   const document = util.tryToGetDocument({});
-  if (document && document.languageId === 'clojure') {
-    const editor = util.getActiveTextEditor();
+  if (!document || document.languageId !== 'clojure') {
+    return;
+  }
 
-    const affectedLines = new Set<number>();
-    for (const selection of editor.selections) {
-      for (let line = selection.start.line; line <= selection.end.line; line++) {
-        affectedLines.add(line);
-      }
+  const editor = util.getActiveTextEditor();
+
+  const affectedLines = new Set<number>();
+  for (const selection of editor.selections) {
+    for (let line = selection.start.line; line <= selection.end.line; line++) {
+      affectedLines.add(line);
     }
+  }
 
-    await vscode.commands.executeCommand('editor.action.commentLine');
+  if (affectedLines.size === 0) {
+    return;
+  }
 
-    const doc = docMirror.getDocument(document);
-    const formatterConfig = config.getConfigNow(document);
+  await vscode.commands.executeCommand('editor.action.commentLine');
 
-    const lineInfos = Array.from(affectedLines).map((lineNum) => {
+  const doc = docMirror.getDocument(document);
+  const formatterConfig = config.getConfigNow(document);
+  const lineInfos = Array.from(affectedLines)
+    .filter((lineNum) => lineNum >= 0 && lineNum < document.lineCount)
+    .sort((a, b) => a - b)
+    .map((lineNum) => {
       const line = document.lineAt(lineNum);
       return {
         lineNum,
@@ -75,42 +84,35 @@ export async function toggleLineCommentCommand() {
       };
     });
 
-    const fixes = calculateIndentFixes(lineInfos, (lineNum) => {
-      const lineStart = document.offsetAt(new vscode.Position(lineNum, 0));
-      return docMirror.getIndent(doc.model.lineInputModel, lineStart, formatterConfig);
-    });
+  const fixes = calculateIndentFixes(lineInfos, (lineNum) => {
+    const lineStart = document.offsetAt(new vscode.Position(lineNum, 0));
+    return docMirror.getIndent(doc.model.lineInputModel, lineStart, formatterConfig);
+  });
 
-    if (fixes.length > 0) {
-      const edits: vscode.TextEdit[] = fixes.map((fix) => {
+  if (fixes.length === 0) {
+    return;
+  }
+
+  await editor.edit(
+    (editBuilder) => {
+      for (const fix of fixes) {
         if (fix.delta > 0) {
-          return vscode.TextEdit.delete(
+          editBuilder.delete(
             new vscode.Range(
               new vscode.Position(fix.line, 0),
               new vscode.Position(fix.line, fix.delta)
             )
           );
-        } else {
-          return vscode.TextEdit.insert(new vscode.Position(fix.line, 0), ' '.repeat(-fix.delta));
+        } else if (fix.delta < 0) {
+          editBuilder.insert(new vscode.Position(fix.line, 0), ' '.repeat(-fix.delta));
         }
-      });
-
-      await editor.edit(
-        (editBuilder) => {
-          for (const edit of edits) {
-            if (edit.newText === '') {
-              editBuilder.delete(edit.range);
-            } else {
-              editBuilder.replace(edit.range, edit.newText);
-            }
-          }
-        },
-        {
-          undoStopAfter: false,
-          undoStopBefore: false,
-        }
-      );
+      }
+    },
+    {
+      undoStopAfter: false,
+      undoStopBefore: false,
     }
-  }
+  );
 }
 
 export function replace(
