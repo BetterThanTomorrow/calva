@@ -52,10 +52,9 @@
   (let [cljfmt-options (:cljfmt-options config)
         trim-space-between? (or remove-multiple-non-indenting-spaces?
                                 (:remove-multiple-non-indenting-spaces? cljfmt-options))
-        ;; Handle legacy :align-associative? at config level
-        config-with-alignment (if align-associative?
-                                (assoc cljfmt-options :align-associative? true)
-                                cljfmt-options)]
+        config-with-alignment (cond-> cljfmt-options
+                                align-associative?
+                                (assoc :align-associative? true))]
     (cljfmt/reformat-string range-text (-> config-with-alignment
                                            convert-legacy-keys
                                            convert-align-associative
