@@ -178,11 +178,33 @@ To encourage use of `(comment ...)` forms for development, the default settings 
 
 ### About aligning associative forms
 
-Calva loooks in the config map for the key `:align-associative?` and if it is `true` it will use an old version of **cljfmt** which is [patched](https://github.com/weavejester/cljfmt/pull/77) with functionality for doing this alignment. Note, though:
+Calva supports aligning maps and binding forms (like `let`, `for`, etc.) into columns for improved readability. When you set `:align-associative? true` in the config, Calva uses modern **cljfmt**'s native alignment features:
 
-* The implementation is a bit buggy and can do a bit crazy formatting on certain forms.
-* The older version of cljfmt lacks updates for some new Clojure features and also some bugs fixed since the fork are not applied.
+* **Maps:** Keys and values align in columns (`:align-map-columns?`)
+* **Bindings:** Symbols and values in let/for/etc. align in columns (`:align-form-columns?`)
 
-You are hereby warned, and let us also remind you about the **Format and Align Current Form** command which lets you apply this formatting a bit more surgically, and on demand.
+#### Configuration
 
-This old version of **cljfmt** is inlined in the Calva repository along with the discontinued `rewrite-cljs` project. Regard it as frozen code. If you want Calva's formatter to have full support for newer Clojure constructs and the bugs in the alignment code fixed, contribute to **cljfmt**. See [this issue](https://github.com/weavejester/cljfmt/issues/36) for starting to collect context.
+The `:align-associative?` option is supported for backward compatibility and internally converts to modern cljfmt alignment options:
+
+```clojure
+{:align-associative? true}  ; Legacy option (still supported)
+
+; Equivalent modern options:
+{:align-map-columns? true                   ; Align map keys/values in columns
+ :align-form-columns? true                  ; Align binding forms in columns
+ :split-keypairs-over-multiple-lines? true} ; Split maps onto multiple lines before aligning
+```
+
+The `:split-keypairs-over-multiple-lines?` option is essential - it converts inline maps like `{:a 1 :b 2}` into multi-line format before alignment occurs.
+
+Additional alignment options available in cljfmt 0.16.0+:
+
+* `:align-single-column-lines?` - Controls wrapped value alignment
+* `:blank-lines-separate-alignment?` - Treat blank lines as alignment separators
+
+These features are marked as experimental in cljfmt and may change in future versions.
+
+#### Format and Align Current Form
+
+For more surgical alignment control, use the **Format and Align Current Form** command to apply alignment on-demand to specific forms rather than enabling it globally.
