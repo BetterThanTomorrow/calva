@@ -34,7 +34,14 @@ type BandageContext = {
  */
 export function bandage(originalText: string, originalIndent: number, eol: string): BandageContext {
   const missingTexts = cursorDocUtils.getMissingBrackets(originalText);
-  const healedText = `${missingTexts.prepend}${originalText.trim()}${missingTexts.append}`;
+  const trailingEolsMatch = originalText.match(/(?:\r?\n)+$/);
+  const trailingEols = trailingEolsMatch ? trailingEolsMatch[0] : '';
+  const textWithoutTrailingEols = trailingEols
+    ? originalText.substring(0, originalText.length - trailingEols.length)
+    : originalText;
+  const healedText = `${missingTexts.prepend}${textWithoutTrailingEols.trim()}${
+    missingTexts.append
+  }${trailingEols}`;
   return {
     healedText,
     details: { eol, originalText, originalIndent, missingTexts },
