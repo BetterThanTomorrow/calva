@@ -196,8 +196,6 @@ The `:align-associative?` option is supported for backward compatibility and int
  :split-keypairs-over-multiple-lines? true} ; Split maps onto multiple lines before aligning
 ```
 
-The `:split-keypairs-over-multiple-lines?` option is essential - it converts inline maps like `{:a 1 :b 2}` into multi-line format before alignment occurs.
-
 Additional alignment options available in cljfmt 0.16.0+:
 
 * `:align-single-column-lines?` - Controls wrapped value alignment
