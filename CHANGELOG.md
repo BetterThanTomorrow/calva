@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Formatter has been updated to cljfmt 0.16.0 with support for current Clojure syntax
-  - The `:align-associative?` option continues to work as before
+  - The `:align-associative?` option is now legacy, but support for it is retained
 - Fix: [Unable to delete expressions after pressing CTRL+backspace](https://github.com/BetterThanTomorrow/calva/issues/2973)
 - Fix: [Backspace does not delete discard comment (`#_`) token](https://github.com/BetterThanTomorrow/calva/issues/3040)
 - Fix: [Forward delete only deletes first character of discard comment (`#_`)](https://github.com/BetterThanTomorrow/calva/issues/3041)
