@@ -178,19 +178,19 @@ To encourage use of `(comment ...)` forms for development, the default settings 
 
 ### About aligning associative forms
 
-Calva supports aligning maps and binding forms (like `let`, `for`, etc.) into columns for improved readability. When you set `:align-associative? true` in the config, Calva uses modern **cljfmt**'s native alignment features:
+Calva supports aligning maps and binding forms (like `let`, `for`, etc.) into columns for improved readability. When you set `:align-associative? true` in the config, Calva uses **cljfmt**'s native alignment features:
 
 * **Maps:** Keys and values align in columns (`:align-map-columns?`)
 * **Bindings:** Symbols and values in let/for/etc. align in columns (`:align-form-columns?`)
 
 #### Configuration
 
-The `:align-associative?` option is supported for backward compatibility and internally converts to modern cljfmt alignment options:
+The `:align-associative?` option is supported for backward compatibility and internally converts to cljfmt alignment options:
 
 ```clojure
 {:align-associative? true}  ; Legacy option (still supported)
 
-; Equivalent modern options:
+; Equivalent cljfmt options:
 {:align-map-columns? true                   ; Align map keys/values in columns
  :align-form-columns? true                  ; Align binding forms in columns
  :split-keypairs-over-multiple-lines? true} ; Split maps onto multiple lines before aligning
