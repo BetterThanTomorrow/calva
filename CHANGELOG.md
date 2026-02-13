@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.551] - 2026-02-13
+
+- Formatter has been updated to cljfmt 0.16.0 with support for current Clojure syntax
+  - The `:align-associative?` option is now legacy, but support for it is retained
+
 ## [2.0.550] - 2026-02-13
 
 - Fix: [Unable to delete expressions after pressing CTRL+backspace](https://github.com/BetterThanTomorrow/calva/issues/2973)

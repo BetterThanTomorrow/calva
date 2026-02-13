@@ -1,6 +1,5 @@
 (ns calva.fmt.formatter
-  (:require [pez-cljfmt.core :as pez-cljfmt]
-            [cljfmt.core :as cljfmt]
+  (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             [calva.js-utils :refer [jsify cljify]]
             [calva.fmt.util :as util]
@@ -26,13 +25,16 @@
     (-> (assoc :extra-indents (:indents config))
         (dissoc :indents))))
 
-(defn- convert-to-old-config [config]
-  (let [new-config (convert-legacy-keys config)]
-    (if (:extra-indents new-config)
-      (-> new-config
-          (assoc :indents (:extra-indents new-config))
-          (assoc :indents (merge cljfmt/default-indents (:extra-indents new-config))))
-      new-config)))
+(defn- convert-align-associative
+  "Convert legacy :align-associative? to modern cljfmt alignment options"
+  [config]
+  (if (:align-associative? config)
+    (-> config
+        (assoc :align-map-columns? true
+               :align-form-columns? true
+               :split-keypairs-over-multiple-lines? true)
+        (dissoc :align-associative?))
+    config))
 
 (defn- read-cljfmt
   [s]
@@ -46,20 +48,22 @@
               :indents cljfmt/default-indents}))))
 
 (defn- reformat-string [range-text {:keys [align-associative?
-                                           remove-multiple-non-indenting-spaces?] :as config}]
+                                           remove-multiple-non-indenting-spaces?
+                                           full-document?] :as config}]
   (let [cljfmt-options (:cljfmt-options config)
         trim-space-between? (or remove-multiple-non-indenting-spaces?
-                                (:remove-multiple-non-indenting-spaces? cljfmt-options))]
-    (if (or align-associative?
-            (:align-associative? cljfmt-options))
-      (pez-cljfmt/reformat-string range-text (-> cljfmt-options
-                                                 convert-to-old-config
-                                                 (assoc :align-associative? true)
-                                                 (dissoc :remove-multiple-non-indenting-spaces?)))
-      (cljfmt/reformat-string range-text (-> cljfmt-options
-                                             convert-legacy-keys
-                                             (assoc :remove-multiple-non-indenting-spaces?
-                                                    trim-space-between?))))))
+                                (:remove-multiple-non-indenting-spaces? cljfmt-options))
+        cljfmt-config (cond-> cljfmt-options
+                        align-associative?
+                        (assoc :align-associative? true)
+                        ;;
+                        (not full-document?)
+                        (dissoc :normalize-newlines-at-file-end?))]
+    (cljfmt/reformat-string range-text (-> cljfmt-config
+                                           convert-legacy-keys
+                                           convert-align-associative
+                                           (assoc :remove-multiple-non-indenting-spaces?
+                                                  trim-space-between?)))))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
@@ -186,7 +190,7 @@
       (-> m
           (assoc :range-text range-text')
           (dissoc :indent-token
-          :range)))))
+                  :range)))))
 
 (defn format-text-at-range
   "m with formatted :range-text, and :all-text removed"
