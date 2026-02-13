@@ -701,6 +701,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="About aligning associative forms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-and-align-current-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format and Align Current Form
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -2404,6 +2428,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="About aligning associative forms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#format-and-align-current-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format and Align Current Form
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -2563,13 +2611,28 @@
 <p>To encourage use of <code>(comment ...)</code> forms for development, the default settings give these forms get a special treatment when formatting. Use the <code>calva.fmt.keepCommentTrailParenOnOwnLine</code> setting to control this behaviour. See <a href="../rich-comments/">Rich Comments</a> first.</p>
 <h2 id="etecetera">Etecetera<a class="headerlink" href="#etecetera" title="Permanent link">#</a></h2>
 <h3 id="about-aligning-associative-forms">About aligning associative forms<a class="headerlink" href="#about-aligning-associative-forms" title="Permanent link">#</a></h3>
-<p>Calva loooks in the config map for the key <code>:align-associative?</code> and if it is <code>true</code> it will use an old version of <strong>cljfmt</strong> which is <a href="https://github.com/weavejester/cljfmt/pull/77">patched</a> with functionality for doing this alignment. Note, though:</p>
+<p>Calva supports aligning maps and binding forms (like <code>let</code>, <code>for</code>, etc.) into columns for improved readability. When you set <code>:align-associative? true</code> in the config, Calva uses <strong>cljfmt</strong>'s native alignment features:</p>
 <ul>
-<li>The implementation is a bit buggy and can do a bit crazy formatting on certain forms.</li>
-<li>The older version of cljfmt lacks updates for some new Clojure features and also some bugs fixed since the fork are not applied.</li>
+<li><strong>Maps:</strong> Keys and values align in columns (<code>:align-map-columns?</code>)</li>
+<li><strong>Bindings:</strong> Symbols and values in let/for/etc. align in columns (<code>:align-form-columns?</code>)</li>
 </ul>
-<p>You are hereby warned, and let us also remind you about the <strong>Format and Align Current Form</strong> command which lets you apply this formatting a bit more surgically, and on demand.</p>
-<p>This old version of <strong>cljfmt</strong> is inlined in the Calva repository along with the discontinued <code>rewrite-cljs</code> project. Regard it as frozen code. If you want Calva's formatter to have full support for newer Clojure constructs and the bugs in the alignment code fixed, contribute to <strong>cljfmt</strong>. See <a href="https://github.com/weavejester/cljfmt/issues/36">this issue</a> for starting to collect context.</p>
+<h4 id="configuration_1">Configuration<a class="headerlink" href="#configuration_1" title="Permanent link">#</a></h4>
+<p>The <code>:align-associative?</code> option is supported for backward compatibility and internally converts to cljfmt alignment options:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:align-associative?</span><span class="w"> </span><span class="nv">true</span><span class="p">}</span><span class="w">  </span><span class="c1">; Legacy option (still supported)</span>
+
+<span class="c1">; Equivalent cljfmt options:</span>
+<span class="p">{</span><span class="ss">:align-map-columns?</span><span class="w"> </span><span class="nv">true</span><span class="w">                   </span><span class="c1">; Align map keys/values in columns</span>
+<span class="w"> </span><span class="ss">:align-form-columns?</span><span class="w"> </span><span class="nv">true</span><span class="w">                  </span><span class="c1">; Align binding forms in columns</span>
+<span class="w"> </span><span class="ss">:split-keypairs-over-multiple-lines?</span><span class="w"> </span><span class="nv">true</span><span class="p">}</span><span class="w"> </span><span class="c1">; Split maps onto multiple lines before aligning</span>
+</code></pre></div>
+<p>Additional alignment options available in cljfmt 0.16.0+:</p>
+<ul>
+<li><code>:align-single-column-lines?</code> - Controls wrapped value alignment</li>
+<li><code>:blank-lines-separate-alignment?</code> - Treat blank lines as alignment separators</li>
+</ul>
+<p>These features are marked as experimental in cljfmt and may change in future versions.</p>
+<h4 id="format-and-align-current-form">Format and Align Current Form<a class="headerlink" href="#format-and-align-current-form" title="Permanent link">#</a></h4>
+<p>For more surgical alignment control, use the <strong>Format and Align Current Form</strong> command to apply alignment on-demand to specific forms rather than enabling it globally.</p>
 
 
 
