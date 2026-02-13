@@ -41,38 +41,74 @@ function textNotationFromDocAndSelections(
 
 const pauseMs = 250;
 
-/** Toggle line comment with cursor positions indicated by |, |1, |2, etc. */
-async function toggleComment(editor: vscode.TextEditor, textAndSelections: string) {
-  const [text, selectionsAsOffsets] =
-    textNotation.textNotationToTextAndSelection(textAndSelections);
-  await vscode.commands.executeCommand('editor.action.selectAll');
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
-  await vscode.commands.executeCommand('paredit.deleteForward');
+function getFullDocumentRange(editor: vscode.TextEditor) {
+  return editor.document.validateRange(
+    new vscode.Range(new vscode.Position(0, 0), new vscode.Position(99999, 99999))
+  );
+}
+
+function createSelectionFromOffsets(
+  editor: vscode.TextEditor,
+  [anchorOffset, activeOffset]: [number, number]
+) {
+  return new vscode.Selection(
+    editor.document.positionAt(anchorOffset),
+    editor.document.positionAt(activeOffset)
+  );
+}
+
+async function clearEditor(editor: vscode.TextEditor) {
+  await editor.edit((ed) => {
+    ed.replace(getFullDocumentRange(editor), '');
+  });
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
   const emptiedText = getText(editor.document);
-  if (emptiedText != '') {
+  if (emptiedText !== '') {
     console.error('Supposedly emptied document contains', emptiedText);
   }
+}
+
+async function insertText(editor: vscode.TextEditor, text: string) {
   await editor.edit((ed) => {
     ed.insert(new vscode.Position(0, 0), text);
   });
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
-  editor.selections = selectionsAsOffsets.map(
-    ([anchorOffset, activeOffset]) =>
-      new vscode.Selection(
-        editor.document.positionAt(anchorOffset),
-        editor.document.positionAt(activeOffset)
-      )
-  );
+}
+
+async function prepareEditorForToggle(editor: vscode.TextEditor, textAndSelections: string) {
+  const [text, selections] = textNotation.textNotationToTextAndSelection(textAndSelections);
+  await clearEditor(editor);
+  await insertText(editor, text);
+  editor.selections = selections.map((range) => createSelectionFromOffsets(editor, range));
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
+}
+
+async function performToggle(editor: vscode.TextEditor, textAndSelections: string) {
+  await prepareEditorForToggle(editor, textAndSelections);
   await vscode.commands.executeCommand('calva.toggleLineComment');
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
+}
+
+/** Toggle line comment with cursor positions indicated by |, |1, |2, etc. */
+async function toggleComment(editor: vscode.TextEditor, textAndSelections: string) {
+  await performToggle(editor, textAndSelections);
   return textNotationFromDocAndSelections(editor.document, editor.selections);
+}
+
+/** Toggle line comment and return text only (no cursor notation). */
+async function toggleCommentText(editor: vscode.TextEditor, textAndSelections: string) {
+  await performToggle(editor, textAndSelections);
+  return getText(editor.document, true);
 }
 
 /** Toggle line comment using active editor */
 async function toggleCommentUsingActiveEditor(textAndSelections: string) {
   return toggleComment(vscode.window.activeTextEditor, textAndSelections);
+}
+
+/** Toggle line comment using active editor and return text only. */
+async function toggleCommentTextUsingActiveEditor(textAndSelections: string) {
+  return toggleCommentText(vscode.window.activeTextEditor, textAndSelections);
 }
 
 suite(suiteName, () => {
@@ -93,13 +129,13 @@ suite(suiteName, () => {
     await new Promise((resolve) => setTimeout(resolve, 20 * pauseMs));
     assert.equal(
       await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
-      '(defn foo []•  |;; (println "test"))'
+      '(defn foo []•  ;; |(println "test")•  )'
     );
   });
 
   it('should uncomment a line and restore correct indentation', async () => {
     assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  |;; (println "test"))'),
+      await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
       '(defn foo []•  |(println "test"))'
     );
   });
@@ -107,20 +143,20 @@ suite(suiteName, () => {
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(assoc m•       :key :val•|)'),
-      '(assoc m•       :key :val•       |;;)'
+      '(assoc m•       :key :val•       ;; |•       )'
     );
   });
 
   it('should comment a line in aligned position with correct indent', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(assoc m•       :key :val•       |(+ 1 2))'),
-      '(assoc m•       :key :val•       |;; (+ 1 2))'
+      '(assoc m•       :key :val•       ;; |(+ 1 2)•       )'
     );
   });
 
   it('should uncomment an aligned line and restore alignment', async () => {
     assert.equal(
-      await toggleCommentUsingActiveEditor('(assoc m•       :key :val•       |;; (+ 1 2))'),
+      await toggleCommentUsingActiveEditor('(assoc m•       :key :val•       ;;  |(+ 1 2))'),
       '(assoc m•       :key :val•       |(+ 1 2))'
     );
   });
@@ -128,34 +164,41 @@ suite(suiteName, () => {
   it('should handle multiple cursors on different lines', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(defn foo []•  |(println "a")•  |1(println "b"))'),
-      '(defn foo []•  |;; (println "a")•  |1;; (println "b"))'
+      '(defn foo []•  ;; |(println "a")•  ;; |1(println "b"))'
     );
   });
 
   it('should uncomment multiple lines with correct indentation', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor(
-        '(defn foo []•  |;; (println "a")•  |1;; (println "b"))'
+        '(defn foo []•  ;; |(println "a")•  ;; |1(println "b"))'
       ),
       '(defn foo []•  |(println "a")•  |1(println "b"))'
     );
   });
 
   it('should comment at top level with zero indent', async () => {
-    assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '|;; (defn foo [])');
+    assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), ';; |(defn foo [])');
   });
 
   it('should comment inside let binding vector with alignment', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(let [x 1•      |y 2]•  x)'),
-      '(let [x 1•      |;; y 2]•  x)'
+      '(let [x 1•      ;; |y 2•      ]•  x)'
     );
   });
 
   it('should handle nested forms with correct indent', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    |(+ 1 2)))'),
-      '(defn foo []•  (when true•    |;; (+ 1 2)))'
+      '(defn foo []•  (when true•    ;; |(+ 1 2)•    ))'
+    );
+  });
+
+  it('should structurally comment two selected lines and preserve closing delimiter', async () => {
+    assert.equal(
+      await toggleCommentTextUsingActiveEditor('(assoc {}•         >0:a•         :b>0)'),
+      '(assoc {}•       ;; :a•       ;; :b•       )'
     );
   });
 });
