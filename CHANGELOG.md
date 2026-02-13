@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.550] - 2026-02-13
+
 - Fix: [Unable to delete expressions after pressing CTRL+backspace](https://github.com/BetterThanTomorrow/calva/issues/2973)
 - Fix: [Backspace does not delete discard comment (`#_`) token](https://github.com/BetterThanTomorrow/calva/issues/3040)
 - Fix: [Forward delete only deletes first character of discard comment (`#_`)](https://github.com/BetterThanTomorrow/calva/issues/3041)
