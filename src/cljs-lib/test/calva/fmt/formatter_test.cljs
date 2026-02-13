@@ -213,3 +213,19 @@ bar))" :range [22 25]})))
       ":align-associative? is false by default")
   (is (nil? (:foo (sut/merge-default-config {:cljfmt-string "{:bar false}"})))
       "most keys don't have any defaults."))
+
+(deftest convert-align-associative
+  (testing "Converts :align-associative? to modern cljfmt options"
+    (is (= {:align-map-columns? true
+            :align-form-columns? true
+            :split-keypairs-over-multiple-lines? true}
+           (#'sut/convert-align-associative {:align-associative? true}))
+        ":align-associative? true converts to alignment and split-keypairs options"))
+  (testing "Does not convert when :align-associative? is false"
+    (is (= {:align-associative? false}
+           (#'sut/convert-align-associative {:align-associative? false}))
+        ":align-associative? false is preserved"))
+  (testing "Does not modify config without :align-associative?"
+    (is (= {:foo :bar}
+           (#'sut/convert-align-associative {:foo :bar}))
+        "config without :align-associative? is unchanged")))
