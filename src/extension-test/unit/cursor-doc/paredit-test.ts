@@ -2912,6 +2912,56 @@ describe('paredit', () => {
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
+      describe('Discard comment (#_) deletion', () => {
+        it('Deletes #_ when cursor is right after it', () => {
+          const a = docFromTextNotation('#_|foo');
+          const b = docFromTextNotation('|foo');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is between #_ and a vector', () => {
+          const a = docFromTextNotation('#_|[a b]');
+          const b = docFromTextNotation('|[a b]');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is between #_ and a map', () => {
+          const a = docFromTextNotation('#_|{:a 1}');
+          const b = docFromTextNotation('|{:a 1}');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is between #_ and a paren list', () => {
+          const a = docFromTextNotation('#_|(foo bar)');
+          const b = docFromTextNotation('|(foo bar)');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ inside another form', () => {
+          const a = docFromTextNotation('(a #_|b c)');
+          const b = docFromTextNotation('(a |b c)');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ before a nested list inside a form', () => {
+          const a = docFromTextNotation('(a #_|[1 2] c)');
+          const b = docFromTextNotation('(a |[1 2] c)');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes standalone #_ with nothing after it', () => {
+          const a = docFromTextNotation('#_|');
+          const b = docFromTextNotation('|');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes standalone #_ with nothing after it inside a form', () => {
+          const a = docFromTextNotation('(a #_|)');
+          const b = docFromTextNotation('(a |)');
+          paredit.backspace(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
     });
 
     describe('Kill character forwards (delete)', () => {
@@ -3072,6 +3122,56 @@ describe('paredit', () => {
         it("Deletes ' before non-empty list", () => {
           const a = docFromTextNotation("|'(foo)");
           const b = docFromTextNotation('|(foo)');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+      });
+      describe('Discard comment (#_) deletion', () => {
+        it('Deletes #_ when cursor is right before it', () => {
+          const a = docFromTextNotation('|#_foo');
+          const b = docFromTextNotation('|foo');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is before #_ and a list', () => {
+          const a = docFromTextNotation('|#_[a b]');
+          const b = docFromTextNotation('|[a b]');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is before #_ and a map', () => {
+          const a = docFromTextNotation('|#_{:a 1}');
+          const b = docFromTextNotation('|{:a 1}');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ when cursor is before #_ and a paren list', () => {
+          const a = docFromTextNotation('|#_(foo bar)');
+          const b = docFromTextNotation('|(foo bar)');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ inside another form', () => {
+          const a = docFromTextNotation('(a |#_b c)');
+          const b = docFromTextNotation('(a |b c)');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes #_ before a nested list inside a form', () => {
+          const a = docFromTextNotation('(a |#_[1 2] c)');
+          const b = docFromTextNotation('(a |[1 2] c)');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes standalone #_ with nothing after it', () => {
+          const a = docFromTextNotation('|#_');
+          const b = docFromTextNotation('|');
+          paredit.deleteForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('Deletes standalone #_ with nothing after it inside a form', () => {
+          const a = docFromTextNotation('(a |#_)');
+          const b = docFromTextNotation('(a |)');
           paredit.deleteForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });

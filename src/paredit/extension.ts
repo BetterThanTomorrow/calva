@@ -561,8 +561,10 @@ function wrapPareditCommandNow<C extends PareditCommandNow>(command: C) {
         command.handlerNow(mDoc, builder);
       } else {
         console.warn(
-          'paredit is skipping ' + command.command + ' because TextDocumentChangeEvent is overdue'
+          'paredit: model is stale (' + staleMessage + '), resyncing before ' + command.command
         );
+        model.resync(textEditor.document);
+        command.handlerNow(mDoc, builder);
       }
     } catch (e) {
       console.error(e.message);

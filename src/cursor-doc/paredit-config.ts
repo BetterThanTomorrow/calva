@@ -60,7 +60,12 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'vector-binding', name: 'doseq' },
   { type: 'vector-binding', name: 'with-redefs' },
   { type: 'vector-binding', name: 'promesa.core/let' },
+  { type: 'vector-binding', name: 'promesa.core/plet' },
+  { type: 'vector-binding', name: 'promesa.core/loop' },
+  { type: 'vector-binding', name: 'promesa.core/doseq' },
+  { type: 'vector-binding', name: 'promesa.core/with-redefs' },
   { type: 'vector-binding', name: 'reagent.core/with-let' },
+  { type: 'vector-binding', name: 'applied-science.js-interop/let' },
 
   // Keyword-based modifiers
   { type: 'keyword', keyword: ':let', validParents: ['for', 'doseq', 'dotimes'] },
@@ -74,6 +79,10 @@ const defaultPairForms: PairFormConfig[] = [
   { type: 'flat', name: 'assoc', offset: 2 },
   { type: 'flat', name: 'assoc!', offset: 2 },
   { type: 'flat', name: 'medley.core/assoc-some', offset: 2 },
+
+  // js-interop forms (applied-science.js-interop - typically aliased as j)
+  { type: 'flat', name: 'applied-science.js-interop/assoc!', offset: 2 },
+  { type: 'flat', name: 'applied-science.js-interop/obj', offset: 1 },
 ];
 
 export const defaultGroupedDefaultPairForms = defaultPairForms.reduce<GroupedPairForms>(
@@ -99,8 +108,8 @@ export const defaultBindingForms = defaultGroupedDefaultPairForms['vector-bindin
 );
 
 export const defaultThreadingMacros: ThreadingMacrosConfig = {
-  firstArg: ['->', 'some->', 'cond->'],
-  lastArg: ['->>', 'some->>', 'cond->>'],
+  firstArg: ['->', 'some->', 'cond->', 'promesa.core/->'],
+  lastArg: ['->>', 'some->>', 'cond->>', 'promesa.core/->>'],
 };
 
 // ============================================================================

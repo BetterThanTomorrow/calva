@@ -210,7 +210,9 @@ Calva recognizes three categories of pair forms by default:
 **Binding forms** (vector-binding): Forms with a binding vector like `[name value ...]`
 
 - `let`, `for`, `loop`, `binding`, `with-local-vars`, `doseq`, `with-redefs`
-- `promesa.core/let`, `reagent.core/with-let`
+- `promesa.core/let`, `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
+- `reagent.core/with-let`
+- `applied-science.js-interop/let`
 
 **Keyword modifiers** (keyword): Forms like `:let` that appear within other forms
 
@@ -220,7 +222,8 @@ Calva recognizes three categories of pair forms by default:
 
 - `cond` (offset: 1), `cond->` (offset: 2), `cond->>` (offset: 2)
 - `case` (offset: 2), `condp` (offset: 3, tripleMarker: `:>>`)
-- `assoc` (offset: 2)
+- `assoc` (offset: 2), `assoc!` (offset: 2), `medley.core/assoc-some` (offset: 2)
+- `applied-science.js-interop/assoc!` (offset: 2), `applied-science.js-interop/obj` (offset: 1)
 
 #### The Default Configuration Structure
 
@@ -234,7 +237,12 @@ Calva recognizes three categories of pair forms by default:
   { "type": "vector-binding", "name": "doseq" },
   { "type": "vector-binding", "name": "with-redefs" },
   { "type": "vector-binding", "name": "promesa.core/let" },
+  { "type": "vector-binding", "name": "promesa.core/plet" },
+  { "type": "vector-binding", "name": "promesa.core/loop" },
+  { "type": "vector-binding", "name": "promesa.core/doseq" },
+  { "type": "vector-binding", "name": "promesa.core/with-redefs" },
   { "type": "vector-binding", "name": "reagent.core/with-let" },
+  { "type": "vector-binding", "name": "applied-science.js-interop/let" },
 
   { "type": "keyword", "keyword": ":let", "validParents": ["for", "doseq", "dotimes"] },
 
@@ -245,7 +253,10 @@ Calva recognizes three categories of pair forms by default:
   { "type": "flat", "name": "condp", "offset": 3, "tripleMarker": ":>>" },
   { "type": "flat", "name": "assoc", "offset": 2 },
   { "type": "flat", "name": "assoc!", "offset": 2 },
-  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 }
+  { "type": "flat", "name": "medley.core/assoc-some", "offset": 2 },
+
+  { "type": "flat", "name": "applied-science.js-interop/assoc!", "offset": 2 },
+  { "type": "flat", "name": "applied-science.js-interop/obj", "offset": 1 }
 ]
 ```
 
@@ -327,15 +338,15 @@ Threading macros affect how Calva calculates pair offsets in forms. For example,
 ### Default Threading Macros
 
 **Thread-first** (threads into first argument position):
-- `->`, `some->`, `cond->`
+- `->`, `some->`, `cond->`, `promesa.core/->`
 
 **Thread-last** (threads into last argument position):
-- `->>`, `some->>`, `cond->>`
+- `->>`, `some->>`, `cond->>`, `promesa.core/->>`
 
 ```json
 {
-  "firstArg": ["->", "some->", "cond->"],
-  "lastArg": ["->>", "some->>", "cond->>"]
+  "firstArg": ["->", "some->", "cond->", "promesa.core/->"],
+  "lastArg": ["->>", "some->>", "cond->>", "promesa.core/->>"]
 }
 ```
 
@@ -395,10 +406,14 @@ When using library-specific forms like `promesa.core/let`, you typically use ali
 ;; You configure this:
 {:customPairForms [{:type "vector-binding" :name "promesa.core/let"}]}
 
-;; But you write this:
-(p/let [x (fetch-data)   ; Calva doesn't know p/let = promesa.core/let
+;; But you typically write code with aliases:
+(p/let [x (fetch-data)   ; Calva needs to know p/let = promesa.core/let
         y (process x)]
   (println y))
+
+(p/plet [a (async-op-1)  ; Calva needs to know p/plet = promesa.core/plet
+         b (async-op-2)]
+  (combine a b))
 ```
 
 ### The Solution: Configure Alias Mappings

@@ -4,6 +4,20 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.550] - 2026-02-13
+
+- Fix: [Unable to delete expressions after pressing CTRL+backspace](https://github.com/BetterThanTomorrow/calva/issues/2973)
+- Fix: [Backspace does not delete discard comment (`#_`) token](https://github.com/BetterThanTomorrow/calva/issues/3040)
+- Fix: [Forward delete only deletes first character of discard comment (`#_`)](https://github.com/BetterThanTomorrow/calva/issues/3041)
+- Fix: [Jack-in dependencies not finding latest versions](https://github.com/BetterThanTomorrow/calva/issues/2979)
+- Fix: [Threading macros now support alias resolution](https://github.com/BetterThanTomorrow/calva/issues/3033)
+- Add support for additional Promesa forms as Default Pair Forms and Default Threading Macros:
+  - **New pair forms:** `promesa.core/plet`, `promesa.core/loop`, `promesa.core/doseq`, `promesa.core/with-redefs`
+  - **New threading macros:** `promesa.core/->`, `promesa.core/->>`
+- Add default pair form support for [js-interop](https://github.com/applied-science/js-interop) library:
+  - **New vector-binding form:** `applied-science.js-interop/let`
+  - **New flat pair forms:** `applied-science.js-interop/assoc!`, `applied-science.js-interop/obj`
+
 ## [2.0.549] - 2026-02-06
 
 - [Fix text garbling when hitting a key before indentation](https://github.com/BetterThanTomorrow/calva/issues/3035)
