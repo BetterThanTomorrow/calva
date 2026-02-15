@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+-[Improve dependency-version reporting to highlight prereleases alongside latest stable](https://github.com/BetterThanTomorrow/calva/issues/3049)
+
 ## [2.0.551] - 2026-02-13
 
 - Formatter has been updated to cljfmt 0.16.0 with support for current Clojure syntax
