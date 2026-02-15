@@ -48,7 +48,7 @@ Bind it to the `;` key with a `when` clause that activates it together with the 
 {
     "command": "paredit.insertSemiColon",
     "key": ";",
-    "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
+  "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
  },
 ```
 
@@ -161,7 +161,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+e`                        | **Wrap Around #{}** | Wraps the current form, or selection, with set. <br>
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`/`h`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes and set (`#{}`) <br> ![](images/paredit/rewrap.gif)
-`ctrl+/` (win/linux)<br>`cmd+/` (mac)                        | **Toggle Line Comment** | Comments or uncomments current line(s) with Clojure-aware behavior. For a single selection (cursor or range), commenting uses structural semicolon insertion and keeps closing delimiters outside comments in multiline selections. For other cases (including multi-cursor), it uses VS Code's toggle and then reformats enclosing forms.
+`ctrl+/` (win/linux)<br>`cmd+/` (mac)                        | **Toggle Line Comment** | Comments or uncomments current line(s) with Clojure-aware behavior. For a single selection (cursor or range), commenting uses `paredit.insertSemiColon` for structural semicolon insertion and then reformats enclosing forms. For other cases (including multi-cursor and uncomment), it updates line comments directly and then reformats enclosing forms.
 
 !!! Note "Copy to Clipboard when killing text"
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
