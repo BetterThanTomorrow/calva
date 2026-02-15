@@ -48,7 +48,7 @@ Bind it to the `;` key with a `when` clause that activates it together with the 
 {
     "command": "paredit.insertSemiColon",
     "key": ";",
-  "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
+    "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
  },
 ```
 
