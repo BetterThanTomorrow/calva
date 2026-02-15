@@ -2617,11 +2617,18 @@ export function _semiColonWouldBreakStructureWhere(
 
 export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
   const wouldBreakWhere = _semiColonWouldBreakStructureWhere(doc, p);
+  const line = doc.getTokenCursor(p).line;
+  const lineIndentation = doc.model.getLineText(line).match(/^\s*/)?.[0] ?? '';
   return wouldBreakWhere
     ? doc.model.edit(
         [
+          new ModelEdit('insertString', [
+            wouldBreakWhere,
+            `\n${lineIndentation}`,
+            [p, p],
+            [p + 1, p + 1],
+          ]),
           new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]]),
-          new ModelEdit('insertString', [wouldBreakWhere, '\n', [p, p], [p + 1, p + 1]]),
         ],
         {
           selections: [new ModelEditSelection(p + 1)],
