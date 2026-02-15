@@ -533,7 +533,7 @@ export async function replWindowAppendPrompt() {
  */
 export async function replWindowForceAppendPrompt() {
   didLastOutputTerminateLine['repl-window'] = true;
-  outputWindow.forceAppendPrompt();
+  await outputWindow.forceAppendPrompt();
 }
 
 function formatStacktrace(stacktrace: any[]) {

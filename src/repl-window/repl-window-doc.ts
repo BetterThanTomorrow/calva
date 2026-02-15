@@ -619,6 +619,7 @@ export async function appendPrompt() {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function forceAppendPrompt() {
   appendLine(getPrompt());
 }
