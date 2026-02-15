@@ -3,7 +3,7 @@
         rewrite-clj/rewrite-clj {:mvn/version "1.1.49"} ;; Temporary, while waiting for zprint to bump their deps
         zprint/zprint {:mvn/version "1.2.9"
                        :exclusions [rewrite-clj/rewrite-clj]}
-        dev.weavejester/cljfmt {:mvn/version "0.13.1"
+        dev.weavejester/cljfmt {:mvn/version "0.16.0"
                                 :exclusions [rewrite-clj/rewrite-clj]}
         thheller/shadow-cljs {:mvn/version "3.3.5"}
         org.clojars.liverm0r/dartclojure {:mvn/version "0.2.23-SNAPSHOT"}
