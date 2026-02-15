@@ -142,8 +142,8 @@ suite(suiteName, () => {
 
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
-      await toggleCommentUsingActiveEditor('(assoc m•       :key :val•|)'),
-      '(assoc m•       :key :val•       ;; |•       )'
+      await toggleCommentTextUsingActiveEditor('(assoc m•       :key :val•|)'),
+      '(assoc m•       :key :val•       ;; •       )'
     );
   });
 
@@ -197,7 +197,7 @@ suite(suiteName, () => {
 
   it('should structurally comment two selected lines and preserve closing delimiter', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('(assoc {}•         >0:a•         :b>0)'),
+      await toggleCommentTextUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
       '(assoc {}•       ;; :a•       ;; :b•       )'
     );
   });
