@@ -2517,7 +2517,12 @@
         "command": "calva.toggleLineComment",
         "key": "ctrl+/",
         "mac": "cmd+/",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly"
+        "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && !editorReadOnly"
+      },
+      {
+        "command": "paredit.insertSemiColon",
+        "key": ";",
+        "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
       },
       {
         "command": "calva.evaluateSelection",
