@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
+- Add `paredit.insertSemiColon` command, fired when you type `;`. Inserts a structural line comment, preserving form balance
+
 ## [2.0.551] - 2026-02-13
 
 - Formatter has been updated to cljfmt 0.16.0 with support for current Clojure syntax
@@ -22,7 +25,6 @@ Changes to Calva.
 - Add default pair form support for [js-interop](https://github.com/applied-science/js-interop) library:
   - **New vector-binding form:** `applied-science.js-interop/let`
   - **New flat pair forms:** `applied-science.js-interop/assoc!`, `applied-science.js-interop/obj`
-- Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
 
 ## [2.0.549] - 2026-02-06
 
