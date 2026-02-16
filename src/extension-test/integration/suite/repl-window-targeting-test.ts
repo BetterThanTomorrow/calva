@@ -74,9 +74,11 @@ suite('REPL Window Targeting suite', function () {
     }
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset REPL window to clj session before each test
     replSessionsMenu.setReplWindowSession('clj');
+    // Allow pending async operations (prompt appends, document saves) to settle
+    await testUtil.sleep(100);
   });
 
   test('Initial REPL window targets the secondary (CLJS) session after connection', function () {
@@ -101,7 +103,11 @@ suite('REPL Window Targeting suite', function () {
 
     // Change to cljs via command
     await commands.executeCommand('calva.selectReplWindowSession', 'cljs');
-    await testUtil.sleep(50);
+    await testUtil.waitForCondition(
+      () => outputWindow.getSessionType() === 'cljs',
+      2000,
+      10
+    );
 
     assert.strictEqual(
       outputWindow.getSessionType(),
@@ -109,9 +115,16 @@ suite('REPL Window Targeting suite', function () {
       'After command, session should be cljs'
     );
 
+    // Allow pending prompt operations to settle before next switch
+    await testUtil.sleep(200);
+
     // Change back to clj
     await commands.executeCommand('calva.selectReplWindowSession', 'clj');
-    await testUtil.sleep(50);
+    await testUtil.waitForCondition(
+      () => outputWindow.getSessionType() === 'clj',
+      2000,
+      10
+    );
 
     assert.strictEqual(
       outputWindow.getSessionType(),
