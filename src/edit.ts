@@ -240,6 +240,9 @@ export async function toggleLineCommentCommand() {
   }
 
   const editor = util.getActiveTextEditor();
+  if (!editor) {
+    return;
+  }
 
   const affectedLineNumbers = getAffectedLineNumbers(editor, document.lineCount);
   if (affectedLineNumbers.length === 0) {
