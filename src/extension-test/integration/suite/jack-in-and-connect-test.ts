@@ -171,6 +171,47 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
+  test('Copy Jack-in command line for projectless project (no deps.edn) #2976', async function () {
+    testUtil.log(suite, 'Copy Jack-in command line for projectless project');
+
+    // Use a directory that has no deps.edn to reproduce #2976
+    const projectlessDir = path.join(testUtil.testDataDir, 'projectless');
+    const testFilePath = path.join(projectlessDir, 'test.clj');
+    await testUtil.openFile(testFilePath);
+    testUtil.log(suite, 'projectless test.clj opened');
+
+    const connectSequence: ReplConnectSequence = {
+      name: 'Clojure (projectless)',
+      projectType: ProjectTypes['clj-projectless'],
+      cljsType: CljsTypes.none,
+      projectRootPath: [projectlessDir],
+    };
+
+    // Clear clipboard so we can detect if command generation failed
+    await vscode.env.clipboard.writeText('');
+
+    await commands.executeCommand('calva.copyJackInCommandToClipboard', {
+      connectSequence,
+      disableAutoSelect: true,
+    });
+
+    const cmdLine = await vscode.env.clipboard.readText();
+    testUtil.log(suite, 'projectless cmdLine', cmdLine);
+
+    // Without the fix for #2976, cljCommandLine tries to read deps.edn
+    // from the project root, which fails with ENOENT in a projectless
+    // directory, leaving the clipboard empty.
+    assert.ok(cmdLine.length > 0, 'Command line should have been generated');
+    if (util.isWindows) {
+      assert.ok(cmdLine.includes('deps.clj'), 'Should include deps.clj on Windows');
+    } else {
+      assert.ok(cmdLine.includes('clojure'), 'Should include clojure on non-Windows');
+    }
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, 'projectless test.clj closed');
+  });
+
   test('Reconnection with different sequence name cleans up jack-in process', async function () {
     this.timeout(120_000);
     testUtil.log(suite, 'Reconnection: different sequence name, same session names');
