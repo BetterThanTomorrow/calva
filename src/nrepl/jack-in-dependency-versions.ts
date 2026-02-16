@@ -4,10 +4,17 @@ import * as child from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { parseEdn } from '../../out/cljs-lib/cljs-lib';
+import {
+  selectLatestStableAndPrerelease,
+  type JackInLatestVersionInfo,
+} from './jack-in-version-resolution';
 
 export type JackInDependencyKey = 'nrepl' | 'cider-nrepl' | 'cider/piggieback';
 
 export type JackInDependencyVersions = Partial<Record<JackInDependencyKey, string>>;
+export type JackInDependencyLatestVersions = Partial<
+  Record<JackInDependencyKey, JackInLatestVersionInfo>
+>;
 
 const JACK_IN_DEPENDENCY_LIBRARIES: Record<JackInDependencyKey, string> = {
   nrepl: 'nrepl/nrepl',
@@ -16,6 +23,7 @@ const JACK_IN_DEPENDENCY_LIBRARIES: Record<JackInDependencyKey, string> = {
 };
 
 const JACK_IN_DEPENDENCY_KEYS = Object.keys(JACK_IN_DEPENDENCY_LIBRARIES) as JackInDependencyKey[];
+const FIND_VERSIONS_COUNT = '40';
 
 const GLOBAL_STATE_KEY = 'calva.jackIn.latestDependencyVersions';
 
@@ -44,7 +52,7 @@ function execFileAsync(command: string, args: string[]) {
   });
 }
 
-function parseFindVersionsOutput(output: string): string | undefined {
+function parseFindVersionsOutput(output: string): string[] {
   return output
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -58,7 +66,9 @@ function parseFindVersionsOutput(output: string): string | undefined {
       }
     })
     .map((data) => (data ? data['mvn/version'] : undefined))
-    .find((version) => typeof version === 'string');
+    .filter(
+      (version): version is string => typeof version === 'string' && version.trim().length > 0
+    );
 }
 
 function getDepsCljJarPath(): string | undefined {
@@ -70,17 +80,18 @@ function getDepsCljJarPath(): string | undefined {
   return fs.existsSync(jarPath) ? jarPath : undefined;
 }
 
-async function fetchLatestVersion(library: string): Promise<string> {
-  const args = ['-X:deps', 'find-versions', ':lib', library, ':n', '1'];
+async function fetchLatestVersion(library: string): Promise<JackInLatestVersionInfo> {
+  const args = ['-X:deps', 'find-versions', ':lib', library, ':n', FIND_VERSIONS_COUNT];
   const errors: string[] = [];
 
   try {
     const { stdout } = await execFileAsync('clojure', args);
-    const version = parseFindVersionsOutput(stdout);
-    if (version) {
-      return version;
+    const versions = parseFindVersionsOutput(stdout);
+    const latest = selectLatestStableAndPrerelease(versions);
+    if (latest.stable || latest.prerelease) {
+      return latest;
     }
-    errors.push(`clojure output missing version for ${library}`);
+    errors.push(`clojure output missing versions for ${library}`);
   } catch (error) {
     errors.push(`clojure failed: ${(error as Error).message}`);
   }
@@ -89,11 +100,12 @@ async function fetchLatestVersion(library: string): Promise<string> {
   if (depsCljJarPath) {
     try {
       const { stdout } = await execFileAsync('java', ['-jar', depsCljJarPath, ...args]);
-      const version = parseFindVersionsOutput(stdout);
-      if (version) {
-        return version;
+      const versions = parseFindVersionsOutput(stdout);
+      const latest = selectLatestStableAndPrerelease(versions);
+      if (latest.stable || latest.prerelease) {
+        return latest;
       }
-      errors.push(`deps.clj output missing version for ${library}`);
+      errors.push(`deps.clj output missing versions for ${library}`);
     } catch (error) {
       errors.push(`deps.clj failed: ${(error as Error).message}`);
     }
@@ -104,22 +116,64 @@ async function fetchLatestVersion(library: string): Promise<string> {
   throw new Error(errors.join(' | '));
 }
 
-function getStoredJackInDependencyVersions(): JackInDependencyVersions {
+function normalizeStoredLatestVersionValue(value: unknown): JackInLatestVersionInfo | undefined {
+  if (typeof value === 'string') {
+    const normalized = selectLatestStableAndPrerelease([value]);
+    if (normalized.stable || normalized.prerelease) {
+      return normalized;
+    }
+    return undefined;
+  }
+
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const stableRaw = (value as { stable?: unknown }).stable;
+  const prereleaseRaw = (value as { prerelease?: unknown }).prerelease;
+  const stable =
+    typeof stableRaw === 'string' && stableRaw.trim().length > 0 ? stableRaw : undefined;
+  const prerelease =
+    typeof prereleaseRaw === 'string' && prereleaseRaw.trim().length > 0
+      ? prereleaseRaw
+      : undefined;
+
+  if (!stable && !prerelease) {
+    return undefined;
+  }
+
+  return { stable, prerelease };
+}
+
+function getStoredJackInDependencyVersions(): JackInDependencyLatestVersions {
   const context = state.extensionContext;
   if (!context) {
     return {};
   }
-  const stored = context.globalState.get<JackInDependencyVersions>(GLOBAL_STATE_KEY, {});
-  return { ...stored };
+
+  const stored = context.globalState.get<Partial<Record<JackInDependencyKey, unknown>>>(
+    GLOBAL_STATE_KEY,
+    {}
+  );
+  const normalized: JackInDependencyLatestVersions = {};
+
+  for (const key of JACK_IN_DEPENDENCY_KEYS) {
+    const entry = normalizeStoredLatestVersionValue(stored[key]);
+    if (entry) {
+      normalized[key] = entry;
+    }
+  }
+
+  return normalized;
 }
 
-async function storeJackInDependencyVersions(versions: JackInDependencyVersions) {
+async function storeJackInDependencyVersions(versions: JackInDependencyLatestVersions) {
   const context = state.extensionContext;
   if (!context) {
     return;
   }
   const current = getStoredJackInDependencyVersions();
-  const merged: JackInDependencyVersions = { ...current, ...versions };
+  const merged: JackInDependencyLatestVersions = { ...current, ...versions };
   await context.globalState.update(GLOBAL_STATE_KEY, merged);
 }
 
@@ -152,7 +206,7 @@ export type VersionSource = 'configured' | 'stored' | 'default';
 export type JackInVersionsDetail = {
   effective: Record<JackInDependencyKey, string>;
   sources: Record<JackInDependencyKey, VersionSource>;
-  storedLatest: JackInDependencyVersions;
+  storedLatest: JackInDependencyLatestVersions;
   configured: JackInDependencyVersions;
   defaults: JackInDependencyVersions;
 };
@@ -170,7 +224,6 @@ export function getJackInVersionsDetail(): JackInVersionsDetail {
 
   for (const key of JACK_IN_DEPENDENCY_KEYS) {
     const configuredValue = configured[key];
-    const storedValue = stored[key];
     const defaultValue = defaults[key] ?? '';
 
     if (typeof configuredValue === 'string' && configuredValue.trim().length > 0) {
@@ -193,8 +246,11 @@ export function formatLatestVersionsReport(indent = ''): string {
   const detail = getJackInVersionsDetail();
   const lines = [`${indent}Latest available nREPL dependency versions found on Clojars:`];
   for (const dep of JACK_IN_DEPENDENCY_KEYS) {
-    const latest = detail.storedLatest[dep] ?? 'unknown';
-    lines.push(`${indent}  ${dep}: ${latest}`);
+    const latest = detail.storedLatest[dep];
+    const stable = latest?.stable ?? 'unknown';
+    const prereleaseSuffix = latest?.prerelease ? ` (prerelease: ${latest.prerelease})` : '';
+    const formatted = `${stable}${prereleaseSuffix}`;
+    lines.push(`${indent}  ${dep}: ${formatted}`);
   }
   return lines.join('\n');
 }
@@ -223,14 +279,21 @@ export async function refreshJackInDependencyVersions(): Promise<void> {
   console.info('[Calva] Refreshing jack-in dependency versions');
 
   const promise = (async () => {
-    const fetched: JackInDependencyVersions = {};
+    const fetched: JackInDependencyLatestVersions = {};
 
     for (const key of JACK_IN_DEPENDENCY_KEYS) {
       const lib = JACK_IN_DEPENDENCY_LIBRARIES[key];
       try {
-        const version = await fetchLatestVersion(lib);
-        fetched[key] = version;
-        console.info(`[Calva] Latest version for ${lib} resolved to ${version}`);
+        const versions = await fetchLatestVersion(lib);
+        fetched[key] = versions;
+        const stableLabel = versions.stable ?? 'unknown';
+        const prerelease = versions.prerelease;
+        const s = `[Calva] Latest stable version for ${lib} resolved to`;
+        if (prerelease) {
+          console.info(`${s} ${stableLabel}, prerelease ${prerelease}`);
+        } else {
+          console.info(`${s} ${stableLabel}`);
+        }
       } catch (error) {
         console.warn(
           `[Calva] Failed to fetch latest version for ${lib}: ${(error as Error).message}`

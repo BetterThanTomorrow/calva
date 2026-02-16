@@ -151,9 +151,7 @@ export async function evaluateFiddleForSourceFile() {
     await eval.evaluateInOutputWindow(code, sessionKey, ns, {
       nsForm,
     });
-    return new Promise((resolve) => {
-      output.replWindowAppendPrompt(resolve);
-    });
+    await output.replWindowAppendPrompt();
   } catch (e) {
     openFiddleForSourceFile();
   }

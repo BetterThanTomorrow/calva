@@ -303,7 +303,7 @@ async function executeJackInTask(
                 }
                 refreshJackedInState();
                 output.appendLineOtherOut('Jack-in done.');
-                output.replWindowAppendPrompt();
+                void output.replWindowAppendPrompt();
                 if (cb) {
                   cb();
                 }
