@@ -6,9 +6,9 @@ import * as select from './select';
 import * as printer from './printer';
 import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
+import { calculateCommentPrefixRemovalEnd, commentPrefixPattern } from './comment-prefix';
 
-/** Matches one or more leading semicolons (`;`, `;;`, `;;;`, etc.) */
-const commentPrefixPattern = /^;+/;
+export { commentPrefixPattern } from './comment-prefix';
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
@@ -248,17 +248,11 @@ async function updateLineComments(
         const line = editor.document.lineAt(lineNum);
         const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
         const lineText = line.text;
-        const remainder = lineText.slice(firstNonWhitespace);
 
         if (shouldUncomment) {
-          const match = remainder.match(commentPrefixPattern);
-          if (!match) {
+          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, firstNonWhitespace);
+          if (removalEnd === undefined) {
             continue;
-          }
-
-          let removalEnd = firstNonWhitespace + match[0].length;
-          while (removalEnd < lineText.length && lineText[removalEnd] === ' ') {
-            removalEnd++;
           }
 
           editBuilder.delete(
