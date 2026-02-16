@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.552] - 2026-02-16
+
 -[async `appendPrompt` considered a better solution for #2981 than having to call `onAppended` when nothing needs to be appended](https://github.com/BetterThanTomorrow/calva/pull/3052)
 -[Improve dependency-version reporting to highlight prereleases alongside latest stable](https://github.com/BetterThanTomorrow/calva/issues/3049)
 
