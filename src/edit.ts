@@ -7,6 +7,9 @@ import * as printer from './printer';
 import * as paredit from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
 
+/** Matches one or more leading semicolons (`;`, `;;`, `;;;`, etc.) */
+const commentPrefixPattern = /^;+/;
+
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
 export function continueCommentCommand() {
@@ -67,7 +70,7 @@ function areAllNonEmptyTargetLinesCommented(
     nonEmptyLines.every((lineNum) => {
       const line = document.lineAt(lineNum);
       const lineText = line.text.slice(line.firstNonWhitespaceCharacterIndex);
-      return lineText.startsWith(';;');
+      return commentPrefixPattern.test(lineText);
     })
   );
 }
@@ -180,11 +183,12 @@ async function updateLineComments(
         const remainder = lineText.slice(firstNonWhitespace);
 
         if (shouldUncomment) {
-          if (!remainder.startsWith(';;')) {
+          const match = remainder.match(commentPrefixPattern);
+          if (!match) {
             continue;
           }
 
-          let removalEnd = firstNonWhitespace + 2;
+          let removalEnd = firstNonWhitespace + match[0].length;
           while (removalEnd < lineText.length && lineText[removalEnd] === ' ') {
             removalEnd++;
           }
