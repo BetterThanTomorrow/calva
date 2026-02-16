@@ -42,15 +42,7 @@ Semi-colons (`;`) in Clojure are non-structural because they comment out the res
 
 `paredit.insertSemiColon`
 
-The default keybinding is gated by `calva.paredit.hijackVSCodeDefaults` and Strict mode conditions. If you want to customize the `when` clause, use this as reference:
-
-```json
-{
-    "command": "paredit.insertSemiColon",
-    "key": ";",
-    "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
- },
-```
+The default keybinding binds `;` to this command, gated by `calva.paredit.hijackVSCodeDefaults` and Strict mode conditions. If you want to customize the `when` clause, use the VS Code Keyboard Shortcuts editor (**Preferences: Open Keyboard Shortcuts**) to find the `paredit.insertSemiColon` binding and adapt it to your needs.
 
 ## Commands
 
