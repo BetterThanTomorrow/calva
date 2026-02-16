@@ -38,19 +38,11 @@ Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
 ### A keybinding for protecting the structure from semi-colon
 
-Semi-colons (`;`) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can _delete_ brackets. There is a somewhat secret command in Paredit that can be used to insert `;` in a safe way:
+Semi-colons (`;`) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can _delete_ brackets. Calva protects this in Strict mode by default with the command:
 
 `paredit.insertSemiColon`
 
-Bind it to the `;` key with a `when` clause that activates it together with the other Strict mode commands:
-
-```json
-{
-    "command": "paredit.insertSemiColon",
-    "key": ";",
-    "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
- },
-```
+The default keybinding binds `;` to this command, gated by `calva.paredit.hijackVSCodeDefaults` and Strict mode conditions. If you want to customize the `when` clause, use the VS Code Keyboard Shortcuts editor (**Preferences: Open Keyboard Shortcuts**) to find the `paredit.insertSemiColon` binding and adapt it to your needs.
 
 ## Commands
 
@@ -161,6 +153,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+e`                        | **Wrap Around #{}** | Wraps the current form, or selection, with set. <br>
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`/`h`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes and set (`#{}`) <br> ![](images/paredit/rewrap.gif)
+`ctrl+/` (win/linux)<br>`cmd+/` (mac)                        | **Toggle Line Comment** | Comments or uncomments current line(s) with Clojure-aware behavior. For a single selection (cursor or range), commenting uses structural analysis to place semicolons safely and then reformats enclosing forms. For other cases (including multi-cursor and uncomment), it updates line comments directly and then reformats enclosing forms.
 
 !!! Note "Copy to Clipboard when killing text"
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
