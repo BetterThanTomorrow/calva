@@ -186,18 +186,18 @@ bar))" :range [22 25]})))
 
 (deftest read-cljfmt
   (is (= {'a [[:inner 0]]}
-         (:indents (sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
+         (:indents (#'sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
       "with :replace metadata hint overrides default indents")
   (is (= true
-         (:align-associative? (sut/read-cljfmt "{:align-associative? true}")))
+         (:align-associative? (#'sut/read-cljfmt "{:align-associative? true}")))
       "including keys in cljfmt such as :align-associative? will override defaults.")
   (is (= false
-         (:remove-surrounding-whitespace? (sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
+         (:remove-surrounding-whitespace? (#'sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
       "including keys in cljfmt such as :remove-surrounding-whitespace? will override defaults.")
-  (is (nil? (:foo (sut/read-cljfmt "{:bar false}")))
+  (is (nil? (:foo (#'sut/read-cljfmt "{:bar false}")))
       "most keys don't have any defaults.")
   (is (zero?
-       (count (:indents (sut/read-cljfmt "{}"))))
+       (count (:indents (#'sut/read-cljfmt "{}"))))
       "does not use default cljfmt indent rules"))
 
 (deftest cljfmt-options
