@@ -4,7 +4,7 @@ import * as docMirror from './doc-mirror/index';
 import { EditableDocument, ModelEdit } from './cursor-doc/model';
 import * as select from './select';
 import * as printer from './printer';
-import * as paredit from './cursor-doc/paredit';
+import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
 
 /** Matches one or more leading semicolons (`;`, `;;`, `;;;`, etc.) */
@@ -76,47 +76,81 @@ function areAllNonEmptyTargetLinesCommented(
 }
 
 /**
- * Applies structural `;; ` insertion line-by-line for a single selection,
- * then reformats enclosing forms for affected lines.
- * Processes lines bottom-up so cursor/offset shifts from one line do not
- * invalidate positions for yet to be processed lines.
+ * Inserts `;; ` comment prefixes for a single selection, using structural
+ * analysis to push closing delimiters to new lines when a semicolon would
+ * break form balance. Then reformats enclosing forms.
  */
 async function applyStructuralCommentsToSingleSelectionLines(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[]
 ) {
   const originalSelections = [...editor.selections];
-  const lineToCursorPos = new Map<number, vscode.Position>();
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const mirrorDoc = docMirror.getDocument(editor.document);
+  const structureBreakLineNums = new Set<number>();
 
-  for (const lineNum of descendingLineNumbers) {
-    const currentLine = editor.document.lineAt(lineNum);
-    const insertionColumn = currentLine.firstNonWhitespaceCharacterIndex;
-    const insertionPos = new vscode.Position(lineNum, insertionColumn);
-    editor.selections = [new vscode.Selection(insertionPos, insertionPos)];
+  // Single atomic edit for all comment insertions
+  await editor.edit(
+    (editBuilder) => {
+      for (const lineNum of descendingLineNumbers) {
+        const currentLine = editor.document.lineAt(lineNum);
+        const insertionColumn = currentLine.firstNonWhitespaceCharacterIndex;
+        const insertionOffset = editor.document.offsetAt(
+          new vscode.Position(lineNum, insertionColumn)
+        );
 
-    await paredit.insertSemiColon(docMirror.getDocument(editor.document));
+        const wouldBreakWhere = _semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
 
-    const secondInsertPos = editor.selections[0].active;
-    await editor.edit(
-      (editBuilder) => {
-        editBuilder.insert(secondInsertPos, '; ');
-      },
-      {
-        undoStopAfter: false,
-        undoStopBefore: false,
+        editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
+
+        if (wouldBreakWhere !== false) {
+          structureBreakLineNums.add(lineNum);
+          const indent = currentLine.text.match(/^\s*/)[0];
+          editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+        }
       }
-    );
+    },
+    {
+      undoStopBefore: true,
+      undoStopAfter: false,
+    }
+  );
 
-    const finalCursorPos = editor.selections[0].active;
-    lineToCursorPos.set(lineNum, finalCursorPos);
-  }
+  // Compute shifted line numbers (structure breaks insert newlines, pushing later lines down)
+  const shiftedLineNumbers = affectedLineNumbers.map((lineNum) => {
+    let shift = 0;
+    for (const breakLineNum of structureBreakLineNums) {
+      if (breakLineNum < lineNum) {
+        shift++;
+      }
+    }
+    return lineNum + shift;
+  });
 
-  await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
+  await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
 
+  // Cursor positions captured after formatting so indentation changes are reflected
   editor.selections = originalSelections.map((selection) => {
-    const finalCursorPos = lineToCursorPos.get(selection.active.line) ?? selection.active;
-    return new vscode.Selection(finalCursorPos, finalCursorPos);
+    const originalLineNum = selection.active.line;
+    let shift = 0;
+    for (const breakLineNum of structureBreakLineNums) {
+      if (breakLineNum < originalLineNum) {
+        shift++;
+      }
+    }
+    const shiftedLine = originalLineNum + shift;
+
+    if (shiftedLine < editor.document.lineCount) {
+      const line = editor.document.lineAt(shiftedLine);
+      const firstNonWS = line.firstNonWhitespaceCharacterIndex;
+      const lineContent = line.text.slice(firstNonWS);
+      if (lineContent.startsWith(';; ')) {
+        const pos = new vscode.Position(shiftedLine, firstNonWS + 3);
+        return new vscode.Selection(pos, pos);
+      }
+    }
+
+    return selection;
   });
 }
 
