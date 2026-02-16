@@ -103,11 +103,7 @@ suite('REPL Window Targeting suite', function () {
 
     // Change to cljs via command
     await commands.executeCommand('calva.selectReplWindowSession', 'cljs');
-    await testUtil.waitForCondition(
-      () => outputWindow.getSessionType() === 'cljs',
-      2000,
-      10
-    );
+    await testUtil.waitForCondition(() => outputWindow.getSessionType() === 'cljs', 2000, 10);
 
     assert.strictEqual(
       outputWindow.getSessionType(),
@@ -120,11 +116,7 @@ suite('REPL Window Targeting suite', function () {
 
     // Change back to clj
     await commands.executeCommand('calva.selectReplWindowSession', 'clj');
-    await testUtil.waitForCondition(
-      () => outputWindow.getSessionType() === 'clj',
-      2000,
-      10
-    );
+    await testUtil.waitForCondition(() => outputWindow.getSessionType() === 'clj', 2000, 10);
 
     assert.strictEqual(
       outputWindow.getSessionType(),
