@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
-- Add `paredit.insertSemiColon` command, fired when you type `;`. Inserts a structural line comment, preserving form balance
+- Add `paredit.insertSemiColon` command for structural semicolon insertion that preserves form balance. Active when `calva.paredit.hijackVSCodeDefaults` is enabled and Paredit is in strict mode
 
 ## [2.0.551] - 2026-02-13
 
