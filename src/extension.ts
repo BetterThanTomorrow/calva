@@ -506,7 +506,7 @@ async function activate(context: vscode.ExtensionContext) {
         if (evalOnSave) {
           if (!outputWindow.isReplWindowDoc(document)) {
             await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
-            output.replWindowAppendPrompt();
+            void output.replWindowAppendPrompt();
           }
         }
 

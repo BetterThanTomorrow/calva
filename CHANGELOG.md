@@ -7,6 +7,11 @@ Changes to Calva.
 - Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
 - Add `paredit.insertSemiColon` command for structural semicolon insertion that preserves form balance. Active when `calva.paredit.hijackVSCodeDefaults` is enabled and Paredit is in strict mode
 
+## [2.0.552] - 2026-02-16
+
+-[async `appendPrompt` considered a better solution for #2981 than having to call `onAppended` when nothing needs to be appended](https://github.com/BetterThanTomorrow/calva/pull/3052)
+-[Improve dependency-version reporting to highlight prereleases alongside latest stable](https://github.com/BetterThanTomorrow/calva/issues/3049)
+
 ## [2.0.551] - 2026-02-13
 
 - Formatter has been updated to cljfmt 0.16.0 with support for current Clojure syntax

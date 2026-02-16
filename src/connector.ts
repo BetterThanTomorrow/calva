@@ -226,7 +226,7 @@ async function connectToHost(
         {}
       );
     }
-    output.replWindowAppendPrompt();
+    void output.replWindowAppendPrompt();
 
     const afterMainReplCode =
       connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
@@ -237,7 +237,7 @@ async function connectToHost(
     if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
       output.maybePrintLegacyREPLWindowOutputMessage();
     }
-    output.replWindowAppendPrompt();
+    void output.replWindowAppendPrompt();
 
     clojureDocs.probeAndSetSession(mainSession, mainKey);
 
@@ -425,7 +425,7 @@ async function setUpCljsRepl(
       {}
     );
     output.maybePrintLegacyREPLWindowOutputMessage();
-    output.replWindowAppendPrompt();
+    void output.replWindowAppendPrompt();
   }
   replSession.updateReplSessionType();
 }

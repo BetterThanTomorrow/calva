@@ -84,7 +84,7 @@ async function evaluateCodeInContext(
   options: any
 ) {
   const result = await evaluateSnippet(editor, code, context, options);
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
   return result;
 }
 

@@ -391,7 +391,7 @@ export function setReplWindowSession(sessionKey: string): boolean {
     return false;
   }
   outputWindow.setSession(session, undefined, sessionKey);
-  output.replWindowForceAppendPrompt();
+  void output.replWindowForceAppendPrompt();
   status.update();
   return true;
 }
