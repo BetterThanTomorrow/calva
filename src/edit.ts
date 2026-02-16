@@ -230,6 +230,11 @@ async function reformatEnclosingFormsForLines(
   await reformatRanges(editor, ranges);
 }
 
+/**
+ * Adds or removes comment prefixes on the given lines.
+ * When uncommenting, removes any leading semicolon sequence plus trailing spaces.
+ * When commenting, inserts `;; `.
+ */
 async function updateLineComments(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
@@ -292,10 +297,10 @@ async function toggleCommentsThenReformatEnclosingForms(
  * Toggle line comments with Clojure-aware indentation.
  *
  * - For a single selection (cursor or range), comments are inserted structurally
- *   using Paredit semicolon insertion, preserving delimiter structure, and then
+ *   using paredit structural analysis to preserve delimiter balance, then
  *   enclosing forms are reformatted.
- * - Otherwise, falls back to VS Code's comment toggle and then reformats enclosing
- *   forms for affected lines.
+ * - For multiple selections or when uncommenting, adds/removes `;; ` prefixes
+ *   and reformats enclosing forms.
  */
 export async function toggleLineCommentCommand() {
   const document = util.tryToGetDocument({});
