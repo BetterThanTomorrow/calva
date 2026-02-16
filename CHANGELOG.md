@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Projectless REPL results in "no such file" error expecting a "deps.edn" file](https://github.com/BetterThanTomorrow/calva/issues/2976)
+
 ## [2.0.552] - 2026-02-16
 
 -[async `appendPrompt` considered a better solution for #2981 than having to call `onAppended` when nothing needs to be appended](https://github.com/BetterThanTomorrow/calva/pull/3052)
