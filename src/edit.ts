@@ -179,22 +179,51 @@ function collectEnclosingFormRanges(
   return Array.from(uniqueRanges.values()).sort((a, b) => b[0] - a[0]);
 }
 
+/**
+ * Applies formatting edits for each range sequentially (descending by offset)
+ * because formatting one range may shift positions in later ranges.
+ */
 async function reformatRanges(editor: vscode.TextEditor, ranges: OffsetRange[]) {
-  for (const [start, end] of ranges) {
+  for (let i = 0; i < ranges.length; i++) {
+    const [start, end] = ranges[i];
     const range = new vscode.Range(
       editor.document.positionAt(start),
       editor.document.positionAt(end)
     );
-    await format.formatRange(editor.document, range);
+    const edits = format.formatRangeEdits(editor.document, range);
+    const isLast = i === ranges.length - 1;
+
+    if (!edits || edits.length === 0) {
+      if (isLast) {
+        await editor.edit(() => undefined, { undoStopBefore: false, undoStopAfter: true });
+      }
+      continue;
+    }
+
+    await editor.edit(
+      (editBuilder) => {
+        for (const edit of edits) {
+          editBuilder.replace(edit.range, edit.newText);
+        }
+      },
+      {
+        undoStopBefore: false,
+        undoStopAfter: isLast,
+      }
+    );
   }
 }
 
+/**
+ * Reformats the enclosing forms for the given lines.
+ */
 async function reformatEnclosingFormsForLines(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[]
 ) {
   const ranges = collectEnclosingFormRanges(editor.document, affectedLineNumbers);
   if (ranges.length === 0) {
+    await editor.edit(() => undefined, { undoStopBefore: false, undoStopAfter: true });
     return;
   }
 
@@ -239,15 +268,16 @@ async function updateLineComments(
       }
     },
     {
+      undoStopBefore: true,
       undoStopAfter: false,
-      undoStopBefore: false,
     }
   );
 }
 
 /**
- * Uses VS Code's line-comment toggle, then reformats enclosing forms for
- * affected lines to restore canonical Clojure formatting.
+ * Adds or removes line-comment prefixes, then reformats enclosing forms to
+ * restore canonical Clojure indentation. Used for multi-selection commenting
+ * and for all uncommenting.
  */
 async function toggleCommentsThenReformatEnclosingForms(
   editor: vscode.TextEditor,
