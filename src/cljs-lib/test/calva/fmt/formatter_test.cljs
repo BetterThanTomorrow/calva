@@ -25,7 +25,7 @@ baz)")
     [x]
 
     baz)"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idxs [11]})))) 
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idxs [11]}))))
   (is (= [10 38]
          (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idxs [11]}))))
   (is (= [0 5]
@@ -161,11 +161,9 @@ baz))"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idxs [6]})))))
 
 (deftest remove-indent-tokens
-  (is (= {:range-text "foo\n\nbar"
-         }
+  (is (= {:range-text "foo\n\nbar"}
          (sut/remove-indent-tokens {:range-text "foo\n0\nbar"
-                                    :indent-token "0"
-                                    }))))
+                                    :indent-token "0"}))))
 
 (deftest string-clojure-blank?
   (is (= true (sut/string-clojure-blank? "       ")))
@@ -229,3 +227,28 @@ bar))" :range [22 25]})))
     (is (= {:foo :bar}
            (#'sut/convert-align-associative {:foo :bar}))
         "config without :align-associative? is unchanged")))
+
+(def ^:private misaligned-text-with-double-collon "(def foo
+(let[a   b
+aa bb
+ccc {:a b :aa bb :ccc ccc :dddd ::dddd}]
+))")
+
+(deftest align-associative-with-double-collon
+  ;; https://github.com/BetterThanTomorrow/calva/issues/2920
+  (testing "Aligns associative structures with double colon when `:align-associative` is `true`"
+    (is (= "(def foo
+  (let [a   b
+        aa  bb
+        ccc {:a    b
+             :aa   bb
+             :ccc  ccc
+             :dddd ::dddd}]))"
+           (-> {:eol      "\n"
+                :all-text misaligned-text-with-double-collon
+                :config   {:align-associative? true}
+                :range    [0 69]
+                :idxs     [0]}
+               sut/format-text-at-idx
+               :range-text)))))
+
