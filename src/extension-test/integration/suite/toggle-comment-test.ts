@@ -140,6 +140,34 @@ suite(suiteName, () => {
     );
   });
 
+  it('should uncomment a line with single semicolon prefix', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  ; |(println "test"))'),
+      '(defn foo []•  |(println "test"))'
+    );
+  });
+
+  it('should uncomment a line with triple semicolon prefix', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  ;;; |header)'),
+      '(defn foo []•  |header)'
+    );
+  });
+
+  it('should treat triple semicolon lines as commented when toggling', async () => {
+    assert.equal(
+      await toggleCommentTextUsingActiveEditor('(defn foo []•  |;;; header)'),
+      '(defn foo []•  header)'
+    );
+  });
+
+  it('should uncomment mixed semicolon prefixes across selected lines', async () => {
+    assert.equal(
+      await toggleCommentTextUsingActiveEditor('(defn foo []•  |; a•  ;; b|)'),
+      '(defn foo []•  a•  b)'
+    );
+  });
+
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('(assoc m•       :key :val•|)'),
