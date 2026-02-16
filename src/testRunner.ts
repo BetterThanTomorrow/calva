@@ -270,7 +270,7 @@ async function runAllTests(controller: vscode.TestController, document = {}) {
     output.appendLineOtherErr(e);
   }
   updateReplSessionType();
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 function runAllTestsCommand(controller: vscode.TestController) {
@@ -341,7 +341,7 @@ async function runNamespaceTestsImpl(
 
   outputWindow.setSession(session, nss[0]);
   updateReplSessionType();
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
@@ -387,7 +387,7 @@ async function runTestUnderCursor(controller: vscode.TestController) {
   } else {
     output.appendLineOtherOut('No test found at cursor');
   }
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 function runTestUnderCursorCommand(controller: vscode.TestController) {
@@ -422,7 +422,7 @@ async function rerunTests(controller: vscode.TestController, document = {}) {
   } catch (e) {
     output.appendLineOtherErr(e);
   }
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 function rerunTestsCommand(controller: vscode.TestController) {

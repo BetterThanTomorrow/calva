@@ -407,7 +407,7 @@ export function setNamespaceFromCurrentFile() {
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
@@ -550,7 +550,7 @@ export function appendLine(text = '', onAppended?: OnAppendedCallback): void {
 
 export function discardPendingPrints(): void {
   resultsBuffer = [];
-  output.replWindowAppendPrompt();
+  void output.replWindowAppendPrompt();
 }
 
 export type OutputStacktraceEntry = { uri: vscode.Uri; line: number };
@@ -608,18 +608,20 @@ export function printLastStacktrace(): void {
   });
 }
 
-export function appendPrompt(onAppended?: OnAppendedCallback) {
+export async function appendPrompt() {
   const prompt = getPrompt();
   if (!lastAppended.trimEnd().endsWith(prompt.trimEnd())) {
-    appendLine(getPrompt(), onAppended);
-  } else if (onAppended) {
-    // Resolve promise though no append is actually needed
-    onAppended(undefined);
+    return new Promise<void>((resolve) => {
+      appendLine(getPrompt(), () => {
+        resolve();
+      });
+    });
   }
 }
 
-export function forceAppendPrompt(onAppended?: OnAppendedCallback) {
-  appendLine(getPrompt(), onAppended);
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function forceAppendPrompt() {
+  appendLine(getPrompt());
 }
 
 function getUriForCurrentNamespace(): Promise<vscode.Uri> {

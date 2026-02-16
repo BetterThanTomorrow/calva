@@ -67,7 +67,7 @@ export async function joyrideJackIn(projectDir: string) {
         utilities.setLaunchingState(null);
         await connector.connect(connectSequences.joyrideBuiltIns[0], true, 'localhost', `${port}`);
         output.appendLineOtherOut('Jack-in done.');
-        output.replWindowAppendPrompt();
+        void output.replWindowAppendPrompt();
       })
       .catch((e: Error) => {
         console.error('Joyride REPL start failed: ', e);

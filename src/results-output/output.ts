@@ -520,22 +520,20 @@ export function appendLineOtherErr(message: string, after?: AfterAppendCallback)
 
 /**
  * Appends a prompt to the repl window.
- * Needs to be called via here, because we keep track of wether the last output ended with a newline or not.
- * @param onAppended Optional callback to run after the append
+ * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
-export function replWindowAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
+export async function replWindowAppendPrompt() {
   didLastOutputTerminateLine['repl-window'] = true;
-  outputWindow.appendPrompt(onAppended);
+  await outputWindow.appendPrompt();
 }
 
 /**
  * Forces a prompt to be appended to the repl window, bypassing the duplicate check.
- * Needs to be called via here, because we keep track of wether the last output ended with a newline or not.
- * @param onAppended Optional callback to run after the append
+ * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
-export function replWindowForceAppendPrompt(onAppended?: outputWindow.OnAppendedCallback) {
+export async function replWindowForceAppendPrompt() {
   didLastOutputTerminateLine['repl-window'] = true;
-  outputWindow.forceAppendPrompt(onAppended);
+  await outputWindow.forceAppendPrompt();
 }
 
 function formatStacktrace(stacktrace: any[]) {
@@ -558,7 +556,7 @@ function printStackTrace(stacktrace: any[]) {
   switch (evalResultsOutputDestination) {
     case 'repl-window':
       outputWindow.printLastStacktrace();
-      replWindowAppendPrompt();
+      void replWindowAppendPrompt();
       break;
     case 'output-view':
       appendStackTraceToReplOutputWebview(stacktrace);

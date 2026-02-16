@@ -364,7 +364,7 @@ async function evaluateSelection(document = {}, options) {
         { ...options, ns, nsForm, line, column, filePath, session },
         codeSelection
       );
-      output.replWindowAppendPrompt();
+      void output.replWindowAppendPrompt();
     }
   } else {
     void vscode.window.showErrorMessage('Not connected to a REPL');
@@ -606,9 +606,7 @@ async function loadDocument(
 async function loadFileCommand() {
   if (util.getConnectedState()) {
     await loadDocument({}, getConfig().prettyPrintingOptions, true);
-    return new Promise((resolve) => {
-      output.replWindowAppendPrompt(resolve);
-    });
+    await output.replWindowAppendPrompt();
   } else {
     offerToConnect();
   }
@@ -795,7 +793,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     if (replWindow.getNs() !== ns) {
       replWindow.setSession(session, ns);
       if (options.evaluationSendCodeToOutputWindow !== false) {
-        output.replWindowAppendPrompt();
+        void output.replWindowAppendPrompt();
       }
     }
 
