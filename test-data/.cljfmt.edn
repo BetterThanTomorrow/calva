@@ -3,7 +3,6 @@
  :remove-consecutive-blank-lines? true
  :insert-missing-whitespace? true
  :indent-line-comments? true
- :normalize-newlines-at-file-end? true
  :extra-indents  {#re "fooa?$" [[:inner 0]]
                   #re "bar" [[:block 0]]
                   #re "^baz" [[:inner 0]]

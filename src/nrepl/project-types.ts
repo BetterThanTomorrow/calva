@@ -792,11 +792,8 @@ async function cljCommandLine(
     depsUri = vscode.Uri.file(path.join(state.getProjectRootUri().fsPath, 'deps.edn'));
   }
   let parsed;
-  if (connectSequence.projectType !== 'generic') {
-    void vscode.workspace.fs.stat(depsUri);
-    const bytes = await vscode.workspace.fs.readFile(
-      vscode.Uri.joinPath(state.getProjectRootUri(), 'deps.edn')
-    );
+  if (connectSequence.projectType === 'deps.edn') {
+    const bytes = await vscode.workspace.fs.readFile(depsUri);
     const data = new TextDecoder('utf-8').decode(bytes);
     try {
       parsed = parseEdn(data);
