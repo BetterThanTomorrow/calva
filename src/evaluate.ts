@@ -425,7 +425,7 @@ type EvaluateAsCommentOptions = {
  * parameter, while palette/shortcut invocations pass the options bag first.
  * To handle both, we inspect the first argument for a `commentStyle` key.
  */
-function normalizeEvaluateAsCommentArgs(
+export function normalizeEvaluateAsCommentArgs(
   documentOrOptions,
   options: EvaluateAsCommentOptions = { commentStyle: 'line' }
 ): {
