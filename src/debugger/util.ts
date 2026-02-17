@@ -22,7 +22,12 @@ function moveTokenCursorToBreakpoint(
   debugResponse: any
 ): LispTokenCursor {
   const errorMessage = 'Error finding position of breakpoint';
-  const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  const defunRange = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  if (!defunRange) {
+    throw errorMessage + ': no defun range found';
+  }
+  const [defunStart, defunEnd] = defunRange;
+  tokenCursor.set(tokenCursor.doc.getTokenCursor(defunStart));
   let inSyntaxQuote = false;
 
   const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
@@ -67,7 +72,7 @@ function moveTokenCursorToBreakpoint(
     } else {
       for (let k = 0; k < coor[i]; k++) {
         if (!tokenCursor.forwardSexp(true, true, true)) {
-          throw errorMessage;
+          throw errorMessage + `: cannot move down list at coor index ${i}`;
         }
       }
     }
@@ -84,12 +89,15 @@ function moveTokenCursorToBreakpoint(
 
   // Move past the target sexp
   if (!tokenCursor.forwardSexp(true, true, true)) {
-    throw errorMessage;
+    throw errorMessage + `: cannot move forward at coor ${JSON.stringify(coor)}`;
   }
 
   // Make sure we're still inside the original instrumented form, otherwise something went wrong
   if (tokenCursor.offsetStart > defunEnd) {
-    throw errorMessage;
+    throw (
+      errorMessage +
+      `: moved past original instrumented form (defunStart=${defunStart}, defunEnd=${defunEnd}, offset=${tokenCursor.offsetStart})`
+    );
   }
 
   return tokenCursor;

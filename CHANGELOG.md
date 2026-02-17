@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Error instrumenting function through command palette](https://github.com/BetterThanTomorrow/calva/issues/2966)
+
 ## [2.0.553] - 2026-02-17
 
 - Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)

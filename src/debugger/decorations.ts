@@ -17,6 +17,24 @@ interface InstrumentedSymbolReferenceLocations {
 }
 let instrumentedSymbolReferenceLocations: InstrumentedSymbolReferenceLocations = {};
 
+function flattenDocumentSymbols(symbols: vscode.DocumentSymbol[]): vscode.DocumentSymbol[] {
+  const flattened: vscode.DocumentSymbol[] = [];
+  const stack = [...symbols];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) {
+      continue;
+    }
+    flattened.push(current);
+    if (current.children && current.children.length > 0) {
+      stack.push(...current.children);
+    }
+  }
+
+  return flattened;
+}
+
 const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecorationType({
   borderStyle: 'solid',
   overviewRulerColor: 'blue',
@@ -46,9 +64,9 @@ async function update(
             iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
             [namespace, ...instrumentedDefs]: string[]
           ) => {
-            const docSymbols = (await lsp.api.getDocumentSymbols(lspClient, editor.document.uri))[0]
-              .children;
-            const instrumentedDocSymbols = docSymbols.filter((s) =>
+            const docSymbols = await lsp.api.getDocumentSymbols(lspClient, editor.document.uri);
+            const flatDocSymbols = flattenDocumentSymbols(docSymbols ?? []);
+            const instrumentedDocSymbols = flatDocSymbols.filter((s) =>
               instrumentedDefs.includes(s.name)
             );
             const instrumentedDocSymbolsReferenceRanges = await Promise.all(
