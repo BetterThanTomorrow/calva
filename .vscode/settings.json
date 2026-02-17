@@ -249,5 +249,9 @@
     "titleBar.inactiveBackground": "#db9550d5",
     "titleBar.inactiveForeground": "#13172299"
   },
-  "json.format.enable": false
+  "json.format.enable": false,
+  "files.exclude": {
+    "junit/": true,
+    "repl-output-ui/js/": true
+  }
 }
