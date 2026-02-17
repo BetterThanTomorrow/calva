@@ -248,7 +248,7 @@ class CalvaDebugSession extends LoggingDebugSession {
       void window.showErrorMessage(
         'An error occurred in the breakpoint-finding logic. We would love if you submitted an issue in the Calva repo with the instrumented code, or a similar reproducible case.'
       );
-      console.error('Error in moveTokenCursorToBreakpoint:', e);
+      console.error('Calva debugger: moveTokenCursorToBreakpoint failed', e);
       this.sendEvent(new TerminatedEvent());
       response.success = false;
       this.sendResponse(response);
