@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.553] - 2026-02-17
+
+- Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)
+- Add keybinding, binding `;` to the `paredit.insertSemiColon` command. Active when `calva.paredit.hijackVSCodeDefaults` is enabled and Paredit is in strict mode
+- Fix: [Projectless REPL results in "no such file" error expecting a "deps.edn" file](https://github.com/BetterThanTomorrow/calva/issues/2976)
+
 ## [2.0.552] - 2026-02-16
 
 -[async `appendPrompt` considered a better solution for #2981 than having to call `onAppended` when nothing needs to be appended](https://github.com/BetterThanTomorrow/calva/pull/3052)

@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.552",
+  "version": "2.0.553",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1761,6 +1761,11 @@
         "category": "Calva"
       },
       {
+        "command": "calva.toggleLineComment",
+        "title": "Toggle Line Comment",
+        "category": "Calva"
+      },
+      {
         "command": "calva.switchCljsBuild",
         "title": "Select CLJS Build Connection",
         "enablement": "calva:connected",
@@ -2507,6 +2512,17 @@
         "command": "calva.clearInlineResults",
         "key": "escape",
         "when": "calva:keybindingsEnabled && calva:hasInlineResults && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && !inlineSuggestionVisible && editorLangId == clojure"
+      },
+      {
+        "command": "calva.toggleLineComment",
+        "key": "ctrl+/",
+        "mac": "cmd+/",
+        "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && !editorReadOnly"
+      },
+      {
+        "command": "paredit.insertSemiColon",
+        "key": ";",
+        "when": "calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
       },
       {
         "command": "calva.evaluateSelection",

@@ -3313,6 +3313,21 @@ describe('paredit', () => {
 });
 
 describe('paredit util', () => {
+  describe('insertSemiColon', () => {
+    it('inserts a semicolon at cursor when structure would not break', async () => {
+      const a = docFromTextNotation('abc|');
+      const b = docFromTextNotation('abc;|');
+      await paredit.insertSemiColon(a);
+      expect(textAndSelection(a)).toEqual(textAndSelection(b));
+    });
+    it('inserts a newline to preserve structure when needed', async () => {
+      const a = docFromTextNotation('(defn foo []•  |(println "test"))');
+      const b = docFromTextNotation('(defn foo []•  ;|(println "test")•  )');
+      await paredit.insertSemiColon(a);
+      expect(textAndSelection(a)).toEqual(textAndSelection(b));
+    });
+  });
+
   describe('_semiColonWouldBreakStructureWhere', () => {
     it('returns false at the end of the document', () => {
       expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a "b c" (d)|'))).toBe(
