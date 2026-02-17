@@ -90,7 +90,7 @@ function moveTokenCursorToBreakpoint(
 
   // Make sure we're still inside the original instrumented form, otherwise something went wrong
   if (tokenCursor.offsetStart > defunEnd) {
-    throw errorMessage;
+    throw errorMessage + ': moved past original instrumented form';
   }
 
   return tokenCursor;
