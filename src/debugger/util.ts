@@ -89,12 +89,15 @@ function moveTokenCursorToBreakpoint(
 
   // Move past the target sexp
   if (!tokenCursor.forwardSexp(true, true, true)) {
-    throw errorMessage;
+    throw errorMessage + `: cannot move forward at coor ${JSON.stringify(coor)}`;
   }
 
   // Make sure we're still inside the original instrumented form, otherwise something went wrong
   if (tokenCursor.offsetStart > defunEnd) {
-    throw errorMessage + ': moved past original instrumented form';
+    throw (
+      errorMessage +
+      `: moved past original instrumented form (defunStart=${defunStart}, defunEnd=${defunEnd}, offset=${tokenCursor.offsetStart})`
+    );
   }
 
   return tokenCursor;
