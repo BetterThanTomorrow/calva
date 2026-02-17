@@ -5,7 +5,7 @@ import * as testUtil from './util';
 import * as vscode from 'vscode';
 import * as textNotation from '../integration-text-notation';
 
-const suiteName = 'Insert Semicolon Undo Suite';
+const suiteName = 'Insert Semicolon Suite';
 const testFilePath = path.join(testUtil.testDataDir, 'reformattable.clj');
 const pauseMs = 250;
 
