@@ -418,34 +418,34 @@ type EvaluateAsCommentOptions = {
   commentStyle: string;
 };
 
-function isEvaluateAsCommentOptions(value: unknown): value is EvaluateAsCommentOptions {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'commentStyle' in value &&
-    typeof (value as { commentStyle?: unknown }).commentStyle === 'string'
-  );
-}
-
+/**
+ * Normalize the Calva Evaluate Selection as Comment arguments.
+ *
+ * The context menu handler passes the document/context object as the first
+ * parameter, while palette/shortcut invocations pass the options bag first.
+ * To handle both, we inspect the first argument for a `commentStyle` key.
+ */
 function normalizeEvaluateAsCommentArgs(
-  documentOrOptions: unknown = {},
+  documentOrOptions,
   options: EvaluateAsCommentOptions = { commentStyle: 'line' }
-) {
-  if (isEvaluateAsCommentOptions(documentOrOptions)) {
-    return {
-      document: options,
-      options: documentOrOptions,
-    };
-  }
-
-  return {
-    document: documentOrOptions,
-    options,
-  };
+): {
+  options: EvaluateAsCommentOptions;
+  document: unknown;
+} {
+  const opt1CommentStyle = documentOrOptions?.commentStyle;
+  return opt1CommentStyle
+    ? {
+        document: options,
+        options: documentOrOptions as EvaluateAsCommentOptions,
+      }
+    : {
+        document: documentOrOptions,
+        options: options.commentStyle ? options : { ...options, commentStyle: 'line' },
+      };
 }
 
-function evaluateSelectionAsComment(documentOrOptions = {}, options = { commentStyle: 'line' }) {
-  const normalized = normalizeEvaluateAsCommentArgs(documentOrOptions, options);
+function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
+  const normalized = normalizeEvaluateAsCommentArgs(document, options);
   validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
@@ -461,8 +461,8 @@ function evaluateSelectionAsComment(documentOrOptions = {}, options = { commentS
   }
 }
 
-function evaluateTopLevelFormAsComment(documentOrOptions = {}, options = { commentStyle: 'line' }) {
-  const normalized = normalizeEvaluateAsCommentArgs(documentOrOptions, options);
+function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
+  const normalized = normalizeEvaluateAsCommentArgs(document, options);
   validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
