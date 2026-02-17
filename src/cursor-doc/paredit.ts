@@ -2621,24 +2621,20 @@ export async function insertSemiColon(doc: EditableDocument, p = doc.selections[
     const cursor = doc.getTokenCursor(p);
     const lineText = doc.model.getLineText(cursor.line);
     const indent = lineText.match(/^\s*/)[0];
-    await doc.model.edit([new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]])], {
-      selections: [new ModelEditSelection(p + 1)],
-      skipFormat: true,
-      undoStopBefore: true,
-    });
     return doc.model.edit(
       [
         new ModelEdit('insertString', [
-          wouldBreakWhere + 1,
+          wouldBreakWhere,
           '\n' + indent,
           [p + 1, p + 1],
           [p + 1, p + 1],
         ]),
+        new ModelEdit('insertString', [p, ';', [p, p], [p + 1, p + 1]]),
       ],
       {
         selections: [new ModelEditSelection(p + 1)],
         skipFormat: false,
-        undoStopBefore: false,
+        undoStopBefore: true,
       }
     );
   }
