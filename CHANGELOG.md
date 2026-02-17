@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [calva.evaluateSelectionAsComment missing from context menu](https://github.com/BetterThanTomorrow/calva/issues/3063)
 - Fix: [Error instrumenting function through command palette](https://github.com/BetterThanTomorrow/calva/issues/2966)
 - Fix: [paredit.insertSemiColon requires two undo operations in structure-preserving case](https://github.com/BetterThanTomorrow/calva/issues/3059)
 - Fix: [paredit.insertSemiColon can break structure before closing delimiter](https://github.com/BetterThanTomorrow/calva/issues/3061)
