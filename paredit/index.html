@@ -3122,15 +3122,9 @@
 </table>
 <p>Toggle between Strict and Cave Man using: <code>ctrl+alt+p ctrl+alt+m</code></p>
 <h3 id="a-keybinding-for-protecting-the-structure-from-semi-colon">A keybinding for protecting the structure from semi-colon<a class="headerlink" href="#a-keybinding-for-protecting-the-structure-from-semi-colon" title="Permanent link">#</a></h3>
-<p>Semi-colons (<code>;</code>) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can <em>delete</em> brackets. There is a somewhat secret command in Paredit that can be used to insert <code>;</code> in a safe way:</p>
+<p>Semi-colons (<code>;</code>) in Clojure are non-structural because they comment out the rest of the line regardless of brackets. In a way they can <em>delete</em> brackets. Calva protects this in Strict mode by default with the command:</p>
 <p><code>paredit.insertSemiColon</code></p>
-<p>Bind it to the <code>;</code> key with a <code>when</code> clause that activates it together with the other Strict mode commands:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.insertSemiColon&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;;&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap == strict &amp;&amp; !editorReadOnly &amp;&amp; !editorHasMultipleSelections &amp;&amp; !calva:cursorInComment&quot;</span>
-<span class="w"> </span><span class="p">},</span>
-</code></pre></div>
+<p>The default keybinding binds <code>;</code> to this command, gated by <code>calva.paredit.hijackVSCodeDefaults</code> and Strict mode conditions. If you want to customize the <code>when</code> clause, use the VS Code Keyboard Shortcuts editor (<strong>Preferences: Open Keyboard Shortcuts</strong>) to find the <code>paredit.insertSemiColon</code> binding and adapt it to your needs.</p>
 <h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">#</a></h2>
 <p>The Paredit commands are sorted into <strong>Navigation</strong>, <strong>Selection</strong>, and <strong>Edit</strong>. As mentioned, <strong>Slurp</strong> and <strong>Barf</strong> are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.</p>
 <p>To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.</p>
@@ -3447,6 +3441,11 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 <td><code>ctrl+alt+r</code><br><code>ctrl+alt+p</code>/<code>s</code>/<code>c</code>/<code>q</code>/<code>h</code></td>
 <td><strong>Rewrap</strong></td>
 <td>Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes and set (<code>#{}</code>) <br> <img alt="" src="../images/paredit/rewrap.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+/</code> (win/linux)<br><code>cmd+/</code> (mac)</td>
+<td><strong>Toggle Line Comment</strong></td>
+<td>Comments or uncomments current line(s) with Clojure-aware behavior. For a single selection (cursor or range), commenting uses structural analysis to place semicolons safely and then reformats enclosing forms. For other cases (including multi-cursor and uncomment), it updates line comments directly and then reformats enclosing forms.</td>
 </tr>
 </tbody>
 </table>
