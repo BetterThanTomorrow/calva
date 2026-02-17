@@ -98,4 +98,20 @@ suite(suiteName, () => {
       initialState
     );
   });
+
+  it('keeps closing delimiter outside the inserted comment when cursor is before close', async () => {
+    const editor = vscode.window.activeTextEditor;
+    const initialState = '(bar 24 |)';
+    const expectedAfterInsert = '(bar 24 ;|•     )';
+
+    await resetEditor(editor, initialState);
+
+    await vscode.commands.executeCommand('paredit.insertSemiColon');
+    await testUtil.sleep(pauseMs);
+
+    assert.equal(
+      textNotationFromDocAndSelections(editor.document, editor.selections),
+      expectedAfterInsert
+    );
+  });
 });
