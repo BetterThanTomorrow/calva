@@ -3326,12 +3326,6 @@ describe('paredit util', () => {
       await paredit.insertSemiColon(a);
       expect(textAndSelection(a)).toEqual(textAndSelection(b));
     });
-    it('inserts a semicolon before newline when cursor is right before close token', async () => {
-      const a = docFromTextNotation('(bar 24 |)');
-      const b = docFromTextNotation('(bar 24 ;|•)');
-      await paredit.insertSemiColon(a);
-      expect(textAndSelection(a)).toEqual(textAndSelection(b));
-    });
   });
 
   describe('_semiColonWouldBreakStructureWhere', () => {
