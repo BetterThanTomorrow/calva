@@ -1,7 +1,7 @@
 import * as expect from 'expect';
-import { normalizeEvaluateAsCommentArgs } from '../../evaluate';
+import { normalizeEvaluateAsCommentArgs } from '../../evaluate-utils';
 
-describe('evaluate-comment-args', () => {
+describe('normalizeEvaluateAsCommentArgs', () => {
   it('normalizes command invocation (options first)', () => {
     const documentArg = { some: 'document-context' };
     const normalized = normalizeEvaluateAsCommentArgs(

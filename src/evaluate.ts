@@ -21,6 +21,7 @@ import * as inspector from './providers/inspector';
 import { resultAsComment } from './util/string-result';
 import { highlight } from './highlight/src/extension';
 import * as flareHandler from './flare-handler';
+import { normalizeEvaluateAsCommentArgs } from './evaluate-utils';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -412,36 +413,6 @@ function validateCommentStyle(commentStyle: string) {
       `Invalid comment style: ${commentStyle}. Must be one of "line", "ignore", or "rcf".`
     );
   }
-}
-
-type EvaluateAsCommentOptions = {
-  commentStyle: string;
-};
-
-/**
- * Normalize the Calva Evaluate Selection as Comment arguments.
- *
- * The context menu handler passes the document/context object as the first
- * parameter, while palette/shortcut invocations pass the options bag first.
- * To handle both, we inspect the first argument for a `commentStyle` key.
- */
-export function normalizeEvaluateAsCommentArgs(
-  documentOrOptions,
-  options: EvaluateAsCommentOptions = { commentStyle: 'line' }
-): {
-  options: EvaluateAsCommentOptions;
-  document: unknown;
-} {
-  const opt1CommentStyle = documentOrOptions?.commentStyle;
-  return opt1CommentStyle
-    ? {
-        document: options,
-        options: documentOrOptions as EvaluateAsCommentOptions,
-      }
-    : {
-        document: documentOrOptions,
-        options: options.commentStyle ? options : { ...options, commentStyle: 'line' },
-      };
 }
 
 function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
