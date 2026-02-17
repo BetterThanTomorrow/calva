@@ -67,7 +67,7 @@ function moveTokenCursorToBreakpoint(
     } else {
       for (let k = 0; k < coor[i]; k++) {
         if (!tokenCursor.forwardSexp(true, true, true)) {
-          throw errorMessage;
+          throw errorMessage + `: cannot move down list at coor index ${i}`;
         }
       }
     }
