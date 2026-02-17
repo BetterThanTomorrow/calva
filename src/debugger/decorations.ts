@@ -46,8 +46,7 @@ async function update(
             iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>,
             [namespace, ...instrumentedDefs]: string[]
           ) => {
-            const docSymbols = (await lsp.api.getDocumentSymbols(lspClient, editor.document.uri))[0]
-              .children;
+            const docSymbols = await lsp.api.getDocumentSymbols(lspClient, editor.document.uri);
             const instrumentedDocSymbols = docSymbols.filter((s) =>
               instrumentedDefs.includes(s.name)
             );
