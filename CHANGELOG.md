@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.554] - 2026-02-17
+
+- Fix: [Evaluate Current Form to Comment missing from context menu](https://github.com/BetterThanTomorrow/calva/issues/3063)
+- Fix: [Error instrumenting function through command palette](https://github.com/BetterThanTomorrow/calva/issues/2966)
+- Fix: [paredit.insertSemiColon requires two undo operations in structure-preserving case](https://github.com/BetterThanTomorrow/calva/issues/3059)
+- Fix: [paredit.insertSemiColon can break structure before closing delimiter](https://github.com/BetterThanTomorrow/calva/issues/3061)
+
 ## [2.0.553] - 2026-02-17
 
 - Add Toggle Line Comment Calva command to do a structural Toggle Line Comment. Fixes [Toggle Line Comment uses incorrect indentation for alignment-based forms](https://github.com/BetterThanTomorrow/calva/issues/2872)

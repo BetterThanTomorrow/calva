@@ -21,6 +21,7 @@ import * as inspector from './providers/inspector';
 import { resultAsComment } from './util/string-result';
 import { highlight } from './highlight/src/extension';
 import * as flareHandler from './flare-handler';
+import { normalizeEvaluateAsCommentArgs } from './evaluate-utils';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -415,11 +416,12 @@ function validateCommentStyle(commentStyle: string) {
 }
 
 function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
-  validateCommentStyle(options.commentStyle);
+  const normalized = normalizeEvaluateAsCommentArgs(document, options);
+  validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
-      document,
-      Object.assign({}, options, {
+      normalized.document,
+      Object.assign({}, normalized.options, {
         comment: true,
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm,
@@ -431,11 +433,12 @@ function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document
 }
 
 function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
-  validateCommentStyle(options.commentStyle);
+  const normalized = normalizeEvaluateAsCommentArgs(document, options);
+  validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
-      document,
-      Object.assign({}, options, {
+      normalized.document,
+      Object.assign({}, normalized.options, {
         comment: true,
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentTopLevelFormText,

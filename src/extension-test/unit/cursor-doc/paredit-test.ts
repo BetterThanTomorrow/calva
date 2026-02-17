@@ -3391,6 +3391,9 @@ describe('paredit util', () => {
         false
       );
     });
+    it('returns split position when cursor is immediately before list close', () => {
+      expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('(bar 24 |)'))).toBe(8);
+    });
     it('returns false if can move by sexp to the end of the line', () => {
       expect(
         paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a "b c" | (d) • e'))
