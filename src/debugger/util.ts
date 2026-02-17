@@ -22,7 +22,11 @@ function moveTokenCursorToBreakpoint(
   debugResponse: any
 ): LispTokenCursor {
   const errorMessage = 'Error finding position of breakpoint';
-  const [defunStart, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  const defunRange = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  if (!defunRange) {
+    throw errorMessage + ': no defun range found';
+  }
+  const [defunStart, defunEnd] = defunRange;
   tokenCursor.set(tokenCursor.doc.getTokenCursor(defunStart));
   let inSyntaxQuote = false;
 
