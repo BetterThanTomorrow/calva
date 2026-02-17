@@ -414,12 +414,43 @@ function validateCommentStyle(commentStyle: string) {
   }
 }
 
-function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
-  validateCommentStyle(options.commentStyle);
+type EvaluateAsCommentOptions = {
+  commentStyle: string;
+};
+
+function isEvaluateAsCommentOptions(value: unknown): value is EvaluateAsCommentOptions {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'commentStyle' in value &&
+    typeof (value as { commentStyle?: unknown }).commentStyle === 'string'
+  );
+}
+
+function normalizeEvaluateAsCommentArgs(
+  documentOrOptions: unknown = {},
+  options: EvaluateAsCommentOptions = { commentStyle: 'line' }
+) {
+  if (isEvaluateAsCommentOptions(documentOrOptions)) {
+    return {
+      document: options,
+      options: documentOrOptions,
+    };
+  }
+
+  return {
+    document: documentOrOptions,
+    options,
+  };
+}
+
+function evaluateSelectionAsComment(documentOrOptions = {}, options = { commentStyle: 'line' }) {
+  const normalized = normalizeEvaluateAsCommentArgs(documentOrOptions, options);
+  validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
-      document,
-      Object.assign({}, options, {
+      normalized.document,
+      Object.assign({}, normalized.options, {
         comment: true,
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm,
@@ -430,12 +461,13 @@ function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document
   }
 }
 
-function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
-  validateCommentStyle(options.commentStyle);
+function evaluateTopLevelFormAsComment(documentOrOptions = {}, options = { commentStyle: 'line' }) {
+  const normalized = normalizeEvaluateAsCommentArgs(documentOrOptions, options);
+  validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
-      document,
-      Object.assign({}, options, {
+      normalized.document,
+      Object.assign({}, normalized.options, {
         comment: true,
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentTopLevelFormText,
