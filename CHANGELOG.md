@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [Error instrumenting function through command palette](https://github.com/BetterThanTomorrow/calva/issues/2966)
 - Fix: [paredit.insertSemiColon requires two undo operations in structure-preserving case](https://github.com/BetterThanTomorrow/calva/issues/3059)
+- Fix: [paredit.insertSemiColon can break structure before closing delimiter](https://github.com/BetterThanTomorrow/calva/issues/3061)
 
 ## [2.0.553] - 2026-02-17
 

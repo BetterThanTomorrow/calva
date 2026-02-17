@@ -5,7 +5,7 @@ import * as testUtil from './util';
 import * as vscode from 'vscode';
 import * as textNotation from '../integration-text-notation';
 
-const suiteName = 'Insert Semicolon Undo Suite';
+const suiteName = 'Insert Semicolon Suite';
 const testFilePath = path.join(testUtil.testDataDir, 'reformattable.clj');
 const pauseMs = 250;
 
@@ -96,6 +96,22 @@ suite(suiteName, () => {
     assert.equal(
       textNotationFromDocAndSelections(editor.document, editor.selections),
       initialState
+    );
+  });
+
+  it('keeps closing delimiter outside the inserted comment when cursor is before close', async () => {
+    const editor = vscode.window.activeTextEditor;
+    const initialState = '(bar 24 |)';
+    const expectedAfterInsert = '(bar 24 ;|•     )';
+
+    await resetEditor(editor, initialState);
+
+    await vscode.commands.executeCommand('paredit.insertSemiColon');
+    await testUtil.sleep(pauseMs);
+
+    assert.equal(
+      textNotationFromDocAndSelections(editor.document, editor.selections),
+      expectedAfterInsert
     );
   });
 });
