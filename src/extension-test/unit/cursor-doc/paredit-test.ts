@@ -3420,7 +3420,9 @@ describe('paredit util', () => {
     });
     it('returns 0 when a multi-line form starts at offset 0', () => {
       expect(
-        paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('|(defn hi []•  (prn "hi"))'))
+        paredit._semiColonWouldBreakStructureWhere(
+          docFromTextNotation('|(defn hi []•  (prn "hi"))')
+        )
       ).toBe(0);
     });
   });
