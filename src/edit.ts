@@ -85,9 +85,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
   affectedLineNumbers: number[]
 ) {
   const originalSelections = [...editor.selections];
+  const singleSelection = editor.selections[0];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
+  const originalInsertionColumnMap = new Map<number, number>();
   let alignedCommentColumn: number | undefined;
 
   // Calculate aligned comment column and store original indentation.
@@ -95,11 +97,22 @@ async function applyStructuralCommentsToSingleSelectionLines(
     const line = editor.document.lineAt(lineNum);
     const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
     originalFirstNonWSMap.set(lineNum, firstNonWhitespace);
+
+    let insertionColumnCandidate = firstNonWhitespace;
+    if (
+      affectedLineNumbers.length > 1 &&
+      lineNum === singleSelection.start.line &&
+      singleSelection.start.character > firstNonWhitespace
+    ) {
+      insertionColumnCandidate = singleSelection.start.character;
+    }
+    originalInsertionColumnMap.set(lineNum, insertionColumnCandidate);
+
     if (!line.isEmptyOrWhitespace) {
       alignedCommentColumn =
         alignedCommentColumn === undefined
-          ? firstNonWhitespace
-          : Math.min(alignedCommentColumn, firstNonWhitespace);
+          ? insertionColumnCandidate
+          : Math.min(alignedCommentColumn, insertionColumnCandidate);
     }
   }
 
@@ -114,10 +127,12 @@ async function applyStructuralCommentsToSingleSelectionLines(
       for (const lineNum of descendingLineNumbers) {
         const currentLine = editor.document.lineAt(lineNum);
         const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
-        const insertionColumn =
+        const rawInsertionColumn =
           affectedLineNumbers.length > 1 ? resolvedAlignedCommentColumn : firstNonWhitespace;
+        const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
+        originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
-          new vscode.Position(lineNum, firstNonWhitespace)
+          new vscode.Position(lineNum, insertionColumn)
         );
 
         const wouldBreakWhere = _semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
@@ -193,14 +208,26 @@ async function applyStructuralCommentsToSingleSelectionLines(
     const newFirstNonWS = line.firstNonWhitespaceCharacterIndex;
     const lineContent = line.text.slice(newFirstNonWS);
 
-    if (!lineContent.startsWith(';; ')) {
-      return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
+    if (lineContent.startsWith(';; ')) {
+      const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
+      const insertionColumn = originalInsertionColumnMap.get(pos.line);
+      const baseColumnForOffset =
+        pos.line === singleSelection.start.line &&
+        insertionColumn !== undefined &&
+        insertionColumn > origFirstNonWS
+          ? insertionColumn
+          : origFirstNonWS;
+      const contentOffset = Math.max(0, pos.character - baseColumnForOffset);
+      const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
+      return new vscode.Position(shiftedLine, newCol);
     }
 
-    const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
-    const contentOffset = Math.max(0, pos.character - origFirstNonWS);
-    const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
-    return new vscode.Position(shiftedLine, newCol);
+    const insertionColumn = originalInsertionColumnMap.get(pos.line);
+    if (insertionColumn !== undefined && pos.character >= insertionColumn) {
+      return new vscode.Position(shiftedLine, Math.min(pos.character + 3, line.text.length));
+    }
+
+    return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
   }
 
   editor.selections = originalSelections.map((selection) => {
