@@ -256,17 +256,31 @@ suite(suiteName, () => {
     );
   });
 
-  it('should structurally comment a multiline partial selection at insertion column', async () => {
+  it('should structurally comment a multiline partial selection at selection start column', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(a |(b c•      d)|•   e)'),
-      '(a ;; |(b c•   ;;  | d)•   e)'
+      '(a ;; |(b c•   ;;   | d)•   e)'
     );
   });
 
-  it('should structurally comment a multiline selection nested in another form', async () => {
+  it('should structurally comment multiline selection nested in parent form and preserve outer closers', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
-      '(x•  (y ;; |(a b•     ;;  | c))•  z)'
+      '(x•  (y ;; |(a b•     ;;   | c)•        )•  z)'
+    );
+  });
+
+  it('should structurally comment multiline selection nested in j/y forms', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(x• (j |(y •     (a b c))|)• z)'),
+      '(x• (j ;; |(y •    ;;  (a b c)|)•     )• z)'
+    );
+  });
+
+  it('should insert structural comment at selection start for single-line nested selection', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
+      '(x• (j (y ;; |(a b c)|•     ))• z)'
     );
   });
 });
