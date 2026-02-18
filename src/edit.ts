@@ -206,7 +206,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
     return inserted;
   }
 
-  function adjustPosition(pos: vscode.Position): vscode.Position {
+  function adjustPosition(
+    pos: vscode.Position,
+    boundary: 'start' | 'end',
+    selectionIsEmpty: boolean
+  ): vscode.Position {
     const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
 
     if (shiftedLine >= editor.document.lineCount) {
@@ -220,12 +224,16 @@ async function applyStructuralCommentsToSingleSelectionLines(
     if (lineContent.startsWith(';; ')) {
       const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
       const insertionColumn = originalInsertionColumnMap.get(pos.line);
-      const baseColumnForOffset =
-        pos.line === singleSelection.start.line &&
+      if (
+        !selectionIsEmpty &&
+        boundary === 'start' &&
         insertionColumn !== undefined &&
-        insertionColumn > origFirstNonWS
-          ? insertionColumn
-          : origFirstNonWS;
+        pos.character === insertionColumn
+      ) {
+        return new vscode.Position(shiftedLine, insertionColumn);
+      }
+
+      const baseColumnForOffset = insertionColumn ?? origFirstNonWS;
       const contentOffset = Math.max(0, pos.character - baseColumnForOffset);
       const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
       return new vscode.Position(shiftedLine, newCol);
@@ -240,9 +248,12 @@ async function applyStructuralCommentsToSingleSelectionLines(
   }
 
   editor.selections = originalSelections.map((selection) => {
-    const newAnchor = adjustPosition(selection.anchor);
-    const newActive = adjustPosition(selection.active);
-    return new vscode.Selection(newAnchor, newActive);
+    const newStart = adjustPosition(selection.start, 'start', selection.isEmpty);
+    const newEnd = adjustPosition(selection.end, 'end', selection.isEmpty);
+    const isReversed = selection.anchor.isAfter(selection.active);
+    return isReversed
+      ? new vscode.Selection(newEnd, newStart)
+      : new vscode.Selection(newStart, newEnd);
   });
 }
 
