@@ -156,22 +156,22 @@ suite(suiteName, () => {
 
   it('should treat triple semicolon lines as commented when toggling', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('(defn foo []•  |;;; header)'),
-      '(defn foo []•  header)'
+      await toggleCommentUsingActiveEditor('(defn foo []•  |;;; header)'),
+      '(defn foo []•  |header)'
     );
   });
 
   it('should uncomment mixed semicolon prefixes across selected lines', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('(defn foo []•  |; a•  ;; b|)'),
-      '(defn foo []•  a•  b)'
+      await toggleCommentUsingActiveEditor('(defn foo []•  |; a•  ;; b|)'),
+      '(defn foo []•  |a•  b|)'
     );
   });
 
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('(assoc m•       :key :val•|)'),
-      '(assoc m•       :key :val•       ;; •       )'
+      await toggleCommentUsingActiveEditor('(assoc m•       :key :val•|)'),
+      '(assoc m•       :key :val•       ;; |•       )'
     );
   });
 
@@ -237,24 +237,24 @@ suite(suiteName, () => {
     );
   });
 
-  it('should comment multi-line nested forms when all lines selected', async () => {
+  it('should comment multi-line nested forms when all lines selected and preserve selection', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('|(do•  (prn "a")•  (prn "b"))|'),
-      ';; (do•  ;; (prn "a")•  ;; (prn "b"))'
+      await toggleCommentUsingActiveEditor('|(do•  (prn "a")•  (prn "b"))|'),
+      ';; |(do•  ;; (prn "a")•  ;; (prn "b"))|'
     );
   });
 
-  it('should comment complete multi-line let binding without displacing bracket', async () => {
+  it('should comment complete multi-line let binding without displacing bracket and preserve selection', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('|(let [a 1•        b 2])|'),
-      ';; (let [a 1•        ;; b 2])'
+      await toggleCommentUsingActiveEditor('|(let [a 1•        b 2])|'),
+      ';; |(let [a 1•        ;; b 2])|'
     );
   });
 
-  it('should structurally comment two selected lines and preserve closing delimiter', async () => {
+  it('should structurally comment two selected lines and preserve closing delimiter and selection', async () => {
     assert.equal(
-      await toggleCommentTextUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
-      '(assoc {}•       ;; :a•       ;; :b•       )'
+      await toggleCommentUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
+      '(assoc {}•       ;; |:a•       ;; :b|•       )'
     );
   });
 });
