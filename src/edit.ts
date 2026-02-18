@@ -86,6 +86,36 @@ async function applyStructuralCommentsToSingleSelectionLines(
 ) {
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
+  const originalFirstNonWSMap = new Map<number, number>();
+  const preservedIndentAfterPrefixMap = new Map<number, number>();
+  let alignedCommentColumn: number | undefined;
+
+  // Calculate aligned comment column and
+  // store original first non-whitespace character index for each line
+  for (const lineNum of affectedLineNumbers) {
+    const line = editor.document.lineAt(lineNum);
+    const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
+    originalFirstNonWSMap.set(lineNum, firstNonWhitespace);
+    if (!line.isEmptyOrWhitespace) {
+      alignedCommentColumn =
+        alignedCommentColumn === undefined
+          ? firstNonWhitespace
+          : Math.min(alignedCommentColumn, firstNonWhitespace);
+    }
+  }
+
+  const resolvedAlignedCommentColumn = alignedCommentColumn ?? 0;
+
+  // Calculate preserved indent after comment prefix for each line
+  for (const lineNum of affectedLineNumbers) {
+    const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
+    const preservedIndentAfterPrefix =
+      affectedLineNumbers.length > 1
+        ? Math.max(0, firstNonWhitespace - resolvedAlignedCommentColumn)
+        : 0;
+    preservedIndentAfterPrefixMap.set(lineNum, preservedIndentAfterPrefix);
+  }
+
   const mirrorDoc = docMirror.getDocument(editor.document);
   const structureBreakLineNums = new Set<number>();
 
@@ -94,14 +124,18 @@ async function applyStructuralCommentsToSingleSelectionLines(
     (editBuilder) => {
       for (const lineNum of descendingLineNumbers) {
         const currentLine = editor.document.lineAt(lineNum);
-        const insertionColumn = currentLine.firstNonWhitespaceCharacterIndex;
+        const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
+        const insertionColumn =
+          affectedLineNumbers.length > 1 ? resolvedAlignedCommentColumn : firstNonWhitespace;
+        const preservedIndentAfterPrefix = preservedIndentAfterPrefixMap.get(lineNum) ?? 0;
+        const commentPrefix = ';; ' + ' '.repeat(preservedIndentAfterPrefix);
         const insertionOffset = editor.document.offsetAt(
-          new vscode.Position(lineNum, insertionColumn)
+          new vscode.Position(lineNum, firstNonWhitespace)
         );
 
         const wouldBreakWhere = _semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
 
-        editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
+        editBuilder.insert(new vscode.Position(lineNum, insertionColumn), commentPrefix);
 
         if (wouldBreakWhere !== false) {
           let breakOffset = wouldBreakWhere;
