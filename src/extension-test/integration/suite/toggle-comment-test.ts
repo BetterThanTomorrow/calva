@@ -95,12 +95,6 @@ async function toggleComment(editor: vscode.TextEditor, textAndSelections: strin
   return textNotationFromDocAndSelections(editor.document, editor.selections);
 }
 
-/** Toggle line comment and return text only (no cursor notation). */
-async function toggleCommentText(editor: vscode.TextEditor, textAndSelections: string) {
-  await performToggle(editor, textAndSelections);
-  return getText(editor.document, true);
-}
-
 /** Toggle line comment using active editor */
 async function toggleCommentUsingActiveEditor(textAndSelections: string) {
   return toggleComment(vscode.window.activeTextEditor, textAndSelections);
