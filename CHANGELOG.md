@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)
 - Fix: [Toggle Line Comment produces incorrect output for multi-line selections](https://github.com/BetterThanTomorrow/calva/issues/3066)
 - Fix: [Toggle Line Comment loses the selection when you run the command](https://github.com/BetterThanTomorrow/calva/issues/3067)
 
