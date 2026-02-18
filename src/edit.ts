@@ -87,6 +87,13 @@ async function applyStructuralCommentsToSingleSelectionLines(
   const originalSelections = [...editor.selections];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
+  const originalFirstNonWSMap = new Map<number, number>();
+  for (const lineNum of affectedLineNumbers) {
+    originalFirstNonWSMap.set(
+      lineNum,
+      editor.document.lineAt(lineNum).firstNonWhitespaceCharacterIndex
+    );
+  }
   const mirrorDoc = docMirror.getDocument(editor.document);
   const structureBreakLineNums = new Set<number>();
 
@@ -135,28 +142,49 @@ async function applyStructuralCommentsToSingleSelectionLines(
 
   await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
 
-  // Cursor positions captured after formatting so indentation changes are reflected
-  editor.selections = originalSelections.map((selection) => {
-    const originalLineNum = selection.active.line;
-    let shift = 0;
+  // Counts how many structural-break newlines were inserted above a line.
+  function countInsertedLinesBefore(line: number): number {
+    let inserted = 0;
     for (const breakLineNum of structureBreakLineNums) {
-      if (breakLineNum < originalLineNum) {
-        shift++;
+      if (breakLineNum < line) {
+        inserted++;
       }
     }
-    const shiftedLine = originalLineNum + shift;
+    return inserted;
+  }
 
-    if (shiftedLine < editor.document.lineCount) {
-      const line = editor.document.lineAt(shiftedLine);
-      const firstNonWS = line.firstNonWhitespaceCharacterIndex;
-      const lineContent = line.text.slice(firstNonWS);
-      if (lineContent.startsWith(';; ')) {
-        const pos = new vscode.Position(shiftedLine, firstNonWS + 3);
-        return new vscode.Selection(pos, pos);
-      }
+  // Remap a pre-edit position to its post-edit/post-format position.
+  // Strategy:
+  // 1) Shift line by inserted structural-break newlines
+  // 2) If line is now comment-prefixed, preserve content-relative column
+  // 3) Otherwise keep same column (clamped to line length)
+  function adjustPosition(pos: vscode.Position): vscode.Position {
+    const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
+
+    if (shiftedLine >= editor.document.lineCount) {
+      return pos;
     }
 
-    return selection;
+    const line = editor.document.lineAt(shiftedLine);
+    const newFirstNonWS = line.firstNonWhitespaceCharacterIndex;
+    const lineContent = line.text.slice(newFirstNonWS);
+
+    if (!lineContent.startsWith(';; ')) {
+      return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
+    }
+
+    // Preserve selection shape relative to original line content, not absolute column.
+    // This keeps anchor/active stable even if formatter changes indentation.
+    const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
+    const contentOffset = Math.max(0, pos.character - origFirstNonWS);
+    const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
+    return new vscode.Position(shiftedLine, newCol);
+  }
+
+  editor.selections = originalSelections.map((selection) => {
+    const newAnchor = adjustPosition(selection.anchor);
+    const newActive = adjustPosition(selection.active);
+    return new vscode.Selection(newAnchor, newActive);
   });
 }
 
