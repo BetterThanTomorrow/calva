@@ -29,28 +29,56 @@ function sameBaseNames(a: SessionRoleKeys, b: SessionRoleKeys): boolean {
 }
 
 /**
- * Find an existing client that has the same base session names and project root.
- * This indicates a reconnection scenario.
+ * Find an existing client that indicates a reconnection scenario.
+ *
+ * When port is provided: matches base names + host + port (the caller knows
+ * specifically which server to reconnect to).
+ *
+ * When port is null: matches base names + project root (the caller doesn't
+ * know the port yet — e.g. jack-in starts a new server on a new port).
  */
 function findReconnectionCandidate(
   baseNames: SessionRoleKeys,
-  projectRoot: string
+  projectRoot: string,
+  host: string,
+  port: number | null
 ): string | undefined {
   const clients = clientRegistry.listClients();
   for (const client of clients) {
     const connState = client.connectionState;
-    const clientProjectRoot = client.projectRoot;
 
-    // Check if this client has matching baseSessionNames and projectRoot
-    if (
-      connState.baseSessionNames &&
-      sameBaseNames(connState.baseSessionNames, baseNames) &&
-      clientProjectRoot === projectRoot
-    ) {
-      return client.key;
+    if (!connState.baseSessionNames || !sameBaseNames(connState.baseSessionNames, baseNames)) {
+      continue;
+    }
+
+    if (port === null) {
+      if (client.projectRoot === projectRoot) {
+        return client.key;
+      }
+    } else {
+      if (client.host === host && client.port === port) {
+        return client.key;
+      }
     }
   }
   return undefined;
+}
+
+/**
+ * Check if any registered client has matching base session names and project root,
+ * regardless of host:port.
+ */
+export function hasMatchingBaseConnection(
+  baseNames: SessionRoleKeys,
+  projectRoot: string
+): boolean {
+  const clients = clientRegistry.listClients();
+  return clients.some(
+    (client) =>
+      client.connectionState.baseSessionNames &&
+      sameBaseNames(client.connectionState.baseSessionNames, baseNames) &&
+      client.projectRoot === projectRoot
+  );
 }
 
 /**
@@ -102,9 +130,11 @@ function applySuffixToNames(baseNames: SessionRoleKeys, suffix: string): Session
  */
 export function resolveSessionNames(
   baseNames: SessionRoleKeys,
-  projectRoot: string
+  projectRoot: string,
+  host: string,
+  port: number | null
 ): SessionNameResolution {
-  const reconnectClientKey = findReconnectionCandidate(baseNames, projectRoot);
+  const reconnectClientKey = findReconnectionCandidate(baseNames, projectRoot, host, port);
   if (reconnectClientKey) {
     const existingState = clientRegistry.getConnectionState(reconnectClientKey);
     const existingSuffix = existingState?.suffix;

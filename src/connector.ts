@@ -108,7 +108,12 @@ async function connectToHost(
   const projectRoot = state.getProjectRootUri().toString();
   const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
-  const resolution = sessionNameResolver.resolveSessionNames(baseSessionNames, projectRoot);
+  const resolution = sessionNameResolver.resolveSessionNames(
+    baseSessionNames,
+    projectRoot,
+    hostname,
+    isJackIn ? null : port
+  );
   const sessionRoleKeys = resolution.finalNames;
 
   if (resolution.reconnectClientKey) {
@@ -1043,6 +1048,8 @@ export async function connect(
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
   void state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
+  // Used to decide whether to suppress auto-connect when a matching connection already exists.
+  const portWasExplicitlyProvided = port !== undefined;
 
   let result: ConnectResult = { connected: false };
   try {
@@ -1068,7 +1075,16 @@ export async function connect(
     if (port) {
       hostname = hostname !== undefined ? hostname : 'localhost';
       output.appendLineOtherOut(`Using host:port ${hostname}:${port} ...`);
-      if (isAutoConnect) {
+      // Suppress auto-connect when a matching connection already exists,
+      // UNLESS explicit host:port was provided or this is a jack-in.
+      const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
+      const projectRoot = state.getProjectRootUri().toString();
+      const hasExistingMatch =
+        !portWasExplicitlyProvided &&
+        !isJackIn &&
+        sessionNameResolver.hasMatchingBaseConnection(baseSessionNames, projectRoot);
+      const effectiveAutoConnect = isAutoConnect && !hasExistingMatch;
+      if (effectiveAutoConnect) {
         result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
         if (!result.connected) {
           output.appendLineOtherOut('Prompting for nREPL connection...');
