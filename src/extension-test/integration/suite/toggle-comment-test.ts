@@ -95,6 +95,12 @@ async function toggleComment(editor: vscode.TextEditor, textAndSelections: strin
   return textNotationFromDocAndSelections(editor.document, editor.selections);
 }
 
+/** Toggle line comment and return text only (no cursor notation). */
+async function toggleCommentText(editor: vscode.TextEditor, textAndSelections: string) {
+  await performToggle(editor, textAndSelections);
+  return getText(editor.document, true);
+}
+
 /** Toggle line comment using active editor */
 async function toggleCommentUsingActiveEditor(textAndSelections: string) {
   return toggleComment(vscode.window.activeTextEditor, textAndSelections);
@@ -253,6 +259,24 @@ suite(suiteName, () => {
         '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    |(mod (->> #(.read r)•              repeatedly•              (filter #(not (>= % 200)))•              (take 1)•              doall•              first)•         100)|)•  :rcf)'
       ),
       '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    ;; |(mod (->> #(.read r)•    ;;           repeatedly•    ;;           (filter #(not (>= % 200)))•    ;;           (take 1)•    ;;           doall•    ;;           first)•    ;;     | 100)•         )•  :rcf)'
+    );
+  });
+
+  it('nested threading ->>', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '(with-open [r (java.io.FileInputStream. "/dev/urandom")]•  (mod |(->> #(.read r)•            repeatedly•            (filter #(not (>= % 200)))•            (take 1)•            doall•            first)|•  100)•         )'
+      ),
+      '(with-open [r (java.io.FileInputStream. "/dev/urandom")]•  (mod ;; |(->> #(.read r)•       ;;      repeatedly•       ;;      (filter #(not (>= % 200)))•       ;;      (take 1)•       ;;      doall•       ;;      f|irst)•  100)•         )'
+    );
+  });
+
+  it('more nested edge case: should structurally comment selected nested -> inside as-> in with-open and preserve selection', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '(defn a [a]•  (comment•    (-main)•    (System/getProperty "user.dir")•    (rand-int 100)•    (with-open [r (java.io.FileInputStream. "/dev/urandom")]•      (mod (-> (+ 2 2)•               (- 2)•               (as-> $ •                   |(-> $ •                       (+ 2)•                       (- 3))|))•           100))•    :rcf))'
+      ),
+      '(defn a [a]•  (comment•    (-main)•    (System/getProperty "user.dir")•    (rand-int 100)•    (with-open [r (java.io.FileInputStream. "/dev/urandom")]•      (mod (-> (+ 2 2)•               (- 2)•               (as-> $ •                   ;; |(-> $ •                   ;;     (+ 2)•                   ;;     (-| 3))•                       ))•           100))•    :rcf))'
     );
   });
 });
