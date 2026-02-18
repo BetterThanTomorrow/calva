@@ -3326,6 +3326,12 @@ describe('paredit util', () => {
       await paredit.insertSemiColon(a);
       expect(textAndSelection(a)).toEqual(textAndSelection(b));
     });
+    it('inserts a newline to preserve structure at offset 0', async () => {
+      const a = docFromTextNotation('|(defn hi []•  (prn "hi"))');
+      const b = docFromTextNotation(';|•(defn hi []•  (prn "hi"))');
+      await paredit.insertSemiColon(a);
+      expect(textAndSelection(a)).toEqual(textAndSelection(b));
+    });
   });
 
   describe('_semiColonWouldBreakStructureWhere', () => {
@@ -3411,6 +3417,11 @@ describe('paredit util', () => {
       expect(
         paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('|a (b {•} c•) d '))
       ).toBe(2);
+    });
+    it('returns 0 when a multi-line form starts at offset 0', () => {
+      expect(
+        paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('|(defn hi []•  (prn "hi"))'))
+      ).toBe(0);
     });
   });
 });
