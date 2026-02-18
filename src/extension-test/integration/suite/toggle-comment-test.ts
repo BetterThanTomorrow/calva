@@ -259,28 +259,28 @@ suite(suiteName, () => {
   it('should structurally comment multiline partial selection and keep full selection over commented text', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(a |(b c•      d)|•   e)'),
-      '(a ;; |(b c•   ;;    d)|•   e)'
+      '(a |;; (b c•   ;;    d)|•   e)'
     );
   });
 
   it('should structurally comment multiline selection nested in parent form and preserve full selected range', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
-      '(x•  (y ;; |(a b•     ;;    c)|•        )•  z)'
+      '(x•  (y |;; (a b•     ;;    c)|•        )•  z)'
     );
   });
 
   it('should structurally comment multiline selection nested in j/y forms and keep full selected range', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x• (j |(y •     (a b c))|)• z)'),
-      '(x• (j ;; |(y •    ;;  (a b c))|•     )• z)'
+      '(x• (j |;; (y •    ;;  (a b c))|•     )• z)'
     );
   });
 
   it('should insert structural comment at selection start for single-line nested selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
-      '(x• (j (y ;; |(a b c)|•     ))• z)'
+      '(x• (j (y |;; (a b c)|•     ))• z)'
     );
   });
 });
