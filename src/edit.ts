@@ -86,6 +86,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
 ) {
   const originalSelections = [...editor.selections];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const affectedLineSet = new Set(affectedLineNumbers);
   const mirrorDoc = docMirror.getDocument(editor.document);
   const structureBreakLineNums = new Set<number>();
 
@@ -104,9 +105,14 @@ async function applyStructuralCommentsToSingleSelectionLines(
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
         if (wouldBreakWhere !== false) {
-          structureBreakLineNums.add(lineNum);
-          const indent = currentLine.text.match(/^\s*/)[0];
-          editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+          const skipBreak =
+            affectedLineNumbers.length > 1 &&
+            shouldSkipStructuralBreak(mirrorDoc, wouldBreakWhere, affectedLineSet);
+          if (!skipBreak) {
+            structureBreakLineNums.add(lineNum);
+            const indent = currentLine.text.match(/^\s*/)[0];
+            editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+          }
         }
       }
     },
@@ -152,6 +158,53 @@ async function applyStructuralCommentsToSingleSelectionLines(
 
     return selection;
   });
+}
+
+/**
+ * Determines whether a structural break reported by
+ * `_semiColonWouldBreakStructureWhere` can be safely skipped because the
+ * affected delimiters are balanced within the selected lines.
+ *
+ * When commenting multiple lines, a structural break is unnecessary if every
+ * closing delimiter from the break position to the end of the line has its
+ * matching opener on a line that is also being commented. Similarly, if the
+ * break position is a multi-line sexp whose end falls within the selected
+ * lines, the break can be skipped.
+ */
+function shouldSkipStructuralBreak(
+  mirrorDoc: EditableDocument,
+  wouldBreakWhere: number,
+  affectedLineSet: Set<number>
+): boolean {
+  const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
+  const token = cursor.getToken();
+
+  if (token.type === 'close') {
+    const startLine = cursor.line;
+    const probe = cursor.clone();
+    while (!probe.atEnd() && probe.line === startLine) {
+      const tok = probe.getToken();
+      if (tok.type === 'close') {
+        const finder = probe.clone();
+        finder.next();
+        if (!finder.backwardSexp()) {
+          return false;
+        }
+        if (!affectedLineSet.has(finder.line)) {
+          return false;
+        }
+      }
+      probe.next();
+    }
+    return true;
+  }
+
+  const endCursor = cursor.clone();
+  if (endCursor.forwardSexp(true, true, true)) {
+    return affectedLineSet.has(endCursor.line);
+  }
+
+  return false;
 }
 
 type OffsetRange = [number, number];
