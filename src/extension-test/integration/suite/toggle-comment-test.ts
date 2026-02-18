@@ -254,7 +254,16 @@ suite(suiteName, () => {
   it('should structurally comment two selected lines and preserve closing delimiter', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
-      '(assoc {}•       ;; :a•       ;; :b•       )'
+      '(assoc {}•         ;; :a•         ;; :b•         )'
+    );
+  });
+
+  it('should preserve indentation and structure for selected multiline expression in with-open', async () => {
+    assert.equal(
+      await toggleCommentTextUsingActiveEditor(
+        '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    |(mod (->> #(.read r)•              repeatedly•              (filter #(not (>= % 200)))•              (take 1)•              doall•              first)•         100)|)•  :rcf)'
+      ),
+      '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    ;; (mod (->> #(.read r)•              ;; repeatedly•              ;; (filter #(not (>= % 200)))•              ;; (take 1)•              ;; doall•              ;; first)•         ;; 100)•         )•  :rcf)'
     );
   });
 });
