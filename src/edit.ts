@@ -88,12 +88,23 @@ async function applyStructuralCommentsToSingleSelectionLines(
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
+  let alignedCommentColumn: number | undefined;
+
+  // Calculate aligned comment column and store original indentation.
   for (const lineNum of affectedLineNumbers) {
-    originalFirstNonWSMap.set(
-      lineNum,
-      editor.document.lineAt(lineNum).firstNonWhitespaceCharacterIndex
-    );
+    const line = editor.document.lineAt(lineNum);
+    const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
+    originalFirstNonWSMap.set(lineNum, firstNonWhitespace);
+    if (!line.isEmptyOrWhitespace) {
+      alignedCommentColumn =
+        alignedCommentColumn === undefined
+          ? firstNonWhitespace
+          : Math.min(alignedCommentColumn, firstNonWhitespace);
+    }
   }
+
+  const resolvedAlignedCommentColumn = alignedCommentColumn ?? 0;
+
   const mirrorDoc = docMirror.getDocument(editor.document);
   const structureBreakLineNums = new Set<number>();
 
@@ -102,9 +113,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
     (editBuilder) => {
       for (const lineNum of descendingLineNumbers) {
         const currentLine = editor.document.lineAt(lineNum);
-        const insertionColumn = currentLine.firstNonWhitespaceCharacterIndex;
+        const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
+        const insertionColumn =
+          affectedLineNumbers.length > 1 ? resolvedAlignedCommentColumn : firstNonWhitespace;
         const insertionOffset = editor.document.offsetAt(
-          new vscode.Position(lineNum, insertionColumn)
+          new vscode.Position(lineNum, firstNonWhitespace)
         );
 
         const wouldBreakWhere = _semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
@@ -112,13 +125,26 @@ async function applyStructuralCommentsToSingleSelectionLines(
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
         if (wouldBreakWhere !== false) {
-          const skipBreak =
-            affectedLineNumbers.length > 1 &&
-            shouldSkipStructuralBreak(mirrorDoc, wouldBreakWhere, affectedLineSet);
+          let breakOffset = wouldBreakWhere;
+          let skipBreak = false;
+
+          if (affectedLineNumbers.length > 1) {
+            const resolvedBreakOffset = resolveStructuralBreakOffset(
+              mirrorDoc,
+              wouldBreakWhere,
+              affectedLineSet
+            );
+            if (resolvedBreakOffset === false) {
+              skipBreak = true;
+            } else {
+              breakOffset = resolvedBreakOffset;
+            }
+          }
+
           if (!skipBreak) {
             structureBreakLineNums.add(lineNum);
             const indent = currentLine.text.match(/^\s*/)[0];
-            editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+            editBuilder.insert(editor.document.positionAt(breakOffset), '\n' + indent);
           }
         }
       }
@@ -140,9 +166,12 @@ async function applyStructuralCommentsToSingleSelectionLines(
     return lineNum + shift;
   });
 
-  await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
+  if (affectedLineNumbers.length > 1) {
+    await editor.edit(() => undefined, { undoStopBefore: false, undoStopAfter: true });
+  } else {
+    await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
+  }
 
-  // Counts how many structural-break newlines were inserted above a line.
   function countInsertedLinesBefore(line: number): number {
     let inserted = 0;
     for (const breakLineNum of structureBreakLineNums) {
@@ -153,11 +182,6 @@ async function applyStructuralCommentsToSingleSelectionLines(
     return inserted;
   }
 
-  // Remap a pre-edit position to its post-edit/post-format position.
-  // Strategy:
-  // 1) Shift line by inserted structural-break newlines
-  // 2) If line is now comment-prefixed, preserve content-relative column
-  // 3) Otherwise keep same column (clamped to line length)
   function adjustPosition(pos: vscode.Position): vscode.Position {
     const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
 
@@ -173,8 +197,6 @@ async function applyStructuralCommentsToSingleSelectionLines(
       return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
     }
 
-    // Preserve selection shape relative to original line content, not absolute column.
-    // This keeps anchor/active stable even if formatter changes indentation.
     const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
     const contentOffset = Math.max(0, pos.character - origFirstNonWS);
     const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
@@ -189,21 +211,18 @@ async function applyStructuralCommentsToSingleSelectionLines(
 }
 
 /**
- * Determines whether a structural break reported by
- * `_semiColonWouldBreakStructureWhere` can be safely skipped because the
- * affected delimiters are balanced within the selected lines.
+ * Resolves where a structural break should be inserted (or if it can be skipped)
+ * for multiline commenting.
  *
- * When commenting multiple lines, a structural break is unnecessary if every
- * closing delimiter from the break position to the end of the line has its
- * matching opener on a line that is also being commented. Similarly, if the
- * break position is a multi-line sexp whose end falls within the selected
- * lines, the break can be skipped.
+ * Returns:
+ * - an offset where break should be inserted (possibly adjusted), or
+ * - `false` when the break can be skipped entirely.
  */
-function shouldSkipStructuralBreak(
+function resolveStructuralBreakOffset(
   mirrorDoc: EditableDocument,
   wouldBreakWhere: number,
   affectedLineSet: Set<number>
-): boolean {
+): number | false {
   const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
   const token = cursor.getToken();
 
@@ -214,25 +233,24 @@ function shouldSkipStructuralBreak(
       const tok = probe.getToken();
       if (tok.type === 'close') {
         const finder = probe.clone();
-        finder.next();
-        if (!finder.backwardSexp()) {
-          return false;
+        if (!finder.backwardList()) {
+          return probe.offsetStart;
         }
         if (!affectedLineSet.has(finder.line)) {
-          return false;
+          return probe.offsetStart;
         }
       }
       probe.next();
     }
-    return true;
+    return false;
   }
 
   const endCursor = cursor.clone();
   if (endCursor.forwardSexp(true, true, true)) {
-    return affectedLineSet.has(endCursor.line);
+    return affectedLineSet.has(endCursor.line) ? false : wouldBreakWhere;
   }
 
-  return false;
+  return wouldBreakWhere;
 }
 
 type OffsetRange = [number, number];
