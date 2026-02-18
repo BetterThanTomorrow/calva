@@ -226,7 +226,7 @@ suite(suiteName, () => {
   it('should comment a complete multi-line top-level form without structural breaks', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
-      ';; (defn foo []•  ;; (prn "hi"))'
+      ';; (defn foo []•;;   (prn "hi"))'
     );
   });
 
@@ -240,21 +240,30 @@ suite(suiteName, () => {
   it('should comment multi-line nested forms when all lines selected', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('|(do•  (prn "a")•  (prn "b"))|'),
-      ';; (do•  ;; (prn "a")•  ;; (prn "b"))'
+      ';; (do•;;   (prn "a")•;;   (prn "b"))'
     );
   });
 
   it('should comment complete multi-line let binding without displacing bracket', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('|(let [a 1•        b 2])|'),
-      ';; (let [a 1•        ;; b 2])'
+      ';; (let [a 1•;;         b 2])'
     );
   });
 
   it('should structurally comment two selected lines and preserve closing delimiter', async () => {
     assert.equal(
       await toggleCommentTextUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
-      '(assoc {}•       ;; :a•       ;; :b•       )'
+      '(assoc {}•         ;; :a•         ;; :b•         )'
+    );
+  });
+
+  it('should preserve indentation and structure for selected multiline expression in with-open', async () => {
+    assert.equal(
+      await toggleCommentTextUsingActiveEditor(
+        '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    |(mod (->> #(.read r)•              repeatedly•              (filter #(not (>= % 200)))•              (take 1)•              doall•              first)•         100)|)•  :rcf)'
+      ),
+      '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    ;; (mod (->> #(.read r)•    ;;           repeatedly•    ;;           (filter #(not (>= % 200)))•    ;;           (take 1)•    ;;           doall•    ;;           first)•    ;;      100)•         )•  :rcf)'
     );
   });
 });
