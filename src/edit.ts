@@ -90,6 +90,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
   const originalInsertionColumnMap = new Map<number, number>();
+  let partialSelectionStartOffset: number | undefined;
   let alignedCommentColumn: number | undefined;
 
   // Calculate aligned comment column and store original indentation.
@@ -100,11 +101,16 @@ async function applyStructuralCommentsToSingleSelectionLines(
 
     let insertionColumnCandidate = firstNonWhitespace;
     if (
-      affectedLineNumbers.length > 1 &&
       lineNum === singleSelection.start.line &&
+      !singleSelection.isEmpty &&
       singleSelection.start.character > firstNonWhitespace
     ) {
       insertionColumnCandidate = singleSelection.start.character;
+      if (affectedLineNumbers.length > 1) {
+        partialSelectionStartOffset = editor.document.offsetAt(
+          new vscode.Position(lineNum, singleSelection.start.character)
+        );
+      }
     }
     originalInsertionColumnMap.set(lineNum, insertionColumnCandidate);
 
@@ -128,7 +134,9 @@ async function applyStructuralCommentsToSingleSelectionLines(
         const currentLine = editor.document.lineAt(lineNum);
         const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
         const rawInsertionColumn =
-          affectedLineNumbers.length > 1 ? resolvedAlignedCommentColumn : firstNonWhitespace;
+          affectedLineNumbers.length > 1
+            ? resolvedAlignedCommentColumn
+            : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
         const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
         originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
@@ -147,7 +155,8 @@ async function applyStructuralCommentsToSingleSelectionLines(
             const resolvedBreakOffset = resolveStructuralBreakOffset(
               mirrorDoc,
               wouldBreakWhere,
-              affectedLineSet
+              affectedLineSet,
+              partialSelectionStartOffset
             );
             if (resolvedBreakOffset === false) {
               skipBreak = true;
@@ -248,7 +257,8 @@ async function applyStructuralCommentsToSingleSelectionLines(
 function resolveStructuralBreakOffset(
   mirrorDoc: EditableDocument,
   wouldBreakWhere: number,
-  affectedLineSet: Set<number>
+  affectedLineSet: Set<number>,
+  partialSelectionStartOffset?: number
 ): number | false {
   const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
   const token = cursor.getToken();
@@ -261,6 +271,12 @@ function resolveStructuralBreakOffset(
       if (tok.type === 'close') {
         const finder = probe.clone();
         if (!finder.backwardList()) {
+          return probe.offsetStart;
+        }
+        if (
+          partialSelectionStartOffset !== undefined &&
+          finder.offsetStart < partialSelectionStartOffset
+        ) {
           return probe.offsetStart;
         }
         if (!affectedLineSet.has(finder.line)) {
