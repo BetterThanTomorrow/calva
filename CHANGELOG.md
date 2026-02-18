@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Toggle Line Comment produces incorrect output for multi-line selections](https://github.com/BetterThanTomorrow/calva/issues/3066)
+
 ## [2.0.554] - 2026-02-17
 
 - Fix: [Evaluate Current Form to Comment missing from context menu](https://github.com/BetterThanTomorrow/calva/issues/3063)
