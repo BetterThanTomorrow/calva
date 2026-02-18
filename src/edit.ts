@@ -84,13 +84,13 @@ async function applyStructuralCommentsToSingleSelectionLines(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[]
 ) {
+  const originalSelections = [...editor.selections];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
   let alignedCommentColumn: number | undefined;
 
-  // Calculate aligned comment column and
-  // store original first non-whitespace character index for each line
+  // Calculate aligned comment column and store original indentation.
   for (const lineNum of affectedLineNumbers) {
     const line = editor.document.lineAt(lineNum);
     const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
@@ -171,6 +171,43 @@ async function applyStructuralCommentsToSingleSelectionLines(
   } else {
     await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
   }
+
+  function countInsertedLinesBefore(line: number): number {
+    let inserted = 0;
+    for (const breakLineNum of structureBreakLineNums) {
+      if (breakLineNum < line) {
+        inserted++;
+      }
+    }
+    return inserted;
+  }
+
+  function adjustPosition(pos: vscode.Position): vscode.Position {
+    const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
+
+    if (shiftedLine >= editor.document.lineCount) {
+      return pos;
+    }
+
+    const line = editor.document.lineAt(shiftedLine);
+    const newFirstNonWS = line.firstNonWhitespaceCharacterIndex;
+    const lineContent = line.text.slice(newFirstNonWS);
+
+    if (!lineContent.startsWith(';; ')) {
+      return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
+    }
+
+    const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
+    const contentOffset = Math.max(0, pos.character - origFirstNonWS);
+    const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
+    return new vscode.Position(shiftedLine, newCol);
+  }
+
+  editor.selections = originalSelections.map((selection) => {
+    const newAnchor = adjustPosition(selection.anchor);
+    const newActive = adjustPosition(selection.active);
+    return new vscode.Selection(newAnchor, newActive);
+  });
 }
 
 /**
