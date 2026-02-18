@@ -211,6 +211,18 @@ async function applyStructuralCommentsToSingleSelectionLines(
     boundary: 'start' | 'end',
     selectionIsEmpty: boolean
   ): vscode.Position {
+    const isSelectionStartAtInsertionColumn = (
+      insertionColumn: number | undefined,
+      position: vscode.Position
+    ) => {
+      return (
+        !selectionIsEmpty &&
+        boundary === 'start' &&
+        insertionColumn !== undefined &&
+        position.character === insertionColumn
+      );
+    };
+
     const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
 
     if (shiftedLine >= editor.document.lineCount) {
@@ -220,26 +232,20 @@ async function applyStructuralCommentsToSingleSelectionLines(
     const line = editor.document.lineAt(shiftedLine);
     const newFirstNonWS = line.firstNonWhitespaceCharacterIndex;
     const lineContent = line.text.slice(newFirstNonWS);
+    const insertionColumn = originalInsertionColumnMap.get(pos.line);
+
+    if (isSelectionStartAtInsertionColumn(insertionColumn, pos)) {
+      return new vscode.Position(shiftedLine, insertionColumn);
+    }
 
     if (lineContent.startsWith(';; ')) {
       const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
-      const insertionColumn = originalInsertionColumnMap.get(pos.line);
-      if (
-        !selectionIsEmpty &&
-        boundary === 'start' &&
-        insertionColumn !== undefined &&
-        pos.character === insertionColumn
-      ) {
-        return new vscode.Position(shiftedLine, insertionColumn);
-      }
-
       const baseColumnForOffset = insertionColumn ?? origFirstNonWS;
       const contentOffset = Math.max(0, pos.character - baseColumnForOffset);
       const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
       return new vscode.Position(shiftedLine, newCol);
     }
 
-    const insertionColumn = originalInsertionColumnMap.get(pos.line);
     if (insertionColumn !== undefined && pos.character >= insertionColumn) {
       return new vscode.Position(shiftedLine, Math.min(pos.character + 3, line.text.length));
     }
