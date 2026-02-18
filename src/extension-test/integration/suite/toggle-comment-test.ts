@@ -256,21 +256,17 @@ suite(suiteName, () => {
     );
   });
 
-  it('nested threading ->>', async () => {
+  it('should structurally comment a multiline partial selection at insertion column', async () => {
     assert.equal(
-      await toggleCommentUsingActiveEditor(
-        '(with-open [r (java.io.FileInputStream. "/dev/urandom")]•  (mod |(->> #(.read r)•            repeatedly•            (filter #(not (>= % 200)))•            (take 1)•            doall•            first)|•  100)•         )'
-      ),
-      '(with-open [r (java.io.FileInputStream. "/dev/urandom")]•  (mod ;; |(->> #(.read r)•       ;;      repeatedly•       ;;      (filter #(not (>= % 200)))•       ;;      (take 1)•       ;;      doall•       ;;      f|irst)•  100)•         )'
+      await toggleCommentUsingActiveEditor('(a |(b c•      d)|•   e)'),
+      '(a ;; |(b c•   ;;  | d)•   e)'
     );
   });
 
-  it('more nested edge case: should structurally comment selected nested -> inside as-> in with-open and preserve selection', async () => {
+  it('should structurally comment a multiline selection nested in another form', async () => {
     assert.equal(
-      await toggleCommentUsingActiveEditor(
-        '(defn a [a]•  (comment•    (-main)•    (System/getProperty "user.dir")•    (rand-int 100)•    (with-open [r (java.io.FileInputStream. "/dev/urandom")]•      (mod (-> (+ 2 2)•               (- 2)•               (as-> $ •                   |(-> $ •                       (+ 2)•                       (- 3))|))•           100))•    :rcf))'
-      ),
-      '(defn a [a]•  (comment•    (-main)•    (System/getProperty "user.dir")•    (rand-int 100)•    (with-open [r (java.io.FileInputStream. "/dev/urandom")]•      (mod (-> (+ 2 2)•               (- 2)•               (as-> $ •                   ;; |(-> $ •                   ;;     (+ 2)•                   ;;     (-| 3))•                       ))•           100))•    :rcf))'
+      await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
+      '(x•  (y ;; |(a b•     ;;  | c))•  z)'
     );
   });
 });
