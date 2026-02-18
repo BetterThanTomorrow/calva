@@ -84,7 +84,6 @@ async function applyStructuralCommentsToSingleSelectionLines(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[]
 ) {
-  const originalSelections = [...editor.selections];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const mirrorDoc = docMirror.getDocument(editor.document);
@@ -105,13 +104,26 @@ async function applyStructuralCommentsToSingleSelectionLines(
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
         if (wouldBreakWhere !== false) {
-          const skipBreak =
-            affectedLineNumbers.length > 1 &&
-            shouldSkipStructuralBreak(mirrorDoc, wouldBreakWhere, affectedLineSet);
+          let breakOffset = wouldBreakWhere;
+          let skipBreak = false;
+
+          if (affectedLineNumbers.length > 1) {
+            const resolvedBreakOffset = resolveStructuralBreakOffset(
+              mirrorDoc,
+              wouldBreakWhere,
+              affectedLineSet
+            );
+            if (resolvedBreakOffset === false) {
+              skipBreak = true;
+            } else {
+              breakOffset = resolvedBreakOffset;
+            }
+          }
+
           if (!skipBreak) {
             structureBreakLineNums.add(lineNum);
             const indent = currentLine.text.match(/^\s*/)[0];
-            editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+            editBuilder.insert(editor.document.positionAt(breakOffset), '\n' + indent);
           }
         }
       }
@@ -133,49 +145,26 @@ async function applyStructuralCommentsToSingleSelectionLines(
     return lineNum + shift;
   });
 
-  await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
-
-  // Cursor positions captured after formatting so indentation changes are reflected
-  editor.selections = originalSelections.map((selection) => {
-    const originalLineNum = selection.active.line;
-    let shift = 0;
-    for (const breakLineNum of structureBreakLineNums) {
-      if (breakLineNum < originalLineNum) {
-        shift++;
-      }
-    }
-    const shiftedLine = originalLineNum + shift;
-
-    if (shiftedLine < editor.document.lineCount) {
-      const line = editor.document.lineAt(shiftedLine);
-      const firstNonWS = line.firstNonWhitespaceCharacterIndex;
-      const lineContent = line.text.slice(firstNonWS);
-      if (lineContent.startsWith(';; ')) {
-        const pos = new vscode.Position(shiftedLine, firstNonWS + 3);
-        return new vscode.Selection(pos, pos);
-      }
-    }
-
-    return selection;
-  });
+  if (affectedLineNumbers.length > 1) {
+    await editor.edit(() => undefined, { undoStopBefore: false, undoStopAfter: true });
+  } else {
+    await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
+  }
 }
 
 /**
- * Determines whether a structural break reported by
- * `_semiColonWouldBreakStructureWhere` can be safely skipped because the
- * affected delimiters are balanced within the selected lines.
+ * Resolves where a structural break should be inserted (or if it can be skipped)
+ * for multiline commenting.
  *
- * When commenting multiple lines, a structural break is unnecessary if every
- * closing delimiter from the break position to the end of the line has its
- * matching opener on a line that is also being commented. Similarly, if the
- * break position is a multi-line sexp whose end falls within the selected
- * lines, the break can be skipped.
+ * Returns:
+ * - an offset where break should be inserted (possibly adjusted), or
+ * - `false` when the break can be skipped entirely.
  */
-function shouldSkipStructuralBreak(
+function resolveStructuralBreakOffset(
   mirrorDoc: EditableDocument,
   wouldBreakWhere: number,
   affectedLineSet: Set<number>
-): boolean {
+): number | false {
   const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
   const token = cursor.getToken();
 
@@ -186,25 +175,24 @@ function shouldSkipStructuralBreak(
       const tok = probe.getToken();
       if (tok.type === 'close') {
         const finder = probe.clone();
-        finder.next();
-        if (!finder.backwardSexp()) {
-          return false;
+        if (!finder.backwardList()) {
+          return probe.offsetStart;
         }
         if (!affectedLineSet.has(finder.line)) {
-          return false;
+          return probe.offsetStart;
         }
       }
       probe.next();
     }
-    return true;
+    return false;
   }
 
   const endCursor = cursor.clone();
   if (endCursor.forwardSexp(true, true, true)) {
-    return affectedLineSet.has(endCursor.line);
+    return affectedLineSet.has(endCursor.line) ? false : wouldBreakWhere;
   }
 
-  return false;
+  return wouldBreakWhere;
 }
 
 type OffsetRange = [number, number];
