@@ -270,16 +270,12 @@ function resolveStructuralBreakOffset(
       const tok = probe.getToken();
       if (tok.type === 'close') {
         const finder = probe.clone();
-        if (!finder.backwardList()) {
-          return probe.offsetStart;
-        }
         if (
-          partialSelectionStartOffset !== undefined &&
-          finder.offsetStart < partialSelectionStartOffset
+          !finder.backwardList() ||
+          (partialSelectionStartOffset !== undefined &&
+            finder.offsetStart < partialSelectionStartOffset) ||
+          !affectedLineSet.has(finder.line)
         ) {
-          return probe.offsetStart;
-        }
-        if (!affectedLineSet.has(finder.line)) {
           return probe.offsetStart;
         }
       }
