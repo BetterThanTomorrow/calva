@@ -160,7 +160,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
         const rawInsertionColumn =
           affectedLineNumbers.length > 1
             ? resolvedAlignedCommentColumn
-            : (originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace);
+            : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
         const firstLineInsertionColumn =
           partialSelectionStartColumn !== undefined && lineNum === singleSelection.start.line
             ? Math.max(rawInsertionColumn, partialSelectionStartColumn)
