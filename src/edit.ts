@@ -395,7 +395,7 @@ async function updateLineComments(
   affectedLineNumbers: number[],
   shouldUncomment: boolean
 ) {
-  const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const descendingLineNumbers = affectedLineNumbers.sort((a, b) => b - a);
 
   await editor.edit(
     (editBuilder) => {
