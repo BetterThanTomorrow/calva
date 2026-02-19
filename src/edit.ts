@@ -60,7 +60,8 @@ function getAffectedLineNumbers(editor: vscode.TextEditor, lineCount: number): n
 
 function areAllNonEmptyTargetLinesCommented(
   document: vscode.TextDocument,
-  lineNumbers: number[]
+  lineNumbers: number[],
+  selections?: readonly vscode.Selection[]
 ): boolean {
   const nonEmptyLines = lineNumbers.filter(
     (lineNum) => !document.lineAt(lineNum).isEmptyOrWhitespace
@@ -69,8 +70,23 @@ function areAllNonEmptyTargetLinesCommented(
     nonEmptyLines.length > 0 &&
     nonEmptyLines.every((lineNum) => {
       const line = document.lineAt(lineNum);
-      const lineText = line.text.slice(line.firstNonWhitespaceCharacterIndex);
-      return commentPrefixPattern.test(lineText);
+      const lineText = line.text;
+      const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
+      if (commentPrefixPattern.test(lineText.slice(firstNonWhitespace))) {
+        return true;
+      }
+      // For partial selections, the comment prefix may be at the selection
+      // start column rather than the line's first non-whitespace position.
+      if (selections) {
+        for (const sel of selections) {
+          if (sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
+            if (commentPrefixPattern.test(lineText.slice(sel.start.character))) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
     })
   );
 }
@@ -401,7 +417,8 @@ async function reformatEnclosingFormsForLines(
 async function updateLineComments(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  selections?: readonly vscode.Selection[]
 ) {
   const descendingLineNumbers = affectedLineNumbers.sort((a, b) => b - a);
 
@@ -413,14 +430,30 @@ async function updateLineComments(
         const lineText = line.text;
 
         if (shouldUncomment) {
-          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, firstNonWhitespace);
+          let removalStart = firstNonWhitespace;
+          let removalEnd = calculateCommentPrefixRemovalEnd(lineText, firstNonWhitespace);
+
+          // Fallback: check at the selection start column for partial selections
+          if (removalEnd === undefined && selections) {
+            for (const sel of selections) {
+              if (sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
+                const altEnd = calculateCommentPrefixRemovalEnd(lineText, sel.start.character);
+                if (altEnd !== undefined) {
+                  removalStart = sel.start.character;
+                  removalEnd = altEnd;
+                  break;
+                }
+              }
+            }
+          }
+
           if (removalEnd === undefined) {
             continue;
           }
 
           editBuilder.delete(
             new vscode.Range(
-              new vscode.Position(lineNum, firstNonWhitespace),
+              new vscode.Position(lineNum, removalStart),
               new vscode.Position(lineNum, removalEnd)
             )
           );
@@ -444,9 +477,10 @@ async function updateLineComments(
 async function toggleCommentsThenReformatEnclosingForms(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  selections?: readonly vscode.Selection[]
 ) {
-  await updateLineComments(editor, affectedLineNumbers, shouldUncomment);
+  await updateLineComments(editor, affectedLineNumbers, shouldUncomment, selections);
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
 }
 
@@ -477,7 +511,8 @@ export async function toggleLineCommentCommand() {
 
   const allNonEmptyLinesCommented = areAllNonEmptyTargetLinesCommented(
     document,
-    affectedLineNumbers
+    affectedLineNumbers,
+    editor.selections
   );
 
   const isSingleSelection = editor.selections.length === 1;
@@ -489,7 +524,8 @@ export async function toggleLineCommentCommand() {
   await toggleCommentsThenReformatEnclosingForms(
     editor,
     affectedLineNumbers,
-    allNonEmptyLinesCommented
+    allNonEmptyLinesCommented,
+    editor.selections
   );
 }
 
