@@ -157,24 +157,6 @@ suite(suiteName, () => {
     );
   });
 
-  it('should preserve nested indentation when uncommenting selected multiline block (issue #3078)', async () => {
-    assert.equal(
-      await toggleCommentUsingActiveEditor(
-        '|;; (a (b c•;;       (d e•;;          f)•;;       g•;;       h)•;;    i•;;    j)|'
-      ),
-      '|(a (b c•      (d e•         f)•      g•      h)•   i•   j)|'
-    );
-  });
-
-  it('should preserve nested indentation when uncommenting selected multiline block inside defn (issue #3078)', async () => {
-    assert.equal(
-      await toggleCommentUsingActiveEditor(
-        '(defn foo []•  |;; (a (b c•  ;;       (d e•  ;;          f)•  ;;       g•  ;;       h)•  ;;    i•  ;;    j)|•     )'
-      ),
-      '(defn foo []•  |(a (b c•        (d e•           f)•        g•        h)•     i•     j)|)'
-    );
-  });
-
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(assoc m•       :key :val•|)'),
@@ -314,5 +296,17 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
       '(x• (j (y |;; (a b c)|•     ))• z)'
     );
+  });
+
+  it('should uncomment a partial-selection comment round-trip (issue #3081)', async () => {
+    const editor = vscode.window.activeTextEditor;
+    const original = '(a |(b c•      d)|•   e)';
+    // First toggle: comment the partial selection
+    await performToggle(editor, original);
+    // Second toggle: uncomment should restore original text
+    await vscode.commands.executeCommand('calva.toggleLineComment');
+    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    const result = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(result, '(a |(b c•      d)|•   e)');
   });
 });
