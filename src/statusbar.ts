@@ -9,11 +9,41 @@ import * as sessionRouting from './nrepl/session-routing';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as clientRegistry from './nrepl/client-registry';
 
-const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-const shadowRuntimeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1);
+const connectionStatus = vscode.window.createStatusBarItem(
+  'connectionStatus',
+  vscode.StatusBarAlignment.Left,
+  1
+);
+connectionStatus.name = 'Calva: REPL connection status';
+
+const typeStatus = vscode.window.createStatusBarItem(
+  'typeStatus',
+  vscode.StatusBarAlignment.Left,
+  1
+);
+typeStatus.name = 'Calva: REPL session type';
+
+const cljsBuildStatus = vscode.window.createStatusBarItem(
+  'cljsBuildStatus',
+  vscode.StatusBarAlignment.Left,
+  1
+);
+cljsBuildStatus.name = 'Calva: Clojurescript build status';
+
+const shadowRuntimeStatus = vscode.window.createStatusBarItem(
+  'shadowRuntimeStatus',
+  vscode.StatusBarAlignment.Left,
+  1
+);
+shadowRuntimeStatus.name = 'Calva: Shadow CLJS runtime status';
+
+const prettyPrintToggle = vscode.window.createStatusBarItem(
+  'prettyPrintToggle',
+  vscode.StatusBarAlignment.Right,
+  1
+);
+prettyPrintToggle.name = 'Calva: Pretty print toggle';
+
 const color = {
   active: 'white',
   inactive: '#b3b3b3',

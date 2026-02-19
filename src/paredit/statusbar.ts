@@ -10,10 +10,11 @@ export class StatusBar {
   private _toggleBarItem: StatusBarItem;
 
   constructor(keymap: string) {
-    this._toggleBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
+    this._toggleBarItem = window.createStatusBarItem('paredit', StatusBarAlignment.Right, null);
     this._toggleBarItem.text = '(λ)';
     this._toggleBarItem.tooltip = '';
     this._toggleBarItem.command = 'paredit.togglemode';
+    this._toggleBarItem.name = 'Calva: Toggle paredit'
     this._visible = false;
     this.keyMap = keymap;
 
