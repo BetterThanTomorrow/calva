@@ -14,35 +14,35 @@ const connectionStatus = vscode.window.createStatusBarItem(
   vscode.StatusBarAlignment.Left,
   1
 );
-connectionStatus.name = 'Calva: REPL connection status';
+connectionStatus.name = 'Calva: REPL Menu';
 
 const typeStatus = vscode.window.createStatusBarItem(
   'typeStatus',
   vscode.StatusBarAlignment.Left,
   1
 );
-typeStatus.name = 'Calva: REPL session type';
+typeStatus.name = 'Calva: REPL Sessions Menu';
 
 const cljsBuildStatus = vscode.window.createStatusBarItem(
   'cljsBuildStatus',
   vscode.StatusBarAlignment.Left,
   1
 );
-cljsBuildStatus.name = 'Calva: Clojurescript build status';
+cljsBuildStatus.name = 'Calva: Clojurescript Builds Menu';
 
 const shadowRuntimeStatus = vscode.window.createStatusBarItem(
   'shadowRuntimeStatus',
   vscode.StatusBarAlignment.Left,
   1
 );
-shadowRuntimeStatus.name = 'Calva: Shadow CLJS runtime status';
+shadowRuntimeStatus.name = 'Calva: Shadow CLJS Runtimes Menu';
 
 const prettyPrintToggle = vscode.window.createStatusBarItem(
   'prettyPrintToggle',
   vscode.StatusBarAlignment.Right,
   1
 );
-prettyPrintToggle.name = 'Calva: Pretty print toggle';
+prettyPrintToggle.name = 'Calva: Pretty Print Toggle';
 
 const color = {
   active: 'white',
