@@ -299,6 +299,7 @@ suite('Jack-in and Connect suite', () => {
     const clients1 = clientRegistry.listClients();
     assert.strictEqual(clients1.length, 1, 'Should have one client after first jack-in');
     const firstClientKey = clients1[0].key;
+    const firstClientHost = clients1[0].host;
     const firstClientPort = clients1[0].port;
 
     const sessions1 = sessionRegistry.listSessions();
@@ -343,8 +344,8 @@ suite('Jack-in and Connect suite', () => {
     // Open the file to set the correct project root context
     await testUtil.openFile(path.join(testUtil.testDataDir, testFile1));
 
-    // Connect directly using the same sequence and port as the first jack-in
-    await connectDirect(sequence1, true, 'localhost', String(firstClientPort));
+    // Connect directly using the same sequence, host, and port as the first jack-in
+    await connectDirect(sequence1, true, firstClientHost, String(firstClientPort));
     await testUtil.sleep(1000);
 
     testUtil.log(suite, 'Reconnection complete');

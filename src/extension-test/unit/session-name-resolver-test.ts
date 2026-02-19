@@ -23,7 +23,12 @@ describe('session-name-resolver', () => {
       it('returns base names when no sessions exist', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
 
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-a');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-a',
+          'localhost',
+          1234
+        );
 
         expect(resolution.finalNames).toEqual(baseNames);
         expect(resolution.suffix).toBeUndefined();
@@ -34,7 +39,12 @@ describe('session-name-resolver', () => {
         sessionRegistry.registerSession('bb', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
         expect(resolution.finalNames).toEqual(baseNames);
         expect(resolution.suffix).toBeUndefined();
@@ -43,7 +53,12 @@ describe('session-name-resolver', () => {
       it('handles primary-only sessions', () => {
         const baseNames = { primary: 'bb' };
 
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-a');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-a',
+          'localhost',
+          1234
+        );
 
         expect(resolution.finalNames).toEqual({ primary: 'bb' });
         expect(resolution.suffix).toBeUndefined();
@@ -55,7 +70,12 @@ describe('session-name-resolver', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
         expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
         expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
@@ -66,7 +86,12 @@ describe('session-name-resolver', () => {
         sessionRegistry.registerSession('cljs', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
         expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
         expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
@@ -77,7 +102,12 @@ describe('session-name-resolver', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
         const suffix = resolution.suffix;
         expect(resolution.finalNames.primary).toBe(`clj:${suffix}`);
@@ -88,7 +118,12 @@ describe('session-name-resolver', () => {
         sessionRegistry.registerSession('clj', createSession('client-a'), {});
 
         const baseNames = { primary: 'clj', secondary: 'cljs' };
-        const resolution1 = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+        const resolution1 = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
         // Register the first suffixed session
         sessionRegistry.registerSession(
@@ -97,26 +132,37 @@ describe('session-name-resolver', () => {
           {}
         );
 
-        const resolution2 = sessionNameResolver.resolveSessionNames(baseNames, '/project-c');
+        const resolution2 = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-c',
+          'localhost',
+          1234
+        );
 
         expect(resolution1.suffix).not.toBe(resolution2.suffix);
       });
     });
 
-    describe('reconnection scenario', () => {
-      it('detects reconnection with same baseNames and projectRoot', () => {
+    describe('reconnection scenario (manual connect)', () => {
+      it('detects reconnection when baseNames, host, and port match', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const projectRoot = '/project-a';
 
-        // Register client with baseSessionNames in connection state
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot,
+          host: 'localhost',
+          port: 1234,
           connectionState: {
             baseSessionNames: baseNames,
           },
         });
 
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          1234
+        );
 
         expect(resolution.reconnectClientKey).toBe('client-a');
         expect(resolution.finalNames).toEqual(baseNames);
@@ -127,78 +173,189 @@ describe('session-name-resolver', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const projectRoot = '/project-a';
 
-        // Register client with suffix in connection state
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot,
+          host: 'localhost',
+          port: 1234,
           connectionState: {
             baseSessionNames: baseNames,
             suffix: '2',
           },
         });
 
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          1234
+        );
 
         expect(resolution.reconnectClientKey).toBe('client-a');
         expect(resolution.finalNames).toEqual({ primary: 'clj:2', secondary: 'cljs:2' });
         expect(resolution.suffix).toBe('2');
       });
 
-      it('does not detect reconnection when projectRoot differs', () => {
+      it('detects reconnection even when projectRoot differs (matches on host:port)', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
 
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot: '/project-a',
+          host: 'localhost',
+          port: 1234,
           connectionState: {
             baseSessionNames: baseNames,
           },
         });
 
-        // Different projectRoot but same baseNames - should NOT be reconnection
-        // But sessions exist, so should get suffix
-        sessionRegistry.registerSession('clj', createSession('client-a'), {});
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          1234
+        );
 
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
-
-        expect(resolution.reconnectClientKey).toBeUndefined();
-        expect(resolution.suffix).toBeDefined();
+        expect(resolution.reconnectClientKey).toBe('client-a');
       });
 
       it('does not detect reconnection when baseNames differ', () => {
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot: '/project-a',
+          host: 'localhost',
+          port: 1234,
           connectionState: {
             baseSessionNames: { primary: 'clj', secondary: 'cljs' },
           },
         });
 
-        // Same projectRoot but different baseNames - should NOT be reconnection
-        const resolution = sessionNameResolver.resolveSessionNames({ primary: 'bb' }, '/project-a');
+        const resolution = sessionNameResolver.resolveSessionNames(
+          { primary: 'bb' },
+          '/project-a',
+          'localhost',
+          1234
+        );
 
         expect(resolution.reconnectClientKey).toBeUndefined();
         expect(resolution.finalNames).toEqual({ primary: 'bb' });
+      });
+
+      it('does not detect reconnection when host differs', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/project-a';
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 1234,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'remotehost',
+          1234
+        );
+
+        expect(resolution.reconnectClientKey).toBeUndefined();
+      });
+
+      it('does not detect reconnection when port differs', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/project-a';
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 1234,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          5678
+        );
+
+        expect(resolution.reconnectClientKey).toBeUndefined();
+      });
+    });
+
+    describe('reconnection scenario (port-unaware, e.g. jack-in)', () => {
+      it('detects reconnection when baseNames and projectRoot match (port is null)', () => {
+        const baseNames = { primary: 'bb' };
+        const projectRoot = '/project-a';
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 1234,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+
+        // null port means "don't care about port"
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          null
+        );
+
+        expect(resolution.reconnectClientKey).toBe('client-a');
+      });
+
+      it('does not detect reconnection when projectRoot differs', () => {
+        const baseNames = { primary: 'bb' };
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot: '/project-a',
+          host: 'localhost',
+          port: 1234,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          '/project-b',
+          'localhost',
+          null
+        );
+
+        expect(resolution.reconnectClientKey).toBeUndefined();
       });
 
       it('reserves suffix on reconnection so other connections cannot steal it', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
         const projectRoot = '/project-a';
 
-        // Simulate a connection that has a suffix
         clientRegistry.registerClient(createMockClient('client-a'), {
           projectRoot,
+          host: 'localhost',
+          port: 1234,
           connectionState: {
             baseSessionNames: baseNames,
             suffix: 'apple',
           },
         });
 
-        // Reconnection resolution - returns the existing suffix
-        const resolution = sessionNameResolver.resolveSessionNames(baseNames, projectRoot);
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          1234
+        );
 
         expect(resolution.reconnectClientKey).toBe('client-a');
         expect(resolution.suffix).toBe('apple');
 
-        // The suffix should be marked as in-use after resolution
-        // so another connection cannot grab it between disconnect and re-register
         expect(nameSuffix.getUsedSuffixes()).toContain('apple');
       });
     });
@@ -216,9 +373,78 @@ describe('session-name-resolver', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
 
         expect(() => {
-          sessionNameResolver.resolveSessionNames(baseNames, '/project-b');
+          sessionNameResolver.resolveSessionNames(baseNames, '/project-b', 'localhost', 1234);
         }).toThrow(/too many REPLs/);
       });
+    });
+  });
+
+  describe('hasMatchingBaseConnection', () => {
+    it('returns true when baseNames and projectRoot match', () => {
+      const baseNames = { primary: 'clj', secondary: 'cljs' };
+      const projectRoot = '/project-a';
+
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        projectRoot,
+        host: 'localhost',
+        port: 1234,
+        connectionState: {
+          baseSessionNames: baseNames,
+        },
+      });
+
+      expect(sessionNameResolver.hasMatchingBaseConnection(baseNames, projectRoot)).toBe(true);
+    });
+
+    it('returns true regardless of host/port', () => {
+      const baseNames = { primary: 'clj', secondary: 'cljs' };
+      const projectRoot = '/project-a';
+
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        projectRoot,
+        host: 'remotehost',
+        port: 9999,
+        connectionState: {
+          baseSessionNames: baseNames,
+        },
+      });
+
+      expect(sessionNameResolver.hasMatchingBaseConnection(baseNames, projectRoot)).toBe(true);
+    });
+
+    it('returns false when projectRoot differs', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        projectRoot: '/project-a',
+        connectionState: {
+          baseSessionNames: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+
+      expect(
+        sessionNameResolver.hasMatchingBaseConnection(
+          { primary: 'clj', secondary: 'cljs' },
+          '/project-b'
+        )
+      ).toBe(false);
+    });
+
+    it('returns false when baseNames differ', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        projectRoot: '/project-a',
+        connectionState: {
+          baseSessionNames: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+
+      expect(sessionNameResolver.hasMatchingBaseConnection({ primary: 'bb' }, '/project-a')).toBe(
+        false
+      );
+    });
+
+    it('returns false when no clients registered', () => {
+      expect(sessionNameResolver.hasMatchingBaseConnection({ primary: 'clj' }, '/project-a')).toBe(
+        false
+      );
     });
   });
 });

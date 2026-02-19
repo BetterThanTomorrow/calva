@@ -85,7 +85,45 @@ async function applyStructuralCommentsToSingleSelectionLines(
   affectedLineNumbers: number[]
 ) {
   const originalSelections = [...editor.selections];
+  const singleSelection = editor.selections[0];
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const affectedLineSet = new Set(affectedLineNumbers);
+  const originalFirstNonWSMap = new Map<number, number>();
+  const originalInsertionColumnMap = new Map<number, number>();
+  let partialSelectionStartOffset: number | undefined;
+  let alignedCommentColumn: number | undefined;
+
+  // Calculate aligned comment column and store original indentation.
+  for (const lineNum of affectedLineNumbers) {
+    const line = editor.document.lineAt(lineNum);
+    const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
+    originalFirstNonWSMap.set(lineNum, firstNonWhitespace);
+
+    let insertionColumnCandidate = firstNonWhitespace;
+    if (
+      lineNum === singleSelection.start.line &&
+      !singleSelection.isEmpty &&
+      singleSelection.start.character > firstNonWhitespace
+    ) {
+      insertionColumnCandidate = singleSelection.start.character;
+      if (affectedLineNumbers.length > 1) {
+        partialSelectionStartOffset = editor.document.offsetAt(
+          new vscode.Position(lineNum, singleSelection.start.character)
+        );
+      }
+    }
+    originalInsertionColumnMap.set(lineNum, insertionColumnCandidate);
+
+    if (!line.isEmptyOrWhitespace) {
+      alignedCommentColumn =
+        alignedCommentColumn === undefined
+          ? insertionColumnCandidate
+          : Math.min(alignedCommentColumn, insertionColumnCandidate);
+    }
+  }
+
+  const resolvedAlignedCommentColumn = alignedCommentColumn ?? 0;
+
   const mirrorDoc = docMirror.getDocument(editor.document);
   const structureBreakLineNums = new Set<number>();
 
@@ -94,7 +132,13 @@ async function applyStructuralCommentsToSingleSelectionLines(
     (editBuilder) => {
       for (const lineNum of descendingLineNumbers) {
         const currentLine = editor.document.lineAt(lineNum);
-        const insertionColumn = currentLine.firstNonWhitespaceCharacterIndex;
+        const firstNonWhitespace = originalFirstNonWSMap.get(lineNum) ?? 0;
+        const rawInsertionColumn =
+          affectedLineNumbers.length > 1
+            ? resolvedAlignedCommentColumn
+            : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
+        const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
+        originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
           new vscode.Position(lineNum, insertionColumn)
         );
@@ -104,9 +148,28 @@ async function applyStructuralCommentsToSingleSelectionLines(
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
         if (wouldBreakWhere !== false) {
-          structureBreakLineNums.add(lineNum);
-          const indent = currentLine.text.match(/^\s*/)[0];
-          editBuilder.insert(editor.document.positionAt(wouldBreakWhere), '\n' + indent);
+          let breakOffset = wouldBreakWhere;
+          let skipBreak = false;
+
+          if (affectedLineNumbers.length > 1) {
+            const resolvedBreakOffset = resolveStructuralBreakOffset(
+              mirrorDoc,
+              wouldBreakWhere,
+              affectedLineSet,
+              partialSelectionStartOffset
+            );
+            if (resolvedBreakOffset === false) {
+              skipBreak = true;
+            } else {
+              breakOffset = resolvedBreakOffset;
+            }
+          }
+
+          if (!skipBreak) {
+            structureBreakLineNums.add(lineNum);
+            const indent = currentLine.text.match(/^\s*/)[0];
+            editBuilder.insert(editor.document.positionAt(breakOffset), '\n' + indent);
+          }
         }
       }
     },
@@ -127,31 +190,123 @@ async function applyStructuralCommentsToSingleSelectionLines(
     return lineNum + shift;
   });
 
-  await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
+  if (affectedLineNumbers.length > 1) {
+    await editor.edit(() => undefined, { undoStopBefore: false, undoStopAfter: true });
+  } else {
+    await reformatEnclosingFormsForLines(editor, shiftedLineNumbers);
+  }
 
-  // Cursor positions captured after formatting so indentation changes are reflected
-  editor.selections = originalSelections.map((selection) => {
-    const originalLineNum = selection.active.line;
-    let shift = 0;
+  function countInsertedLinesBefore(line: number): number {
+    let inserted = 0;
     for (const breakLineNum of structureBreakLineNums) {
-      if (breakLineNum < originalLineNum) {
-        shift++;
+      if (breakLineNum < line) {
+        inserted++;
       }
     }
-    const shiftedLine = originalLineNum + shift;
+    return inserted;
+  }
 
-    if (shiftedLine < editor.document.lineCount) {
-      const line = editor.document.lineAt(shiftedLine);
-      const firstNonWS = line.firstNonWhitespaceCharacterIndex;
-      const lineContent = line.text.slice(firstNonWS);
-      if (lineContent.startsWith(';; ')) {
-        const pos = new vscode.Position(shiftedLine, firstNonWS + 3);
-        return new vscode.Selection(pos, pos);
-      }
+  function adjustPosition(
+    pos: vscode.Position,
+    boundary: 'start' | 'end',
+    selectionIsEmpty: boolean
+  ): vscode.Position {
+    const isSelectionStartAtInsertionColumn = (
+      insertionColumn: number | undefined,
+      position: vscode.Position
+    ) => {
+      return (
+        !selectionIsEmpty &&
+        boundary === 'start' &&
+        insertionColumn !== undefined &&
+        position.character === insertionColumn
+      );
+    };
+
+    const shiftedLine = pos.line + countInsertedLinesBefore(pos.line);
+
+    if (shiftedLine >= editor.document.lineCount) {
+      return pos;
     }
 
-    return selection;
+    const line = editor.document.lineAt(shiftedLine);
+    const newFirstNonWS = line.firstNonWhitespaceCharacterIndex;
+    const lineContent = line.text.slice(newFirstNonWS);
+    const insertionColumn = originalInsertionColumnMap.get(pos.line);
+
+    if (isSelectionStartAtInsertionColumn(insertionColumn, pos)) {
+      return new vscode.Position(shiftedLine, insertionColumn);
+    }
+
+    if (lineContent.startsWith(';; ')) {
+      const origFirstNonWS = originalFirstNonWSMap.get(pos.line) ?? pos.character;
+      const baseColumnForOffset = insertionColumn ?? origFirstNonWS;
+      const contentOffset = Math.max(0, pos.character - baseColumnForOffset);
+      const newCol = Math.min(newFirstNonWS + 3 + contentOffset, line.text.length);
+      return new vscode.Position(shiftedLine, newCol);
+    }
+
+    if (insertionColumn !== undefined && pos.character >= insertionColumn) {
+      return new vscode.Position(shiftedLine, Math.min(pos.character + 3, line.text.length));
+    }
+
+    return new vscode.Position(shiftedLine, Math.min(pos.character, line.text.length));
+  }
+
+  editor.selections = originalSelections.map((selection) => {
+    const newStart = adjustPosition(selection.start, 'start', selection.isEmpty);
+    const newEnd = adjustPosition(selection.end, 'end', selection.isEmpty);
+    const isReversed = selection.anchor.isAfter(selection.active);
+    return isReversed
+      ? new vscode.Selection(newEnd, newStart)
+      : new vscode.Selection(newStart, newEnd);
   });
+}
+
+/**
+ * Resolves where a structural break should be inserted (or if it can be skipped)
+ * for multiline commenting.
+ *
+ * Returns:
+ * - an offset where break should be inserted (possibly adjusted), or
+ * - `false` when the break can be skipped entirely.
+ */
+function resolveStructuralBreakOffset(
+  mirrorDoc: EditableDocument,
+  wouldBreakWhere: number,
+  affectedLineSet: Set<number>,
+  partialSelectionStartOffset?: number
+): number | false {
+  const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
+  const token = cursor.getToken();
+
+  if (token.type === 'close') {
+    const startLine = cursor.line;
+    const probe = cursor.clone();
+    while (!probe.atEnd() && probe.line === startLine) {
+      const tok = probe.getToken();
+      if (tok.type === 'close') {
+        const finder = probe.clone();
+        if (
+          !finder.backwardList() ||
+          (partialSelectionStartOffset !== undefined &&
+            finder.offsetStart < partialSelectionStartOffset) ||
+          !affectedLineSet.has(finder.line)
+        ) {
+          return probe.offsetStart;
+        }
+      }
+      probe.next();
+    }
+    return false;
+  }
+
+  const endCursor = cursor.clone();
+  if (endCursor.forwardSexp(true, true, true)) {
+    return affectedLineSet.has(endCursor.line) ? false : wouldBreakWhere;
+  }
+
+  return wouldBreakWhere;
 }
 
 type OffsetRange = [number, number];

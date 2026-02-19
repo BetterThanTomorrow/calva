@@ -2617,7 +2617,7 @@ export function _semiColonWouldBreakStructureWhere(
 
 export async function insertSemiColon(doc: EditableDocument, p = doc.selections[0].active) {
   const wouldBreakWhere = _semiColonWouldBreakStructureWhere(doc, p);
-  if (wouldBreakWhere) {
+  if (wouldBreakWhere !== false) {
     const cursor = doc.getTokenCursor(p);
     const lineText = doc.model.getLineText(cursor.line);
     const indent = lineText.match(/^\s*/)[0];
