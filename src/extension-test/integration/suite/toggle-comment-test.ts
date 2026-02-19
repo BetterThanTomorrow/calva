@@ -298,15 +298,27 @@ suite(suiteName, () => {
     );
   });
 
-  it('should uncomment a partial-selection comment round-trip (issue #3081)', async () => {
+  it('should uncomment partial-selection comments round-trip (issue #3081)', async () => {
     const editor = vscode.window.activeTextEditor;
-    const original = '(a |(b c•      d)|•   e)';
-    // First toggle: comment the partial selection
-    await performToggle(editor, original);
-    // Second toggle: uncomment should restore original text
+
+    // Simple partial selection
+    const simple = '(a |(b c•      d)|•   e)';
+    await performToggle(editor, simple);
+    const simpleCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(simpleCommented, '(a |;; (b c•   ;;    d)|•   e)');
     await vscode.commands.executeCommand('calva.toggleLineComment');
     await new Promise((resolve) => setTimeout(resolve, pauseMs));
-    const result = textNotationFromDocAndSelections(editor.document, editor.selections);
-    assert.equal(result, '(a |(b c•      d)|•   e)');
+    const simpleUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(simpleUncommented, simple);
+
+    // Nested partial selection
+    const nested = '(a |(b c•      (d e•         f)•      g)|•   e)';
+    await performToggle(editor, nested);
+    const nestedCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(nestedCommented, '(a |;; (b c•   ;;    (d e•   ;;       f)•   ;;    g)|•   e)');
+    await vscode.commands.executeCommand('calva.toggleLineComment');
+    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    const nestedUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(nestedUncommented, nested);
   });
 });
