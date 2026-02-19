@@ -57,6 +57,11 @@ const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 function connectedMenuItems(): MenuItem[] {
   return [
     {
+      label: RE_JACK_IN_OPTION,
+      command: RE_JACK_IN_COMMAND,
+      condition: utilities.getJackedInState,
+    },
+    {
       label: JACK_OUT_OPTION,
       command: JACK_OUT_COMMAND,
       condition: utilities.getJackedInState,

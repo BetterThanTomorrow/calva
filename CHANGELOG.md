@@ -4,9 +4,21 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add "Restart the Project REPL (a.k.a. Re-jack-in)" option to the connected REPL menu
+
+## [2.0.556] - 2026-02-19
+
+- Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+- Fix: [Toggle comments off fails when first line doesn't start with ;;](https://github.com/BetterThanTomorrow/calva/issues/3081)
+- Fix: [Toggle Line Comment can break structure for unformatted partial multiline selections](https://github.com/BetterThanTomorrow/calva/issues/3083)
+- Fix: [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
+
+## [2.0.555] - 2026-02-19
+
 - Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)
 - Fix: [Toggle Line Comment produces incorrect output for multi-line selections](https://github.com/BetterThanTomorrow/calva/issues/3066)
 - Fix: [Toggle Line Comment loses the selection when you run the command](https://github.com/BetterThanTomorrow/calva/issues/3067)
+- Fix: [Insert Semicolon does not work correctly in the first line of a file](https://github.com/BetterThanTomorrow/calva/issues/3072)
 
 ## [2.0.554] - 2026-02-17
 
