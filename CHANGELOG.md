@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add "Restart the Project REPL (a.k.a. Re-jack-in)" option to the connected REPL menu
+
 ## [2.0.556] - 2026-02-19
 
 - Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
