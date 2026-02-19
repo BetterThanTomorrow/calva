@@ -1,5 +1,21 @@
 /** Matches one or more leading semicolons (`;`, `;;`, `;;;`, etc.) */
-export const commentPrefixPattern = /^;+/;
+const commentPrefixPattern = /^;+/;
+
+/**
+ * Returns the first position from `candidatePositions` where a comment prefix
+ * (one or more semicolons) starts, or `undefined` if none match.
+ */
+export function findCommentPrefixStart(
+  lineText: string,
+  candidatePositions: number[]
+): number | undefined {
+  for (const pos of candidatePositions) {
+    if (commentPrefixPattern.test(lineText.slice(pos))) {
+      return pos;
+    }
+  }
+  return undefined;
+}
 
 /**
  * Calculates the end index for removing a comment prefix (semicolons + trailing space)
@@ -8,20 +24,20 @@ export const commentPrefixPattern = /^;+/;
  * if the line is otherwise empty after the prefix).
  *
  * @param lineText - The full text of the line
- * @param firstNonWhitespace - The index of the first non-whitespace character in the line
+ * @param removalStart - The index at which the comment prefix starts
  * @returns The end index for removal, or `undefined` if no comment prefix is found
  */
 export function calculateCommentPrefixRemovalEnd(
   lineText: string,
-  firstNonWhitespace: number
+  removalStart: number
 ): number | undefined {
-  const remainder = lineText.slice(firstNonWhitespace);
+  const remainder = lineText.slice(removalStart);
   const match = remainder.match(commentPrefixPattern);
   if (!match) {
     return undefined;
   }
 
-  let removalEnd = firstNonWhitespace + match[0].length;
+  let removalEnd = removalStart + match[0].length;
   if (removalEnd < lineText.length && lineText[removalEnd] === ' ') {
     let spaceRunEnd = removalEnd;
     // If the line is otherwise empty after the comment prefix, remove all trailing spaces as well
