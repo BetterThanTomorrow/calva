@@ -23,8 +23,16 @@ describe('prefix removal', () => {
     expect(stripLeadingCommentPrefix('  ;;; header')).toBe('  header');
   });
 
-  it('strips semicolon prefix and all immediate following spaces', () => {
-    expect(stripLeadingCommentPrefix(';;;   header')).toBe('header');
+  it('strips semicolon prefix and one separating space before content', () => {
+    expect(stripLeadingCommentPrefix(';;;   header')).toBe('  header');
+  });
+
+  it('preserves indentation spaces after comment prefix', () => {
+    expect(stripLeadingCommentPrefix(';;       h)')).toBe('      h)');
+  });
+
+  it('strips fully blank commented line to empty', () => {
+    expect(stripLeadingCommentPrefix(';;      ')).toBe('');
   });
 
   it('keeps non-comment lines unchanged', () => {
