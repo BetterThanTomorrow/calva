@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+
 ## [2.0.555] - 2026-02-19
 
 - Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)
