@@ -1,7 +1,7 @@
 !YS-v0:
 
 docker:
-- image: cimg/python:3.8-node
+- image: cimg/python:3.13-node
 
 environment:
   MKDOCS_ENV: production
