@@ -157,6 +157,24 @@ suite(suiteName, () => {
     );
   });
 
+  it('should preserve nested indentation when uncommenting selected multiline block (issue #3078)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '|;; (a (b c•;;       (d e•;;          f)•;;       g•;;       h)•;;    i•;;    j)|'
+      ),
+      '|(a (b c•      (d e•         f)•      g•      h)•   i•   j)|'
+    );
+  });
+
+  it('should preserve nested indentation when uncommenting selected multiline block inside defn (issue #3078)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '(defn foo []•  |;; (a (b c•  ;;       (d e•  ;;          f)•  ;;       g•  ;;       h)•  ;;    i•  ;;    j)|•     )'
+      ),
+      '(defn foo []•  |(a (b c•        (d e•           f)•        g•        h)•     i•     j)|)'
+    );
+  });
+
   it('should comment an empty line inside assoc with alignment indent (issue #2872)', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(assoc m•       :key :val•|)'),
