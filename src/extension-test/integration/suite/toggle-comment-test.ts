@@ -215,35 +215,35 @@ suite(suiteName, () => {
   it('should comment a complete multi-line top-level form without structural breaks and preserve selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
-      ';; |(defn foo []•;;   (prn "hi"|))'
+      '|;; (defn foo []•;;   (prn "hi"))|'
     );
   });
 
   it('should comment selected lines inside a containing form, preserving outside closers and selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(do•  |(prn "a")•  (prn "b")|)'),
-      '(do•  ;; |(prn "a")•  ;; (prn "b")|•  )'
+      '(do•  |;; (prn "a")•  ;; (prn "b")|•  )'
     );
   });
 
   it('should comment multi-line nested forms when all lines selected and preserve selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('|(do•  (prn "a")•  (prn "b"))|'),
-      ';; |(do•;;   (prn "a")•;;   (prn "b"|))'
+      '|;; (do•;;   (prn "a")•;;   (prn "b"))|'
     );
   });
 
   it('should comment complete multi-line let binding without displacing bracket and preserve selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('|(let [a 1•        b 2])|'),
-      ';; |(let [a 1•;;      |   b 2])'
+      '|;; (let [a 1•;;         b 2])|'
     );
   });
 
   it('should structurally comment two selected lines and preserve closing delimiter and selection', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(assoc {}•         |:a•         :b|)'),
-      '(assoc {}•         ;; |:a•         ;; :b|•         )'
+      '(assoc {}•         |;; :a•         ;; :b|•         )'
     );
   });
 
@@ -252,7 +252,35 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor(
         '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    |(mod (->> #(.read r)•              repeatedly•              (filter #(not (>= % 200)))•              (take 1)•              doall•              first)•         100)|)•  :rcf)'
       ),
-      '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    ;; |(mod (->> #(.read r)•    ;;           repeatedly•    ;;           (filter #(not (>= % 200)))•    ;;           (take 1)•    ;;           doall•    ;;           first)•    ;;     | 100)•         )•  :rcf)'
+      '(ns main.server•  #_(:require [babashka.fs :as fs])•  (:gen-class))••(defn -main•  "I don\'t do a whole lot ... yet."•  [& _args]•  (println "Hello, World!"))••(comment•  (-main)•  (System/getProperty "user.dir")•  (rand-int 100)•  (with-open [r (java.io.FileInputStream. "/dev/urandom")]•    |;; (mod (->> #(.read r)•    ;;           repeatedly•    ;;           (filter #(not (>= % 200)))•    ;;           (take 1)•    ;;           doall•    ;;           first)•    ;;      100)|•         )•  :rcf)'
+    );
+  });
+
+  it('should structurally comment multiline partial selection and keep full selection over commented text', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(a |(b c•      d)|•   e)'),
+      '(a |;; (b c•   ;;    d)|•   e)'
+    );
+  });
+
+  it('should structurally comment multiline selection nested in parent form and preserve full selected range', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
+      '(x•  (y |;; (a b•     ;;    c)|•        )•  z)'
+    );
+  });
+
+  it('should structurally comment multiline selection nested in j/y forms and keep full selected range', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(x• (j |(y •     (a b c))|)• z)'),
+      '(x• (j |;; (y •    ;;  (a b c))|•     )• z)'
+    );
+  });
+
+  it('should insert structural comment at selection start for single-line nested selection', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
+      '(x• (j (y |;; (a b c)|•     ))• z)'
     );
   });
 });
