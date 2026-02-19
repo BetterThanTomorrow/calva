@@ -14,7 +14,7 @@ export class StatusBar {
     this._toggleBarItem.text = '(λ)';
     this._toggleBarItem.tooltip = '';
     this._toggleBarItem.command = 'paredit.togglemode';
-    this._toggleBarItem.name = 'Calva: Paredit Strict Mode'
+    this._toggleBarItem.name = 'Calva: Paredit Strict Mode';
     this._visible = false;
     this.keyMap = keymap;
 
