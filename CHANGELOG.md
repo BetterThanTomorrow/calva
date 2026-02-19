@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+- Fix: [Toggle Line Comment can break structure for unformatted partial multiline selections](https://github.com/BetterThanTomorrow/calva/issues/3083)
 
 ## [2.0.555] - 2026-02-19
 
