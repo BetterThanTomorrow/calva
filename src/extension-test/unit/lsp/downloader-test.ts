@@ -27,6 +27,8 @@ describe('downloader', () => {
 
     expect(result.restored).toBe(false);
     expect(fs.readFileSync(binaryPath, 'utf8')).toBe('new-version');
+    const backupPath = path.join(tmpDir, 'backup', 'clojure-lsp');
+    expect(fs.existsSync(backupPath)).toBe(false);
   });
 
   it('restores binary to original path after failed download so offline startup works', async () => {

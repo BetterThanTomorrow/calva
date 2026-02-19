@@ -38,11 +38,15 @@ export async function downloadWithBackupRecovery(
   const backupPath = await backupFile(filePath);
   try {
     await download();
+    if (backupPath) {
+      await fs.promises.unlink(backupPath).catch((_) => undefined);
+    }
     return { path: filePath, restored: false };
   } catch (e) {
     if (!backupPath) {
       throw e;
     }
+    console.log('Download failed, recovering from backup:', e.message);
     const restored = await restoreFile(backupPath, filePath);
     return {
       path: restored ? filePath : backupPath,
