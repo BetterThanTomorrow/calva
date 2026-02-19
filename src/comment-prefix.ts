@@ -4,7 +4,8 @@ export const commentPrefixPattern = /^;+/;
 /**
  * Calculates the end index for removing a comment prefix (semicolons + trailing space)
  * from a line of text. Returns the index up to which characters should be removed,
- * accounting for the semicolon(s) and a single trailing space
+ * accounting for the semicolon(s) and a single trailing space (or all trailing spaces
+ * if the line is otherwise empty after the prefix).
  *
  * @param lineText - The full text of the line
  * @param firstNonWhitespace - The index of the first non-whitespace character in the line
@@ -21,9 +22,20 @@ export function calculateCommentPrefixRemovalEnd(
   }
 
   let removalEnd = firstNonWhitespace + match[0].length;
-  // If there is a space immediately following the semicolons, include it in the removal
   if (removalEnd < lineText.length && lineText[removalEnd] === ' ') {
-    removalEnd++;
+    let spaceRunEnd = removalEnd;
+    // If the line is otherwise empty after the comment prefix, remove all trailing spaces as well
+    while (spaceRunEnd < lineText.length && lineText[spaceRunEnd] === ' ') {
+      spaceRunEnd++;
+    }
+
+    // If we reached the end of the line, remove all spaces.
+    //  Otherwise, just remove one space after the comment prefix.
+    if (spaceRunEnd === lineText.length) {
+      removalEnd = spaceRunEnd;
+    } else {
+      removalEnd++;
+    }
   }
 
   return removalEnd;
