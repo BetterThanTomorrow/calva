@@ -281,6 +281,20 @@ suite(suiteName, () => {
     );
   });
 
+  it('should structurally comment unformatted multiline partial selection in a defn body', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•(a |(b c•d•e)|•f))'),
+      '(defn foo []•(a |;; (b c•;; d•;; e)|•f))'
+    );
+  });
+
+  it('should structurally comment unformatted nested multiline partial selection without breaking structure', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•(a |(b c•(d e•f)•g•h)|•i•j))'),
+      '(defn foo []•(a |;; (b c•;; (d e•;; f)•;; g•;; h)|•i•j))'
+    );
+  });
+
   it('should structurally comment multiline selection nested in parent form and preserve full selected range', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
