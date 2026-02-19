@@ -69,7 +69,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
   const status_bar_item = vscode.window.createStatusBarItem('clojureLSP.manage', vscode.StatusBarAlignment.Left, 0);
   status_bar_item.command = 'calva.clojureLsp.manage';
-  status_bar_item.name = 'Calva: clojure-lsp'
+  status_bar_item.name = 'Calva: clojure-lsp Menu'
 
   const updateStatusBar = () => {
     const any_starting = Array.from(clients.values()).find(
