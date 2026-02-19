@@ -86,6 +86,10 @@ async function applyStructuralCommentsToSingleSelectionLines(
 ) {
   const originalSelections = [...editor.selections];
   const singleSelection = editor.selections[0];
+  const partialSelectionStartColumn =
+    !singleSelection.isEmpty && affectedLineNumbers.length > 1
+      ? singleSelection.start.character
+      : undefined;
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
@@ -137,7 +141,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
           affectedLineNumbers.length > 1
             ? resolvedAlignedCommentColumn
             : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
-        const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
+        const firstLineInsertionColumn =
+          partialSelectionStartColumn !== undefined && lineNum === singleSelection.start.line
+            ? Math.max(rawInsertionColumn, partialSelectionStartColumn)
+            : rawInsertionColumn;
+        const insertionColumn = Math.min(firstLineInsertionColumn, currentLine.text.length);
         originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
           new vscode.Position(lineNum, insertionColumn)
