@@ -4,7 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+<<<<<<< issue-3078-toggle-comemnts-off-indent-glitch
 - Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+=======
+- Fix: [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
+>>>>>>> dev
 
 ## [2.0.555] - 2026-02-19
 

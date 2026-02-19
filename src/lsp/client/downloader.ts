@@ -5,6 +5,10 @@ import * as config from '../../config';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
+import { downloadWithBackupRecovery } from './downloader-utils';
+
+const VERSION_CHECK_TIMEOUT_MS = 10_000;
+const DOWNLOAD_TIMEOUT_MS = 120_000;
 
 const versionFileName = 'clojure-lsp-version';
 
@@ -56,9 +60,12 @@ export async function readVersionFile(extensionPath: string) {
 
 async function getLatestVersion(): Promise<string> {
   try {
-    const releasesJSON = await util.fetchFromUrl(
-      'https://api.github.com/repos/clojure-lsp/clojure-lsp/releases'
-    );
+    const releasesJSON = await Promise.race([
+      util.fetchFromUrl('https://api.github.com/repos/clojure-lsp/clojure-lsp/releases'),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Version check timed out')), VERSION_CHECK_TIMEOUT_MS)
+      ),
+    ]);
     const releases = JSON.parse(releasesJSON);
     return releases[0].tag_name;
   } catch (err) {
@@ -66,29 +73,10 @@ async function getLatestVersion(): Promise<string> {
   }
 }
 
-async function backupExistingFile(clojureLspPath: string): Promise<string> {
-  const backupDir = path.join(path.dirname(clojureLspPath), 'backup');
-  const backupPath = path.join(backupDir, path.basename(clojureLspPath));
-
-  if (fs.existsSync(clojureLspPath)) {
-    try {
-      await fs.promises.mkdir(backupDir, {
-        recursive: true,
-      });
-      console.log('Backing up existing clojure-lsp to', backupPath);
-      await fs.promises.rename(clojureLspPath, backupPath);
-    } catch (e) {
-      console.log('Error while backing up existing clojure-lsp file.', e.message);
-    }
-  }
-
-  return fs.existsSync(backupPath) ? backupPath : null;
-}
-
 function downloadArtifact(url: string, filePath: string): Promise<void> {
   console.log('Downloading clojure-lsp from', url);
   return new Promise((resolve, reject) => {
-    https
+    const request = https
       .get(url, (response) => {
         if (response.statusCode === 200) {
           const writeStream = fs.createWriteStream(filePath);
@@ -100,11 +88,14 @@ function downloadArtifact(url: string, filePath: string): Promise<void> {
             })
             .pipe(writeStream);
         } else {
-          response.resume(); // Consume response to free up memory
+          response.resume();
           reject(new Error(response.statusMessage));
         }
       })
       .on('error', reject);
+    request.setTimeout(DOWNLOAD_TIMEOUT_MS, () => {
+      request.destroy(new Error('Download timed out'));
+    });
   });
 }
 
@@ -135,8 +126,8 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
       : `https://github.com/clojure-lsp/clojure-lsp-dev-builds/releases/latest/download/${artifactName}`;
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = getClojureLspPath(extensionPath);
-  const backupPath = await backupExistingFile(clojureLspPath);
-  try {
+
+  const result = await downloadWithBackupRecovery(clojureLspPath, async () => {
     await downloadArtifact(url, downloadPath);
     if (path.extname(downloadPath) === '.zip') {
       await unzipFile(downloadPath, extensionPath);
@@ -145,19 +136,14 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
       await fs.promises.chmod(clojureLspPath, 0o775);
     }
     writeVersionFile(extensionPath, version);
-  } catch (e) {
-    console.log(`Error downloading clojure-lsp, version: ${version}, from ${url}`, e);
-    if (backupPath) {
-      console.log('Using backup clojure-lsp');
-      void vscode.window.showWarningMessage(
-        `Error downloading clojure-lsp, version: ${version}, from ${url}. Using backup clojure-lsp`
-      );
-      return backupPath;
-    } else {
-      throw new Error(`Error downloading clojure-lsp, version: ${version}, from ${url}`);
-    }
+  });
+
+  if (result.restored) {
+    void vscode.window.showWarningMessage(
+      `Error downloading clojure-lsp, version: ${version}. Using previously downloaded clojure-lsp`
+    );
   }
-  return clojureLspPath;
+  return result.path;
 }
 
 export const ensureServerDownloaded = async (
