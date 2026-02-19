@@ -8,6 +8,8 @@ import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
 import { calculateCommentPrefixRemovalEnd, findCommentPrefixStart } from './comment-prefix';
 
+type CandidatesMap = Map<number, number[]>;
+
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
 export function continueCommentCommand() {
@@ -79,7 +81,7 @@ function commentCandidatePositions(
 function areAllNonEmptyTargetLinesCommented(
   document: vscode.TextDocument,
   lineNumbers: number[],
-  candidatesMap: Map<number, number[]>
+  candidatesMap: CandidatesMap
 ): boolean {
   const nonEmptyLines = lineNumbers.filter(
     (lineNum) => !document.lineAt(lineNum).isEmptyOrWhitespace
@@ -158,7 +160,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
         const rawInsertionColumn =
           affectedLineNumbers.length > 1
             ? resolvedAlignedCommentColumn
-            : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
+            : (originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace);
         const firstLineInsertionColumn =
           partialSelectionStartColumn !== undefined && lineNum === singleSelection.start.line
             ? Math.max(rawInsertionColumn, partialSelectionStartColumn)
@@ -420,7 +422,7 @@ async function updateLineComments(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
   shouldUncomment: boolean,
-  candidatesMap: Map<number, number[]>
+  candidatesMap: CandidatesMap
 ) {
   const descendingLineNumbers = affectedLineNumbers.sort((a, b) => b - a);
 
@@ -470,7 +472,7 @@ async function toggleCommentsThenReformatEnclosingForms(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
   shouldUncomment: boolean,
-  candidatesMap: Map<number, number[]>
+  candidatesMap: CandidatesMap
 ) {
   await updateLineComments(editor, affectedLineNumbers, shouldUncomment, candidatesMap);
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
