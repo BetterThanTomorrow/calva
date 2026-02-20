@@ -610,7 +610,22 @@ export async function reJackInCommand() {
     void vscode.window.showInformationMessage('No active Jack-in process to restart.');
     return;
   }
-  const connectSequence = processes[0].connectSequence;
+  let connectSequence: ReplConnectSequence;
+  if (processes.length === 1) {
+    connectSequence = processes[0].connectSequence;
+  } else {
+    const picked = await vscode.window.showQuickPick(
+      processes.map((p) => ({
+        label: p.connectSequenceName ?? p.connectSequence.name,
+        process: p,
+      })),
+      { title: 'Pick a REPL to restart', placeHolder: 'Select which Jack-in process to restart' }
+    );
+    if (!picked) {
+      return;
+    }
+    connectSequence = picked.process.connectSequence;
+  }
   await jackIn(connectSequence, true);
 }
 
