@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.558] - 2026-02-20
+
+- Add dedicated Re-Jack-In command that preserves the current REPL configuration on restart
+
 ## [2.0.557] - 2026-02-20
 
 - Add "Restart the Project REPL (a.k.a. Re-jack-in)" option to the connected REPL menu

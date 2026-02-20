@@ -271,6 +271,7 @@ async function activate(context: vscode.ExtensionContext) {
     interruptAllEvaluations: eval.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
+    reJackIn: jackIn.reJackInCommand,
     loadFile: eval.loadFileCommand,
     openCalvaDocs: async () => {
       await context.globalState.update(VIEWED_CALVA_DOCS, true);
