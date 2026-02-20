@@ -351,6 +351,11 @@ suite(suiteName, () => {
   });
 
   describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
+    afterEach(async () => {
+      // Restore commentCurrentLine for consistency with other tests
+      await setToggleCommentBehavior('commentCurrentLine');
+    });
+
     it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
