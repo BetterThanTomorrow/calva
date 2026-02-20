@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.559] - 2026-02-20
+
 - [Allow users to hide individual status bar items](https://github.com/BetterThanTomorrow/calva/issues/3094)
 
 ## [2.0.558] - 2026-02-20
