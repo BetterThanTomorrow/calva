@@ -181,7 +181,7 @@ The **Toggle Line Comment** command (`ctrl+/` / `cmd+/`) behavior when there is 
 | `ignoreParentForm` | Toggle `#_` (ignore/discard) on the enclosing/parent form |
 | `commentCurrentLine` | Toggle `;;` line comment on the current line (classic behavior) |
 
-Using `#_` preserves the structural integrity of your code — the form remains readable by the editor and can be toggled back without any reformatting side effects. The `;;` line comment behavior is still used when text is selected, when the cursor is in an existing `;;` comment, or when using multiple cursors.
+Using `#_` preserves the structural integrity of your code: the form remains readable by the editor and can be toggled back without any reformatting side effects. The `;;` line comment behavior is used when text is selected, when the cursor is in an existing `;;` comment, or when using multiple cursors.
 
 ```json
 {
