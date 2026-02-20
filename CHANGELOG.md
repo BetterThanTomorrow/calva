@@ -6,6 +6,21 @@ Changes to Calva.
 
 - [Allow users to hide individual status bar items](https://github.com/BetterThanTomorrow/calva/issues/3094)
 
+## [2.0.558] - 2026-02-20
+
+- Add dedicated Re-Jack-In command that preserves the current REPL configuration on restart
+
+## [2.0.557] - 2026-02-20
+
+- Add "Restart the Project REPL (a.k.a. Re-jack-in)" option to the connected REPL menu
+
+## [2.0.556] - 2026-02-19
+
+- Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+- Fix: [Toggle comments off fails when first line doesn't start with ;;](https://github.com/BetterThanTomorrow/calva/issues/3081)
+- Fix: [Toggle Line Comment can break structure for unformatted partial multiline selections](https://github.com/BetterThanTomorrow/calva/issues/3083)
+- Fix: [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
+
 ## [2.0.555] - 2026-02-19
 
 - Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)
