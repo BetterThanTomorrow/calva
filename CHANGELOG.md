@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Allow users to hide individual status bar items](https://github.com/BetterThanTomorrow/calva/issues/3094)
+
 ## [2.0.555] - 2026-02-19
 
 - Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)
