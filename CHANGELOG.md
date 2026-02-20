@@ -8,7 +8,7 @@ Changes to Calva.
 
 ## [2.0.558] - 2026-02-20
 
-- Add dedicated Re-Jack-In command that preserves the current REPL configuration on restart
+- [Add dedicated Re-Jack-In command that preserves the current REPL configuration on restart](https://github.com/BetterThanTomorrow/calva/issues/3091)
 
 ## [2.0.557] - 2026-02-20
 
