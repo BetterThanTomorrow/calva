@@ -110,3 +110,4 @@ src/calva-fmt/atom-language-clojure/.bash_history
 *~
 
 **/.cljs_node_repl/
+.venv-docs/

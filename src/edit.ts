@@ -6,9 +6,9 @@ import * as select from './select';
 import * as printer from './printer';
 import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
-import { calculateCommentPrefixRemovalEnd, commentPrefixPattern } from './comment-prefix';
+import { calculateCommentPrefixRemovalEnd, findCommentPrefixStart } from './comment-prefix';
 
-export { commentPrefixPattern } from './comment-prefix';
+type CandidatesMap = Map<number, number[]>;
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
@@ -58,9 +58,30 @@ function getAffectedLineNumbers(editor: vscode.TextEditor, lineCount: number): n
     .sort((a, b) => a - b);
 }
 
+/**
+ * Builds candidate positions where a comment prefix might start on a line:
+ * first non-whitespace, then any selection start columns past that point.
+ */
+function commentCandidatePositions(
+  firstNonWhitespace: number,
+  lineNum: number,
+  selections?: readonly vscode.Selection[]
+): number[] {
+  const positions = [firstNonWhitespace];
+  if (selections) {
+    for (const sel of selections) {
+      if (sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
+        positions.push(sel.start.character);
+      }
+    }
+  }
+  return positions;
+}
+
 function areAllNonEmptyTargetLinesCommented(
   document: vscode.TextDocument,
-  lineNumbers: number[]
+  lineNumbers: number[],
+  candidatesMap: CandidatesMap
 ): boolean {
   const nonEmptyLines = lineNumbers.filter(
     (lineNum) => !document.lineAt(lineNum).isEmptyOrWhitespace
@@ -68,9 +89,8 @@ function areAllNonEmptyTargetLinesCommented(
   return (
     nonEmptyLines.length > 0 &&
     nonEmptyLines.every((lineNum) => {
-      const line = document.lineAt(lineNum);
-      const lineText = line.text.slice(line.firstNonWhitespaceCharacterIndex);
-      return commentPrefixPattern.test(lineText);
+      const candidates = candidatesMap.get(lineNum) ?? [];
+      return findCommentPrefixStart(document.lineAt(lineNum).text, candidates) !== undefined;
     })
   );
 }
@@ -86,6 +106,10 @@ async function applyStructuralCommentsToSingleSelectionLines(
 ) {
   const originalSelections = [...editor.selections];
   const singleSelection = editor.selections[0];
+  const partialSelectionStartColumn =
+    !singleSelection.isEmpty && affectedLineNumbers.length > 1
+      ? singleSelection.start.character
+      : undefined;
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
@@ -137,7 +161,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
           affectedLineNumbers.length > 1
             ? resolvedAlignedCommentColumn
             : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
-        const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
+        const firstLineInsertionColumn =
+          partialSelectionStartColumn !== undefined && lineNum === singleSelection.start.line
+            ? Math.max(rawInsertionColumn, partialSelectionStartColumn)
+            : rawInsertionColumn;
+        const insertionColumn = Math.min(firstLineInsertionColumn, currentLine.text.length);
         originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
           new vscode.Position(lineNum, insertionColumn)
@@ -393,31 +421,38 @@ async function reformatEnclosingFormsForLines(
 async function updateLineComments(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  candidatesMap: CandidatesMap
 ) {
-  const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const descendingLineNumbers = affectedLineNumbers.sort((a, b) => b - a);
 
   await editor.edit(
     (editBuilder) => {
       for (const lineNum of descendingLineNumbers) {
         const line = editor.document.lineAt(lineNum);
-        const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
         const lineText = line.text;
 
         if (shouldUncomment) {
-          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, firstNonWhitespace);
+          const removalStart = findCommentPrefixStart(lineText, candidatesMap.get(lineNum) ?? []);
+          if (removalStart === undefined) {
+            continue;
+          }
+          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, removalStart);
           if (removalEnd === undefined) {
             continue;
           }
 
           editBuilder.delete(
             new vscode.Range(
-              new vscode.Position(lineNum, firstNonWhitespace),
+              new vscode.Position(lineNum, removalStart),
               new vscode.Position(lineNum, removalEnd)
             )
           );
         } else {
-          editBuilder.insert(new vscode.Position(lineNum, firstNonWhitespace), ';; ');
+          editBuilder.insert(
+            new vscode.Position(lineNum, line.firstNonWhitespaceCharacterIndex),
+            ';; '
+          );
         }
       }
     },
@@ -436,9 +471,10 @@ async function updateLineComments(
 async function toggleCommentsThenReformatEnclosingForms(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  candidatesMap: CandidatesMap
 ) {
-  await updateLineComments(editor, affectedLineNumbers, shouldUncomment);
+  await updateLineComments(editor, affectedLineNumbers, shouldUncomment, candidatesMap);
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
 }
 
@@ -558,9 +594,19 @@ export async function toggleLineCommentCommand() {
     return;
   }
 
+  const candidatesMap = new Map<number, number[]>();
+  for (const lineNum of affectedLineNumbers) {
+    const line = document.lineAt(lineNum);
+    candidatesMap.set(
+      lineNum,
+      commentCandidatePositions(line.firstNonWhitespaceCharacterIndex, lineNum, editor.selections)
+    );
+  }
+
   const allNonEmptyLinesCommented = areAllNonEmptyTargetLinesCommented(
     document,
-    affectedLineNumbers
+    affectedLineNumbers,
+    candidatesMap
   );
 
   if (!allNonEmptyLinesCommented && isSingleSelection) {
@@ -571,7 +617,8 @@ export async function toggleLineCommentCommand() {
   await toggleCommentsThenReformatEnclosingForms(
     editor,
     affectedLineNumbers,
-    allNonEmptyLinesCommented
+    allNonEmptyLinesCommented,
+    candidatesMap
   );
 }
 
