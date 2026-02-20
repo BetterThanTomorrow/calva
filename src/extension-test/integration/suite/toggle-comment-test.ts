@@ -100,15 +100,25 @@ async function toggleCommentUsingActiveEditor(textAndSelections: string) {
   return toggleComment(vscode.window.activeTextEditor, textAndSelections);
 }
 
+async function setToggleCommentBehavior(behavior: string | undefined) {
+  await vscode.workspace
+    .getConfiguration('calva.paredit')
+    .update('toggleCommentBehavior', behavior, vscode.ConfigurationTarget.Global);
+}
+
 suite(suiteName, () => {
   before(async () => {
     testUtil.showMessage(suiteName, `suite starting`);
+    // Set commentCurrentLine so existing ;; tests continue to work as before
+    await setToggleCommentBehavior('commentCurrentLine');
     return testUtil.openFile(testFilePath).then((x) => {
       return new Promise((resolve) => setTimeout(resolve, 1000));
     });
   });
 
   after(async () => {
+    // Restore default setting
+    await setToggleCommentBehavior(undefined);
     console.log('Finally, toggle comment suite is closing the active editor');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.showMessage(suiteName, `suite done!`);
@@ -282,5 +292,87 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
       '(x• (j (y |;; (a b c)|•     ))• z)'
     );
+  });
+
+  // #_ (ignore/discard) toggle tests
+  it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
+      '(defn foo []•  #_|(println "test"))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should remove #_ from current form when cursor is inside ignored form', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  #_|(println "test"))'),
+      '(defn foo []•  |(println "test"))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
+      '(defn foo []•  (when true•    (+ #_|1 2)))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|1 2)))'),
+      '(defn foo []•  (when true•    (+ |1 2)))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should add #_ to parent form when using ignoreParentForm', async () => {
+    await setToggleCommentBehavior('ignoreParentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
+      '(defn foo []•  (when true•    #_(+ |1 2)))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should fall back to ;; when text is selected even with ignoreCurrentForm', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
+      '|;; (defn foo []•;;   (prn "hi"))|'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should fall back to ;; uncomment when cursor is in comment with ignoreCurrentForm', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
+      '(defn foo []•  |(println "test"))'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should add #_ to top-level form with ignoreCurrentForm', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('|(defn foo [])'),
+      '#_|(defn foo [])'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
+  });
+
+  it('should remove #_ from top-level form with ignoreCurrentForm', async () => {
+    await setToggleCommentBehavior('ignoreCurrentForm');
+    assert.equal(
+      await toggleCommentUsingActiveEditor('#_|(defn foo [])'),
+      '|(defn foo [])'
+    );
+    await setToggleCommentBehavior('commentCurrentLine');
   });
 });
