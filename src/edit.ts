@@ -579,11 +579,9 @@ export async function toggleLineCommentCommand() {
     const behavior = vscode.workspace
       .getConfiguration('calva.paredit')
       .get<string>('toggleCommentBehavior', 'ignoreCurrentForm');
-    if (behavior === 'ignoreCurrentForm') {
-      await toggleIgnoreForm(editor, document, false);
-      return;
-    } else if (behavior === 'ignoreParentForm') {
-      await toggleIgnoreForm(editor, document, true);
+    const isIgnoreParentForm = behavior === 'ignoreParentForm';
+    if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
+      await toggleIgnoreForm(editor, document, isIgnoreParentForm);
       return;
     }
     // 'commentCurrentLine' falls through to existing ;; behavior
