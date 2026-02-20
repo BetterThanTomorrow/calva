@@ -443,8 +443,77 @@ async function toggleCommentsThenReformatEnclosingForms(
 }
 
 /**
+ * Toggles `#_` (ignore/discard) on the form at the cursor position.
+ * If the form already has a preceding `#_`, it is removed; otherwise `#_` is inserted.
+ *
+ * @param useParentForm When true, targets the enclosing/parent form instead of the current form.
+ */
+async function toggleIgnoreForm(
+  editor: vscode.TextEditor,
+  document: vscode.TextDocument,
+  useParentForm: boolean
+) {
+  const position = editor.selections[0].active;
+
+  const formRange = useParentForm
+    ? select.getEnclosingFormSelection(document, position)
+    : select.getFormSelection(document, position, false);
+
+  if (!formRange) {
+    return;
+  }
+
+  const formStartOffset = document.offsetAt(formRange.start);
+  const mirrorDoc = docMirror.getDocument(document);
+  const cursor = mirrorDoc.getTokenCursor(formStartOffset);
+
+  // Check if there's a #_ token immediately before the form
+  const probe = cursor.clone();
+  probe.backwardWhitespace();
+  const prevToken = probe.getPrevToken();
+
+  if (prevToken.type === 'ignore') {
+    // Remove the #_ token
+    probe.previous();
+    const ignoreStart = probe.offsetStart;
+    const ignoreEnd = ignoreStart + prevToken.raw.length;
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.delete(
+          new vscode.Range(document.positionAt(ignoreStart), document.positionAt(ignoreEnd))
+        );
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+  } else {
+    // Insert #_ before the form
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.insert(document.positionAt(formStartOffset), '#_');
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+  }
+}
+
+/**
+ * Returns true if the cursor is currently positioned within a ;; line comment.
+ */
+function isCursorInLineComment(document: vscode.TextDocument, position: vscode.Position): boolean {
+  const mirrorDoc = docMirror.getDocument(document);
+  const offset = document.offsetAt(position);
+  const cursor = mirrorDoc.getTokenCursor(offset);
+  return cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+}
+
+/**
  * Toggle line comments with Clojure-aware indentation.
  *
+ * - When the cursor has no selection and is not in a line comment, the behavior
+ *   is controlled by the `calva.paredit.toggleCommentBehavior` setting:
+ *   - `ignoreCurrentForm` (default): Toggle `#_` on the current form
+ *   - `ignoreParentForm`: Toggle `#_` on the enclosing/parent form
+ *   - `commentCurrentLine`: Use `;;` line comment (classic behavior)
  * - For a single selection (cursor or range), comments are inserted structurally
  *   using paredit structural analysis to preserve delimiter balance, then
  *   enclosing forms are reformatted.
@@ -462,6 +531,28 @@ export async function toggleLineCommentCommand() {
     return;
   }
 
+  // When there's a single empty selection (just a cursor) not in a comment,
+  // check the toggleCommentBehavior setting for #_ toggle
+  const isSingleSelection = editor.selections.length === 1;
+  const selection = editor.selections[0];
+  if (
+    isSingleSelection &&
+    selection.isEmpty &&
+    !isCursorInLineComment(document, selection.active)
+  ) {
+    const behavior = vscode.workspace
+      .getConfiguration('calva.paredit')
+      .get<string>('toggleCommentBehavior', 'ignoreCurrentForm');
+    if (behavior === 'ignoreCurrentForm') {
+      await toggleIgnoreForm(editor, document, false);
+      return;
+    } else if (behavior === 'ignoreParentForm') {
+      await toggleIgnoreForm(editor, document, true);
+      return;
+    }
+    // 'commentCurrentLine' falls through to existing ;; behavior
+  }
+
   const affectedLineNumbers = getAffectedLineNumbers(editor, document.lineCount);
   if (affectedLineNumbers.length === 0) {
     return;
@@ -472,7 +563,6 @@ export async function toggleLineCommentCommand() {
     affectedLineNumbers
   );
 
-  const isSingleSelection = editor.selections.length === 1;
   if (!allNonEmptyLinesCommented && isSingleSelection) {
     await applyStructuralCommentsToSingleSelectionLines(editor, affectedLineNumbers);
     return;
