@@ -24,7 +24,7 @@ export type MenuItem = vscode.QuickPickItem & {
 };
 
 const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
-const RE_JACK_IN_COMMAND = 'calva.jackIn';
+const RE_JACK_IN_COMMAND = 'calva.reJackIn';
 const JACK_OUT_OPTION = 'Stop/Kill all Project REPLs started by Calva (a.k.a. Jack-out)';
 const JACK_OUT_COMMAND = 'calva.jackOut';
 const INTERRUPT_OPTION = 'Interrupt running Evaluations';

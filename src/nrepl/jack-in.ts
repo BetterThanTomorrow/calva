@@ -604,6 +604,16 @@ export function jackOutCommand() {
   return calvaJackout();
 }
 
+export async function reJackInCommand() {
+  const processes = listJackInProcesses().filter((entry) => entry.connected);
+  if (processes.length === 0) {
+    void vscode.window.showInformationMessage('No active Jack-in process to restart.');
+    return;
+  }
+  const connectSequence = processes[0].connectSequence;
+  await jackIn(connectSequence, true);
+}
+
 export async function jackInCommand(options: {
   connectSequence?: ReplConnectSequence | string;
   disableAutoSelect?: boolean;
