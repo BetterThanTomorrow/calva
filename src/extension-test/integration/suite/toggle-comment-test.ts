@@ -301,7 +301,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
       '(defn foo []•  #_|(println "test"))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should remove #_ from current form when cursor is inside ignored form', async () => {
@@ -310,7 +309,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  #_|(println "test"))'),
       '(defn foo []•  |(println "test"))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
@@ -319,7 +317,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
       '(defn foo []•  (when true•    (+ #_|1 2)))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
@@ -328,7 +325,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|1 2)))'),
       '(defn foo []•  (when true•    (+ |1 2)))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should add #_ to parent form when using ignoreParentForm', async () => {
@@ -337,7 +333,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
       '(defn foo []•  (when true•    #_(+ |1 2)))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should fall back to ;; when text is selected even with ignoreCurrentForm', async () => {
@@ -346,7 +341,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
       '|;; (defn foo []•;;   (prn "hi"))|'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should fall back to ;; uncomment when cursor is in comment with ignoreCurrentForm', async () => {
@@ -355,7 +349,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
       '(defn foo []•  |(println "test"))'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should add #_ to top-level form with ignoreCurrentForm', async () => {
@@ -364,7 +357,6 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('|(defn foo [])'),
       '#_|(defn foo [])'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 
   it('should remove #_ from top-level form with ignoreCurrentForm', async () => {
@@ -373,6 +365,5 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('#_|(defn foo [])'),
       '|(defn foo [])'
     );
-    await setToggleCommentBehavior('commentCurrentLine');
   });
 });
