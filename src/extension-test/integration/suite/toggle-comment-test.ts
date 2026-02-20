@@ -350,70 +350,71 @@ suite(suiteName, () => {
     assert.equal(nestedUncommented, nested);
   });
 
-  // #_ (ignore/discard) toggle tests
-  it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
-      '(defn foo []•  #_|(println "test"))'
-    );
-  });
+  describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
+    it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
+        '(defn foo []•  #_|(println "test"))'
+      );
+    });
 
-  it('should remove #_ from current form when cursor is inside ignored form', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  #_|(println "test"))'),
-      '(defn foo []•  |(println "test"))'
-    );
-  });
+    it('should remove #_ from current form when cursor is inside ignored form', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  #_|(println "test"))'),
+        '(defn foo []•  |(println "test"))'
+      );
+    });
 
-  it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
-      '(defn foo []•  (when true•    (+ #_|1 2)))'
-    );
-  });
+    it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
+        '(defn foo []•  (when true•    (+ #_|1 2)))'
+      );
+    });
 
-  it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|1 2)))'),
-      '(defn foo []•  (when true•    (+ |1 2)))'
-    );
-  });
+    it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|1 2)))'),
+        '(defn foo []•  (when true•    (+ |1 2)))'
+      );
+    });
 
-  it('should add #_ to parent form when using ignoreParentForm', async () => {
-    await setToggleCommentBehavior('ignoreParentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
-      '(defn foo []•  (when true•    #_(+ |1 2)))'
-    );
-  });
+    it('should add #_ to parent form when using ignoreParentForm', async () => {
+      await setToggleCommentBehavior('ignoreParentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |1 2)))'),
+        '(defn foo []•  (when true•    #_(+ |1 2)))'
+      );
+    });
 
-  it('should fall back to ;; when text is selected even with ignoreCurrentForm', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
-      '|;; (defn foo []•;;   (prn "hi"))|'
-    );
-  });
+    it('should fall back to ;; when text is selected even with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
+        '|;; (defn foo []•;;   (prn "hi"))|'
+      );
+    });
 
-  it('should fall back to ;; uncomment when cursor is in comment with ignoreCurrentForm', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(
-      await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
-      '(defn foo []•  |(println "test"))'
-    );
-  });
+    it('should fall back to ;; uncomment when cursor is in comment with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
+        '(defn foo []•  |(println "test"))'
+      );
+    });
 
-  it('should add #_ to top-level form with ignoreCurrentForm', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
-  });
+    it('should add #_ to top-level form with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
+    });
 
-  it('should remove #_ from top-level form with ignoreCurrentForm', async () => {
-    await setToggleCommentBehavior('ignoreCurrentForm');
-    assert.equal(await toggleCommentUsingActiveEditor('#_|(defn foo [])'), '|(defn foo [])');
+    it('should remove #_ from top-level form with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor('#_|(defn foo [])'), '|(defn foo [])');
+    });
   });
 });
