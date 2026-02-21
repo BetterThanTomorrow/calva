@@ -190,6 +190,6 @@ Triggered by pushes to `published` branch:
 ## Branch Strategy
 
 - **dev**: Main development branch. All feature branches merge here.
-- **published**: Reflects the latest stable release. Updated automatically after stable releases.
+- **published**: Reflects the lates released version. Updated automatically after a release.
 
 Documentation PRs that only update the `docs/site/` content should target the `published` branch directly.
