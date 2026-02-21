@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, it } from 'mocha';
+import { suite, before, after, it } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
