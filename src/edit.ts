@@ -72,7 +72,12 @@ function commentCandidatePositions(
   const positions = [firstNonWhitespace];
   if (selections) {
     for (const sel of selections) {
-      if (sel && sel.start && sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
+      if (
+        sel &&
+        sel.start &&
+        sel.start.line === lineNum &&
+        sel.start.character > firstNonWhitespace
+      ) {
         positions.push(sel.start.character);
       }
     }
@@ -500,9 +505,12 @@ async function toggleIgnoreForm(
   const cursorOffset = document.offsetAt(position);
 
   // Check if there's a #_ immediately before the cursor position
-  const textBeforeCursor = cursorOffset >= 2
-    ? document.getText(new vscode.Range(document.positionAt(cursorOffset - 2), document.positionAt(cursorOffset)))
-    : '';
+  const textBeforeCursor =
+    cursorOffset >= 2
+      ? document.getText(
+          new vscode.Range(document.positionAt(cursorOffset - 2), document.positionAt(cursorOffset))
+        )
+      : '';
   const hasIgnoreBeforeCursor = textBeforeCursor === '#_';
 
   if (hasIgnoreBeforeCursor) {
@@ -531,16 +539,25 @@ async function toggleIgnoreForm(
   const formStartOffset = document.offsetAt(formRange.start);
 
   // Check if there's a #_ already before the form
-  const textBeforeForm = formStartOffset >= 2
-    ? document.getText(new vscode.Range(document.positionAt(formStartOffset - 2), document.positionAt(formStartOffset)))
-    : '';
+  const textBeforeForm =
+    formStartOffset >= 2
+      ? document.getText(
+          new vscode.Range(
+            document.positionAt(formStartOffset - 2),
+            document.positionAt(formStartOffset)
+          )
+        )
+      : '';
 
   if (textBeforeForm === '#_') {
     // Remove the existing #_
     await editor.edit(
       (editBuilder) => {
         editBuilder.delete(
-          new vscode.Range(document.positionAt(formStartOffset - 2), document.positionAt(formStartOffset))
+          new vscode.Range(
+            document.positionAt(formStartOffset - 2),
+            document.positionAt(formStartOffset)
+          )
         );
       },
       { undoStopBefore: true, undoStopAfter: true }
@@ -596,11 +613,7 @@ export async function toggleLineCommentCommand() {
   const isSingleSelection = editor.selections.length === 1;
   if (isSingleSelection) {
     const selection = editor.selections[0];
-    if (
-      selection &&
-      selection.isEmpty &&
-      !isCursorInLineComment(document, selection.active)
-    ) {
+    if (selection && selection.isEmpty && !isCursorInLineComment(document, selection.active)) {
       const behavior = vscode.workspace
         .getConfiguration('calva.paredit')
         .get<string>('toggleCommentBehavior', 'ignoreCurrentForm');
