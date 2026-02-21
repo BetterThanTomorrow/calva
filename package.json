@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.559",
+  "version": "2.0.560",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1283,6 +1283,18 @@
             "additionalProperties": {
               "type": "string"
             },
+            "scope": "window"
+          },
+          "calva.paredit.toggleCommentBehavior": {
+            "type": "string",
+            "markdownDescription": "Controls the behavior of Toggle Line Comment when there is no text selected and the cursor is not in a line comment.",
+            "default": "ignoreParentForm",
+            "enum": ["ignoreParentForm", "ignoreCurrentForm", "commentCurrentLine"],
+            "enumDescriptions": [
+              "Toggle #_ (ignore/discard) on the parent/enclosing form",
+              "Toggle #_ (ignore/discard) on the current form at cursor",
+              "Toggle ;; line comment on the current line (classic behavior)"
+            ],
             "scope": "window"
           }
         }
