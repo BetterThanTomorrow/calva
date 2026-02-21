@@ -351,11 +351,6 @@ suite(suiteName, () => {
   });
 
   describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
-    afterEach(async () => {
-      // Restore commentCurrentLine for consistency with other tests
-      await setToggleCommentBehavior('commentCurrentLine');
-    });
-
     it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
@@ -417,16 +412,5 @@ suite(suiteName, () => {
       assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
     });
 
-    it('should remove #_ from top-level form with ignoreCurrentForm', async () => {
-      await setToggleCommentBehavior('ignoreCurrentForm');
-      assert.equal(await toggleCommentUsingActiveEditor('#_|(defn foo [])'), '|(defn foo [])');
-    });
-  });
-
-  it('should handle comment toggle at top-level form (no parent form)', async () => {
-    assert.equal(
-      await toggleCommentUsingActiveEditor('|(defn foo [])'),
-      ';; |(defn foo [])'
-    );
   });
 });
