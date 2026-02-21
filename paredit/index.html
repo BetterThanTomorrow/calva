@@ -736,6 +736,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#toggle-comment-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Toggle Comment Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#customizing-paredit-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       Customizing Paredit Behavior
@@ -2712,6 +2721,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#toggle-comment-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Toggle Comment Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#customizing-paredit-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       Customizing Paredit Behavior
@@ -3445,7 +3463,7 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 <tr>
 <td><code>ctrl+/</code> (win/linux)<br><code>cmd+/</code> (mac)</td>
 <td><strong>Toggle Line Comment</strong></td>
-<td>Comments or uncomments current line(s) with Clojure-aware behavior. For a single selection (cursor or range), commenting uses structural analysis to place semicolons safely and then reformats enclosing forms. For other cases (including multi-cursor and uncomment), it updates line comments directly and then reformats enclosing forms.</td>
+<td>When there is no selection and the cursor is not in a line comment, toggles <code>#_</code> (ignore/discard) on the parent form by default. This behavior is controlled by the <code>calva.paredit.toggleCommentBehavior</code> setting (see <a href="#toggle-comment-behavior">Toggle Comment Behavior</a> below). When text is selected or the cursor is in a <code>;;</code> comment, uses <code>;;</code> line commenting: structural analysis places semicolons safely and reformats enclosing forms.</td>
 </tr>
 </tbody>
 </table>
@@ -3462,6 +3480,35 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 <p><img alt="" src="../images/paredit/drag-pairs-in-binding-box.gif" /></p>
 <p>And like so (wait for it):</p>
 <p><img alt="" src="../images/paredit/drag-pairs-in-maps.gif" /></p>
+<h2 id="toggle-comment-behavior">Toggle Comment Behavior<a class="headerlink" href="#toggle-comment-behavior" title="Permanent link">#</a></h2>
+<p>The <strong>Toggle Line Comment</strong> command (<code>ctrl+/</code> / <code>cmd+/</code>) behavior when there is no text selected and the cursor is not in a line comment is controlled by the <code>calva.paredit.toggleCommentBehavior</code> setting:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ignoreParentForm</code> (default)</td>
+<td>Toggle <code>#_</code> (ignore/discard) on the enclosing/parent form</td>
+</tr>
+<tr>
+<td><code>ignoreCurrentForm</code></td>
+<td>Toggle <code>#_</code> (ignore/discard) on the current form at the cursor</td>
+</tr>
+<tr>
+<td><code>commentCurrentLine</code></td>
+<td>Toggle <code>;;</code> line comment on the current line (classic behavior)</td>
+</tr>
+</tbody>
+</table>
+<p>Using <code>#_</code> preserves the structural integrity of your code: the form remains readable by the editor and can be toggled back without any reformatting side effects. The <code>;;</code> line comment behavior is used when text is selected, when the cursor is in an existing <code>;;</code> comment, or when using multiple cursors.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;calva.paredit.toggleCommentBehavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ignoreCurrentForm&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 <h2 id="customizing-paredit-behavior">Customizing Paredit Behavior<a class="headerlink" href="#customizing-paredit-behavior" title="Permanent link">#</a></h2>
 <p>Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: <strong>customPairForms</strong>, <strong>customThreadingMacros</strong>, and <strong>aliasMap</strong>. These can be configured in two places that work together:</p>
 <ol>
