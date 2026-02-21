@@ -3425,5 +3425,8 @@ describe('paredit util', () => {
         )
       ).toBe(0);
     });
+    it('Multiline inside a list where close is at the end of current line (#3096)', () => {
+      expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('(a •|b)'))).toBe(5);
+    });
   });
 });
