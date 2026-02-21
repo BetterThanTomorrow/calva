@@ -191,7 +191,8 @@ async function applyStructuralCommentsToSingleSelectionLines(
               mirrorDoc,
               wouldBreakWhere,
               affectedLineSet,
-              partialSelectionStartOffset
+              partialSelectionStartOffset,
+              editor.document.offsetAt(singleSelection.end)
             );
             if (resolvedBreakOffset === false) {
               skipBreak = true;
@@ -310,7 +311,8 @@ function resolveStructuralBreakOffset(
   mirrorDoc: EditableDocument,
   wouldBreakWhere: number,
   affectedLineSet: Set<number>,
-  partialSelectionStartOffset?: number
+  partialSelectionStartOffset?: number,
+  partialSelectionEndOffset?: number
 ): number | false {
   const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
   const token = cursor.getToken();
@@ -321,6 +323,19 @@ function resolveStructuralBreakOffset(
     while (!probe.atEnd() && probe.line === startLine) {
       const tok = probe.getToken();
       if (tok.type === 'close') {
+        if (
+          partialSelectionStartOffset !== undefined &&
+          partialSelectionEndOffset !== undefined &&
+          probe.offsetStart === partialSelectionEndOffset
+        ) {
+          const tail = probe.clone();
+          tail.next();
+          tail.forwardWhitespace(true);
+          if (tail.atEnd() || !affectedLineSet.has(tail.line)) {
+            return probe.offsetStart;
+          }
+        }
+
         const finder = probe.clone();
         if (
           !finder.backwardList() ||
