@@ -49,8 +49,10 @@ export function continueCommentCommand() {
 function getAffectedLineNumbers(editor: vscode.TextEditor, lineCount: number): number[] {
   const affectedLines = new Set<number>();
   for (const selection of editor.selections) {
-    for (let line = selection.start.line; line <= selection.end.line; line++) {
-      affectedLines.add(line);
+    if (selection && selection.start && selection.end) {
+      for (let line = selection.start.line; line <= selection.end.line; line++) {
+        affectedLines.add(line);
+      }
     }
   }
   return Array.from(affectedLines)
@@ -70,7 +72,7 @@ function commentCandidatePositions(
   const positions = [firstNonWhitespace];
   if (selections) {
     for (const sel of selections) {
-      if (sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
+      if (sel && sel.start && sel.start.line === lineNum && sel.start.character > firstNonWhitespace) {
         positions.push(sel.start.character);
       }
     }
@@ -489,40 +491,62 @@ async function toggleIgnoreForm(
   document: vscode.TextDocument,
   useParentForm: boolean
 ) {
-  const position = editor.selections[0].active;
+  const selection = editor.selections[0];
+  if (!selection) {
+    return;
+  }
 
+  const position = selection.active;
+  const cursorOffset = document.offsetAt(position);
+
+  // Check if there's a #_ immediately before the cursor position
+  const textBeforeCursor = cursorOffset >= 2
+    ? document.getText(new vscode.Range(document.positionAt(cursorOffset - 2), document.positionAt(cursorOffset)))
+    : '';
+  const hasIgnoreBeforeCursor = textBeforeCursor === '#_';
+
+  if (hasIgnoreBeforeCursor) {
+    // Cursor is between #_ and the form - remove the #_
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.delete(
+          new vscode.Range(document.positionAt(cursorOffset - 2), document.positionAt(cursorOffset))
+        );
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+    return;
+  }
+
+  //Try getFormSelection first
   const formRange = useParentForm
     ? select.getEnclosingFormSelection(document, position)
     : select.getFormSelection(document, position, false);
 
   if (!formRange) {
+    // If getFormSelection returns undefined, fall back to regular commenting
     return;
   }
 
   const formStartOffset = document.offsetAt(formRange.start);
-  const mirrorDoc = docMirror.getDocument(document);
-  const cursor = mirrorDoc.getTokenCursor(formStartOffset);
 
-  // Check if there's a #_ token immediately before the form
-  const probe = cursor.clone();
-  probe.backwardWhitespace();
-  const prevToken = probe.getPrevToken();
+  // Check if there's a #_ already before the form
+  const textBeforeForm = formStartOffset >= 2
+    ? document.getText(new vscode.Range(document.positionAt(formStartOffset - 2), document.positionAt(formStartOffset)))
+    : '';
 
-  if (prevToken.type === 'ignore') {
-    // Remove the #_ token
-    probe.previous();
-    const ignoreStart = probe.offsetStart;
-    const ignoreEnd = ignoreStart + prevToken.raw.length;
+  if (textBeforeForm === '#_') {
+    // Remove the existing #_
     await editor.edit(
       (editBuilder) => {
         editBuilder.delete(
-          new vscode.Range(document.positionAt(ignoreStart), document.positionAt(ignoreEnd))
+          new vscode.Range(document.positionAt(formStartOffset - 2), document.positionAt(formStartOffset))
         );
       },
       { undoStopBefore: true, undoStopAfter: true }
     );
   } else {
-    // Insert #_ before the form
+    // Add #_ before the form
     await editor.edit(
       (editBuilder) => {
         editBuilder.insert(document.positionAt(formStartOffset), '#_');
@@ -570,21 +594,23 @@ export async function toggleLineCommentCommand() {
   // When there's a single empty selection (just a cursor) not in a comment,
   // check the toggleCommentBehavior setting for #_ toggle
   const isSingleSelection = editor.selections.length === 1;
-  const selection = editor.selections[0];
-  if (
-    isSingleSelection &&
-    selection.isEmpty &&
-    !isCursorInLineComment(document, selection.active)
-  ) {
-    const behavior = vscode.workspace
-      .getConfiguration('calva.paredit')
-      .get<string>('toggleCommentBehavior', 'ignoreCurrentForm');
-    const isIgnoreParentForm = behavior === 'ignoreParentForm';
-    if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
-      await toggleIgnoreForm(editor, document, isIgnoreParentForm);
-      return;
+  if (isSingleSelection) {
+    const selection = editor.selections[0];
+    if (
+      selection &&
+      selection.isEmpty &&
+      !isCursorInLineComment(document, selection.active)
+    ) {
+      const behavior = vscode.workspace
+        .getConfiguration('calva.paredit')
+        .get<string>('toggleCommentBehavior', 'ignoreCurrentForm');
+      const isIgnoreParentForm = behavior === 'ignoreParentForm';
+      if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
+        await toggleIgnoreForm(editor, document, isIgnoreParentForm);
+        return;
+      }
+      // 'commentCurrentLine' falls through to existing ;; behavior
     }
-    // 'commentCurrentLine' falls through to existing ;; behavior
   }
 
   const affectedLineNumbers = getAffectedLineNumbers(editor, document.lineCount);
