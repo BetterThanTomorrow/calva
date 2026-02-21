@@ -3392,7 +3392,7 @@ describe('paredit util', () => {
         paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a (b {|•} c•) d '))
       ).toBe(false);
     });
-    it('returns true before a list ending on the same line', () => {
+    it('returns false before a list ending on the same line', () => {
       expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a "b c" | (d)'))).toBe(
         false
       );
