@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { suite, before, after, it } from 'mocha';
+import { suite, describe, before, after, afterEach, it } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
@@ -421,5 +421,12 @@ suite(suiteName, () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(await toggleCommentUsingActiveEditor('#_|(defn foo [])'), '|(defn foo [])');
     });
+  });
+
+  it('should handle comment toggle at top-level form (no parent form)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('|(defn foo [])'),
+      ';; |(defn foo [])'
+    );
   });
 });
