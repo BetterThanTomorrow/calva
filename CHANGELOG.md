@@ -4,7 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Add: [Structural comment toggle using #_ as default](https://github.com/BetterThanTomorrow/calva/issues/3086). Controlled by the `calva.paredit.toggleCommentBehavior` setting (`ignoreCurrentForm`, `ignoreParentForm`, or `commentCurrentLine`)
+## [2.0.560] - 2026-02-21
+
+- Add: [Structural comment toggle using #_ as default](https://github.com/BetterThanTomorrow/calva/issues/3086). Controlled by the `calva.paredit.toggleCommentBehavior` setting (`ignoreParentForm`, `ignoreCurrentForm`, or `commentCurrentLine`)
 
 ## [2.0.559] - 2026-02-20
 
