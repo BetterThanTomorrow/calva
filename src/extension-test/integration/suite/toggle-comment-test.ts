@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { suite, describe, before, after, afterEach, it } from 'mocha';
+import { suite, describe, before, after, it } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
@@ -370,24 +370,24 @@ suite(suiteName, () => {
     it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
-        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |5 2)))'),
-        '(defn foo []•  (when true•    (+ #_|5 2)))'
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |-5 2)))'),
+        '(defn foo []•  (when true•    (+ #_|-5 2)))'
       );
     });
 
     it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
-        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|5 2)))'),
-        '(defn foo []•  (when true•    (+ |5 2)))'
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|-5 2)))'),
+        '(defn foo []•  (when true•    (+ |-5 2)))'
       );
     });
 
     it('should add #_ to parent form when using ignoreParentForm', async () => {
       await setToggleCommentBehavior('ignoreParentForm');
       assert.equal(
-        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |5 2)))'),
-        '(defn foo []•  (when true•    #_(+ |5 2)))'
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |-5 2)))'),
+        '(defn foo []•  (when true•    #_(+ |-5 2)))'
       );
     });
 
