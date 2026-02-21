@@ -2598,18 +2598,63 @@ export function _semiColonWouldBreakStructureWhere(
   if (startCursor.withinComment() || startCursor.withinString()) {
     return false;
   }
+
+  const hasEnclosingList = startCursor.clone().backwardList();
+
+  const previousSameLineCloseOffset = (cursor: LispTokenCursor): number | false => {
+    const previousToken = cursor.getPrevToken();
+    if (previousToken.type !== 'close') {
+      return false;
+    }
+    const candidateOffset = Math.max(cursor.offsetStart - previousToken.raw.length, 0);
+    const candidateCursor = doc.getTokenCursor(candidateOffset);
+    return candidateCursor.line === startCursor.line && candidateCursor.getToken().type === 'close'
+      ? candidateOffset
+      : false;
+  };
+
   const probeCursor = startCursor.clone();
   while (true) {
     probeCursor.forwardWhitespace(true);
     if (probeCursor.line !== startCursor.line || probeCursor.atEnd()) {
       return false; // at end of the starting line possibly in whitespace or comment
     }
+
+    if (probeCursor.getToken().type === 'close') {
+      return probeCursor.offsetStart;
+    }
+
     const offsetBeforeMoving = probeCursor.offsetStart;
     const moved = probeCursor.forwardSexp(true, true, true);
     if (probeCursor.line !== startCursor.line) {
       return offsetBeforeMoving; // the sexp in front ends on a different line
     }
-    if (!moved) {
+
+    if (moved) {
+      const afterSexpCursor = probeCursor.clone();
+      afterSexpCursor.forwardWhitespace(false);
+      if (
+        afterSexpCursor.line === startCursor.line &&
+        afterSexpCursor.getToken().type === 'close'
+      ) {
+        return afterSexpCursor.offsetStart;
+      }
+      if (afterSexpCursor.atEnd()) {
+        const previousCloseOffset = previousSameLineCloseOffset(afterSexpCursor);
+        if (hasEnclosingList && previousCloseOffset !== false && offsetBeforeMoving !== p) {
+          return previousCloseOffset;
+        }
+        if (hasEnclosingList && offsetBeforeMoving !== p) {
+          const lineStartOffset = p - startCursor.rowCol[1];
+          const lineText = doc.model.getLineText(startCursor.line);
+          const searchStart = Math.max(offsetBeforeMoving - lineStartOffset, 0);
+          const trailingCloseIndex = lineText.slice(searchStart).search(/[\])}]/);
+          if (trailingCloseIndex !== -1) {
+            return lineStartOffset + searchStart + trailingCloseIndex;
+          }
+        }
+      }
+    } else {
       return probeCursor.offsetStart; // inside a list ending on the same line
     }
   }
