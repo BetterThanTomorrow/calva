@@ -4,12 +4,9 @@ This document describes the Calva release process, including the happy path and 
 
 ## Overview
 
-Calva releases are automated through CircleCI. The release process is triggered by pushing a version tag to the repository. The tag format determines whether it's a pre-release or a stable release:
+Calva releases are automated through CircleCI. The release process is triggered by pushing a version tag to the repository.
 
-- **Pre-release**: `v2.0.560-dev`, `v2.0.560-rc1`, etc. (any suffix after the version)
-- **Stable release**: `v2.0.560` (semver only, no suffix)
-
-Pre-releases are published only to GitHub Releases. Stable releases are published to:
+Releases are published to:
 
 - GitHub Releases
 - VS Code Marketplace
@@ -151,19 +148,6 @@ If the changelog has no unreleased changes, the script will ask if you want to r
 
 - Skip the changelog update
 - Create a tag and push (useful for re-releasing after a failed CI run)
-
-## Pre-releases
-
-Pre-releases are useful for testing changes before a stable release. To create a pre-release:
-
-1. Manually edit `package.json` to add a suffix to the version (e.g., `2.0.561-rc1`)
-2. Run the publish script
-
-Pre-releases:
-
-- Are published only to GitHub Releases (not marketplaces)
-- Do not trigger the `merge-dev-into-published` or `bump-dev-version` jobs
-- Allow early adopters to test via `.vsix` download from GitHub
 
 ## CI Workflow Details
 
