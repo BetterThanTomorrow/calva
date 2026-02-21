@@ -367,6 +367,19 @@ suite(suiteName, () => {
       );
     });
 
+    it('should remove #_ when cursor is between #_ and form on next line (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor('#_|•(defn foo [])'), '|•(defn foo [])');
+    });
+
+    it('should remove #_ when cursor is between #_ and form with many spaces (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('#_     |     (defn foo [])'),
+        '     |     (defn foo [])'
+      );
+    });
+
     it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
