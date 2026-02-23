@@ -631,8 +631,8 @@ function isToggleCommentBehavior(val: any): val is ToggleCommentBehavior {
  * - When the cursor has no selection and is not in a line comment, the behavior
  *   is determined by the optional argument (when invoked via a
  *   keybinding with args) or the `calva.paredit.toggleCommentBehavior` setting:
- *   - `ignoreCurrentForm` (default): Toggle `#_` on the current form
- *   - `ignoreParentForm`: Toggle `#_` on the enclosing/parent form
+ *   - `ignoreCurrentForm`: Toggle `#_` on the current form
+ *   - `ignoreParentForm`: (default) Toggle `#_` on the enclosing/parent form
  *   - `commentCurrentLine`: Use `;;` line comment (classic behavior)
  * - For a single selection (cursor or range), comments are inserted structurally
  *   using paredit structural analysis to preserve delimiter balance, then
@@ -670,7 +670,7 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
       } else {
         behavior = vscode.workspace
           .getConfiguration('calva.paredit')
-          .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreCurrentForm');
+          .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreParentForm');
       }
       const isIgnoreParentForm = behavior === 'ignoreParentForm';
       if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
