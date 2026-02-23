@@ -305,6 +305,13 @@ suite(suiteName, () => {
     );
   });
 
+  it('should structurally comment multiline selection starting inside a nested form (issue #3096)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(a (|b•    c|))'),
+      '(a (|;; b•    ;; c|•    ))'
+    );
+  });
+
   it('should structurally comment multiline selection nested in parent form and preserve full selected range', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
