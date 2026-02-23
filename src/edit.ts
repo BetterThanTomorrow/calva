@@ -620,10 +620,16 @@ function isCursorInLineComment(document: vscode.TextDocument, position: vscode.P
   return cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
 }
 
-type ToggleCommentBehavior = 'ignoreCurrentForm' | 'ignoreParentForm' | 'commentCurrentLine';
+const TOGGLE_COMMENT_BEHAVIORS = [
+  'ignoreCurrentForm',
+  'ignoreParentForm',
+  'commentCurrentLine',
+] as const;
+
+type ToggleCommentBehavior = typeof TOGGLE_COMMENT_BEHAVIORS[number];
 
 function isToggleCommentBehavior(val: any): val is ToggleCommentBehavior {
-  return val === 'ignoreCurrentForm' || val === 'ignoreParentForm' || val === 'commentCurrentLine';
+  return TOGGLE_COMMENT_BEHAVIORS.includes(val);
 }
 /**
  * Toggle line comments with Clojure-aware indentation.
