@@ -466,10 +466,9 @@ suite(suiteName, () => {
     it('should use ignoreParentForm arg even when setting is commentCurrentLine', async () => {
       await setToggleCommentBehavior('commentCurrentLine');
       assert.equal(
-        await toggleCommentUsingActiveEditorWithArgs(
-          '(defn foo []•  (when true•    (+ |-5 2)))',
-          { behavior: 'ignoreParentForm' }
-        ),
+        await toggleCommentUsingActiveEditorWithArgs('(defn foo []•  (when true•    (+ |-5 2)))', {
+          behavior: 'ignoreParentForm',
+        }),
         '(defn foo []•  (when true•    #_(+ |-5 2)))'
       );
     });
