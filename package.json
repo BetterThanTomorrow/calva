@@ -1288,11 +1288,11 @@
           "calva.paredit.toggleCommentBehavior": {
             "type": "string",
             "markdownDescription": "Controls the behavior of Toggle Line Comment when there is no text selected and the cursor is not in a line comment.",
-            "default": "ignoreCurrentForm",
-            "enum": ["ignoreCurrentForm", "ignoreParentForm", "commentCurrentLine"],
+            "default": "ignoreParentForm",
+            "enum": ["ignoreParentForm", "ignoreCurrentForm", "commentCurrentLine"],
             "enumDescriptions": [
-              "Toggle #_ (ignore/discard) on the current form at cursor",
               "Toggle #_ (ignore/discard) on the parent/enclosing form",
+              "Toggle #_ (ignore/discard) on the current form at cursor",
               "Toggle ;; line comment on the current line (classic behavior)"
             ],
             "scope": "window"
