@@ -742,6 +742,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Toggle Comment Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-shortcuts-for-specific-behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binding shortcuts for specific behaviors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2727,6 +2742,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Toggle Comment Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binding-shortcuts-for-specific-behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binding shortcuts for specific behaviors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3509,6 +3539,24 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 <span class="w">  </span><span class="nt">&quot;calva.paredit.toggleCommentBehavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ignoreCurrentForm&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="binding-shortcuts-for-specific-behaviors">Binding shortcuts for specific behaviors<a class="headerlink" href="#binding-shortcuts-for-specific-behaviors" title="Permanent link">#</a></h3>
+<p>The command accepts an argument that specifies the commenting behavior, so you can bind separate keyboard shortcuts for each commenting style regardless of the setting. Add entries like these to your <code>keybindings.json</code> (<strong>Preferences: Open Keyboard Shortcuts (JSON)</strong>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+/&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.toggleLineComment&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ignoreCurrentForm&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; !editorReadOnly&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+/&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.toggleLineComment&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;commentCurrentLine&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; !editorReadOnly&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<p>The argument accepts the same values as the setting: <code>ignoreCurrentForm</code>, <code>ignoreParentForm</code>, and <code>commentCurrentLine</code>. When provided via a keybinding it takes precedence over the setting.</p>
 <h2 id="customizing-paredit-behavior">Customizing Paredit Behavior<a class="headerlink" href="#customizing-paredit-behavior" title="Permanent link">#</a></h2>
 <p>Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: <strong>customPairForms</strong>, <strong>customThreadingMacros</strong>, and <strong>aliasMap</strong>. These can be configured in two places that work together:</p>
 <ol>
