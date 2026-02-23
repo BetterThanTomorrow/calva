@@ -95,7 +95,7 @@ async function performToggleWithArgs(
   args: { behavior: string }
 ) {
   await prepareEditorForToggle(editor, textAndSelections);
-  await vscode.commands.executeCommand('calva.toggleLineComment', args);
+  await vscode.commands.executeCommand('calva.toggleLineComment', args.behavior);
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
 }
 

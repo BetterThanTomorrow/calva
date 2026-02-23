@@ -191,26 +191,26 @@ Using `#_` preserves the structural integrity of your code: the form remains rea
 
 ### Binding shortcuts for specific behaviors
 
-The command accepts a `behavior` argument, so you can bind separate keyboard shortcuts for each commenting style regardless of the setting. Add entries like these to your `keybindings.json` (**Preferences: Open Keyboard Shortcuts (JSON)**):
+The command accepts an argument that specifies the commenting behavior, so you can bind separate keyboard shortcuts for each commenting style regardless of the setting. Add entries like these to your `keybindings.json` (**Preferences: Open Keyboard Shortcuts (JSON)**):
 
 ```json
 [
   {
     "key": "ctrl+shift+/",
     "command": "calva.toggleLineComment",
-    "args": { "behavior": "ignoreCurrentForm" },
+    "args": "ignoreCurrentForm",
     "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly"
   },
   {
     "key": "ctrl+alt+/",
     "command": "calva.toggleLineComment",
-    "args": { "behavior": "commentCurrentLine" },
+    "args": "commentCurrentLine",
     "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly"
   }
 ]
 ```
 
-The `behavior` argument accepts the same values as the setting: `ignoreCurrentForm`, `ignoreParentForm`, and `commentCurrentLine`. When provided via a keybinding it takes precedence over the setting.
+The argument accepts the same values as the setting: `ignoreCurrentForm`, `ignoreParentForm`, and `commentCurrentLine`. When provided via a keybinding it takes precedence over the setting.
 
 ## Customizing Paredit Behavior
 
