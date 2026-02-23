@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Toggling selection inside a bracketed form brakes structure](https://github.com/BetterThanTomorrow/calva/issues/3096)
-- Add: `calva.toggleLineComment` accepts a `behavior` argument, allowing keyboard shortcuts to be bound for any specific comment style independently of the setting (e.g. `"args": { "behavior": "commentCurrentLine" }`)
+- [Toggle comment: accept an argument to bind shortcuts for any of the supported behaviours](https://github.com/BetterThanTomorrow/calva/issues/3100)
 
 ## [2.0.560] - 2026-02-21
 
