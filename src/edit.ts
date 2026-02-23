@@ -323,24 +323,21 @@ function resolveStructuralBreakOffset(
     while (!probe.atEnd() && probe.line === startLine) {
       const tok = probe.getToken();
       if (tok.type === 'close') {
+        // Bracket at or beyond the selection end is outside the selection → must move
         if (
           partialSelectionStartOffset !== undefined &&
           partialSelectionEndOffset !== undefined &&
-          probe.offsetStart === partialSelectionEndOffset
+          probe.offsetStart >= partialSelectionEndOffset
         ) {
-          const tail = probe.clone();
-          tail.next();
-          tail.forwardWhitespace(true);
-          if (tail.atEnd() || !affectedLineSet.has(tail.line)) {
-            return probe.offsetStart;
-          }
+          return probe.offsetStart;
         }
 
+        // Bracket whose matching open is at/before selection start, or on a non-affected line → must move
         const finder = probe.clone();
         if (
           !finder.backwardList() ||
           (partialSelectionStartOffset !== undefined &&
-            finder.offsetStart < partialSelectionStartOffset) ||
+            finder.offsetStart <= partialSelectionStartOffset) ||
           !affectedLineSet.has(finder.line)
         ) {
           return probe.offsetStart;
