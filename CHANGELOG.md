@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.561] - 2026-02-23
+
 - Fix: [Toggling selection inside a bracketed form brakes structure](https://github.com/BetterThanTomorrow/calva/issues/3096)
 - [Toggle comment: accept an argument to bind shortcuts for any of the supported behaviours](https://github.com/BetterThanTomorrow/calva/issues/3100)
 
