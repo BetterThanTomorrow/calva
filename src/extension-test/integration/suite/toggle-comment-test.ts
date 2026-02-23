@@ -376,6 +376,14 @@ suite(suiteName, () => {
     assert.equal(nestedUncommented, nested);
   });
 
+  it('should toggle comments inside bracketed form and properly handle structure (issue #3096)', async () => {
+    assert.equal(await toggleCommentUsingActiveEditor('(|a•  b|)'), '(|;; a• ;;  b|•  )');
+  });
+
+  it('should toggle comments inside bracketed form and keep structure with trailing code (issue #3096)', async () => {
+    assert.equal(await toggleCommentUsingActiveEditor('(|a•  b|)•(c)'), '(|;; a• ;;  b|•  )•(c)');
+  });
+
   describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
     it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
