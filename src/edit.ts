@@ -661,7 +661,7 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
       if (behaviorArg !== undefined) {
         if (!isToggleCommentBehavior(behaviorArg)) {
           void vscode.window.showErrorMessage(
-            `Invalid argument for toggleLineCommentCommand: ${behaviorArg}`,
+            `Invalid argument for toggleLineComment: ${behaviorArg}`,
             'OK'
           );
           return;
