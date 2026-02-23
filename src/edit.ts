@@ -622,6 +622,9 @@ function isCursorInLineComment(document: vscode.TextDocument, position: vscode.P
 
 type ToggleCommentBehavior = 'ignoreCurrentForm' | 'ignoreParentForm' | 'commentCurrentLine';
 
+function isToggleCommentBehavior(val: any): val is ToggleCommentBehavior {
+  return val === 'ignoreCurrentForm' || val === 'ignoreParentForm' || val === 'commentCurrentLine';
+}
 /**
  * Toggle line comments with Clojure-aware indentation.
  *
@@ -654,11 +657,21 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
   if (isSingleSelection) {
     const selection = editor.selections[0];
     if (selection && selection.isEmpty && !isCursorInLineComment(document, selection.active)) {
-      const behavior: ToggleCommentBehavior =
-        behaviorArg ??
-        vscode.workspace
+      let behavior: ToggleCommentBehavior;
+      if (behaviorArg !== undefined) {
+        if (!isToggleCommentBehavior(behaviorArg)) {
+          void vscode.window.showErrorMessage(
+            `Invalid argument for toggleLineCommentCommand: ${behaviorArg}`,
+            'OK'
+          );
+          return;
+        }
+        behavior = behaviorArg;
+      } else {
+        behavior = vscode.workspace
           .getConfiguration('calva.paredit')
           .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreCurrentForm');
+      }
       const isIgnoreParentForm = behavior === 'ignoreParentForm';
       if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
         await toggleIgnoreForm(editor, document, isIgnoreParentForm);
