@@ -604,6 +604,31 @@ export function jackOutCommand() {
   return calvaJackout();
 }
 
+export async function reJackInCommand() {
+  const processes = listJackInProcesses().filter((entry) => entry.connected);
+  if (processes.length === 0) {
+    void vscode.window.showInformationMessage('No active Jack-in process to restart.');
+    return;
+  }
+  let connectSequence: ReplConnectSequence;
+  if (processes.length === 1) {
+    connectSequence = processes[0].connectSequence;
+  } else {
+    const picked = await vscode.window.showQuickPick(
+      processes.map((p) => ({
+        label: p.connectSequenceName ?? p.connectSequence.name,
+        process: p,
+      })),
+      { title: 'Pick a REPL to restart', placeHolder: 'Select which Jack-in process to restart' }
+    );
+    if (!picked) {
+      return;
+    }
+    connectSequence = picked.process.connectSequence;
+  }
+  await jackIn(connectSequence, true);
+}
+
 export async function jackInCommand(options: {
   connectSequence?: ReplConnectSequence | string;
   disableAutoSelect?: boolean;

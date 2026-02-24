@@ -3392,7 +3392,7 @@ describe('paredit util', () => {
         paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a (b {|•} c•) d '))
       ).toBe(false);
     });
-    it('returns true before a list ending on the same line', () => {
+    it('returns false before a list ending on the same line', () => {
       expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('a "b c" | (d)'))).toBe(
         false
       );
@@ -3424,6 +3424,9 @@ describe('paredit util', () => {
           docFromTextNotation('|(defn hi []•  (prn "hi"))')
         )
       ).toBe(0);
+    });
+    it('Multiline inside a list where close is at the end of current line (#3096)', () => {
+      expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('(a •|b)'))).toBe(5);
     });
   });
 });

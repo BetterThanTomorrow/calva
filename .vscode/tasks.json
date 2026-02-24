@@ -123,6 +123,19 @@
       ]
     },
     {
+      "label": "Calva Watch Docs",
+      "type": "npm",
+      "script": "watch-docs",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
       "label": "Calva Dev",
       "group": {
         "kind": "build",

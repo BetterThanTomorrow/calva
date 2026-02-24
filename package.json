@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.556",
+  "version": "2.0.561",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -1284,6 +1284,22 @@
               "type": "string"
             },
             "scope": "window"
+          },
+          "calva.paredit.toggleCommentBehavior": {
+            "type": "string",
+            "markdownDescription": "Controls the behavior of Toggle Line Comment when there is no text selected and the cursor is not in a line comment.",
+            "default": "ignoreParentForm",
+            "enum": [
+              "ignoreParentForm",
+              "ignoreCurrentForm",
+              "commentCurrentLine"
+            ],
+            "enumDescriptions": [
+              "Toggle #_ (ignore/discard) on the parent/enclosing form",
+              "Toggle #_ (ignore/discard) on the current form at cursor",
+              "Toggle ;; line comment on the current line (classic behavior)"
+            ],
+            "scope": "window"
           }
         }
       },
@@ -1556,6 +1572,12 @@
       {
         "command": "calva.jackOut",
         "title": "Stop/Kill the Project REPL started by Calva (aka Jack-Out)",
+        "category": "Calva",
+        "enablement": "calva:jackedIn"
+      },
+      {
+        "command": "calva.reJackIn",
+        "title": "Restart the Project REPL (aka Re-Jack-In)",
         "category": "Calva",
         "enablement": "calva:jackedIn"
       },
@@ -3637,7 +3659,7 @@
     ]
   },
   "scripts": {
-    "watch-docs": "mkdocs serve",
+    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve",
     "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",

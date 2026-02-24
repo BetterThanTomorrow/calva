@@ -6,6 +6,34 @@ Changes to Calva.
 
 - Fix: [Code navigation fail after starting repl](https://github.com/BetterThanTomorrow/calva/issues/2804)
 
+## [2.0.561] - 2026-02-23
+
+- Fix: [Toggling selection inside a bracketed form brakes structure](https://github.com/BetterThanTomorrow/calva/issues/3096)
+- [Toggle comment: accept an argument to bind shortcuts for any of the supported behaviours](https://github.com/BetterThanTomorrow/calva/issues/3100)
+
+## [2.0.560] - 2026-02-21
+
+- Add: [Structural comment toggle using #_ as default](https://github.com/BetterThanTomorrow/calva/issues/3086). Controlled by the `calva.paredit.toggleCommentBehavior` setting (`ignoreParentForm`, `ignoreCurrentForm`, or `commentCurrentLine`)
+
+## [2.0.559] - 2026-02-20
+
+- [Allow users to hide individual status bar items](https://github.com/BetterThanTomorrow/calva/issues/3094)
+
+## [2.0.558] - 2026-02-20
+
+- [Add dedicated Re-Jack-In command that preserves the current REPL configuration on restart](https://github.com/BetterThanTomorrow/calva/issues/3091)
+
+## [2.0.557] - 2026-02-20
+
+- Add "Restart the Project REPL (a.k.a. Re-jack-in)" option to the connected REPL menu
+
+## [2.0.556] - 2026-02-19
+
+- Fix: [Toggle comments off, indent glitch](https://github.com/BetterThanTomorrow/calva/issues/3078)
+- Fix: [Toggle comments off fails when first line doesn't start with ;;](https://github.com/BetterThanTomorrow/calva/issues/3081)
+- Fix: [Toggle Line Comment can break structure for unformatted partial multiline selections](https://github.com/BetterThanTomorrow/calva/issues/3083)
+- Fix: [Clojure-lsp not starting when offline](https://github.com/BetterThanTomorrow/calva/issues/1299)
+
 ## [2.0.555] - 2026-02-19
 
 - Fix: [Connecting a REPL sequence disconnects the previous prematurely](https://github.com/BetterThanTomorrow/calva/issues/3065)

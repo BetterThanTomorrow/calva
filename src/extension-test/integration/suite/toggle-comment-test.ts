@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, it } from 'mocha';
+import { suite, describe, before, after, it } from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
@@ -89,9 +89,28 @@ async function performToggle(editor: vscode.TextEditor, textAndSelections: strin
   await new Promise((resolve) => setTimeout(resolve, pauseMs));
 }
 
+async function performToggleWithArgs(
+  editor: vscode.TextEditor,
+  textAndSelections: string,
+  args: { behavior: string }
+) {
+  await prepareEditorForToggle(editor, textAndSelections);
+  await vscode.commands.executeCommand('calva.toggleLineComment', args.behavior);
+  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+}
+
 /** Toggle line comment with cursor positions indicated by |, |1, |2, etc. */
 async function toggleComment(editor: vscode.TextEditor, textAndSelections: string) {
   await performToggle(editor, textAndSelections);
+  return textNotationFromDocAndSelections(editor.document, editor.selections);
+}
+
+async function toggleCommentWithArgs(
+  editor: vscode.TextEditor,
+  textAndSelections: string,
+  args: { behavior: string }
+) {
+  await performToggleWithArgs(editor, textAndSelections, args);
   return textNotationFromDocAndSelections(editor.document, editor.selections);
 }
 
@@ -100,15 +119,32 @@ async function toggleCommentUsingActiveEditor(textAndSelections: string) {
   return toggleComment(vscode.window.activeTextEditor, textAndSelections);
 }
 
+async function toggleCommentUsingActiveEditorWithArgs(
+  textAndSelections: string,
+  args: { behavior: string }
+) {
+  return toggleCommentWithArgs(vscode.window.activeTextEditor, textAndSelections, args);
+}
+
+async function setToggleCommentBehavior(behavior: string | undefined) {
+  await vscode.workspace
+    .getConfiguration('calva.paredit')
+    .update('toggleCommentBehavior', behavior, vscode.ConfigurationTarget.Global);
+}
+
 suite(suiteName, () => {
   before(async () => {
     testUtil.showMessage(suiteName, `suite starting`);
+    // Set commentCurrentLine so existing ;; tests continue to work as before
+    await setToggleCommentBehavior('commentCurrentLine');
     return testUtil.openFile(testFilePath).then((x) => {
       return new Promise((resolve) => setTimeout(resolve, 1000));
     });
   });
 
   after(async () => {
+    // Restore default setting
+    await setToggleCommentBehavior(undefined);
     console.log('Finally, toggle comment suite is closing the active editor');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.showMessage(suiteName, `suite done!`);
@@ -154,6 +190,24 @@ suite(suiteName, () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(defn foo []•  |; a•  ;; b|)'),
       '(defn foo []•  |a•  b|)'
+    );
+  });
+
+  it('should preserve nested indentation when uncommenting selected multiline block (issue #3078)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '|;; (a (b c•;;       (d e•;;          f)•;;       g•;;       h)•;;    i•;;    j)|'
+      ),
+      '|(a (b c•      (d e•         f)•      g•      h)•   i•   j)|'
+    );
+  });
+
+  it('should preserve nested indentation when uncommenting selected multiline block inside defn (issue #3078)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor(
+        '(defn foo []•  |;; (a (b c•  ;;       (d e•  ;;          f)•  ;;       g•  ;;       h)•  ;;    i•  ;;    j)|•     )'
+      ),
+      '(defn foo []•  |(a (b c•        (d e•           f)•        g•        h)•     i•     j)|)'
     );
   });
 
@@ -263,6 +317,27 @@ suite(suiteName, () => {
     );
   });
 
+  it('should structurally comment unformatted multiline partial selection in a defn body', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•(a |(b c•d•e)|•f))'),
+      '(defn foo []•(a |;; (b c•;; d•;; e)|•f))'
+    );
+  });
+
+  it('should structurally comment unformatted nested multiline partial selection without breaking structure', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(defn foo []•(a |(b c•(d e•f)•g•h)|•i•j))'),
+      '(defn foo []•(a |;; (b c•;; (d e•;; f)•;; g•;; h)|•i•j))'
+    );
+  });
+
+  it('should structurally comment multiline selection starting inside a nested form (issue #3096)', async () => {
+    assert.equal(
+      await toggleCommentUsingActiveEditor('(a (|b•    c|))'),
+      '(a (|;; b•    ;; c|•    ))'
+    );
+  });
+
   it('should structurally comment multiline selection nested in parent form and preserve full selected range', async () => {
     assert.equal(
       await toggleCommentUsingActiveEditor('(x•  (y |(a b•        c)|)•  z)'),
@@ -282,5 +357,155 @@ suite(suiteName, () => {
       await toggleCommentUsingActiveEditor('(x• (j (y |(a b c)|))• z)'),
       '(x• (j (y |;; (a b c)|•     ))• z)'
     );
+  });
+
+  it('should uncomment partial-selection comments round-trip (issue #3081)', async () => {
+    const editor = vscode.window.activeTextEditor;
+
+    // Simple partial selection
+    const simple = '(a |(b c•      d)|•   e)';
+    await performToggle(editor, simple);
+    const simpleCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(simpleCommented, '(a |;; (b c•   ;;    d)|•   e)');
+    await vscode.commands.executeCommand('calva.toggleLineComment');
+    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    const simpleUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(simpleUncommented, simple);
+
+    // Nested partial selection
+    const nested = '(a |(b c•      (d e•         f)•      g)|•   e)';
+    await performToggle(editor, nested);
+    const nestedCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(nestedCommented, '(a |;; (b c•   ;;    (d e•   ;;       f)•   ;;    g)|•   e)');
+    await vscode.commands.executeCommand('calva.toggleLineComment');
+    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    const nestedUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
+    assert.equal(nestedUncommented, nested);
+  });
+
+  it('should toggle comments inside bracketed form and properly handle structure (issue #3096)', async () => {
+    assert.equal(await toggleCommentUsingActiveEditor('(|a•  b|)'), '(|;; a• ;;  b|•  )');
+  });
+
+  it('should toggle comments inside bracketed form and keep structure with trailing code (issue #3096)', async () => {
+    assert.equal(await toggleCommentUsingActiveEditor('(|a•  b|)•(c)'), '(|;; a• ;;  b|•  )•(c)');
+  });
+
+  describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
+    it('should add #_ to current form when cursor is on a symbol (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
+        '(defn foo []•  #_|(println "test"))'
+      );
+    });
+
+    it('should remove #_ from current form when cursor is inside ignored form', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  #_|(println "test"))'),
+        '(defn foo []•  |(println "test"))'
+      );
+    });
+
+    it('should remove #_ when cursor is between #_ and form on next line (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor('#_|•(defn foo [])'), '|•(defn foo [])');
+    });
+
+    it('should remove #_ when cursor is between #_ and form with many spaces (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('#_     |     (defn foo [])'),
+        '     |     (defn foo [])'
+      );
+    });
+
+    it('should add #_ to current literal when cursor is on it (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |-5 2)))'),
+        '(defn foo []•  (when true•    (+ #_|-5 2)))'
+      );
+    });
+
+    it('should remove #_ from current literal (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ #_|-5 2)))'),
+        '(defn foo []•  (when true•    (+ |-5 2)))'
+      );
+    });
+
+    it('should add #_ to parent form when using ignoreParentForm', async () => {
+      await setToggleCommentBehavior('ignoreParentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  (when true•    (+ |-5 2)))'),
+        '(defn foo []•  (when true•    #_(+ |-5 2)))'
+      );
+    });
+
+    it('should fall back to ;; when text is selected even with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('|(defn foo []•  (prn "hi"))|'),
+        '|;; (defn foo []•;;   (prn "hi"))|'
+      );
+    });
+
+    it('should fall back to ;; uncomment when cursor is in comment with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(defn foo []•  ;; |(println "test"))'),
+        '(defn foo []•  |(println "test"))'
+      );
+    });
+
+    it('should add #_ to top-level form with ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
+    });
+  });
+
+  describe('args.behavior overrides setting', () => {
+    it('should use ignoreCurrentForm arg even when setting is commentCurrentLine', async () => {
+      await setToggleCommentBehavior('commentCurrentLine');
+      assert.equal(
+        await toggleCommentUsingActiveEditorWithArgs('(defn foo []•  |(println "test"))', {
+          behavior: 'ignoreCurrentForm',
+        }),
+        '(defn foo []•  #_|(println "test"))'
+      );
+    });
+
+    it('should use ignoreParentForm arg even when setting is commentCurrentLine', async () => {
+      await setToggleCommentBehavior('commentCurrentLine');
+      assert.equal(
+        await toggleCommentUsingActiveEditorWithArgs('(defn foo []•  (when true•    (+ |-5 2)))', {
+          behavior: 'ignoreParentForm',
+        }),
+        '(defn foo []•  (when true•    #_(+ |-5 2)))'
+      );
+    });
+
+    it('should use commentCurrentLine arg even when setting is ignoreCurrentForm', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditorWithArgs('(defn foo []•  |(println "test"))', {
+          behavior: 'commentCurrentLine',
+        }),
+        '(defn foo []•  ;; |(println "test")•  )'
+      );
+    });
+
+    it('should remove #_ using ignoreCurrentForm arg even when setting is commentCurrentLine', async () => {
+      await setToggleCommentBehavior('commentCurrentLine');
+      assert.equal(
+        await toggleCommentUsingActiveEditorWithArgs('(defn foo []•  #_|(println "test"))', {
+          behavior: 'ignoreCurrentForm',
+        }),
+        '(defn foo []•  |(println "test"))'
+      );
+    });
   });
 });

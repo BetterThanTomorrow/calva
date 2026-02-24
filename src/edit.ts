@@ -6,9 +6,9 @@ import * as select from './select';
 import * as printer from './printer';
 import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
-import { calculateCommentPrefixRemovalEnd, commentPrefixPattern } from './comment-prefix';
+import { calculateCommentPrefixRemovalEnd, findCommentPrefixStart } from './comment-prefix';
 
-export { commentPrefixPattern } from './comment-prefix';
+type CandidatesMap = Map<number, number[]>;
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
@@ -49,8 +49,10 @@ export function continueCommentCommand() {
 function getAffectedLineNumbers(editor: vscode.TextEditor, lineCount: number): number[] {
   const affectedLines = new Set<number>();
   for (const selection of editor.selections) {
-    for (let line = selection.start.line; line <= selection.end.line; line++) {
-      affectedLines.add(line);
+    if (selection && selection.start && selection.end) {
+      for (let line = selection.start.line; line <= selection.end.line; line++) {
+        affectedLines.add(line);
+      }
     }
   }
   return Array.from(affectedLines)
@@ -58,9 +60,35 @@ function getAffectedLineNumbers(editor: vscode.TextEditor, lineCount: number): n
     .sort((a, b) => a - b);
 }
 
+/**
+ * Builds candidate positions where a comment prefix might start on a line:
+ * first non-whitespace, then any selection start columns past that point.
+ */
+function commentCandidatePositions(
+  firstNonWhitespace: number,
+  lineNum: number,
+  selections?: readonly vscode.Selection[]
+): number[] {
+  const positions = [firstNonWhitespace];
+  if (selections) {
+    for (const sel of selections) {
+      if (
+        sel &&
+        sel.start &&
+        sel.start.line === lineNum &&
+        sel.start.character > firstNonWhitespace
+      ) {
+        positions.push(sel.start.character);
+      }
+    }
+  }
+  return positions;
+}
+
 function areAllNonEmptyTargetLinesCommented(
   document: vscode.TextDocument,
-  lineNumbers: number[]
+  lineNumbers: number[],
+  candidatesMap: CandidatesMap
 ): boolean {
   const nonEmptyLines = lineNumbers.filter(
     (lineNum) => !document.lineAt(lineNum).isEmptyOrWhitespace
@@ -68,9 +96,8 @@ function areAllNonEmptyTargetLinesCommented(
   return (
     nonEmptyLines.length > 0 &&
     nonEmptyLines.every((lineNum) => {
-      const line = document.lineAt(lineNum);
-      const lineText = line.text.slice(line.firstNonWhitespaceCharacterIndex);
-      return commentPrefixPattern.test(lineText);
+      const candidates = candidatesMap.get(lineNum) ?? [];
+      return findCommentPrefixStart(document.lineAt(lineNum).text, candidates) !== undefined;
     })
   );
 }
@@ -86,6 +113,10 @@ async function applyStructuralCommentsToSingleSelectionLines(
 ) {
   const originalSelections = [...editor.selections];
   const singleSelection = editor.selections[0];
+  const partialSelectionStartColumn =
+    !singleSelection.isEmpty && affectedLineNumbers.length > 1
+      ? singleSelection.start.character
+      : undefined;
   const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
   const affectedLineSet = new Set(affectedLineNumbers);
   const originalFirstNonWSMap = new Map<number, number>();
@@ -137,7 +168,11 @@ async function applyStructuralCommentsToSingleSelectionLines(
           affectedLineNumbers.length > 1
             ? resolvedAlignedCommentColumn
             : originalInsertionColumnMap.get(lineNum) ?? firstNonWhitespace;
-        const insertionColumn = Math.min(rawInsertionColumn, currentLine.text.length);
+        const firstLineInsertionColumn =
+          partialSelectionStartColumn !== undefined && lineNum === singleSelection.start.line
+            ? Math.max(rawInsertionColumn, partialSelectionStartColumn)
+            : rawInsertionColumn;
+        const insertionColumn = Math.min(firstLineInsertionColumn, currentLine.text.length);
         originalInsertionColumnMap.set(lineNum, insertionColumn);
         const insertionOffset = editor.document.offsetAt(
           new vscode.Position(lineNum, insertionColumn)
@@ -156,7 +191,8 @@ async function applyStructuralCommentsToSingleSelectionLines(
               mirrorDoc,
               wouldBreakWhere,
               affectedLineSet,
-              partialSelectionStartOffset
+              partialSelectionStartOffset,
+              editor.document.offsetAt(singleSelection.end)
             );
             if (resolvedBreakOffset === false) {
               skipBreak = true;
@@ -275,7 +311,8 @@ function resolveStructuralBreakOffset(
   mirrorDoc: EditableDocument,
   wouldBreakWhere: number,
   affectedLineSet: Set<number>,
-  partialSelectionStartOffset?: number
+  partialSelectionStartOffset?: number,
+  partialSelectionEndOffset?: number
 ): number | false {
   const cursor = mirrorDoc.getTokenCursor(wouldBreakWhere);
   const token = cursor.getToken();
@@ -286,11 +323,21 @@ function resolveStructuralBreakOffset(
     while (!probe.atEnd() && probe.line === startLine) {
       const tok = probe.getToken();
       if (tok.type === 'close') {
+        // Bracket at or beyond the selection end is outside the selection → must move
+        if (
+          partialSelectionStartOffset !== undefined &&
+          partialSelectionEndOffset !== undefined &&
+          probe.offsetStart >= partialSelectionEndOffset
+        ) {
+          return probe.offsetStart;
+        }
+
+        // Bracket whose matching open is at/before selection start, or on a non-affected line → must move
         const finder = probe.clone();
         if (
           !finder.backwardList() ||
           (partialSelectionStartOffset !== undefined &&
-            finder.offsetStart < partialSelectionStartOffset) ||
+            finder.offsetStart <= partialSelectionStartOffset) ||
           !affectedLineSet.has(finder.line)
         ) {
           return probe.offsetStart;
@@ -393,31 +440,38 @@ async function reformatEnclosingFormsForLines(
 async function updateLineComments(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  candidatesMap: CandidatesMap
 ) {
-  const descendingLineNumbers = [...new Set(affectedLineNumbers)].sort((a, b) => b - a);
+  const descendingLineNumbers = affectedLineNumbers.sort((a, b) => b - a);
 
   await editor.edit(
     (editBuilder) => {
       for (const lineNum of descendingLineNumbers) {
         const line = editor.document.lineAt(lineNum);
-        const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
         const lineText = line.text;
 
         if (shouldUncomment) {
-          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, firstNonWhitespace);
+          const removalStart = findCommentPrefixStart(lineText, candidatesMap.get(lineNum) ?? []);
+          if (removalStart === undefined) {
+            continue;
+          }
+          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, removalStart);
           if (removalEnd === undefined) {
             continue;
           }
 
           editBuilder.delete(
             new vscode.Range(
-              new vscode.Position(lineNum, firstNonWhitespace),
+              new vscode.Position(lineNum, removalStart),
               new vscode.Position(lineNum, removalEnd)
             )
           );
         } else {
-          editBuilder.insert(new vscode.Position(lineNum, firstNonWhitespace), ';; ');
+          editBuilder.insert(
+            new vscode.Position(lineNum, line.firstNonWhitespaceCharacterIndex),
+            ';; '
+          );
         }
       }
     },
@@ -436,22 +490,160 @@ async function updateLineComments(
 async function toggleCommentsThenReformatEnclosingForms(
   editor: vscode.TextEditor,
   affectedLineNumbers: number[],
-  shouldUncomment: boolean
+  shouldUncomment: boolean,
+  candidatesMap: CandidatesMap
 ) {
-  await updateLineComments(editor, affectedLineNumbers, shouldUncomment);
+  await updateLineComments(editor, affectedLineNumbers, shouldUncomment, candidatesMap);
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
 }
 
 /**
+ * Finds a preceding `#_` ignore marker before the given offset, allowing
+ * optional whitespace between the marker and the offset position.
+ *
+ * @param document The document being edited.
+ * @param offset The offset whose left side should be inspected.
+ * @returns The exact range of the `#_` marker when found, otherwise `undefined`.
+ */
+function findIgnoreMarkerBeforeOffset(
+  document: vscode.TextDocument,
+  offset: number
+): vscode.Range | undefined {
+  if (offset < 2) {
+    return undefined;
+  }
+
+  let scanOffset = offset - 1;
+  while (scanOffset >= 0) {
+    const ch = document.getText(
+      new vscode.Range(document.positionAt(scanOffset), document.positionAt(scanOffset + 1))
+    );
+    if (/\s/.test(ch)) {
+      scanOffset -= 1;
+    } else {
+      break;
+    }
+  }
+
+  if (scanOffset < 1) {
+    return undefined;
+  }
+
+  const maybeIgnore = document.getText(
+    new vscode.Range(document.positionAt(scanOffset - 1), document.positionAt(scanOffset + 1))
+  );
+  if (maybeIgnore === '#_') {
+    return new vscode.Range(
+      document.positionAt(scanOffset - 1),
+      document.positionAt(scanOffset + 1)
+    );
+  }
+
+  return undefined;
+}
+
+/**
+ * Toggles `#_` (ignore/discard) on the form at the cursor position.
+ * If the form already has a preceding `#_`, it is removed; otherwise `#_` is inserted.
+ *
+ * @param useParentForm When true, targets the enclosing/parent form instead of the current form.
+ */
+async function toggleIgnoreForm(
+  editor: vscode.TextEditor,
+  document: vscode.TextDocument,
+  useParentForm: boolean
+) {
+  const selection = editor.selections[0];
+  if (!selection) {
+    return;
+  }
+
+  const position = selection.active;
+  const cursorOffset = document.offsetAt(position);
+
+  const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(document, cursorOffset);
+
+  if (ignoreBeforeCursor) {
+    // Cursor is between #_ and the form (optionally separated by whitespace) - remove the #_
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.delete(ignoreBeforeCursor);
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+    return;
+  }
+
+  //Try getFormSelection first
+  const formRange = useParentForm
+    ? select.getEnclosingFormSelection(document, position)
+    : select.getFormSelection(document, position, false);
+
+  if (!formRange) {
+    // If getFormSelection returns undefined, fall back to regular commenting
+    return;
+  }
+
+  const formStartOffset = document.offsetAt(formRange.start);
+
+  const ignoreBeforeForm = findIgnoreMarkerBeforeOffset(document, formStartOffset);
+
+  if (ignoreBeforeForm) {
+    // Remove the existing #_
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.delete(ignoreBeforeForm);
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+  } else {
+    // Add #_ before the form
+    await editor.edit(
+      (editBuilder) => {
+        editBuilder.insert(document.positionAt(formStartOffset), '#_');
+      },
+      { undoStopBefore: true, undoStopAfter: true }
+    );
+  }
+}
+
+/**
+ * Returns true if the cursor is currently positioned within a ;; line comment.
+ */
+function isCursorInLineComment(document: vscode.TextDocument, position: vscode.Position): boolean {
+  const mirrorDoc = docMirror.getDocument(document);
+  const offset = document.offsetAt(position);
+  const cursor = mirrorDoc.getTokenCursor(offset);
+  return cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+}
+
+const TOGGLE_COMMENT_BEHAVIORS = [
+  'ignoreCurrentForm',
+  'ignoreParentForm',
+  'commentCurrentLine',
+] as const;
+
+type ToggleCommentBehavior = typeof TOGGLE_COMMENT_BEHAVIORS[number];
+
+function isToggleCommentBehavior(val: any): val is ToggleCommentBehavior {
+  return TOGGLE_COMMENT_BEHAVIORS.includes(val);
+}
+/**
  * Toggle line comments with Clojure-aware indentation.
  *
+ * - When the cursor has no selection and is not in a line comment, the behavior
+ *   is determined by the optional argument (when invoked via a
+ *   keybinding with args) or the `calva.paredit.toggleCommentBehavior` setting:
+ *   - `ignoreCurrentForm`: Toggle `#_` on the current form
+ *   - `ignoreParentForm`: (default) Toggle `#_` on the enclosing/parent form
+ *   - `commentCurrentLine`: Use `;;` line comment (classic behavior)
  * - For a single selection (cursor or range), comments are inserted structurally
  *   using paredit structural analysis to preserve delimiter balance, then
  *   enclosing forms are reformatted.
  * - For multiple selections or when uncommenting, adds/removes `;; ` prefixes
  *   and reformats enclosing forms.
  */
-export async function toggleLineCommentCommand() {
+export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavior) {
   const document = util.tryToGetDocument({});
   if (!document || document.languageId !== 'clojure') {
     return;
@@ -462,17 +654,52 @@ export async function toggleLineCommentCommand() {
     return;
   }
 
+  // When there's a single empty selection (just a cursor) not in a comment,
+  // use args (from keybinding) if provided, otherwise fall back to the setting
+  const isSingleSelection = editor.selections.length === 1;
+  if (isSingleSelection) {
+    const selection = editor.selections[0];
+    if (selection && selection.isEmpty && !isCursorInLineComment(document, selection.active)) {
+      let behavior: ToggleCommentBehavior;
+      if (behaviorArg !== undefined) {
+        if (!isToggleCommentBehavior(behaviorArg)) {
+          throw new Error(`Invalid argument for toggleLineComment: ${behaviorArg}`);
+        }
+        behavior = behaviorArg;
+      } else {
+        behavior = vscode.workspace
+          .getConfiguration('calva.paredit')
+          .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreParentForm');
+      }
+      const isIgnoreParentForm = behavior === 'ignoreParentForm';
+      if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
+        await toggleIgnoreForm(editor, document, isIgnoreParentForm);
+        return;
+      }
+      // 'commentCurrentLine' falls through to existing ;; behavior
+    }
+  }
+
   const affectedLineNumbers = getAffectedLineNumbers(editor, document.lineCount);
   if (affectedLineNumbers.length === 0) {
     return;
   }
 
+  const candidatesMap = new Map<number, number[]>();
+  for (const lineNum of affectedLineNumbers) {
+    const line = document.lineAt(lineNum);
+    candidatesMap.set(
+      lineNum,
+      commentCandidatePositions(line.firstNonWhitespaceCharacterIndex, lineNum, editor.selections)
+    );
+  }
+
   const allNonEmptyLinesCommented = areAllNonEmptyTargetLinesCommented(
     document,
-    affectedLineNumbers
+    affectedLineNumbers,
+    candidatesMap
   );
 
-  const isSingleSelection = editor.selections.length === 1;
   if (!allNonEmptyLinesCommented && isSingleSelection) {
     await applyStructuralCommentsToSingleSelectionLines(editor, affectedLineNumbers);
     return;
@@ -481,7 +708,8 @@ export async function toggleLineCommentCommand() {
   await toggleCommentsThenReformatEnclosingForms(
     editor,
     affectedLineNumbers,
-    allNonEmptyLinesCommented
+    allNonEmptyLinesCommented,
+    candidatesMap
   );
 }
 
