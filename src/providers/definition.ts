@@ -18,8 +18,11 @@ async function provideClojureDefinition(
   clientProvider: lsp.ClientProvider,
   document,
   position: vscode.Position,
-  _token
+  token: vscode.CancellationToken
 ) {
+  if (token.isCancellationRequested) {
+    return;
+  }
   if (util.getConnectedState()) {
     const client = replSession.getSession();
     if (client?.supports('info')) {
@@ -59,7 +62,7 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state = state;
   constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
-  async provideDefinition(document, position: vscode.Position, token) {
+  async provideDefinition(document, position: vscode.Position, token: vscode.CancellationToken) {
     const providers = config.getConfig().definitionProviderPriority;
     for (const provider of providers) {
       const providerFunction = definitionFunctions[provider];
