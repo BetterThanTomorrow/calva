@@ -33,7 +33,7 @@ async function provideClojureDefinition(
         try {
           const uri = vscode.Uri.parse(info.file, true);
           if (uri.toString() === document.uri.toString()) {
-            return lspDefinition(clientProvider, document, position, token);
+            return;
           }
           return new vscode.Location(uri, pos);
         } catch (e) {
