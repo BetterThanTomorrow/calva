@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.562] - 2026-02-25
+
+- Fix: [Code navigation fail after starting repl](https://github.com/BetterThanTomorrow/calva/issues/2804)
+
 ## [2.0.561] - 2026-02-23
 
 - Fix: [Toggling selection inside a bracketed form brakes structure](https://github.com/BetterThanTomorrow/calva/issues/3096)
