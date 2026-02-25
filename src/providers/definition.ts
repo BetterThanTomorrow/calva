@@ -18,8 +18,11 @@ async function provideClojureDefinition(
   clientProvider: lsp.ClientProvider,
   document,
   position: vscode.Position,
-  _token
+  token: vscode.CancellationToken
 ) {
+  if (token.isCancellationRequested) {
+    return;
+  }
   if (util.getConnectedState()) {
     const client = replSession.getSession();
     if (client?.supports('info')) {
@@ -28,7 +31,11 @@ async function provideClojureDefinition(
       if (info.file && info.file.length > 0) {
         const pos = new vscode.Position(info.line - 1, info.column || 0);
         try {
-          return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
+          const uri = vscode.Uri.parse(info.file, true);
+          if (uri.toString() === document.uri.toString()) {
+            return;
+          }
+          return new vscode.Location(uri, pos);
         } catch (e) {
           /* ignore */
         }
@@ -55,7 +62,7 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state = state;
   constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
-  async provideDefinition(document, position: vscode.Position, token) {
+  async provideDefinition(document, position: vscode.Position, token: vscode.CancellationToken) {
     const providers = config.getConfig().definitionProviderPriority;
     for (const provider of providers) {
       const providerFunction = definitionFunctions[provider];
