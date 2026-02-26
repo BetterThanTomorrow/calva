@@ -146,10 +146,11 @@ export async function showReplMenu() {
   const menuItems: MenuItem[] = shouldShowConnectedMenu()
     ? composeMenu([...connectedMenuItems(), ...(await drams.createProjectMenuItems())])
     : composeMenu([...disconnectedMenuItems(), ...(await drams.createProjectMenuItems())]);
+  const { prefix, suffix } = menuSlugForProjectRoot();
   const pickedItem = await utilities.quickPickSingle({
     title: 'Calva REPL commands',
     values: menuItems,
-    saveAs: 'calva.showReplMenu',
+    saveAs: `calva.showReplMenu.${prefix}.${suffix}`,
   });
   if (pickedItem) {
     const menuItem = menuItems.find((item) => item.label === pickedItem.label);

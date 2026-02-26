@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [REPL menu defaults to "Start your project" even when REPL is already running](https://github.com/BetterThanTomorrow/calva/issues/3106)
+
 ## [2.0.562] - 2026-02-25
 
 - Fix: [Code navigation fail after starting repl](https://github.com/BetterThanTomorrow/calva/issues/2804)
