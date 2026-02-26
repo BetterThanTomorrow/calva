@@ -4,7 +4,22 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Add: [Structural comment toggle using #_ as default](https://github.com/BetterThanTomorrow/calva/issues/3086). Controlled by the `calva.paredit.toggleCommentBehavior` setting (`ignoreCurrentForm`, `ignoreParentForm`, or `commentCurrentLine`)
+## [2.0.563] - 2026-02-26
+
+- Fix: [REPL menu defaults to "Start your project" even when REPL is already running](https://github.com/BetterThanTomorrow/calva/issues/3106)
+
+## [2.0.562] - 2026-02-25
+
+- Fix: [Code navigation fail after starting repl](https://github.com/BetterThanTomorrow/calva/issues/2804)
+
+## [2.0.561] - 2026-02-23
+
+- Fix: [Toggling selection inside a bracketed form brakes structure](https://github.com/BetterThanTomorrow/calva/issues/3096)
+- [Toggle comment: accept an argument to bind shortcuts for any of the supported behaviours](https://github.com/BetterThanTomorrow/calva/issues/3100)
+
+## [2.0.560] - 2026-02-21
+
+- Add: [Structural comment toggle using #_ as default](https://github.com/BetterThanTomorrow/calva/issues/3086). Controlled by the `calva.paredit.toggleCommentBehavior` setting (`ignoreParentForm`, `ignoreCurrentForm`, or `commentCurrentLine`)
 
 ## [2.0.559] - 2026-02-20
 
