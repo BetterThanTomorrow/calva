@@ -602,7 +602,8 @@ async function toggleIgnoreForm(
   const cursorOffset = document.offsetAt(position);
 
   const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(document, cursorOffset);
-  const ignore = ignoreBeforeCursor || findIgnoreMarkerAfterOffset(document, cursorOffset);
+  const ignore =
+    ignoreBeforeCursor || (!useParentForm && findIgnoreMarkerAfterOffset(document, cursorOffset));
   if (ignore) {
     // Cursor is between #_ and the form (optionally separated by whitespace) - remove the #_
     await editor.edit(
