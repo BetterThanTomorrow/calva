@@ -543,6 +543,46 @@ function findIgnoreMarkerBeforeOffset(
 }
 
 /**
+ * Finds a `#_` ignore marker immediately after the given offset, allowing
+ * optional whitespace between the offset position and the marker.
+ */
+function findIgnoreMarkerAfterOffset(
+  document: vscode.TextDocument,
+  offset: number
+): vscode.Range | undefined {
+  const docLength = document.getText().length;
+  if (offset > docLength - 2) {
+    return undefined;
+  }
+
+  let scanOffset = offset;
+  while (scanOffset < docLength) {
+    const ch = document.getText(
+      new vscode.Range(document.positionAt(scanOffset), document.positionAt(scanOffset + 1))
+    );
+    if (/\s/.test(ch)) {
+      scanOffset += 1;
+    } else {
+      break;
+    }
+  }
+
+  if (scanOffset > docLength - 2) {
+    return undefined;
+  }
+
+  const maybeIgnore = document.getText(
+    new vscode.Range(document.positionAt(scanOffset), document.positionAt(scanOffset + 2))
+  );
+
+  if (maybeIgnore === '#_') {
+    return new vscode.Range(document.positionAt(scanOffset), document.positionAt(scanOffset + 2));
+  }
+
+  return undefined;
+}
+
+/**
  * Toggles `#_` (ignore/discard) on the form at the cursor position.
  * If the form already has a preceding `#_`, it is removed; otherwise `#_` is inserted.
  *
@@ -562,12 +602,12 @@ async function toggleIgnoreForm(
   const cursorOffset = document.offsetAt(position);
 
   const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(document, cursorOffset);
-
-  if (ignoreBeforeCursor) {
+  const ignore = ignoreBeforeCursor || findIgnoreMarkerAfterOffset(document, cursorOffset);
+  if (ignore) {
     // Cursor is between #_ and the form (optionally separated by whitespace) - remove the #_
     await editor.edit(
       (editBuilder) => {
-        editBuilder.delete(ignoreBeforeCursor);
+        editBuilder.delete(ignore);
       },
       { undoStopBefore: true, undoStopAfter: true }
     );
