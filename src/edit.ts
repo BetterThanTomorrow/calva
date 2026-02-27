@@ -4,7 +4,7 @@ import * as docMirror from './doc-mirror/index';
 import { EditableDocument, ModelEdit } from './cursor-doc/model';
 import * as select from './select';
 import * as printer from './printer';
-import { _semiColonWouldBreakStructureWhere } from './cursor-doc/paredit';
+import * as paredit from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
 import { calculateCommentPrefixRemovalEnd, findCommentPrefixStart } from './comment-prefix';
 
@@ -178,7 +178,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
           new vscode.Position(lineNum, insertionColumn)
         );
 
-        const wouldBreakWhere = _semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
+        const wouldBreakWhere = paredit._semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
 
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
@@ -497,115 +497,6 @@ async function toggleCommentsThenReformatEnclosingForms(
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
 }
 
-/**
- * Finds a preceding `#_` ignore marker before the given offset, allowing
- * optional whitespace between the marker and the offset position.
- *
- * @param document The document being edited.
- * @param offset The offset whose left side should be inspected.
- * @returns The exact range of the `#_` marker when found, otherwise `undefined`.
- */
-function findIgnoreMarkerBeforeOffset(
-  document: vscode.TextDocument,
-  offset: number
-): vscode.Range | undefined {
-  if (offset < 2) {
-    return undefined;
-  }
-
-  let scanOffset = offset - 1;
-  while (scanOffset >= 0) {
-    const ch = document.getText(
-      new vscode.Range(document.positionAt(scanOffset), document.positionAt(scanOffset + 1))
-    );
-    if (/\s/.test(ch)) {
-      scanOffset -= 1;
-    } else {
-      break;
-    }
-  }
-
-  if (scanOffset < 1) {
-    return undefined;
-  }
-
-  const maybeIgnore = document.getText(
-    new vscode.Range(document.positionAt(scanOffset - 1), document.positionAt(scanOffset + 1))
-  );
-  if (maybeIgnore === '#_') {
-    return new vscode.Range(
-      document.positionAt(scanOffset - 1),
-      document.positionAt(scanOffset + 1)
-    );
-  }
-
-  return undefined;
-}
-
-/**
- * Toggles `#_` (ignore/discard) on the form at the cursor position.
- * If the form already has a preceding `#_`, it is removed; otherwise `#_` is inserted.
- *
- * @param useParentForm When true, targets the enclosing/parent form instead of the current form.
- */
-async function toggleIgnoreForm(
-  editor: vscode.TextEditor,
-  document: vscode.TextDocument,
-  useParentForm: boolean
-) {
-  const selection = editor.selections[0];
-  if (!selection) {
-    return;
-  }
-
-  const position = selection.active;
-  const cursorOffset = document.offsetAt(position);
-
-  const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(document, cursorOffset);
-
-  if (ignoreBeforeCursor) {
-    // Cursor is between #_ and the form (optionally separated by whitespace) - remove the #_
-    await editor.edit(
-      (editBuilder) => {
-        editBuilder.delete(ignoreBeforeCursor);
-      },
-      { undoStopBefore: true, undoStopAfter: true }
-    );
-    return;
-  }
-
-  //Try getFormSelection first
-  const formRange = useParentForm
-    ? select.getEnclosingFormSelection(document, position)
-    : select.getFormSelection(document, position, false);
-
-  if (!formRange) {
-    // If getFormSelection returns undefined, fall back to regular commenting
-    return;
-  }
-
-  const formStartOffset = document.offsetAt(formRange.start);
-
-  const ignoreBeforeForm = findIgnoreMarkerBeforeOffset(document, formStartOffset);
-
-  if (ignoreBeforeForm) {
-    // Remove the existing #_
-    await editor.edit(
-      (editBuilder) => {
-        editBuilder.delete(ignoreBeforeForm);
-      },
-      { undoStopBefore: true, undoStopAfter: true }
-    );
-  } else {
-    // Add #_ before the form
-    await editor.edit(
-      (editBuilder) => {
-        editBuilder.insert(document.positionAt(formStartOffset), '#_');
-      },
-      { undoStopBefore: true, undoStopAfter: true }
-    );
-  }
-}
 
 /**
  * Returns true if the cursor is currently positioned within a ;; line comment.
@@ -673,8 +564,8 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
       }
       const isIgnoreParentForm = behavior === 'ignoreParentForm';
       if (behavior === 'ignoreCurrentForm' || isIgnoreParentForm) {
-        await toggleIgnoreForm(editor, document, isIgnoreParentForm);
-        return;
+        const mirrorDoc = docMirror.getDocument(document);
+        return paredit.toggleIgnoreForm(mirrorDoc, isIgnoreParentForm);
       }
       // 'commentCurrentLine' falls through to existing ;; behavior
     }

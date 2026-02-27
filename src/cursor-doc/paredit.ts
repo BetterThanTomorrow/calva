@@ -2784,3 +2784,137 @@ export async function addRichComment(
     }
   );
 }
+
+/**
+ * Finds a preceding `#_` ignore marker before the given offset, allowing
+ * optional whitespace between the marker and the offset position.
+ */
+function findIgnoreMarkerBeforeOffset(
+  doc: EditableDocument,
+  offset: number
+): { start: number; end: number } | undefined {
+  if (offset < 2) {
+    return undefined;
+  }
+
+  let scanOffset = offset - 1;
+  while (scanOffset >= 0) {
+    const ch = doc.model.getText(scanOffset, scanOffset + 1);
+    if (/\s/.test(ch)) {
+      scanOffset--;
+    } else {
+      break;
+    }
+  }
+
+  if (scanOffset < 1) {
+    return undefined;
+  }
+
+  const maybeIgnore = doc.model.getText(scanOffset - 1, scanOffset + 1);
+  if (maybeIgnore === '#_') {
+    return { start: scanOffset - 1, end: scanOffset + 1 };
+  }
+
+  return undefined;
+}
+
+/**
+ * Finds a `#_` ignore marker immediately after the given offset, allowing
+ * optional whitespace between the offset position and the marker.
+ */
+function findIgnoreMarkerAfterOffset(
+  doc: EditableDocument,
+  offset: number
+): { start: number; end: number } | undefined {
+  let scanOffset = offset;
+  while (true) {
+    const ch = doc.model.getText(scanOffset, scanOffset + 1);
+    if (ch === '') {
+      return undefined;
+    }
+    if (/\s/.test(ch)) {
+      scanOffset++;
+    } else {
+      break;
+    }
+  }
+
+  const maybeIgnore = doc.model.getText(scanOffset, scanOffset + 2);
+  if (maybeIgnore === '#_') {
+    return { start: scanOffset, end: scanOffset + 2 };
+  }
+
+  return undefined;
+}
+
+/**
+ * Toggles `#_` (ignore/discard) on the form at the cursor position.
+ * Uses the paredit editing pipeline so formatting is applied after the edit.
+ */
+export async function toggleIgnoreForm(
+  doc: EditableDocument,
+  useParentForm: boolean
+): Promise<boolean | void> {
+  const selection = doc.selections[0];
+  if (!selection) {
+    return;
+  }
+
+  const cursorOffset = selection.active;
+
+  const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(doc, cursorOffset);
+  const ignore =
+    ignoreBeforeCursor || (!useParentForm && findIgnoreMarkerAfterOffset(doc, cursorOffset));
+
+  if (ignore) {
+    const deleteLength = ignore.end - ignore.start;
+    const cursorShift = ignore.start < cursorOffset ? deleteLength : 0;
+    return doc.model.edit([new ModelEdit('deleteRange', [ignore.start, deleteLength])], {
+      selections: [new ModelEditSelection(cursorOffset - cursorShift)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  }
+
+  let formRange: [number, number] | undefined;
+  if (useParentForm) {
+    const cursor = doc.getTokenCursor(cursorOffset);
+    if (cursor.backwardList()) {
+      cursor.backwardUpList();
+      const start = cursor.offsetStart;
+      const endCursor = cursor.clone();
+      if (endCursor.forwardSexp()) {
+        formRange = [start, endCursor.offsetStart];
+      }
+    }
+  } else {
+    const cursor = doc.getTokenCursor(cursorOffset);
+    formRange = cursor.rangeForCurrentForm(cursorOffset);
+  }
+
+  if (!formRange) {
+    return;
+  }
+
+  const formStartOffset = formRange[0];
+
+  const ignoreBeforeForm = findIgnoreMarkerBeforeOffset(doc, formStartOffset);
+
+  if (ignoreBeforeForm) {
+    const deleteLength = ignoreBeforeForm.end - ignoreBeforeForm.start;
+    const shift = formStartOffset > ignoreBeforeForm.start ? -deleteLength : 0;
+    return doc.model.edit([new ModelEdit('deleteRange', [ignoreBeforeForm.start, deleteLength])], {
+      selections: [new ModelEditSelection(cursorOffset + shift)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  } else {
+    const shift = cursorOffset >= formStartOffset ? 2 : 0;
+    return doc.model.edit([new ModelEdit('insertString', [formStartOffset, '#_'])], {
+      selections: [new ModelEditSelection(cursorOffset + shift)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  }
+}
