@@ -465,6 +465,11 @@ suite(suiteName, () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
     });
+
+    it('should remove #_ in front of next form when cursor is before it (ignoreCurrentForm) - issue #3108', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(await toggleCommentUsingActiveEditor(':bar |#_"foo"'), ':bar |"foo"');
+    });
   });
 
   describe('args.behavior overrides setting', () => {
