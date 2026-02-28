@@ -3477,13 +3477,6 @@ describe('paredit util', () => {
         await paredit.toggleIgnoreForm(a, false);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
-      it('should add #_ before form (formatting verified in integration tests)', async () => {
-        // StringDocument has no formatter; formatting is exercised by integration tests.
-        const a = docFromTextNotation('|(when true•(println "Hello, World!"))');
-        const b = docFromTextNotation('#_|(when true•(println "Hello, World!"))');
-        await paredit.toggleIgnoreForm(a, false);
-        expect(textAndSelection(a)).toEqual(textAndSelection(b));
-      });
     });
   });
 });
