@@ -178,7 +178,10 @@ async function applyStructuralCommentsToSingleSelectionLines(
           new vscode.Position(lineNum, insertionColumn)
         );
 
-        const wouldBreakWhere = paredit._semiColonWouldBreakStructureWhere(mirrorDoc, insertionOffset);
+        const wouldBreakWhere = paredit._semiColonWouldBreakStructureWhere(
+          mirrorDoc,
+          insertionOffset
+        );
 
         editBuilder.insert(new vscode.Position(lineNum, insertionColumn), ';; ');
 
@@ -496,7 +499,6 @@ async function toggleCommentsThenReformatEnclosingForms(
   await updateLineComments(editor, affectedLineNumbers, shouldUncomment, candidatesMap);
   await reformatEnclosingFormsForLines(editor, affectedLineNumbers);
 }
-
 
 /**
  * Returns true if the cursor is currently positioned within a ;; line comment.
