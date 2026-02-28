@@ -684,7 +684,7 @@ export class LispTokenCursor extends TokenCursor {
       const pTk = this.getPrevToken();
       let isAdjacentBefore =
         tk.type === 'reader' ||
-        tk.type === 'ignore' || // #_ discard markers are also "adjacent before" a form
+        tk.type === 'ignore' ||
         this.tokenBeginsMetadata() ||
         pTk.type === 'reader' ||
         this.prevTokenBeginsMetadata() ||
