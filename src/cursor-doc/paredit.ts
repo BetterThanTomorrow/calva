@@ -2837,13 +2837,27 @@ export async function toggleIgnoreForm(
   const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(doc, cursorOffset);
 
   if (ignoreBeforeCursor) {
-    const deleteLength = ignoreBeforeCursor.end - ignoreBeforeCursor.start;
-    const cursorShift = ignoreBeforeCursor.start < cursorOffset ? deleteLength : 0;
-    return doc.model.edit([new ModelEdit('deleteRange', [ignoreBeforeCursor.start, deleteLength])], {
-      selections: [new ModelEditSelection(cursorOffset - cursorShift)],
-      skipFormat: false,
-      undoStopBefore: true,
-    });
+    // Also delete any whitespace between #_ and the next form, so
+    // e.g. '#_•(foo)' and '#_   (foo)' both reduce cleanly to '(foo)'.
+    let formStart = ignoreBeforeCursor.end;
+    while (/\s/.test(doc.model.getText(formStart, formStart + 1))) {
+      formStart++;
+    }
+    const deleteLength = formStart - ignoreBeforeCursor.start;
+    const newCursorOffset =
+      cursorOffset < ignoreBeforeCursor.start
+        ? cursorOffset
+        : cursorOffset < formStart
+        ? ignoreBeforeCursor.start
+        : cursorOffset - deleteLength;
+    return doc.model.edit(
+      [new ModelEdit('deleteRange', [ignoreBeforeCursor.start, deleteLength])],
+      {
+        selections: [new ModelEditSelection(newCursorOffset)],
+        skipFormat: false,
+        undoStopBefore: true,
+      }
+    );
   }
 
   let formRange: [number, number] | undefined;
