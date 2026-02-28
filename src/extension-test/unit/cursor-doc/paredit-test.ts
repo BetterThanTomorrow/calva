@@ -3429,4 +3429,60 @@ describe('paredit util', () => {
       expect(paredit._semiColonWouldBreakStructureWhere(docFromTextNotation('(a •|b)'))).toBe(5);
     });
   });
+
+  describe('toggle ignore form', () => {
+    describe('in parent form', () => {
+      it('toggles ignore form on a list', async () => {
+        const a = docFromTextNotation('(foo| bar)');
+        const b = docFromTextNotation('#_(foo| bar)');
+        await paredit.toggleIgnoreForm(a, true);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should add #_ to parent form when cursor is in literal', async () => {
+        const a = docFromTextNotation('(defn foo []•  (when true•    (+ |-5 2)))');
+        const b = docFromTextNotation('(defn foo []•  (when true•    #_(+ |-5 2)))');
+        await paredit.toggleIgnoreForm(a, true);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should remove #_ from current literal', async () => {
+        const a = docFromTextNotation('(defn foo []•  (when true•    (+ #_|-5 2)))');
+        const b = docFromTextNotation('(defn foo []•  (when true•    (+ |-5 2)))');
+        await paredit.toggleIgnoreForm(a, true);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+    });
+
+    describe('in current form', () => {
+      it('should add #_ to current form when cursor is on a symbol', async () => {
+        const a = docFromTextNotation('(defn foo []•  |(println "test"))');
+        const b = docFromTextNotation('(defn foo []•  #_|(println "test"))');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should remove #_ from current form when cursor is inside ignored form (ignoreCurrentForm)', async () => {
+        const a = docFromTextNotation('(defn foo []•  #_|(println "test"))');
+        const b = docFromTextNotation('(defn foo []•  |(println "test"))');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should add #_ to current literal when cursor is on it', async () => {
+        const a = docFromTextNotation('(defn foo []•  (when true•    (+ |-5 2)))');
+        const b = docFromTextNotation('(defn foo []•  (when true•    (+ #_|-5 2)))');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should remove #_ from current literal', async () => {
+        const a = docFromTextNotation('(defn foo []•  (when true•    (+ #_|-5 2)))');
+        const b = docFromTextNotation('(defn foo []•  (when true•    (+ |-5 2)))');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      // it('should format unformatted code when adding #_', async () => {
+      //   const a = docFromTextNotation('|(when true•(println "Hello, World!"))');
+      //   const b = docFromTextNotation('#_|(when true•    (println "Hello, World!"))');
+      //   await paredit.toggleIgnoreForm(a, false);
+      //   expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      // });
+    });
+  });
 });
