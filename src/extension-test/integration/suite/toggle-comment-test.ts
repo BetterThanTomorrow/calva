@@ -392,7 +392,6 @@ suite(suiteName, () => {
   });
 
   describe('ignoreCurrentForm and ignoreParentForm behavior', () => {
-   
     it('should remove #_ when cursor is between #_ and form on next line (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(await toggleCommentUsingActiveEditor('#_|•(defn foo [])'), '|(defn foo [])');
