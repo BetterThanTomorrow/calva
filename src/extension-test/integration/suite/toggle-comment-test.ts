@@ -449,6 +449,7 @@ suite(suiteName, () => {
         '|(when true•  (println "Hello, World!"))'
       );
     });
+  });
 
   describe('args.behavior overrides setting', () => {
     it('should use ignoreCurrentForm arg even when setting is commentCurrentLine', async () => {
