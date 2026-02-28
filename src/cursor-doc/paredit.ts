@@ -2820,35 +2820,6 @@ function findIgnoreMarkerBeforeOffset(
 }
 
 /**
- * Finds a `#_` ignore marker immediately after the given offset, allowing
- * optional whitespace between the offset position and the marker.
- */
-function findIgnoreMarkerAfterOffset(
-  doc: EditableDocument,
-  offset: number
-): { start: number; end: number } | undefined {
-  let scanOffset = offset;
-  while (true) {
-    const ch = doc.model.getText(scanOffset, scanOffset + 1);
-    if (ch === '') {
-      return undefined;
-    }
-    if (/\s/.test(ch)) {
-      scanOffset++;
-    } else {
-      break;
-    }
-  }
-
-  const maybeIgnore = doc.model.getText(scanOffset, scanOffset + 2);
-  if (maybeIgnore === '#_') {
-    return { start: scanOffset, end: scanOffset + 2 };
-  }
-
-  return undefined;
-}
-
-/**
  * Toggles `#_` (ignore/discard) on the form at the cursor position.
  * Uses the paredit editing pipeline so formatting is applied after the edit.
  */
@@ -2864,13 +2835,11 @@ export async function toggleIgnoreForm(
   const cursorOffset = selection.active;
 
   const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(doc, cursorOffset);
-  const ignore =
-    ignoreBeforeCursor || (!useParentForm && findIgnoreMarkerAfterOffset(doc, cursorOffset));
 
-  if (ignore) {
-    const deleteLength = ignore.end - ignore.start;
-    const cursorShift = ignore.start < cursorOffset ? deleteLength : 0;
-    return doc.model.edit([new ModelEdit('deleteRange', [ignore.start, deleteLength])], {
+  if (ignoreBeforeCursor) {
+    const deleteLength = ignoreBeforeCursor.end - ignoreBeforeCursor.start;
+    const cursorShift = ignoreBeforeCursor.start < cursorOffset ? deleteLength : 0;
+    return doc.model.edit([new ModelEdit('deleteRange', [ignoreBeforeCursor.start, deleteLength])], {
       selections: [new ModelEditSelection(cursorOffset - cursorShift)],
       skipFormat: false,
       undoStopBefore: true,

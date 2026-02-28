@@ -410,14 +410,14 @@ suite(suiteName, () => {
 
     it('should remove #_ when cursor is between #_ and form on next line (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
-      assert.equal(await toggleCommentUsingActiveEditor('#_|•(defn foo [])'), '|•(defn foo [])');
+      assert.equal(await toggleCommentUsingActiveEditor('#_|•(defn foo [])'), '|(defn foo [])');
     });
 
     it('should remove #_ when cursor is between #_ and form with many spaces (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
       assert.equal(
         await toggleCommentUsingActiveEditor('#_     |     (defn foo [])'),
-        '     |     (defn foo [])'
+        '|(defn foo [])'
       );
     });
 
@@ -466,9 +466,20 @@ suite(suiteName, () => {
       assert.equal(await toggleCommentUsingActiveEditor('|(defn foo [])'), '#_|(defn foo [])');
     });
 
-    it('should remove #_ in front of next form when cursor is before it (ignoreCurrentForm) - issue #3108', async () => {
+    it('should format unformatted code when adding #_ (ignoreCurrentForm)', async () => {
       await setToggleCommentBehavior('ignoreCurrentForm');
-      assert.equal(await toggleCommentUsingActiveEditor(':bar |#_"foo"'), ':bar |"foo"');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('|(when true•(println "Hello, World!"))'),
+        '#_|(when true•    (println "Hello, World!"))'
+      );
+    });
+
+    it('should format unformatted code when removing #_ (ignoreCurrentForm)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('#_|(when true•(println "Hello, World!"))'),
+        '|(when true•  (println "Hello, World!"))'
+      );
     });
   });
 
