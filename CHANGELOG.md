@@ -5,8 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
-- Improve: Toggling `#_` discard comments now works correctly when cursor is positioned directly before the marker
 - Rename 'Toggle Line Comment' to 'Toggle Comment' 
+- Fix: [Toggle line comment with ignoreCurrentForm discards wrong form](https://github.com/BetterThanTomorrow/calva/issues/3108)
 
 ## [2.0.563] - 2026-02-26
 
