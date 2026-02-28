@@ -2882,6 +2882,25 @@ export async function toggleIgnoreForm(
 
   const formStartOffset = formRange[0];
 
+  // When rangeForCurrentForm includes a leading #_ (cursor was directly adjacent
+  // before the marker), remove it rather than adding another one.
+  if (doc.model.getText(formStartOffset, formStartOffset + 2) === '#_') {
+    let deleteEnd = formStartOffset + 2;
+    while (/\s/.test(doc.model.getText(deleteEnd, deleteEnd + 1))) {
+      deleteEnd++;
+    }
+    const deleteLength = deleteEnd - formStartOffset;
+    const newCursorOffset =
+      cursorOffset > formStartOffset
+        ? Math.max(formStartOffset, cursorOffset - deleteLength)
+        : cursorOffset;
+    return doc.model.edit([new ModelEdit('deleteRange', [formStartOffset, deleteLength])], {
+      selections: [new ModelEditSelection(newCursorOffset)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  }
+
   const ignoreBeforeForm = findIgnoreMarkerBeforeOffset(doc, formStartOffset);
 
   if (ignoreBeforeForm) {

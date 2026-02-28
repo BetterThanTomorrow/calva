@@ -684,6 +684,7 @@ export class LispTokenCursor extends TokenCursor {
       const pTk = this.getPrevToken();
       let isAdjacentBefore =
         tk.type === 'reader' ||
+        tk.type === 'ignore' || // #_ discard markers are also "adjacent before" a form
         this.tokenBeginsMetadata() ||
         pTk.type === 'reader' ||
         this.prevTokenBeginsMetadata() ||
@@ -707,8 +708,17 @@ export class LispTokenCursor extends TokenCursor {
       if (isAdjacentBefore) {
         const cursor = this.clone();
         cursor.forwardWhitespace();
+        const formStart = cursor.offsetStart;
+        const tokenTypeAtFormStart = cursor.getToken().type;
         if (cursor.forwardSexp(true, true)) {
           afterCurrentFormOffset = cursor.offsetStart;
+          // When cursor is directly at a #_ ignore marker, return early with the
+          // correct range. The normal backwardSexp from afterCurrentFormOffset
+          // would not include the leading #_ because backwardThroughAnyReader
+          // only handles 'reader' tokens, not 'ignore' tokens.
+          if (tokenTypeAtFormStart === 'ignore') {
+            return [formStart, afterCurrentFormOffset];
+          }
         }
       }
     }

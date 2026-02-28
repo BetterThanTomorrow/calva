@@ -761,6 +761,18 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toBeUndefined();
     });
+    it('2: selects ignore form including #_ when cursor is before the marker', () => {
+      const a = docFromTextNotation(':bar |#_"foo"');
+      const b = docFromTextNotation(':bar |#_"foo"|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
+    it('2: selects ignore form including #_ when cursor is before marker at start of file', () => {
+      const a = docFromTextNotation('|#_(foo bar)');
+      const b = docFromTextNotation('|#_(foo bar)|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
   });
 
   describe('Top Level Form', () => {

@@ -449,6 +449,14 @@ suite(suiteName, () => {
         '|(when true•  (println "Hello, World!"))'
       );
     });
+
+    it('should remove #_ when cursor is directly before the marker (decision 3)', async () => {
+      await setToggleCommentBehavior('ignoreCurrentForm');
+      assert.equal(
+        await toggleCommentUsingActiveEditor('(foo :bar |#_(println "test") :baz)'),
+        '(foo :bar |(println "test") :baz)'
+      );
+    });
   });
 
   describe('args.behavior overrides setting', () => {
