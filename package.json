@@ -1287,7 +1287,7 @@
           },
           "calva.paredit.toggleCommentBehavior": {
             "type": "string",
-            "markdownDescription": "Controls the behavior of Toggle Line Comment when there is no text selected and the cursor is not in a line comment.",
+            "markdownDescription": "Controls the behavior of Toggle Comment when there is no text selected and the cursor is not in a line comment.",
             "default": "ignoreParentForm",
             "enum": [
               "ignoreParentForm",
@@ -1784,7 +1784,7 @@
       },
       {
         "command": "calva.toggleLineComment",
-        "title": "Toggle Line Comment",
+        "title": "Toggle Comment",
         "category": "Calva"
       },
       {

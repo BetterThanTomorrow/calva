@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
+- Rename 'Toggle Line Comment' to 'Toggle Comment' 
+
 ## [2.0.563] - 2026-02-26
 
 - Fix: [REPL menu defaults to "Start your project" even when REPL is already running](https://github.com/BetterThanTomorrow/calva/issues/3106)
