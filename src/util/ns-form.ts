@@ -92,8 +92,14 @@ export function nsRangeFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        const result = nsRangeIfNotIgnored(cursorDoc, ns, cursor.rangeForCurrentForm(cursor.offsetEnd));
-        if (result) return result;
+        const result = nsRangeIfNotIgnored(
+          cursorDoc,
+          ns,
+          cursor.rangeForCurrentForm(cursor.offsetEnd)
+        );
+        if (result) {
+          return result;
+        }
       }
     }
     return null;
@@ -104,8 +110,14 @@ export function nsRangeFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        const result = nsRangeIfNotIgnored(cursorDoc, ns, cursor.rangeForCurrentForm(cursor.offsetStart));
-        if (result) return result;
+        const result = nsRangeIfNotIgnored(
+          cursorDoc,
+          ns,
+          cursor.rangeForCurrentForm(cursor.offsetStart)
+        );
+        if (result) {
+          return result;
+        }
       }
     }
   }
