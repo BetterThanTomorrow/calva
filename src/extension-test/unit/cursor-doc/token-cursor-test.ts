@@ -773,6 +773,30 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
     });
+    it('selects ignore form including #_ for all cursor positions within #_:a', () => {
+      const b = docFromTextNotation('|#_:a|');
+      const expected = textAndSelection(b)[1];
+      for (const notation of ['|#_:a', '#|_:a', '#_|:a', '#_:|a', '#_:a|']) {
+        const a = docFromTextNotation(notation);
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+        expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(expected);
+      }
+    });
+    it('selects ignore form including #_ for cursor before, within, and adjacent to #_(foo bar)', () => {
+      const b = docFromTextNotation('|#_(foo bar)|');
+      const expected = textAndSelection(b)[1];
+      for (const notation of ['|#_(foo bar)', '#|_(foo bar)', '#_|(foo bar)']) {
+        const a = docFromTextNotation(notation);
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+        expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(expected);
+      }
+    });
+    it('selects only the keyword when cursor is in whitespace after #_:a in #_:a :b', () => {
+      const a = docFromTextNotation('#_:a| :b');
+      const b = docFromTextNotation('#_|:a| :b');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
   });
 
   describe('Top Level Form', () => {
