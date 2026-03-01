@@ -797,6 +797,12 @@ describe('Token Cursor', () => {
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
     });
+    it('selects ignore form including #_ when cursor is at end of #_     :a (spaces between)', () => {
+      const a = docFromTextNotation('#_     :a|');
+      const b = docFromTextNotation('|#_     :a|');
+      const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
+    });
   });
 
   describe('Top Level Form', () => {
