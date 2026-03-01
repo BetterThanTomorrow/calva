@@ -3477,6 +3477,18 @@ describe('paredit util', () => {
         await paredit.toggleIgnoreForm(a, false);
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
+      it('should remove #_ when cursor is directly before the marker (decision 3)', async () => {
+        const a = docFromTextNotation(':bar |#_"foo"');
+        const b = docFromTextNotation(':bar |"foo"');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+      it('should remove #_ when cursor is at start of file before the marker', async () => {
+        const a = docFromTextNotation('|#_(foo bar)');
+        const b = docFromTextNotation('|(foo bar)');
+        await paredit.toggleIgnoreForm(a, false);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
     });
   });
 });
