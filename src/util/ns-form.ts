@@ -28,6 +28,18 @@ export function resolveNsName(sourcePaths: string[], filePath: string): string {
   return pathToNs(path.basename(filePath));
 }
 
+/** Returns [ns, range] if the range does not start with a #_ ignore token, else null. */
+function nsRangeIfNotIgnored(
+  cursorDoc: model.EditableDocument,
+  ns: string,
+  range: [number, number]
+): [string, [number, number]] | null {
+  if (cursorDoc.getTokenCursor(range[0]).getToken().type === 'ignore') {
+    return null;
+  }
+  return [ns, range];
+}
+
 function nsSymbolOfCurrentForm(
   cursor: tokenCursor.LispTokenCursor,
   downList: 'downList' | 'backwardDownList'
@@ -80,13 +92,8 @@ export function nsRangeFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        const range = cursor.rangeForCurrentForm(cursor.offsetEnd);
-        // Skip forms preceded by #_ (discard macro)
-        const rangeCursor = cursorDoc.getTokenCursor(range[0]);
-        if (rangeCursor.getToken().type === 'ignore') {
-          continue;
-        }
-        return [ns, range];
+        const result = nsRangeIfNotIgnored(cursorDoc, ns, cursor.rangeForCurrentForm(cursor.offsetEnd));
+        if (result) return result;
       }
     }
     return null;
@@ -97,13 +104,8 @@ export function nsRangeFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        const range = cursor.rangeForCurrentForm(cursor.offsetStart);
-        // Skip forms preceded by #_ (discard macro)
-        const rangeCursor = cursorDoc.getTokenCursor(range[0]);
-        if (rangeCursor.getToken().type === 'ignore') {
-          continue;
-        }
-        return [ns, range];
+        const result = nsRangeIfNotIgnored(cursorDoc, ns, cursor.rangeForCurrentForm(cursor.offsetStart));
+        if (result) return result;
       }
     }
   }
