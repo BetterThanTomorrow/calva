@@ -64,9 +64,12 @@ export function nsRangeFromCursorDoc(
   const topLevelRange = cursor.rangeForDefun(p);
   if (topLevelRange) {
     const topLevelRangeCursor = cursorDoc.getTokenCursor(topLevelRange[0]);
-    const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
-    if (ns) {
-      return [ns, topLevelRange];
+    // A top-level #_ discards the following form, so it's not a valid ns declaration
+    if (topLevelRangeCursor.getToken().type !== 'ignore') {
+      const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
+      if (ns) {
+        return [ns, topLevelRange];
+      }
     }
   }
   // Special case 2, find ns form from start of document
@@ -77,7 +80,13 @@ export function nsRangeFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        return [ns, cursor.rangeForCurrentForm(cursor.offsetEnd)];
+        const range = cursor.rangeForCurrentForm(cursor.offsetEnd);
+        // Skip forms preceded by #_ (discard macro)
+        const rangeCursor = cursorDoc.getTokenCursor(range[0]);
+        if (rangeCursor.getToken().type === 'ignore') {
+          continue;
+        }
+        return [ns, range];
       }
     }
     return null;
@@ -88,7 +97,13 @@ export function nsRangeFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        return [ns, cursor.rangeForCurrentForm(cursor.offsetStart)];
+        const range = cursor.rangeForCurrentForm(cursor.offsetStart);
+        // Skip forms preceded by #_ (discard macro)
+        const rangeCursor = cursorDoc.getTokenCursor(range[0]);
+        if (rangeCursor.getToken().type === 'ignore') {
+          continue;
+        }
+        return [ns, range];
       }
     }
   }
