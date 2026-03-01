@@ -657,6 +657,11 @@ export class LispTokenCursor extends TokenCursor {
       !this.tokenBeginsMetadata()
     ) {
       afterCurrentFormOffset = this.offsetEnd;
+      // If preceded by #_, include the ignore marker in the range
+      const ignoreCursor = this.clone();
+      if (ignoreCursor.backwardThroughAnyIgnore()) {
+        return [ignoreCursor.offsetStart, afterCurrentFormOffset];
+      }
     }
     // console.log(0, afterCurrentFormOffset);
 
@@ -669,9 +674,16 @@ export class LispTokenCursor extends TokenCursor {
         cursor.getToken().type !== 'reader' &&
         !cursor.tokenBeginsMetadata() &&
         cursor.getPrevToken().type !== 'reader' &&
+        cursor.getPrevToken().type !== 'ignore' &&
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
+          // If the cursor is at end-of-line and the form is immediately preceded
+          // by #_ (no whitespace between), include the ignore marker in the range.
+          if (this.getToken().type === 'eol' && cursor.getPrevToken().type === 'ignore') {
+            cursor.previous();
+            return [cursor.offsetStart, offset];
+          }
           afterCurrentFormOffset = offset;
         }
       }
@@ -718,6 +730,12 @@ export class LispTokenCursor extends TokenCursor {
           // only handles 'reader' tokens, not 'ignore' tokens.
           if (tokenTypeAtFormStart === 'ignore') {
             return [formStart, afterCurrentFormOffset];
+          }
+          // When the form at formStart is preceded by #_, include the ignore
+          // marker in the range (e.g. cursor between #_ and the form).
+          const ignoreCursor = this.doc.getTokenCursor(formStart);
+          if (ignoreCursor.backwardThroughAnyIgnore()) {
+            return [ignoreCursor.offsetStart, afterCurrentFormOffset];
           }
         }
       }
