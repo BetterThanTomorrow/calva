@@ -678,9 +678,9 @@ export class LispTokenCursor extends TokenCursor {
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
-          // If the cursor is at end-of-line and the form is preceded by #_
-          // (with optional whitespace between), include the ignore marker.
-          if (this.getToken().type === 'eol' && cursor.backwardThroughAnyIgnore()) {
+          // If the form is preceded by #_ (with optional whitespace between),
+          // include the ignore marker in the range.
+          if (cursor.backwardThroughAnyIgnore()) {
             return [cursor.offsetStart, offset];
           }
           afterCurrentFormOffset = offset;
