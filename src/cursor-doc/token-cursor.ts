@@ -832,7 +832,10 @@ export class LispTokenCursor extends TokenCursor {
           return lastCandidateRange;
         }
       } else {
-        lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
+        const end = cursor.offsetStart;
+        const sc = cursor.clone();
+        sc.backwardSexp(true, true);
+        lastCandidateRange = [sc.offsetStart, end];
       }
     }
     return lastCandidateRange;
