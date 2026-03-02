@@ -791,9 +791,9 @@ describe('Token Cursor', () => {
         expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(expected);
       }
     });
-    it('selects only the keyword when cursor is in whitespace after #_:a in #_:a :b', () => {
+    it('selects ignore form including #_ when cursor after #_:a in #_:a :b', () => {
       const a = docFromTextNotation('#_:a| :b');
-      const b = docFromTextNotation('#_|:a| :b');
+      const b = docFromTextNotation('|#_:a| :b');
       const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].anchor);
       expect(cursor.rangeForCurrentForm(a.selections[0].anchor)).toEqual(textAndSelection(b)[1]);
     });
