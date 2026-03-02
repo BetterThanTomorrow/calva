@@ -1010,6 +1010,12 @@ describe('Token Cursor', () => {
         const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].active);
         expect(cursor.rangeForDefun(a.selections[0].active)).toEqual(textAndSelection(b)[1]);
       });
+      it('Does not include ignore marker with no whitespaces', () => {
+        const a = docFromTextNotation('aaa (comment #_[bbb ccc|]  ddd)');
+        const b = docFromTextNotation('aaa (comment #_|[bbb ccc]|  ddd)');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selections[0].active);
+        expect(cursor.rangeForDefun(a.selections[0].active)).toEqual(textAndSelection(b)[1]);
+      });
     });
   });
 
