@@ -1,5 +1,6 @@
 import { getFirstEol, LineInputModel } from './model';
 import { Token, validPair } from './clojure-lexer';
+import { isCommentFormHead } from '../utilities';
 
 function tokenIsWhiteSpace(token: Token) {
   return token.type === 'eol' || token.type == 'ws';
@@ -807,7 +808,7 @@ export class LispTokenCursor extends TokenCursor {
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
-      if (commentCreatesTopLevel && getFunctionPositionText(commentCursor) === 'comment') {
+      if (commentCreatesTopLevel && isCommentFormHead(getFunctionPositionText(commentCursor))) {
         if (commentCursor.getToken().raw !== ')') {
           commentCursor.upList();
           return commentCursor.rangeForCurrentForm(commentCursor.offsetStart);
@@ -996,7 +997,7 @@ export class LispTokenCursor extends TokenCursor {
   atTopLevel(commentCreatesTopLevel: boolean = false): boolean {
     const tlCursor = this.clone();
     if (tlCursor.forwardList() && tlCursor.upList()) {
-      if (commentCreatesTopLevel && this.getFunctionName() === 'comment') {
+      if (commentCreatesTopLevel && isCommentFormHead(this.getFunctionName())) {
         return true;
       }
       return false;

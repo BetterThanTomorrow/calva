@@ -5,7 +5,7 @@ import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
+import { tryToGetActiveTextEditor, getActiveTextEditor, isCommentFormHead } from '../../utilities';
 
 type StackItem = {
   char: string;
@@ -325,7 +325,7 @@ function updateRainbowBrackets() {
         char = token.raw,
         charLength = char.length;
       // Highlight (comment ...) forms
-      if (!in_comment_form && char === 'comment') {
+      if (!in_comment_form && isCommentFormHead(char)) {
         const peekCursor = cursor.clone();
         peekCursor.backwardWhitespace();
         if (peekCursor.getPrevToken().raw === '(') {

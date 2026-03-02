@@ -12,6 +12,8 @@ import * as url from 'url';
 import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
+import { getConfig } from './config';
+import { resolveAliasedSymbol } from './cursor-doc/paredit-config';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -645,6 +647,19 @@ function pathExists(path: string): boolean {
   return fs.existsSync(path);
 }
 
+function isCommentFormHead(symbol: string): boolean {
+  if (symbol === 'comment') {
+    return true;
+  }
+
+  const { customCommentForms, aliasMap } = getConfig();
+  return (
+    symbol === 'comment' ||
+    customCommentForms.includes(symbol) ||
+    customCommentForms.includes(resolveAliasedSymbol(symbol, aliasMap))
+  );
+}
+
 export function lastLineIsEmpty(
   doc: vscode.TextDocument = vscode.window.activeTextEditor.document
 ): boolean {
@@ -654,6 +669,7 @@ export function lastLineIsEmpty(
 }
 
 export {
+  isCommentFormHead,
   distinct,
   getWordAtPosition,
   tryToGetDocument,
