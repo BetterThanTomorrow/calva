@@ -6,9 +6,8 @@ Changes to Calva.
 
 - Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
 - Rename 'Toggle Line Comment' to 'Toggle Comment' 
-- When the cursor is at a `#_` marker, **Current Form** now includes both the marker and the ignored form
+- Current form takes `#_` commented forms at all cursor positions within the form
   - Fix: [Toggle line comment with ignoreCurrentForm discards wrong form](https://github.com/BetterThanTomorrow/calva/issues/3108)
-  - Current form includes `#_` at all cursor positions within the form
   - Fix: No longer treat `#_` discarded ns forms as namespace declarations
 
 ## [2.0.563] - 2026-02-26
