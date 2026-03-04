@@ -3746,7 +3746,7 @@
     "eslint-watch": "^8.0.0",
     "fast-check": "^1.22.2",
     "glob": "^13.0.0",
-    "jest": "^27.2.5",
+    "jest": "^30.2.0",
     "json": "^10.0.0",
     "mocha": "^11.1.0",
     "mocha-junit-reporter": "^2.0.2",
