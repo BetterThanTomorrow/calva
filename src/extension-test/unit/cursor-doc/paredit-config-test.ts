@@ -500,4 +500,88 @@ describe('paredit-config', () => {
       });
     });
   });
+
+  describe('isCommentFormHead', () => {
+    it('returns true for "comment"', () => {
+      expect(pareditConfig.isCommentFormHead('comment')).toBe(true);
+    });
+
+    it('returns false for undefined', () => {
+      expect(pareditConfig.isCommentFormHead(undefined)).toBe(false);
+    });
+
+    it('returns false for null', () => {
+      expect(pareditConfig.isCommentFormHead(null)).toBe(false);
+    });
+
+    it('returns false for empty string', () => {
+      expect(pareditConfig.isCommentFormHead('')).toBe(false);
+    });
+
+    it('returns false for non-comment symbol without config', () => {
+      expect(pareditConfig.isCommentFormHead('defn')).toBe(false);
+    });
+
+    it('returns true for custom comment form', () => {
+      const config = { customCommentForms: ['my-comment'], aliasMap: {} };
+      expect(pareditConfig.isCommentFormHead('my-comment', config)).toBe(true);
+    });
+
+    it('returns false for non-matching symbol with config', () => {
+      const config = { customCommentForms: ['my-comment'], aliasMap: {} };
+      expect(pareditConfig.isCommentFormHead('defn', config)).toBe(false);
+    });
+
+    it('resolves aliased custom comment form', () => {
+      const config = {
+        customCommentForms: ['my.ns/dev-comment'],
+        aliasMap: { m: 'my.ns' },
+      };
+      expect(pareditConfig.isCommentFormHead('m/dev-comment', config)).toBe(true);
+    });
+
+    it('returns false for aliased symbol that does not match custom forms', () => {
+      const config = {
+        customCommentForms: ['my.ns/dev-comment'],
+        aliasMap: { m: 'my.ns' },
+      };
+      expect(pareditConfig.isCommentFormHead('m/other', config)).toBe(false);
+    });
+
+    it('still recognizes "comment" even with config provided', () => {
+      const config = { customCommentForms: ['my-comment'], aliasMap: {} };
+      expect(pareditConfig.isCommentFormHead('comment', config)).toBe(true);
+    });
+  });
+
+  describe('atTopLevel with custom comment forms', () => {
+    it('treats custom comment form as top level', () => {
+      const a = docFromTextNotation('(my-comment |(+ 1 2))');
+      const cursor = a.getTokenCursor(a.selections[0].anchor);
+      const config = { customCommentForms: ['my-comment'], aliasMap: {} };
+      expect(cursor.atTopLevel(true, config)).toBe(true);
+    });
+
+    it('does not treat custom comment form as top level without config', () => {
+      const a = docFromTextNotation('(my-comment |(+ 1 2))');
+      const cursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.atTopLevel(true)).toBe(false);
+    });
+
+    it('treats aliased custom comment form as top level', () => {
+      const a = docFromTextNotation('(m/dev-comment |(+ 1 2))');
+      const cursor = a.getTokenCursor(a.selections[0].anchor);
+      const config = {
+        customCommentForms: ['my.ns/dev-comment'],
+        aliasMap: { m: 'my.ns' },
+      };
+      expect(cursor.atTopLevel(true, config)).toBe(true);
+    });
+
+    it('still treats built-in comment as top level', () => {
+      const a = docFromTextNotation('(comment |(+ 1 2))');
+      const cursor = a.getTokenCursor(a.selections[0].anchor);
+      expect(cursor.atTopLevel(true)).toBe(true);
+    });
+  });
 });
