@@ -156,6 +156,33 @@ export function resolveAliasedSymbol(symbol: string, aliasMap: AliasMapConfig): 
   return resolvedNs ? `${resolvedNs}/${name}` : symbol;
 }
 
+export interface CommentFormConfig {
+  customCommentForms: string[];
+  aliasMap: AliasMapConfig;
+}
+
+/**
+ * Returns true if the given symbol names a comment form head.
+ * Recognizes the built-in `comment` symbol plus any user-configured custom
+ * comment forms (resolved through the alias map).
+ */
+export function isCommentFormHead(symbol: string, config?: CommentFormConfig): boolean {
+  if (!symbol) {
+    return false;
+  }
+  if (symbol === 'comment') {
+    return true;
+  }
+  if (!config) {
+    return false;
+  }
+  const { customCommentForms, aliasMap } = config;
+  return (
+    customCommentForms.includes(symbol) ||
+    customCommentForms.includes(resolveAliasedSymbol(symbol, aliasMap))
+  );
+}
+
 /**
  * Appends custom pair forms to defaults.
  * Custom forms cannot override built-in defaults - they are added to the end of the array.
