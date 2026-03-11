@@ -214,7 +214,7 @@ The argument accepts the same values as the setting: `ignoreCurrentForm`, `ignor
 
 ## Customizing Paredit Behavior
 
-Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: **customPairForms**, **customThreadingMacros**, and **aliasMap**. These can be configured in two places that work together:
+Calva's Paredit can be customized to understand your project-specific macros and forms. The main configuration options are: **customPairForms**, **customThreadingMacros**, **aliasMap**, and **customCommentForms**. These can be configured in two places that work together:
 
 1. **VS Code settings** (`settings.json`) - Apply globally or per-workspace
 2. **Project config** (`.calva/config.edn` or `~/.config/calva/config.edn`) - Project or user-specific overrides
@@ -532,6 +532,56 @@ Now this code works perfectly:
 
 ;; Result: "p" resolves to "my.custom.promises"
 ```
+
+## Custom Comment Forms
+
+By default, Calva treats `(comment ...)` forms as top-level contexts — expressions inside a `comment` form can be evaluated individually, and navigation commands treat them as top-level forms.
+
+The `calva.customCommentForms` setting lets you extend this behavior to other forms in your codebase.
+
+### Why Use Custom Comment Forms?
+
+Some projects define their own comment-like macros for development-only code, interactive exploration, or conditional inclusion:
+
+```clojure
+(defmacro dev-comment [& _body])  ; your project's comment form
+
+(dev-comment
+  ;; These expressions should be evaluatable individually,
+  ;; just like in a standard (comment ...) block
+  (start-dev-server!)
+  (reset-db!))
+```
+
+### Configuration
+
+Add to your `settings.json`:
+
+```json
+{
+  "calva.customCommentForms": ["dev-comment", "my.ns/rich-comment"]
+}
+```
+
+Supports fully qualified names and works with [aliasMap](#namespace-alias-resolution):
+
+```json
+{
+  "calva.customCommentForms": ["my.ns/dev-comment"],
+  "calva.paredit.aliasMap": { "dev": "my.ns" }
+}
+```
+
+With this configuration, `dev/dev-comment` in your code is recognized the same as `my.ns/dev-comment`.
+
+### What Changes
+
+Forms listed in `customCommentForms` behave like `(comment ...)` in:
+
+- **Evaluate Top Level Form** — evaluates the form at cursor as a top-level expression
+- **Navigation** — treats the inside of the form as a top-level context
+- **Rainbow bracket highlighting** — highlights the form like a comment block
+- **Notebook cell parsing** — forms are split into individual notebook cells
 
 ## About the Keyboard Shortcuts
 
