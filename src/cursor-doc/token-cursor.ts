@@ -658,6 +658,11 @@ export class LispTokenCursor extends TokenCursor {
       !this.tokenBeginsMetadata()
     ) {
       afterCurrentFormOffset = this.offsetEnd;
+      // If preceded by #_, include the ignore marker in the range
+      const ignoreCursor = this.clone();
+      if (ignoreCursor.backwardThroughAnyIgnore()) {
+        return [ignoreCursor.offsetStart, afterCurrentFormOffset];
+      }
     }
     // console.log(0, afterCurrentFormOffset);
 
@@ -670,9 +675,15 @@ export class LispTokenCursor extends TokenCursor {
         cursor.getToken().type !== 'reader' &&
         !cursor.tokenBeginsMetadata() &&
         cursor.getPrevToken().type !== 'reader' &&
+        cursor.getPrevToken().type !== 'ignore' &&
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
+          // If the form is preceded by #_ (with optional whitespace between),
+          // include the ignore marker in the range.
+          if (cursor.backwardThroughAnyIgnore()) {
+            return [cursor.offsetStart, offset];
+          }
           afterCurrentFormOffset = offset;
         }
       }
@@ -719,6 +730,12 @@ export class LispTokenCursor extends TokenCursor {
           // only handles 'reader' tokens, not 'ignore' tokens.
           if (tokenTypeAtFormStart === 'ignore') {
             return [formStart, afterCurrentFormOffset];
+          }
+          // When the form at formStart is preceded by #_, include the ignore
+          // marker in the range (e.g. cursor between #_ and the form).
+          const ignoreCursor = this.doc.getTokenCursor(formStart);
+          if (ignoreCursor.backwardThroughAnyIgnore()) {
+            return [ignoreCursor.offsetStart, afterCurrentFormOffset];
           }
         }
       }
@@ -823,7 +840,10 @@ export class LispTokenCursor extends TokenCursor {
           return lastCandidateRange;
         }
       } else {
-        lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
+        const end = cursor.offsetStart;
+        const sc = cursor.clone();
+        sc.backwardSexp(true, true);
+        lastCandidateRange = [sc.offsetStart, end];
       }
     }
     return lastCandidateRange;

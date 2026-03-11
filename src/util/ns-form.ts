@@ -28,6 +28,18 @@ export function resolveNsName(sourcePaths: string[], filePath: string): string {
   return pathToNs(path.basename(filePath));
 }
 
+/** Returns [ns, range] if the range does not start with a #_ ignore token, else null. */
+function nsRangeIfNotIgnored(
+  cursorDoc: model.EditableDocument,
+  ns: string,
+  range: [number, number]
+): [string, [number, number]] | null {
+  if (cursorDoc.getTokenCursor(range[0]).getToken().type === 'ignore') {
+    return null;
+  }
+  return [ns, range];
+}
+
 function nsSymbolOfCurrentForm(
   cursor: tokenCursor.LispTokenCursor,
   downList: 'downList' | 'backwardDownList'
@@ -64,9 +76,12 @@ export function nsRangeFromCursorDoc(
   const topLevelRange = cursor.rangeForDefun(p);
   if (topLevelRange) {
     const topLevelRangeCursor = cursorDoc.getTokenCursor(topLevelRange[0]);
-    const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
-    if (ns) {
-      return [ns, topLevelRange];
+    // A top-level #_ discards the following form, so it's not a valid ns declaration
+    if (topLevelRangeCursor.getToken().type !== 'ignore') {
+      const ns = nsSymbolOfCurrentForm(topLevelRangeCursor, 'downList');
+      if (ns) {
+        return [ns, topLevelRange];
+      }
     }
   }
   // Special case 2, find ns form from start of document
@@ -77,7 +92,14 @@ export function nsRangeFromCursorDoc(
     while (cursor.forwardSexp(true, true, true)) {
       const ns = nsSymbolOfCurrentForm(cursor, 'backwardDownList');
       if (ns) {
-        return [ns, cursor.rangeForCurrentForm(cursor.offsetEnd)];
+        const result = nsRangeIfNotIgnored(
+          cursorDoc,
+          ns,
+          cursor.rangeForCurrentForm(cursor.offsetEnd)
+        );
+        if (result) {
+          return result;
+        }
       }
     }
     return null;
@@ -88,7 +110,14 @@ export function nsRangeFromCursorDoc(
     while (cursor.backwardSexp()) {
       const ns = nsSymbolOfCurrentForm(cursor, 'downList');
       if (ns) {
-        return [ns, cursor.rangeForCurrentForm(cursor.offsetStart)];
+        const result = nsRangeIfNotIgnored(
+          cursorDoc,
+          ns,
+          cursor.rangeForCurrentForm(cursor.offsetStart)
+        );
+        if (result) {
+          return result;
+        }
       }
     }
   }
