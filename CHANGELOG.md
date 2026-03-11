@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
+- [Allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
 - Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
 - Rename 'Toggle Line Comment' to 'Toggle Comment' 
 - When the cursor is at a `#_` marker, **Current Form** now includes both the marker and the ignored form
