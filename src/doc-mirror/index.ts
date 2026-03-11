@@ -176,14 +176,18 @@ export class DocumentModel implements EditableModel {
     // Now that the document has been edited, calculate the reformatting:
     const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => b - a))
       .flatMap((p) => {
-        const doc = this.document.document;
-        const formattedInfo = formatter.formatDocIndexesInfo(
-          doc,
-          true,
-          p,
-          editor.selections.map((s) => s.active).map((p) => doc.offsetAt(p))
-        );
-        return formattedInfo ? formattedInfo.changes : [];
+        try {
+          const doc = this.document.document;
+          const formattedInfo = formatter.formatDocIndexesInfo(
+            doc,
+            true,
+            p,
+            editor.selections.map((s) => s.active).map((p) => doc.offsetAt(p))
+          );
+          return formattedInfo ? formattedInfo.changes : [];
+        } catch (e) {
+          return [];
+        }
       })
       .filter(
         (function () {
