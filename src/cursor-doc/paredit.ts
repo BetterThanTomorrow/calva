@@ -21,9 +21,9 @@ import {
   defaultGroupedDefaultPairForms,
   defaultThreadingMacros,
   resolveAliasedSymbol,
+  isCommentFormHead,
 } from './paredit-config';
 import { Token } from './lexer';
-import { isCommentFormHead } from '../utilities';
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
 
