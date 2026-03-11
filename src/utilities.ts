@@ -13,7 +13,10 @@ import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
 import { getConfig } from './config';
-import { resolveAliasedSymbol } from './cursor-doc/paredit-config';
+import {
+  isCommentFormHead as _isCommentFormHead,
+  CommentFormConfig,
+} from './cursor-doc/paredit-config';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -647,17 +650,16 @@ function pathExists(path: string): boolean {
   return fs.existsSync(path);
 }
 
-function isCommentFormHead(symbol: string): boolean {
-  if (symbol === 'comment') {
-    return true;
+/**
+ * Convenience wrapper around paredit-config's isCommentFormHead that
+ * automatically reads VS Code config when no config is supplied.
+ */
+function isCommentFormHead(symbol: string, config?: CommentFormConfig): boolean {
+  if (!config) {
+    const { customCommentForms, aliasMap } = getConfig();
+    return _isCommentFormHead(symbol, { customCommentForms, aliasMap });
   }
-
-  const { customCommentForms, aliasMap } = getConfig();
-  return (
-    symbol === 'comment' ||
-    customCommentForms.includes(symbol) ||
-    customCommentForms.includes(resolveAliasedSymbol(symbol, aliasMap))
-  );
+  return _isCommentFormHead(symbol, config);
 }
 
 export function lastLineIsEmpty(
