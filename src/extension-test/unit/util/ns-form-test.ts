@@ -125,13 +125,10 @@ describe('ns-form util', () => {
       ).toStrictEqual(['a', "(in-ns 'a)"]);
     });
 
-    // TODO: Figure what to do with ignored forms
-    //       For now, this is what they do (nothing)
-    it('Finds ns in top level ignored form', function () {
-      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (ns a-b.c-d)|'))).toStrictEqual([
-        'a-b.c-d',
-        '(ns a-b.c-d)',
-      ]);
+    it('Does not find ns in top level ignored form', function () {
+      expect(nsFormUtil.nsFromCursorDoc(docFromTextNotation('#_ (ns a-b.c-d)|'))).toStrictEqual(
+        null
+      );
     });
     it('Finds ns in ignored rich comments', function () {
       expect(
