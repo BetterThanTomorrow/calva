@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Nightly clojure-lsp downloads re-download on every startup even when already up to date](https://github.com/BetterThanTomorrow/calva/issues/3125)
+
 ## [2.0.563] - 2026-02-26
 
 - Fix: [REPL menu defaults to "Start your project" even when REPL is already running](https://github.com/BetterThanTomorrow/calva/issues/3106)
