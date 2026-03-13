@@ -153,7 +153,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+e`                        | **Wrap Around #{}** | Wraps the current form, or selection, with set. <br>
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`/`h`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes and set (`#{}`) <br> ![](images/paredit/rewrap.gif)
-`ctrl+/` (win/linux)<br>`cmd+/` (mac)                        | **Toggle Line Comment** | When there is no selection and the cursor is not in a line comment, toggles `#_` (ignore/discard) on the parent form by default. This behavior is controlled by the `calva.paredit.toggleCommentBehavior` setting (see [Toggle Comment Behavior](#toggle-comment-behavior) below). When text is selected or the cursor is in a `;;` comment, uses `;;` line commenting: structural analysis places semicolons safely and reformats enclosing forms.
+`ctrl+/` (win/linux)<br>`cmd+/` (mac)                        | **Toggle Comment** | When there is no selection and the cursor is not in a line comment, toggles `#_` (ignore/discard) on the parent form by default. This behavior is controlled by the `calva.paredit.toggleCommentBehavior` setting (see [Toggle Comment Behavior](#toggle-comment-behavior) below). When text is selected or the cursor is in a `;;` comment, uses `;;` line commenting: structural analysis places semicolons safely and reformats enclosing forms.
 
 !!! Note "Copy to Clipboard when killing text"
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
@@ -173,7 +173,7 @@ And like so (wait for it):
 
 ## Toggle Comment Behavior
 
-The **Toggle Line Comment** command (`ctrl+/` / `cmd+/`) behavior when there is no text selected and the cursor is not in a line comment is controlled by the `calva.paredit.toggleCommentBehavior` setting:
+The **Toggle Comment** command (`ctrl+/` / `cmd+/`) behavior when there is no text selected and the cursor is not in a line comment is controlled by the `calva.paredit.toggleCommentBehavior` setting:
 
 | Value | Description |
 |---|---|
@@ -214,7 +214,7 @@ The argument accepts the same values as the setting: `ignoreCurrentForm`, `ignor
 
 ## Customizing Paredit Behavior
 
-Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: **customPairForms**, **customThreadingMacros**, and **aliasMap**. These can be configured in two places that work together:
+Calva's Paredit can be customized to understand your project-specific macros and forms. The main configuration options are: **customPairForms**, **customThreadingMacros**, **aliasMap**, and **customCommentForms**. These can be configured in two places that work together:
 
 1. **VS Code settings** (`settings.json`) - Apply globally or per-workspace
 2. **Project config** (`.calva/config.edn` or `~/.config/calva/config.edn`) - Project or user-specific overrides
@@ -532,6 +532,56 @@ Now this code works perfectly:
 
 ;; Result: "p" resolves to "my.custom.promises"
 ```
+
+## Custom Comment Forms
+
+By default, Calva treats `(comment ...)` forms as top-level contexts — expressions inside a `comment` form can be evaluated individually, and navigation commands treat them as top-level forms.
+
+The `calva.customCommentForms` setting lets you extend this behavior to other forms in your codebase.
+
+### Why Use Custom Comment Forms?
+
+Some projects define their own comment-like macros for development-only code, interactive exploration, or conditional inclusion:
+
+```clojure
+(defmacro dev-comment [& _body])  ; your project's comment form
+
+(dev-comment
+  ;; These expressions should be evaluatable individually,
+  ;; just like in a standard (comment ...) block
+  (start-dev-server!)
+  (reset-db!))
+```
+
+### Configuration
+
+Add to your `settings.json`:
+
+```json
+{
+  "calva.customCommentForms": ["dev-comment", "my.ns/rich-comment"]
+}
+```
+
+Supports fully qualified names and works with [aliasMap](#namespace-alias-resolution):
+
+```json
+{
+  "calva.customCommentForms": ["my.ns/dev-comment"],
+  "calva.paredit.aliasMap": { "dev": "my.ns" }
+}
+```
+
+With this configuration, `dev/dev-comment` in your code is recognized the same as `my.ns/dev-comment`.
+
+### What Changes
+
+Forms listed in `customCommentForms` behave like `(comment ...)` in:
+
+- **Evaluate Top Level Form** — evaluates the form at cursor as a top-level expression
+- **Navigation** — treats the inside of the form as a top-level context
+- **Rainbow bracket highlighting** — highlights the form like a comment block
+- **Notebook cell parsing** — forms are split into individual notebook cells
 
 ## About the Keyboard Shortcuts
 

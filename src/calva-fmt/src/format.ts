@@ -236,7 +236,7 @@ export function formatDocIndexesInfo(
   } = formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
     ...config.getConfigNow(),
     ...extraConfig,
-    'comment-form?': cursor.getFunctionName() === 'comment',
+    'comment-form?': util.isCommentFormHead(cursor.getFunctionName()),
   });
   const range: vscode.Range = new vscode.Range(
     doc.positionAt(formatted.range[0]),
@@ -302,7 +302,16 @@ function _calculateFormatRange(
   if (!isUndefined(rangeForCurrentForm)) {
     if (rangeForCurrentForm[0] === rangeForTopLevelForm[0]) {
       if (topLevelStartCursor.rowCol[1] !== 0) {
-        return;
+        const formStart = rangeForCurrentForm[0];
+        // Allow formatting when the form is directly preceded by a #_ discard
+        // macro. Inserting '#_' shifts the form to column 2 but the enclosing
+        // top-level construct (the #_ reader macro) starts at column 0, so it
+        // is safe and desirable to reformat the form contents.
+        const precededByIgnore =
+          formStart >= 2 && cursor.doc.getText(formStart - 2, formStart) === '#_';
+        if (!precededByIgnore) {
+          return;
+        }
       }
     }
     if (rangeForCurrentForm.includes(index)) {

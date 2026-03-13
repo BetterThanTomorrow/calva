@@ -34,6 +34,7 @@ export async function downloadWithBackupRecovery(
 ): Promise<{
   path: string;
   restored: boolean;
+  error?: string;
 }> {
   const backupPath = await backupFile(filePath);
   try {
@@ -46,11 +47,13 @@ export async function downloadWithBackupRecovery(
     if (!backupPath) {
       throw e;
     }
-    console.log('Download failed, recovering from backup:', e.message);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error('Download failed, recovering from backup:', errorMessage);
     const restored = await restoreFile(backupPath, filePath);
     return {
       path: restored ? filePath : backupPath,
       restored: true,
+      error: errorMessage,
     };
   }
 }

@@ -4,6 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.564] - 2026-03-13
+
+- [Allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
+- Fix: [Nightly clojure-lsp downloads re-download on every startup even when already up to date](https://github.com/BetterThanTomorrow/calva/issues/3125)
+- Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
+- Rename 'Toggle Line Comment' to 'Toggle Comment' 
+- Current form takes `#_` commented forms at all cursor positions within the form
+  - Fix: [Toggle line comment with ignoreCurrentForm discards wrong form](https://github.com/BetterThanTomorrow/calva/issues/3108)
+  - Fix: No longer treat `#_` discarded ns forms as namespace declarations
+
 ## [2.0.563] - 2026-02-26
 
 - Fix: [REPL menu defaults to "Start your project" even when REPL is already running](https://github.com/BetterThanTomorrow/calva/issues/3106)
