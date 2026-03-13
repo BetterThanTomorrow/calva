@@ -6,6 +6,7 @@ import * as repl from './api/repl-v1';
 import _ = require('lodash');
 import { isInteger } from 'lodash';
 import { getNamespace } from './api/document';
+import { isCommentFormHead } from './utilities';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
   private readonly decoder = new TextDecoder();
@@ -64,7 +65,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
     const endForm = cursor.doc.getTokenCursor(end - endAdjustment);
     const afterForm = cursor.doc.getTokenCursor(end);
 
-    if (endForm.getFunctionName() === 'comment') {
+    if (isCommentFormHead(endForm.getFunctionName())) {
       const commentRange = afterForm.rangeForCurrentForm(0);
       const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
       const commentCells = [];

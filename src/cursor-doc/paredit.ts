@@ -21,6 +21,7 @@ import {
   defaultGroupedDefaultPairForms,
   defaultThreadingMacros,
   resolveAliasedSymbol,
+  isCommentFormHead,
 } from './paredit-config';
 import { Token } from './lexer';
 
@@ -2736,7 +2737,7 @@ export async function addRichComment(
   if (!contents && insideNextTopLevelFormPos !== insertStart) {
     const checkIfRichCommentExistsCursor = doc.getTokenCursor(insideNextTopLevelFormPos);
     checkIfRichCommentExistsCursor.forwardWhitespace(true);
-    if (checkIfRichCommentExistsCursor.getToken().raw == 'comment') {
+    if (isCommentFormHead(checkIfRichCommentExistsCursor.getToken().raw)) {
       checkIfRichCommentExistsCursor.forwardSexp();
       checkIfRichCommentExistsCursor.forwardWhitespace(false);
       // insert nothing, just place cursor
@@ -2783,4 +2784,140 @@ export async function addRichComment(
       undoStopBefore: true,
     }
   );
+}
+
+/**
+ * Finds a preceding `#_` ignore marker before the given offset, allowing
+ * optional whitespace between the marker and the offset position.
+ */
+function findIgnoreMarkerBeforeOffset(
+  doc: EditableDocument,
+  offset: number
+): { start: number; end: number } | undefined {
+  if (offset < 2) {
+    return undefined;
+  }
+
+  let scanOffset = offset - 1;
+  while (scanOffset >= 0) {
+    const ch = doc.model.getText(scanOffset, scanOffset + 1);
+    if (/\s/.test(ch)) {
+      scanOffset--;
+    } else {
+      break;
+    }
+  }
+
+  if (scanOffset < 1) {
+    return undefined;
+  }
+
+  const maybeIgnore = doc.model.getText(scanOffset - 1, scanOffset + 1);
+  if (maybeIgnore === '#_') {
+    return { start: scanOffset - 1, end: scanOffset + 1 };
+  }
+
+  return undefined;
+}
+
+/**
+ * Toggles `#_` (ignore/discard) on the form at the cursor position.
+ * Uses the paredit editing pipeline so formatting is applied after the edit.
+ */
+export async function toggleIgnoreForm(
+  doc: EditableDocument,
+  useParentForm: boolean
+): Promise<boolean | void> {
+  const selection = doc.selections[0];
+  if (!selection) {
+    return;
+  }
+
+  const cursorOffset = selection.active;
+
+  const ignoreBeforeCursor = findIgnoreMarkerBeforeOffset(doc, cursorOffset);
+
+  if (ignoreBeforeCursor) {
+    // Also delete any whitespace between #_ and the next form, so
+    // e.g. '#_•(foo)' and '#_   (foo)' both reduce cleanly to '(foo)'.
+    let formStart = ignoreBeforeCursor.end;
+    while (/\s/.test(doc.model.getText(formStart, formStart + 1))) {
+      formStart++;
+    }
+    const deleteLength = formStart - ignoreBeforeCursor.start;
+    const newCursorOffset =
+      cursorOffset < ignoreBeforeCursor.start
+        ? cursorOffset
+        : cursorOffset < formStart
+        ? ignoreBeforeCursor.start
+        : cursorOffset - deleteLength;
+    return doc.model.edit(
+      [new ModelEdit('deleteRange', [ignoreBeforeCursor.start, deleteLength])],
+      {
+        selections: [new ModelEditSelection(newCursorOffset)],
+        skipFormat: false,
+        undoStopBefore: true,
+      }
+    );
+  }
+
+  let formRange: [number, number] | undefined;
+  if (useParentForm) {
+    const cursor = doc.getTokenCursor(cursorOffset);
+    if (cursor.backwardList()) {
+      cursor.backwardUpList();
+      const start = cursor.offsetStart;
+      const endCursor = cursor.clone();
+      if (endCursor.forwardSexp()) {
+        formRange = [start, endCursor.offsetStart];
+      }
+    }
+  } else {
+    const cursor = doc.getTokenCursor(cursorOffset);
+    formRange = cursor.rangeForCurrentForm(cursorOffset);
+  }
+
+  if (!formRange) {
+    return;
+  }
+
+  const formStartOffset = formRange[0];
+
+  // When rangeForCurrentForm includes a leading #_ (cursor was directly adjacent
+  // before the marker), remove it rather than adding another one.
+  if (doc.model.getText(formStartOffset, formStartOffset + 2) === '#_') {
+    let deleteEnd = formStartOffset + 2;
+    while (/\s/.test(doc.model.getText(deleteEnd, deleteEnd + 1))) {
+      deleteEnd++;
+    }
+    const deleteLength = deleteEnd - formStartOffset;
+    const newCursorOffset =
+      cursorOffset > formStartOffset
+        ? Math.max(formStartOffset, cursorOffset - deleteLength)
+        : cursorOffset;
+    return doc.model.edit([new ModelEdit('deleteRange', [formStartOffset, deleteLength])], {
+      selections: [new ModelEditSelection(newCursorOffset)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  }
+
+  const ignoreBeforeForm = findIgnoreMarkerBeforeOffset(doc, formStartOffset);
+
+  if (ignoreBeforeForm) {
+    const deleteLength = ignoreBeforeForm.end - ignoreBeforeForm.start;
+    const shift = formStartOffset > ignoreBeforeForm.start ? -deleteLength : 0;
+    return doc.model.edit([new ModelEdit('deleteRange', [ignoreBeforeForm.start, deleteLength])], {
+      selections: [new ModelEditSelection(cursorOffset + shift)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  } else {
+    const shift = cursorOffset >= formStartOffset ? 2 : 0;
+    return doc.model.edit([new ModelEdit('insertString', [formStartOffset, '#_'])], {
+      selections: [new ModelEditSelection(cursorOffset + shift)],
+      skipFormat: false,
+      undoStopBefore: true,
+    });
+  }
 }

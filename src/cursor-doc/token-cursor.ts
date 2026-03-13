@@ -1,5 +1,6 @@
 import { getFirstEol, LineInputModel } from './model';
 import { Token, validPair } from './clojure-lexer';
+import { isCommentFormHead, CommentFormConfig } from './paredit-config';
 
 function tokenIsWhiteSpace(token: Token) {
   return token.type === 'eol' || token.type == 'ws';
@@ -657,6 +658,11 @@ export class LispTokenCursor extends TokenCursor {
       !this.tokenBeginsMetadata()
     ) {
       afterCurrentFormOffset = this.offsetEnd;
+      // If preceded by #_, include the ignore marker in the range
+      const ignoreCursor = this.clone();
+      if (ignoreCursor.backwardThroughAnyIgnore()) {
+        return [ignoreCursor.offsetStart, afterCurrentFormOffset];
+      }
     }
     // console.log(0, afterCurrentFormOffset);
 
@@ -669,9 +675,15 @@ export class LispTokenCursor extends TokenCursor {
         cursor.getToken().type !== 'reader' &&
         !cursor.tokenBeginsMetadata() &&
         cursor.getPrevToken().type !== 'reader' &&
+        cursor.getPrevToken().type !== 'ignore' &&
         !cursor.prevTokenBeginsMetadata()
       ) {
         if (cursor.backwardSexp() && !cursor.tokenBeginsMetadata()) {
+          // If the form is preceded by #_ (with optional whitespace between),
+          // include the ignore marker in the range.
+          if (cursor.backwardThroughAnyIgnore()) {
+            return [cursor.offsetStart, offset];
+          }
           afterCurrentFormOffset = offset;
         }
       }
@@ -684,6 +696,7 @@ export class LispTokenCursor extends TokenCursor {
       const pTk = this.getPrevToken();
       let isAdjacentBefore =
         tk.type === 'reader' ||
+        tk.type === 'ignore' ||
         this.tokenBeginsMetadata() ||
         pTk.type === 'reader' ||
         this.prevTokenBeginsMetadata() ||
@@ -707,8 +720,23 @@ export class LispTokenCursor extends TokenCursor {
       if (isAdjacentBefore) {
         const cursor = this.clone();
         cursor.forwardWhitespace();
+        const formStart = cursor.offsetStart;
+        const tokenTypeAtFormStart = cursor.getToken().type;
         if (cursor.forwardSexp(true, true)) {
           afterCurrentFormOffset = cursor.offsetStart;
+          // When cursor is directly at a #_ ignore marker, return early with the
+          // correct range. The normal backwardSexp from afterCurrentFormOffset
+          // would not include the leading #_ because backwardThroughAnyReader
+          // only handles 'reader' tokens, not 'ignore' tokens.
+          if (tokenTypeAtFormStart === 'ignore') {
+            return [formStart, afterCurrentFormOffset];
+          }
+          // When the form at formStart is preceded by #_, include the ignore
+          // marker in the range (e.g. cursor between #_ and the form).
+          const ignoreCursor = this.doc.getTokenCursor(formStart);
+          if (ignoreCursor.backwardThroughAnyIgnore()) {
+            return [ignoreCursor.offsetStart, afterCurrentFormOffset];
+          }
         }
       }
     }
@@ -781,7 +809,11 @@ export class LispTokenCursor extends TokenCursor {
     return [currentFormCursor.offsetStart, afterCurrentFormOffset];
   }
 
-  rangeForDefun(p: number, commentCreatesTopLevel = true): [number, number] {
+  rangeForDefun(
+    p: number,
+    commentCreatesTopLevel = true,
+    commentFormConfig?: CommentFormConfig
+  ): [number, number] {
     const cursor = this.doc.getTokenCursor(p);
     const getFunctionPositionText = (cursor: LispTokenCursor) => {
       // NB: This is probably a general need, so might with ino the token cursor.
@@ -797,7 +829,10 @@ export class LispTokenCursor extends TokenCursor {
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
-      if (commentCreatesTopLevel && getFunctionPositionText(commentCursor) === 'comment') {
+      if (
+        commentCreatesTopLevel &&
+        isCommentFormHead(getFunctionPositionText(commentCursor), commentFormConfig)
+      ) {
         if (commentCursor.getToken().raw !== ')') {
           commentCursor.upList();
           return commentCursor.rangeForCurrentForm(commentCursor.offsetStart);
@@ -805,7 +840,10 @@ export class LispTokenCursor extends TokenCursor {
           return lastCandidateRange;
         }
       } else {
-        lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
+        const end = cursor.offsetStart;
+        const sc = cursor.clone();
+        sc.backwardSexp(true, true);
+        lastCandidateRange = [sc.offsetStart, end];
       }
     }
     return lastCandidateRange;
@@ -983,10 +1021,13 @@ export class LispTokenCursor extends TokenCursor {
   }
 
   /** Return true if cursor is at top level */
-  atTopLevel(commentCreatesTopLevel: boolean = false): boolean {
+  atTopLevel(
+    commentCreatesTopLevel: boolean = false,
+    commentFormConfig?: CommentFormConfig
+  ): boolean {
     const tlCursor = this.clone();
     if (tlCursor.forwardList() && tlCursor.upList()) {
-      if (commentCreatesTopLevel && this.getFunctionName() === 'comment') {
+      if (commentCreatesTopLevel && isCommentFormHead(this.getFunctionName(), commentFormConfig)) {
         return true;
       }
       return false;
