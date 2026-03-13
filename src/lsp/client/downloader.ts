@@ -73,6 +73,23 @@ async function getLatestVersion(): Promise<string> {
   }
 }
 
+async function getLatestNightlyVersion(): Promise<string> {
+  try {
+    const releaseJSON = await Promise.race([
+      util.fetchFromUrl(
+        'https://api.github.com/repos/clojure-lsp/clojure-lsp-dev-builds/releases/latest'
+      ),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Version check timed out')), VERSION_CHECK_TIMEOUT_MS)
+      ),
+    ]);
+    const release = JSON.parse(releaseJSON);
+    return release.tag_name;
+  } catch (err) {
+    return '';
+  }
+}
+
 function downloadArtifact(url: string, filePath: string): Promise<void> {
   console.log('Downloading clojure-lsp from', url);
   return new Promise((resolve, reject) => {
@@ -115,15 +132,14 @@ async function unzipFile(zipFilePath: string, extensionPath: string): Promise<vo
 }
 
 async function downloadClojureLsp(extensionPath: string, version: string): Promise<string> {
+  const isNightly = version.endsWith('-nightly');
   // There were no Apple Silicon builds prior to version 2022.06.22-14.09.50
   const artifactName =
-    version >= '2022.06.22-14.09.50' || process.platform !== 'darwin'
+    version >= '2022.06.22-14.09.50' || isNightly || process.platform !== 'darwin'
       ? getArtifactDownloadName()
       : getArtifactDownloadName('darwin', 'x64');
-  const url =
-    version !== 'nightly'
-      ? `https://github.com/clojure-lsp/clojure-lsp/releases/download/${version}/${artifactName}`
-      : `https://github.com/clojure-lsp/clojure-lsp-dev-builds/releases/latest/download/${artifactName}`;
+  const repo = isNightly ? 'clojure-lsp-dev-builds' : 'clojure-lsp';
+  const url = `https://github.com/clojure-lsp/${repo}/releases/download/${version}/${artifactName}`;
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = getClojureLspPath(extensionPath);
 
@@ -139,8 +155,9 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
   });
 
   if (result.restored) {
+    const reason = result.error ? `: ${result.error}` : '';
     void vscode.window.showWarningMessage(
-      `Error downloading clojure-lsp, version: ${version}. Using previously downloaded clojure-lsp`
+      `Failed to download clojure-lsp ${version}${reason}. Falling back to previously downloaded version.`
     );
   }
   return result.path;
@@ -155,6 +172,8 @@ export const ensureServerDownloaded = async (
   const clojureLspPath = getClojureLspPath(context.extensionPath);
   const downloadVersion = ['', 'latest'].includes(configuredVersion)
     ? await getLatestVersion()
+    : configuredVersion === 'nightly'
+    ? await getLatestNightlyVersion()
     : configuredVersion;
 
   const exists = await fs.promises
@@ -173,7 +192,6 @@ export const ensureServerDownloaded = async (
   } else if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
     forceDownload ||
-    downloadVersion === 'nightly' ||
     !exists
   ) {
     return await downloadClojureLsp(context.extensionPath, downloadVersion);
