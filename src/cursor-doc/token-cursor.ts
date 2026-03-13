@@ -1,5 +1,6 @@
 import { getFirstEol, LineInputModel } from './model';
 import { Token, validPair } from './clojure-lexer';
+import { isCommentFormHead, CommentFormConfig } from './paredit-config';
 
 function tokenIsWhiteSpace(token: Token) {
   return token.type === 'eol' || token.type == 'ws';
@@ -808,7 +809,11 @@ export class LispTokenCursor extends TokenCursor {
     return [currentFormCursor.offsetStart, afterCurrentFormOffset];
   }
 
-  rangeForDefun(p: number, commentCreatesTopLevel = true): [number, number] {
+  rangeForDefun(
+    p: number,
+    commentCreatesTopLevel = true,
+    commentFormConfig?: CommentFormConfig
+  ): [number, number] {
     const cursor = this.doc.getTokenCursor(p);
     const getFunctionPositionText = (cursor: LispTokenCursor) => {
       // NB: This is probably a general need, so might with ino the token cursor.
@@ -824,7 +829,10 @@ export class LispTokenCursor extends TokenCursor {
     while (cursor.forwardList() && cursor.upList()) {
       const commentCursor = cursor.clone();
       commentCursor.backwardDownList();
-      if (commentCreatesTopLevel && getFunctionPositionText(commentCursor) === 'comment') {
+      if (
+        commentCreatesTopLevel &&
+        isCommentFormHead(getFunctionPositionText(commentCursor), commentFormConfig)
+      ) {
         if (commentCursor.getToken().raw !== ')') {
           commentCursor.upList();
           return commentCursor.rangeForCurrentForm(commentCursor.offsetStart);
@@ -1013,10 +1021,13 @@ export class LispTokenCursor extends TokenCursor {
   }
 
   /** Return true if cursor is at top level */
-  atTopLevel(commentCreatesTopLevel: boolean = false): boolean {
+  atTopLevel(
+    commentCreatesTopLevel: boolean = false,
+    commentFormConfig?: CommentFormConfig
+  ): boolean {
     const tlCursor = this.clone();
     if (tlCursor.forwardList() && tlCursor.upList()) {
-      if (commentCreatesTopLevel && this.getFunctionName() === 'comment') {
+      if (commentCreatesTopLevel && isCommentFormHead(this.getFunctionName(), commentFormConfig)) {
         return true;
       }
       return false;

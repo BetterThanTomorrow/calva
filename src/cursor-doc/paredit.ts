@@ -21,6 +21,7 @@ import {
   defaultGroupedDefaultPairForms,
   defaultThreadingMacros,
   resolveAliasedSymbol,
+  isCommentFormHead,
 } from './paredit-config';
 import { Token } from './lexer';
 
@@ -2736,7 +2737,7 @@ export async function addRichComment(
   if (!contents && insideNextTopLevelFormPos !== insertStart) {
     const checkIfRichCommentExistsCursor = doc.getTokenCursor(insideNextTopLevelFormPos);
     checkIfRichCommentExistsCursor.forwardWhitespace(true);
-    if (checkIfRichCommentExistsCursor.getToken().raw == 'comment') {
+    if (isCommentFormHead(checkIfRichCommentExistsCursor.getToken().raw)) {
       checkIfRichCommentExistsCursor.forwardSexp();
       checkIfRichCommentExistsCursor.forwardWhitespace(false);
       // insert nothing, just place cursor

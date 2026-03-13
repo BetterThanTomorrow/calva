@@ -1286,6 +1286,15 @@
             },
             "scope": "window"
           },
+          "calva.customCommentForms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "markdownDescription": "List of additional form names to treat as comment forms, like the built-in `comment`. Forms listed here will be treated as top-level contexts (like `comment`) for evaluation and navigation purposes. Supports fully qualified names (e.g. `\"my.ns/dev-comment\"`) and works with `calva.paredit.aliasMap` for alias resolution. Example: `[\"my-comment\", \"my.ns/dev-comment\"]`.",
+            "scope": "window"
+          },
           "calva.paredit.toggleCommentBehavior": {
             "type": "string",
             "markdownDescription": "Controls the behavior of Toggle Comment when there is no text selected and the cursor is not in a line comment.",

@@ -236,7 +236,7 @@ export function formatDocIndexesInfo(
   } = formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
     ...config.getConfigNow(),
     ...extraConfig,
-    'comment-form?': cursor.getFunctionName() === 'comment',
+    'comment-form?': util.isCommentFormHead(cursor.getFunctionName()),
   });
   const range: vscode.Range = new vscode.Range(
     doc.positionAt(formatted.range[0]),

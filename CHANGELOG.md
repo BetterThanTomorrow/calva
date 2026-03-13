@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
 - Fix: [Nightly clojure-lsp downloads re-download on every startup even when already up to date](https://github.com/BetterThanTomorrow/calva/issues/3125)
 - Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
 - Rename 'Toggle Line Comment' to 'Toggle Comment' 
