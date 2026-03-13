@@ -1042,6 +1042,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-comment-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Comment Forms
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Comment Forms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-use-custom-comment-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Use Custom Comment Forms?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#about-the-keyboard-shortcuts" class="md-nav__link">
     <span class="md-ellipsis">
       About the Keyboard Shortcuts
@@ -3042,6 +3084,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#custom-comment-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Comment Forms
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Comment Forms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-use-custom-comment-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Use Custom Comment Forms?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#about-the-keyboard-shortcuts" class="md-nav__link">
     <span class="md-ellipsis">
       About the Keyboard Shortcuts
@@ -3492,7 +3576,7 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 </tr>
 <tr>
 <td><code>ctrl+/</code> (win/linux)<br><code>cmd+/</code> (mac)</td>
-<td><strong>Toggle Line Comment</strong></td>
+<td><strong>Toggle Comment</strong></td>
 <td>When there is no selection and the cursor is not in a line comment, toggles <code>#_</code> (ignore/discard) on the parent form by default. This behavior is controlled by the <code>calva.paredit.toggleCommentBehavior</code> setting (see <a href="#toggle-comment-behavior">Toggle Comment Behavior</a> below). When text is selected or the cursor is in a <code>;;</code> comment, uses <code>;;</code> line commenting: structural analysis places semicolons safely and reformats enclosing forms.</td>
 </tr>
 </tbody>
@@ -3511,7 +3595,7 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 <p>And like so (wait for it):</p>
 <p><img alt="" src="../images/paredit/drag-pairs-in-maps.gif" /></p>
 <h2 id="toggle-comment-behavior">Toggle Comment Behavior<a class="headerlink" href="#toggle-comment-behavior" title="Permanent link">#</a></h2>
-<p>The <strong>Toggle Line Comment</strong> command (<code>ctrl+/</code> / <code>cmd+/</code>) behavior when there is no text selected and the cursor is not in a line comment is controlled by the <code>calva.paredit.toggleCommentBehavior</code> setting:</p>
+<p>The <strong>Toggle Comment</strong> command (<code>ctrl+/</code> / <code>cmd+/</code>) behavior when there is no text selected and the cursor is not in a line comment is controlled by the <code>calva.paredit.toggleCommentBehavior</code> setting:</p>
 <table>
 <thead>
 <tr>
@@ -3558,7 +3642,7 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 </code></pre></div>
 <p>The argument accepts the same values as the setting: <code>ignoreCurrentForm</code>, <code>ignoreParentForm</code>, and <code>commentCurrentLine</code>. When provided via a keybinding it takes precedence over the setting.</p>
 <h2 id="customizing-paredit-behavior">Customizing Paredit Behavior<a class="headerlink" href="#customizing-paredit-behavior" title="Permanent link">#</a></h2>
-<p>Calva's Paredit can be customized to understand your project-specific macros and forms. There are three main configuration options: <strong>customPairForms</strong>, <strong>customThreadingMacros</strong>, and <strong>aliasMap</strong>. These can be configured in two places that work together:</p>
+<p>Calva's Paredit can be customized to understand your project-specific macros and forms. The main configuration options are: <strong>customPairForms</strong>, <strong>customThreadingMacros</strong>, <strong>aliasMap</strong>, and <strong>customCommentForms</strong>. These can be configured in two places that work together:</p>
 <ol>
 <li><strong>VS Code settings</strong> (<code>settings.json</code>) - Apply globally or per-workspace</li>
 <li><strong>Project config</strong> (<code>.calva/config.edn</code> or <code>~/.config/calva/config.edn</code>) - Project or user-specific overrides</li>
@@ -3840,6 +3924,40 @@ This is an alternative to, or supports binding-specific overrides for, <code>cal
 
 <span class="c1">;; Result: &quot;p&quot; resolves to &quot;my.custom.promises&quot;</span>
 </code></pre></div>
+<h2 id="custom-comment-forms">Custom Comment Forms<a class="headerlink" href="#custom-comment-forms" title="Permanent link">#</a></h2>
+<p>By default, Calva treats <code>(comment ...)</code> forms as top-level contexts — expressions inside a <code>comment</code> form can be evaluated individually, and navigation commands treat them as top-level forms.</p>
+<p>The <code>calva.customCommentForms</code> setting lets you extend this behavior to other forms in your codebase.</p>
+<h3 id="why-use-custom-comment-forms">Why Use Custom Comment Forms?<a class="headerlink" href="#why-use-custom-comment-forms" title="Permanent link">#</a></h3>
+<p>Some projects define their own comment-like macros for development-only code, interactive exploration, or conditional inclusion:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">dev-comment</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="w"> </span><span class="nv">_body</span><span class="p">])</span><span class="w">  </span><span class="c1">; your project&#39;s comment form</span>
+
+<span class="p">(</span><span class="nf">dev-comment</span>
+<span class="w">  </span><span class="c1">;; These expressions should be evaluatable individually,</span>
+<span class="w">  </span><span class="c1">;; just like in a standard (comment ...) block</span>
+<span class="w">  </span><span class="p">(</span><span class="nf">start-dev-server!</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="nf">reset-db!</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h3>
+<p>Add to your <code>settings.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;calva.customCommentForms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev-comment&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;my.ns/rich-comment&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Supports fully qualified names and works with <a href="#namespace-alias-resolution">aliasMap</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;calva.customCommentForms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;my.ns/dev-comment&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;calva.paredit.aliasMap&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;dev&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;my.ns&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>With this configuration, <code>dev/dev-comment</code> in your code is recognized the same as <code>my.ns/dev-comment</code>.</p>
+<h3 id="what-changes">What Changes<a class="headerlink" href="#what-changes" title="Permanent link">#</a></h3>
+<p>Forms listed in <code>customCommentForms</code> behave like <code>(comment ...)</code> in:</p>
+<ul>
+<li><strong>Evaluate Top Level Form</strong> — evaluates the form at cursor as a top-level expression</li>
+<li><strong>Navigation</strong> — treats the inside of the form as a top-level context</li>
+<li><strong>Rainbow bracket highlighting</strong> — highlights the form like a comment block</li>
+<li><strong>Notebook cell parsing</strong> — forms are split into individual notebook cells</li>
+</ul>
 <h2 id="about-the-keyboard-shortcuts">About the Keyboard Shortcuts<a class="headerlink" href="#about-the-keyboard-shortcuts" title="Permanent link">#</a></h2>
 <p>Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.</p>
 <p>You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit by setting <code>calva.paredit.hijackVSCodeDefaults</code> to <code>false</code>.</p>
