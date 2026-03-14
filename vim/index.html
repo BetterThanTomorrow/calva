@@ -1448,6 +1448,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#backspace-in-vim-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backspace in Vim search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
       Vim Fireplace-ish keybindings
@@ -2266,6 +2275,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#backspace-in-vim-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backspace in Vim search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#vim-fireplace-ish-keybindings" class="md-nav__link">
     <span class="md-ellipsis">
       Vim Fireplace-ish keybindings
@@ -2334,6 +2352,15 @@
 <span class="p">]</span>
 </code></pre></div>
 <p>(Change <code>before</code> to whatever keybinding you are comfortable with!)</p>
+<h3 id="backspace-in-vim-search">Backspace in Vim search<a class="headerlink" href="#backspace-in-vim-search" title="Permanent link">#</a></h3>
+<p>Calva's Paredit binds <code>backspace</code> with a <code>when</code> clause that can intercept the key even when the Vim search input is active. This causes backspace to edit the file instead of deleting characters in the search box.</p>
+<p>To fix this, add <code>&amp;&amp; vim.mode == 'Insert'</code> to the <code>when</code> clause of Calva's backspace binding in your <code>keybindings.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backspace&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.backwardSexp&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap == &#39;strict&#39; &amp;&amp; vim.mode == &#39;Insert&#39;&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings<a class="headerlink" href="#vim-fireplace-ish-keybindings" title="Permanent link">#</a></h3>
 <p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
 <div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;

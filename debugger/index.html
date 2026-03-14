@@ -1143,6 +1143,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#breakpoints-in-web-server-handler-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Breakpoints in web server handler functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#no-reader-function-for-tag-error" class="md-nav__link">
     <span class="md-ellipsis">
       "No reader function for tag" error
@@ -2587,6 +2596,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#breakpoints-in-web-server-handler-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Breakpoints in web server handler functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#no-reader-function-for-tag-error" class="md-nav__link">
     <span class="md-ellipsis">
       "No reader function for tag" error
@@ -2752,6 +2770,17 @@
 <p>If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.</p>
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
 <p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
+<h3 id="breakpoints-in-web-server-handler-functions">Breakpoints in web server handler functions<a class="headerlink" href="#breakpoints-in-web-server-handler-functions" title="Permanent link">#</a></h3>
+<p>When debugging handler functions for Ring, Pedestal, or similar web frameworks, breakpoints may not be hit even after instrumenting the function. This is typically because the route table holds a reference to the original (uninstrumented) version of the function.</p>
+<p><strong>For Ring:</strong> Use a var-quoted handler (<code>#'handler</code>) when starting the server so that it always resolves the current version of the function:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">run-jetty</span><span class="w"> </span><span class="o">#</span><span class="ss">&#39;handler</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="mi">3000</span><span class="w"> </span><span class="ss">:join?</span><span class="w"> </span><span class="nv">false</span><span class="p">})</span>
+</code></pre></div>
+<p><strong>For Pedestal:</strong> Routes may need to be re-evaluated after instrumenting a handler. If your routes are defined with <code>defroutes</code>, evaluate the <code>defroutes</code> form again after instrumenting the handler function, then call the endpoint.</p>
+<p>Also note these limitations when debugging web handlers:</p>
+<ul>
+<li>The debugger session does not automatically disconnect after the HTTP response is returned — you must disconnect manually.</li>
+<li>While the debugger is paused, the REPL is blocked. If the endpoint is hit again while paused, the breakpoint will be hit a second time after you continue, but no REPL evaluation is possible until you disconnect.</li>
+</ul>
 <h3 id="no-reader-function-for-tag-error">"No reader function for tag" error<a class="headerlink" href="#no-reader-function-for-tag-error" title="Permanent link">#</a></h3>
 <p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command Line to Clipboard" to see what command would be run if you jacked in.</p>
 <p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command line for a deps.edn project:</p>
