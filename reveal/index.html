@@ -2300,7 +2300,11 @@
 <p class="admonition-title">Note</p>
 <p>This will make all Calva evaluations go to Reveal. Too chatty for you? Take the <em>dependencies only</em> approach.</p>
 </div>
-<p>Add this alias <code>deps.edn</code>:</p>
+<p>Add this alias to your <strong>project's</strong> <code>deps.edn</code>:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The alias must be in the project's <code>deps.edn</code>, not in <code>~/.clojure/deps.edn</code>. Calva reads aliases from the project file to build the Jack-in command line, so aliases defined in the user-level <code>deps.edn</code> will not be visible to Calva and their <code>:main-opts</code> will be overwritten.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
 <span class="p">{</span><span class="ss">:reveal-nrepl-middleware</span>
 <span class="w">    </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">}}</span>
