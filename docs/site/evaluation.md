@@ -15,6 +15,11 @@ NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts
 
 Sometimes you evaluate things that take a very long time to complete, or might not even ever complete (infinite loops, lazy sequences, things like that). Calva has a command for interrupting running evaluations. You find it in the VS Code command palette, as well as in the REPL status bar item menu, when the REPL is connected.
 
+!!! Note "JVM 20+"
+    On JVM 20 and later, `Thread.stop()` was removed, which means interrupting evaluations may not always work. nREPL falls back to `Thread.stop()` when `Thread.interrupt()` fails, but this fallback is no longer available. See [nrepl/nrepl#296](https://github.com/nrepl/nrepl/issues/296) for details and progress on a fix.
+
+    As a workaround you can add `-Djdk.attach.allowAttachSelf` to your JVM options (e.g. `:jvm-opts ["-Djdk.attach.allowAttachSelf"]` in your `deps.edn` alias) and make sure you are using nREPL 1.3.0 or later. You can set the nREPL version in your project's `.vscode/settings.json` via the `calva.jackInDependencyVersions` setting.
+
 ## Evaluation in a File Editor
 
 Calva has many commands for evaluating forms, including the **current form** and the **current top-level form**.
