@@ -5,7 +5,9 @@ import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror/index';
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { tryToGetActiveTextEditor, getActiveTextEditor, isCommentFormHead } from '../../utilities';
+import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
+import { isCommentFormHead } from '../../cursor-doc/paredit-config';
+import { getConfig } from '../../config';
 
 type StackItem = {
   char: string;
@@ -265,6 +267,8 @@ function updateRainbowBrackets() {
   pairsBack = new Map();
   pairsForward = new Map();
   placedGuidesColor = new Map();
+  const { customCommentForms, aliasMap } = getConfig();
+  const commentFormConfig = { customCommentForms, aliasMap };
   activeEditor.visibleRanges.forEach((range) => {
     // Find the visible forms
     const startOffset = doc.offsetAt(range.start);
@@ -325,7 +329,7 @@ function updateRainbowBrackets() {
         char = token.raw,
         charLength = char.length;
       // Highlight (comment ...) forms
-      if (!in_comment_form && isCommentFormHead(char)) {
+      if (!in_comment_form && isCommentFormHead(char, commentFormConfig)) {
         const peekCursor = cursor.clone();
         peekCursor.backwardWhitespace();
         if (peekCursor.getPrevToken().raw === '(') {

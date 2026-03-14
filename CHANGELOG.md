@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Edit performance regression in v2.0.564](https://github.com/BetterThanTomorrow/calva/issues/3138)
+
 ## [2.0.564] - 2026-03-13
 
 - [Allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
