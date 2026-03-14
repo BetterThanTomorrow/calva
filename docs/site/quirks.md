@@ -21,7 +21,13 @@ See [Using with Parinfer](parinfer.md)
 
 See [Using Calva with the VIM Extension](vim.md).
 
-## ”Command not found” Errors on Jack-in
+## macOS: VS Code Needs Local Network Access
+
+On macOS 15 (Sequoia) and later, VS Code requires **Local Network** permission to connect to a REPL. Without it, Calva will fail to connect after Jack-in or when connecting to an external REPL, with no clear error message indicating the cause.
+
+To fix this, go to **System Settings > Privacy & Security > Local Network** and make sure VS Code is allowed. If VS Code does not appear in the list, try connecting to a REPL first — macOS should prompt you for permission.
+
+## “Command not found” Errors on Jack-in
 
 [Jack-in](jack-in-guide.md) starts by running a command in a new terminal. You will need the commands used installed on your computer:
 
