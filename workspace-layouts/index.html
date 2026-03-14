@@ -1753,6 +1753,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#how-calva-finds-the-project-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Calva Finds the Project Root
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-with-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with Projects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#one-folder-two-windows" class="md-nav__link">
     <span class="md-ellipsis">
       One Folder - Two Windows?
@@ -2157,6 +2175,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#how-calva-finds-the-project-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      How Calva Finds the Project Root
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-with-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working with Projects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#one-folder-two-windows" class="md-nav__link">
     <span class="md-ellipsis">
       One Folder - Two Windows?
@@ -2185,6 +2221,29 @@
 
 <h1 id="workspace-layouts">Workspace Layouts<a class="headerlink" href="#workspace-layouts" title="Permanent link">#</a></h1>
 <p>Project directory layouts can vary quite a lot. From the ”template” projects where the Clojure project files are at the root, to, well, let's just say that the project files are not always at the root. And sometimes there is more than one project (<a href="../clojure-lsp/#leiningen-project-in-subfolder">read here how to get clojure-lsp support with a Leiningen project in a subfolder</a>).</p>
+<h2 id="how-calva-finds-the-project-root">How Calva Finds the Project Root<a class="headerlink" href="#how-calva-finds-the-project-root" title="Permanent link">#</a></h2>
+<p>When you Jack-in or Connect, Calva searches the workspace for directories containing one of these project files:</p>
+<ul>
+<li><code>deps.edn</code></li>
+<li><code>project.clj</code></li>
+<li><code>shadow-cljs.edn</code></li>
+<li><code>bb.edn</code></li>
+<li><code>basilisp.edn</code></li>
+</ul>
+<p>If only one project root is found, Calva uses it automatically. If multiple are found, you'll be prompted to pick one. Workspace root folders are always included as candidates even if they don't contain a project file.</p>
+<p>The project file does not need to be at the workspace root. For example, if your workspace looks like this:</p>
+<div class="highlight"><pre><span></span><code>my-workspace/
+  backend/
+    deps.edn
+    src/
+      app.clj
+</code></pre></div>
+<p>Calva will detect <code>backend/</code> as a project root and Jack-in will work from any file inside it.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can control which directories are excluded from the search with the <code>calva.projectRootsSearchExclude</code> setting.</p>
+</div>
+<h2 id="working-with-projects">Working with Projects<a class="headerlink" href="#working-with-projects" title="Permanent link">#</a></h2>
 <p>Calva only really supports working with one project at a time per VS Code window. Here's a short guide for some different setups:</p>
 <ol>
 <li><strong>You have one project in the workspace, the project files are in there somewhere.</strong><ul>
