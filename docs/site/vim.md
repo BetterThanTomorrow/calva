@@ -56,6 +56,20 @@ Remap vim's insert mode keybinding to go into command mode by adding the followi
 
 (Change `before` to whatever keybinding you are comfortable with!)
 
+### Backspace in Vim search
+
+Calva's Paredit binds `backspace` with a `when` clause that can intercept the key even when the Vim search input is active. This causes backspace to edit the file instead of deleting characters in the search box.
+
+To fix this, add `&& vim.mode == 'Insert'` to the `when` clause of Calva's backspace binding in your `keybindings.json`:
+
+```json
+{
+  "key": "backspace",
+  "command": "paredit.backwardSexp",
+  "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && !editorHasMultipleSelections && !editorReadOnly && editorLangId == 'clojure' && paredit:keyMap == 'strict' && vim.mode == 'Insert'"
+}
+```
+
 ### Vim Fireplace-ish keybindings
 
 You can add these keybindings to your `init.vim` if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in [vim-fireplace](https://github.com/tpope/vim-fireplace) which is the most popular vim plugin for Clojure.
