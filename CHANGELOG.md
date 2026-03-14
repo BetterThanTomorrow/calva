@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make `cljsType` optional in connect sequences, defaulting to `"none"`](https://github.com/BetterThanTomorrow/calva/issues/1234)
+
 ## [2.0.565] - 2026-03-14
 
 - Fix: [Edit performance regression in v2.0.564](https://github.com/BetterThanTomorrow/calva/issues/3138)
