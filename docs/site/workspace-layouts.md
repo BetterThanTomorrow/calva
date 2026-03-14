@@ -7,6 +7,35 @@ description: Single project repos, monorepos, polyrepos, project directory layou
 
 Project directory layouts can vary quite a lot. From the ”template” projects where the Clojure project files are at the root, to, well, let's just say that the project files are not always at the root. And sometimes there is more than one project ([read here how to get clojure-lsp support with a Leiningen project in a subfolder](clojure-lsp.md#leiningen-project-in-subfolder)).
 
+## How Calva Finds the Project Root
+
+When you Jack-in or Connect, Calva searches the workspace for directories containing one of these project files:
+
+* `deps.edn`
+* `project.clj`
+* `shadow-cljs.edn`
+* `bb.edn`
+* `basilisp.edn`
+
+If only one project root is found, Calva uses it automatically. If multiple are found, you'll be prompted to pick one. Workspace root folders are always included as candidates even if they don't contain a project file.
+
+The project file does not need to be at the workspace root. For example, if your workspace looks like this:
+
+```
+my-workspace/
+  backend/
+    deps.edn
+    src/
+      app.clj
+```
+
+Calva will detect `backend/` as a project root and Jack-in will work from any file inside it.
+
+!!! Note
+    You can control which directories are excluded from the search with the `calva.projectRootsSearchExclude` setting.
+
+## Working with Projects
+
 Calva only really supports working with one project at a time per VS Code window. Here's a short guide for some different setups:
 
 1. **You have one project in the workspace, the project files are in there somewhere.**
