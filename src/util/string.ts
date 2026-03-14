@@ -44,6 +44,16 @@ export function isNonEmptyString(value: any): value is string {
   return typeof value == 'string' && value.length > 0;
 }
 
+/**
+ * Build a regex pattern that matches a var name exactly, accounting for
+ * the namespace-qualified format returned by orchard (e.g. "my.ns/a-test").
+ * The pattern anchors at "/" and end-of-string so that "a-test" does not
+ * match "b-a-test" or "a-test-b".
+ */
+export function testNameSearchPattern(testName: string): string {
+  return `/${escapeStringRegexp(testName)}$`;
+}
+
 export {
   keywordize,
   unKeywordize,

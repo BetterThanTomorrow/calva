@@ -4,6 +4,7 @@ import {
   unKeywordize,
   getIndexAfterLastNonWhitespace,
   getTextAfterLastOccurrenceOfSubstring,
+  testNameSearchPattern,
 } from '../../../util/string';
 
 describe('string', () => {
@@ -37,6 +38,29 @@ describe('string', () => {
     });
     it('ignores eol characters at end of string', () => {
       expect(1).toBe(getIndexAfterLastNonWhitespace('>\n\r\n'));
+    });
+  });
+
+  describe('testNameSearchPattern', () => {
+    it('matches the exact test name in a namespace-qualified var', () => {
+      const pattern = new RegExp(testNameSearchPattern('a-test'));
+      expect(pattern.test('my.ns/a-test')).toBe(true);
+    });
+    it('does not match a test name that is a substring prefix', () => {
+      const pattern = new RegExp(testNameSearchPattern('a-test'));
+      expect(pattern.test('my.ns/a-test-b')).toBe(false);
+    });
+    it('does not match a test name that is a substring suffix', () => {
+      const pattern = new RegExp(testNameSearchPattern('a-test'));
+      expect(pattern.test('my.ns/b-a-test')).toBe(false);
+    });
+    it('matches when the test name contains regex special characters', () => {
+      const pattern = new RegExp(testNameSearchPattern('test.name+1'));
+      expect(pattern.test('my.ns/test.name+1')).toBe(true);
+    });
+    it('does not match partial with regex special characters', () => {
+      const pattern = new RegExp(testNameSearchPattern('test.name+1'));
+      expect(pattern.test('my.ns/test.name+1-extra')).toBe(false);
     });
   });
 
