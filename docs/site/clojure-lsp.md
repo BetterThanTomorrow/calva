@@ -153,6 +153,15 @@ If clojure-lsp fails to start with “Server initialization failed” messages, 
 
 See this issue for some findings about it: [Issue #2251: Server initialization failed error](https://github.com/BetterThanTomorrow/calva/issues/2251)
 
+### Classpath lookup failed
+
+If you see a message like "Classpath lookup failed when running `<command>`", it means clojure-lsp could not resolve your project's classpath. This can happen when:
+
+- **The shell used by clojure-lsp does not have your build tools on PATH.** clojure-lsp runs the classpath command using the system default shell, which may differ from the shell configured in VS Code's terminal. For example, if you manage tools with sdkman or nvm and only configure them in bash/zsh, but the system default shell is PowerShell or cmd, the tools won't be found.
+- **You use a non-standard project setup.** If your project uses an unusual directory layout or build tool configuration, clojure-lsp may not detect it correctly.
+
+To work around this, make sure your build tools (`clojure`, `lein`, etc.) are available on the PATH of the shell that clojure-lsp uses. On Windows, this is typically PowerShell or cmd. On macOS/Linux, it is whatever `/bin/sh` resolves to.
+
 ## Related
 
 See also:
