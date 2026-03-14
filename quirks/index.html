@@ -1801,9 +1801,18 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#macos-vs-code-needs-local-network-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      macOS: VS Code Needs Local Network Access
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#command-not-found-errors-on-jack-in" class="md-nav__link">
     <span class="md-ellipsis">
-      ”Command not found” Errors on Jack-in
+      “Command not found” Errors on Jack-in
     </span>
   </a>
   
@@ -2229,9 +2238,18 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#macos-vs-code-needs-local-network-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      macOS: VS Code Needs Local Network Access
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#command-not-found-errors-on-jack-in" class="md-nav__link">
     <span class="md-ellipsis">
-      ”Command not found” Errors on Jack-in
+      “Command not found” Errors on Jack-in
     </span>
   </a>
   
@@ -2282,7 +2300,10 @@
 <p>See <a href="../parinfer/">Using with Parinfer</a></p>
 <h2 id="calva-and-the-vim-extension">Calva and the VIM Extension<a class="headerlink" href="#calva-and-the-vim-extension" title="Permanent link">#</a></h2>
 <p>See <a href="../vim/">Using Calva with the VIM Extension</a>.</p>
-<h2 id="command-not-found-errors-on-jack-in">”Command not found” Errors on Jack-in<a class="headerlink" href="#command-not-found-errors-on-jack-in" title="Permanent link">#</a></h2>
+<h2 id="macos-vs-code-needs-local-network-access">macOS: VS Code Needs Local Network Access<a class="headerlink" href="#macos-vs-code-needs-local-network-access" title="Permanent link">#</a></h2>
+<p>On macOS 15 (Sequoia) and later, VS Code requires <strong>Local Network</strong> permission to connect to a REPL. Without it, Calva will fail to connect after Jack-in or when connecting to an external REPL, with no clear error message indicating the cause.</p>
+<p>To fix this, go to <strong>System Settings &gt; Privacy &amp; Security &gt; Local Network</strong> and make sure VS Code is allowed. If VS Code does not appear in the list, try connecting to a REPL first — macOS should prompt you for permission.</p>
+<h2 id="command-not-found-errors-on-jack-in">“Command not found” Errors on Jack-in<a class="headerlink" href="#command-not-found-errors-on-jack-in" title="Permanent link">#</a></h2>
 <p><a href="../jack-in-guide/">Jack-in</a> starts by running a command in a new terminal. You will need the commands used installed on your computer:</p>
 <ul>
 <li><code>clojure</code> for tools.deps/deps.edn</li>
