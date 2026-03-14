@@ -180,6 +180,23 @@ If you want a breakpoint to work within the test, evaluate the test form with a 
 
 ![Hitting a breakpoint in a test](images/debugger/breakpoint-in-test.png "Hitting a breakpoint in a test")
 
+### Breakpoints in web server handler functions
+
+When debugging handler functions for Ring, Pedestal, or similar web frameworks, breakpoints may not be hit even after instrumenting the function. This is typically because the route table holds a reference to the original (uninstrumented) version of the function.
+
+**For Ring:** Use a var-quoted handler (`#'handler`) when starting the server so that it always resolves the current version of the function:
+
+```clojure
+(run-jetty #'handler {:port 3000 :join? false})
+```
+
+**For Pedestal:** Routes may need to be re-evaluated after instrumenting a handler. If your routes are defined with `defroutes`, evaluate the `defroutes` form again after instrumenting the handler function, then call the endpoint.
+
+Also note these limitations when debugging web handlers:
+
+- The debugger session does not automatically disconnect after the HTTP response is returned — you must disconnect manually.
+- While the debugger is paused, the REPL is blocked. If the endpoint is hit again while paused, the breakpoint will be hit a second time after you continue, but no REPL evaluation is possible until you disconnect.
+
 ### "No reader function for tag" error
 
 If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command Line to Clipboard" to see what command would be run if you jacked in.
