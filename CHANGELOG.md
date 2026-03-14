@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: Performance regression introduced in 2.0.564 — `vscode.workspace.getConfiguration` was called on every token during rainbow bracket highlighting, causing multi-second hangs on backward navigation and backspace in large files
+- Fix: [Edit performance regression in v2.0.564](https://github.com/BetterThanTomorrow/calva/issues/3138)
 
 ## [2.0.564] - 2026-03-13
 
