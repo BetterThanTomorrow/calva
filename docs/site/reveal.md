@@ -24,7 +24,10 @@ This will make Reveal to start together with your project.
     This will make all Calva evaluations go to Reveal. Too chatty for you? Take the _dependencies only_ approach.
 
 
-Add this alias `deps.edn`:
+Add this alias to your **project's** `deps.edn`:
+
+!!! Note
+    The alias must be in the project's `deps.edn`, not in `~/.clojure/deps.edn`. Calva reads aliases from the project file to build the Jack-in command line, so aliases defined in the user-level `deps.edn` will not be visible to Calva and their `:main-opts` will be overwritten.
 
 ```clojure
 :aliases
