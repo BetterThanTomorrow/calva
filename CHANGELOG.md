@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: Evaluating `#_`-prefixed forms now strips the `#_` reader discard before sending to the REPL, so the form is actually evaluated instead of silently discarded
+
 ## [2.0.565] - 2026-03-14
 
 - Fix: [Edit performance regression in v2.0.564](https://github.com/BetterThanTomorrow/calva/issues/3138)
