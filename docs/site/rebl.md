@@ -46,6 +46,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
         {
             "name": "Rebl Connect",
             "projectType": "deps.edn",
+            "cljsType": "none",
             "menuSelections": {
                 "cljAliases": [
                     "rebl",
@@ -95,6 +96,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
         {
             "name": "Lein REBL",
             "projectType": "Leiningen",
+            "cljsType": "none",
             "menuSelections": {
                 "leinProfiles": ["rebl", "rebl-12", ":nrebl"]
             },
