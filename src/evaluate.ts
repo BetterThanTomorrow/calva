@@ -336,8 +336,9 @@ async function evaluateSelection(document = {}, options) {
     // Strip leading #_ and optional whitespace so that
     // evaluating with the cursor at the end of #_(form) sends just (form)
     // to the REPL instead of the silently-discarded #_(form).
-    code = code.replace(/^#_\s*/, '');
-
+    if (editor.selections[0].isEmpty) {
+      code = code.replace(/^#_\s*/, '');
+    }
     const doc = util.getDocument(document);
     if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
       void vscode.window.showTextDocument(doc, { preview: false });
