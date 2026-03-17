@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Evaluating `#_`-prefixed forms](https://github.com/BetterThanTomorrow/calva/issues/3144)
+- Fix: [Option-Return at the end of an expression prefixed with #_ is no longer triggering evaluation](https://github.com/BetterThanTomorrow/calva/issues/3144)
 
 ## [2.0.565] - 2026-03-14
 
