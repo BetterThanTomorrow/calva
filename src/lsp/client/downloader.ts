@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import { downloadWithBackupRecovery } from './downloader-utils';
 
-const VERSION_CHECK_TIMEOUT_MS = 10_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 
 const versionFileName = 'clojure-lsp-version';
@@ -55,38 +54,6 @@ export async function readVersionFile(extensionPath: string) {
     return await fs.promises.readFile(filePath, 'utf8');
   } catch (e) {
     console.error('Could not read clojure-lsp version file.', e.message);
-  }
-}
-
-async function getLatestVersion(): Promise<string> {
-  try {
-    const releasesJSON = await Promise.race([
-      util.fetchFromUrl('https://api.github.com/repos/clojure-lsp/clojure-lsp/releases'),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Version check timed out')), VERSION_CHECK_TIMEOUT_MS)
-      ),
-    ]);
-    const releases = JSON.parse(releasesJSON);
-    return releases[0].tag_name;
-  } catch (err) {
-    return '';
-  }
-}
-
-async function getLatestNightlyVersion(): Promise<string> {
-  try {
-    const releaseJSON = await Promise.race([
-      util.fetchFromUrl(
-        'https://api.github.com/repos/clojure-lsp/clojure-lsp-dev-builds/releases/latest'
-      ),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Version check timed out')), VERSION_CHECK_TIMEOUT_MS)
-      ),
-    ]);
-    const release = JSON.parse(releaseJSON);
-    return release.tag_name;
-  } catch (err) {
-    return '';
   }
 }
 
@@ -171,9 +138,9 @@ export const ensureServerDownloaded = async (
   const configuredVersion: string = config.getConfig().clojureLspVersion;
   const clojureLspPath = getClojureLspPath(context.extensionPath);
   const downloadVersion = ['', 'latest'].includes(configuredVersion)
-    ? await getLatestVersion()
+    ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
     : configuredVersion === 'nightly'
-    ? await getLatestNightlyVersion()
+    ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
     : configuredVersion;
 
   const exists = await fs.promises
