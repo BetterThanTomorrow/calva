@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: ["Run current test" matches tests with similar names](https://github.com/BetterThanTomorrow/calva/issues/2168)
 - [Make `cljsType` optional in connect sequences, defaulting to `"none"`](https://github.com/BetterThanTomorrow/calva/issues/1234)
 - Fix: [Replace GitHub API version checks with redirect-based lookups to avoid rate limits](https://github.com/BetterThanTomorrow/calva/issues/3142)
 - Bump deps.clj to v1.12.4.1618

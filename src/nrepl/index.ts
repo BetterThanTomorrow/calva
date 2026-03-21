@@ -681,7 +681,7 @@ export class NReplSession {
   }
 
   test(ns: string, test: string) {
-    const search = `\\b${string.escapeStringRegexp(test)}\\b`;
+    const search = string.testNameSearchPattern(test);
     return this.testVarQuery({
       'ns-query': {
         exactly: [ns],
