@@ -545,6 +545,27 @@ async function downloadFromUrl(fileUrl: string, savePath: string) {
   });
 }
 
+function getLatestGitHubReleaseTag(ownerRepo: string, timeoutMs = 10_000): Promise<string> {
+  const releaseUrl = `https://github.com/${ownerRepo}/releases/latest`;
+  return new Promise((resolve) => {
+    const request = https
+      .get(releaseUrl, (response) => {
+        response.resume();
+        const finalUrl = response.responseUrl ?? '';
+        const tag = finalUrl.includes('/tag/') ? finalUrl.split('/tag/').pop() : '';
+        if (!tag) {
+          console.warn(`Failed to extract release tag for ${ownerRepo} from URL: ${finalUrl}`);
+        }
+        resolve(tag || '');
+      })
+      .on('error', () => resolve(''));
+    request.setTimeout(timeoutMs, () => {
+      request.destroy();
+      resolve('');
+    });
+  });
+}
+
 async function fetchFromUrl(fullUrl: string): Promise<string> {
   const q = url.parse(fullUrl);
   return new Promise((resolve, reject) => {
@@ -708,6 +729,7 @@ export {
   writeTextToFile,
   downloadFromUrl,
   fetchFromUrl,
+  getLatestGitHubReleaseTag,
   cljsLib,
   randomSlug,
   isWindows,
