@@ -20,7 +20,7 @@ const customChalk = new chalk.Instance({ level: 3 });
 export interface SubscriberOutputMessage {
   category: OutputCategory;
   text: string;
-  evaluator?: string;
+  who?: string;
 }
 
 type Listener = (msg: SubscriberOutputMessage) => void;
@@ -53,21 +53,21 @@ type AppendOptions = {
   destination: OutputDestination;
   outputCategory: OutputCategory;
   after?: AfterAppendCallback;
-  evaluator?: string;
+  who?: string;
 };
 
 export type AppendClojureOptions = {
   ns?: string;
   replSessionType?: string;
   outputCategory?: OutputCategory;
-  evaluator?: string;
+  who?: string;
   description?: string;
 };
 
 const lightTheme = {
   evalSeparatorSessionType: customChalk.bgGreen,
   evalSeparatorNs: customChalk.bgBlue,
-  evalSeparatorEvaluator: customChalk.bgCyan,
+  evalSeparatorWho: customChalk.bgCyan,
   evalOut: customChalk.gray,
   evalErr: customChalk.red,
   otherOut: customChalk.green,
@@ -77,7 +77,7 @@ const lightTheme = {
 const darkTheme = {
   evalSeparatorSessionType: customChalk.bgWhite,
   evalSeparatorNs: customChalk.bgWhiteBright,
-  evalSeparatorEvaluator: customChalk.bgCyanBright,
+  evalSeparatorWho: customChalk.bgCyanBright,
   evalOut: customChalk.gray,
   evalErr: customChalk.redBright,
   otherOut: customChalk.grey,
@@ -237,24 +237,24 @@ const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
 };
 
 function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
-  const { ns, replSessionType, evaluator } = options;
+  const { ns, replSessionType, who } = options;
   if (ns) {
-    lastInfoLineData[destination] = { ns, replSessionType, evaluator };
+    lastInfoLineData[destination] = { ns, replSessionType, who };
   }
 }
 
 function nsInfoLine(destination: OutputDestination, options: AppendClojureOptions) {
   const last = lastInfoLineData[destination];
-  const key = `${options.evaluator || ''}:${options.replSessionType}:${options.ns}`;
-  const lastKey = `${last.evaluator || ''}:${last.replSessionType}:${last.ns}`;
+  const key = `${options.who || ''}:${options.replSessionType}:${options.ns}`;
+  const lastKey = `${last.who || ''}:${last.replSessionType}:${last.ns}`;
   if (!options.ns || key === lastKey) {
     return '\n';
   }
-  const evaluatorBadge =
-    options.evaluator && options.evaluator !== 'ui'
-      ? themedChalk().evalSeparatorEvaluator(' ' + options.evaluator + ' ')
+  const whoBadge =
+    options.who && options.who !== 'ui'
+      ? themedChalk().evalSeparatorWho(' ' + options.who + ' ')
       : '';
-  return `\n;${evaluatorBadge}${themedChalk().evalSeparatorSessionType(
+  return `\n;${whoBadge}${themedChalk().evalSeparatorSessionType(
     ' ' + options.replSessionType + ' '
   )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`;
 }
@@ -274,7 +274,7 @@ function appendClojure(
     emit({
       category: options.outputCategory,
       text: `${didLastTerminateLine ? '' : '\n'}${message}`,
-      evaluator: options.evaluator,
+      who: options.who,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -343,7 +343,7 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
     emit({
       category: options.outputCategory,
       text: util.stripAnsi(message),
-      evaluator: options.evaluator,
+      who: options.who,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -394,11 +394,7 @@ export function appendEvalOut(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  append(
-    { destination, outputCategory: 'evalOut', evaluator: options.evaluator },
-    coloredMessage,
-    after
-  );
+  append({ destination, outputCategory: 'evalOut', who: options.who }, coloredMessage, after);
 }
 
 /**

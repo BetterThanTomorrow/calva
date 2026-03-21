@@ -168,7 +168,7 @@ async function evaluateCodeUpdatingUI(
       line: line + 1,
       column: column + 1,
       stdout: (m) => {
-        output.appendEvalOut(m, { evaluator: 'ui' });
+        output.appendEvalOut(m, { who: 'ui' });
       },
       stderr: (m) => err.push(m),
       pprintOptions: pprintOptions,
@@ -639,7 +639,7 @@ async function loadFile(
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { evaluator: 'ui' }),
+    stdout: (m) => output.appendEvalOut(m, { who: 'ui' }),
     stderr: (m) => {
       output.appendEvalErr(m, { ns, replSessionType: sessionKey });
       errorMessages.push(m);

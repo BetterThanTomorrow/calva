@@ -105,7 +105,10 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
   const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
   ```
 
-### `repl.evaluateCode()`
+### `repl.evaluateCode()` *(deprecated)*
+
+!!! Warning "Deprecated"
+    `evaluateCode()` is deprecated. Use [`evaluate()`](#replevaluate) instead — it provides `who` attribution, `otherWhosSinceLast` tracking, and `description` fields.
 
 This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a `Result` object. It's signature looks like so (TypeScript):
 
@@ -131,17 +134,16 @@ type Result = {
   output: string;
   errorOutput: string;
   sessionKey: string;  // Actual session key used
-  evaluator: string;   // Resolved evaluator identifier
-  error?: any;      // If present, will include raw nrepl stacktrace object
+  error?: any;         // If present, will include raw nrepl stacktrace object
 };
 ```
 
 !!! Note
-    `evaluateCode()` is a convenience wrapper around [`evaluate()`](#replevaluate). For new integrations, consider using `evaluate()` directly — it supports evaluator attribution and description fields.
+    `evaluateCode()` does not participate in `who` tracking. Its `Result` will not contain `who` or `otherWhosSinceLast` fields.
 
 ### `repl.evaluate()`
 
-A more flexible evaluation function that supports evaluator attribution. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation.
+The primary evaluation function. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation. It also tracks which other callers have evaluated since each caller's last evaluation.
 
 ```typescript
 export async function evaluate(
@@ -154,10 +156,25 @@ export async function evaluate(
       stderr: (m: string) => void;
     };
     nReplOptions?: Record<string, unknown>;
-    evaluator?: string;
+    who?: string;
     description?: string;
   }
 ): Promise<Result>;
+```
+
+Where `Result` is:
+
+```typescript
+type Result = {
+  result: string;
+  ns: string;
+  output: string;
+  errorOutput: string;
+  sessionKey: string;       // Actual session key used
+  who?: string;              // Resolved who identifier
+  otherWhosSinceLast?: string[];  // Other who values that evaluated since this who's last evaluation
+  error?: any;               // If present, will include raw nrepl stacktrace object
+};
 ```
 
 #### Options
@@ -166,12 +183,15 @@ export async function evaluate(
 * `ns` — The namespace to evaluate in. Defaults to `"user"`.
 * `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
 * `nReplOptions` — Additional nREPL evaluation options.
-* `evaluator` — A freeform string identifying who is evaluating. Defaults to `"anonymous"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
+* `who` — A freeform string identifying who is evaluating. Defaults to `"api"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
 * `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
 
-#### Evaluator Attribution
+!!! Warning "Reserved `who` values"
+    The values `"ui"` and `"api"` are reserved for Calva's internal use. Passing either explicitly will throw an `Error`. Omitting `who` (which defaults to `"api"`) is fine — only *explicit* use is rejected.
 
-The `evaluator` field controls a badge shown in the REPL output status line, before the session type and namespace:
+#### Who Attribution
+
+The `who` field controls a badge shown in the REPL output status line, before the session type and namespace:
 
 ```
 ; my-agent  clj  user
@@ -179,12 +199,23 @@ The `evaluator` field controls a badge shown in the REPL output status line, bef
 3
 ```
 
-When `evaluator` is omitted or falsy, it defaults to `"anonymous"` and the badge is shown. UI-triggered evaluations (from the editor) use `"ui"` internally, and the badge is hidden.
+When `who` is omitted or falsy, it defaults to `"api"` and the badge is shown. UI-triggered evaluations (from the editor) use `"ui"` internally, and the badge is hidden.
 
-The evaluator value is also included in:
+The `who` value is also included in:
 
 * The `Result` object returned by the promise (always the resolved value)
 * `OutputMessage` objects delivered to `onOutputLogged()` subscribers
+
+#### `otherWhosSinceLast` Tracking
+
+The `otherWhosSinceLast` field on the `Result` tells you which *other* `who` values have evaluated on the same session since this caller's previous evaluation. This is useful for detecting interleaved evaluations:
+
+```javascript
+const result = await calva.repl.evaluate("(+ 1 2)", { who: "my-agent" });
+console.log(result.otherWhosSinceLast); // e.g. ["ui", "other-agent"]
+```
+
+Tracking is per-session and resets when the REPL disconnects.
 
 #### Examples
 
@@ -192,9 +223,10 @@ The evaluator value is also included in:
 
     ```clojure
     (-> (p/let [result (calva/repl.evaluate "(+ 2 40)"
-                         #js {:evaluator "my-script"
+                         #js {:who "my-script"
                               :ns "user"})]
-          (println (.-result result)))
+          (println (.-result result))
+          (println (.-otherWhosSinceLast result)))
         (p/catch (fn [e]
                    (println "Evaluation error:" e))))
     ```
@@ -204,12 +236,13 @@ The evaluator value is also included in:
     ```javascript
     try {
       const result = await calva.repl.evaluate("(+ 2 40)", {
-        evaluator: "my-agent",
+        who: "my-agent",
         sessionKey: "clj",
         description: "Testing addition",
       });
       console.log(result.result);
-      console.log(result.evaluator); // "my-agent"
+      console.log(result.who); // "my-agent"
+      console.log(result.otherWhosSinceLast); // [] or ["ui", ...]
     } catch (e) {
       console.error("Evaluation error:", e);
     }
@@ -336,7 +369,7 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
-  evaluator?: string;  // Present when the output was triggered by an identified evaluator
+  who?: string;  // Present when the output was triggered by an identified who
 }
 ```
 
