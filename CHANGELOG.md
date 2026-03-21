@@ -5,7 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Replace GitHub API version checks with redirect-based lookups to avoid rate limits](https://github.com/BetterThanTomorrow/calva/issues/3142)
-- 
+- Bump deps.clj to v1.12.4.1618
+
 ## [2.0.566] - 2026-03-18
 
 - Fix: [Option-Return at the end of an expression prefixed with #_ is no longer triggering evaluation](https://github.com/BetterThanTomorrow/calva/issues/3144)
@@ -19,7 +20,7 @@ Changes to Calva.
 - [Allow other forms to create a new toplevel context like comment does](https://github.com/BetterThanTomorrow/calva/issues/3117)
 - Fix: [Nightly clojure-lsp downloads re-download on every startup even when already up to date](https://github.com/BetterThanTomorrow/calva/issues/3125)
 - Fix: [Toggle comments structurally does not re-format](https://github.com/BetterThanTomorrow/calva/issues/3095)
-- Rename 'Toggle Line Comment' to 'Toggle Comment' 
+- Rename 'Toggle Line Comment' to 'Toggle Comment'
 - Current form takes `#_` commented forms at all cursor positions within the form
   - Fix: [Toggle line comment with ignoreCurrentForm discards wrong form](https://github.com/BetterThanTomorrow/calva/issues/3108)
   - Fix: No longer treat `#_` discarded ns forms as namespace declarations
