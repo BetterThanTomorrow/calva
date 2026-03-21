@@ -74,7 +74,7 @@ interface ReplConnectSequence {
   afterPrimaryReplConnectedCode?: string;
   /** @deprecated Use afterPrimaryReplConnectedCode instead. */
   afterCLJReplJackInCode?: string;
-  cljsType: CljsTypes | CljsTypeConfig;
+  cljsType?: CljsTypes | CljsTypeConfig;
   menuSelections?: MenuSelections;
   nReplPortFile?: string[];
   extraNReplMiddleware?: string[];
