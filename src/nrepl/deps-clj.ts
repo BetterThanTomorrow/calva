@@ -6,14 +6,6 @@ import { https } from 'follow-redirects';
 const DEPS_CLJ_FILE = 'deps.clj.jar';
 const DEPS_CLJ_VERSION_FILE = 'deps-clj-version';
 
-async function getLatestVersion(): Promise<string> {
-  const releasesJSON = await util.fetchFromUrl(
-    'https://api.github.com/repos/borkdude/deps.clj/releases'
-  );
-  const releases = JSON.parse(releasesJSON);
-  return releases[0].tag_name;
-}
-
 function backupExistingFile(depsCljPath: string, backupPath: string): string {
   const backupDir = path.dirname(backupPath);
   try {
@@ -87,7 +79,7 @@ export async function downloadDepsClj(extensionPath: string): Promise<string> {
   try {
     const currentVersion = readVersionFile(extensionPath);
     console.log(`Current deps.clj.jar version: ${currentVersion}`);
-    const latestVersion = await getLatestVersion();
+    const latestVersion = await util.getLatestGitHubReleaseTag('borkdude/deps.clj');
     console.log(`Latest deps.clj.jar version: ${latestVersion}`);
     if (latestVersion !== currentVersion) {
       const artifactName = `deps.clj-${latestVersion.substring(1)}-standalone.jar`;

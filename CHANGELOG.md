@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Replace GitHub API version checks with redirect-based lookups to avoid rate limits](https://github.com/BetterThanTomorrow/calva/issues/3142)
+- 
 ## [2.0.566] - 2026-03-18
 
 - Fix: [Option-Return at the end of an expression prefixed with #_ is no longer triggering evaluation](https://github.com/BetterThanTomorrow/calva/issues/3144)
