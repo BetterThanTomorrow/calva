@@ -551,7 +551,12 @@ function getLatestGitHubReleaseTag(ownerRepo: string, timeoutMs = 10_000): Promi
     const request = https
       .get(releaseUrl, (response) => {
         response.resume();
-        resolve(response.responseUrl.split('/tag/').pop());
+        const finalUrl = response.responseUrl ?? '';
+        const tag = finalUrl.includes('/tag/') ? finalUrl.split('/tag/').pop() : '';
+        if (!tag) {
+          console.warn(`Failed to extract release tag for ${ownerRepo} from URL: ${finalUrl}`);
+        }
+        resolve(tag || '');
       })
       .on('error', () => resolve(''));
     request.setTimeout(timeoutMs, () => {

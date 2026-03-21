@@ -135,13 +135,22 @@ export const ensureServerDownloaded = async (
   forceDownload = false
 ): Promise<string> => {
   const currentVersion = await readVersionFile(context.extensionPath);
+  console.log(`Current clojure-lsp version: ${currentVersion}`);
   const configuredVersion: string = config.getConfig().clojureLspVersion;
   const clojureLspPath = getClojureLspPath(context.extensionPath);
-  const downloadVersion = ['', 'latest'].includes(configuredVersion)
-    ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
+  const versionSource = ['', 'latest'].includes(configuredVersion)
+    ? 'latest'
     : configuredVersion === 'nightly'
-    ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
-    : configuredVersion;
+    ? 'nightly'
+    : 'configured';
+  console.log(`clojure-lsp version source: ${versionSource} (setting: '${configuredVersion}')`);
+  const downloadVersion =
+    versionSource === 'latest'
+      ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
+      : versionSource === 'nightly'
+      ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
+      : configuredVersion;
+  console.log(`clojure-lsp download version: ${downloadVersion}`);
 
   const exists = await fs.promises
     .stat(clojureLspPath)
@@ -152,6 +161,7 @@ export const ensureServerDownloaded = async (
       }
       return false;
     });
+  console.log(`clojure-lsp binary exists: ${exists}`);
 
   // If there's no existing clojure-lsp file, and we can't fetch the latest version, throw an error, because the download of clojure-lsp will fail
   if (downloadVersion === '' && !exists) {
@@ -161,8 +171,12 @@ export const ensureServerDownloaded = async (
     forceDownload ||
     !exists
   ) {
+    console.log(
+      `clojure-lsp downloading: currentVersion='${currentVersion}', downloadVersion='${downloadVersion}', forceDownload=${forceDownload}, exists=${exists}`
+    );
     return await downloadClojureLsp(context.extensionPath, downloadVersion);
   }
+  console.log(`clojure-lsp skipping download, already up to date (${currentVersion})`);
   return clojureLspPath;
 };
 

@@ -82,6 +82,9 @@ export async function downloadDepsClj(extensionPath: string): Promise<string> {
     const latestVersion = await util.getLatestGitHubReleaseTag('borkdude/deps.clj');
     console.log(`Latest deps.clj.jar version: ${latestVersion}`);
     if (latestVersion !== currentVersion) {
+      console.log(
+        `deps.clj downloading: currentVersion='${currentVersion}', latestVersion='${latestVersion}'`
+      );
       const artifactName = `deps.clj-${latestVersion.substring(1)}-standalone.jar`;
       const url = `https://github.com/borkdude/deps.clj/releases/download/${latestVersion}/${artifactName}`;
       const backupPath = path.join(extensionPath, 'backup', DEPS_CLJ_FILE);
@@ -98,7 +101,7 @@ export async function downloadDepsClj(extensionPath: string): Promise<string> {
         }
       }
     } else {
-      console.log(`deps.clj.jar is up to date`);
+      console.log(`deps.clj skipping download, already up to date (${currentVersion})`);
     }
   } catch (e) {
     console.error(`Error checking latest deps.clj version: ${e}`);
