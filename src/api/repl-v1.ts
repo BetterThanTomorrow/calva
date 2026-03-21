@@ -12,6 +12,7 @@ type Result = {
   output: string;
   errorOutput: string;
   sessionKey: string;
+  evaluator: string;
   error?: string;
   stacktrace?: any;
 };
@@ -24,18 +25,31 @@ export interface ReplSessionInfo {
   currentRoutedTarget?: boolean;
 }
 
-export const evaluateCode = async (
-  sessionKey: 'clj' | 'cljs' | 'cljc' | string | undefined,
+export const evaluate = async (
   code: string,
-  ns = 'user',
-  output?: {
-    stdout: (m: string) => void;
-    stderr: (m: string) => void;
-  },
-  nReplEvalOptions = {}
+  options?: {
+    sessionKey?: 'clj' | 'cljs' | 'cljc' | string;
+    ns?: string;
+    output?: {
+      stdout: (m: string) => void;
+      stderr: (m: string) => void;
+    };
+    nReplOptions?: Record<string, unknown>;
+    evaluator?: string;
+    description?: string;
+  }
 ): Promise<Result> => {
-  // When sessionKey is explicitly provided, use it directly without routing
-  // Otherwise, use the routing logic to determine the session
+  const {
+    sessionKey,
+    ns = 'user',
+    output,
+    nReplOptions = {},
+    evaluator: rawEvaluator,
+    description,
+  } = options || {};
+
+  const resolvedEvaluator = rawEvaluator || 'anonymous';
+
   const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 
   if (!session) {
@@ -47,43 +61,44 @@ export const evaluateCode = async (
       );
     }
   }
+
   const effectiveSessionKey =
     sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
-  // Always send to Calva destinations AND call custom handlers if provided
-  const stdout = (m: string) => {
-    resultOutput.appendEvalOut(m);
 
+  const evalOptions: resultOutput.AppendClojureOptions = {
+    ns,
+    replSessionType: effectiveSessionKey,
+    evaluator: resolvedEvaluator,
+    description,
+  };
+
+  const stdout = (m: string) => {
+    resultOutput.appendEvalOut(m, evalOptions);
     if (output?.stdout) {
       output.stdout(m);
     }
   };
 
   const stderr = (m: string) => {
-    resultOutput.appendEvalErr(m, {
-      ns: ns,
-      replSessionType: effectiveSessionKey,
-    });
-
+    resultOutput.appendEvalErr(m, evalOptions);
     if (output?.stderr) {
       output.stderr(m);
     }
   };
+
   const evaluation = session.eval(code, ns, {
-    stdout: stdout,
-    stderr: stderr,
+    stdout,
+    stderr,
     pprintOptions: printer.disabledPrettyPrinter,
-    ...nReplEvalOptions,
+    ...nReplOptions,
   });
 
-  // Update session activity timestamp for UI display
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
 
-  // Honor the evaluationSendCodeToOutputWindow setting like manual evaluations do
   if (getConfig().evaluationSendCodeToOutputWindow) {
     if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
       resultOutput.appendClojureEval(code, {
-        ns,
-        replSessionType: effectiveSessionKey,
+        ...evalOptions,
         outputCategory: 'evaluatedCode',
       });
     }
@@ -98,13 +113,9 @@ export const evaluateCode = async (
       output: evaluation.outPut,
       errorOutput: evaluation.errorOutput,
       sessionKey: effectiveSessionKey,
+      evaluator: resolvedEvaluator,
     };
-
-    // Always display results in Calva destination
-    resultOutput.appendClojureEval(evaluationResult, {
-      ns: evaluation.ns,
-      replSessionType: effectiveSessionKey,
-    });
+    resultOutput.appendClojureEval(evaluationResult, evalOptions);
   } catch (evalError) {
     let stacktrace;
     try {
@@ -118,17 +129,33 @@ export const evaluateCode = async (
         output: evaluation.outPut,
         errorOutput: evaluation.errorOutput,
         sessionKey: effectiveSessionKey,
+        evaluator: resolvedEvaluator,
         error: `${evalError}`,
         stacktrace,
       };
-
-      resultOutput.appendClojureEval('nil', {
-        ns: evaluation.ns,
-        replSessionType: effectiveSessionKey,
-      });
+      resultOutput.appendClojureEval('nil', evalOptions);
     }
   }
   return result;
+};
+
+export const evaluateCode = async (
+  sessionKey: 'clj' | 'cljs' | 'cljc' | string | undefined,
+  code: string,
+  ns = 'user',
+  output?: {
+    stdout: (m: string) => void;
+    stderr: (m: string) => void;
+  },
+  nReplEvalOptions = {}
+): Promise<Result> => {
+  return evaluate(code, {
+    sessionKey,
+    ns,
+    output,
+    nReplOptions: nReplEvalOptions,
+    evaluator: 'anonymous',
+  });
 };
 
 export const currentSessionKey = () => {
@@ -161,6 +188,7 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
+  evaluator?: string;
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -176,7 +204,7 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
   const unsubscribe = resultOutput.subscribe((m: resultOutput.SubscriberOutputMessage) => {
     const cat = outputCategoryToApiCategory[m.category] || 'otherOutput';
     try {
-      callback({ category: cat, text: m.text });
+      callback({ category: cat, text: m.text, evaluator: m.evaluator });
     } catch (error) {
       console.log('API onOutputLogged callback failed', error.message);
     }

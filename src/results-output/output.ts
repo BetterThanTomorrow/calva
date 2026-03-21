@@ -20,6 +20,7 @@ const customChalk = new chalk.Instance({ level: 3 });
 export interface SubscriberOutputMessage {
   category: OutputCategory;
   text: string;
+  evaluator?: string;
 }
 
 type Listener = (msg: SubscriberOutputMessage) => void;
@@ -52,17 +53,21 @@ type AppendOptions = {
   destination: OutputDestination;
   outputCategory: OutputCategory;
   after?: AfterAppendCallback;
+  evaluator?: string;
 };
 
-type AppendClojureOptions = {
+export type AppendClojureOptions = {
   ns?: string;
   replSessionType?: string;
   outputCategory?: OutputCategory;
+  evaluator?: string;
+  description?: string;
 };
 
 const lightTheme = {
   evalSeparatorSessionType: customChalk.bgGreen,
   evalSeparatorNs: customChalk.bgBlue,
+  evalSeparatorEvaluator: customChalk.bgCyan,
   evalOut: customChalk.gray,
   evalErr: customChalk.red,
   otherOut: customChalk.green,
@@ -72,6 +77,7 @@ const lightTheme = {
 const darkTheme = {
   evalSeparatorSessionType: customChalk.bgWhite,
   evalSeparatorNs: customChalk.bgWhiteBright,
+  evalSeparatorEvaluator: customChalk.bgCyanBright,
   evalOut: customChalk.gray,
   evalErr: customChalk.redBright,
   otherOut: customChalk.grey,
@@ -231,20 +237,26 @@ const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
 };
 
 function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
-  const { ns, replSessionType } = options;
+  const { ns, replSessionType, evaluator } = options;
   if (ns) {
-    lastInfoLineData[destination] = { ns, replSessionType };
+    lastInfoLineData[destination] = { ns, replSessionType, evaluator };
   }
 }
 
 function nsInfoLine(destination: OutputDestination, options: AppendClojureOptions) {
-  return options.ns &&
-    `${options.replSessionType}:${options.ns}` !==
-      `${lastInfoLineData[destination].replSessionType}:${lastInfoLineData[destination].ns}`
-    ? `\n;${themedChalk().evalSeparatorSessionType(
-        ' ' + options.replSessionType + ' '
-      )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`
-    : '\n';
+  const last = lastInfoLineData[destination];
+  const key = `${options.evaluator || ''}:${options.replSessionType}:${options.ns}`;
+  const lastKey = `${last.evaluator || ''}:${last.replSessionType}:${last.ns}`;
+  if (!options.ns || key === lastKey) {
+    return '\n';
+  }
+  const evaluatorBadge =
+    options.evaluator && options.evaluator !== 'ui'
+      ? themedChalk().evalSeparatorEvaluator(' ' + options.evaluator + ' ')
+      : '';
+  return `\n;${evaluatorBadge}${themedChalk().evalSeparatorSessionType(
+    ' ' + options.replSessionType + ' '
+  )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`;
 }
 
 function appendClojure(
@@ -255,10 +267,14 @@ function appendClojure(
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
+  if (options.description) {
+    appendOtherOut(options.description);
+  }
   try {
     emit({
       category: options.outputCategory,
       text: `${didLastTerminateLine ? '' : '\n'}${message}`,
+      evaluator: options.evaluator,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -327,6 +343,7 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
     emit({
       category: options.outputCategory,
       text: util.stripAnsi(message),
+      evaluator: options.evaluator,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -367,13 +384,21 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendEvalOut(message: string, after?: AfterAppendCallback) {
+export function appendEvalOut(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().evalOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  append({ destination, outputCategory: 'evalOut' }, coloredMessage, after);
+  append(
+    { destination, outputCategory: 'evalOut', evaluator: options.evaluator },
+    coloredMessage,
+    after
+  );
 }
 
 /**

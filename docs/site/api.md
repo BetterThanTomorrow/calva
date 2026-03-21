@@ -131,9 +131,89 @@ type Result = {
   output: string;
   errorOutput: string;
   sessionKey: string;  // Actual session key used
+  evaluator: string;   // Resolved evaluator identifier
   error?: any;      // If present, will include raw nrepl stacktrace object
 };
 ```
+
+!!! Note
+    `evaluateCode()` is a convenience wrapper around [`evaluate()`](#replevaluate). For new integrations, consider using `evaluate()` directly — it supports evaluator attribution and description fields.
+
+### `repl.evaluate()`
+
+A more flexible evaluation function that supports evaluator attribution. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation.
+
+```typescript
+export async function evaluate(
+  code: string,
+  options?: {
+    sessionKey?: 'clj' | 'cljs' | 'cljc' | string;
+    ns?: string;
+    output?: {
+      stdout: (m: string) => void;
+      stderr: (m: string) => void;
+    };
+    nReplOptions?: Record<string, unknown>;
+    evaluator?: string;
+    description?: string;
+  }
+): Promise<Result>;
+```
+
+#### Options
+
+* `sessionKey` — Which REPL session to use. Same as the first argument to `evaluateCode()`. Defaults to the current routed session.
+* `ns` — The namespace to evaluate in. Defaults to `"user"`.
+* `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
+* `nReplOptions` — Additional nREPL evaluation options.
+* `evaluator` — A freeform string identifying who is evaluating. Defaults to `"anonymous"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
+* `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
+
+#### Evaluator Attribution
+
+The `evaluator` field controls a badge shown in the REPL output status line, before the session type and namespace:
+
+```
+; my-agent  clj  user
+(+ 1 2)
+3
+```
+
+When `evaluator` is omitted or falsy, it defaults to `"anonymous"` and the badge is shown. UI-triggered evaluations (from the editor) use `"ui"` internally, and the badge is hidden.
+
+The evaluator value is also included in:
+
+* The `Result` object returned by the promise (always the resolved value)
+* `OutputMessage` objects delivered to `onOutputLogged()` subscribers
+
+#### Examples
+
+=== "Joyride"
+
+    ```clojure
+    (-> (p/let [result (calva/repl.evaluate "(+ 2 40)"
+                         #js {:evaluator "my-script"
+                              :ns "user"})]
+          (println (.-result result)))
+        (p/catch (fn [e]
+                   (println "Evaluation error:" e))))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    try {
+      const result = await calva.repl.evaluate("(+ 2 40)", {
+        evaluator: "my-agent",
+        sessionKey: "clj",
+        description: "Testing addition",
+      });
+      console.log(result.result);
+      console.log(result.evaluator); // "my-agent"
+    } catch (e) {
+      console.error("Evaluation error:", e);
+    }
+    ```
 
 As you can see, the required arguments to the function are `sessionKey` and `code`. `sessionKey` should be `"clj"`, `"cljs"`, `"cljc"`, or `undefined` depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use `cljc` to request whatever REPL session `"cljc"` files are connected to. Use `undefined` to use the current REPL connection Calva would use (depends on which file is active).
 
@@ -256,6 +336,7 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
+  evaluator?: string;  // Present when the output was triggered by an identified evaluator
 }
 ```
 
