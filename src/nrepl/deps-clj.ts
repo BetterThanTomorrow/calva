@@ -6,14 +6,6 @@ import { https } from 'follow-redirects';
 const DEPS_CLJ_FILE = 'deps.clj.jar';
 const DEPS_CLJ_VERSION_FILE = 'deps-clj-version';
 
-async function getLatestVersion(): Promise<string> {
-  const releasesJSON = await util.fetchFromUrl(
-    'https://api.github.com/repos/borkdude/deps.clj/releases'
-  );
-  const releases = JSON.parse(releasesJSON);
-  return releases[0].tag_name;
-}
-
 function backupExistingFile(depsCljPath: string, backupPath: string): string {
   const backupDir = path.dirname(backupPath);
   try {
@@ -87,9 +79,12 @@ export async function downloadDepsClj(extensionPath: string): Promise<string> {
   try {
     const currentVersion = readVersionFile(extensionPath);
     console.log(`Current deps.clj.jar version: ${currentVersion}`);
-    const latestVersion = await getLatestVersion();
+    const latestVersion = await util.getLatestGitHubReleaseTag('borkdude/deps.clj');
     console.log(`Latest deps.clj.jar version: ${latestVersion}`);
     if (latestVersion !== currentVersion) {
+      console.log(
+        `deps.clj downloading: currentVersion='${currentVersion}', latestVersion='${latestVersion}'`
+      );
       const artifactName = `deps.clj-${latestVersion.substring(1)}-standalone.jar`;
       const url = `https://github.com/borkdude/deps.clj/releases/download/${latestVersion}/${artifactName}`;
       const backupPath = path.join(extensionPath, 'backup', DEPS_CLJ_FILE);
@@ -106,7 +101,7 @@ export async function downloadDepsClj(extensionPath: string): Promise<string> {
         }
       }
     } else {
-      console.log(`deps.clj.jar is up to date`);
+      console.log(`deps.clj skipping download, already up to date (${currentVersion})`);
     }
   } catch (e) {
     console.error(`Error checking latest deps.clj version: ${e}`);
