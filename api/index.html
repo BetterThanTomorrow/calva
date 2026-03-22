@@ -1958,14 +1958,50 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#replevaluatecode" class="md-nav__link">
+  <a href="#replevaluate" class="md-nav__link">
     <span class="md-ellipsis">
-      repl.evaluateCode()
+      repl.evaluate()
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="repl.evaluateCode()">
+    <nav class="md-nav" aria-label="repl.evaluate()">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#who-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Who Attribution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otherwhossincelast-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      otherWhosSinceLast Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#handling-output" class="md-nav__link">
@@ -1985,6 +2021,15 @@
   <a href="#replonoutputlogged" class="md-nav__link">
     <span class="md-ellipsis">
       repl.onOutputLogged()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replevaluatecode-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.evaluateCode() (deprecated)
     </span>
   </a>
   
@@ -2452,14 +2497,50 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#replevaluatecode" class="md-nav__link">
+  <a href="#replevaluate" class="md-nav__link">
     <span class="md-ellipsis">
-      repl.evaluateCode()
+      repl.evaluate()
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="repl.evaluateCode()">
+    <nav class="md-nav" aria-label="repl.evaluate()">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#who-attribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Who Attribution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otherwhossincelast-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      otherWhosSinceLast Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#handling-output" class="md-nav__link">
@@ -2479,6 +2560,15 @@
   <a href="#replonoutputlogged" class="md-nav__link">
     <span class="md-ellipsis">
       repl.onOutputLogged()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#replevaluatecode-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.evaluateCode() (deprecated)
     </span>
   </a>
   
@@ -2787,17 +2877,21 @@
 <div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">sessions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">listSessions</span><span class="p">();</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">secondary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">sessions</span><span class="p">.</span><span class="nx">find</span><span class="p">((</span><span class="nx">s</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">s</span><span class="p">.</span><span class="nx">replSessionKey</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="p">);</span>
 </code></pre></div>
-<h3 id="replevaluatecode"><code>repl.evaluateCode()</code><a class="headerlink" href="#replevaluatecode" title="Permanent link">#</a></h3>
-<p>This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a <code>Result</code> object. It's signature looks like so (TypeScript):</p>
-<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">evaluateCode</span><span class="p">(</span>
-<span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;clj&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljc&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">undefined</span><span class="p">,</span>
+<h3 id="replevaluate"><code>repl.evaluate()</code><a class="headerlink" href="#replevaluate" title="Permanent link">#</a></h3>
+<p>The primary evaluation function. When multiple agents or tools evaluate code through the API, <code>evaluate()</code> lets each identify itself so that REPL output shows who triggered each evaluation. It also tracks which other callers have evaluated since each caller's last evaluation.</p>
+<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">evaluate</span><span class="p">(</span>
 <span class="w">  </span><span class="nx">code</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
-<span class="w">  </span><span class="nx">ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;user&#39;</span><span class="p">,</span>
-<span class="w">  </span><span class="nx">output</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nx">stdout</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
-<span class="w">    </span><span class="nx">stderr</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nx">opts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">sessionKey</span><span class="o">?:</span><span class="w"> </span><span class="s1">&#39;clj&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljs&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;cljc&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">ns?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">output</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">stdout</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="w">      </span><span class="nx">stderr</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+<span class="w">    </span><span class="p">};</span>
+<span class="w">    </span><span class="nx">nReplOptions?</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">who?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">description?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Result</span><span class="o">&gt;</span><span class="p">;</span>
 </code></pre></div>
 <p>Where <code>Result</code> is:</p>
@@ -2806,33 +2900,67 @@
 <span class="w">  </span><span class="nx">ns</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">output</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">errorOutput</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// Actual session key used</span>
-<span class="w">  </span><span class="nx">error?</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">;</span><span class="w">      </span><span class="c1">// If present, will include raw nrepl stacktrace object</span>
+<span class="w">  </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">       </span><span class="c1">// Actual session key used</span>
+<span class="w">  </span><span class="nx">who?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">              </span><span class="c1">// Resolved who identifier</span>
+<span class="w">  </span><span class="nx">otherWhosSinceLast?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span><span class="w">  </span><span class="c1">// Other who values that evaluated since this who&#39;s last evaluation</span>
+<span class="w">  </span><span class="nx">error?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">            </span><span class="c1">// Error message, if any</span>
+<span class="w">  </span><span class="nx">stacktrace?</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">;</span><span class="w">          </span><span class="c1">// Raw nrepl stacktrace object, if error</span>
 <span class="p">};</span>
 </code></pre></div>
-<p>As you can see, the required arguments to the function are <code>sessionKey</code> and <code>code</code>. <code>sessionKey</code> should be <code>"clj"</code>, <code>"cljs"</code>, <code>"cljc"</code>, or <code>undefined</code> depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use <code>cljc</code> to request whatever REPL session <code>"cljc"</code> files are connected to. Use <code>undefined</code> to use the current REPL connection Calva would use (depends on which file is active).</p>
-<p>An example:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Joyride</label><label for="__tabbed_6_2">ClojureScript</label><label for="__tabbed_6_3">JavaScript</label></div>
+<h4 id="options">Options<a class="headerlink" href="#options" title="Permanent link">#</a></h4>
+<ul>
+<li><code>sessionKey</code> — Which REPL session to use. Same as the first argument to <code>evaluateCode()</code>. Defaults to the current routed session.</li>
+<li><code>ns</code> — The namespace to evaluate in. Defaults to <code>"user"</code>.</li>
+<li><code>output</code> — Optional stdout/stderr handlers, same as <code>evaluateCode()</code>.</li>
+<li><code>nReplOptions</code> — Additional nREPL evaluation options.</li>
+<li><code>who</code> — A freeform string identifying who is evaluating. Defaults to <code>"api"</code>. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.</li>
+<li><code>description</code> — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Reserved <code>who</code> values</p>
+<p>The values <code>"ui"</code> and <code>"api"</code> are reserved for Calva's internal use. Passing either explicitly will throw an <code>Error</code>. Omitting <code>who</code> (which defaults to <code>"api"</code>) is fine — only <em>explicit</em> use is rejected.</p>
+</div>
+<h4 id="who-attribution">Who Attribution<a class="headerlink" href="#who-attribution" title="Permanent link">#</a></h4>
+<p>The <code>who</code> field identifies which API caller triggered an evaluation. It is included in:</p>
+<ul>
+<li>The <code>Result</code> object returned by the promise (always the resolved value)</li>
+<li><code>OutputMessage</code> objects delivered to <code>onOutputLogged()</code> subscribers</li>
+<li>A badge in the REPL output, shown before the session type and namespace</li>
+</ul>
+<div class="highlight"><pre><span></span><code>; my-agent  clj  user
+(+ 1 2)
+3
+</code></pre></div>
+<p>When <code>who</code> is omitted or falsy, it defaults to <code>"api"</code>. UI-triggered evaluations (from the editor) use <code>"ui"</code> internally, and the badge is ommitted.</p>
+<h4 id="otherwhossincelast-tracking"><code>otherWhosSinceLast</code> Tracking<a class="headerlink" href="#otherwhossincelast-tracking" title="Permanent link">#</a></h4>
+<p>The <code>otherWhosSinceLast</code> field on the <code>Result</code> tells you which <em>other</em> <code>who</code> values have evaluated on the same session since this caller's previous evaluation. This is useful for detecting interleaved evaluations:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">evaluate</span><span class="p">(</span><span class="s2">&quot;(+ 1 2)&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">who</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;my-agent&quot;</span><span class="w"> </span><span class="p">});</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">otherWhosSinceLast</span><span class="p">);</span><span class="w"> </span><span class="c1">// e.g. [&quot;ui&quot;, &quot;other-agent&quot;]</span>
+</code></pre></div>
+<p>Tracking is per-session and resets when the REPL disconnects.</p>
+<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Joyride</label><label for="__tabbed_6_2">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.evaluateCode</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span>
-<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">)))</span>
-<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span>
-<span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Evaluation error:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">evaluate</span><span class="w"> </span><span class="p">(</span><span class="nf">get-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:repl</span><span class="w"> </span><span class="ss">:evaluateCode</span><span class="p">]</span><span class="w"> </span><span class="nv">calvaApi</span><span class="p">))</span>
-<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">evaluation</span><span class="w"> </span><span class="p">(</span><span class="nf">evaluate</span><span class="w"> </span><span class="s">&quot;clj&quot;</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span><span class="p">)]</span>
-<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">evaluation</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">result</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/repl.evaluate</span><span class="w"> </span><span class="s">&quot;(+ 2 40)&quot;</span>
+<span class="w">                     </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:who</span><span class="w"> </span><span class="s">&quot;my-script&quot;</span>
+<span class="w">                          </span><span class="ss">:ns</span><span class="w"> </span><span class="s">&quot;user&quot;</span><span class="p">})]</span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">result</span><span class="p">))</span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-otherWhosSinceLast</span><span class="w"> </span><span class="nv">result</span><span class="p">)))</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span>
 <span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Evaluation error:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">evaluation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">calvaApi</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">evaluateCode</span><span class="p">(</span><span class="s2">&quot;clj&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;(+ 2 40)&quot;</span><span class="p">);</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">evaluation</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">calva</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">evaluate</span><span class="p">(</span><span class="s2">&quot;(+ 2 40)&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">who</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;my-agent&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">sessionKey</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Testing addition&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">who</span><span class="p">);</span><span class="w"> </span><span class="c1">// &quot;my-agent&quot;</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">otherWhosSinceLast</span><span class="p">);</span><span class="w"> </span><span class="c1">// [] or [&quot;ui&quot;, ...]</span>
 <span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Evaluation error:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">);</span>
 <span class="p">}</span>
@@ -2917,8 +3045,14 @@
 <span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">OutputMessage</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">category</span><span class="o">:</span><span class="w"> </span><span class="kt">OutputCategory</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">who?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// Present when the output was triggered by an identified who</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="replevaluatecode-deprecated"><code>repl.evaluateCode()</code> <em>(deprecated)</em><a class="headerlink" href="#replevaluatecode-deprecated" title="Permanent link">#</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Deprecated</p>
+<p><code>evaluateCode()</code> is deprecated. Use <a href="#replevaluate"><code>evaluate()</code></a> instead.</p>
+</div>
 <h2 id="ranges"><code>ranges</code><a class="headerlink" href="#ranges" title="Permanent link">#</a></h2>
 <p>The <code>ranges</code> module contains functions for retreiving <a href="https://code.visualstudio.com/api/references/vscode-api#Range">vscode.Range</a>s and text for pieces of interest in a Clojure document.</p>
 <p>All functions in this module have the following TypeScript signature:</p>
