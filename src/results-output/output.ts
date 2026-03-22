@@ -439,7 +439,11 @@ export function appendOtherOut(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  append({ destination, outputCategory: 'otherOut', who: options.who }, coloredMessage, after);
+  append(
+    { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+    coloredMessage,
+    after
+  );
 }
 
 /**
@@ -459,7 +463,11 @@ export function appendOtherErr(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  append({ destination, outputCategory: 'otherErr', who: options.who }, coloredMessage, after);
+  append(
+    { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+    coloredMessage,
+    after
+  );
 }
 
 function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
@@ -555,7 +563,11 @@ export function appendLineOtherOut(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  appendLine({ destination, outputCategory: 'otherOut', who: options.who }, coloredMessage, after);
+  appendLine(
+    { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+    coloredMessage,
+    after
+  );
 }
 
 /**
@@ -575,7 +587,11 @@ export function appendLineOtherErr(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  appendLine({ destination, outputCategory: 'otherErr', who: options.who }, coloredMessage, after);
+  appendLine(
+    { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+    coloredMessage,
+    after
+  );
 }
 
 /**
