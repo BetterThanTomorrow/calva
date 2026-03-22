@@ -30,7 +30,7 @@ export interface ReplSessionInfo {
 export const evaluate = async (
   code: string,
   options?: {
-    sessionKey?: 'clj' | 'cljs' | 'cljc' | string;
+    sessionKey?: string;
     ns?: string;
     output?: {
       stdout: (m: string) => void;
