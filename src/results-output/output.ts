@@ -268,7 +268,7 @@ function appendClojure(
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (options.description) {
-    appendOtherOut(options.description);
+    appendOtherOut(options.description, { who: options.who });
   }
   try {
     emit({

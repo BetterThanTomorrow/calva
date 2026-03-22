@@ -76,8 +76,11 @@ export const evaluate = async (
     ns,
     replSessionType: effectiveSessionKey,
     who: resolvedWho,
-    description,
   };
+
+  if (description) {
+    resultOutput.appendOtherOut(description, { who: resolvedWho });
+  }
 
   const stdout = (m: string) => {
     resultOutput.appendEvalOut(m, evalOptions);
