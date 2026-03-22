@@ -85,7 +85,7 @@ async function interruptAllEvaluations() {
     msgs.push(msg);
   });
   if (msgs.length) {
-    output.appendLineOtherOut(msgs.join('\n'));
+    output.appendLineOtherOut(msgs.join('\n'), { who: 'ui' });
   }
   try {
     NReplSession.getInstances().forEach((session, _index) => {
@@ -641,7 +641,7 @@ async function loadFile(
   const session = replSession.getSession();
   const sessionKey = sessionRegistry.resolveSessionKey(session);
 
-  output.appendLineOtherOut(`Evaluating file: ${fileName}`);
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who: 'ui' });
   whoTracking.recordEvaluation(sessionKey, 'ui');
 
   const errorMessages = [];
@@ -674,7 +674,7 @@ async function loadFile(
       }
     );
     if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`);
+      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who: 'ui' });
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
@@ -696,7 +696,9 @@ async function loadFile(
     replWindow.setSession(session, ns);
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``);
+      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
+        who: 'ui',
+      });
       const context = customSnippets.makeContext(
         vscode.window.activeTextEditor,
         ns,
@@ -825,7 +827,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
       column: evalPos.character,
     });
   } catch (e) {
-    output.appendLineOtherErr('Evaluation failed.');
+    output.appendLineOtherErr('Evaluation failed.', { who: 'ui' });
   }
 }
 
@@ -855,7 +857,7 @@ async function evaluateInCurrentEditor(
         column: evalPos.character,
       });
     } catch (e) {
-      output.appendLineOtherErr('Evaluation failed.');
+      output.appendLineOtherErr('Evaluation failed.', { who: 'ui' });
     }
   }
 }

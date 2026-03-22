@@ -429,13 +429,17 @@ export function appendEvalErr(
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendOtherOut(message: string, after?: AfterAppendCallback) {
+export function appendOtherOut(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().otherOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  append({ destination, outputCategory: 'otherOut' }, coloredMessage, after);
+  append({ destination, outputCategory: 'otherOut', who: options.who }, coloredMessage, after);
 }
 
 /**
@@ -445,17 +449,33 @@ export function appendOtherOut(message: string, after?: AfterAppendCallback) {
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendOtherErr(message: string, after?: AfterAppendCallback) {
+export function appendOtherErr(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().otherOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  append({ destination, outputCategory: 'otherErr' }, coloredMessage, after);
+  append({ destination, outputCategory: 'otherErr', who: options.who }, coloredMessage, after);
 }
 
 function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
+  // Terminal delegates to append() which emits; other destinations need explicit emit
+  if (destination !== 'terminal') {
+    try {
+      emit({
+        category: options.outputCategory,
+        text: util.stripAnsi(message),
+        who: options.who,
+      });
+    } catch (e) {
+      console.error('Calva output-sink listener error', e.message);
+    }
+  }
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
@@ -525,13 +545,17 @@ export function appendLineEvalErr(
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendLineOtherOut(message: string, after?: AfterAppendCallback) {
+export function appendLineOtherOut(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().otherOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherOut(message)
       : message;
-  appendLine({ destination, outputCategory: 'otherOut' }, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'otherOut', who: options.who }, coloredMessage, after);
 }
 
 /**
@@ -541,13 +565,17 @@ export function appendLineOtherOut(message: string, after?: AfterAppendCallback)
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendLineOtherErr(message: string, after?: AfterAppendCallback) {
+export function appendLineOtherErr(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().otherOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().otherErr(message)
       : message;
-  appendLine({ destination, outputCategory: 'otherErr' }, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'otherErr', who: options.who }, coloredMessage, after);
 }
 
 /**
