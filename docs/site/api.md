@@ -105,20 +105,24 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
   const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
   ```
 
-### `repl.evaluateCode()`
+### `repl.evaluate()`
 
-This function lets you evaluate Clojure code through Calva's nREPL connection. Calling it returns a promise that resolves to a `Result` object. It's signature looks like so (TypeScript):
+The primary evaluation function. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation. It also tracks which other callers have evaluated since each caller's last evaluation.
 
 ```typescript
-export async function evaluateCode(
-  sessionKey: 'clj' | 'cljs' | 'cljc' | undefined,
+export async function evaluate(
   code: string,
-  ns = 'user',
-  output?: {
-    stdout: (m: string) => void;
-    stderr: (m: string) => void;
-  },
-  opts = {}
+  options?: {
+    sessionKey?: 'clj' | 'cljs' | 'cljc' | string;
+    ns?: string;
+    output?: {
+      stdout: (m: string) => void;
+      stderr: (m: string) => void;
+    };
+    nReplOptions?: Record<string, unknown>;
+    who?: string;
+    description?: string;
+  }
 ): Promise<Result>;
 ```
 
@@ -130,30 +134,63 @@ type Result = {
   ns: string;
   output: string;
   errorOutput: string;
-  sessionKey: string;  // Actual session key used
-  error?: any;      // If present, will include raw nrepl stacktrace object
+  sessionKey: string;       // Actual session key used
+  who?: string;              // Resolved who identifier
+  otherWhosSinceLast?: string[];  // Other who values that evaluated since this who's last evaluation
+  error?: string;            // Error message, if any
+  stacktrace?: any;          // Raw nrepl stacktrace object, if error
 };
 ```
 
-As you can see, the required arguments to the function are `sessionKey` and `code`. `sessionKey` should be `"clj"`, `"cljs"`, `"cljc"`, or `undefined` depending on which of Calva's REPL sessions/connections that should be used. It will depend on your project, and how you connect to it, which session keys are valid. Use `cljc` to request whatever REPL session `"cljc"` files are connected to. Use `undefined` to use the current REPL connection Calva would use (depends on which file is active).
+#### Options
 
-An example:
+* `sessionKey` — Which REPL session to use. Same as the first argument to `evaluateCode()`. Defaults to the current routed session.
+* `ns` — The namespace to evaluate in. Defaults to `"user"`.
+* `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
+* `nReplOptions` — Additional nREPL evaluation options.
+* `who` — A freeform string identifying who is evaluating. Defaults to `"api"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
+* `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
+
+!!! Warning "Reserved `who` values"
+    The values `"ui"` and `"api"` are reserved for Calva's internal use. Passing either explicitly will throw an `Error`. Omitting `who` (which defaults to `"api"`) is fine — only *explicit* use is rejected.
+
+#### Who Attribution
+
+The `who` field identifies which API caller triggered an evaluation. It is included in:
+
+* The `Result` object returned by the promise (always the resolved value)
+* `OutputMessage` objects delivered to `onOutputLogged()` subscribers
+* A badge in the REPL output, shown before the session type and namespace
+
+```
+; my-agent  clj  user
+(+ 1 2)
+3
+```
+
+When `who` is omitted or falsy, it defaults to `"api"`. UI-triggered evaluations (from the editor) use `"ui"` internally, and the badge is ommitted.
+
+#### `otherWhosSinceLast` Tracking
+
+The `otherWhosSinceLast` field on the `Result` tells you which *other* `who` values have evaluated on the same session since this caller's previous evaluation. This is useful for detecting interleaved evaluations:
+
+```javascript
+const result = await calva.repl.evaluate("(+ 1 2)", { who: "my-agent" });
+console.log(result.otherWhosSinceLast); // e.g. ["ui", "other-agent"]
+```
+
+Tracking is per-session and resets when the REPL disconnects.
+
+#### Examples
 
 === "Joyride"
 
     ```clojure
-    (-> (p/let [evaluation (calva/repl.evaluateCode "clj" "(+ 2 40)")]
-          (println (.-result evaluation)))
-        (p/catch (fn [e]
-                   (println "Evaluation error:" e))))
-    ```
-
-=== "ClojureScript"
-
-    ```clojure
-    (def evaluate (get-in [:repl :evaluateCode] calvaApi))
-    (-> (p/let [evaluation (evaluate "clj" "(+ 2 40)")]
-          (println (.-result evaluation)))
+    (-> (p/let [result (calva/repl.evaluate "(+ 2 40)"
+                         #js {:who "my-script"
+                              :ns "user"})]
+          (println (.-result result))
+          (println (.-otherWhosSinceLast result)))
         (p/catch (fn [e]
                    (println "Evaluation error:" e))))
     ```
@@ -162,8 +199,14 @@ An example:
 
     ```javascript
     try {
-      const evaluation = await calvaApi.repl.evaluateCode("clj", "(+ 2 40)");
-      console.log(evaluation.result);
+      const result = await calva.repl.evaluate("(+ 2 40)", {
+        who: "my-agent",
+        sessionKey: "clj",
+        description: "Testing addition",
+      });
+      console.log(result.result);
+      console.log(result.who); // "my-agent"
+      console.log(result.otherWhosSinceLast); // [] or ["ui", ...]
     } catch (e) {
       console.error("Evaluation error:", e);
     }
@@ -256,8 +299,15 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
+  who?: string;  // Present when the output was triggered by an identified who
 }
 ```
+
+### `repl.evaluateCode()` *(deprecated)*
+
+!!! Warning "Deprecated"
+    `evaluateCode()` is deprecated. Use [`evaluate()`](#replevaluate) instead.
+
 
 ## `ranges`
 

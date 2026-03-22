@@ -1,5 +1,6 @@
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
+import * as whoTracking from '../api/who-tracking';
 
 function removeSessionKeys(sessionKeys: string[]): string[] {
   const removed: string[] = [];
@@ -7,6 +8,7 @@ function removeSessionKeys(sessionKeys: string[]): string[] {
     if (!key) {
       return;
     }
+    whoTracking.clearSessionTracking(key);
     sessionRegistry.unregisterSession(key);
     removed.push(key);
   });
