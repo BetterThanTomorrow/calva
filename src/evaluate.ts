@@ -177,6 +177,7 @@ async function evaluateCodeUpdatingUI(
 
     sessionRegistry.updateSessionActivity(sessionKey);
     whoTracking.recordEvaluation(sessionKey, 'ui');
+    whoTracking.setCurrentWho(session.sessionId, 'ui');
 
     try {
       if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
@@ -643,6 +644,7 @@ async function loadFile(
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who: 'ui' });
   whoTracking.recordEvaluation(sessionKey, 'ui');
+  whoTracking.setCurrentWho(session.sessionId, 'ui');
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {

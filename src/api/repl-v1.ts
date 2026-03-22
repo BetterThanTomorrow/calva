@@ -102,6 +102,7 @@ export const evaluate = async (
 
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
+  whoTracking.setCurrentWho(session.sessionId, resolvedWho);
 
   if (getConfig().evaluationSendCodeToOutputWindow) {
     if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {

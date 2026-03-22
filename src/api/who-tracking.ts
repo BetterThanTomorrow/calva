@@ -4,6 +4,9 @@
 // sessionKey → Map<who, Set<otherWho>>
 const tracking = new Map<string, Map<string, Set<string>>>();
 
+// nrepl sessionId → current who (set when eval starts, read by out-of-band handlers)
+const currentWho = new Map<string, string>();
+
 function ensureSession(sessionKey: string): Map<string, Set<string>> {
   let whoMap = tracking.get(sessionKey);
   if (!whoMap) {
@@ -43,4 +46,16 @@ export function getOtherWhosSinceLast(sessionKey: string, who: string): string[]
 
 export function clearSessionTracking(sessionKey: string): void {
   tracking.delete(sessionKey);
+}
+
+export function setCurrentWho(sessionId: string, who: string): void {
+  currentWho.set(sessionId, who);
+}
+
+export function getCurrentWho(sessionId: string): string | undefined {
+  return currentWho.get(sessionId);
+}
+
+export function clearCurrentWho(sessionId: string): void {
+  currentWho.delete(sessionId);
 }

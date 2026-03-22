@@ -45,6 +45,7 @@ export function refresh(opts: Record<string, unknown> = {}) {
   if (client != undefined) {
     const sessionKey = sessionRegistry.resolveSessionKey(client);
     whoTracking.recordEvaluation(sessionKey, 'ui');
+    whoTracking.setCurrentWho(client.sessionId, 'ui');
     output.appendLineEvalOut('Reloading...', { who: 'ui' });
     return client.refresh(opts).then((res) => {
       return report(res);
@@ -63,6 +64,7 @@ export function refreshAll(opts: Record<string, unknown> = {}) {
   if (client != undefined) {
     const sessionKey = sessionRegistry.resolveSessionKey(client);
     whoTracking.recordEvaluation(sessionKey, 'ui');
+    whoTracking.setCurrentWho(client.sessionId, 'ui');
     output.appendLineEvalOut('Reloading all the things...', { who: 'ui' });
     return client.refreshAll(opts).then((res) => {
       return report(res);
