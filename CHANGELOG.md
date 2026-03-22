@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add “Who's evaluating” to the repl output, including the API](https://github.com/BetterThanTomorrow/calva/issues/3146
+
 ## [2.0.567] - 2026-03-21
 
 - Fix: ["Run current test" matches tests with similar names](https://github.com/BetterThanTomorrow/calva/issues/2168)

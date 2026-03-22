@@ -21,6 +21,7 @@ import { log, Direction } from './logging';
 import * as string from '../util/string';
 import * as output from '../results-output/output';
 import { handleShadowRemoteMessage } from '../shadow-cljs-runtime';
+import * as whoTracking from '../api/who-tracking';
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -324,10 +325,11 @@ export class NReplSession {
     }
 
     if ((msgData.out || msgData.err) && this.replType) {
+      const who = whoTracking.getCurrentWho(this.sessionId);
       if (msgData.out) {
-        output.appendOtherOut(msgData.out);
+        output.appendOtherOut(msgData.out, { who });
       } else if (msgData.err) {
-        output.appendOtherErr(msgData.err);
+        output.appendOtherErr(msgData.err, { who });
       }
     }
   }
@@ -831,7 +833,7 @@ export class NReplSession {
             err += msg.err;
           }
           if (msg.out) {
-            output.appendOtherOut(msg.out);
+            output.appendOtherOut(msg.out, { who: 'ui' });
           }
           if (hasStatus(msg, 'done')) {
             const res = { reloaded, status } as any;

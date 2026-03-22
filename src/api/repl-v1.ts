@@ -5,6 +5,7 @@ import * as resultOutput from '../results-output/output';
 import * as util from '../utilities';
 import { getConfig } from '../config';
 import * as sessionRegistry from '../nrepl/session-registry';
+import * as whoTracking from './who-tracking';
 
 type Result = {
   result: string;
@@ -12,6 +13,8 @@ type Result = {
   output: string;
   errorOutput: string;
   sessionKey: string;
+  who?: string;
+  otherWhosSinceLast?: string[];
   error?: string;
   stacktrace?: any;
 };
@@ -24,6 +27,132 @@ export interface ReplSessionInfo {
   currentRoutedTarget?: boolean;
 }
 
+export const evaluate = async (
+  code: string,
+  options?: {
+    sessionKey?: string;
+    ns?: string;
+    output?: {
+      stdout: (m: string) => void;
+      stderr: (m: string) => void;
+    };
+    nReplOptions?: Record<string, unknown>;
+    who?: string;
+    description?: string;
+  }
+): Promise<Result> => {
+  const {
+    sessionKey,
+    ns = 'user',
+    output,
+    nReplOptions = {},
+    who: rawWho,
+    description,
+  } = options || {};
+
+  const resolvedWho = rawWho || 'api';
+
+  const reservedWhos = ['ui', 'api'];
+  if (rawWho && reservedWhos.includes(rawWho)) {
+    throw new Error(`The who value '${rawWho}' is reserved for Calva's internal use`);
+  }
+
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
+
+  if (!session) {
+    if (!util.getConnectedState()) {
+      throw new Error(`The REPL is not connected.`);
+    } else {
+      throw new Error(
+        `Can't retrieve REPL session for session key: ${sessionKey || 'auto-routed'}.`
+      );
+    }
+  }
+
+  const effectiveSessionKey =
+    sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
+
+  const evalOptions: resultOutput.AppendClojureOptions = {
+    ns,
+    replSessionType: effectiveSessionKey,
+    who: resolvedWho,
+    description,
+  };
+
+  const stdout = (m: string) => {
+    resultOutput.appendEvalOut(m, evalOptions);
+    if (output?.stdout) {
+      output.stdout(m);
+    }
+  };
+
+  const stderr = (m: string) => {
+    resultOutput.appendEvalErr(m, evalOptions);
+    if (output?.stderr) {
+      output.stderr(m);
+    }
+  };
+
+  const evaluation = session.eval(code, ns, {
+    stdout,
+    stderr,
+    pprintOptions: printer.disabledPrettyPrinter,
+    ...nReplOptions,
+  });
+
+  sessionRegistry.updateSessionActivity(effectiveSessionKey);
+  whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
+  whoTracking.setCurrentWho(session.sessionId, resolvedWho);
+
+  if (getConfig().evaluationSendCodeToOutputWindow) {
+    if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
+      resultOutput.appendClojureEval(code, {
+        ...evalOptions,
+        outputCategory: 'evaluatedCode',
+      });
+    }
+  }
+
+  let result: Result;
+  try {
+    const evaluationResult = await evaluation.value;
+    result = {
+      result: evaluationResult,
+      ns: evaluation.ns,
+      output: evaluation.outPut,
+      errorOutput: evaluation.errorOutput,
+      sessionKey: effectiveSessionKey,
+      who: resolvedWho,
+      otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
+    };
+    resultOutput.appendClojureEval(evaluationResult, evalOptions);
+  } catch (evalError) {
+    let stacktrace;
+    try {
+      stacktrace = await session.stacktrace();
+    } catch (fetchStacktraceError) {
+      console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
+    } finally {
+      result = {
+        result: 'nil',
+        ns: evaluation.ns,
+        output: evaluation.outPut,
+        errorOutput: evaluation.errorOutput,
+        sessionKey: effectiveSessionKey,
+        who: resolvedWho,
+        otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
+        error: `${evalError}`,
+        stacktrace,
+      };
+      resultOutput.appendClojureEval('nil', evalOptions);
+    }
+  }
+  return result;
+};
+
+/**
+ * @deprecated Use `evaluate()` instead.
+ */
 export const evaluateCode = async (
   sessionKey: 'clj' | 'cljs' | 'cljc' | string | undefined,
   code: string,
@@ -161,6 +290,7 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
+  who?: string;
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -176,7 +306,7 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
   const unsubscribe = resultOutput.subscribe((m: resultOutput.SubscriberOutputMessage) => {
     const cat = outputCategoryToApiCategory[m.category] || 'otherOutput';
     try {
-      callback({ category: cat, text: m.text });
+      callback({ category: cat, text: m.text, who: m.who });
     } catch (error) {
       console.log('API onOutputLogged callback failed', error.message);
     }
