@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.568] - 2026-03-22
+
 - [Add “Who's evaluating” to the repl output, including the API](https://github.com/BetterThanTomorrow/calva/issues/3146
 
 ## [2.0.567] - 2026-03-21
