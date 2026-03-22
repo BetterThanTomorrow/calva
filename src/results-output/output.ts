@@ -414,8 +414,11 @@ export function appendEvalErr(
       ? themedChalk().evalErr(message)
       : message;
   // TODO: Figure if it's worth a setting to opt-in on an ns info line
-  append({ destination, outputCategory: 'evalErr' }, nsInfoLine(destination, options));
-  append({ destination, outputCategory: 'evalErr' }, coloredMessage, after);
+  append(
+    { destination, outputCategory: 'evalErr', who: options.who },
+    nsInfoLine(destination, options)
+  );
+  append({ destination, outputCategory: 'evalErr', who: options.who }, coloredMessage, after);
   saveLastInfoLineData(destination, options);
 }
 
@@ -482,13 +485,17 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendLineEvalOut(message: string, after?: AfterAppendCallback) {
+export function appendLineEvalOut(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().evalOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  appendLine({ destination, outputCategory: 'evalOut' }, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'evalOut', who: options.who }, coloredMessage, after);
 }
 
 /**
@@ -498,13 +505,17 @@ export function appendLineEvalOut(message: string, after?: AfterAppendCallback) 
  * @param message The message to append
  * @param after Optional callback to run after the append
  */
-export function appendLineEvalErr(message: string, after?: AfterAppendCallback) {
+export function appendLineEvalErr(
+  message: string,
+  options: AppendClojureOptions = {},
+  after?: AfterAppendCallback
+) {
   const destination = getDestinationConfiguration().evalOutput;
   const coloredMessage =
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalErr(message)
       : message;
-  appendLine({ destination, outputCategory: 'evalErr' }, coloredMessage, after);
+  appendLine({ destination, outputCategory: 'evalErr', who: options.who }, coloredMessage, after);
 }
 
 /**

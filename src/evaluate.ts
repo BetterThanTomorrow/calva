@@ -22,6 +22,7 @@ import { resultAsComment } from './util/string-result';
 import { highlight } from './highlight/src/extension';
 import * as flareHandler from './flare-handler';
 import { normalizeEvaluateAsCommentArgs } from './evaluate-utils';
+import * as whoTracking from './api/who-tracking';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -175,6 +176,7 @@ async function evaluateCodeUpdatingUI(
     });
 
     sessionRegistry.updateSessionActivity(sessionKey);
+    whoTracking.recordEvaluation(sessionKey, 'ui');
 
     try {
       if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
@@ -184,6 +186,7 @@ async function evaluateCodeUpdatingUI(
             ns,
             replSessionType: sessionKey,
             outputCategory: 'evaluatedCode',
+            who: 'ui',
           });
         }
       }
@@ -197,43 +200,47 @@ async function evaluateCodeUpdatingUI(
 
       if (showResult) {
         inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-        output.appendClojureEval(value, { ns, replSessionType: sessionKey }, async () => {
-          if (editor && replWindow.isReplWindowDoc(editor.document)) {
-            replWindow.maybePrintResultsInOtherDestinationMessage();
-          }
-          if (selection) {
-            const c = selection.start.character;
-            if (editor && options.replace) {
-              const indent = `${' '.repeat(c)}`,
-                edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
-                wsEdit = new vscode.WorkspaceEdit();
-              wsEdit.set(editor.document.uri, [edit]);
-              void vscode.workspace.applyEdit(wsEdit);
-            } else {
-              if (editor && options.comment) {
-                await addAsComment(
-                  value,
-                  selection,
-                  editor,
-                  editor.selections[0],
-                  options.commentStyle
-                );
-              }
-              if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-                annotations.decorateSelection(
-                  value,
-                  selection,
-                  editor,
-                  editor.selections[0].active,
-                  annotations.AnnotationStatus.SUCCESS
-                );
-                if (!options.comment) {
-                  annotations.decorateResults(value, false, selection, editor);
+        output.appendClojureEval(
+          value,
+          { ns, replSessionType: sessionKey, who: 'ui' },
+          async () => {
+            if (editor && replWindow.isReplWindowDoc(editor.document)) {
+              replWindow.maybePrintResultsInOtherDestinationMessage();
+            }
+            if (selection) {
+              const c = selection.start.character;
+              if (editor && options.replace) {
+                const indent = `${' '.repeat(c)}`,
+                  edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
+                  wsEdit = new vscode.WorkspaceEdit();
+                wsEdit.set(editor.document.uri, [edit]);
+                void vscode.workspace.applyEdit(wsEdit);
+              } else {
+                if (editor && options.comment) {
+                  await addAsComment(
+                    value,
+                    selection,
+                    editor,
+                    editor.selections[0],
+                    options.commentStyle
+                  );
+                }
+                if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
+                  annotations.decorateSelection(
+                    value,
+                    selection,
+                    editor,
+                    editor.selections[0].active,
+                    annotations.AnnotationStatus.SUCCESS
+                  );
+                  if (!options.comment) {
+                    annotations.decorateResults(value, false, selection, editor);
+                  }
                 }
               }
             }
           }
-        });
+        );
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
           const errMsg = err.join('\n');
@@ -243,10 +250,10 @@ async function evaluateCodeUpdatingUI(
               replWindow.markLastStacktraceRange(afterResultLocation);
             });
             if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
+              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
             }
           } else {
-            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey });
+            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
           }
         }
       }
@@ -297,6 +304,7 @@ async function evaluateCodeUpdatingUI(
           output.appendEvalErr(err.length ? err.join('\n') : e, {
             ns,
             replSessionType: sessionKey,
+            who: 'ui',
           });
           if (output.getDestinationConfiguration().evalOutput === 'output-view') {
             session
@@ -634,6 +642,7 @@ async function loadFile(
   const sessionKey = sessionRegistry.resolveSessionKey(session);
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`);
+  whoTracking.recordEvaluation(sessionKey, 'ui');
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {
@@ -641,7 +650,7 @@ async function loadFile(
     filePath,
     stdout: (m) => output.appendEvalOut(m, { who: 'ui' }),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey });
+      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who: 'ui' });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -650,9 +659,9 @@ async function loadFile(
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey });
+      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who: 'ui' });
     } else {
-      output.appendLineEvalOut('No results from file evaluation.');
+      output.appendLineEvalOut('No results from file evaluation.', { who: 'ui' });
     }
   } catch (e) {
     replWindow.appendLine(

@@ -5,20 +5,22 @@ import { NReplSession } from './nrepl';
 import * as replSession from './nrepl/repl-session';
 import * as output from './results-output/output';
 import * as config from './config';
+import * as sessionRegistry from './nrepl/session-registry';
+import * as whoTracking from './api/who-tracking';
 
 function report(res) {
   if (res.status == 'ok') {
-    output.appendLineEvalOut('Reloaded: (' + res.reloaded.join(' ') + ')');
-    output.appendLineEvalOut(':ok');
+    output.appendLineEvalOut('Reloaded: (' + res.reloaded.join(' ') + ')', { who: 'ui' });
+    output.appendLineEvalOut(':ok', { who: 'ui' });
   } else {
     if (res.status == 'error') {
-      output.appendLineEvalOut('Error reloading: ' + res.errorNs);
+      output.appendLineEvalOut('Error reloading: ' + res.errorNs, { who: 'ui' });
       //chan.appendLine(res.error); // TODO: Moar error reporting
     }
     if (res.err != undefined) {
-      output.appendLineEvalOut(res.err);
+      output.appendLineEvalOut(res.err, { who: 'ui' });
     }
-    output.appendLineEvalOut(':error 😿');
+    output.appendLineEvalOut(':error 😿', { who: 'ui' });
   }
   return res;
 }
@@ -41,7 +43,9 @@ export function refresh(opts: Record<string, unknown> = {}) {
     client: NReplSession = replSession.getSession();
 
   if (client != undefined) {
-    output.appendLineEvalOut('Reloading...');
+    const sessionKey = sessionRegistry.resolveSessionKey(client);
+    whoTracking.recordEvaluation(sessionKey, 'ui');
+    output.appendLineEvalOut('Reloading...', { who: 'ui' });
     return client.refresh(opts).then((res) => {
       return report(res);
     });
@@ -57,7 +61,9 @@ export function refreshAll(opts: Record<string, unknown> = {}) {
     client: NReplSession = replSession.getSession();
 
   if (client != undefined) {
-    output.appendLineEvalOut('Reloading all the things...');
+    const sessionKey = sessionRegistry.resolveSessionKey(client);
+    whoTracking.recordEvaluation(sessionKey, 'ui');
+    output.appendLineEvalOut('Reloading all the things...', { who: 'ui' });
     return client.refreshAll(opts).then((res) => {
       return report(res);
     });
