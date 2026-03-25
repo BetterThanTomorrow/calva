@@ -16,6 +16,8 @@ export type CustomREPLCommandSnippet = {
   snippet: string;
   repl?: string;
   ns?: string;
+  evaluationSendCodeToOutputWindow?: boolean;
+  pingPong?: boolean;
 };
 
 type SnippetDefinition = {
@@ -23,6 +25,7 @@ type SnippetDefinition = {
   ns: string;
   repl: string;
   evaluationSendCodeToOutputWindow?: boolean;
+  pingPong?: boolean;
 };
 
 export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | SnippetDefinition) {
@@ -74,7 +77,12 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
     nsForm,
     snippetDefinition.repl
   );
-  await evaluateCodeInContext(editor, snippetDefinition.snippet, context, options);
+  const result = await evaluateCodeInContext(editor, snippetDefinition.snippet, context, options);
+
+  if (snippetDefinition.pingPong) {
+    console.log('pingPong', result);
+    await evaluateCodeInContext(editor, result, context, options);
+  }
 }
 
 async function evaluateCodeInContext(
@@ -119,6 +127,8 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
       description: `${entry.repl}`,
       repl: `${entry.repl}`,
       snippet: entry.snippet,
+      pingPong: entry.pingPong,
+      evaluationSendCodeToOutputWindow: entry.evaluationSendCodeToOutputWindow,
     };
     snippetsMenuItems.push(item);
     if (!snippetsDict[entry.key]) {
