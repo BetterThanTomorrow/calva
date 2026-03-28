@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Deftests ending in question marks are ignored by test runner](https://github.com/BetterThanTomorrow/calva/issues/3149)
+
 ## [2.0.568] - 2026-03-22
 
 - [Add “Who's evaluating” to the repl output, including the API](https://github.com/BetterThanTomorrow/calva/issues/3146

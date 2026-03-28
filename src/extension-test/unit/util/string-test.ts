@@ -62,6 +62,18 @@ describe('string', () => {
       const pattern = new RegExp(testNameSearchPattern('test.name+1'));
       expect(pattern.test('my.ns/test.name+1-extra')).toBe(false);
     });
+    it('matches a test name ending in a question mark', () => {
+      const pattern = new RegExp(testNameSearchPattern('foo?'));
+      expect(pattern.test('my.ns/foo?')).toBe(true);
+    });
+    it('does not match without the question mark', () => {
+      const pattern = new RegExp(testNameSearchPattern('foo?'));
+      expect(pattern.test('my.ns/foo')).toBe(false);
+    });
+    it('matches a test name containing an asterisk', () => {
+      const pattern = new RegExp(testNameSearchPattern('*dynamic*'));
+      expect(pattern.test('my.ns/*dynamic*')).toBe(true);
+    });
   });
 
   describe('getTextAfterLastOccurrenceOfSubstring', () => {
