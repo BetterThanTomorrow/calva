@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add let-go as a project type](https://github.com/BetterThanTomorrow/calva/issues/3153)
+
 ## [2.0.569] - 2026-03-28
 
 - Fix: [Deftests ending in question marks are ignored by test runner](https://github.com/BetterThanTomorrow/calva/issues/3149)

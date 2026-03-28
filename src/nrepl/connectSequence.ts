@@ -174,6 +174,14 @@ const basilispBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const letGoBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'let-go',
+    projectType: csTypes.ProjectTypes['let-go'],
+    cljsType: csTypes.CljsTypes.none,
+  },
+];
+
 const builtInSequences = {
   lein: leiningenBuiltIns,
   clj: cljBuiltIns,
@@ -186,6 +194,7 @@ const builtInSequences = {
   babashka: babashkaBuiltIns,
   nbb: nbbBuiltIns,
   basilisp: basilispBuiltIns,
+  'let-go': letGoBuiltIns,
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
   'cljs-only': cljsOnlyBuiltIns,
