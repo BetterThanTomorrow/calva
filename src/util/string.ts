@@ -49,9 +49,14 @@ export function isNonEmptyString(value: any): value is string {
  * the namespace-qualified format returned by orchard (e.g. "my.ns/a-test").
  * The pattern anchors at "/" and end-of-string so that "a-test" does not
  * match "b-a-test" or "a-test-b".
+ *
+ * Uses character class syntax [x] instead of backslash escaping \x for
+ * regex special characters, because backslashes can be lost or
+ * misinterpreted across the nREPL bencode transport layer.
  */
 export function testNameSearchPattern(testName: string): string {
-  return `/${escapeStringRegexp(testName)}$`;
+  const escaped = testName.replace(/[.*+?$]/g, '[$&]');
+  return `/${escaped}$`;
 }
 
 export {
