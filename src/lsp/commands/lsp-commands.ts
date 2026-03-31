@@ -12,7 +12,8 @@ type BaseLspCommand = {
   category?: string;
 };
 
-// If afterCommandFn is defined, then defaultName must be too
+const namePositionDefault = 3;
+// If afterCommandFn is defined, then defaultName must be too, namePosition defaults to position 3
 type ClojureLspCommand = BaseLspCommand &
   (
     | {
@@ -21,9 +22,11 @@ type ClojureLspCommand = BaseLspCommand &
           commandResponse: Record<string, unknown>
         ) => Thenable<any>;
         defaultName: string;
+        namePosition?: number;
       }
     | {
         defaultName?: string;
+        namePosition?: number;
         afterCommandFn?: never;
       }
   );
@@ -38,7 +41,7 @@ async function renameAfterRefactor(
   commandArgs: Array<string | number>,
   commandResponse: vscode_lsp.WorkspaceEdit
 ) {
-  if (commandArgs[3] !== this.defaultName) {
+  if (commandArgs[this.namePosition ?? namePositionDefault] !== this.defaultName) {
     return;
   }
 
@@ -106,6 +109,8 @@ const clojureLspCommands: ClojureLspCommand[] = [
   { command: 'drag-param-backward', category: 'clojureLsp' },
   { command: 'drag-param-forward', category: 'clojureLsp' },
   { command: 'expand-let', category: 'clojureLsp.refactor' },
+  { command: 'if->cond-refactor', category: 'clojureLsp.refactor' },
+  { command: 'cond->if-refactor', category: 'clojureLsp.refactor' },
   { command: 'get-in-all', category: 'clojureLsp.refactor' },
   { command: 'get-in-less', category: 'clojureLsp.refactor' },
   { command: 'get-in-more', category: 'clojureLsp.refactor' },
@@ -144,6 +149,17 @@ const clojureLspCommands: ClojureLspCommand[] = [
     command: 'extract-function',
     afterCommandFn: renameAfterRefactor,
     defaultName: 'new-fn',
+    category: 'clojureLsp.refactor',
+  },
+  {
+    command: 'inline-function',
+    category: 'clojureLsp.refactor',
+  },  
+  {
+    command: 'extract-function-2',
+    afterCommandFn: renameAfterRefactor,
+    defaultName: 'new-fn',
+    namePosition: 5,
     category: 'clojureLsp.refactor',
   },
   {
@@ -245,7 +261,7 @@ function registerUserspaceLspCommand(
     // default rather than letting clojure-lsp pick a name so that when we trigger a rename action
     // after the command completes, we know what to rename.
     if (command.defaultName) {
-      params[3] = command.defaultName;
+      params[command.namePosition ?? namePositionDefault] = command.defaultName;
     }
 
     // clojure-lsp's `extract-function` always destructures selection-end coords
@@ -273,7 +289,7 @@ function registerInternalLspCommand(
     // default name. Replace that name with our own default so we know what to look for when we
     // trigger a rename action on it afterwards.
     if (command.defaultName) {
-      args[3] = command.defaultName;
+      args[command.namePosition ?? namePositionDefault] = command.defaultName;
     }
 
     sendCommandRequest(clients, command.command, args);
