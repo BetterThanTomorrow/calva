@@ -3036,7 +3036,7 @@
 
 <span class="k">export</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="nx">OutputCategory</span><span class="w"> </span><span class="o">=</span>
 <span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationResults&#39;</span>
-<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;clojureCode&#39;</span>
+<span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluatedCode&#39;</span>
 <span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationOutput&#39;</span>
 <span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;evaluationErrorOutput&#39;</span>
 <span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;otherOutput&#39;</span>
@@ -3045,7 +3045,9 @@
 <span class="k">export</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nx">OutputMessage</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">category</span><span class="o">:</span><span class="w"> </span><span class="kt">OutputCategory</span><span class="p">;</span>
 <span class="w">  </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
-<span class="w">  </span><span class="nx">who?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">  </span><span class="c1">// Present when the output was triggered by an identified who</span>
+<span class="w">  </span><span class="nx">who?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">            </span><span class="c1">// Present when the output was triggered by an identified who</span>
+<span class="w">  </span><span class="nx">ns?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w">             </span><span class="c1">// The namespace the output is associated with, when applicable</span>
+<span class="w">  </span><span class="nx">replSessionKey?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// The REPL session key (e.g. &quot;clj&quot;, &quot;cljs&quot;), when applicable</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="replevaluatecode-deprecated"><code>repl.evaluateCode()</code> <em>(deprecated)</em><a class="headerlink" href="#replevaluatecode-deprecated" title="Permanent link">#</a></h3>
