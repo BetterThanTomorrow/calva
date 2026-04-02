@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [REPL Output Log API bug: `clojureCode` is never populated](https://github.com/BetterThanTomorrow/calva/issues/3155)
 - [Add let-go as a project type](https://github.com/BetterThanTomorrow/calva/issues/3153)
 
 ## [2.0.569] - 2026-03-28

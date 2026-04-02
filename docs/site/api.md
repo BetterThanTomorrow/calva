@@ -290,7 +290,7 @@ export function onOutputLogged(
 
 export type OutputCategory =
   | 'evaluationResults'
-  | 'clojureCode'
+  | 'evaluatedCode'
   | 'evaluationOutput'
   | 'evaluationErrorOutput'
   | 'otherOutput'

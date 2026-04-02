@@ -284,7 +284,7 @@ export const listSessions = (): ReplSessionInfo[] => {
 
 export type OutputCategory =
   | 'evaluationResults'
-  | 'clojureCode'
+  | 'evaluatedCode'
   | 'evaluationOutput'
   | 'evaluationErrorOutput'
   | 'otherOutput'
@@ -298,7 +298,7 @@ export interface OutputMessage {
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
   evalResults: 'evaluationResults',
-  clojure: 'clojureCode',
+  evaluatedCode: 'evaluatedCode',
   evalOut: 'evaluationOutput',
   evalErr: 'evaluationErrorOutput',
   otherOut: 'otherOutput',
