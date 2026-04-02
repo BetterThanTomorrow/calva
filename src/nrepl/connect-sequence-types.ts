@@ -7,6 +7,7 @@ enum ProjectTypes {
   'babashka' = 'babashka',
   'nbb' = 'nbb',
   'basilisp' = 'basilisp',
+  'let-go' = 'let-go',
   'joyride' = 'joyride',
   'scittle' = 'scittle',
   'generic' = 'generic',

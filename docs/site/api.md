@@ -290,7 +290,7 @@ export function onOutputLogged(
 
 export type OutputCategory =
   | 'evaluationResults'
-  | 'clojureCode'
+  | 'evaluatedCode'
   | 'evaluationOutput'
   | 'evaluationErrorOutput'
   | 'otherOutput'
@@ -299,7 +299,9 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
-  who?: string;  // Present when the output was triggered by an identified who
+  who?: string;            // Present when the output was triggered by an identified who
+  ns?: string;             // The namespace the output is associated with, when applicable
+  replSessionKey?: string; // The REPL session key (e.g. "clj", "cljs"), when applicable
 }
 ```
 
