@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as minimatchLib from 'minimatch';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as globs from '../../../../src/nrepl/globs';

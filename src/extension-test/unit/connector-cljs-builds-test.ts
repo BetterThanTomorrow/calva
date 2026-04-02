@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as cljsBuilds from '../../connector-cljs-builds';
 import * as connectSeq from '../../nrepl/connect-sequence-types';
 

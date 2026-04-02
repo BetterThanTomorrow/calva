@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as textNotation from '../common/text-notation';
 
 describe('text-notation test utils', () => {

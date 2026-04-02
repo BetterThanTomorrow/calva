@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as completionUtil from '../../../src/providers/completion-util';
 
 describe('Merging completion arrays', () => {

@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as utilities from '../../../cursor-doc/utilities';
 import { docFromTextNotation } from '../common/text-notation';
 //import { docFromTextNotation, textAndSelection } from '../common/text-notation';

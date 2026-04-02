@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as indent from '../../../cursor-doc/indent';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';

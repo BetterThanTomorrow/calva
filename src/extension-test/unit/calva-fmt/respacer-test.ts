@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as respacer from '../../../calva-fmt/src/respacer';
 import * as model from '../../../cursor-doc/model';
 import {

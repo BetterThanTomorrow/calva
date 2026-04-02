@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as handlers from '../../../paredit/commands';
 import { docFromTextNotation, textNotationFromDoc } from '../common/text-notation';

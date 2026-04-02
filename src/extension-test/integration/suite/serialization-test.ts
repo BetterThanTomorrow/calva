@@ -50,7 +50,7 @@ suite('serialization', () => {
     );
 
     for (const fileBuffer of contents) {
-      const notebook = await tester.deserializeNotebook(fileBuffer, null);
+      const notebook = await tester.deserializeNotebook(new Uint8Array(fileBuffer), null);
       const serializedNotebook = await tester.serializeNotebook(notebook, null);
 
       assert.equal(decoder.decode(serializedNotebook), decoder.decode(fileBuffer));

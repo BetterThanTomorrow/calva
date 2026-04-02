@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import { docFromTextNotation } from '../common/text-notation';
 import * as nsFormUtil from '../../../util/ns-form';
 import { resolveNsName, pathToNs, isPrefix } from '../../../util/ns-form';

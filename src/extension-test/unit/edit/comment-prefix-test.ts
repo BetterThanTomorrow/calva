@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import { calculateCommentPrefixRemovalEnd } from '../../../comment-prefix';
 
 function stripLeadingCommentPrefix(lineText: string): string {

@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as healer from '../../../calva-fmt/src/healer';
 import * as model from '../../../cursor-doc/model';
 

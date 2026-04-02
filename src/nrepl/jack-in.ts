@@ -434,8 +434,8 @@ function substituteCustomCommandLinePlaceholders(
   return Object.keys(substitutions).reduce((acc: string, k: string) => {
     const placeholder = `JACK-IN-${k}`;
     const value: string = Array.isArray(substitutions[k])
-      ? (substitutions[k] as string[]).join(',')
-      : (substitutions[k] as string);
+      ? substitutions[k].join(',')
+      : substitutions[k];
     return acc.replace(new RegExp(placeholder, 'g'), value);
   }, commandLineTemplate);
 }

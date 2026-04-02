@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import { formatIndexes } from '../../calva-fmt/src/format-index';
 import { backspaceOnWhitespace } from '../../cursor-doc/backspace-on-whitespace';
 import * as indent from '../../cursor-doc/indent';

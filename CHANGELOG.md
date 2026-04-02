@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Dev: Fix npm audit: upgrade jest, typescript, and patch transitive deps
+  - jest ^27 → ^30 (fixes @tootallnate/once vulnerability chain)
+  - typescript ^4.6 → ^5.8
+  - Add npm overrides for diff and serialize-javascript (mocha transitive deps)
+  - tsconfig: target es6 → es2020, add skipLibCheck
+
 ## [2.0.570] - 2026-04-02
 
 - Fix: [REPL Output Log API bug: `clojureCode` is never populated](https://github.com/BetterThanTomorrow/calva/issues/3155)

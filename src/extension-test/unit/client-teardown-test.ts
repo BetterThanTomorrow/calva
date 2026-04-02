@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as clientRegistry from '../../nrepl/client-registry';
 import * as sessionRegistry from '../../nrepl/session-registry';
 import * as nameSuffix from '../../nrepl/session-name-suffix';

@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as jackInVersionResolution from '../../../../src/nrepl/jack-in-version-resolution';
 
 describe('jack-in version resolution', () => {

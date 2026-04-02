@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import type { ResultsBuffer } from '../../../repl-window/repl-window-doc';
 import * as util from '../../../results-output/util';
 
