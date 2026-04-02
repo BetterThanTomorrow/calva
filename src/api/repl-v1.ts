@@ -79,7 +79,11 @@ export const evaluate = async (
   };
 
   if (description) {
-    resultOutput.appendOtherOut(description, { who: resolvedWho });
+    resultOutput.appendOtherOut(description, {
+      who: resolvedWho,
+      ns,
+      replSessionType: effectiveSessionKey,
+    });
   }
 
   const stdout = (m: string) => {
@@ -294,6 +298,8 @@ export interface OutputMessage {
   category: OutputCategory;
   text: string;
   who?: string;
+  ns?: string;
+  replSessionKey?: string;
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -309,7 +315,13 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
   const unsubscribe = resultOutput.subscribe((m: resultOutput.SubscriberOutputMessage) => {
     const cat = outputCategoryToApiCategory[m.category] || 'otherOutput';
     try {
-      callback({ category: cat, text: m.text, who: m.who });
+      callback({
+        category: cat,
+        text: m.text,
+        who: m.who,
+        ns: m.ns,
+        replSessionKey: m.replSessionKey,
+      });
     } catch (error) {
       console.log('API onOutputLogged callback failed', error.message);
     }

@@ -21,6 +21,8 @@ export interface SubscriberOutputMessage {
   category: OutputCategory;
   text: string;
   who?: string;
+  ns?: string;
+  replSessionKey?: string;
 }
 
 type Listener = (msg: SubscriberOutputMessage) => void;
@@ -54,6 +56,8 @@ type AppendOptions = {
   outputCategory: OutputCategory;
   after?: AfterAppendCallback;
   who?: string;
+  ns?: string;
+  replSessionKey?: string;
 };
 
 export type AppendClojureOptions = {
@@ -268,13 +272,19 @@ function appendClojure(
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (options.description) {
-    appendOtherOut(options.description, { who: options.who });
+    appendOtherOut(options.description, {
+      who: options.who,
+      ns: options.ns,
+      replSessionType: options.replSessionType,
+    });
   }
   try {
     emit({
       category: options.outputCategory,
       text: `${didLastTerminateLine ? '' : '\n'}${message}`,
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -344,6 +354,8 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
       category: options.outputCategory,
       text: util.stripAnsi(message),
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionKey,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -394,7 +406,17 @@ export function appendEvalOut(
     destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
       ? themedChalk().evalOut(message)
       : message;
-  append({ destination, outputCategory: 'evalOut', who: options.who }, coloredMessage, after);
+  append(
+    {
+      destination,
+      outputCategory: 'evalOut',
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    },
+    coloredMessage,
+    after
+  );
 }
 
 /**
@@ -414,11 +436,15 @@ export function appendEvalErr(
       ? themedChalk().evalErr(message)
       : message;
   // TODO: Figure if it's worth a setting to opt-in on an ns info line
-  append(
-    { destination, outputCategory: 'evalErr', who: options.who },
-    nsInfoLine(destination, options)
-  );
-  append({ destination, outputCategory: 'evalErr', who: options.who }, coloredMessage, after);
+  const evalErrOptions: AppendOptions = {
+    destination,
+    outputCategory: 'evalErr',
+    who: options.who,
+    ns: options.ns,
+    replSessionKey: options.replSessionType,
+  };
+  append(evalErrOptions, nsInfoLine(destination, options));
+  append(evalErrOptions, coloredMessage, after);
   saveLastInfoLineData(destination, options);
 }
 
@@ -440,7 +466,13 @@ export function appendOtherOut(
       ? themedChalk().otherOut(message)
       : message;
   append(
-    { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+    {
+      destination,
+      outputCategory: 'otherOut',
+      who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    },
     coloredMessage,
     after
   );
@@ -464,7 +496,13 @@ export function appendOtherErr(
       ? themedChalk().otherErr(message)
       : message;
   append(
-    { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+    {
+      destination,
+      outputCategory: 'otherErr',
+      who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    },
     coloredMessage,
     after
   );
@@ -479,6 +517,8 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
         category: options.outputCategory,
         text: util.stripAnsi(message),
         who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionKey,
       });
     } catch (e) {
       console.error('Calva output-sink listener error', e.message);
