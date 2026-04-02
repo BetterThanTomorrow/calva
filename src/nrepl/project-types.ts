@@ -725,6 +725,33 @@ const projectTypes: { [id: string]: ProjectType } = {
       };
     },
   },
+  'let-go': {
+    name: 'let-go',
+    cljsTypes: [],
+    cmd: ['lg'],
+    winCmd: ['lg'],
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: [],
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'lg' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.lg'],
+        'is-fallback-for': ['**/*.lg', '**/*.clj'],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      const port = await getPort();
+      return {
+        args: ['-n', '-p', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
+    },
+  },
   joyride: {
     name: 'joyride',
     cljsTypes: [],
@@ -1021,6 +1048,7 @@ export async function detectProjectTypes(): Promise<string[]> {
     'clj-projectless',
     'cljs-only',
     'babashka',
+    'let-go',
     'nbb',
     'joyride',
     'scittle',
