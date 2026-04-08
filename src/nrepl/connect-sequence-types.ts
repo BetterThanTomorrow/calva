@@ -11,6 +11,7 @@ enum ProjectTypes {
   'joyride' = 'joyride',
   'scittle' = 'scittle',
   'squint' = 'squint',
+  'epupp' = 'epupp',
   'generic' = 'generic',
   'clj-projectless' = 'clj-projectless',
   'custom' = 'custom',

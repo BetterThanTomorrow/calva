@@ -190,6 +190,14 @@ const letGoBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'epupp',
+    projectType: csTypes.ProjectTypes['epupp'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
+  },
+];
+
 const builtInSequences = {
   lein: leiningenBuiltIns,
   clj: cljBuiltIns,
@@ -206,6 +214,7 @@ const builtInSequences = {
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
   squint: squintBuiltIns,
+  epupp: epuppBuiltIns,
   'cljs-only': cljsOnlyBuiltIns,
 };
 
