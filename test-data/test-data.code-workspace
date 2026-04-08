@@ -25,6 +25,10 @@
 			"path": "projects/minimal-basilisp"
 		},
 		{
+			"name": "minimal-squint",
+			"path": "projects/minimal-squint"
+		},
+		{
 			"name": "minimal-shadow-only",
 			"path": "projects/minimal-shadow-only"
 		}

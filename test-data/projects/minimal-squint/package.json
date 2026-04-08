@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "dependencies": {
+    "squint-cljs": "latest"
+  },
+  "scripts": {
+    "start": "squint run src/main.cljs",
+    "repl": "squint repl",
+    "nrepl": "squint nrepl-server :port 1888"
+  }
+}
