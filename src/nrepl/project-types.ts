@@ -790,6 +790,34 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     commandLine: undefined,
   },
+  squint: {
+    name: 'squint',
+    cljsTypes: [],
+    cmd: ['npx'],
+    winCmd: ['npx.cmd'],
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: ['squint.edn'],
+    defaultFallbackPort: 1888,
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'squint' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.cljs', 'squint.edn'],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      const port = await getPort();
+      return {
+        args: ['squint', 'nrepl-server', ':port', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
+    },
+  },
   'cljs-only': {
     name: 'cljs-only',
     cljsTypes: [],

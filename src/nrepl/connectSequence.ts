@@ -166,6 +166,14 @@ const scittleBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const squintBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'squint',
+    projectType: csTypes.ProjectTypes['squint'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
+  },
+];
+
 const basilispBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'basilisp',
@@ -197,6 +205,7 @@ const builtInSequences = {
   'let-go': letGoBuiltIns,
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
+  squint: squintBuiltIns,
   'cljs-only': cljsOnlyBuiltIns,
 };
 

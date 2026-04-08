@@ -9,6 +9,7 @@ Changes to Calva.
   - typescript ^4.6 → ^5.8
   - Add npm overrides for diff and serialize-javascript (mocha transitive deps)
   - tsconfig: target es6 → es2020, add skipLibCheck
+- [Add a built-in Squint Connect Sequence](https://github.com/BetterThanTomorrow/calva/issues/3159)
 
 ## [2.0.570] - 2026-04-02
 
