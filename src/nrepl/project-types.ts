@@ -790,6 +790,58 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     commandLine: undefined,
   },
+  squint: {
+    name: 'squint',
+    cljsTypes: [],
+    cmd: ['npx'],
+    winCmd: ['npx.cmd'],
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: ['squint.edn'],
+    defaultFallbackPort: 1888,
+    defaultNReplPortFile: ['.nrepl-port'],
+    defaultReplSessionNames: { primary: 'squint' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.cljs', 'squint.edn'],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      const port = await getPort();
+      return {
+        args: ['squint', 'nrepl-server', ':port', port],
+        substitutions: { 'NREPL-PORT': port.toString() },
+      };
+    },
+  },
+  epupp: {
+    name: 'epupp',
+    cljsTypes: [],
+    cmd: [],
+    winCmd: [],
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: [],
+    defaultFallbackPort: 3339,
+    defaultNReplPortFile: ['.epupp-nrepl-port'],
+    defaultReplSessionNames: { primary: 'epupp' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': [
+          '**/userscripts/**/*.cljs',
+          '**/epupp/**/*.cljs',
+          '**/live-tampers/**/*.cljs',
+          '**/tampers/**/*.cljs',
+        ],
+        'is-fallback-for': ['**/*.cljs'],
+      },
+    },
+    commandLine: undefined,
+  },
   'cljs-only': {
     name: 'cljs-only',
     cljsTypes: [],
@@ -1043,8 +1095,6 @@ export function getProjectTypeForName(name: string) {
 export async function detectProjectTypes(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
   const cljProjTypes = [
-    'custom',
-    'generic',
     'clj-projectless',
     'cljs-only',
     'babashka',
@@ -1052,20 +1102,25 @@ export async function detectProjectTypes(): Promise<string[]> {
     'nbb',
     'joyride',
     'scittle',
+    'squint',
+    'epupp',
+    'custom',
+    'generic',
   ];
+  const projectCandidates = [];
   for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
       try {
         const uri = vscode.Uri.joinPath(rootUri, projectFileName);
         await vscode.workspace.fs.readFile(uri);
-        cljProjTypes.push(clj);
+        projectCandidates.push(clj);
         break;
       } catch {
         // this just means the file doesn't exist
       }
     }
   }
-  return cljProjTypes;
+  return [...projectCandidates, ...cljProjTypes];
 }
 
 export function getAllProjectTypes(): string[] {

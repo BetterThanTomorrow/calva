@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as fc from 'fast-check';
 import * as nreplUtil from '../../../../src/nrepl/util';
 

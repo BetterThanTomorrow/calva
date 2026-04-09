@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as nameSuffix from '../../nrepl/session-name-suffix';
 
 describe('name-suffix', () => {

@@ -1,0 +1,2 @@
+{:paths ["src"]
+ :output-dir "target"}

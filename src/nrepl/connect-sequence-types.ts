@@ -10,6 +10,8 @@ enum ProjectTypes {
   'let-go' = 'let-go',
   'joyride' = 'joyride',
   'scittle' = 'scittle',
+  'squint' = 'squint',
+  'epupp' = 'epupp',
   'generic' = 'generic',
   'clj-projectless' = 'clj-projectless',
   'custom' = 'custom',

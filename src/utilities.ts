@@ -5,7 +5,7 @@ import * as state from './state';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import * as JSZip from 'jszip';
+import JSZip = require('jszip');
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
@@ -469,7 +469,7 @@ async function getJarContents(uri: vscode.Uri | string) {
     fs.readFile(pathToJar, (err, data) => {
       const zip = new JSZip();
       zip
-        .loadAsync(data)
+        .loadAsync(new Uint8Array(data))
         .then((new_zip) => {
           const fileInJar = new_zip.file(pathToFileInJar);
 

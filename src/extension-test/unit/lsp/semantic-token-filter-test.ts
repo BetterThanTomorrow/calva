@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import { filterCommentTokens } from '../../../lsp/client/semantic-token-filter';
 
 describe('Semantic token filtering', () => {

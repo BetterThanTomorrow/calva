@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as util from '../../../file-switcher/util';
 import * as path from 'path';
 

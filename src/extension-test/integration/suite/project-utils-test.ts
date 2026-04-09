@@ -1,6 +1,6 @@
 import * as project_utils from '../../../project-root';
 import { describe, it } from 'mocha';
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as vscode from 'vscode';
 
 describe('project root utils', () => {

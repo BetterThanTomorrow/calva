@@ -166,6 +166,14 @@ const scittleBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const squintBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'squint',
+    projectType: csTypes.ProjectTypes['squint'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
+  },
+];
+
 const basilispBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'basilisp',
@@ -179,6 +187,14 @@ const letGoBuiltIns: csTypes.ReplConnectSequence[] = [
     name: 'let-go',
     projectType: csTypes.ProjectTypes['let-go'],
     cljsType: csTypes.CljsTypes.none,
+  },
+];
+
+const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'epupp',
+    projectType: csTypes.ProjectTypes['epupp'],
+    cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
   },
 ];
 
@@ -197,6 +213,8 @@ const builtInSequences = {
   'let-go': letGoBuiltIns,
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
+  squint: squintBuiltIns,
+  epupp: epuppBuiltIns,
   'cljs-only': cljsOnlyBuiltIns,
 };
 
@@ -469,7 +487,7 @@ async function askForConnectSequence(
       autoSelect: true,
     });
 
-    projectConnectSequenceName = pickedSequence.label;
+    projectConnectSequenceName = pickedSequence?.label;
 
     if (projectConnectSequenceName) {
       output.appendLineOtherOut(`Connecting using "${projectConnectSequenceName}" project type.`);

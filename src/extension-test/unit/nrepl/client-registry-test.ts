@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import type { NReplClient } from '../../../../src/nrepl';
 import * as clientRegistry from '../../../../src/nrepl/client-registry';
 

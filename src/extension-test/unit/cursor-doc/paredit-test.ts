@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
 import {

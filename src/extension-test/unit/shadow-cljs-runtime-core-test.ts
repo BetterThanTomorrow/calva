@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as shadowRuntimeCore from '../../../src/shadow-cljs-runtime-core';
 import type { ConnectionState } from '../../../src/nrepl/client-registry';
 

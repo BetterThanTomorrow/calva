@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
 import * as model from '../../../cursor-doc/model';
 

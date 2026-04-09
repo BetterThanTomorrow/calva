@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import type { NReplClient, NReplSession } from '../../nrepl';
 import * as sessionNameResolver from '../../nrepl/session-name-resolver';
 import * as sessionRegistry from '../../nrepl/session-registry';

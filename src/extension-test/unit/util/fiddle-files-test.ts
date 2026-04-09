@@ -1,4 +1,4 @@
-import * as expect from 'expect';
+import { expect } from 'expect';
 import * as fiddleFiles from '../../../util/fiddle-files';
 import * as path from 'path';
 
