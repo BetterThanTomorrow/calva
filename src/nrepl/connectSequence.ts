@@ -487,7 +487,7 @@ async function askForConnectSequence(
       autoSelect: true,
     });
 
-    projectConnectSequenceName = pickedSequence.label;
+    projectConnectSequenceName = pickedSequence?.label;
 
     if (projectConnectSequenceName) {
       output.appendLineOtherOut(`Connecting using "${projectConnectSequenceName}" project type.`);
