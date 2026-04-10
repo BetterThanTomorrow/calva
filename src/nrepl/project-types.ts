@@ -10,6 +10,7 @@ import {
   getEffectiveJackInDependencyVersions,
   type JackInDependencyKey,
 } from './jack-in-dependency-versions';
+import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as connectSequences from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
@@ -46,14 +47,17 @@ export type ProjectType = {
 };
 
 function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
-  let subPath: string;
-  if (connectSequence.nReplPortFile) {
-    subPath = path.join(...connectSequence.nReplPortFile);
-  } else {
-    const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).defaultNReplPortFile);
+  const projectType: ProjectType | string = connectSequence.projectType;
+  const portFileSegments = connectSequenceInheritance.effectiveNReplPortFileSegments(
+    connectSequence,
+    getProjectTypeForName(projectType)
+  );
+
+  if (!portFileSegments) {
+    throw new Error(`No nREPL port file configured for project type "${projectType}".`);
   }
-  return subPath;
+
+  return path.join(...portFileSegments);
 }
 
 /**

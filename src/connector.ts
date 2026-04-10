@@ -9,6 +9,7 @@ import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as jackIn from './nrepl/jack-in';
+import * as connectSequenceInheritance from './nrepl/connect-sequence-inheritance';
 import {
   CljsTypeConfig,
   ReplConnectSequence,
@@ -1060,11 +1061,11 @@ export async function connect(
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
       } catch {
-        // Check sequence default port first, then project type default port
-        const defaultPort =
-          connectSequence.fallbackPort ??
-          projectTypes.getProjectTypeForName(connectSequence.projectType)?.defaultFallbackPort;
-        if (defaultPort) {
+        const defaultPort = connectSequenceInheritance.effectiveFallbackPort(
+          connectSequence,
+          projectTypes.getProjectTypeForName(connectSequence.projectType)
+        );
+        if (defaultPort !== undefined) {
           output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
           port = String(defaultPort);
         } else {
