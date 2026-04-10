@@ -11,7 +11,9 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { commands } from 'vscode';
 import { getDocument } from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
+import * as state from '../../../state';
 import connector, { connect as connectDirect } from '../../../connector';
+import { ConnectType } from '../../../nrepl/connect-types';
 import { getConnectSequences } from '../../../nrepl/connectSequence';
 import {
   CljsTypes,
@@ -34,8 +36,7 @@ suite('Jack-in and Connect suite', () => {
     // Use force=true because test harness shutdown is similar to VS Code deactivation
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
-    // Give processes time to terminate
-    await testUtil.sleep(500);
+    await testUtil.waitForJackOutComplete(suite);
     testUtil.showMessage(suite, 'suite done!');
   });
 
@@ -342,11 +343,19 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'Reconnecting to first REPL...');
 
     // Open the file to set the correct project root context
-    await testUtil.openFile(path.join(testUtil.testDataDir, testFile1));
+    const firstProjectFilePath = path.join(testUtil.testDataDir, testFile1);
+    const firstProjectRootPath = path.dirname(firstProjectFilePath);
+    await testUtil.openFile(firstProjectFilePath);
+    const reconnectSequence = {
+      ...sequence1,
+      projectRootPath: [firstProjectRootPath],
+    };
+    await state.initProjectDir(ConnectType.Connect, reconnectSequence, true);
 
     // Connect directly using the same sequence, host, and port as the first jack-in
-    await connectDirect(sequence1, true, firstClientHost, String(firstClientPort));
-    await testUtil.sleep(1000);
+    await connectDirect(reconnectSequence, true, firstClientHost, String(firstClientPort));
+    const reconnectedClientKey = await waitForNextClient(suite);
+    await waitForSessionsReady(suite, reconnectedClientKey);
 
     testUtil.log(suite, 'Reconnection complete');
 
@@ -374,11 +383,11 @@ suite('Jack-in and Connect suite', () => {
     // Verify: We can successfully evaluate code in the reconnected REPL
     // This proves the jack-in terminal is still running and the connection works
     testUtil.log(suite, 'Verifying reconnected REPL is functional...');
-    await vscode.commands.executeCommand('calva.loadFile');
-    await testUtil.sleep(500);
+    const reconnectedSession = sessionRegistry.getSession('bb');
+    assert.ok(reconnectedSession, 'Should have reconnected bb session');
+    const evalResult = await reconnectedSession.eval('(+ 1 2)', 'user').value;
+    assert.strictEqual(`${evalResult}`.trim(), '3', 'Reconnected bb session should evaluate code');
 
-    const resultsEditor = await outputWindow.openReplWindowDoc();
-    const outputText = getDocument(resultsEditor).document.getText();
     testUtil.log(suite, 'Manual reconnect test completed successfully - REPL still functional');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
@@ -428,53 +437,21 @@ async function waitForResult(suite: string, options?: { waitForJackInOutput?: bo
   const clientKey = await waitForNextClient(suite);
   if (options?.waitForJackInOutput ?? true) {
     await waitForJackInCompletion(suite);
-  } else {
-    await waitForSessionsReady(suite, clientKey);
   }
-  await testUtil.sleep(500);
+  await waitForSessionsReady(suite, clientKey);
   testUtil.log(suite, 'connected to repl');
 
   return getDocument(await outputWindow.openReplWindowDoc());
 }
 
 async function waitForNextClient(suite: string): Promise<string> {
-  const timeoutMs = 60_000;
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const clients = clientRegistry.listClients();
-    const newest = clients[clients.length - 1];
-    if (newest && newest.connectedAt > lastSeenClientConnectedAt) {
-      lastSeenClientConnectedAt = newest.connectedAt;
-      testUtil.log(
-        suite,
-        `detected new client ${newest.connectSequenceName ?? newest.key} (${
-          newest.projectRoot ?? 'no-root'
-        })`
-      );
-      return newest.key;
-    }
-    testUtil.log(suite, 'waiting for new jack-in client...');
-    await testUtil.sleep(250);
-  }
-  throw new Error('Timed out waiting for new jack-in client');
+  const client = await testUtil.waitForNewClient(suite, lastSeenClientConnectedAt);
+  lastSeenClientConnectedAt = client.connectedAt;
+  return client.key;
 }
 
 async function waitForJackInCompletion(suite: string) {
-  const timeoutMs = 60_000;
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const resultsEditor = await outputWindow.openReplWindowDoc();
-    const text = getDocument(resultsEditor).document.getText();
-    const currentCount = (text.match(/Jack-in done\./g) || []).length;
-    if (currentCount > lastJackInDoneCount) {
-      lastJackInDoneCount = currentCount;
-      testUtil.log(suite, 'jack-in completion detected');
-      return;
-    }
-    testUtil.log(suite, 'waiting for jack-in completion output...');
-    await testUtil.sleep(250);
-  }
-  throw new Error('Timed out waiting for jack-in completion output');
+  lastJackInDoneCount = await testUtil.waitForJackInCompletionCount(suite, lastJackInDoneCount);
 }
 
 async function startJackInProcedure(
@@ -581,21 +558,7 @@ function buildConnectSequence(
 }
 
 async function waitForSessionsReady(suite: string, clientKey: string): Promise<void> {
-  const timeoutMs = 60_000;
-  const start = Date.now();
-
-  while (Date.now() - start < timeoutMs) {
-    const sessions = sessionRegistry.listSessionsByClient(clientKey);
-    const sessionKeys = sessions.map((s) => s.key);
-    if (sessionKeys.length > 0) {
-      testUtil.log(suite, `sessions ready for client ${clientKey}: ${sessionKeys.join(', ')}`);
-      return;
-    }
-    testUtil.log(suite, 'waiting for sessions to be ready...');
-    await testUtil.sleep(250);
-  }
-
-  throw new Error('Timed out waiting for sessions to be ready');
+  await testUtil.waitForSessionsReady(suite, clientKey);
 }
 
 async function disconnectExistingClients(): Promise<void> {

@@ -195,6 +195,7 @@ const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
     name: 'epupp',
     projectType: csTypes.ProjectTypes['epupp'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
+    selectedPortBehaviour: 'prompt',
   },
 ];
 

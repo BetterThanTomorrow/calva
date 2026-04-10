@@ -37,7 +37,7 @@ suite('Load File Command Test', () => {
   after(async () => {
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
-    await testUtil.sleep(500);
+    await testUtil.waitForJackOutComplete(suite);
     testUtil.showMessage(suite, 'suite done!');
   });
 
@@ -78,10 +78,9 @@ suite('Load File Command Test', () => {
         connectSequence,
         disableAutoSelect: true,
       });
-      await jackInHarness.waitForNextClient();
+      const clientKey = await jackInHarness.waitForNextClient();
       testUtil.log(suite, 'Waiting for jack-in to complete (terminal output mode)...');
-      // Unfortunately, awaiting jack-in does not work with terminal output mode.
-      await testUtil.sleep(5000);
+      await testUtil.waitForSessionsReady(suite, clientKey);
     } else {
       await jackInHarness.jackInWithConnectSequence(testFilePath, connectSequence);
     }

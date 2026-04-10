@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.572] - 2026-04-10
+
+- [Add config for always prompting for nREPL port](https://github.com/BetterThanTomorrow/calva/issues/3162)
+
 ## [2.0.571] - 2026-04-09
 
 - Dev: Fix npm audit: upgrade jest, typescript, and patch transitive deps

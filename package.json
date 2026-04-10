@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.571",
+  "version": "2.0.572",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -675,6 +675,14 @@
                 "fallbackPort": {
                   "type": "number",
                   "markdownDescription": "If the nREPL port file is not found, fall back on this port."
+                },
+                "selectedPortBehaviour": {
+                  "type": "string",
+                  "enum": [
+                    "connect",
+                    "prompt"
+                  ],
+                  "markdownDescription": "When Calva has selected the port of the nREPL server, should it automatically connect or prompt you so that you can edit the `host:port`?"
                 },
                 "customJackInCommandLine": {
                   "type": "string",

@@ -10,6 +10,7 @@ import {
   CljsTypes,
   getConnectSequences,
 } from './connectSequence';
+import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as projectTypes from './project-types';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import {
@@ -476,7 +477,10 @@ async function getJackInTerminalOptions(
   } else {
     cmd = typeof projectType.cmd === 'function' ? projectType.cmd() : projectType.cmd;
   }
-  const nReplPortFile = projectConnectSequence.nReplPortFile ?? projectType.defaultNReplPortFile;
+  const nReplPortFile = connectSequenceInheritance.effectiveNReplPortFileSegments(
+    projectConnectSequence,
+    projectType
+  );
   const substitutions = {
     'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
     ...(nReplPortFile
