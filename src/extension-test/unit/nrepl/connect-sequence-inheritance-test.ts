@@ -66,4 +66,21 @@ describe('connect-sequence-inheritance', () => {
       );
     });
   });
+
+  describe('effectiveSelectedPortBehaviour', () => {
+    it('prefers the explicit connect sequence selected port behaviour', () => {
+      expect(
+        connectSequenceInheritance.effectiveSelectedPortBehaviour(
+          { selectedPortBehaviour: 'prompt' },
+          'connect'
+        )
+      ).toBe('prompt');
+    });
+
+    it('inherits the default selected port behaviour when sequence does not override it', () => {
+      expect(connectSequenceInheritance.effectiveSelectedPortBehaviour({}, 'connect')).toBe(
+        'connect'
+      );
+    });
+  });
 });

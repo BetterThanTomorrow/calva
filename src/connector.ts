@@ -13,6 +13,7 @@ import * as connectSequenceInheritance from './nrepl/connect-sequence-inheritanc
 import {
   CljsTypeConfig,
   ReplConnectSequence,
+  type SelectedPortBehaviour,
   getDefaultCljsType,
   askForConnectSequence,
   getConnectSequences,
@@ -977,7 +978,14 @@ async function makeCljsSessionClone(
   return [null, null];
 }
 
-type PromptReason = 'connection-failed' | 'no-port-file' | 'manual';
+type PromptReason =
+  | 'connection-failed'
+  | 'no-port-file'
+  | 'manual'
+  | 'selected-port-file'
+  | 'selected-fallback';
+
+type SelectedPortSource = 'port-file' | 'fallback';
 
 async function promptForNreplUrlAndConnect(
   hostname: string | undefined,
@@ -996,6 +1004,8 @@ async function promptForNreplUrlAndConnect(
       'connection-failed': `Could not connect to ${currentHost}:${currentPort}. Enter a different host:port or retry.`,
       'no-port-file': 'No nREPL port file found. Enter host:port for the nREPL server.',
       manual: "Enter port if localhost, otherwise 'hostname:port'",
+      'selected-port-file': `Calva selected ${currentHost}:${currentPort} from the nREPL port file. Press Enter to connect, or edit host:port.`,
+      'selected-fallback': `Calva selected ${currentHost}:${currentPort} using the fallback port from the connect sequence. Press Enter to connect.`,
     };
     const url = await vscode.window.showInputBox({
       title: 'nREPL Connect',
@@ -1051,6 +1061,7 @@ export async function connect(
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
   // Used to decide whether to suppress auto-connect when a matching connection already exists.
   const portWasExplicitlyProvided = port !== undefined;
+  let selectedPortSource: SelectedPortSource | undefined;
 
   let result: ConnectResult = { connected: false };
   try {
@@ -1060,6 +1071,7 @@ export async function connect(
         await vscode.workspace.fs.stat(portFile);
         const bytes = await vscode.workspace.fs.readFile(portFile);
         port = new TextDecoder('utf-8').decode(bytes);
+        selectedPortSource = 'port-file';
       } catch {
         const defaultPort = connectSequenceInheritance.effectiveFallbackPort(
           connectSequence,
@@ -1068,6 +1080,7 @@ export async function connect(
         if (defaultPort !== undefined) {
           output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
           port = String(defaultPort);
+          selectedPortSource = 'fallback';
         } else {
           console.info('No nrepl port found');
         }
@@ -1085,7 +1098,40 @@ export async function connect(
         !isJackIn &&
         sessionNameResolver.hasMatchingBaseConnection(baseSessionNames, projectRoot);
       const effectiveAutoConnect = isAutoConnect && !hasExistingMatch;
-      if (effectiveAutoConnect) {
+      const selectedPortBehaviour: SelectedPortBehaviour =
+        connectSequenceInheritance.effectiveSelectedPortBehaviour(
+          connectSequence,
+          isAutoConnect ? 'connect' : 'prompt'
+        );
+
+      if (selectedPortSource) {
+        const selectedPortPromptReason: Record<SelectedPortSource, PromptReason> = {
+          'port-file': 'selected-port-file',
+          fallback: 'selected-fallback',
+        };
+        const shouldAutoConnectSelectedPort =
+          selectedPortBehaviour === 'connect' && !hasExistingMatch;
+
+        if (shouldAutoConnectSelectedPort) {
+          result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
+          if (!result.connected) {
+            output.appendLineOtherOut('Prompting for nREPL connection...');
+            result = await promptForNreplUrlAndConnect(
+              hostname,
+              port,
+              connectSequence,
+              'connection-failed'
+            );
+          }
+        } else {
+          result = await promptForNreplUrlAndConnect(
+            hostname,
+            port,
+            connectSequence,
+            selectedPortPromptReason[selectedPortSource]
+          );
+        }
+      } else if (effectiveAutoConnect) {
         result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
         if (!result.connected) {
           output.appendLineOtherOut('Prompting for nREPL connection...');

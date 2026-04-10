@@ -1,4 +1,4 @@
-import type { ReplConnectSequence } from './connect-sequence-types';
+import type { ReplConnectSequence, SelectedPortBehaviour } from './connect-sequence-types';
 
 export interface ConnectSequenceProjectTypeDefaults {
   defaultNReplPortFile?: string[];
@@ -18,4 +18,11 @@ export function effectiveFallbackPort(
   projectTypeDefaults?: ConnectSequenceProjectTypeDefaults
 ): number | undefined {
   return sequence.fallbackPort ?? projectTypeDefaults?.defaultFallbackPort;
+}
+
+export function effectiveSelectedPortBehaviour(
+  sequence: Pick<ReplConnectSequence, 'selectedPortBehaviour'>,
+  defaultBehaviour: SelectedPortBehaviour
+): SelectedPortBehaviour {
+  return sequence.selectedPortBehaviour ?? defaultBehaviour;
 }
