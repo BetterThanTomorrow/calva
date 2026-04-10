@@ -180,8 +180,8 @@ export async function initProjectDir(
     }
     console.log('Setting project root to: ', projectRootPath.fsPath);
     void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;
   }
 
@@ -227,8 +227,8 @@ export async function initProjectDir(
   if (projectRootPath) {
     console.log('Setting project root to: ', projectRootPath.fsPath);
     void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;
   }
   return setOrCreateNonProjectRoot(extensionContext, true);
