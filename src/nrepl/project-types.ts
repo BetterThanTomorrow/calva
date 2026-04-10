@@ -10,6 +10,7 @@ import {
   getEffectiveJackInDependencyVersions,
   type JackInDependencyKey,
 } from './jack-in-dependency-versions';
+import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as connectSequences from './connectSequence';
 import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
@@ -27,7 +28,6 @@ export type CommandLineInfo = {
 
 export type ProjectType = {
   name: string;
-  cljsTypes?: string[];
   cmd?: string[] | (() => string[]);
   winCmd?: string[] | (() => string[]);
   resolveBundledPathWin?: () => string;
@@ -47,14 +47,17 @@ export type ProjectType = {
 };
 
 function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
-  let subPath: string;
-  if (connectSequence.nReplPortFile) {
-    subPath = path.join(...connectSequence.nReplPortFile);
-  } else {
-    const projectType: ProjectType | string = connectSequence.projectType;
-    subPath = path.join(...getProjectTypeForName(projectType).defaultNReplPortFile);
+  const projectType: ProjectType | string = connectSequence.projectType;
+  const portFileSegments = connectSequenceInheritance.effectiveNReplPortFileSegments(
+    connectSequence,
+    getProjectTypeForName(projectType)
+  );
+
+  if (!portFileSegments) {
+    throw new Error(`No nREPL port file configured for project type "${projectType}".`);
   }
-  return subPath;
+
+  return path.join(...portFileSegments);
 }
 
 /**
@@ -394,12 +397,6 @@ const clojureCmdWinFn = () => {
 const projectTypes: { [id: string]: ProjectType } = {
   lein: {
     name: 'Leiningen',
-    cljsTypes: [
-      'Figwheel',
-      'Figwheel Main',
-      'ClojureScript built-in for browser',
-      'ClojureScript built-in for node',
-    ],
     cmd: ['lein'],
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
@@ -427,12 +424,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   clj: {
     name: 'deps.edn',
-    cljsTypes: [
-      'Figwheel',
-      'Figwheel Main',
-      'ClojureScript built-in for browser',
-      'ClojureScript built-in for node',
-    ],
     cmd: clojureCmdFn,
     winCmd: clojureCmdWinFn,
     resolveBundledPathWin: depsCljWindowsPath,
@@ -458,7 +449,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   'shadow-cljs': {
     name: 'shadow-cljs',
-    cljsTypes: [],
     cmd: ['npx'],
     winCmd: ['npx'],
     processShellUnix: true,
@@ -506,7 +496,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   'lein-shadow': {
     name: 'lein-shadow',
-    cljsTypes: [],
     cmd: ['lein'],
     winCmd: ['cmd.exe', '/d', '/c', 'lein'],
     processShellUnix: true,
@@ -548,7 +537,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   gradle: {
     name: 'Gradle',
-    cljsTypes: [],
     cmd: ['./gradlew'],
     winCmd: ['cmd.exe', '/d', '/c', 'gradlew.bat'],
     processShellUnix: true,
@@ -573,7 +561,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   generic: {
     name: 'generic',
-    cljsTypes: [],
     cmd: clojureCmdFn,
     winCmd: clojureCmdFn,
     resolveBundledPathWin: depsCljWindowsPath,
@@ -596,7 +583,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   'clj-projectless': {
     name: 'clj-projectless',
-    cljsTypes: [],
     cmd: clojureCmdFn,
     winCmd: clojureCmdWinFn,
     resolveBundledPathWin: depsCljWindowsPath,
@@ -638,7 +624,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   babashka: {
     name: 'babashka',
-    cljsTypes: [],
     cmd: ['bb'],
     winCmd: ['bb'],
     processShellUnix: true,
@@ -666,7 +651,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   nbb: {
     name: 'nbb',
-    cljsTypes: [],
     cmd: ['npx'],
     winCmd: ['npx.cmd'],
     processShellUnix: true,
@@ -699,7 +683,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   basilisp: {
     name: 'basilisp',
-    cljsTypes: [],
     cmd: () => {
       return [getConfig().basilispPath];
     },
@@ -727,7 +710,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   'let-go': {
     name: 'let-go',
-    cljsTypes: [],
     cmd: ['lg'],
     winCmd: ['lg'],
     processShellUnix: true,
@@ -754,7 +736,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   joyride: {
     name: 'joyride',
-    cljsTypes: [],
     cmd: [],
     winCmd: [],
     processShellUnix: false,
@@ -773,7 +754,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   scittle: {
     name: 'scittle',
-    cljsTypes: [],
     cmd: [],
     winCmd: [],
     processShellUnix: false,
@@ -792,7 +772,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   squint: {
     name: 'squint',
-    cljsTypes: [],
     cmd: ['npx'],
     winCmd: ['npx.cmd'],
     processShellUnix: true,
@@ -820,7 +799,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   epupp: {
     name: 'epupp',
-    cljsTypes: [],
     cmd: [],
     winCmd: [],
     processShellUnix: true,
@@ -844,7 +822,6 @@ const projectTypes: { [id: string]: ProjectType } = {
   },
   'cljs-only': {
     name: 'cljs-only',
-    cljsTypes: [],
     cmd: [],
     winCmd: [],
     processShellUnix: false,

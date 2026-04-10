@@ -67,6 +67,8 @@ type SessionFilePatternsConfigValue = FilePatternsValue | SessionFilePatternsRul
 
 type SessionFilePatternsConfig = Record<string, SessionFilePatternsConfigValue>;
 
+type SelectedPortBehaviour = 'connect' | 'prompt';
+
 interface ReplConnectSequence {
   name: string;
   projectType: ProjectTypes;
@@ -85,6 +87,7 @@ interface ReplConnectSequence {
   replSessionNames?: SessionNamesConfig;
   replSessionFilePatterns?: SessionFilePatternsConfig;
   fallbackPort?: number;
+  selectedPortBehaviour?: SelectedPortBehaviour;
 }
 
 export {
@@ -95,5 +98,6 @@ export {
   SessionNamesConfig,
   SessionFilePatternsRulesConfig,
   SessionFilePatternsConfig,
+  SelectedPortBehaviour,
   ReplConnectSequence,
 };

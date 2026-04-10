@@ -676,6 +676,14 @@
                   "type": "number",
                   "markdownDescription": "If the nREPL port file is not found, fall back on this port."
                 },
+                "selectedPortBehaviour": {
+                  "type": "string",
+                  "enum": [
+                    "connect",
+                    "prompt"
+                  ],
+                  "markdownDescription": "When Calva has selected the port of the nREPL server, should it automatically connect or prompt you so that you can edit the `host:port`?"
+                },
                 "customJackInCommandLine": {
                   "type": "string",
                   "markdownDescription": "A custom command line, completely up to you.",
