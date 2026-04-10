@@ -39,26 +39,27 @@ function textNotationFromDocAndSelections(
   return textNotation.textNotationFromTextAndSelections(text, ranges, prettyPrint);
 }
 
-const pauseMs = 250;
-
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
 async function reformat(editor: vscode.TextEditor, textAndSelections: string, command: string) {
   const [text, selectionsAsOffsets] =
     textNotation.textNotationToTextAndSelection(textAndSelections);
   await vscode.commands.executeCommand('editor.action.selectAll');
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   await vscode.commands.executeCommand(
     'paredit.deleteForward' /*'editor.action.clipboardCutAction'*/
   );
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  await testUtil.waitForCondition(
+    () => getText(editor.document) === '',
+    2000,
+    20,
+    'Timed out waiting for document to clear before reformat'
+  );
   const emptiedText = getText(editor.document);
-  if (emptiedText != '') {
+  if (emptiedText !== '') {
     console.error('Supposedly emptied document contains', emptiedText);
   }
   await editor.edit((ed) => {
     ed.insert(new vscode.Position(0, 0), text);
   });
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   editor.selections = selectionsAsOffsets.map(
     ([anchorOffset, activeOffset]) =>
       new vscode.Selection(
@@ -66,10 +67,23 @@ async function reformat(editor: vscode.TextEditor, textAndSelections: string, co
         editor.document.positionAt(activeOffset)
       )
   );
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  await testUtil.waitForCondition(
+    () =>
+      textNotationFromDocAndSelections(editor.document, editor.selections) === textAndSelections,
+    2000,
+    20,
+    `Timed out waiting for editor reset to ${JSON.stringify(textAndSelections)}`
+  );
   await vscode.commands.executeCommand(command);
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
-  return textNotationFromDocAndSelections(editor.document, editor.selections);
+  return testUtil.waitForValue(
+    () => {
+      const notation = textNotationFromDocAndSelections(editor.document, editor.selections);
+      return notation !== textAndSelections ? notation : undefined;
+    },
+    2000,
+    20,
+    `Timed out waiting for reformat command ${command} to change editor state`
+  );
 }
 
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */
@@ -80,9 +94,7 @@ async function reformatUsingActiveEditor(textAndSelections: string) {
 suite(suiteName, () => {
   before(async () => {
     testUtil.showMessage(suiteName, `suite starting`);
-    return testUtil.openFile(testFilePath).then((x) => {
-      return new Promise((resolve) => setTimeout(resolve, 1000));
-    });
+    await testUtil.openFile(testFilePath);
   });
 
   after(async () => {
@@ -92,7 +104,6 @@ suite(suiteName, () => {
   });
 
   it('should add indenting spaces on lines where cursors are', async () => {
-    await new Promise((resolve) => setTimeout(resolve, 20 * pauseMs));
     assert.equal(await reformatUsingActiveEditor('(foo•|•|1 :a)'), '(foo•  |•|1  :a)');
   });
 

@@ -7,7 +7,6 @@ import * as textNotation from '../integration-text-notation';
 
 const suiteName = 'Insert Semicolon Suite';
 const testFilePath = path.join(testUtil.testDataDir, 'reformattable.clj');
-const pauseMs = 250;
 
 function getText(doc: vscode.TextDocument, replaceNewLine = false): string {
   const text = doc.getText(
@@ -39,6 +38,19 @@ function createSelectionFromOffsets(
   );
 }
 
+async function waitForNotation(
+  editor: vscode.TextEditor,
+  expectedNotation: string,
+  timeoutMs = 2000
+): Promise<void> {
+  await testUtil.waitForCondition(
+    () => textNotationFromDocAndSelections(editor.document, editor.selections) === expectedNotation,
+    timeoutMs,
+    20,
+    `Timed out waiting for editor notation ${JSON.stringify(expectedNotation)}`
+  );
+}
+
 async function resetEditor(editor: vscode.TextEditor, textAndSelections: string): Promise<void> {
   const [text, selectionsAsOffsets] =
     textNotation.textNotationToTextAndSelection(textAndSelections);
@@ -49,26 +61,30 @@ async function resetEditor(editor: vscode.TextEditor, textAndSelections: string)
   await editor.edit((editBuilder) => {
     editBuilder.replace(fullRange, text);
   });
-  await testUtil.sleep(pauseMs);
 
   editor.selections = selectionsAsOffsets.map((selection) =>
     createSelectionFromOffsets(editor, selection)
   );
-  await testUtil.sleep(pauseMs);
+
+  await waitForNotation(editor, textAndSelections);
 }
 
 async function undoOnce(editor: vscode.TextEditor): Promise<void> {
   await vscode.window.showTextDocument(editor.document);
-  await testUtil.sleep(pauseMs);
+  await testUtil.waitForCondition(
+    () =>
+      vscode.window.activeTextEditor?.document.uri.toString() === editor.document.uri.toString(),
+    2000,
+    20,
+    'Timed out waiting for editor to become active before undo'
+  );
   await vscode.commands.executeCommand('default:undo');
-  await testUtil.sleep(pauseMs);
 }
 
 suite(suiteName, () => {
   before(async () => {
     testUtil.showMessage(suiteName, 'suite starting');
     await testUtil.openFile(testFilePath);
-    await testUtil.sleep(1000);
   });
 
   after(async () => {
@@ -84,7 +100,7 @@ suite(suiteName, () => {
     await resetEditor(editor, initialState);
 
     await vscode.commands.executeCommand('paredit.insertSemiColon');
-    await testUtil.sleep(pauseMs);
+    await waitForNotation(editor, expectedAfterInsert);
 
     assert.equal(
       textNotationFromDocAndSelections(editor.document, editor.selections),
@@ -92,6 +108,7 @@ suite(suiteName, () => {
     );
 
     await undoOnce(editor);
+    await waitForNotation(editor, initialState);
 
     assert.equal(
       textNotationFromDocAndSelections(editor.document, editor.selections),
@@ -107,7 +124,7 @@ suite(suiteName, () => {
     await resetEditor(editor, initialState);
 
     await vscode.commands.executeCommand('paredit.insertSemiColon');
-    await testUtil.sleep(pauseMs);
+    await waitForNotation(editor, expectedAfterInsert);
 
     assert.equal(
       textNotationFromDocAndSelections(editor.document, editor.selections),

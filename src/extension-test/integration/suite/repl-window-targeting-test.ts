@@ -19,6 +19,23 @@ const projectDir = path.join(testUtil.testDataDir, '..', 'projects', 'cljs-only'
 const cljsFile = path.join(projectDir, 'src', 'hello_world', 'core.cljs');
 const cljcFile = path.join(projectDir, 'src', 'hello_world', 'core.cljc');
 
+async function waitForReplWindowRouting(expectedSessionKey?: string): Promise<void> {
+  await testUtil.waitForCondition(
+    () => {
+      const routingInfo = replSession.getRoutingInfo();
+      return (
+        routingInfo?.reason.type === 'repl-window' &&
+        (expectedSessionKey === undefined || routingInfo.sessionKey === expectedSessionKey)
+      );
+    },
+    2000,
+    20,
+    `Timed out waiting for repl-window routing${
+      expectedSessionKey ? ` -> ${expectedSessionKey}` : ''
+    }`
+  );
+}
+
 suite('REPL Window Targeting suite', function () {
   // Increase timeout for the entire suite since we jack-in once
   this.timeout(180_000);
@@ -61,7 +78,7 @@ suite('REPL Window Targeting suite', function () {
     // Kill jack-in processes to prevent orphaned Java processes
     testUtil.log(suiteName, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
-    await testUtil.sleep(500);
+    await testUtil.waitForJackOutComplete(suiteName);
 
     // Disconnect after all tests
     const clients = clientRegistry.listClients();
@@ -77,8 +94,12 @@ suite('REPL Window Targeting suite', function () {
   beforeEach(async () => {
     // Reset REPL window to clj session before each test
     replSessionsMenu.setReplWindowSession('clj');
-    // Allow pending async operations (prompt appends, document saves) to settle
-    await testUtil.sleep(100);
+    await testUtil.waitForCondition(
+      () => outputWindow.getSessionType() === 'clj',
+      2000,
+      20,
+      'Timed out waiting for REPL window session reset to clj'
+    );
   });
 
   test('Initial REPL window targets the secondary (CLJS) session after connection', function () {
@@ -111,9 +132,6 @@ suite('REPL Window Targeting suite', function () {
       'After command, session should be cljs'
     );
 
-    // Allow pending prompt operations to settle before next switch
-    await testUtil.sleep(200);
-
     // Change back to clj
     await commands.executeCommand('calva.selectReplWindowSession', 'clj');
     await testUtil.waitForCondition(() => outputWindow.getSessionType() === 'clj', 2000, 10);
@@ -133,7 +151,7 @@ suite('REPL Window Targeting suite', function () {
 
     // Open and focus the REPL window
     await outputWindow.revealReplWindowDoc(false);
-    await testUtil.sleep(100);
+    await waitForReplWindowRouting('cljs');
 
     // Get routing info - should show repl-window reason
     const routingInfo = replSession.getRoutingInfo();
@@ -162,7 +180,7 @@ suite('REPL Window Targeting suite', function () {
 
     // Open and focus the REPL window
     await outputWindow.revealReplWindowDoc(false);
-    await testUtil.sleep(100);
+    await waitForReplWindowRouting('cljs');
 
     // Routing should use REPL window session, not cljc target
     const routingInfo = replSession.getRoutingInfo();
@@ -188,7 +206,7 @@ suite('REPL Window Targeting suite', function () {
 
     // Start in REPL window
     await outputWindow.revealReplWindowDoc(false);
-    await testUtil.sleep(100);
+    await waitForReplWindowRouting();
 
     let routingInfo = replSession.getRoutingInfo();
     assert.strictEqual(routingInfo?.reason.type, 'repl-window', 'Should start with repl-window');
@@ -233,10 +251,6 @@ suite('REPL Window Targeting suite', function () {
     assert.strictEqual(outputWindow.getSessionType(), 'cljs', 'Session should be updated');
   });
 
-  // Helper functions
-
-  let lastSeenClientConnectedAt = 0;
-
   async function jackInToClojureScriptProject(): Promise<void> {
     // Open a file in the project so VS Code has context
     await testUtil.openFile(cljsFile);
@@ -253,53 +267,8 @@ suite('REPL Window Targeting suite', function () {
       disableAutoSelect: true,
     });
 
-    await waitForNextClient();
-    await waitForBothSessions();
-    await testUtil.sleep(500);
+    const client = await testUtil.waitForNewClient(suiteName);
+    await testUtil.waitForSessionsReady(suiteName, client.key, ['clj', 'cljs']);
     testUtil.log(suiteName, 'Jack-in complete');
-  }
-
-  async function waitForBothSessions(): Promise<void> {
-    const timeoutMs = 90_000;
-    const start = Date.now();
-
-    while (Date.now() - start < timeoutMs) {
-      const clients = clientRegistry.listClients();
-      if (clients.length > 0) {
-        const sessions = sessionRegistry.listSessionsByClient(clients[0].key);
-        const sessionKeys = sessions.map((s) => s.key);
-        if (sessionKeys.includes('clj') && sessionKeys.includes('cljs')) {
-          testUtil.log(suiteName, 'Both clj and cljs sessions detected');
-          return;
-        }
-        testUtil.log(suiteName, `Waiting for both sessions, current: ${sessionKeys.join(', ')}`);
-      } else {
-        testUtil.log(suiteName, 'Waiting for client...');
-      }
-      await testUtil.sleep(500);
-    }
-    throw new Error('Timeout waiting for both clj and cljs sessions');
-  }
-
-  async function waitForNextClient(): Promise<void> {
-    const timeoutMs = 60_000;
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const clients = clientRegistry.listClients();
-      const newest = clients[clients.length - 1];
-      if (newest && newest.connectedAt > lastSeenClientConnectedAt) {
-        lastSeenClientConnectedAt = newest.connectedAt;
-        testUtil.log(
-          suiteName,
-          `Detected new client ${newest.connectSequenceName ?? newest.key} (${
-            newest.projectRoot ?? 'no-root'
-          })`
-        );
-        return;
-      }
-      testUtil.log(suiteName, 'Waiting for new jack-in client...');
-      await testUtil.sleep(500);
-    }
-    throw new Error('Timeout waiting for jack-in client');
   }
 });

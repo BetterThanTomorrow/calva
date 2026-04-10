@@ -23,6 +23,20 @@ const fiddleFile = path.join(projectDir, 'hello.fiddle');
 const outsideCljcFile = path.join(testUtil.testDataDir, 'test.cljc');
 const outsideFiddleFile = path.join(testUtil.testDataDir, 'test.fiddle');
 
+async function waitForRouting(expectedSessionKey: string, reasonType: string): Promise<void> {
+  await testUtil.waitForCondition(
+    () => {
+      const routingInfo = replSession.getRoutingInfo();
+      return (
+        routingInfo?.sessionKey === expectedSessionKey && routingInfo.reason.type === reasonType
+      );
+    },
+    2000,
+    20,
+    `Timed out waiting for routing ${reasonType} -> ${expectedSessionKey}`
+  );
+}
+
 suite('CLJC Routing suite', function () {
   // Increase timeout for the entire suite since we jack-in once
   this.timeout(180_000);
@@ -65,7 +79,7 @@ suite('CLJC Routing suite', function () {
     // Kill jack-in processes to prevent orphaned Java processes
     testUtil.log(suiteName, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
-    await testUtil.sleep(500);
+    await testUtil.waitForJackOutComplete(suiteName);
 
     // Disconnect after all tests
     const clients = clientRegistry.listClients();
@@ -138,7 +152,7 @@ suite('CLJC Routing suite', function () {
 
     // Toggle cljc target
     await commands.executeCommand('calva.toggleCLJCSession');
-    await testUtil.sleep(50);
+    await waitForRouting('cljs', 'cljc-within-connection');
 
     // After toggle, should route to cljs (secondary)
     const afterToggleRouting = replSession.getRoutingInfo();
@@ -157,7 +171,7 @@ suite('CLJC Routing suite', function () {
 
     // Toggle again - should go back to clj
     await commands.executeCommand('calva.toggleCLJCSession');
-    await testUtil.sleep(50);
+    await waitForRouting('clj', 'cljc-within-connection');
 
     const afterSecondToggleRouting = replSession.getRoutingInfo();
     assert.strictEqual(
@@ -174,7 +188,7 @@ suite('CLJC Routing suite', function () {
 
     // Select secondary target directly
     await commands.executeCommand('calva.selectCljcTarget', 'secondary');
-    await testUtil.sleep(50);
+    await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterSelectSecondary = replSession.getRoutingInfo();
     testUtil.log(suiteName, 'After select secondary:', afterSelectSecondary);
@@ -192,7 +206,7 @@ suite('CLJC Routing suite', function () {
 
     // Select primary target directly
     await commands.executeCommand('calva.selectCljcTarget', 'primary');
-    await testUtil.sleep(50);
+    await waitForRouting('clj', 'cljc-within-connection');
 
     const afterSelectPrimary = replSession.getRoutingInfo();
     assert.strictEqual(
@@ -224,7 +238,7 @@ suite('CLJC Routing suite', function () {
 
     // Toggle and verify it changes
     await commands.executeCommand('calva.toggleCLJCSession');
-    await testUtil.sleep(50);
+    await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
     assert.strictEqual(
@@ -290,7 +304,7 @@ suite('CLJC Routing suite', function () {
 
     // Toggle and verify it changes
     await commands.executeCommand('calva.toggleCLJCSession');
-    await testUtil.sleep(50);
+    await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
     assert.strictEqual(
@@ -323,7 +337,7 @@ suite('CLJC Routing suite', function () {
 
     // Toggle and verify it changes
     await commands.executeCommand('calva.toggleCLJCSession');
-    await testUtil.sleep(50);
+    await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
     assert.strictEqual(
@@ -332,10 +346,6 @@ suite('CLJC Routing suite', function () {
       'After toggle, outside .fiddle should route to cljs'
     );
   });
-
-  // Helper functions
-
-  let lastSeenClientConnectedAt = 0;
 
   async function jackInToClojureScriptProject(): Promise<void> {
     // Open a file in the project so VS Code has context
@@ -355,53 +365,8 @@ suite('CLJC Routing suite', function () {
       disableAutoSelect: true,
     });
 
-    await waitForNextClient();
-    await waitForBothSessions();
-    await testUtil.sleep(500);
+    const client = await testUtil.waitForNewClient(suiteName);
+    await testUtil.waitForSessionsReady(suiteName, client.key, ['clj', 'cljs']);
     testUtil.log(suiteName, 'Jack-in complete');
-  }
-
-  async function waitForBothSessions(): Promise<void> {
-    const timeoutMs = 90_000;
-    const start = Date.now();
-
-    while (Date.now() - start < timeoutMs) {
-      const clients = clientRegistry.listClients();
-      if (clients.length > 0) {
-        const sessions = sessionRegistry.listSessionsByClient(clients[0].key);
-        const sessionKeys = sessions.map((s) => s.key);
-        if (sessionKeys.includes('clj') && sessionKeys.includes('cljs')) {
-          testUtil.log(suiteName, 'Both clj and cljs sessions detected');
-          return;
-        }
-        testUtil.log(suiteName, `Waiting for both sessions, current: ${sessionKeys.join(', ')}`);
-      } else {
-        testUtil.log(suiteName, 'Waiting for client...');
-      }
-      await testUtil.sleep(500);
-    }
-    throw new Error('Timeout waiting for both clj and cljs sessions');
-  }
-
-  async function waitForNextClient(): Promise<void> {
-    const timeoutMs = 60_000;
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const clients = clientRegistry.listClients();
-      const newest = clients[clients.length - 1];
-      if (newest && newest.connectedAt > lastSeenClientConnectedAt) {
-        lastSeenClientConnectedAt = newest.connectedAt;
-        testUtil.log(
-          suiteName,
-          `Detected new client ${newest.connectSequenceName ?? newest.key} (${
-            newest.projectRoot ?? 'no-root'
-          })`
-        );
-        return;
-      }
-      testUtil.log(suiteName, 'Waiting for new jack-in client...');
-      await testUtil.sleep(500);
-    }
-    throw new Error('Timeout waiting for jack-in client');
   }
 });

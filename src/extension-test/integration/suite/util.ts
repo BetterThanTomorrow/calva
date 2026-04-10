@@ -6,6 +6,8 @@ import * as screenshot from 'screenshot-desktop';
 import * as state from '../../../state';
 import * as projectRoot from '../../../project-root';
 import * as clientRegistry from '../../../nrepl/client-registry';
+import * as sessionRegistry from '../../../nrepl/session-registry';
+import * as jackIn from '../../../nrepl/jack-in';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import { getDocument } from '../../../doc-mirror';
 import connector from '../../../connector';
@@ -27,7 +29,12 @@ export async function openFile(filePath: string) {
   const document = await vscode.workspace.openTextDocument(uri);
   const editor = await vscode.window.showTextDocument(document);
 
-  await sleep(300);
+  await waitForCondition(
+    () => vscode.window.activeTextEditor?.document.uri.fsPath === filePath,
+    4000,
+    20,
+    `Timed out waiting for active editor to open ${filePath}`
+  );
 
   return editor;
 }
@@ -120,21 +127,126 @@ export async function ensureOutputDir(projectPath: string): Promise<void> {
   }
 }
 
-export async function waitForCondition(
-  predicate: () => boolean,
+export async function waitForValue<T>(
+  selector: () => T | undefined | Promise<T | undefined>,
   timeoutMs = 4000,
-  intervalMs = 50
-) {
+  intervalMs = 50,
+  timeoutMessage = 'Timed out waiting for value'
+): Promise<T> {
   const start = Date.now();
   while (true) {
-    if (predicate()) {
-      return;
+    const value = await selector();
+    if (value !== undefined) {
+      return value;
     }
     if (Date.now() - start > timeoutMs) {
-      throw new Error('Timed out waiting for condition');
+      throw new Error(timeoutMessage);
     }
     await sleep(intervalMs);
   }
+}
+
+export async function waitForCondition(
+  predicate: () => boolean | Promise<boolean>,
+  timeoutMs = 4000,
+  intervalMs = 50,
+  timeoutMessage = 'Timed out waiting for condition'
+) {
+  await waitForValue(
+    async () => ((await predicate()) ? true : undefined),
+    timeoutMs,
+    intervalMs,
+    timeoutMessage
+  );
+}
+
+export async function waitForNewClient(
+  suite: string,
+  sinceConnectedAt = 0,
+  timeoutMs = 60_000,
+  intervalMs = 250
+) {
+  const client = await waitForValue(
+    () => {
+      const clients = clientRegistry.listClients();
+      const newest = clients[clients.length - 1];
+      return newest && newest.connectedAt > sinceConnectedAt ? newest : undefined;
+    },
+    timeoutMs,
+    intervalMs,
+    'Timed out waiting for new jack-in client'
+  );
+  log(
+    suite,
+    `Detected new client ${client.connectSequenceName ?? client.key} (${
+      client.projectRoot ?? 'no-root'
+    })`
+  );
+  return client;
+}
+
+export async function waitForJackInCompletionCount(
+  suite: string,
+  previousCount = 0,
+  timeoutMs = 60_000,
+  intervalMs = 250
+): Promise<number> {
+  const currentCount = await waitForValue(
+    async () => {
+      const resultsEditor = await outputWindow.openReplWindowDoc();
+      const text = getDocument(resultsEditor).document.getText();
+      const matchCount = (text.match(/Jack-in done\./g) || []).length;
+      return matchCount > previousCount ? matchCount : undefined;
+    },
+    timeoutMs,
+    intervalMs,
+    'Timed out waiting for jack-in completion output'
+  );
+  log(suite, 'Jack-in completion detected');
+  return currentCount;
+}
+
+export async function waitForSessionsReady(
+  suite: string,
+  clientKey: string,
+  expectedSessionKeys?: string[],
+  timeoutMs = 60_000,
+  intervalMs = 250
+): Promise<string[]> {
+  const sessionKeys = await waitForValue(
+    () => {
+      const sessions = sessionRegistry.listSessionsByClient(clientKey);
+      const keys = sessions.map((session) => session.key);
+      if (expectedSessionKeys) {
+        return expectedSessionKeys.every((expectedKey) => keys.includes(expectedKey))
+          ? keys
+          : undefined;
+      }
+      return keys.length > 0 ? keys : undefined;
+    },
+    timeoutMs,
+    intervalMs,
+    'Timed out waiting for sessions to be ready'
+  );
+  log(suite, `Sessions ready for client ${clientKey}: ${sessionKeys.join(', ')}`);
+  return sessionKeys;
+}
+
+export async function waitForJackOutComplete(
+  suite: string,
+  timeoutMs = 60_000,
+  intervalMs = 50
+): Promise<void> {
+  await waitForCondition(
+    () =>
+      jackIn.listJackInProcesses().length === 0 &&
+      clientRegistry.listClients().length === 0 &&
+      sessionRegistry.listSessions().length === 0,
+    timeoutMs,
+    intervalMs,
+    'Timed out waiting for jack-out cleanup'
+  );
+  log(suite, 'Jack-out cleanup complete');
 }
 
 export class JackInHarness {
@@ -182,7 +294,7 @@ export class JackInHarness {
 
     const clientKey = await this.waitForNextClient();
     await this.waitForJackInCompletion();
-    await sleep(500);
+    await waitForSessionsReady(this.suiteName, clientKey);
     log(this.suiteName, 'Jack-in complete for client', clientKey);
     return clientKey;
   }
@@ -202,46 +314,26 @@ export class JackInHarness {
 
     const clientKey = await this.waitForNextClient();
     await this.waitForJackInCompletion();
-    await sleep(500);
+    await waitForSessionsReady(this.suiteName, clientKey);
     log(this.suiteName, 'Jack-in complete for client', clientKey);
     return clientKey;
   }
 
   async waitForNextClient(timeoutMs = 60_000): Promise<string> {
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const clients = clientRegistry.listClients();
-      const newest = clients[clients.length - 1];
-      if (newest && newest.connectedAt > this.lastSeenClientConnectedAt) {
-        this.lastSeenClientConnectedAt = newest.connectedAt;
-        log(
-          this.suiteName,
-          `Detected new client ${newest.connectSequenceName ?? newest.key} (${
-            newest.projectRoot ?? 'no-root'
-          })`
-        );
-        return newest.key;
-      }
-      log(this.suiteName, 'Waiting for new jack-in client...');
-      await sleep(250);
-    }
-    throw new Error('Timed out waiting for new jack-in client');
+    const client = await waitForNewClient(
+      this.suiteName,
+      this.lastSeenClientConnectedAt,
+      timeoutMs
+    );
+    this.lastSeenClientConnectedAt = client.connectedAt;
+    return client.key;
   }
 
   async waitForJackInCompletion(timeoutMs = 60_000): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const resultsEditor = await outputWindow.openReplWindowDoc();
-      const text = getDocument(resultsEditor).document.getText();
-      const currentCount = (text.match(/Jack-in done\./g) || []).length;
-      if (currentCount > this.lastJackInDoneCount) {
-        this.lastJackInDoneCount = currentCount;
-        log(this.suiteName, 'Jack-in completion detected');
-        return;
-      }
-      log(this.suiteName, 'Waiting for jack-in completion output...');
-      await sleep(250);
-    }
-    throw new Error('Timed out waiting for jack-in completion output');
+    this.lastJackInDoneCount = await waitForJackInCompletionCount(
+      this.suiteName,
+      this.lastJackInDoneCount,
+      timeoutMs
+    );
   }
 }

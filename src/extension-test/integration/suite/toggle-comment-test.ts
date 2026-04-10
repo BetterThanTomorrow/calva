@@ -39,8 +39,6 @@ function textNotationFromDocAndSelections(
   return textNotation.textNotationFromTextAndSelections(text, ranges, prettyPrint);
 }
 
-const pauseMs = 250;
-
 function getFullDocumentRange(editor: vscode.TextEditor) {
   return editor.document.validateRange(
     new vscode.Range(new vscode.Position(0, 0), new vscode.Position(99999, 99999))
@@ -57,11 +55,23 @@ function createSelectionFromOffsets(
   );
 }
 
+async function waitForNotation(
+  editor: vscode.TextEditor,
+  expectedNotation: string,
+  timeoutMs = 2000
+) {
+  await testUtil.waitForCondition(
+    () => textNotationFromDocAndSelections(editor.document, editor.selections) === expectedNotation,
+    timeoutMs,
+    20,
+    `Timed out waiting for editor notation ${JSON.stringify(expectedNotation)}`
+  );
+}
+
 async function clearEditor(editor: vscode.TextEditor) {
   await editor.edit((ed) => {
     ed.replace(getFullDocumentRange(editor), '');
   });
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
   const emptiedText = getText(editor.document);
   if (emptiedText !== '') {
     console.error('Supposedly emptied document contains', emptiedText);
@@ -72,7 +82,6 @@ async function insertText(editor: vscode.TextEditor, text: string) {
   await editor.edit((ed) => {
     ed.insert(new vscode.Position(0, 0), text);
   });
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
 }
 
 async function prepareEditorForToggle(editor: vscode.TextEditor, textAndSelections: string) {
@@ -80,13 +89,20 @@ async function prepareEditorForToggle(editor: vscode.TextEditor, textAndSelectio
   await clearEditor(editor);
   await insertText(editor, text);
   editor.selections = selections.map((range) => createSelectionFromOffsets(editor, range));
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+
+  await waitForNotation(editor, textAndSelections);
 }
 
 async function performToggle(editor: vscode.TextEditor, textAndSelections: string) {
   await prepareEditorForToggle(editor, textAndSelections);
   await vscode.commands.executeCommand('calva.toggleLineComment');
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  await testUtil.waitForCondition(
+    () =>
+      textNotationFromDocAndSelections(editor.document, editor.selections) !== textAndSelections,
+    2000,
+    20,
+    'Timed out waiting for calva.toggleLineComment to change editor state'
+  );
 }
 
 async function performToggleWithArgs(
@@ -96,7 +112,13 @@ async function performToggleWithArgs(
 ) {
   await prepareEditorForToggle(editor, textAndSelections);
   await vscode.commands.executeCommand('calva.toggleLineComment', args.behavior);
-  await new Promise((resolve) => setTimeout(resolve, pauseMs));
+  await testUtil.waitForCondition(
+    () =>
+      textNotationFromDocAndSelections(editor.document, editor.selections) !== textAndSelections,
+    2000,
+    20,
+    'Timed out waiting for calva.toggleLineComment with args to change editor state'
+  );
 }
 
 /** Toggle line comment with cursor positions indicated by |, |1, |2, etc. */
@@ -137,9 +159,7 @@ suite(suiteName, () => {
     testUtil.showMessage(suiteName, `suite starting`);
     // Set commentCurrentLine so existing ;; tests continue to work as before
     await setToggleCommentBehavior('commentCurrentLine');
-    return testUtil.openFile(testFilePath).then((x) => {
-      return new Promise((resolve) => setTimeout(resolve, 1000));
-    });
+    await testUtil.openFile(testFilePath);
   });
 
   after(async () => {
@@ -151,7 +171,6 @@ suite(suiteName, () => {
   });
 
   it('should comment a code line inside defn with correct indent', async () => {
-    await new Promise((resolve) => setTimeout(resolve, 20 * pauseMs));
     assert.equal(
       await toggleCommentUsingActiveEditor('(defn foo []•  |(println "test"))'),
       '(defn foo []•  ;; |(println "test")•  )'
@@ -368,7 +387,7 @@ suite(suiteName, () => {
     const simpleCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
     assert.equal(simpleCommented, '(a |;; (b c•   ;;    d)|•   e)');
     await vscode.commands.executeCommand('calva.toggleLineComment');
-    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    await waitForNotation(editor, simple);
     const simpleUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
     assert.equal(simpleUncommented, simple);
 
@@ -378,7 +397,7 @@ suite(suiteName, () => {
     const nestedCommented = textNotationFromDocAndSelections(editor.document, editor.selections);
     assert.equal(nestedCommented, '(a |;; (b c•   ;;    (d e•   ;;       f)•   ;;    g)|•   e)');
     await vscode.commands.executeCommand('calva.toggleLineComment');
-    await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    await waitForNotation(editor, nested);
     const nestedUncommented = textNotationFromDocAndSelections(editor.document, editor.selections);
     assert.equal(nestedUncommented, nested);
   });

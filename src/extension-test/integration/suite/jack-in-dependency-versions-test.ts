@@ -123,7 +123,19 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
 
-    await testUtil.sleep(20);
+    await testUtil.waitForCondition(
+      () => {
+        const effective = getEffectiveJackInDependencyVersions();
+        return (
+          effective.nrepl === 'PARTIAL-NREPL-1' &&
+          effective['cider-nrepl'] === defaults['cider-nrepl'] &&
+          effective['cider/piggieback'] === defaults['cider/piggieback']
+        );
+      },
+      1000,
+      20,
+      'Timed out waiting for partial jack-in dependency version configuration'
+    );
     const effective = getEffectiveJackInDependencyVersions();
 
     assert.strictEqual(effective.nrepl, 'PARTIAL-NREPL-1', 'nrepl should use configured value');
@@ -153,7 +165,13 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', undefined, vscode.ConfigurationTarget.Workspace);
 
-    await testUtil.sleep(20);
+    const defaultsJson = JSON.stringify(defaults);
+    await testUtil.waitForCondition(
+      () => JSON.stringify(getEffectiveJackInDependencyVersions()) === defaultsJson,
+      1000,
+      20,
+      'Timed out waiting for default jack-in dependency versions'
+    );
 
     const effective = getEffectiveJackInDependencyVersions();
 

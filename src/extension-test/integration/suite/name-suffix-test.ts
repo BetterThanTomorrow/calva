@@ -92,7 +92,12 @@ suite('Name Suffix suite', () => {
     );
 
     await connector.disconnect({ clientKey: secondClientKey });
-    await testUtil.sleep(500);
+    await testUtil.waitForCondition(
+      () => nameSuffix.getAvailableSuffixes().includes(usedSuffix),
+      10_000,
+      20,
+      `Timed out waiting for suffix '${usedSuffix}' to be released`
+    );
 
     const availableAfter = nameSuffix.getAvailableSuffixes();
     assert.ok(
