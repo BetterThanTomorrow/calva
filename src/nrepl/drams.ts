@@ -4,16 +4,13 @@ import * as state from '../state';
 import * as utilities from '../utilities';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import { ConnectType } from './connect-types';
+import * as dramManifest from './dram-manifest';
+import * as dramStaging from './dram-staging';
 import * as replMenu from './repl-menu';
 
 const DRAM_REPO_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
 
-type DramFile = { path: string; 'open?': boolean };
-
-export type DramConfig = {
-  name: string;
-  files: DramFile[];
-};
+export type DramConfig = dramManifest.DramConfig;
 
 export type DramStartConfig = {
   config: DramConfig;
@@ -29,65 +26,88 @@ function devBuild() {
 
 async function fetchConfig(dramSrc: string): Promise<DramConfig> {
   const configEdn = await utilities.fetchFromUrl(`${dramSrc}/dram.edn`);
-  const config: DramConfig = cljsLib.parseEdn(configEdn);
-  return config;
+  return cljsLib.parseEdn(configEdn) as DramConfig;
 }
 
-async function downloadDramFile(storageUri: vscode.Uri, src: string, filePath: string) {
+async function stageDramPathFile(stagingUri: vscode.Uri, src: string, filePath: string) {
   const directoryPath = path.dirname(filePath).split(/\//);
-  const dirUri = vscode.Uri.joinPath(storageUri, ...directoryPath);
+  const dirUri = vscode.Uri.joinPath(stagingUri, ...directoryPath);
   await vscode.workspace.fs.createDirectory(dirUri);
-  const storeFileUri = vscode.Uri.joinPath(storageUri, path.join(...filePath.split(/\//)));
-  return await utilities.downloadFromUrl(`${src}/${filePath}`, storeFileUri.fsPath).catch((err) => {
-    console.error(`Error downloading ${filePath}: ${err.message}`);
-  });
+  const stagedFileUri = vscode.Uri.joinPath(stagingUri, path.join(...filePath.split(/\//)));
+  await utilities.downloadFromUrl(`${src}/${filePath}`, stagedFileUri.fsPath);
 }
 
-export async function downloadDramFiles(storageUri: vscode.Uri, src: string, filePaths: string[]) {
-  await Promise.all(
-    filePaths.map(async (filePath) => {
-      await downloadDramFile(storageUri, src, filePath).then(() => {
-        console.log(`Downloaded ${filePath}`);
-      });
-    })
-  );
+async function stageGithubArchiveFile(
+  stagingUri: vscode.Uri,
+  tempUri: vscode.Uri,
+  archiveUrl: string
+) {
+  await vscode.workspace.fs.createDirectory(tempUri);
+  const archiveUri = vscode.Uri.joinPath(tempUri, `${utilities.randomSlug()}.zip`);
+  await utilities.downloadFromUrl(archiveUrl, archiveUri.fsPath);
+  await dramStaging.stageGithubArchive(archiveUri.fsPath, stagingUri.fsPath);
 }
 
-async function openStoredDoc(
+async function openProjectDoc(
   projectRootUri: vscode.Uri,
-  dramFile: DramFile
-): Promise<[vscode.TextDocument, vscode.TextEditor] | undefined> {
-  const destUri = vscode.Uri.file(path.join(projectRootUri.fsPath, dramFile.path));
-  if (dramFile['open?']) {
-    const doc = await vscode.workspace.openTextDocument(destUri);
-    const editor = await vscode.window.showTextDocument(doc, {
-      preview: false,
-      viewColumn: vscode.ViewColumn.One,
-      preserveFocus: true,
-    });
-    return [doc, editor];
+  filePath: string
+): Promise<[vscode.TextDocument, vscode.TextEditor]> {
+  const destUri = vscode.Uri.file(path.join(projectRootUri.fsPath, filePath));
+  const doc = await vscode.workspace.openTextDocument(destUri);
+  const editor = await vscode.window.showTextDocument(doc, {
+    preview: false,
+    viewColumn: vscode.ViewColumn.One,
+    preserveFocus: true,
+  });
+  return [doc, editor];
+}
+
+async function stageDramFiles(
+  stagingUri: vscode.Uri,
+  tempUri: vscode.Uri,
+  src: string,
+  files: dramManifest.DramFileInput[]
+) {
+  for (const file of files) {
+    if (dramManifest.isGithubDramFile(file)) {
+      await stageGithubArchiveFile(stagingUri, tempUri, file.github);
+      continue;
+    }
+
+    await stageDramPathFile(stagingUri, src, file.path);
+    console.log(`Downloaded ${file.path}`);
   }
 }
 
-async function putStoreDocInPlace(
-  storageUri: vscode.Uri,
-  projectRootUri: vscode.Uri,
-  dramFile: DramFile
-) {
-  const sourceUri = vscode.Uri.file(path.join(storageUri.fsPath, dramFile.path));
-  const destUri = vscode.Uri.file(path.join(projectRootUri.fsPath, dramFile.path));
-  try {
-    await vscode.workspace.fs.copy(sourceUri, destUri, {
-      overwrite: false,
-    });
-  } catch (e) {
-    if (e instanceof vscode.FileSystemError && e.code === 'FileExists') {
-      console.info(`File ${dramFile.path} already exists in temp dir, skipping copy.`);
-    } else {
-      console.error('Unexpected error:', e);
+async function copyStagedFilesToProject(stagingUri: vscode.Uri, projectRootUri: vscode.Uri) {
+  const entries = await vscode.workspace.fs.readDirectory(stagingUri);
+
+  for (const [name, fileType] of entries) {
+    const sourceUri = vscode.Uri.joinPath(stagingUri, name);
+    const destinationUri = vscode.Uri.joinPath(projectRootUri, name);
+
+    if (fileType === vscode.FileType.Directory) {
+      await vscode.workspace.fs.createDirectory(destinationUri);
+      await copyStagedFilesToProject(sourceUri, destinationUri);
+      continue;
+    }
+
+    if (fileType !== vscode.FileType.File) {
+      continue;
+    }
+
+    try {
+      await vscode.workspace.fs.copy(sourceUri, destinationUri, {
+        overwrite: false,
+      });
+    } catch (e) {
+      if (e instanceof vscode.FileSystemError && e.code === 'FileExists') {
+        console.info(`File ${destinationUri.fsPath} already exists in project dir, skipping copy.`);
+      } else {
+        throw e;
+      }
     }
   }
-  return destUri;
 }
 
 const dramsBasePath = () => {
@@ -176,8 +196,6 @@ export async function createAndOpenDram(
     return;
   }
 
-  const docNames = config.files.map((f) => f.path);
-
   const choice = await vscode.window.showInformationMessage(
     `${title}`,
     {
@@ -212,17 +230,31 @@ export async function createAndOpenDram(
     return;
   }
 
-  const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams');
+  const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams', utilities.randomSlug());
+  const tempUri = vscode.Uri.joinPath(
+    context.globalStorageUri,
+    'drams-tmp',
+    utilities.randomSlug()
+  );
 
   await vscode.workspace.fs.createDirectory(storageUri);
+  await vscode.workspace.fs.createDirectory(tempUri);
   await vscode.workspace.fs.createDirectory(projectRootUri);
-  await downloadDramFiles(storageUri, src, docNames).catch((err) => {
-    console.error(`Error downloading drams: ${err.message}`);
-    void vscode.window.showWarningMessage(`Error downloading files: ${err.message}`);
-  });
-
-  const destUris = config.files.map((file) => putStoreDocInPlace(storageUri, projectRootUri, file));
-  await Promise.all(destUris);
+  try {
+    await stageDramFiles(storageUri, tempUri, src, config.files);
+    await copyStagedFilesToProject(storageUri, projectRootUri);
+  } catch (err) {
+    console.error(`Error staging drams: ${err.message}`);
+    void vscode.window.showWarningMessage(`Error staging files: ${err.message}`);
+    return;
+  } finally {
+    void vscode.workspace.fs
+      .delete(storageUri, { recursive: true, useTrash: false })
+      .then(undefined, () => undefined);
+    void vscode.workspace.fs
+      .delete(tempUri, { recursive: true, useTrash: false })
+      .then(undefined, () => undefined);
+  }
 
   await serializeDramStartConfig(projectRootUri, { config });
 
@@ -277,13 +309,16 @@ export async function startDram() {
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
   await state.initProjectDir(ConnectType.JackIn, null, false);
   const projectRootUri = state.getProjectRootUri();
-  const [mainDoc, mainEditor] = await openStoredDoc(projectRootUri, config.files[0]);
-  for (const file of config.files.slice(1)) {
-    await openStoredDoc(projectRootUri, file);
+  const openPaths = dramManifest.resolveDramOpenPaths(config);
+
+  if (openPaths.length === 0) {
+    return;
   }
 
-  if (config.files?.length > 0) {
-    await openStoredDoc(projectRootUri, config.files[0]);
+  const [mainDocPath, ...secondaryDocPaths] = openPaths;
+  const [mainDoc, mainEditor] = await openProjectDoc(projectRootUri, mainDocPath);
+  for (const filePath of secondaryDocPaths) {
+    await openProjectDoc(projectRootUri, filePath);
   }
 
   const firstPos = mainEditor.document.positionAt(0);

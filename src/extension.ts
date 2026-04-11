@@ -328,8 +328,8 @@ async function activate(context: vscode.ExtensionContext) {
         `${drams.dramUrl('calva_getting_started')}`
       );
     },
-    createMinimalProject: () => {
-      return drams.createAndOpenDram(context, 'mini proj', `${drams.dramUrl('mini')}`);
+    createTryClojureProject: () => {
+      return drams.createAndOpenDram(context, 'Try Clojure', `${drams.dramUrl('try_clojure')}`);
     },
     createAndOpenProjectFromDram: (title: string, src: string) => {
       return drams.createAndOpenDram(context, title, src);

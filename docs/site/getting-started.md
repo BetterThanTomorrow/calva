@@ -65,9 +65,14 @@ If you are new to Clojure or ClojureScript altogether, please check out the guid
 
 There are also many great books on Clojure. [Clojure for the Brave and True](https://www.braveclojure.com/clojure-for-the-brave-and-true/) can be read for free online. It is a great resource for beginners.
 
-## Create a mini Clojure project
+### Create a Try Clojure starter project
 
-When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Calva: Create a mini Clojure project**. It will ask for folder to create the project in, and open this project for you, connecting the REPL. This project only contains one source file and has no build tooling. For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by sSean Corfield.
+If you want a minimal local project to poke around in (rather than the guided REPL above), use the command **Calva: Create a **Try Clojure** project**.
+
+- It stages the “official” [https://github.com/clojure/try-clojure](https://github.com/clojure/try-clojure) project and adds some few Calva settings.
+- Only Java required
+
+For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by sSean Corfield.
 
 ## Dram - Where the Guides Live
 
