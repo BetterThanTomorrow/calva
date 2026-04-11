@@ -16,6 +16,8 @@ export type DramStartConfig = {
   config: DramConfig;
 };
 
+type DramSetupProgress = vscode.Progress<{ message?: string; increment?: number }>;
+
 function devBuild() {
   const calva = vscode.extensions.getExtension('betterthantomorrow.calva');
   const calvaVersion = calva.packageJSON.version;
@@ -42,7 +44,17 @@ async function fetchConfig(dramSrc: string): Promise<DramConfig> {
   return cljsLib.parseEdn(configEdn) as DramConfig;
 }
 
-async function stageDramPathFile(stagingUri: vscode.Uri, src: string, filePath: string) {
+function reportDramSetupProgress(progress: DramSetupProgress | undefined, message: string) {
+  progress?.report({ message });
+}
+
+async function stageDramPathFile(
+  stagingUri: vscode.Uri,
+  src: string,
+  filePath: string,
+  progress?: DramSetupProgress
+) {
+  reportDramSetupProgress(progress, `Downloading ${filePath}`);
   const directoryPath = path.dirname(filePath).split(/\//);
   const dirUri = vscode.Uri.joinPath(stagingUri, ...directoryPath);
   await vscode.workspace.fs.createDirectory(dirUri);
@@ -53,11 +65,14 @@ async function stageDramPathFile(stagingUri: vscode.Uri, src: string, filePath: 
 async function stageGithubArchiveFile(
   stagingUri: vscode.Uri,
   tempUri: vscode.Uri,
-  archiveUrl: string
+  archiveUrl: string,
+  progress?: DramSetupProgress
 ) {
   await vscode.workspace.fs.createDirectory(tempUri);
   const archiveUri = vscode.Uri.joinPath(tempUri, `${utilities.randomSlug()}.zip`);
+  reportDramSetupProgress(progress, 'Downloading GitHub starter archive');
   await utilities.downloadFromUrl(archiveUrl, archiveUri.fsPath);
+  reportDramSetupProgress(progress, 'Extracting GitHub starter archive');
   await dramStaging.stageGithubArchive(archiveUri.fsPath, stagingUri.fsPath);
 }
 
@@ -79,15 +94,16 @@ async function stageDramFiles(
   stagingUri: vscode.Uri,
   tempUri: vscode.Uri,
   src: string,
-  files: dramManifest.DramFileInput[]
+  files: dramManifest.DramFileInput[],
+  progress?: DramSetupProgress
 ) {
   for (const file of files) {
     if (dramManifest.isGithubDramFile(file)) {
-      await stageGithubArchiveFile(stagingUri, tempUri, file.github);
+      await stageGithubArchiveFile(stagingUri, tempUri, file.github, progress);
       continue;
     }
 
-    await stageDramPathFile(stagingUri, src, file.path);
+    await stageDramPathFile(stagingUri, src, file.path, progress);
     console.log(`Downloaded ${file.path}`);
   }
 }
@@ -243,46 +259,65 @@ export async function createAndOpenDram(
     return;
   }
 
-  const storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'drams', utilities.randomSlug());
-  const tempUri = vscode.Uri.joinPath(
-    context.globalStorageUri,
-    'drams-tmp',
-    utilities.randomSlug()
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Setting up ${title}...`,
+      cancellable: false,
+    },
+    async (progress) => {
+      const storageUri = vscode.Uri.joinPath(
+        context.globalStorageUri,
+        'drams',
+        utilities.randomSlug()
+      );
+      const tempUri = vscode.Uri.joinPath(
+        context.globalStorageUri,
+        'drams-tmp',
+        utilities.randomSlug()
+      );
+
+      reportDramSetupProgress(progress, 'Preparing starter workspace');
+      await vscode.workspace.fs.createDirectory(storageUri);
+      await vscode.workspace.fs.createDirectory(tempUri);
+      await vscode.workspace.fs.createDirectory(projectRootUri);
+      try {
+        reportDramSetupProgress(progress, 'Staging starter files');
+        await stageDramFiles(storageUri, tempUri, src, config.files, progress);
+        reportDramSetupProgress(progress, 'Copying staged files into project');
+        await copyStagedFilesToProject(storageUri, projectRootUri);
+      } catch (err) {
+        console.error(`Error staging drams: ${err.message}`);
+        void vscode.window.showWarningMessage(`Error staging files: ${err.message}`);
+        return;
+      } finally {
+        void vscode.workspace.fs
+          .delete(storageUri, { recursive: true, useTrash: false })
+          .then(undefined, () => undefined);
+        void vscode.workspace.fs
+          .delete(tempUri, { recursive: true, useTrash: false })
+          .then(undefined, () => undefined);
+      }
+
+      reportDramSetupProgress(progress, 'Finishing starter setup');
+      await serializeDramStartConfig(projectRootUri, { config });
+
+      const currentWorkspaceFolder = vscode.workspace.workspaceFolders?.[0];
+
+      if (currentWorkspaceFolder && currentWorkspaceFolder.uri.fsPath === projectRootUri.fsPath) {
+        reportDramSetupProgress(progress, 'Starting starter REPL');
+        await startDram();
+        return vscode.commands.executeCommand('calva.jackIn');
+      } else {
+        reportDramSetupProgress(progress, 'Opening starter workspace');
+        return vscode.commands.executeCommand(
+          'vscode.openFolder',
+          projectRootUri,
+          dramOpenFolderOptions(context)
+        );
+      }
+    }
   );
-
-  await vscode.workspace.fs.createDirectory(storageUri);
-  await vscode.workspace.fs.createDirectory(tempUri);
-  await vscode.workspace.fs.createDirectory(projectRootUri);
-  try {
-    await stageDramFiles(storageUri, tempUri, src, config.files);
-    await copyStagedFilesToProject(storageUri, projectRootUri);
-  } catch (err) {
-    console.error(`Error staging drams: ${err.message}`);
-    void vscode.window.showWarningMessage(`Error staging files: ${err.message}`);
-    return;
-  } finally {
-    void vscode.workspace.fs
-      .delete(storageUri, { recursive: true, useTrash: false })
-      .then(undefined, () => undefined);
-    void vscode.workspace.fs
-      .delete(tempUri, { recursive: true, useTrash: false })
-      .then(undefined, () => undefined);
-  }
-
-  await serializeDramStartConfig(projectRootUri, { config });
-
-  const currentWorkspaceFolder = vscode.workspace.workspaceFolders?.[0];
-
-  if (currentWorkspaceFolder && currentWorkspaceFolder.uri.fsPath === projectRootUri.fsPath) {
-    await startDram();
-    return vscode.commands.executeCommand('calva.jackIn');
-  } else {
-    return vscode.commands.executeCommand(
-      'vscode.openFolder',
-      projectRootUri,
-      dramOpenFolderOptions(context)
-    );
-  }
 }
 
 function ARGS_FILE_PATH(projectRootUri: vscode.Uri) {
