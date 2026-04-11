@@ -24,6 +24,19 @@ function devBuild() {
   return { isDevBuild, isDebug };
 }
 
+function dramOpenFolderOptions(context: vscode.ExtensionContext) {
+  if (context.extensionMode === vscode.ExtensionMode.Development) {
+    return {
+      forceReuseWindow: true,
+      noRecentEntry: true,
+    };
+  }
+
+  return {
+    forceNewWindow: true,
+  };
+}
+
 async function fetchConfig(dramSrc: string): Promise<DramConfig> {
   const configEdn = await utilities.fetchFromUrl(`${dramSrc}/dram.edn`);
   return cljsLib.parseEdn(configEdn) as DramConfig;
@@ -264,7 +277,11 @@ export async function createAndOpenDram(
     await startDram();
     return vscode.commands.executeCommand('calva.jackIn');
   } else {
-    return vscode.commands.executeCommand('vscode.openFolder', projectRootUri, true);
+    return vscode.commands.executeCommand(
+      'vscode.openFolder',
+      projectRootUri,
+      dramOpenFolderOptions(context)
+    );
   }
 }
 
