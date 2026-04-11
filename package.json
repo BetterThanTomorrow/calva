@@ -178,7 +178,7 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
               },
               "evalOutput": {
@@ -189,7 +189,7 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
               },
               "otherOutput": {
@@ -200,14 +200,14 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
               }
             },
             "default": {
-              "evalResults": "repl-window",
-              "evalOutput": "repl-window",
-              "otherOutput": "repl-window"
+              "evalResults": "terminal",
+              "evalOutput": "terminal",
+              "otherOutput": "terminal"
             }
           },
           "calva.fiddleFilePaths": {

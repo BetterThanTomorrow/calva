@@ -13,10 +13,10 @@ Calva categorizes output into three types:
 
 With the setting `calva.outputDestinations`, you can configure where each category of output should go to. These are the allowed values and their descriptions:
 
-* `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view). This is the default value.
-* `"output-view"` - The [output view](output-view.md) (a read-only view that is much more performant than the REPL Window)
-* `"output-channel"` - The _Calva Says_ Output Channel
-* `"terminal"` - The _Calva Output_ (pseudo) Terminal
+* `"terminal"` - The _Calva Output_ (pseudo) Terminal. This is the default value.
+* `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view).
+* `"output-view"` - The [output view](output-view.md) (a read-only view that is much more performant than the REPL Window).
+* `"output-channel"` - The _Calva Says_ Output Channel.
 
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
 different views in different ways. We hope you will find a combination of output destinations that suits you.
