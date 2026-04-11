@@ -1045,7 +1045,7 @@
           "calva.enableInspectorRainbow": {
             "type": "boolean",
             "markdownDescription": "Should the Calva Inspector items use rainbow colors? When enabled, the collection items will be colored with the same colors as VS Code uses for bracket pairs. See https://calva.io/inspector for info.",
-            "default": false
+            "default": true
           },
           "calva.keybindingsEnabled": {
             "type": "boolean",
