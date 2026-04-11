@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Update REPL UI configuration defaults to match Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/3166)
+  - Use `terminal` as the default destination for all output categories
+  - Echoing of the evaluated code to the output evaluation result destionation is now default enabled
+  - The configured output evaluation result destionation will uncoditionally always show code evaluated via the API (such as when Backseat Driver evaluates things)
+
 ## [2.0.572] - 2026-04-10
 
 - [Add config for always prompting for nREPL port](https://github.com/BetterThanTomorrow/calva/issues/3162)
