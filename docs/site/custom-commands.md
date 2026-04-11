@@ -22,7 +22,7 @@ The `calva.customREPLCommandSnippets` is an array of objects with the following 
 * `key`: A key can be used to reference the snippet from **Run Custom REPL Command** keyboard shortcut arguments. It will also be used in the quick-pick menu.
 * `ns`: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.
 * `repl`: Which repl session to use for the evaluation. Either `"clj"` or `"cljs"`. Omit if you want to use the session of the current editor.
-* `evaluationSendCodeToOutputWindow`: (default `true`) Whether the evaluated code should be echoed to the Output/REPL window.
+* `evaluationSendCodeToOutputWindow`: (default `true`) Whether the evaluated code should also be echoed to the configured output destination for results.
 
 There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are
 

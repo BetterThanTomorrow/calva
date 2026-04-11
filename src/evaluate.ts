@@ -180,17 +180,23 @@ async function evaluateCodeUpdatingUI(
     whoTracking.setCurrentWho(session.sessionId, 'ui');
 
     try {
-      if (evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document)) {
-        replWindow.appendLine(code);
-        if (output.getDestinationConfiguration().evalResults !== 'repl-window') {
-          output.appendClojureEval(code, {
-            ns,
-            replSessionType: sessionKey,
-            outputCategory: 'evaluatedCode',
-            who: 'ui',
-          });
-        }
-      }
+      const evalResultsDestination = output.getDestinationConfiguration().evalResults;
+      const shouldWriteVisibleEvaluatedCode =
+        evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
+
+      output.appendEvaluatedCode(code, {
+        destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
+        additionalDestinations:
+          shouldWriteVisibleEvaluatedCode && evalResultsDestination !== 'repl-window'
+            ? [evalResultsDestination]
+            : [],
+        sinkDestination: evalResultsDestination,
+        writeVisible: shouldWriteVisibleEvaluatedCode,
+        ns,
+        replSessionType: sessionKey,
+        visibleOutputCategory: 'evaluatedCode',
+        who: 'ui',
+      });
 
       let value = await context.value;
       value = util.stripAnsi(context.pprintOut || value);

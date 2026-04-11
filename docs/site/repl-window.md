@@ -17,6 +17,8 @@ The first prompt is from when the `clj` REPL is connected, and the second from `
 
 By default the REPL Window doubles as the place where Calva sends output like stdout/stderr and other messages. See [Calva Output](output.md) for more about this and how to change this behaviour.
 
+If you want manual evaluations to also echo the code itself there, use the `calva.evaluationSendCodeToOutputWindow` setting.
+
 ## Finding the REPL Window
 
 If you quickly want to open and/or switch to the REPL Window there is the command **Calva: Show/Open REPL Window**, `ctrl+alt+o r`.
