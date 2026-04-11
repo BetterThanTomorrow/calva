@@ -365,7 +365,7 @@
           },
           "calva.evaluationSendCodeToOutputWindow": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "description": "Also send evaluated code to the REPL Window"
           },
           "calva.testOnSave": {
