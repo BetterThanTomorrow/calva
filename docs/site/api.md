@@ -305,6 +305,8 @@ export interface OutputMessage {
 }
 ```
 
+Calva emits exactly one `evaluatedCode` message per evaluation. For `repl.evaluate()`, that message is independent of `calva.evaluationSendCodeToOutputWindow`, and the visible copy of the evaluated code goes to the configured eval-results destination. The setting now only controls the extra REPL Window echo used by manual/UI evaluations.
+
 ### `repl.evaluateCode()` *(deprecated)*
 
 !!! Warning "Deprecated"

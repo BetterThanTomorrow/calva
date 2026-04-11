@@ -111,14 +111,10 @@ export const evaluate = async (
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
   whoTracking.setCurrentWho(session.sessionId, resolvedWho);
 
-  if (getConfig().evaluationSendCodeToOutputWindow) {
-    if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
-      resultOutput.appendClojureEval(code, {
-        ...evalOptions,
-        outputCategory: 'evaluatedCode',
-      });
-    }
-  }
+  resultOutput.appendEvaluatedCode(code, {
+    destination: resultOutput.getDestinationConfiguration().evalResults,
+    ...evalOptions,
+  });
 
   let result: Result;
   try {

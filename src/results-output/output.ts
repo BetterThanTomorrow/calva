@@ -14,6 +14,7 @@ import {
 } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
+import { routeEvaluatedCode } from './evaluated-code';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -66,6 +67,16 @@ export type AppendClojureOptions = {
   outputCategory?: OutputCategory;
   who?: string;
   description?: string;
+};
+
+export type AppendEvaluatedCodeOptions = {
+  destination: OutputDestination;
+  additionalDestinations?: OutputDestination[];
+  sinkDestination?: OutputDestination;
+  visibleOutputCategory?: OutputCategory;
+  ns?: string;
+  replSessionType?: string;
+  who?: string;
 };
 
 const lightTheme = {
@@ -263,21 +274,13 @@ function nsInfoLine(destination: OutputDestination, options: AppendClojureOption
   )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`;
 }
 
-function appendClojure(
-  options: AppendOptions & AppendClojureOptions,
+function emitClojureMessage(
+  options: Pick<AppendClojureOptions, 'ns' | 'replSessionType' | 'who'> & {
+    outputCategory: OutputCategory;
+  },
   message: string,
-  after?: AfterAppendCallback
+  didLastTerminateLine: boolean
 ) {
-  const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = true;
-  if (options.description) {
-    appendOtherOut(options.description, {
-      who: options.who,
-      ns: options.ns,
-      replSessionType: options.replSessionType,
-    });
-  }
   try {
     emit({
       category: options.outputCategory,
@@ -289,6 +292,15 @@ function appendClojure(
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
   }
+}
+
+function writeClojure(
+  options: AppendOptions & AppendClojureOptions,
+  message: string,
+  didLastTerminateLine: boolean,
+  after?: AfterAppendCallback
+) {
+  const destination = options.destination;
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
   } else if (destination === 'output-channel') {
@@ -317,7 +329,92 @@ function appendClojure(
       after(undefined, undefined);
     }
   }
+}
+
+function appendClojure(
+  options: AppendOptions & AppendClojureOptions,
+  message: string,
+  after?: AfterAppendCallback
+) {
+  const destination = options.destination;
+  const didLastTerminateLine = didLastOutputTerminateLine[destination];
+  didLastOutputTerminateLine[destination] = true;
+  if (options.description) {
+    appendOtherOut(options.description, {
+      who: options.who,
+      ns: options.ns,
+      replSessionType: options.replSessionType,
+    });
+  }
+  emitClojureMessage(options, message, didLastTerminateLine);
+  writeClojure(options, message, didLastTerminateLine, after);
   saveLastInfoLineData(destination, options);
+}
+
+export function appendEvaluatedCode(
+  code: string,
+  options: AppendEvaluatedCodeOptions,
+  after?: AfterAppendCallback
+) {
+  const {
+    destination,
+    additionalDestinations = [],
+    sinkDestination = destination,
+    visibleOutputCategory = 'evalResults',
+    ...metadataOptions
+  } = options;
+  const visibleDestinations = Array.from(new Set([destination, ...additionalDestinations]));
+  const didLastTerminateLineByDestination = new Map<OutputDestination, boolean>();
+
+  for (const visibleDestination of visibleDestinations) {
+    didLastTerminateLineByDestination.set(
+      visibleDestination,
+      didLastOutputTerminateLine[visibleDestination]
+    );
+    didLastOutputTerminateLine[visibleDestination] = true;
+  }
+
+  const sinkDidLastTerminateLine =
+    didLastTerminateLineByDestination.get(sinkDestination) ??
+    didLastOutputTerminateLine[sinkDestination];
+
+  if (!didLastTerminateLineByDestination.has(sinkDestination)) {
+    didLastOutputTerminateLine[sinkDestination] = true;
+  }
+
+  routeEvaluatedCode({
+    code,
+    didLastTerminateLine: sinkDidLastTerminateLine,
+    who: metadataOptions.who,
+    ns: metadataOptions.ns,
+    replSessionKey: metadataOptions.replSessionType,
+    visibleOutputCategory,
+    emit: (message) => {
+      try {
+        emit(message);
+      } catch (e) {
+        console.error('Calva output-sink listener error', e.message);
+      }
+    },
+    writeVisible: ({ code: visibleCode, didLastTerminateLine, outputCategory }) => {
+      visibleDestinations.forEach((visibleDestination, index) => {
+        writeClojure(
+          {
+            destination: visibleDestination,
+            outputCategory,
+            ...metadataOptions,
+          },
+          visibleCode,
+          didLastTerminateLineByDestination.get(visibleDestination) ?? didLastTerminateLine,
+          index === visibleDestinations.length - 1 ? after : undefined
+        );
+      });
+    },
+  });
+
+  visibleDestinations.forEach((visibleDestination) => {
+    saveLastInfoLineData(visibleDestination, metadataOptions);
+  });
 }
 
 /**

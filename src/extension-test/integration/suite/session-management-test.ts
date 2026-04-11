@@ -1,17 +1,20 @@
 import * as assert from 'assert';
 import * as Mocha from 'mocha';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import connector from '../../../connector';
 import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
+import evaluate from '../../../evaluate';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type { NReplSession, NReplClient } from '../../../nrepl';
 import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import { buildGlobSpecsFromTiers } from '../../../nrepl/globs';
+import { getDocument } from '../../../doc-mirror';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -25,8 +28,27 @@ const createSession = (replType: string, clientKey?: string): NReplSession =>
     client: clientKey ? { clientKey } : undefined,
   } as NReplSession);
 
+const createEvaluatingSession = (result: string, clientKey?: string): NReplSession =>
+  ({
+    replType: 'clj',
+    sessionId: 'session-management/evaluate-session-id',
+    client: clientKey ? { clientKey } : undefined,
+    eval: (_code: string, ns: string) => ({
+      value: Promise.resolve(result),
+      ns,
+      outPut: '',
+      errorOutput: '',
+    }),
+    stacktrace: () => Promise.resolve(undefined),
+  } as unknown as NReplSession);
+
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
   outputWindow.setSession(createSession(sessionType), ns, sessionType);
+};
+
+const getReplWindowText = async (): Promise<string> => {
+  const replWindowDoc = await outputWindow.openReplWindowDoc();
+  return getDocument(replWindowDoc).document.getText();
 };
 
 describe(`${suiteName} suite`, () => {
@@ -104,6 +126,266 @@ describe(`${suiteName} suite`, () => {
       session.projectRoot.includes('projects/deps.edn'),
       `Expected path to include projects/deps.edn but got: ${session.projectRoot}`
     );
+  });
+
+  it('emits evaluatedCode once regardless of the code-echo setting', async () => {
+    const config = vscode.workspace.getConfiguration('calva');
+    const originalDestinations = config.inspect('outputDestinations')?.globalValue;
+    const originalSendCodeSetting = config.inspect('evaluationSendCodeToOutputWindow')?.globalValue;
+    const sessionKey = 'session-management/evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'integration-test';
+    const events: replApi.OutputMessage[] = [];
+
+    sessionRegistry.registerSession(sessionKey, createEvaluatingSession(evaluationResult), {
+      globs: ['**/*.clj'],
+    });
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      await config.update(
+        'outputDestinations',
+        {
+          evalResults: 'repl-window',
+          evalOutput: 'repl-window',
+          otherOutput: 'repl-window',
+        },
+        vscode.ConfigurationTarget.Global
+      );
+
+      for (const sendCodeToOutputWindow of [false, true]) {
+        events.length = 0;
+        await outputWindow.clearReplWindowDoc();
+        await config.update(
+          'evaluationSendCodeToOutputWindow',
+          sendCodeToOutputWindow,
+          vscode.ConfigurationTarget.Global
+        );
+
+        await replApi.evaluate(code, {
+          sessionKey,
+          ns: 'user',
+          who,
+        });
+
+        await testUtil.waitForCondition(async () => {
+          const replWindowDoc = await outputWindow.openReplWindowDoc();
+          return getDocument(replWindowDoc).document.getText().includes(code);
+        });
+
+        const evaluatedCodeEvents = events.filter(
+          (message) => message.category === 'evaluatedCode'
+        );
+        assert.strictEqual(
+          evaluatedCodeEvents.length,
+          1,
+          `Expected one evaluatedCode event when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
+        );
+        assert.strictEqual(evaluatedCodeEvents[0].who, who);
+        assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
+        assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+
+        const replWindowDoc = await outputWindow.openReplWindowDoc();
+        const replText = getDocument(replWindowDoc).document.getText();
+        const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
+
+        assert.strictEqual(
+          codeOccurrences,
+          1,
+          `Expected visible evaluated code once when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
+        );
+      }
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      await config.update(
+        'outputDestinations',
+        originalDestinations,
+        vscode.ConfigurationTarget.Global
+      );
+      await config.update(
+        'evaluationSendCodeToOutputWindow',
+        originalSendCodeSetting,
+        vscode.ConfigurationTarget.Global
+      );
+      await outputWindow.clearReplWindowDoc();
+    }
+  });
+
+  it('manual evaluation emits evaluatedCode once and only echoes to the REPL window when enabled', async () => {
+    const config = vscode.workspace.getConfiguration('calva');
+    const originalDestinations = config.inspect('outputDestinations')?.globalValue;
+    const originalSendCodeSetting = config.inspect('evaluationSendCodeToOutputWindow')?.globalValue;
+    const sessionKey = 'session-management/manual-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const events: replApi.OutputMessage[] = [];
+    const editor = await testUtil.openFile(path.join(testUtil.testDataDir, 'test.clj'));
+
+    sessionRegistry.registerSession(sessionKey, createEvaluatingSession(evaluationResult), {
+      globs: ['**/*.clj'],
+    });
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      await config.update(
+        'outputDestinations',
+        {
+          evalResults: 'output-channel',
+          evalOutput: 'output-channel',
+          otherOutput: 'output-channel',
+        },
+        vscode.ConfigurationTarget.Global
+      );
+
+      for (const sendCodeToOutputWindow of [false, true]) {
+        events.length = 0;
+        await outputWindow.clearReplWindowDoc();
+        await config.update(
+          'evaluationSendCodeToOutputWindow',
+          sendCodeToOutputWindow,
+          vscode.ConfigurationTarget.Global
+        );
+
+        const activeEditor = await vscode.window.showTextDocument(editor.document, {
+          preview: false,
+        });
+        await testUtil.waitForCondition(
+          () => vscode.window.activeTextEditor?.document.uri.fsPath === editor.document.uri.fsPath,
+          4000,
+          20,
+          'Timed out waiting for the source editor to become active'
+        );
+
+        await evaluate.evaluateInCurrentEditor(activeEditor, code, sessionKey, 'user', {});
+
+        await testUtil.waitForCondition(
+          () => events.filter((message) => message.category === 'evaluatedCode').length === 1,
+          4000,
+          20,
+          'Timed out waiting for manual evaluatedCode event'
+        );
+
+        const evaluatedCodeEvents = events.filter(
+          (message) => message.category === 'evaluatedCode'
+        );
+        assert.strictEqual(
+          evaluatedCodeEvents.length,
+          1,
+          `Expected one manual evaluatedCode event when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
+        );
+        assert.strictEqual(evaluatedCodeEvents[0].who, 'ui');
+        assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
+        assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+
+        if (sendCodeToOutputWindow) {
+          await testUtil.waitForCondition(
+            async () => (await getReplWindowText()).includes(code),
+            4000,
+            20,
+            'Timed out waiting for manual REPL-window echo'
+          );
+        }
+
+        const replText = await getReplWindowText();
+        const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
+
+        assert.strictEqual(
+          codeOccurrences,
+          sendCodeToOutputWindow ? 1 : 0,
+          `Unexpected REPL-window echo count when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
+        );
+      }
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      await config.update(
+        'outputDestinations',
+        originalDestinations,
+        vscode.ConfigurationTarget.Global
+      );
+      await config.update(
+        'evaluationSendCodeToOutputWindow',
+        originalSendCodeSetting,
+        vscode.ConfigurationTarget.Global
+      );
+      await outputWindow.clearReplWindowDoc();
+    }
+  });
+
+  it('manual REPL-window evaluation avoids duplicate visible code while still emitting evaluatedCode', async () => {
+    const config = vscode.workspace.getConfiguration('calva');
+    const originalDestinations = config.inspect('outputDestinations')?.globalValue;
+    const sessionKey = 'session-management/repl-window-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const events: replApi.OutputMessage[] = [];
+
+    sessionRegistry.registerSession(sessionKey, createEvaluatingSession(evaluationResult), {
+      globs: ['**/*.clj'],
+    });
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      await config.update(
+        'outputDestinations',
+        {
+          evalResults: 'output-channel',
+          evalOutput: 'output-channel',
+          otherOutput: 'output-channel',
+        },
+        vscode.ConfigurationTarget.Global
+      );
+
+      await outputWindow.clearReplWindowDoc();
+      await outputWindow.revealReplWindowDoc(false);
+      await testUtil.waitForCondition(
+        () => outputWindow.isReplWindowDoc(vscode.window.activeTextEditor?.document),
+        4000,
+        20,
+        'Timed out waiting for REPL window to become active'
+      );
+
+      outputWindow.appendLine(code);
+      await testUtil.waitForCondition(
+        async () => (await getReplWindowText()).includes(code),
+        4000,
+        20,
+        'Timed out waiting for test code to be appended to the REPL window'
+      );
+
+      await evaluate.evaluateInOutputWindow(code, sessionKey, 'user', {
+        evaluationSendCodeToOutputWindow: false,
+      });
+
+      await testUtil.waitForCondition(
+        () => events.filter((message) => message.category === 'evaluatedCode').length === 1,
+        4000,
+        20,
+        'Timed out waiting for REPL-window evaluatedCode event'
+      );
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+
+      const replText = await getReplWindowText();
+      const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
+      assert.strictEqual(codeOccurrences, 1, 'Expected REPL-window code to remain single-copy');
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      await config.update(
+        'outputDestinations',
+        originalDestinations,
+        vscode.ConfigurationTarget.Global
+      );
+      await outputWindow.clearReplWindowDoc();
+    }
   });
 
   it('toggle command cycles cljc target within a connection', () => {
