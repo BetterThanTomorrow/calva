@@ -73,6 +73,7 @@ export type AppendEvaluatedCodeOptions = {
   destination: OutputDestination;
   additionalDestinations?: OutputDestination[];
   sinkDestination?: OutputDestination;
+  writeVisible?: boolean;
   visibleOutputCategory?: OutputCategory;
   ns?: string;
   replSessionType?: string;
@@ -360,10 +361,13 @@ export function appendEvaluatedCode(
     destination,
     additionalDestinations = [],
     sinkDestination = destination,
+    writeVisible = true,
     visibleOutputCategory = 'evalResults',
     ...metadataOptions
   } = options;
-  const visibleDestinations = Array.from(new Set([destination, ...additionalDestinations]));
+  const visibleDestinations = writeVisible
+    ? Array.from(new Set([destination, ...additionalDestinations]))
+    : [];
   const didLastTerminateLineByDestination = new Map<OutputDestination, boolean>();
 
   for (const visibleDestination of visibleDestinations) {
@@ -397,6 +401,12 @@ export function appendEvaluatedCode(
       }
     },
     writeVisible: ({ code: visibleCode, didLastTerminateLine, outputCategory }) => {
+      if (!visibleDestinations.length) {
+        if (after) {
+          after(undefined, undefined);
+        }
+        return;
+      }
       visibleDestinations.forEach((visibleDestination, index) => {
         writeClojure(
           {

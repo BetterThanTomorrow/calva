@@ -366,7 +366,7 @@
           "calva.evaluationSendCodeToOutputWindow": {
             "type": "boolean",
             "default": true,
-            "description": "Also echo manually evaluated code to the REPL Window"
+            "description": "Also echo manually evaluated code to the configured output destination for results"
           },
           "calva.testOnSave": {
             "type": "boolean",
@@ -549,7 +549,7 @@
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
-                  "markDownDescription": "Should the evaluated code snippet also be echoed to the REPL Window? This only controls the extra REPL-window echo."
+                  "markDownDescription": "Should the evaluated code snippet also be echoed to the configured output destination for results?"
                 }
               },
               "required": [

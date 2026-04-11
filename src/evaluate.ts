@@ -181,16 +181,17 @@ async function evaluateCodeUpdatingUI(
 
     try {
       const evalResultsDestination = output.getDestinationConfiguration().evalResults;
-      const shouldEchoToReplWindow =
+      const shouldWriteVisibleEvaluatedCode =
         evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
 
       output.appendEvaluatedCode(code, {
-        destination: shouldEchoToReplWindow ? 'repl-window' : evalResultsDestination,
+        destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
         additionalDestinations:
-          shouldEchoToReplWindow && evalResultsDestination !== 'repl-window'
+          shouldWriteVisibleEvaluatedCode && evalResultsDestination !== 'repl-window'
             ? [evalResultsDestination]
             : [],
         sinkDestination: evalResultsDestination,
+        writeVisible: shouldWriteVisibleEvaluatedCode,
         ns,
         replSessionType: sessionKey,
         visibleOutputCategory: 'evaluatedCode',

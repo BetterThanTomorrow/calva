@@ -234,7 +234,7 @@ describe(`${suiteName} suite`, () => {
       await config.update(
         'outputDestinations',
         {
-          evalResults: 'output-channel',
+          evalResults: 'repl-window',
           evalOutput: 'output-channel',
           otherOutput: 'output-channel',
         },

@@ -21,8 +21,6 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
 different views in different ways. We hope you will find a combination of output destinations that suits you.
 
-The evaluated code itself is also logged as a separate semantic event. For manual/UI evaluations, `calva.evaluationSendCodeToOutputWindow` controls whether Calva also echoes that code to the REPL Window. API subscribers to `repl.onOutputLogged()` still receive the `evaluatedCode` message regardless of that setting.
-
 ### Output Destinations Feature Comparison
 
 The table below lists the features of the different output destinations.
