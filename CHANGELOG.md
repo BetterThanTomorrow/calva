@@ -4,6 +4,15 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.573] - 2026-04-12
+
+- [Update REPL UI configuration defaults to match Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/3166)
+  - Use `terminal` as the default destination for all output categories
+  - Echoing of the evaluated code to the output evaluation result destionation is now default enabled
+  - The configured output evaluation result destionation will uncoditionally always show code evaluated via the API (such as when Backseat Driver evaluates things)
+  - Don't auto-reveal the Calva Inspector at REPL comnect
+- [Use the “official” Try Clojure project for the mini Clojure project starter](https://github.com/BetterThanTomorrow/calva/issues/3168)
+
 ## [2.0.572] - 2026-04-10
 
 - [Add config for always prompting for nREPL port](https://github.com/BetterThanTomorrow/calva/issues/3162)

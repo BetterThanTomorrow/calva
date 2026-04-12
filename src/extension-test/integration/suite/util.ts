@@ -9,6 +9,7 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
+import * as output from '../../../results-output/output';
 import { getDocument } from '../../../doc-mirror';
 import connector from '../../../connector';
 
@@ -146,6 +147,56 @@ export async function waitForValue<T>(
   }
 }
 
+export interface WaitForStableValueResult<T> {
+  value: T;
+  intermediateCount: number;
+  stableAfterMs: number;
+}
+
+export async function waitForStableValue<T>(
+  selector: () => T | undefined | Promise<T | undefined>,
+  stableMs = 100,
+  timeoutMs = 4000,
+  intervalMs = 20,
+  timeoutMessage = 'Timed out waiting for stable value'
+): Promise<WaitForStableValueResult<T>> {
+  const start = Date.now();
+  let lastValue: T | undefined;
+  let lastChangeTime: number | undefined;
+  let intermediateCount = 0;
+
+  while (true) {
+    const value = await selector();
+    if (value !== undefined) {
+      if (lastValue === undefined || value !== lastValue) {
+        if (lastValue !== undefined) {
+          intermediateCount++;
+        }
+        lastValue = value;
+        lastChangeTime = Date.now();
+      }
+      if (lastChangeTime !== undefined && Date.now() - lastChangeTime >= stableMs) {
+        return {
+          value: lastValue,
+          intermediateCount,
+          stableAfterMs: Date.now() - start,
+        };
+      }
+    }
+    if (Date.now() - start > timeoutMs) {
+      if (lastValue !== undefined) {
+        return {
+          value: lastValue,
+          intermediateCount,
+          stableAfterMs: Date.now() - start,
+        };
+      }
+      throw new Error(timeoutMessage);
+    }
+    await sleep(intervalMs);
+  }
+}
+
 export async function waitForCondition(
   predicate: () => boolean | Promise<boolean>,
   timeoutMs = 4000,
@@ -249,6 +300,49 @@ export async function waitForJackOutComplete(
   log(suite, 'Jack-out cleanup complete');
 }
 
+/**
+ * Retries a jack-in sequence on failure. Useful in CI where resource pressure
+ * can cause the nREPL handshake to fail transiently. On each failed attempt,
+ * forces a full jack-out before retrying.
+ */
+export async function withJackInRetry(
+  suite: string,
+  jackInAction: () => Promise<void>,
+  opts: {
+    maxAttempts?: number;
+    waitForClientSince?: number;
+    expectedSessionKeys?: string[];
+  } = {}
+): Promise<{ clientKey: string; sessionKeys: string[] }> {
+  const maxAttempts = opts.maxAttempts ?? (isCircleCI ? 3 : 1);
+  const sinceConnectedAt = opts.waitForClientSince ?? 0;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await jackInAction();
+      const client = await waitForNewClient(suite, sinceConnectedAt, 60_000);
+      const sessionKeys = await waitForSessionsReady(suite, client.key, opts.expectedSessionKeys);
+      log(suite, `Jack-in succeeded on attempt ${attempt}`);
+      return { clientKey: client.key, sessionKeys };
+    } catch (e) {
+      log(suite, `Jack-in attempt ${attempt}/${maxAttempts} failed: ${e}`);
+      if (attempt < maxAttempts) {
+        log(suite, 'Cleaning up before retry...');
+        try {
+          await jackIn.calvaJackout({ force: true });
+          await waitForJackOutComplete(suite, 30_000);
+        } catch (cleanupErr) {
+          log(suite, `Cleanup error (ignoring): ${cleanupErr}`);
+        }
+      } else {
+        throw e;
+      }
+    }
+  }
+  // unreachable, but satisfies TypeScript
+  throw new Error('withJackInRetry: exhausted attempts');
+}
+
 export class JackInHarness {
   private lastSeenClientConnectedAt = 0;
   private lastJackInDoneCount = 0;
@@ -302,19 +396,30 @@ export class JackInHarness {
   async jackInWithConnectSequence(
     filePath: string,
     connectSequence: unknown,
-    disableAutoSelect = true
+    disableAutoSelect = true,
+    expectedSessionKeys?: string[]
   ): Promise<string> {
-    await openFile(filePath);
-    log(this.suiteName, `Opened file for jack-in: ${filePath}`);
-
-    await vscode.commands.executeCommand('calva.jackIn', {
-      connectSequence,
-      disableAutoSelect,
-    });
-
-    const clientKey = await this.waitForNextClient();
+    const { clientKey } = await withJackInRetry(
+      this.suiteName,
+      async () => {
+        await openFile(filePath);
+        log(this.suiteName, `Opened file for jack-in: ${filePath}`);
+        await vscode.commands.executeCommand('calva.jackIn', {
+          connectSequence,
+          disableAutoSelect,
+        });
+      },
+      {
+        waitForClientSince: this.lastSeenClientConnectedAt,
+        expectedSessionKeys,
+      }
+    );
+    const clients = clientRegistry.listClients();
+    const client = clients.find((c) => c.key === clientKey);
+    if (client) {
+      this.lastSeenClientConnectedAt = client.connectedAt;
+    }
     await this.waitForJackInCompletion();
-    await waitForSessionsReady(this.suiteName, clientKey);
     log(this.suiteName, 'Jack-in complete for client', clientKey);
     return clientKey;
   }
@@ -330,6 +435,13 @@ export class JackInHarness {
   }
 
   async waitForJackInCompletion(timeoutMs = 60_000): Promise<void> {
+    if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+      log(
+        this.suiteName,
+        'Skipping REPL-window jack-in completion wait because other output is not routed there'
+      );
+      return;
+    }
     this.lastJackInDoneCount = await waitForJackInCompletionCount(
       this.suiteName,
       this.lastJackInDoneCount,

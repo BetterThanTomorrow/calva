@@ -1133,7 +1133,7 @@ export async function connect(
         }
       } else if (effectiveAutoConnect) {
         result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
-        if (!result.connected) {
+        if (!result.connected && !isJackIn) {
           output.appendLineOtherOut('Prompting for nREPL connection...');
           result = await promptForNreplUrlAndConnect(
             hostname,

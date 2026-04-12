@@ -5,6 +5,7 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as nameSuffix from '../../../nrepl/session-name-suffix';
+import * as jackIn from '../../../nrepl/jack-in';
 import connector from '../../../connector';
 import * as testUtil from './util';
 
@@ -27,7 +28,8 @@ suite('Name Suffix suite', () => {
 
   after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
-    await jackInHarness.disconnectAllClients();
+    await jackIn.calvaJackout({ force: true });
+    await testUtil.waitForJackOutComplete(suiteName);
     nameSuffix.resetPool();
   });
 

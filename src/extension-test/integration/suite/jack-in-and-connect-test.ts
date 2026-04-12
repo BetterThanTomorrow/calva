@@ -22,13 +22,17 @@ import {
 } from '../../../nrepl/connect-sequence-types';
 import * as projectTypes from '../../../nrepl/project-types';
 import { getConfig } from '../../../config';
+import * as output from '../../../results-output/output';
 
 suite('Jack-in and Connect suite', () => {
   const suite = 'Jack-in and Connect';
+  let originalDestinations: any;
 
   before(async () => {
     testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
+    const config = vscode.workspace.getConfiguration('calva');
+    originalDestinations = config.inspect('outputDestinations')?.globalValue;
   });
 
   after(async () => {
@@ -41,9 +45,19 @@ suite('Jack-in and Connect suite', () => {
   });
 
   beforeEach(async () => {
+    await setOutputDestinations('repl-window');
     await outputWindow.clearReplWindowDoc();
     resetConnectionTracking();
     await disconnectExistingClients();
+  });
+
+  afterEach(async () => {
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update(
+      'outputDestinations',
+      originalDestinations,
+      vscode.ConfigurationTarget.Global
+    );
   });
 
   test('start repl and connect (jack-in)', async function () {
@@ -414,7 +428,7 @@ async function loadAndAssert(
   needle: string[],
   options?: { waitForJackInOutput?: boolean }
 ) {
-  const replWindowDoc = await waitForResult(suite, options);
+  await waitForResult(suite, options);
 
   await vscode.workspace.openTextDocument(testFilePath).then((doc) =>
     vscode.window.showTextDocument(doc, {
@@ -424,7 +438,17 @@ async function loadAndAssert(
   testUtil.log(suite, 'opened test.clj document again');
 
   await commands.executeCommand('calva.loadFile');
-  const haystack = replWindowDoc.document.getText().split(/\r?\n/);
+  let haystack: string[] = [];
+  await testUtil.waitForCondition(
+    async () => {
+      const replWindowDoc = await outputWindow.openReplWindowDoc();
+      haystack = getDocument(replWindowDoc).document.getText().split(/\r?\n/);
+      return appearInOrder(needle, haystack);
+    },
+    10_000,
+    50,
+    `Timed out waiting for expected REPL-window output: ${JSON.stringify(needle)}`
+  );
   assert.ok(
     appearInOrder(needle, haystack),
     `Expected output to contain: ${JSON.stringify(needle)}\n, but got: ${JSON.stringify(
@@ -451,7 +475,27 @@ async function waitForNextClient(suite: string): Promise<string> {
 }
 
 async function waitForJackInCompletion(suite: string) {
+  if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+    testUtil.log(
+      suite,
+      'Skipping REPL-window jack-in completion wait because other output is not routed there'
+    );
+    return;
+  }
   lastJackInDoneCount = await testUtil.waitForJackInCompletionCount(suite, lastJackInDoneCount);
+}
+
+async function setOutputDestinations(destination: output.OutputDestination) {
+  const config = vscode.workspace.getConfiguration('calva');
+  await config.update(
+    'outputDestinations',
+    {
+      evalResults: destination,
+      evalOutput: destination,
+      otherOutput: destination,
+    },
+    vscode.ConfigurationTarget.Global
+  );
 }
 
 async function startJackInProcedure(

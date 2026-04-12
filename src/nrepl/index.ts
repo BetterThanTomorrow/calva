@@ -146,14 +146,50 @@ export class NReplClient {
   /**
    * Create a new NRepl client
    */
-  static create(opts: { host: string; port: number; onError: (e) => void }) {
+  static create(
+    opts: { host: string; port: number; onError: (e) => void },
+    handshakeTimeoutMs = 30_000
+  ) {
     return new Promise<NReplClient>((resolve, reject) => {
       let connected = false;
+      let settled = false;
+
+      function settle(
+        action: 'resolve' | 'reject',
+        value: NReplClient | Error,
+        timer: ReturnType<typeof setTimeout> | undefined
+      ) {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (timer) {
+          clearTimeout(timer);
+        }
+        if (action === 'resolve') {
+          resolve(value as NReplClient);
+        } else {
+          reject(value);
+        }
+      }
+
       const socket = net.createConnection(opts, () => {
         connected = true;
         const nsId = client.nextId;
         const cloneId = client.nextId;
         const describeId = client.nextId;
+
+        const handshakeTimer = setTimeout(() => {
+          settle(
+            'reject',
+            new Error(
+              `nREPL handshake timed out after ${handshakeTimeoutMs}ms ` +
+                `(host: ${opts.host}, port: ${opts.port})`
+            ),
+            undefined
+          );
+          socket.destroy();
+        }, handshakeTimeoutMs);
 
         client.decoder.on('data', (data) => {
           log(data, Direction.ServerToClient);
@@ -194,18 +230,25 @@ export class NReplClient {
             }
           }
           if (client.session && client.describe) {
-            resolve(client);
+            settle('resolve', client, handshakeTimer);
           }
         });
         const msg = { op: 'eval', code: '*ns*', id: nsId };
         log(msg, Direction.ClientToServer);
         client.encoder.write(msg);
       });
-      // Handle connection errors - reject the promise if not yet connected
       socket.on('error', (e) => {
-        if (!connected) {
-          reject(e);
-        }
+        settle('reject', e, undefined);
+      });
+      socket.on('close', () => {
+        settle(
+          'reject',
+          new Error(
+            `nREPL socket closed before handshake completed ` +
+              `(host: ${opts.host}, port: ${opts.port})`
+          ),
+          undefined
+        );
       });
       const client = new NReplClient(socket, opts.onError);
     });

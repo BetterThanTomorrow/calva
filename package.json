@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.572",
+  "version": "2.0.573",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -178,7 +178,7 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
               },
               "evalOutput": {
@@ -189,7 +189,7 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
               },
               "otherOutput": {
@@ -200,14 +200,14 @@
                   "terminal",
                   "output-view"
                 ],
-                "default": "repl-window",
+                "default": "terminal",
                 "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
               }
             },
             "default": {
-              "evalResults": "repl-window",
-              "evalOutput": "repl-window",
-              "otherOutput": "repl-window"
+              "evalResults": "terminal",
+              "evalOutput": "terminal",
+              "otherOutput": "terminal"
             }
           },
           "calva.fiddleFilePaths": {
@@ -365,8 +365,8 @@
           },
           "calva.evaluationSendCodeToOutputWindow": {
             "type": "boolean",
-            "default": false,
-            "description": "Also send evaluated code to the REPL Window"
+            "default": true,
+            "description": "Also echo manually evaluated code to the configured output destination for results"
           },
           "calva.testOnSave": {
             "type": "boolean",
@@ -549,7 +549,7 @@
                 },
                 "evaluationSendCodeToOutputWindow": {
                   "type": "boolean",
-                  "markDownDescription": "Should the code snippet evaluated be echoed to the REPL Window?"
+                  "markDownDescription": "Should the evaluated code snippet also be echoed to the configured output destination for results?"
                 }
               },
               "required": [
@@ -1040,12 +1040,12 @@
           "calva.autoOpenInspector": {
             "type": "boolean",
             "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
-            "default": true
+            "default": false
           },
           "calva.enableInspectorRainbow": {
             "type": "boolean",
             "markdownDescription": "Should the Calva Inspector items use rainbow colors? When enabled, the collection items will be colored with the same colors as VS Code uses for bracket pairs. See https://calva.io/inspector for info.",
-            "default": false
+            "default": true
           },
           "calva.keybindingsEnabled": {
             "type": "boolean",
@@ -1584,7 +1584,7 @@
       },
       {
         "command": "calva.toggleEvaluationSendCodeToOutputWindow",
-        "title": "Toggle also sending evaluated code to the REPL Window",
+        "title": "Toggle also echoing manually evaluated code to the REPL Window",
         "category": "Calva",
         "enablement": "calva:connected"
       },
@@ -1646,8 +1646,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.createMinimalProject",
-        "title": "Create a mini Clojure project",
+        "command": "calva.createTryClojureProject",
+        "title": "Create a Try Clojure project",
         "category": "Calva"
       },
       {

@@ -75,15 +75,23 @@ async function reformat(editor: vscode.TextEditor, textAndSelections: string, co
     `Timed out waiting for editor reset to ${JSON.stringify(textAndSelections)}`
   );
   await vscode.commands.executeCommand(command);
-  return testUtil.waitForValue(
+  const result = await testUtil.waitForStableValue(
     () => {
       const notation = textNotationFromDocAndSelections(editor.document, editor.selections);
       return notation !== textAndSelections ? notation : undefined;
     },
-    2000,
+    100,
+    4000,
     20,
     `Timed out waiting for reformat command ${command} to change editor state`
   );
+  console.log(
+    `reformat: command=${command}, intermediateStates=${result.intermediateCount}, stableAfter=${result.stableAfterMs}ms`
+  );
+  if (result.intermediateCount > 0) {
+    console.log(`reformat: WARNING intermediate states detected before settling`);
+  }
+  return result.value;
 }
 
 /** Cursor positions indicated in textAndSelections by |, |1, |2, etc. */

@@ -20,6 +20,14 @@ steps:
   - Create artifacts workspace
   - mkdir /tmp/artifacts
 
+- !:cmd
+  - Release CLJS builds
+  - npm run release-cljs
+
+- !:cmd
+  - Verify CLJS test output
+  - ls -l out/cljs-lib/test
+
 - !:bin*
   - Tamper Calva version if not release versioned
   - tamper-calva-version
@@ -29,6 +37,10 @@ steps:
 - !:cmd
   - Copy vsix
   - cp *.vsix /tmp/artifacts/
+
+- !:cmd
+  - Verify CLJS test output before persist
+  - ls -l out/cljs-lib/test
 
 - !:cmd
   - Copy build

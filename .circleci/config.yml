@@ -49,6 +49,12 @@ jobs:
         name: Create artifacts workspace
         command: mkdir /tmp/artifacts
     - run:
+        name: Release CLJS builds
+        command: npm run release-cljs
+    - run:
+        name: Verify CLJS test output
+        command: ls -l out/cljs-lib/test
+    - run:
         name: Tamper Calva version if not release versioned
         command: |
           VERSION=$(node -p 'require("./package.json").version')
@@ -99,6 +105,9 @@ jobs:
     - run:
         name: Copy vsix
         command: cp *.vsix /tmp/artifacts/
+    - run:
+        name: Verify CLJS test output before persist
+        command: ls -l out/cljs-lib/test
     - run:
         name: Copy build
         command: cp -r out /tmp/build; cp package.json /tmp/build
@@ -177,6 +186,9 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Verify CLJS test output after restore
+        command: ls -l out/cljs-lib/test
     - run:
         name: Run CLJS Tests
         command: npm run calva-lib-test
