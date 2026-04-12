@@ -312,8 +312,8 @@ async function executeJackInTask(
                   }
                 })
                 .catch((e) => {
-                  console.error('Jack-in connection failed:', e);
-                  output.appendLineOtherErr(`Jack-in connection failed: ${e.message}`);
+                  console.error('Jack-in connect failed:', e);
+                  output.appendLineOtherErr(`Jack-in connect failed: ${e}`);
                 });
             },
             (status: number) => {
