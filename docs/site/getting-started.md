@@ -72,7 +72,7 @@ If you want a minimal local project to poke around in (rather than the guided RE
 - It stages the “official” [https://github.com/clojure/try-clojure](https://github.com/clojure/try-clojure) project and adds some few Calva settings.
 - Only Java required
 
-For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by sSean Corfield.
+For creating more “real” project starters, we recommend using [deps-new](https://github.com/seancorfield/deps-new), by Sean Corfield.
 
 ## Dram - Where the Guides Live
 
