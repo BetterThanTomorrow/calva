@@ -296,19 +296,25 @@ async function executeJackInTask(
             (_p, hostname: string, port: string) => {
               utilities.setLaunchingState(null);
               resolve();
-              void connector.connect(connectSequence, true, hostname, port, true).then((result) => {
-                const entry = activeJackInProcesses.get(jackInProcess.id);
-                if (entry) {
-                  entry.connected = result.connected;
-                  entry.clientKey = result.clientKey;
-                }
-                refreshJackedInState();
-                output.appendLineOtherOut('Jack-in done.');
-                void output.replWindowAppendPrompt();
-                if (cb) {
-                  cb();
-                }
-              });
+              void connector
+                .connect(connectSequence, true, hostname, port, true)
+                .then((result) => {
+                  const entry = activeJackInProcesses.get(jackInProcess.id);
+                  if (entry) {
+                    entry.connected = result.connected;
+                    entry.clientKey = result.clientKey;
+                  }
+                  refreshJackedInState();
+                  output.appendLineOtherOut('Jack-in done.');
+                  void output.replWindowAppendPrompt();
+                  if (cb) {
+                    cb();
+                  }
+                })
+                .catch((e) => {
+                  console.error('Jack-in connection failed:', e);
+                  output.appendLineOtherErr(`Jack-in connection failed: ${e.message}`);
+                });
             },
             (status: number) => {
               utilities.setLaunchingState(null);
