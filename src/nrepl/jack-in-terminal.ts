@@ -2,6 +2,19 @@ import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as kill from 'tree-kill';
 import * as output from '../results-output/output';
+import * as jackInPortDetection from './jack-in-port-detection';
+
+const portDetectionLogLimit = 240;
+
+function shouldLogPortDetection(): boolean {
+  return process.env.CIRCLECI === 'true' || process.env.CALVA_LOG_JACK_IN_PORT_DETECTION === 'true';
+}
+
+function truncateForLog(value: string): string {
+  return value.length > portDetectionLogLimit
+    ? `${value.slice(0, portDetectionLogLimit)}...`
+    : value;
+}
 
 export interface JackInPTYOptions extends vscode.TerminalOptions {
   name: string;
@@ -30,6 +43,7 @@ export class JackInPTY implements vscode.Pseudoterminal {
   private process: child.ChildProcess;
   private isOpen = false;
   private pendingWrites: string[] = [];
+  private replStartDetectionBuffer = '';
 
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
     this.isOpen = true;
@@ -88,6 +102,7 @@ export class JackInPTY implements vscode.Pseudoterminal {
     output.appendLineOtherOut(`Starting Jack-in: ${createCommandLine(options)}`);
     return new Promise<child.ChildProcess>(() => {
       let hasReplStarted = false;
+      this.replStartDetectionBuffer = '';
       const data = `${createCommandLine(options)}\r\n\r\n`;
       this.safeWrite(`Process shell is: ${options.useShell}\r\n`);
       this.safeWrite('⚡️ Starting the REPL ⚡️ using the below command line:\r\n');
@@ -105,23 +120,43 @@ export class JackInPTY implements vscode.Pseudoterminal {
         }
       });
       this.process.stdout.on('data', (data) => {
+        const rawMsg = data.toString();
         const msg = this.dataToString(data);
         this.writeEmitter.fire(`${msg}\r\n`);
+        if (hasReplStarted) {
+          return;
+        }
+
+        const detection = jackInPortDetection.detectBufferedReplStart(
+          this.replStartDetectionBuffer,
+          rawMsg
+        );
+        this.replStartDetectionBuffer = detection.buffer;
+
+        if (shouldLogPortDetection()) {
+          console.log(
+            `[jack-in port-detection] chunk="${truncateForLog(msg)}" bufferChars=${
+              this.replStartDetectionBuffer.length
+            }`
+          );
+        }
+
         // Started nREPL server at 127.0.0.1:1337
         // nREPL server started on port 61419 on host localhost - nrepl://localhost:61419
         // shadow-cljs - nREPL server started on port 3333
         // nbb - nRepl server started on port %d . nrepl-cljs-sci version %s 1337 TODO
         // TODO: Remove nbb WIP match
-        if (msg.match(/Started nREPL server|nREPL server started/i)) {
+        if (detection.match) {
           hasReplStarted = true;
-          const [_, port1, host1, host2, port2, port3] = msg.match(
-            /(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/
-          );
-          whenREPLStarted(
-            this.process,
-            host1 ? host1 : host2 ? host2 : 'localhost',
-            port1 ? port1 : port2 ? port2 : port3
-          );
+          this.replStartDetectionBuffer = '';
+          if (shouldLogPortDetection()) {
+            console.log(
+              `[jack-in port-detection] matched host=${detection.match.host} port=${
+                detection.match.port
+              } text="${truncateForLog(detection.match.matchedText)}"`
+            );
+          }
+          whenREPLStarted(this.process, detection.match.host, detection.match.port);
         }
       });
       this.process.stderr.on('data', (data) => {
