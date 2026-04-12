@@ -18,7 +18,7 @@
     "url": "https://github.com/BetterThanTomorrow/calva/issues"
   },
   "engines": {
-    "node": ">=16",
+    "node": "^22.0.0",
     "vscode": "^1.75.0"
   },
   "sponsor": {

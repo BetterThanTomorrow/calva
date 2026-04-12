@@ -1,7 +1,7 @@
 !YS-v0:
 
 docker:
-- image: cimg/node:15.8
+- image: cimg/node:22.16.0
 
 steps:
 - !:add-ssh: ssh-fingerprint-1

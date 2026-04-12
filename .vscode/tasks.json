@@ -5,9 +5,18 @@
   "tasks": [
     {
       "label": "Calva Compile",
-      "type": "npm",
-      "script": "compile",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "compile"],
       "isBackground": false,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
@@ -20,9 +29,18 @@
     },
     {
       "label": "Calva Watch CLJS",
-      "type": "npm",
-      "script": "watch-cljs",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "watch-cljs"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
@@ -34,9 +52,18 @@
     },
     {
       "label": "Calva Watch TS",
-      "type": "npm",
-      "script": "watch-ts",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "watch-ts"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
@@ -49,9 +76,18 @@
     },
     {
       "label": "Calva Watch Test TS",
-      "type": "npm",
-      "script": "unit-test-watch",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "unit-test-watch"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "test",
         "isDefault": false
@@ -82,9 +118,18 @@
     },
     {
       "label": "Calva Watch Lint",
-      "type": "npm",
-      "script": "eslint-watch",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "eslint-watch"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
@@ -97,9 +142,18 @@
     },
     {
       "label": "Calva Watch TS Format",
-      "type": "npm",
-      "script": "prettier-format-watch",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "prettier-format-watch"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
@@ -124,9 +178,18 @@
     },
     {
       "label": "Calva Watch Docs",
-      "type": "npm",
-      "script": "watch-docs",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "watch-docs"],
       "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": false
