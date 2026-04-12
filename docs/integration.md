@@ -8,7 +8,7 @@ Generally:
 
 * Don't forget about `README.md`. (It might not need to be updated, but anyway.)
 * If a change warrants updates to `CHANGELOG.md`, put these under `[Unreleased]`.
-* If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`. 
+* If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`.
 
 Bigger changes:
 

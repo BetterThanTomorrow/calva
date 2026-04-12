@@ -1040,7 +1040,7 @@
           "calva.autoOpenInspector": {
             "type": "boolean",
             "markdownDescription": "Automatically open/reveal the Calva Inspector on Jack-in or Connect.",
-            "default": true
+            "default": false
           },
           "calva.enableInspectorRainbow": {
             "type": "boolean",
@@ -1646,8 +1646,8 @@
         "category": "Calva"
       },
       {
-        "command": "calva.createMinimalProject",
-        "title": "Create a mini Clojure project",
+        "command": "calva.createTryClojureProject",
+        "title": "Create a Try Clojure project",
         "category": "Calva"
       },
       {
