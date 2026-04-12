@@ -147,6 +147,56 @@ export async function waitForValue<T>(
   }
 }
 
+export interface WaitForStableValueResult<T> {
+  value: T;
+  intermediateCount: number;
+  stableAfterMs: number;
+}
+
+export async function waitForStableValue<T>(
+  selector: () => T | undefined | Promise<T | undefined>,
+  stableMs = 100,
+  timeoutMs = 4000,
+  intervalMs = 20,
+  timeoutMessage = 'Timed out waiting for stable value'
+): Promise<WaitForStableValueResult<T>> {
+  const start = Date.now();
+  let lastValue: T | undefined;
+  let lastChangeTime: number | undefined;
+  let intermediateCount = 0;
+
+  while (true) {
+    const value = await selector();
+    if (value !== undefined) {
+      if (lastValue === undefined || value !== lastValue) {
+        if (lastValue !== undefined) {
+          intermediateCount++;
+        }
+        lastValue = value;
+        lastChangeTime = Date.now();
+      }
+      if (lastChangeTime !== undefined && Date.now() - lastChangeTime >= stableMs) {
+        return {
+          value: lastValue,
+          intermediateCount,
+          stableAfterMs: Date.now() - start,
+        };
+      }
+    }
+    if (Date.now() - start > timeoutMs) {
+      if (lastValue !== undefined) {
+        return {
+          value: lastValue,
+          intermediateCount,
+          stableAfterMs: Date.now() - start,
+        };
+      }
+      throw new Error(timeoutMessage);
+    }
+    await sleep(intervalMs);
+  }
+}
+
 export async function waitForCondition(
   predicate: () => boolean | Promise<boolean>,
   timeoutMs = 4000,
