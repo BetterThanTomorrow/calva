@@ -300,6 +300,49 @@ export async function waitForJackOutComplete(
   log(suite, 'Jack-out cleanup complete');
 }
 
+/**
+ * Retries a jack-in sequence on failure. Useful in CI where resource pressure
+ * can cause the nREPL handshake to fail transiently. On each failed attempt,
+ * forces a full jack-out before retrying.
+ */
+export async function withJackInRetry(
+  suite: string,
+  jackInAction: () => Promise<void>,
+  opts: {
+    maxAttempts?: number;
+    waitForClientSince?: number;
+    expectedSessionKeys?: string[];
+  } = {}
+): Promise<{ clientKey: string; sessionKeys: string[] }> {
+  const maxAttempts = opts.maxAttempts ?? (isCircleCI ? 3 : 1);
+  const sinceConnectedAt = opts.waitForClientSince ?? 0;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await jackInAction();
+      const client = await waitForNewClient(suite, sinceConnectedAt, 60_000);
+      const sessionKeys = await waitForSessionsReady(suite, client.key, opts.expectedSessionKeys);
+      log(suite, `Jack-in succeeded on attempt ${attempt}`);
+      return { clientKey: client.key, sessionKeys };
+    } catch (e) {
+      log(suite, `Jack-in attempt ${attempt}/${maxAttempts} failed: ${e}`);
+      if (attempt < maxAttempts) {
+        log(suite, 'Cleaning up before retry...');
+        try {
+          await jackIn.calvaJackout({ force: true });
+          await waitForJackOutComplete(suite, 30_000);
+        } catch (cleanupErr) {
+          log(suite, `Cleanup error (ignoring): ${cleanupErr}`);
+        }
+      } else {
+        throw e;
+      }
+    }
+  }
+  // unreachable, but satisfies TypeScript
+  throw new Error('withJackInRetry: exhausted attempts');
+}
+
 export class JackInHarness {
   private lastSeenClientConnectedAt = 0;
   private lastJackInDoneCount = 0;
@@ -353,19 +396,30 @@ export class JackInHarness {
   async jackInWithConnectSequence(
     filePath: string,
     connectSequence: unknown,
-    disableAutoSelect = true
+    disableAutoSelect = true,
+    expectedSessionKeys?: string[]
   ): Promise<string> {
-    await openFile(filePath);
-    log(this.suiteName, `Opened file for jack-in: ${filePath}`);
-
-    await vscode.commands.executeCommand('calva.jackIn', {
-      connectSequence,
-      disableAutoSelect,
-    });
-
-    const clientKey = await this.waitForNextClient();
+    const { clientKey } = await withJackInRetry(
+      this.suiteName,
+      async () => {
+        await openFile(filePath);
+        log(this.suiteName, `Opened file for jack-in: ${filePath}`);
+        await vscode.commands.executeCommand('calva.jackIn', {
+          connectSequence,
+          disableAutoSelect,
+        });
+      },
+      {
+        waitForClientSince: this.lastSeenClientConnectedAt,
+        expectedSessionKeys,
+      }
+    );
+    const clients = clientRegistry.listClients();
+    const client = clients.find((c) => c.key === clientKey);
+    if (client) {
+      this.lastSeenClientConnectedAt = client.connectedAt;
+    }
     await this.waitForJackInCompletion();
-    await waitForSessionsReady(this.suiteName, clientKey);
     log(this.suiteName, 'Jack-in complete for client', clientKey);
     return clientKey;
   }

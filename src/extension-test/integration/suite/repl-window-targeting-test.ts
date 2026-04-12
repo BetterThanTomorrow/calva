@@ -252,23 +252,24 @@ suite('REPL Window Targeting suite', function () {
   });
 
   async function jackInToClojureScriptProject(): Promise<void> {
-    // Open a file in the project so VS Code has context
-    await testUtil.openFile(cljsFile);
-    testUtil.log(suiteName, `Opened file for jack-in: ${cljsFile}`);
-
-    // Pass the full connect sequence object directly to bypass QuickPicks
-    await commands.executeCommand('calva.jackIn', {
-      connectSequence: {
-        name: 'repl-window-targeting-test-cljs-node',
-        projectType: 'deps.edn',
-        cljsType: 'ClojureScript built-in for node',
-        projectRootPath: [projectDir],
+    const { clientKey: key } = await testUtil.withJackInRetry(
+      suiteName,
+      async () => {
+        await testUtil.openFile(cljsFile);
+        testUtil.log(suiteName, `Opened file for jack-in: ${cljsFile}`);
+        await commands.executeCommand('calva.jackIn', {
+          connectSequence: {
+            name: 'repl-window-targeting-test-cljs-node',
+            projectType: 'deps.edn',
+            cljsType: 'ClojureScript built-in for node',
+            projectRootPath: [projectDir],
+          },
+          disableAutoSelect: true,
+        });
       },
-      disableAutoSelect: true,
-    });
-
-    const client = await testUtil.waitForNewClient(suiteName);
-    await testUtil.waitForSessionsReady(suiteName, client.key, ['clj', 'cljs']);
+      { expectedSessionKeys: ['clj', 'cljs'] }
+    );
+    clientKey = key;
     testUtil.log(suiteName, 'Jack-in complete');
   }
 });
