@@ -2292,7 +2292,7 @@
 <li><code>key</code>: A key can be used to reference the snippet from <strong>Run Custom REPL Command</strong> keyboard shortcut arguments. It will also be used in the quick-pick menu.</li>
 <li><code>ns</code>: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
 <li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code>. Omit if you want to use the session of the current editor.</li>
-<li><code>evaluationSendCodeToOutputWindow</code>: (default <code>true</code>) Whether the evaluated code should be echoed to the Output/REPL window.</li>
+<li><code>evaluationSendCodeToOutputWindow</code>: (default <code>true</code>) Whether the evaluated code should also be echoed to the configured output destination for results.</li>
 </ul>
 <p>There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are</p>
 <ul>

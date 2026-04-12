@@ -3050,6 +3050,7 @@
 <span class="w">  </span><span class="nx">replSessionKey?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// The REPL session key (e.g. &quot;clj&quot;, &quot;cljs&quot;), when applicable</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Calva emits exactly one <code>evaluatedCode</code> message per evaluation. For <code>repl.evaluate()</code>, that message is independent of <code>calva.evaluationSendCodeToOutputWindow</code>, and the visible copy of the evaluated code goes to the configured eval-results destination. The setting now only controls the extra REPL Window echo used by manual/UI evaluations.</p>
 <h3 id="replevaluatecode-deprecated"><code>repl.evaluateCode()</code> <em>(deprecated)</em><a class="headerlink" href="#replevaluatecode-deprecated" title="Permanent link">#</a></h3>
 <div class="admonition warning">
 <p class="admonition-title">Deprecated</p>

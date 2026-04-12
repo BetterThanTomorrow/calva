@@ -2486,6 +2486,7 @@
 <p>The first prompt is from when the <code>clj</code> REPL is connected, and the second from <code>cljs</code>. The first <em>part</em> of the prompt tells you which REPL type the window is currently connected to.</p>
 <h2 id="using-the-repl-window-for-output">Using the REPL Window for output<a class="headerlink" href="#using-the-repl-window-for-output" title="Permanent link">#</a></h2>
 <p>By default the REPL Window doubles as the place where Calva sends output like stdout/stderr and other messages. See <a href="../output/">Calva Output</a> for more about this and how to change this behaviour.</p>
+<p>If you want manual evaluations to also echo the code itself there, use the <code>calva.evaluationSendCodeToOutputWindow</code> setting.</p>
 <h2 id="finding-the-repl-window">Finding the REPL Window<a class="headerlink" href="#finding-the-repl-window" title="Permanent link">#</a></h2>
 <p>If you quickly want to open and/or switch to the REPL Window there is the command <strong>Calva: Show/Open REPL Window</strong>, <code>ctrl+alt+o r</code>.</p>
 <p>To sync the REPL window namespace with the current file before switching, use the <strong>Switch Namespace of the REPL Window to Current Namespace</strong> command, <code>ctrl+alt+c alt+n</code>.</p>
