@@ -3782,7 +3782,7 @@
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
     "screenshot-desktop": "^1.15.0",
-    "shadow-cljs": "^3.3.5",
+    "shadow-cljs": "^3.3.8",
     "source-map-support": "^0.5.16",
     "ts-loader": "^8.0.18",
     "ts-node": "^10.3.0",
