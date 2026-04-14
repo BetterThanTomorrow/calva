@@ -3789,7 +3789,8 @@
     "ts-sinon": "^2.0.2",
     "typescript": "^5.8.0",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.0"
+    "webpack-cli": "^5.0.0",
+    "ws": "^8.20.0"
   },
   "overrides": {
     "diff": "^8.0.0",
