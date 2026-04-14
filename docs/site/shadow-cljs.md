@@ -55,7 +55,7 @@ Use the command **Calva: Select Shadow CLJS Runtime** to see all runtimes that a
 
 The **Calva: Select Shadow CLJS Runtime** menu will also let you select which runtime the `cljs` repl is connected to.
 
-![shadow-cljs-runtimes-menu](/images/shadow-cljs/runtimes-menu.png)
+![shadow-cljs-runtimes-menu](images/shadow-cljs/runtimes-menu.png)
 
 ## Automatic tracking of current runtime
 

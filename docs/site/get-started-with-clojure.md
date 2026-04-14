@@ -72,7 +72,7 @@ The instructions will be in the form of Clojure comments, and you will be runnin
 
 The command to run is: **Calva: Create a Getting Started REPL project**.
 
-![VS Code Command Palette, Calva Getting Started](/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png)
+![VS Code Command Palette, Calva Getting Started](images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png)
 
 That's it. Do it now. This page has some more information to make the start of your Clojure adventure fun and smooth. It ain't going anywhere, though. 😀 Come back to it.
 

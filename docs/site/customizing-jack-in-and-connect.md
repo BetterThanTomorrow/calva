@@ -157,7 +157,7 @@ When searching for project roots in your workspace, Calva will glob for all file
 
 ### Viewing the Communication Between nREPL and Calva
 
-It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that [here](../nrepl_and_cider-nrepl/#viewing-the-communication-between-calva-and-nrepl).
+It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that [here](nrepl_and_cider-nrepl.md#viewing-the-communication-between-calva-and-nrepl).
 
 ## Etcetera
 
