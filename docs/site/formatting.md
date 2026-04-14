@@ -72,7 +72,7 @@ Unlike with the ”real” Calva Formatter, which never breaks up lines, this on
 
 #### Provide zprint config via keyboard shortcuts (or Joyride)
 
-The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a [zprint configuration]((https://github.com/kkinnear/zprint/blob/main/doc/reference.md)) map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.
+The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a [zprint configuration](https://github.com/kkinnear/zprint/blob/main/doc/reference.md) map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.
 
 Say you want to have maps sorted by their keys, and generally use community standard formating + justify maps and bindings. This keyboard shortcut does that.
 

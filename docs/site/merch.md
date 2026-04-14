@@ -43,7 +43,7 @@ There are four design, all featuring the Calva symbol (the Calva glass), which a
 
 #### Symbol + Logo
 
-![Calva T-shirt Symbol + Logo](/images/merch/t-shirt-calva-symbol-and-logo.png)
+![Calva T-shirt Symbol + Logo](images/merch/t-shirt-calva-symbol-and-logo.png)
 
 Available at:
 
@@ -61,7 +61,7 @@ Available at:
 
 The Calva symbol and Logo front, Rich Comments back.
 
-![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-symbol+logo+rich-comments.png)
+![Calva T-shirt We do it with Rich Comments Back](images/merch/calva-t-shirt-symbol+logo+rich-comments.png)
 
 Available at:
 
@@ -77,7 +77,7 @@ Available at:
 
 #### Symbol Only
 
-![Calva T-shirt Symbol](/images/merch/t-shirt-calva-symbol.png)
+![Calva T-shirt Symbol](images/merch/t-shirt-calva-symbol.png)
 
 Available at:
 
@@ -95,7 +95,7 @@ Available at:
 
 The Calva symbol front, Rich Comments Back.
 
-![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-symbol+rich-comments.png)
+![Calva T-shirt We do it with Rich Comments Back](images/merch/calva-t-shirt-symbol+rich-comments.png)
 
 Available at:
 

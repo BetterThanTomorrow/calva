@@ -13,7 +13,7 @@ We who make Calva are actively [stewarding, maintaining, documenting and support
 
 Calva has very happy users! Check out the Programming Languages section on the Visual Studio Code Marketplace, [sorted by rating](https://marketplace.visualstudio.com/search?target=VSCode&category=Programming%20Languages&sortBy=Rating):
 
-![VS Code Extensions by Rating](/images/vscode-extension-by-rating.png)
+![VS Code Extensions by Rating](images/vscode-extension-by-rating.png)
 
 Recently there was a [thread over at ClojureVerse](https://clojureverse.org/t/gnu-emacs-cider-vs-vs-code-calva/7829/26), asking about how Calva Compares to Emacs with [CIDER](https://cider.mx). It is well worth reading. We would like to highlight [the answer by Nick Cernis](https://clojureverse.org/t/gnu-emacs-cider-vs-vs-code-calva/7829/26), which focuses on Calva. We'll even quote parts of it. 😍
 
@@ -30,14 +30,14 @@ Recently there was a [thread over at ClojureVerse](https://clojureverse.org/t/gn
 >
 > …
 >
-> I started with the jaded assumption that VS Code was probably bad because it's built by committee at Microsoft on a web-tech based Electron stack, only to find that it succeeds in embodying the spirit of a “hacker's editor” more than even Emacs does in many ways: 
+> I started with the jaded assumption that VS Code was probably bad because it's built by committee at Microsoft on a web-tech based Electron stack, only to find that it succeeds in embodying the spirit of a “hacker's editor” more than even Emacs does in many ways:
 >
 > …
 >
 > **On the benefits of Calva:**
-> 
+>
 > - **Of all the amazing Clojure community projects, Calva seems most likely to encourage new users to try Clojure and ClojureScript**. A lot of developers use VS Code. It’s been tricky to convince frontend developer friends to try ClojureScript, but at least they don’t have the excuse that they’ll need to switch editors to even try it now. I think as a community we should try to support the projects that encourage Clojure’s adoption and ease of use, including by using those products ourselves.
-> 
+>
 > - **Calva provides a better first-time experience than any other editor/plugin combo whether you’re new to Clojure or not.** You can install the plugin and be chatting with your REPL in under a minute without any knowledge of Elisp or VimScript/Lua or how to configure Run Configurations in IntelliJ.
 > - **The default key bindings are good and the commands are easily discoverable.**
 > - **For its age it’s surprisingly feature rich.**
@@ -55,7 +55,7 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 ---
 
 > ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **Calva hits the sweet spot of being both approachable for new users and powerful for seasoned ones.**
-> 
+>
 > The creators/maintainers are fantastic individuals that care deeply about streamlining the user experience, and it shows.
 >
 > Good stuff, check it out.
@@ -65,7 +65,7 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 ---
 
 > ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **I switched from IntelliJ / Cursive to VS Code and Calva and it's been amazing.**
-> 
+>
 > ...
 >
 > That is the biggest thing I can say for Calva, it just works. I was never a fan of VS Code before, but VS Code + Calva for Clojure is now my favorite language / IDE experience.
@@ -83,7 +83,7 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 > It already has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable.
 >
 > A no-brainer if you're already a VS Code user, and well worth a look if you're not.
-> 
+>
 > _Crispin Bennett_
 
 ---
@@ -93,6 +93,6 @@ We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](
 > I joined the Slack channel about 2 wks ago and I must say that I'm very impressed by how active and responsive this community is. Already 2 of my issues fixed and I really like Calva (and the extensions it uses!).
 >
 > These are professional people and they make me very happy!
-> 
+>
 > _Uitbeijerse, E (Eric)_
 

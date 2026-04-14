@@ -35,7 +35,7 @@ The demo tells you about the command (and some about the Clojure Beginner's mate
 
 If you are new to Calva, a good place to start is using the command **Calva: Create a ”Getting Started” REPL**. (You can open the command palette using the VS Code top menu by going to `View -> Command Palette...` or by running the associated keyboard shortcut for your OS.) Demo:
 
-![Command Palette Getting Started REPL](/images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png "Create a ”Getting Started” REPL")
+![Command Palette Getting Started REPL](images/getting-started-with-clojure/vscode-command-palette-calva-getting-started.png "Create a ”Getting Started” REPL")
 
 See the [Getting Started with Clojure](get-started-with-clojure.md) guide for a bit more about this feature.
 
