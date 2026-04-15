@@ -252,6 +252,7 @@ function registerUserspaceLspCommand(
     // from the args so a 4-arg call throws IndexOutOfBoundsException.
     // Append the selection end so the call works whether or not a region is
     // selected.
+    // https://github.com/clojure-lsp/clojure-lsp/issues/2118
     if (command.command === 'extract-function') {
       const selection = calva_utils.getActiveTextEditor().selections[0];
       params[4] = selection.end.line;
