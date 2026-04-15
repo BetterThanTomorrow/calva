@@ -248,6 +248,16 @@ function registerUserspaceLspCommand(
       params[3] = command.defaultName;
     }
 
+    // clojure-lsp's `extract-function` always destructures selection-end coords
+    // from the args so a 4-arg call throws IndexOutOfBoundsException.
+    // Append the selection end so the call works whether or not a region is
+    // selected.
+    if (command.command === 'extract-function') {
+      const selection = calva_utils.getActiveTextEditor().selections[0];
+      params[4] = selection.end.line;
+      params[5] = selection.end.character;
+    }
+
     sendCommandRequest(clients, command.command, params);
   });
 }
