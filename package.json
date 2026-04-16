@@ -3701,7 +3701,7 @@
     "postrelease": "",
     "package-vsix": "vsce package",
     "package-vsix-prerelease": "vsce package",
-    "vscode:prepublish": "webpack --mode production",
+    "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
