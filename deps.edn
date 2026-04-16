@@ -5,7 +5,7 @@
                        :exclusions [rewrite-clj/rewrite-clj]}
         dev.weavejester/cljfmt {:mvn/version "0.16.4"
                                 :exclusions [rewrite-clj/rewrite-clj]}
-        thheller/shadow-cljs {:mvn/version "3.4.1"}
+        thheller/shadow-cljs {:mvn/version "3.3.8"}
         org.clojars.liverm0r/dartclojure {:mvn/version "0.2.23-SNAPSHOT"}
         vvvvalvalval/supdate {:mvn/version "0.2.3"}
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}

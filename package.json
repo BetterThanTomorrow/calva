@@ -3701,7 +3701,7 @@
     "postrelease": "",
     "package-vsix": "vsce package",
     "package-vsix-prerelease": "vsce package",
-    "vscode:prepublish": "webpack --mode production",
+    "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
     "integration-test": "node ./out/extension-test/integration/runTests.js",
@@ -3782,14 +3782,15 @@
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
     "screenshot-desktop": "^1.15.0",
-    "shadow-cljs": "^3.3.5",
+    "shadow-cljs": "^3.3.8",
     "source-map-support": "^0.5.16",
     "ts-loader": "^8.0.18",
     "ts-node": "^10.3.0",
     "ts-sinon": "^2.0.2",
     "typescript": "^5.8.0",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.0"
+    "webpack-cli": "^5.0.0",
+    "ws": "^8.20.0"
   },
   "overrides": {
     "diff": "^8.0.0",
