@@ -21,6 +21,28 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
 different views in different ways. We hope you will find a combination of output destinations that suits you.
 
+### `calva.outputDestinations` setting shape
+
+The `calva.outputDestinations` setting is an object with three keys:
+
+| Setting key | What it controls |
+| ---------- | ---------------- |
+| `evalResults` | Clojure data returned from an evaluation |
+| `evalOutput` | `stdout` and `stderr` produced by an evaluation |
+| `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
+
+Each key accepts one of the same four values: `"terminal"`, `"repl-window"`, `"output-view"`, or `"output-channel"`.
+
+For example, this keeps evaluation results and evaluation output in the Output View while leaving other messages in the terminal:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": "output-view",
+  "evalOutput": "output-view",
+  "otherOutput": "terminal"
+}
+```
+
 ### Output Destinations Feature Comparison
 
 The table below lists the features of the different output destinations.
