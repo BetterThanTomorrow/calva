@@ -1809,6 +1809,13 @@ describe('paredit', () => {
           await paredit.dragSexprForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags sexp backward with multiple preceding comment lines', async () => {
+          const a = docFromTextNotation(`;; Foo•(do foo)••;; Bar•;; Extra bar comment•(do bar)••;; Baz•(do baz)|`);
+          const b = docFromTextNotation(`;; Foo•(do foo)••;; Baz•(do baz)|••;; Bar•;; Extra bar comment•(do bar)`);
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
