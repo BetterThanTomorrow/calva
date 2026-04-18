@@ -1823,6 +1823,13 @@ describe('paredit', () => {
           await paredit.dragSexprForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags sexp backward when only preceding form has a comment', async () => {
+          const a = docFromTextNotation(`;; Foo•(do foo)•(do bar)|`);
+          const b = docFromTextNotation(`(do bar)|•;; Foo•(do foo)`);
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
