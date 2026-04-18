@@ -2416,7 +2416,8 @@ export async function dragSexprBackward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
+  const attachedForm = formAttachedToCommentLineAt(doc, right);
+  const currentRange = attachedForm ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
   const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
