@@ -1855,6 +1855,13 @@ describe('paredit', () => {
           await paredit.dragSexprBackward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags comment-form pair forward when cursor is in the comment', async () => {
+          const a = docFromTextNotation(`(str "a")••;; b|•(str "Hello" " " "world")••(str "z")`);
+          const b = docFromTextNotation(`(str "a")••(str "z")••;; b|•(str "Hello" " " "world")`);
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
