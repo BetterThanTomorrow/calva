@@ -1787,6 +1787,13 @@ describe('paredit', () => {
           await paredit.dragSexprBackward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags sexp forward with its preceding comment', async () => {
+          const a = docFromTextNotation(`;; Foo•(do foo)••;; Bar•(do bar)|••;; Baz•(do baz)`);
+          const b = docFromTextNotation(`;; Foo•(do foo)••;; Baz•(do baz)••;; Bar•(do bar)|`);
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
