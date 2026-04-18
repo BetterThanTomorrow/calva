@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.574] - 2026-04-18
+
+- [Bump cljfmt to 0.16.4, which fixes Calva Format: Format and Align Current Form behavior on map literal forms](https://github.com/BetterThanTomorrow/calva/issues/3173)
+- Fix: [Status Bar Stays on "Launching REPL" After Failed Jack-in](https://github.com/BetterThanTomorrow/calva/issues/3175)
+
 ## [2.0.573] - 2026-04-12
 
 - [Update REPL UI configuration defaults to match Getting Started REPL](https://github.com/BetterThanTomorrow/calva/issues/3166)

@@ -400,7 +400,7 @@ jobs:
           fi
   merge-dev-into-published:
     docker:
-    - image: cimg/node:15.8
+    - image: cimg/node:22.16.0
     steps:
     - add_ssh_keys:
         fingerprints:
@@ -417,7 +417,7 @@ jobs:
           git push origin HEAD
   merge-published-into-dev:
     docker:
-    - image: cimg/node:15.8
+    - image: cimg/node:22.16.0
     steps:
     - add_ssh_keys:
         fingerprints:
@@ -456,7 +456,7 @@ jobs:
         command: git checkout published; mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
   bump-dev-version:
     docker:
-    - image: cimg/node:15.8
+    - image: cimg/node:22.16.0
     steps:
     - add_ssh_keys:
         fingerprints:

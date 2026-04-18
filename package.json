@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.573",
+  "version": "2.0.574",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -18,7 +18,7 @@
     "url": "https://github.com/BetterThanTomorrow/calva/issues"
   },
   "engines": {
-    "node": ">=16",
+    "node": "^22.0.0",
     "vscode": "^1.75.0"
   },
   "sponsor": {
@@ -3684,7 +3684,7 @@
     ]
   },
   "scripts": {
-    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve",
+    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve --livereload",
     "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",
@@ -3782,14 +3782,15 @@
     "prettier": "2.5.1",
     "rimraf": "^2.7.1",
     "screenshot-desktop": "^1.15.0",
-    "shadow-cljs": "^3.3.5",
+    "shadow-cljs": "^3.3.8",
     "source-map-support": "^0.5.16",
     "ts-loader": "^8.0.18",
     "ts-node": "^10.3.0",
     "ts-sinon": "^2.0.2",
     "typescript": "^5.8.0",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.0"
+    "webpack-cli": "^5.0.0",
+    "ws": "^8.20.0"
   },
   "overrides": {
     "diff": "^8.0.0",
