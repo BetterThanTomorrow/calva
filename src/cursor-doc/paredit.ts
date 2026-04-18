@@ -2332,7 +2332,8 @@ export function currentSexpsRange(
 /**
  * Extends `range[0]` backward to include any line comments on lines immediately
  * preceding the form (with no blank line between the comment(s) and the form).
- * This ensures that line comments "travel with" their associated form when dragging.
+ * Leading indentation on the form's own line is skipped so this also works for
+ * nested, indented forms.
  */
 function extendRangeBackwardOverPrecedingLineComments(
   doc: EditableDocument,
@@ -2343,10 +2344,14 @@ function extendRangeBackwardOverPrecedingLineComments(
   let pos = text.length;
 
   while (pos > 0) {
-    if (text[pos - 1] !== '\n') {
+    let p = pos;
+    while (p > 0 && (text[p - 1] === ' ' || text[p - 1] === '\t')) {
+      p--;
+    }
+    if (p === 0 || text[p - 1] !== '\n') {
       break;
     }
-    const prevLineEnd = pos - 1;
+    const prevLineEnd = p - 1;
     const prevLineStart = text.lastIndexOf('\n', prevLineEnd - 1) + 1;
     const lineContent = text.substring(prevLineStart, prevLineEnd);
     if (lineContent.trimStart().startsWith(';')) {
