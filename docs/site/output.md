@@ -21,6 +21,56 @@ With the setting `calva.outputDestinations`, you can configure where each catego
 The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
 different views in different ways. We hope you will find a combination of output destinations that suits you.
 
+### `calva.outputDestinations` setting shape
+
+The `calva.outputDestinations` setting is an object with three keys:
+
+| Setting key | What it controls |
+| ---------- | ---------------- |
+| `evalResults` | Clojure data returned from an evaluation |
+| `evalOutput` | `stdout` and `stderr` produced by an evaluation |
+| `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
+
+Each key accepts one of the same four values: `"terminal"`, `"repl-window"`, `"output-view"`, or `"output-channel"`.
+
+For example, this keeps evaluation results and evaluation output in the Output View while leaving other messages in the terminal:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": "output-view",
+  "evalOutput": "output-view",
+  "otherOutput": "terminal"
+}
+```
+## Output Destinations
+
+Calva categorizes output into three types.
+
+| Category |   |
+| ---------- | --- |
+| `evalResults` | Clojure data returned from an evaluation |
+| `evalOutput` | `stdout` and `stderr` produced by an evaluation |
+| `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
+
+Each category can be relayed to one of four **Output Destinations**:
+
+| Destination |     |
+| ------------| --- |
+| `"terminal"` | The _Calva Output_ (pseudo) Terminal. This is the default destination. |
+| `"output-view"` | The [output view](output-view.md) (a read-only view that is much more performant than the REPL  |Window).
+| `"repl-window"` | The [REPL Window](repl-window.md) (an editor-based read/write output view). |
+| `"output-channel"` | The _Calva Says_ Output Channel. |
+
+The `calva.outputDestinations` setting is an object which maps from a given output category to an output destinations.
+
+The default configuration is to relay all categories to the Calva output terminal:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": "terminal",
+  "evalOutput": "terminal",
+  "otherOutput": "terminal"
+}
 ### Output Destinations Feature Comparison
 
 The table below lists the features of the different output destinations.
