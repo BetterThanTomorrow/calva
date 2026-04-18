@@ -718,9 +718,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
+  <a href="#commands-for-revealing-output-destinations" class="md-nav__link">
     <span class="md-ellipsis">
-      Commands for showing output destinations
+      Commands for revealing output destinations
     </span>
   </a>
   
@@ -2228,9 +2228,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commands-for-showing-output-destinations" class="md-nav__link">
+  <a href="#commands-for-revealing-output-destinations" class="md-nav__link">
     <span class="md-ellipsis">
-      Commands for showing output destinations
+      Commands for revealing output destinations
     </span>
   </a>
   
@@ -2284,21 +2284,64 @@
   <h1>Output Overview</h1>
 
 <h2 id="output-destinations">Output Destinations<a class="headerlink" href="#output-destinations" title="Permanent link">#</a></h2>
-<p>Calva categorizes output into three types:</p>
-<ul>
-<li><strong>evaluation results</strong>: Clojure data returned from an evaluation.</li>
-<li><strong>evaluation output</strong>: stdout/stderr from an evaluation</li>
-<li><strong>other output</strong>: Other messages, logs, etc</li>
-</ul>
-<p>With the setting <code>calva.outputDestinations</code>, you can configure where each category of output should go to. These are the allowed values and their descriptions:</p>
-<ul>
-<li><code>"terminal"</code> - The <em>Calva Output</em> (pseudo) Terminal. This is the default value.</li>
-<li><code>"repl-window"</code> - The <a href="../repl-window/">REPL Window</a> (an editor-based read/write output view).</li>
-<li><code>"output-view"</code> - The <a href="../output-view/">output view</a> (a read-only view that is much more performant than the REPL Window).</li>
-<li><code>"output-channel"</code> - The <em>Calva Says</em> Output Channel.</li>
-</ul>
-<p>The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
-different views in different ways. We hope you will find a combination of output destinations that suits you.</p>
+<p>Calva categorizes output into three types.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evalResults</code></td>
+<td>Clojure data returned from an evaluation</td>
+</tr>
+<tr>
+<td><code>evalOutput</code></td>
+<td><code>stdout</code> and <code>stderr</code> produced by an evaluation</td>
+</tr>
+<tr>
+<td><code>otherOutput</code></td>
+<td>Other REPL output, such as Calva messages and redirected server output</td>
+</tr>
+</tbody>
+</table>
+<p>Each category can be relayed to one of four <strong>Output Destinations</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Destination</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"terminal"</code></td>
+<td>The <em>Calva Output</em> (pseudo) Terminal. This is the default destination.</td>
+</tr>
+<tr>
+<td><code>"output-view"</code></td>
+<td>The <a href="../output-view/">output view</a> (a read-only view that is much more performant than the REPL</td>
+</tr>
+<tr>
+<td><code>"repl-window"</code></td>
+<td>The <a href="../repl-window/">REPL Window</a> (an editor-based read/write output view).</td>
+</tr>
+<tr>
+<td><code>"output-channel"</code></td>
+<td>The <em>Calva Says</em> Output Channel.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>calva.outputDestinations</code> setting is an object which maps from a given output category to an output destinations.</p>
+<p>The default configuration is to relay all categories to the Calva output terminal:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.outputDestinations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;evalResults&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;evalOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;otherOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
 <h3 id="output-destinations-feature-comparison">Output Destinations Feature Comparison<a class="headerlink" href="#output-destinations-feature-comparison" title="Permanent link">#</a></h3>
 <p>The table below lists the features of the different output destinations.</p>
 <table>
@@ -2313,6 +2356,20 @@ different views in different ways. We hope you will find a combination of output
 </thead>
 <tbody>
 <tr>
+<td style="text-align: left;">Can be placed in VS Code Panel views (sidebars and bottom panel)</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">Can be placed in VS Code Editors area</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: center;">❌</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
 <td style="text-align: left;">Rich stack traces</td>
 <td style="text-align: center;">✅</td>
 <td style="text-align: center;">❌ *</td>
@@ -2322,7 +2379,7 @@ different views in different ways. We hope you will find a combination of output
 <tr>
 <td style="text-align: left;">Paredit navigation and selection</td>
 <td style="text-align: center;">✅</td>
-<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌ *</td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
 </tr>
@@ -2343,7 +2400,7 @@ different views in different ways. We hope you will find a combination of output
 <tr>
 <td style="text-align: left;">Syntax highlighting matches editor</td>
 <td style="text-align: center;">✅</td>
-<td style="text-align: center;">❌ **</td>
+<td style="text-align: center;">❌ *</td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
 </tr>
@@ -2352,7 +2409,7 @@ different views in different ways. We hope you will find a combination of output
 <td style="text-align: center;">✅</td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
-<td style="text-align: center;">❌</td>
+<td style="text-align: center;">❌ *</td>
 </tr>
 <tr>
 <td style="text-align: left;">TUI applications (progress bars, cursor positioning)</td>
@@ -2384,9 +2441,8 @@ different views in different ways. We hope you will find a combination of output
 </tr>
 </tbody>
 </table>
-<p>* Support will be added</p>
-<p>** Support might be added. Needs further investigation.</p>
-<h2 id="commands-for-showing-output-destinations">Commands for showing output destinations<a class="headerlink" href="#commands-for-showing-output-destinations" title="Permanent link">#</a></h2>
+<p>* Support can be added.</p>
+<h2 id="commands-for-revealing-output-destinations">Commands for revealing output destinations<a class="headerlink" href="#commands-for-revealing-output-destinations" title="Permanent link">#</a></h2>
 <p>These are the commands and their default keyboard shortcuts for revealing output destinations</p>
 <ul>
 <li><strong>Calva: Show/Open the result output destination</strong>, without focusing it - <code>ctrl+alt+o o</code></li>
