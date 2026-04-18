@@ -2447,7 +2447,8 @@ export async function dragSexprForward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
+  const attachedForm = formAttachedToCommentLineAt(doc, right);
+  const currentRange = attachedForm ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const newPosOffset = currentRange[1] - right;
   const forwardCursor = doc.getTokenCursor(currentRange[1]);
   forwardCursor.forwardSexp();
