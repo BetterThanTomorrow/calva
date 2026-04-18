@@ -2369,20 +2369,25 @@ export async function dragSexprBackward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
   const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
-  const newPosOffset = right - currentRange[0];
   const backCursor = doc.getTokenCursor(currentRange[0]);
   backCursor.backwardSexp();
   const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backRange[0] !== currentRange[0]) {
     // there is a sexp to the left
-    const leftText = doc.model.getText(backRange[0], backRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+    const currentExtRange = extendRangeBackwardOverPrecedingLineComments(doc, currentRange);
+    const backExtRange = extendRangeBackwardOverPrecedingLineComments(doc, backRange);
+    const leftText = doc.model.getText(backExtRange[0], backExtRange[1]);
+    const currentText = doc.model.getText(currentExtRange[0], currentExtRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
-        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
+        new ModelEdit('changeRange', [currentExtRange[0], currentExtRange[1], leftText]),
+        new ModelEdit('changeRange', [backExtRange[0], backExtRange[1], currentText]),
       ],
-      { selections: [new ModelEditSelection(backRange[0] + newPosOffset)] }
+      {
+        selections: [
+          new ModelEditSelection(backExtRange[0] + right - currentExtRange[0]),
+        ],
+      }
     );
   }
 }
