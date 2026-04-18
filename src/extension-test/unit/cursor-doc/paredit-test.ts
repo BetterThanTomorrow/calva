@@ -1794,6 +1794,14 @@ describe('paredit', () => {
           await paredit.dragSexprForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags sexp backward without a preceding comment when there is a blank line', async () => {
+          // A blank line between a comment and a form breaks the association.
+          const a = docFromTextNotation(`;; Foo•(do foo)••;; Bar•(do bar)•••(do baz)|`);
+          const b = docFromTextNotation(`;; Foo•(do foo)••(do baz)|•••;; Bar•(do bar)`);
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
