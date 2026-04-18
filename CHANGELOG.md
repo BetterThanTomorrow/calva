@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Dragging sexps has weird behavior with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
 - [Bump cljfmt to 0.16.4, which fixes Calva Format: Format and Align Current Form behavior on map literal forms](https://github.com/BetterThanTomorrow/calva/issues/3173)
 
 ## [2.0.573] - 2026-04-12
