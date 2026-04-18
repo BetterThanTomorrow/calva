@@ -3684,7 +3684,7 @@
     ]
   },
   "scripts": {
-    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve",
+    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve --livereload",
     "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",
