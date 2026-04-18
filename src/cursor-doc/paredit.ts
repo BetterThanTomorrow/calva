@@ -2329,6 +2329,37 @@ export function currentSexpsRange(
   return currentSingleRange;
 }
 
+/**
+ * Extends `range[0]` backward to include any line comments on lines immediately
+ * preceding the form (with no blank line between the comment(s) and the form).
+ * This ensures that line comments "travel with" their associated form when dragging.
+ */
+function extendRangeBackwardOverPrecedingLineComments(
+  doc: EditableDocument,
+  range: [number, number]
+): [number, number] {
+  const text = doc.model.getText(0, range[0]);
+  let start = range[0];
+  let pos = text.length;
+
+  while (pos > 0) {
+    if (text[pos - 1] !== '\n') {
+      break;
+    }
+    const prevLineEnd = pos - 1;
+    const prevLineStart = text.lastIndexOf('\n', prevLineEnd - 1) + 1;
+    const lineContent = text.substring(prevLineStart, prevLineEnd);
+    if (lineContent.trimStart().startsWith(';')) {
+      start = prevLineStart;
+      pos = prevLineStart;
+    } else {
+      break;
+    }
+  }
+
+  return [start, range[1]];
+}
+
 export async function dragSexprBackward(
   doc: EditableDocument,
   left = doc.selections[0].anchor,
