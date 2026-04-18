@@ -1837,6 +1837,13 @@ describe('paredit', () => {
           await paredit.dragSexprBackward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags indented sexp forward with its preceding comment inside a container', async () => {
+          const a = docFromTextNotation(`(do•  ;; A•  (form-a)|•  ;; B•  (form-b))`);
+          const b = docFromTextNotation(`(do•  ;; B•  (form-b)•  ;; A•  (form-a)|)`);
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
       });
     });
 
