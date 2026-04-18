@@ -2365,6 +2365,49 @@ function extendRangeBackwardOverPrecedingLineComments(
   return [start, range[1]];
 }
 
+/**
+ * If `offset` is on a line whose first non-whitespace is `;` (a line comment),
+ * and that comment line is attached to a following form (no blank line between
+ * them), returns the range of that following form. Otherwise returns `null`.
+ * Used to let the drag-sexp commands treat a comment-form pair as a single unit
+ * even when the cursor is parked in the comment.
+ */
+function formAttachedToCommentLineAt(
+  doc: EditableDocument,
+  offset: number
+): [number, number] | null {
+  const before = doc.model.getText(0, offset);
+  const after = doc.model.getText(offset, Number.MAX_SAFE_INTEGER);
+  const text = before + after;
+  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
+  let lineEnd = text.indexOf('\n', offset);
+  if (lineEnd === -1) {
+    lineEnd = text.length;
+  }
+  if (!text.substring(lineStart, lineEnd).trimStart().startsWith(';')) {
+    return null;
+  }
+
+  let pos = lineEnd + 1;
+  while (pos <= text.length) {
+    const nextNl = text.indexOf('\n', pos);
+    const lineE = nextNl === -1 ? text.length : nextNl;
+    const content = text.substring(pos, lineE);
+    const trimmed = content.trimStart();
+    if (trimmed === '') {
+      return null;
+    }
+    if (trimmed.startsWith(';')) {
+      pos = lineE + 1;
+      continue;
+    }
+    const formStart = pos + (content.length - trimmed.length);
+    const cursor = doc.getTokenCursor(formStart);
+    return cursor.rangeForCurrentForm(formStart);
+  }
+  return null;
+}
+
 export async function dragSexprBackward(
   doc: EditableDocument,
   left = doc.selections[0].anchor,
@@ -2389,9 +2432,7 @@ export async function dragSexprBackward(
         new ModelEdit('changeRange', [backExtRange[0], backExtRange[1], currentText]),
       ],
       {
-        selections: [
-          new ModelEditSelection(backExtRange[0] + right - currentExtRange[0]),
-        ],
+        selections: [new ModelEditSelection(backExtRange[0] + right - currentExtRange[0])],
       }
     );
   }
