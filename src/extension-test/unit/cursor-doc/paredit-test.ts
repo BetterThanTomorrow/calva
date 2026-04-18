@@ -1811,8 +1811,12 @@ describe('paredit', () => {
         });
 
         it('drags sexp backward with multiple preceding comment lines', async () => {
-          const a = docFromTextNotation(`;; Foo•(do foo)••;; Bar•;; Extra bar comment•(do bar)••;; Baz•(do baz)|`);
-          const b = docFromTextNotation(`;; Foo•(do foo)••;; Baz•(do baz)|••;; Bar•;; Extra bar comment•(do bar)`);
+          const a = docFromTextNotation(
+            `;; Foo•(do foo)••;; Bar•;; Extra bar comment•(do bar)••;; Baz•(do baz)|`
+          );
+          const b = docFromTextNotation(
+            `;; Foo•(do foo)••;; Baz•(do baz)|••;; Bar•;; Extra bar comment•(do bar)`
+          );
           await paredit.dragSexprBackward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
@@ -1842,6 +1846,13 @@ describe('paredit', () => {
           const a = docFromTextNotation(`(do•  ;; A•  (form-a)|•  ;; B•  (form-b))`);
           const b = docFromTextNotation(`(do•  ;; B•  (form-b)•  ;; A•  (form-a)|)`);
           await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+
+        it('drags comment-form pair backward when cursor is in the comment', async () => {
+          const a = docFromTextNotation(`(str "a")••;; b|•(str "Hello" " " "world")`);
+          const b = docFromTextNotation(`;; b|•(str "Hello" " " "world")••(str "a")`);
+          await paredit.dragSexprBackward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
       });
