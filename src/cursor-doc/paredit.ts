@@ -2413,12 +2413,14 @@ export async function dragSexprForward(
   );
   if (forwardRange[0] !== currentRange[0]) {
     // there is a sexp to the right
-    const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+    const currentExtRange = extendRangeBackwardOverPrecedingLineComments(doc, currentRange);
+    const forwardExtRange = extendRangeBackwardOverPrecedingLineComments(doc, forwardRange);
+    const rightText = doc.model.getText(forwardExtRange[0], forwardExtRange[1]);
+    const currentText = doc.model.getText(currentExtRange[0], currentExtRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], currentText]),
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
+        new ModelEdit('changeRange', [forwardExtRange[0], forwardExtRange[1], currentText]),
+        new ModelEdit('changeRange', [currentExtRange[0], currentExtRange[1], rightText]),
       ],
       {
         selections: [
