@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Extract to New Function command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)
+- Fix: ["clojure-lsp Refactor: Extract to New Function" command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)
 
 ## [2.0.574] - 2026-04-18
 
