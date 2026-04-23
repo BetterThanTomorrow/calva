@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: Extract to New Function fails with "Internal error" against recent clojure-lsp versions. [clojure-lsp#2118](https://github.com/clojure-lsp/clojure-lsp/issues/2118).
+- Fix: [Extract to New Function command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)
 
 ## [2.0.574] - 2026-04-18
 
