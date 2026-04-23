@@ -5,21 +5,34 @@ description: Calva displays the first line of the evaluation results inline, and
 
 ## Output Destinations
 
-Calva categorizes output into three types:
+Calva categorizes output into three types.
 
-* **evaluation results**: Clojure data returned from an evaluation.
-* **evaluation output**: stdout/stderr from an evaluation
-* **other output**: Other messages, logs, etc
+| Category |   |
+| ---------- | --- |
+| `evalResults` | Clojure data returned from an evaluation |
+| `evalOutput` | `stdout` and `stderr` produced by an evaluation |
+| `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
 
-With the setting `calva.outputDestinations`, you can configure where each category of output should go to. These are the allowed values and their descriptions:
+Each category can be relayed to one of four **Output Destinations**:
 
-* `"terminal"` - The _Calva Output_ (pseudo) Terminal. This is the default value.
-* `"repl-window"` - The [REPL Window](repl-window.md) (an editor-based read/write output view).
-* `"output-view"` - The [output view](output-view.md) (a read-only view that is much more performant than the REPL Window).
-* `"output-channel"` - The _Calva Says_ Output Channel.
+| Destination |     |
+| ------------| --- |
+| `"terminal"` | The _Calva Output_ (pseudo) Terminal. This is the default destination. |
+| `"output-view"` | The [output view](output-view.md) (a read-only view that is much more performant than the REPL  |Window).
+| `"repl-window"` | The [REPL Window](repl-window.md) (an editor-based read/write output view). |
+| `"output-channel"` | The _Calva Says_ Output Channel. |
 
-The reason there are several options for this is partly legacy and partly because VS Code restricts the placement of
-different views in different ways. We hope you will find a combination of output destinations that suits you.
+The `calva.outputDestinations` setting is an object which maps from a given output category to an output destinations.
+
+The default configuration is to relay all categories to the Calva output terminal:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": "terminal",
+  "evalOutput": "terminal",
+  "otherOutput": "terminal"
+}
+```
 
 ### Output Destinations Feature Comparison
 
@@ -27,22 +40,22 @@ The table below lists the features of the different output destinations.
 
 | Feature | REPL Window | Output View | Output Channel | Terminal |
 | :------ | :---------: | :---------: | :------------: | :------: |
+| Can be placed in VS Code Panel views (sidebars and bottom panel) | ❌ | ❌ | ✅ | ✅ |
+| Can be placed in VS Code Editors area | ✅ | ✅ | ❌ | ✅ |
 | Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
-| Paredit navigation and selection | ✅ | ❌ | ❌ | ❌ |
+| Paredit navigation and selection | ✅ | ❌ * | ❌ | ❌ |
 | Button to copy specific output | ❌ | ✅ | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
-| Syntax highlighting matches editor | ✅ | ❌ ** | ❌ | ❌ |
-| Supports input | ✅ | ❌ | ❌ | ❌ |
+| Syntax highlighting matches editor | ✅ | ❌ * | ❌ | ❌ |
+| Supports input | ✅ | ❌ | ❌ | ❌ * |
 | TUI applications (progress bars, cursor positioning) | ❌ | ❌ | ❌ | ✅ |
 | Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
 | Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
 | Command for clearing output | ❌ | ✅ | ✅ | ✅ |
 
-\* Support will be added
+\* Support can be added.
 
-\*\* Support might be added. Needs further investigation.
-
-## Commands for showing output destinations
+## Commands for revealing output destinations
 
 These are the commands and their default keyboard shortcuts for revealing output destinations
 
