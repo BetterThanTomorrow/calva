@@ -295,6 +295,7 @@ async function executeJackInTask(
             terminalOptions,
             (_p, hostname: string, port: string) => {
               utilities.setLaunchingState(null);
+              statusbar.update();
               resolve();
               void connector
                 .connect(connectSequence, true, hostname, port, true)
@@ -318,6 +319,7 @@ async function executeJackInTask(
             },
             (status: number) => {
               utilities.setLaunchingState(null);
+              statusbar.update();
               void vscode.window
                 .showErrorMessage(
                   `Jack-in was interrupted. Exit code: ${status}`,
