@@ -2404,10 +2404,7 @@ function extendRangeOverAttachedComments(
  * trailing annotation. Returns `null` when the cursor isn't on a comment, or
  * when no form is attached.
  */
-function formAttachedToCommentAt(
-  doc: EditableDocument,
-  offset: number
-): [number, number] | null {
+function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number, number] | null {
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const here = lineInfoAt(text, offset);
   if (!isCommentLine(here)) return null;
@@ -2440,8 +2437,7 @@ export async function dragSexprBackward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
   const baseRange =
-    formAttachedToCommentAt(doc, right) ??
-    currentSexpsRange(doc, cursor, right, usePairs, config);
+    formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
   const backCursor = doc.getTokenCursor(baseRange[0]);
   backCursor.backwardSexp();
@@ -2471,8 +2467,7 @@ export async function dragSexprForward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
   const baseRange =
-    formAttachedToCommentAt(doc, right) ??
-    currentSexpsRange(doc, cursor, right, usePairs, config);
+    formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
   const forwardCursor = doc.getTokenCursor(baseRange[1]);
   forwardCursor.forwardSexp();
