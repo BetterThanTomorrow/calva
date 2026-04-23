@@ -2329,82 +2329,105 @@ export function currentSexpsRange(
   return currentSingleRange;
 }
 
-/**
- * Extends `range[0]` backward to include any line comments on lines immediately
- * preceding the form (with no blank line between the comment(s) and the form).
- * Leading indentation on the form's own line is skipped so this also works for
- * nested, indented forms.
- */
-function extendRangeBackwardOverPrecedingLineComments(
-  doc: EditableDocument,
-  range: [number, number]
-): [number, number] {
-  const text = doc.model.getText(0, range[0]);
-  let start = range[0];
-  let pos = text.length;
+type LineInfo = {
+  start: number;
+  end: number;
+  content: string;
+  trimmed: string;
+};
 
-  while (pos > 0) {
-    let p = pos;
-    while (p > 0 && (text[p - 1] === ' ' || text[p - 1] === '\t')) {
-      p--;
-    }
-    if (p === 0 || text[p - 1] !== '\n') {
-      break;
-    }
-    const prevLineEnd = p - 1;
-    const prevLineStart = text.lastIndexOf('\n', prevLineEnd - 1) + 1;
-    const lineContent = text.substring(prevLineStart, prevLineEnd);
-    if (lineContent.trimStart().startsWith(';')) {
-      start = prevLineStart;
-      pos = prevLineStart;
-    } else {
-      break;
+function lineInfoAt(text: string, offset: number): LineInfo {
+  const start = text.lastIndexOf('\n', Math.max(0, offset - 1)) + 1;
+  const nl = text.indexOf('\n', offset);
+  const end = nl === -1 ? text.length : nl;
+  const content = text.substring(start, end);
+  return { start, end, content, trimmed: content.trimStart() };
+}
+
+const prevLine = (text: string, lineStart: number) =>
+  lineStart > 0 ? lineInfoAt(text, lineStart - 1) : null;
+
+const nextLine = (text: string, lineEnd: number) =>
+  lineEnd < text.length ? lineInfoAt(text, lineEnd + 1) : null;
+
+const isCommentLine = (line: LineInfo) => line.trimmed.startsWith(';');
+const isBlankLine = (line: LineInfo) => line.trimmed === '';
+
+/**
+ * Extends a form's range to include its attached line comments:
+ * - Backward: contiguous comment lines immediately above the form (only when
+ *   the form's line has nothing but whitespace before the form).
+ * - Forward: a trailing `;…` on the form's last line, plus comment lines
+ *   below that are NOT leading a following form (terminated by a blank line
+ *   or EOF).
+ */
+function extendRangeOverAttachedComments(
+  doc: EditableDocument,
+  [start, end]: [number, number]
+): [number, number] {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+
+  let lo = start;
+  const startLine = lineInfoAt(text, start);
+  if (text.substring(startLine.start, start).trim() === '') {
+    for (
+      let line = prevLine(text, startLine.start);
+      line && isCommentLine(line);
+      line = prevLine(text, line.start)
+    ) {
+      lo = line.start;
     }
   }
 
-  return [start, range[1]];
+  let hi = end;
+  const endLine = lineInfoAt(text, end);
+  if (/^\s*;/.test(text.substring(end, endLine.end))) {
+    hi = endLine.end;
+  }
+  const trailingEnds: number[] = [];
+  let below = nextLine(text, endLine.end);
+  while (below && isCommentLine(below)) {
+    trailingEnds.push(below.end);
+    below = nextLine(text, below.end);
+  }
+  if (trailingEnds.length && (!below || isBlankLine(below))) {
+    hi = trailingEnds[trailingEnds.length - 1];
+  }
+
+  return [lo, hi];
 }
 
 /**
- * If `offset` is on a line whose first non-whitespace is `;` (a line comment),
- * and that comment line is attached to a following form (no blank line between
- * them), returns the range of that following form. Otherwise returns `null`.
- * Used to let the drag-sexp commands treat a comment-form pair as a single unit
- * even when the cursor is parked in the comment.
+ * If `offset` is on a line-comment line, returns the range of the form that
+ * comment is attached to: the form immediately below when contiguous (no
+ * blank line between), else the form immediately above when the comment is a
+ * trailing annotation. Returns `null` when the cursor isn't on a comment, or
+ * when no form is attached.
  */
-function formAttachedToCommentLineAt(
+function formAttachedToCommentAt(
   doc: EditableDocument,
   offset: number
 ): [number, number] | null {
-  const before = doc.model.getText(0, offset);
-  const after = doc.model.getText(offset, Number.MAX_SAFE_INTEGER);
-  const text = before + after;
-  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
-  let lineEnd = text.indexOf('\n', offset);
-  if (lineEnd === -1) {
-    lineEnd = text.length;
-  }
-  if (!text.substring(lineStart, lineEnd).trimStart().startsWith(';')) {
-    return null;
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const here = lineInfoAt(text, offset);
+  if (!isCommentLine(here)) return null;
+
+  let below = nextLine(text, here.end);
+  while (below && isCommentLine(below)) below = nextLine(text, below.end);
+  if (below && !isBlankLine(below)) {
+    const formStart = below.start + (below.content.length - below.trimmed.length);
+    return doc.getTokenCursor(formStart).rangeForCurrentForm(formStart);
   }
 
-  let pos = lineEnd + 1;
-  while (pos <= text.length) {
-    const nextNl = text.indexOf('\n', pos);
-    const lineE = nextNl === -1 ? text.length : nextNl;
-    const content = text.substring(pos, lineE);
-    const trimmed = content.trimStart();
-    if (trimmed === '') {
-      return null;
-    }
-    if (trimmed.startsWith(';')) {
-      pos = lineE + 1;
-      continue;
-    }
-    const formStart = pos + (content.length - trimmed.length);
-    const cursor = doc.getTokenCursor(formStart);
-    return cursor.rangeForCurrentForm(formStart);
+  let above = prevLine(text, here.start);
+  while (above && isCommentLine(above)) above = prevLine(text, above.start);
+  if (above && !isBlankLine(above)) {
+    const formEnd = above.start + above.content.trimEnd().length;
+    const cursor = doc.getTokenCursor(formEnd);
+    cursor.backwardSexp();
+    return cursor.rangeForCurrentForm(cursor.offsetStart);
   }
+
   return null;
 }
 
@@ -2416,24 +2439,24 @@ export async function dragSexprBackward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const attachedForm = formAttachedToCommentLineAt(doc, right);
-  const currentRange = attachedForm ?? currentSexpsRange(doc, cursor, right, usePairs, config);
-  const backCursor = doc.getTokenCursor(currentRange[0]);
+  const baseRange =
+    formAttachedToCommentAt(doc, right) ??
+    currentSexpsRange(doc, cursor, right, usePairs, config);
+  const currentRange = extendRangeOverAttachedComments(doc, baseRange);
+  const backCursor = doc.getTokenCursor(baseRange[0]);
   backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
-  if (backRange[0] !== currentRange[0]) {
-    // there is a sexp to the left
-    const currentExtRange = extendRangeBackwardOverPrecedingLineComments(doc, currentRange);
-    const backExtRange = extendRangeBackwardOverPrecedingLineComments(doc, backRange);
-    const leftText = doc.model.getText(backExtRange[0], backExtRange[1]);
-    const currentText = doc.model.getText(currentExtRange[0], currentExtRange[1]);
+  const backBase = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
+  if (backBase[0] !== baseRange[0]) {
+    const backRange = extendRangeOverAttachedComments(doc, backBase);
+    const leftText = doc.model.getText(backRange[0], backRange[1]);
+    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [currentExtRange[0], currentExtRange[1], leftText]),
-        new ModelEdit('changeRange', [backExtRange[0], backExtRange[1], currentText]),
+        new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
+        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
       ],
       {
-        selections: [new ModelEditSelection(backExtRange[0] + right - currentExtRange[0])],
+        selections: [new ModelEditSelection(backRange[0] + right - currentRange[0])],
       }
     );
   }
@@ -2447,35 +2470,30 @@ export async function dragSexprForward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const attachedForm = formAttachedToCommentLineAt(doc, right);
-  const currentRange = attachedForm ?? currentSexpsRange(doc, cursor, right, usePairs, config);
-  const newPosOffset = currentRange[1] - right;
-  const forwardCursor = doc.getTokenCursor(currentRange[1]);
+  const baseRange =
+    formAttachedToCommentAt(doc, right) ??
+    currentSexpsRange(doc, cursor, right, usePairs, config);
+  const currentRange = extendRangeOverAttachedComments(doc, baseRange);
+  const forwardCursor = doc.getTokenCursor(baseRange[1]);
   forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(
+  const forwardBase = currentSexpsRange(
     doc,
     forwardCursor,
     forwardCursor.offsetStart,
     usePairs,
     config
   );
-  if (forwardRange[0] !== currentRange[0]) {
-    // there is a sexp to the right
-    const currentExtRange = extendRangeBackwardOverPrecedingLineComments(doc, currentRange);
-    const forwardExtRange = extendRangeBackwardOverPrecedingLineComments(doc, forwardRange);
-    const rightText = doc.model.getText(forwardExtRange[0], forwardExtRange[1]);
-    const currentText = doc.model.getText(currentExtRange[0], currentExtRange[1]);
+  if (forwardBase[0] !== baseRange[0]) {
+    const forwardRange = extendRangeOverAttachedComments(doc, forwardBase);
+    const leftText = doc.model.getText(currentRange[0], currentRange[1]);
+    const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [forwardExtRange[0], forwardExtRange[1], currentText]),
-        new ModelEdit('changeRange', [currentExtRange[0], currentExtRange[1], rightText]),
+        new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], leftText]),
+        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
       ],
       {
-        selections: [
-          new ModelEditSelection(
-            currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
-          ),
-        ],
+        selections: [new ModelEditSelection(forwardRange[1] + right - currentRange[1])],
       }
     );
   }
