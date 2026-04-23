@@ -1862,6 +1862,21 @@ describe('paredit', () => {
           await paredit.dragSexprForward(a);
           expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+
+        it('drags sexp backward with its trailing same-line comment', async () => {
+          const a = docFromTextNotation(`(+ 2 3)•(+ 1 2)| ; => 3`);
+          const b = docFromTextNotation(`(+ 1 2)| ; => 3•(+ 2 3)`);
+          await paredit.dragSexprBackward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+
+        it('drags sexp forward with its trailing same-line comment', async () => {
+          const a = docFromTextNotation(`(+ 1 2)| ; => 3•(+ 2 3)`);
+          const b = docFromTextNotation(`(+ 2 3)•(+ 1 2)| ; => 3`);
+          await paredit.dragSexprForward(a);
+          expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+
       });
     });
 
