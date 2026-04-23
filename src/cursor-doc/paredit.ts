@@ -2407,17 +2407,23 @@ function extendRangeOverAttachedComments(
 function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number, number] | null {
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const here = lineInfoAt(text, offset);
-  if (!isCommentLine(here)) return null;
+  if (!isCommentLine(here)) {
+    return null;
+  }
 
   let below = nextLine(text, here.end);
-  while (below && isCommentLine(below)) below = nextLine(text, below.end);
+  while (below && isCommentLine(below)) {
+    below = nextLine(text, below.end);
+  }
   if (below && !isBlankLine(below)) {
     const formStart = below.start + (below.content.length - below.trimmed.length);
     return doc.getTokenCursor(formStart).rangeForCurrentForm(formStart);
   }
 
   let above = prevLine(text, here.start);
-  while (above && isCommentLine(above)) above = prevLine(text, above.start);
+  while (above && isCommentLine(above)) {
+    above = prevLine(text, above.start);
+  }
   if (above && !isBlankLine(above)) {
     const formEnd = above.start + above.content.trimEnd().length;
     const cursor = doc.getTokenCursor(formEnd);
