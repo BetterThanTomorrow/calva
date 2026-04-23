@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.575] - 2026-04-23
+
+- Fix: ["clojure-lsp Refactor: Extract to New Function" command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)
+
 ## [2.0.574] - 2026-04-18
 
 - [Bump cljfmt to 0.16.4, which fixes Calva Format: Format and Align Current Form behavior on map literal forms](https://github.com/BetterThanTomorrow/calva/issues/3173)
