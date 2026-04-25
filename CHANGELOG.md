@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make loadFile command accept an argument for which file to load](https://github.com/BetterThanTomorrow/calva/issues/3182)
+
 ## [2.0.575] - 2026-04-23
 
 - Fix: ["clojure-lsp Refactor: Extract to New Function" command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)
