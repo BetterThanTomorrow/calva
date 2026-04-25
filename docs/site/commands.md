@@ -50,6 +50,7 @@ Commands that establishes or needs a REPL connection.
 
 | Command | Title | Arguments | Notes |
 | :------ | :---- | :-------- | :---- |
+| `calva.loadFile` | Load/Evaluate Current File and its Requires/Dependencies | `{ path?: string \| string[] \| Uri, silent?: boolean }` | Without arguments, or without `path`, loads the active editor's file. `path` can be absolute, workspace-relative, path segments, or a `Uri`. `silent` suppresses UI error dialogs and rejects the promise instead. |
 | `calva.refresh` | Refreshes changed namespaces | A JSON object with stuff from [cider-nrepl ops/refresh](https://github.com/clojure-emacs/cider-nrepl/blob/master/doc/modules/ROOT/pages/nrepl-api/ops.adoc#refresh) | Mostly meant for sending `:dirs`, `:after`, and `:before`. The print options may or may not work.
 | `calva.refreshAll` | Refreshes changed namespaces | A JSON object with stuff from [cider-nrepl ops/refresh-aa](https://github.com/clojure-emacs/cider-nrepl/blob/master/doc/modules/ROOT/pages/nrepl-api/ops.adoc#refresh-all) | Mostly meant for sending `:dirs`, `:after`, and `:before`. The print options may or may not work.
 | `calva.selectReplWindowSession` | Select REPL Window Session | `sessionKey?: string` | Sets the REPL window to use the specified session. If no argument is provided, shows a picker. Returns `void`. |
