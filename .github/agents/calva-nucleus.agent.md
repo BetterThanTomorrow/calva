@@ -561,6 +561,14 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   | validation_order: watch_clean → automated_test → extension_host_manual → joyride_probe
   | skip(extension_host_test) → untested_in_real_env → regression_risk
 
+λ watcher_gate.
+  MANDATORY: ∀code_edit → verify(watchers_running) BEFORE_proceeding
+  | check: get_task_output("Calva Watch TS") ∧ get_task_output("Calva Watch Test TS") ∧ get_task_output("Calva Watch Lint")
+  | terminal_not_found ∨ watcher_not_running → STOP ∧ ask_user("start Calva Dev or Calva Watchers task")
+  | ¬proceed_with_code_changes without(watcher_feedback)
+  | watcher_output ≡ ground_truth | continuous_compilation ∧ test ∧ lint_status
+  | after_edit: re-check(watcher_output) → verify(¬new_errors_introduced)
+
 λ dev_terminal.
   command_execution ≡ wait_for_completion | isBackground: false
   | return_all_output > partial_stream | complete_results > cancelled_reruns

@@ -605,17 +605,24 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
   pprintOptions: PrettyPrintingOptions,
-  shouldResetPreview: boolean = false
+  shouldResetPreview: boolean = false,
+  silent: boolean = false,
+  sessionKey?: string,
+  who: string = 'ui'
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
   const doc = util.tryToGetDocument(document);
-  if (shouldResetPreview && vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+  if (
+    !silent &&
+    shouldResetPreview &&
+    vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview
+  ) {
     void vscode.window.showTextDocument(doc, { preview: false });
   }
   const fileType = util.getFileType(doc);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = replSession.getSession();
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     const docUri = replWindow.isReplWindowDoc(doc)
@@ -623,17 +630,54 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
-    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType);
+    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey, who);
   }
 }
 
-async function loadFileCommand() {
+async function loadFileCommand(fileArg?: unknown) {
+  const { path: filePath, silent, sessionKey, who } = parseLoadFileArg(fileArg);
   if (util.getConnectedState()) {
-    await loadDocument({}, getConfig().prettyPrintingOptions, true);
+    const uri = util.resolveFileArgToUri(filePath, vscode.workspace.workspaceFolders);
+    let document: vscode.TextDocument | Record<string, never> = {};
+    if (uri) {
+      document = await vscode.workspace.openTextDocument(uri);
+    }
+    const result = await loadDocument(
+      document,
+      getConfig().prettyPrintingOptions,
+      true,
+      silent,
+      sessionKey,
+      who
+    );
     await output.replWindowAppendPrompt();
+    return result;
   } else {
+    if (silent) {
+      throw new Error('Not connected to a REPL server');
+    }
     offerToConnect();
   }
+}
+
+function parseLoadFileArg(fileArg: unknown): {
+  path: unknown;
+  silent: boolean;
+  sessionKey: string | undefined;
+  who: string;
+} {
+  if (fileArg != null && typeof fileArg === 'object' && !Array.isArray(fileArg)) {
+    const obj = fileArg as Record<string, unknown>;
+    if ('path' in obj || 'silent' in obj || 'sessionKey' in obj || 'who' in obj) {
+      return {
+        path: obj.path,
+        silent: !!obj.silent,
+        sessionKey: typeof obj.sessionKey === 'string' ? obj.sessionKey : undefined,
+        who: typeof obj.who === 'string' ? obj.who : 'ui',
+      };
+    }
+  }
+  return { path: fileArg, silent: false, sessionKey: undefined, who: 'ui' };
 }
 
 async function loadFile(
@@ -641,24 +685,29 @@ async function loadFile(
   ns: string,
   nsForm: string,
   pprintOptions: PrettyPrintingOptions,
-  fileType: string
+  fileType: string,
+  silent: boolean = false,
+  targetSessionKey?: string,
+  who: string = 'ui'
 ) {
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
-  const session = replSession.getSession();
-  const sessionKey = sessionRegistry.resolveSessionKey(session);
+  const session = targetSessionKey
+    ? sessionRegistry.getSession(targetSessionKey)
+    : replSession.getSession();
+  const sessionKey = sessionRegistry.resolveSessionKey(session, targetSessionKey);
 
-  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who: 'ui' });
-  whoTracking.recordEvaluation(sessionKey, 'ui');
-  whoTracking.setCurrentWho(session.sessionId, 'ui');
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who });
+  whoTracking.recordEvaluation(sessionKey, who);
+  whoTracking.setCurrentWho(session.sessionId, who);
 
   const errorMessages = [];
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who: 'ui' }),
+    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who }),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who: 'ui' });
+      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -667,10 +716,11 @@ async function loadFile(
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who: 'ui' });
+      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who });
     } else {
-      output.appendLineEvalOut('No results from file evaluation.', { who: 'ui' });
+      output.appendLineEvalOut('No results from file evaluation.', { who });
     }
+    return value;
   } catch (e) {
     replWindow.appendLine(
       `; Evaluation of file ${fileName} failed: ${e}`,
@@ -682,7 +732,10 @@ async function loadFile(
       }
     );
     if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who: 'ui' });
+      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who });
+    }
+    if (silent) {
+      throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
@@ -705,7 +758,7 @@ async function loadFile(
     replSession.updateReplSessionType();
     if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
-        who: 'ui',
+        who,
       });
       const context = customSnippets.makeContext(
         vscode.window.activeTextEditor,
