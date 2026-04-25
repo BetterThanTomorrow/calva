@@ -606,7 +606,8 @@ async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
   pprintOptions: PrettyPrintingOptions,
   shouldResetPreview: boolean = false,
-  silent: boolean = false
+  silent: boolean = false,
+  sessionKey?: string
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
@@ -620,7 +621,7 @@ async function loadDocument(
   }
   const fileType = util.getFileType(doc);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = replSession.getSession();
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 
   if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
     const docUri = replWindow.isReplWindowDoc(doc)
@@ -628,19 +629,25 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
-    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent);
+    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey);
   }
 }
 
 async function loadFileCommand(fileArg?: unknown) {
-  const { path: filePath, silent } = parseLoadFileArg(fileArg);
+  const { path: filePath, silent, sessionKey } = parseLoadFileArg(fileArg);
   if (util.getConnectedState()) {
     const uri = util.resolveFileArgToUri(filePath, vscode.workspace.workspaceFolders);
     let document: vscode.TextDocument | Record<string, never> = {};
     if (uri) {
       document = await vscode.workspace.openTextDocument(uri);
     }
-    const result = await loadDocument(document, getConfig().prettyPrintingOptions, true, silent);
+    const result = await loadDocument(
+      document,
+      getConfig().prettyPrintingOptions,
+      true,
+      silent,
+      sessionKey
+    );
     await output.replWindowAppendPrompt();
     return result;
   } else {
@@ -654,14 +661,19 @@ async function loadFileCommand(fileArg?: unknown) {
 function parseLoadFileArg(fileArg: unknown): {
   path: unknown;
   silent: boolean;
+  sessionKey: string | undefined;
 } {
   if (fileArg != null && typeof fileArg === 'object' && !Array.isArray(fileArg)) {
     const obj = fileArg as Record<string, unknown>;
-    if ('path' in obj || 'silent' in obj) {
-      return { path: obj.path, silent: !!obj.silent };
+    if ('path' in obj || 'silent' in obj || 'sessionKey' in obj) {
+      return {
+        path: obj.path,
+        silent: !!obj.silent,
+        sessionKey: typeof obj.sessionKey === 'string' ? obj.sessionKey : undefined,
+      };
     }
   }
-  return { path: fileArg, silent: false };
+  return { path: fileArg, silent: false, sessionKey: undefined };
 }
 
 async function loadFile(
@@ -670,12 +682,15 @@ async function loadFile(
   nsForm: string,
   pprintOptions: PrettyPrintingOptions,
   fileType: string,
-  silent: boolean = false
+  silent: boolean = false,
+  targetSessionKey?: string
 ) {
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
-  const session = replSession.getSession();
-  const sessionKey = sessionRegistry.resolveSessionKey(session);
+  const session = targetSessionKey
+    ? sessionRegistry.getSession(targetSessionKey)
+    : replSession.getSession();
+  const sessionKey = sessionRegistry.resolveSessionKey(session, targetSessionKey);
 
   output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who: 'ui' });
   whoTracking.recordEvaluation(sessionKey, 'ui');
