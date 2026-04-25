@@ -640,8 +640,9 @@ async function loadFileCommand(fileArg?: unknown) {
     if (uri) {
       document = await vscode.workspace.openTextDocument(uri);
     }
-    await loadDocument(document, getConfig().prettyPrintingOptions, true, silent);
+    const result = await loadDocument(document, getConfig().prettyPrintingOptions, true, silent);
     await output.replWindowAppendPrompt();
+    return result;
   } else {
     if (silent) {
       throw new Error('Not connected to a REPL server');
@@ -699,6 +700,7 @@ async function loadFile(
     } else {
       output.appendLineEvalOut('No results from file evaluation.', { who: 'ui' });
     }
+    return value;
   } catch (e) {
     replWindow.appendLine(
       `; Evaluation of file ${fileName} failed: ${e}`,
