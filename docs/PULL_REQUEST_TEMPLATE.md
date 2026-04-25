@@ -11,22 +11,23 @@ query parameters of the URL of this page.
 The rest of this template is about changes to the Calva source code.
 -->
 
-## What has changed?
-
-<!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
-
--
--
--
-
-<!-- Tell us what Github issue(s) your PR is fixing. Consider creating the issue if there isn't one already. -->
+<!-- Please start by telling us what Github issue(s) your PR is fixing. Strongly consider creating the issue if there isn't one already. -->
 
 Fixes #
 
+## What has changed?
+
+<!-- Introduce the change(s) briefly here. The why of the change belongs in the issue, but consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
+
+-
+-
+-
+
+
 ## My Calva PR Checklist
+
 <!--
-PLEASE DO NOT REMOVE THIS CHECKLIST. You are supposed to fill it in.
-Strike out (using `~`) items that do not apply, If you want to add items, please do. -->
+Strike out items (using `~`) if they do not apply, If you want to add items, please do. -->
 
 I have:
 
@@ -43,4 +44,3 @@ I have:
 - [ ] Formatted all JavaScript and TypeScript code that was changed. (use the [prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) or run `npm run prettier-format`)
 - [ ] Confirmed that there are no linter warnings or errors (use the [eslint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), run `npm run eslint` before creating your PR, or run `npm run eslint-watch` to eslint as you go).
 
-<!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
