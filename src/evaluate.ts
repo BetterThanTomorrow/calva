@@ -611,7 +611,11 @@ async function loadDocument(
   void state.analytics().logGA4Pageview('/load-file');
 
   const doc = util.tryToGetDocument(document);
-  if (shouldResetPreview && vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+  if (
+    !silent &&
+    shouldResetPreview &&
+    vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview
+  ) {
     void vscode.window.showTextDocument(doc, { preview: false });
   }
   const fileType = util.getFileType(doc);
