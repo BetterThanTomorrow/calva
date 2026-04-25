@@ -627,9 +627,14 @@ async function loadDocument(
   }
 }
 
-async function loadFileCommand() {
+async function loadFileCommand(fileArg?: unknown) {
   if (util.getConnectedState()) {
-    await loadDocument({}, getConfig().prettyPrintingOptions, true);
+    const uri = util.resolveFileArgToUri(fileArg, vscode.workspace.workspaceFolders);
+    let document: vscode.TextDocument | Record<string, never> = {};
+    if (uri) {
+      document = await vscode.workspace.openTextDocument(uri);
+    }
+    await loadDocument(document, getConfig().prettyPrintingOptions, true);
     await output.replWindowAppendPrompt();
   } else {
     offerToConnect();
