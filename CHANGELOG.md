@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.576] - 2026-04-25
+
 - [Make loadFile command accept an argument for which file to load](https://github.com/BetterThanTomorrow/calva/issues/3182)
 
 ## [2.0.575] - 2026-04-23
