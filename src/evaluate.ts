@@ -605,7 +605,8 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
   pprintOptions: PrettyPrintingOptions,
-  shouldResetPreview: boolean = false
+  shouldResetPreview: boolean = false,
+  silent: boolean = false
 ) {
   void state.analytics().logGA4Pageview('/load-file');
 
@@ -623,22 +624,39 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
-    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType);
+    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent);
   }
 }
 
 async function loadFileCommand(fileArg?: unknown) {
+  const { path: filePath, silent } = parseLoadFileArg(fileArg);
   if (util.getConnectedState()) {
-    const uri = util.resolveFileArgToUri(fileArg, vscode.workspace.workspaceFolders);
+    const uri = util.resolveFileArgToUri(filePath, vscode.workspace.workspaceFolders);
     let document: vscode.TextDocument | Record<string, never> = {};
     if (uri) {
       document = await vscode.workspace.openTextDocument(uri);
     }
-    await loadDocument(document, getConfig().prettyPrintingOptions, true);
+    await loadDocument(document, getConfig().prettyPrintingOptions, true, silent);
     await output.replWindowAppendPrompt();
   } else {
+    if (silent) {
+      throw new Error('Not connected to a REPL server');
+    }
     offerToConnect();
   }
+}
+
+function parseLoadFileArg(fileArg: unknown): {
+  path: unknown;
+  silent: boolean;
+} {
+  if (fileArg != null && typeof fileArg === 'object' && !Array.isArray(fileArg)) {
+    const obj = fileArg as Record<string, unknown>;
+    if ('path' in obj || 'silent' in obj) {
+      return { path: obj.path, silent: !!obj.silent };
+    }
+  }
+  return { path: fileArg, silent: false };
 }
 
 async function loadFile(
@@ -646,7 +664,8 @@ async function loadFile(
   ns: string,
   nsForm: string,
   pprintOptions: PrettyPrintingOptions,
-  fileType: string
+  fileType: string,
+  silent: boolean = false
 ) {
   const fileName = path.basename(filePath);
   const fileContents = await util.getFileContents(filePath);
@@ -688,6 +707,9 @@ async function loadFile(
     );
     if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
       output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who: 'ui' });
+    }
+    if (silent) {
+      throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
     }
     if (
       !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
