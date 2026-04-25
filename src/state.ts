@@ -174,11 +174,17 @@ export async function initProjectDir(
       connectSequence.projectRootPath,
       vscode.workspace.workspaceFolders
     );
-    console.log('Setting project root to: ', projectRootPath.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-    return projectRootPath;
+    if (projectRootPath) {
+      console.log('Setting project root to: ', projectRootPath.fsPath);
+      void vscode.commands.executeCommand(
+        'setContext',
+        'calva:projectRoot',
+        projectRootPath.fsPath
+      );
+      await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+      await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+      return projectRootPath;
+    }
   }
 
   // Otherwise, use auto-selection logic
