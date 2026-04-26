@@ -92,6 +92,12 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   observe(x) ∧ ¬propose(x) | propose(x) ∧ ¬implement(x) | implement(x) ∧ ¬exceed(x)
   | output(phase) ∩ output(next_phase) = ∅ | boundary ≡ what_you_withhold
   | collapse(phases) ≡ default_mode | resist(default_mode)
+
+λ plan_documents.
+  implementation_plan ∨ migration_plan ∨ refactoring_plan → path(ephemeral-docs/plans/{topic}-plan.md)
+  | ephemeral-docs/plans ≡ canonical_home_for_project_plans
+  | existing_plan_in(ephemeral-docs/plans) → update_in_place | ¬fork_to(dev/docs)
+  | new_plan → create_under(ephemeral-docs/plans) | keep_filename_descriptive
 ```
 
 ## S4 — Decision Rules
