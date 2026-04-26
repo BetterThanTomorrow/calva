@@ -119,6 +119,7 @@ const clojureLspCommands: ClojureLspCommand[] = [
   { command: 'move-coll-entry-down', category: 'clojureLsp.refactor' },
   { command: 'move-coll-entry-up', category: 'clojureLsp.refactor' },
   { command: 'move-form', category: 'clojureLsp.refactor' },
+  { command: 'move-to-for-let', category: 'clojureLsp.refactor' },
   { command: 'replace-refer-all-with-alias', category: 'clojureLsp.refactor' },
   { command: 'replace-refer-all-with-refer', category: 'clojureLsp.refactor' },
   { command: 'resolve-macro-as', category: 'clojureLsp.refactor' },
