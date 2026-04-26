@@ -458,6 +458,12 @@ export function appendClojureEval(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   if (options.description) {
     appendOtherOut(options.description, {
       who: options.who,
@@ -491,6 +497,12 @@ export function appendClojureEval(
  */
 export function appendClojureOther(message: string, after?: AfterAppendCallback) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   destinations.forEach((destination, index) => {
     const didLastTerminateLine = didLastOutputTerminateLine[destination];
     didLastOutputTerminateLine[destination] = true;
@@ -566,6 +578,12 @@ export function appendEvalOut(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'evalOut',
@@ -609,6 +627,12 @@ export function appendEvalErr(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   // Emit nsInfoLine and message once each (using first destination for representative info line)
   const firstInfoLine = nsInfoLine(destinations[0], options);
   try {
@@ -665,6 +689,12 @@ export function appendOtherOut(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'otherOut',
@@ -709,6 +739,12 @@ export function appendOtherErr(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'otherErr',
@@ -793,6 +829,12 @@ export function appendLineEvalOut(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'evalOut',
@@ -829,6 +871,12 @@ export function appendLineEvalErr(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'evalErr',
@@ -865,6 +913,12 @@ export function appendLineOtherOut(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'otherOut',
@@ -901,6 +955,12 @@ export function appendLineOtherErr(
   after?: AfterAppendCallback
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
   try {
     emit({
       category: 'otherErr',
