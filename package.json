@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.577",
+  "version": "2.0.578",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -204,7 +204,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
@@ -248,7 +250,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
@@ -292,7 +296,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
