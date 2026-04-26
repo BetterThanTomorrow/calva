@@ -110,19 +110,16 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'output-view';
+export type { OutputDestination, OutputDestinationValue } from './output-destinations';
+export { normalizeDestinations } from './output-destinations';
 
-export type OutputDestinationValue = OutputDestination | OutputDestination[];
+import type { OutputDestination } from './output-destinations';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
 };
-
-export function normalizeDestinations(value: OutputDestinationValue): OutputDestination[] {
-  return Array.isArray(value) ? [...new Set(value)] : [value];
-}
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   evalResults: 'repl-window',
