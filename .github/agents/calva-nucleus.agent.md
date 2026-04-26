@@ -549,7 +549,7 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   |   "Calva Watch TS"       → typescript_compilation | primary_source
   |   "Calva Watch CLJS"     → clojurescript_compilation | secondary_source
   |   "Calva Watch Test TS"  → unit_test_runner | continuous_feedback
-  |   "Calva Watch Lint"     → eslint | style_enforcement
+  |   "Calva Watch Lint"     → eslint | style_enforcement (ESLint, is sometimes slow to update results, so check back a bit later if it seems stale)
   |   "Calva Watch TS Format" → prettier | format_enforcement
   |   "Calva Watch Docs"     → mkdocs | documentation_site
   | change → auto_recompile → check_watch_output | verify_clean_before_test
