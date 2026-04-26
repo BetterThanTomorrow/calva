@@ -70,9 +70,9 @@ export type AppendClojureOptions = {
 };
 
 export type AppendEvaluatedCodeOptions = {
-  destination: OutputDestination;
-  additionalDestinations?: OutputDestination[];
-  sinkDestination?: OutputDestination;
+  destination: OutputDestinationValue;
+  additionalDestinations?: OutputDestinationValue[];
+  sinkDestination?: OutputDestinationValue;
   writeVisible?: boolean;
   visibleOutputCategory?: OutputCategory;
   ns?: string;
@@ -110,16 +110,19 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-export type { OutputDestination, OutputDestinationValue } from './output-destinations';
-export { normalizeDestinations } from './output-destinations';
+import {
+  normalizeDestinations,
+  type OutputDestination,
+  type OutputDestinationValue,
+} from './output-destinations';
 
-import type { OutputDestination } from './output-destinations';
-import { normalizeDestinations } from './output-destinations';
+export type { OutputDestination, OutputDestinationValue };
+export { normalizeDestinations };
 
 export type OutputDestinationConfiguration = {
-  evalResults: OutputDestination;
-  evalOutput: OutputDestination;
-  otherOutput: OutputDestination;
+  evalResults: OutputDestinationValue;
+  evalOutput: OutputDestinationValue;
+  otherOutput: OutputDestinationValue;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
@@ -376,8 +379,12 @@ export function appendEvaluatedCode(
     visibleOutputCategory = 'evalResults',
     ...metadataOptions
   } = options;
-  const visibleDestinations = writeVisible
-    ? Array.from(new Set([destination, ...additionalDestinations]))
+  const normalizedDestination = normalizeDestinations(destination);
+  const normalizedAdditional = additionalDestinations.flatMap((d) => normalizeDestinations(d));
+  const normalizedSink = normalizeDestinations(sinkDestination);
+  const sinkFirst = normalizedSink[0];
+  const visibleDestinations: OutputDestination[] = writeVisible
+    ? Array.from(new Set([...normalizedDestination, ...normalizedAdditional]))
     : [];
   const didLastTerminateLineByDestination = new Map<OutputDestination, boolean>();
 
@@ -389,12 +396,12 @@ export function appendEvaluatedCode(
     didLastOutputTerminateLine[visibleDestination] = true;
   }
 
-  const sinkDidLastTerminateLine =
-    didLastTerminateLineByDestination.get(sinkDestination) ??
-    didLastOutputTerminateLine[sinkDestination];
+  const sinkDidLastTerminateLine = sinkFirst
+    ? didLastTerminateLineByDestination.get(sinkFirst) ?? didLastOutputTerminateLine[sinkFirst]
+    : true;
 
-  if (!didLastTerminateLineByDestination.has(sinkDestination)) {
-    didLastOutputTerminateLine[sinkDestination] = true;
+  if (sinkFirst && !didLastTerminateLineByDestination.has(sinkFirst)) {
+    didLastOutputTerminateLine[sinkFirst] = true;
   }
 
   routeEvaluatedCode({

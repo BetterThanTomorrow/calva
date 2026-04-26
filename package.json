@@ -167,41 +167,89 @@
           "calva.outputDestinations": {
             "type": "object",
             "markdownDescription": [
-              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal."
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal. Use an array to send output to multiple destinations simultaneously, e.g. `[\"terminal\", \"repl-window\"]`."
             ],
             "properties": {
               "evalResults": {
-                "type": "string",
-                "enum": [
-                  "repl-window",
-                  "output-channel",
-                  "terminal",
-                  "output-view"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "repl-window",
+                      "output-channel",
+                      "terminal",
+                      "output-view"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "repl-window",
+                        "output-channel",
+                        "terminal",
+                        "output-view"
+                      ]
+                    }
+                  }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination for evaluation results. (Clojure data returned from an evaluation)."
+                "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations."
               },
               "evalOutput": {
-                "type": "string",
-                "enum": [
-                  "repl-window",
-                  "output-channel",
-                  "terminal",
-                  "output-view"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "repl-window",
+                      "output-channel",
+                      "terminal",
+                      "output-view"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "repl-window",
+                        "output-channel",
+                        "terminal",
+                        "output-view"
+                      ]
+                    }
+                  }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination for evaluation output (stdout/stderr from an evaluation)."
+                "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations."
               },
               "otherOutput": {
-                "type": "string",
-                "enum": [
-                  "repl-window",
-                  "output-channel",
-                  "terminal",
-                  "output-view"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "repl-window",
+                      "output-channel",
+                      "terminal",
+                      "output-view"
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "repl-window",
+                        "output-channel",
+                        "terminal",
+                        "output-view"
+                      ]
+                    }
+                  }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination for other output (Calva messages, out-of-band stdout/stderr, etcetera)."
+                "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations."
               }
             },
             "default": {

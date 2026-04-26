@@ -237,14 +237,15 @@ export function maybePrintResultsInOtherDestinationMessage(): void {
   }
   havePrintedResultsElsewhereMessage = true;
 
-  const destination = output.getDestinationConfiguration().evalResults;
+  const destinations = normalizeDestinations(output.getDestinationConfiguration().evalResults);
   const destinationNames: Record<output.OutputDestination, string> = {
     'repl-window': 'REPL Window',
     'output-channel': 'Output Channel',
     terminal: 'Output Terminal',
     'output-view': 'Output View',
   };
-  const destinationName = destinationNames[destination] || destination;
+  const destinationName =
+    destinations.map((d) => destinationNames[d] || d).join(' and ') || 'unknown';
 
   const message = `Results are configured to appear in the ${destinationName}.
 To reveal the output, use the command:
