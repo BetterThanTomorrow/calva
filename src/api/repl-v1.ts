@@ -6,6 +6,7 @@ import * as util from '../utilities';
 import { getConfig } from '../config';
 import * as sessionRegistry from '../nrepl/session-registry';
 import * as whoTracking from './who-tracking';
+import { normalizeDestinations } from '../results-output/output-destinations';
 
 type Result = {
   result: string;
@@ -212,7 +213,11 @@ export const evaluateCode = async (
 
   // Honor the evaluationSendCodeToOutputWindow setting like manual evaluations do
   if (getConfig().evaluationSendCodeToOutputWindow) {
-    if (resultOutput.getDestinationConfiguration().evalResults !== 'repl-window') {
+    if (
+      !normalizeDestinations(resultOutput.getDestinationConfiguration().evalResults).includes(
+        'repl-window'
+      )
+    ) {
       resultOutput.appendClojureEval(code, {
         ns,
         replSessionType: effectiveSessionKey,

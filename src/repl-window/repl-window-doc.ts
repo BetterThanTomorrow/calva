@@ -15,6 +15,7 @@ import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
 import * as output from '../results-output/output';
+import { normalizeDestinations } from '../results-output/output-destinations';
 
 const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
@@ -37,9 +38,11 @@ You can configure this with the setting:
 `;
 
 function outputDestinationSettingMessage() {
+  const destinations = config.getConfig().outputDestinations;
   if (
-    JSON.stringify(config.getConfig().outputDestinations) ===
-    JSON.stringify(output.defaultDestinationConfiguration)
+    normalizeDestinations(destinations.evalResults).includes('repl-window') ||
+    normalizeDestinations(destinations.evalOutput).includes('repl-window') ||
+    normalizeDestinations(destinations.otherOutput).includes('repl-window')
   ) {
     return OUTPUT_DESTINATION_SETTINGS_MESSAGE;
   }
@@ -224,7 +227,9 @@ let havePrintedResultsElsewhereMessage = false;
  * prints a one-time informational message to the REPL window.
  */
 export function maybePrintResultsInOtherDestinationMessage(): void {
-  if (output.getDestinationConfiguration().evalResults === 'repl-window') {
+  if (
+    normalizeDestinations(output.getDestinationConfiguration().evalResults).includes('repl-window')
+  ) {
     return;
   }
   if (havePrintedResultsElsewhereMessage) {

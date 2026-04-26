@@ -244,7 +244,9 @@ let havePrintedLegacyReplWindowOutputMessage = false;
 export function maybePrintLegacyREPLWindowOutputMessage() {
   if (
     !havePrintedLegacyReplWindowOutputMessage &&
-    config.getConfig().outputDestinations.evalOutput === 'repl-window' &&
+    normalizeDestinations(config.getConfig().outputDestinations.evalOutput).includes(
+      'repl-window'
+    ) &&
     !config.getConfig().legacyPrintBareReplWindowOutput
   ) {
     const message =
@@ -949,28 +951,30 @@ function formatStacktrace(stacktrace: any[]) {
 }
 
 function printStackTrace(stacktrace: any[]) {
-  const evalResultsOutputDestination = getDestinationConfiguration().evalResults;
-  switch (evalResultsOutputDestination) {
-    case 'repl-window':
-      outputWindow.printLastStacktrace();
-      void replWindowAppendPrompt();
-      break;
-    case 'output-view':
-      appendStackTraceToReplOutputWebview(stacktrace);
-      break;
-    case 'output-channel':
-      outputChannel.appendLine('');
-      outputChannel.appendLine(formatStacktrace(stacktrace));
-      break;
-    case 'terminal':
-      getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
-      break;
-    default:
-      console.error(
-        'Printing the last stacktrace is not supported for the configured results output destination:',
-        evalResultsOutputDestination
-      );
-      break;
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  for (const destination of destinations) {
+    switch (destination) {
+      case 'repl-window':
+        outputWindow.printLastStacktrace();
+        void replWindowAppendPrompt();
+        break;
+      case 'output-view':
+        appendStackTraceToReplOutputWebview(stacktrace);
+        break;
+      case 'output-channel':
+        outputChannel.appendLine('');
+        outputChannel.appendLine(formatStacktrace(stacktrace));
+        break;
+      case 'terminal':
+        getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
+        break;
+      default:
+        console.error(
+          'Printing the last stacktrace is not supported for the configured results output destination:',
+          destination
+        );
+        break;
+    }
   }
 }
 
