@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
+import * as fileArg from '../util/resolve-file-arg';
 import * as config from '../config';
 import { ConnectType } from './connect-types';
 import * as output from '../results-output/output';
@@ -500,15 +501,17 @@ async function askForConnectSequence(
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
 
+  const currentProjectRootUri = state.getProjectRootUri();
+  const sequenceRootPath = fileArg.resolveFilePath(sequence.projectRootPath, undefined);
+  const sequenceRootUri = sequenceRootPath ? state.resolvePath(sequenceRootPath) : undefined;
   if (
     sequence.projectRootPath &&
-    state.getProjectRootUri().fsPath !==
-      state.resolvePath(path.join(...sequence.projectRootPath)).fsPath
+    currentProjectRootUri &&
+    sequenceRootUri &&
+    currentProjectRootUri.fsPath !== sequenceRootUri.fsPath
   ) {
     throw new Error(
-      `The connect sequence "${sequence.name}" is configured for project root "${path.join(
-        ...sequence.projectRootPath
-      )}. Please select a different connect sequence or change the project root setting for the sequence.`
+      `The connect sequence "${sequence.name}" is configured for project root "${sequenceRootPath}". Please select a different connect sequence or change the project root setting for the sequence.`
     );
   }
 

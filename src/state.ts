@@ -3,6 +3,7 @@ import * as semver from 'semver';
 import Analytics from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
+import * as fileArg from './util/resolve-file-arg';
 import * as child from 'child_process';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
@@ -169,20 +170,21 @@ export async function initProjectDir(
   // When a connectSequence with projectRootPath is explicitly provided, use it directly
   // This supports programmatic multi-connection flows
   if (connectSequence?.projectRootPath?.length > 0) {
-    let projectRootPath: vscode.Uri;
-    if (path.isAbsolute(connectSequence.projectRootPath[0])) {
-      projectRootPath = vscode.Uri.file(path.join(...connectSequence.projectRootPath));
-    } else {
-      projectRootPath = vscode.Uri.joinPath(
-        vscode.workspace.workspaceFolders[0].uri,
-        ...connectSequence.projectRootPath
+    const projectRootPath = util.resolveFileArgToUri(
+      connectSequence.projectRootPath,
+      vscode.workspace.workspaceFolders
+    );
+    if (projectRootPath) {
+      console.log('Setting project root to: ', projectRootPath.fsPath);
+      void vscode.commands.executeCommand(
+        'setContext',
+        'calva:projectRoot',
+        projectRootPath.fsPath
       );
+      await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+      await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+      return projectRootPath;
     }
-    console.log('Setting project root to: ', projectRootPath.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-    return projectRootPath;
   }
 
   // Otherwise, use auto-selection logic
@@ -209,14 +211,10 @@ export async function initProjectDir(
 
   let projectRootPath: vscode.Uri;
   if (defaultSequence?.projectRootPath?.length > 0) {
-    if (path.isAbsolute(defaultSequence.projectRootPath[0])) {
-      projectRootPath = vscode.Uri.file(path.join(...defaultSequence.projectRootPath));
-    } else {
-      projectRootPath = vscode.Uri.joinPath(
-        vscode.workspace.workspaceFolders[0].uri,
-        ...defaultSequence.projectRootPath
-      );
-    }
+    projectRootPath = util.resolveFileArgToUri(
+      defaultSequence.projectRootPath,
+      vscode.workspace.workspaceFolders
+    );
   } else {
     projectRootPath = await projectRoot.pickProjectRoot(
       candidatePaths,
@@ -246,10 +244,8 @@ export function resolvePath(filePath?: string): vscode.Uri {
     return vscode.Uri.joinPath(root.uri, filePath);
   }
 
-  if (filePath && path.isAbsolute(filePath)) {
-    return vscode.Uri.file(filePath);
-  }
-  return filePath && root && vscode.Uri.file(path.resolve(root.uri.fsPath, filePath));
+  const resolved = fileArg.resolveFilePath(filePath, root?.uri.fsPath);
+  return resolved ? vscode.Uri.file(resolved) : undefined;
 }
 
 export { extensionContext, outputChannel, connectionLogChannel, analytics };
