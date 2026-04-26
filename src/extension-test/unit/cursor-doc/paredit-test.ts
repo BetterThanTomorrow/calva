@@ -1667,6 +1667,62 @@ describe('paredit', () => {
         expect(textAndSelection(a)).toEqual(textAndSelection(b));
       });
 
+      it('keeps leading comments attached when dragging from trailing inline comment', async () => {
+        const a = docFromTextNotation(`(do•;;b•(str "Hello" " " "World")•"B" ;a|•)`);
+        const b = docFromTextNotation(`(do•"B" ;a|•;;b•(str "Hello" " " "World")•)`);
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('keeps leading comments attached at top level when dragging backward from trailing inline comment', async () => {
+        const a = docFromTextNotation(`;;b•(str "Hello" " " "World")•"B" ;a|`);
+        const b = docFromTextNotation(`"B" ;a|•;;b•(str "Hello" " " "World")`);
+        await paredit.dragSexprBackward(a);
+        expect(textAndSelection(a)).toEqual(textAndSelection(b));
+      });
+
+      it('drags forward across a blank line when caret is before a form with trailing inline comment', async () => {
+        const a = docFromTextNotation(`|"B" ;a••;;b•(str "Hello" " " "World")`);
+        const b = docFromTextNotation(`;;b•(str "Hello" " " "World")••"B" ;a|`);
+        await paredit.dragSexprForward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
+      it('drags forward across a blank line when caret is after trailing inline comment', async () => {
+        const a = docFromTextNotation(`"B" ;a|••;;b•(str "Hello" " " "World")`);
+        const b = docFromTextNotation(`;;b•(str "Hello" " " "World")••"B" ;a|`);
+        await paredit.dragSexprForward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
+      it('drags forward across a blank line when caret is at start of trailing inline comment', async () => {
+        const a = docFromTextNotation(`"B" |;a••;b•(str "Hello" " " "World")`);
+        const b = docFromTextNotation(`;b•(str "Hello" " " "World")••"B" |;a`);
+        await paredit.dragSexprForward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
+      it('drags backward from end of trailing inline comment and keeps single-semicolon comment attached', async () => {
+        const a = docFromTextNotation(`;b•(str "Hello" " " "World")••"B" ;a|`);
+        const b = docFromTextNotation(`"B" ;a|••;b•(str "Hello" " " "World")`);
+        await paredit.dragSexprBackward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
+      it('drags backward when caret is in whitespace before trailing inline comment', async () => {
+        const a = docFromTextNotation(`;b•(str "Hello" " " "World")••"B" |;a`);
+        const b = docFromTextNotation(`"B" |;a••;b•(str "Hello" " " "World")`);
+        await paredit.dragSexprBackward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
+      it('keeps ;=> result comments attached to form under drag', async () => {
+        const a = docFromTextNotation(`(+ 1 2)•;=> 3••"B" ;a|`);
+        const b = docFromTextNotation(`"B" ;a|••(+ 1 2)•;=> 3`);
+        await paredit.dragSexprBackward(a);
+        expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+      });
+
       it('does not drag forward when sexpr is last in regular lists', async () => {
         const dotText = `(c• [:f '(0 "t")•   "b" |:s ]•)`;
         const a = docFromTextNotation(dotText);
