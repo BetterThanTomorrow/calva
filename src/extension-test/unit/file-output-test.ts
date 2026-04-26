@@ -183,6 +183,7 @@ describe('file-output', () => {
       const consoleCalls: unknown[][] = [];
       console.error = (...args: unknown[]) => consoleCalls.push(args);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         const showError = () => {};
         reportFileOutputError('./log.txt', new Error('fail'), showError);
         reportFileOutputError('./log.txt', new Error('fail'), showError);

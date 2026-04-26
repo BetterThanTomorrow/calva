@@ -182,20 +182,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
                 "anyOf": [
@@ -209,20 +226,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
                 "anyOf": [
@@ -236,20 +270,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
