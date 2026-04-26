@@ -46,7 +46,7 @@ You can send a category to multiple destinations by using an array:
 
 ### File Path Destinations
 
-In addition to the four built-in destinations, you can use **file paths** as output destinations. Output is ANSI-stripped and appended to the specified file, which is auto-created (along with any parent directories) on first write.
+In addition to the four built-in destinations, you can use **file paths** as output destinations. Output is appended to the specified file, which is auto-created (along with any parent directories) on first write.
 
 A destination is recognized as a file path if it starts with `./`, `../`, `/`, `~/`, `\`, or a Windows drive letter (e.g. `C:\`). Relative paths are resolved against the first workspace folder. Use `~/` for your home directory.
 
@@ -69,9 +69,8 @@ You can also use nested arrays for path segments, which are joined with the plat
 ```
 
 !!! Note "File output behavior"
-    - Files grow without limit — you control the destination, so manage file size as needed.
+    - Files grow without limit. You control the destination, so manage file size as needed.
     - Writes are fire-and-forget (async). If a write fails, Calva shows an error message once per file per session and logs subsequent errors to the console.
-    - The "Show/Open result output destination" command skips file destinations.
 
 ### Output Destinations Feature Comparison
 

@@ -207,8 +207,19 @@ export function showOutputTerminal(preserveFocus = true) {
 
 export function showResultOutputDestination(preserveFocus = true) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
-  const first = destinations.find((d) => !isFilePathDestination(d));
+  const first = destinations[0];
   if (!first) {
+    return;
+  }
+  if (isFilePathDestination(first)) {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const resolvedPath = resolveOutputFilePath(first, workspaceRoot);
+    if (resolvedPath) {
+      return vscode.window.showTextDocument(vscode.Uri.file(resolvedPath), {
+        preserveFocus,
+        preview: true,
+      });
+    }
     return;
   }
   if (first === 'output-channel') {
