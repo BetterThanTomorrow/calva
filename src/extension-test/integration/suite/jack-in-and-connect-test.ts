@@ -23,6 +23,7 @@ import {
 import * as projectTypes from '../../../nrepl/project-types';
 import { getConfig } from '../../../config';
 import * as output from '../../../results-output/output';
+import { normalizeDestinations } from '../../../results-output/output-destinations';
 
 suite('Jack-in and Connect suite', () => {
   const suite = 'Jack-in and Connect';
@@ -475,7 +476,9 @@ async function waitForNextClient(suite: string): Promise<string> {
 }
 
 async function waitForJackInCompletion(suite: string) {
-  if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+  if (
+    !normalizeDestinations(output.getDestinationConfiguration().otherOutput).includes('repl-window')
+  ) {
     testUtil.log(
       suite,
       'Skipping REPL-window jack-in completion wait because other output is not routed there'

@@ -95,6 +95,7 @@ clojure.tmLanguage.json
 .cpcache/
 backup/
 bundled/drams-menu/drams-local.edn
+ephemeral-docs/
 
 # Calva grammars (running the atom-ci docker image locally)
 src/calva-fmt/atom-language-clojure/.cache/
@@ -111,3 +112,4 @@ src/calva-fmt/atom-language-clojure/.bash_history
 
 **/.cljs_node_repl/
 .venv-docs/
+

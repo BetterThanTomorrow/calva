@@ -10,6 +10,7 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as output from '../../../results-output/output';
+import { normalizeDestinations } from '../../../results-output/output-destinations';
 import { getDocument } from '../../../doc-mirror';
 import connector from '../../../connector';
 
@@ -435,7 +436,11 @@ export class JackInHarness {
   }
 
   async waitForJackInCompletion(timeoutMs = 60_000): Promise<void> {
-    if (output.getDestinationConfiguration().otherOutput !== 'repl-window') {
+    if (
+      !normalizeDestinations(output.getDestinationConfiguration().otherOutput).includes(
+        'repl-window'
+      )
+    ) {
       log(
         this.suiteName,
         'Skipping REPL-window jack-in completion wait because other output is not routed there'
