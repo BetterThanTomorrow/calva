@@ -114,6 +114,7 @@ export type { OutputDestination, OutputDestinationValue } from './output-destina
 export { normalizeDestinations } from './output-destinations';
 
 import type { OutputDestination } from './output-destinations';
+import { normalizeDestinations } from './output-destinations';
 
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
@@ -442,8 +443,29 @@ export function appendClojureEval(
   options: AppendClojureOptions,
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalResults;
-  appendClojure({ destination, outputCategory: 'evalResults', ...options }, code, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  if (options.description) {
+    appendOtherOut(options.description, {
+      who: options.who,
+      ns: options.ns,
+      replSessionType: options.replSessionType,
+    });
+  }
+  destinations.forEach((destination, index) => {
+    const didLastTerminateLine = didLastOutputTerminateLine[destination];
+    didLastOutputTerminateLine[destination] = true;
+    if (index === 0) {
+      emitClojureMessage({ ...options, outputCategory: 'evalResults' }, code, didLastTerminateLine);
+    }
+    const isLast = index === destinations.length - 1;
+    writeClojure(
+      { destination, outputCategory: 'evalResults', ...options },
+      code,
+      didLastTerminateLine,
+      isLast ? after : undefined
+    );
+    saveLastInfoLineData(destination, options);
+  });
 }
 
 /**
@@ -454,22 +476,25 @@ export function appendClojureEval(
  * @param after Optional callback to run after the append
  */
 export function appendClojureOther(message: string, after?: AfterAppendCallback) {
-  const destination = getDestinationConfiguration().otherOutput;
-  appendClojure({ destination, outputCategory: 'clojure' }, message, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  destinations.forEach((destination, index) => {
+    const didLastTerminateLine = didLastOutputTerminateLine[destination];
+    didLastOutputTerminateLine[destination] = true;
+    if (index === 0) {
+      emitClojureMessage({ outputCategory: 'clojure' }, message, didLastTerminateLine);
+    }
+    const isLast = index === destinations.length - 1;
+    writeClojure(
+      { destination, outputCategory: 'clojure' },
+      message,
+      didLastTerminateLine,
+      isLast ? after : undefined
+    );
+    saveLastInfoLineData(destination, {});
+  });
 }
 
-function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
-  try {
-    emit({
-      category: options.outputCategory,
-      text: util.stripAnsi(message),
-      who: options.who,
-      ns: options.ns,
-      replSessionKey: options.replSessionKey,
-    });
-  } catch (e) {
-    console.error('Calva output-sink listener error', e.message);
-  }
+function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = util.stripAnsi(message).endsWith('\n');
@@ -500,6 +525,21 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
   }
 }
 
+function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  try {
+    emit({
+      category: options.outputCategory,
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionKey,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  writeAppend(options, message, after);
+}
+
 /**
  * Appends output without adding a newline at the end.
  * Use for stdout messages related to an evaluation
@@ -511,22 +551,36 @@ export function appendEvalOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalOut(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'evalOut',
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  try {
+    emit({
+      category: 'evalOut',
+      text: util.stripAnsi(message),
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'evalOut',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -540,22 +594,48 @@ export function appendEvalErr(
   options: AppendClojureOptions,
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalErr(message)
-      : message;
-  // TODO: Figure if it's worth a setting to opt-in on an ns info line
-  const evalErrOptions: AppendOptions = {
-    destination,
-    outputCategory: 'evalErr',
-    who: options.who,
-    ns: options.ns,
-    replSessionKey: options.replSessionType,
-  };
-  append(evalErrOptions, nsInfoLine(destination, options));
-  append(evalErrOptions, coloredMessage, after);
-  saveLastInfoLineData(destination, options);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  // Emit nsInfoLine and message once each (using first destination for representative info line)
+  const firstInfoLine = nsInfoLine(destinations[0], options);
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(firstInfoLine),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalErr(message)
+        : message;
+    const evalErrOptions: AppendOptions = {
+      destination,
+      outputCategory: 'evalErr',
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    };
+    writeAppend(evalErrOptions, nsInfoLine(destination, options));
+    const isLast = index === destinations.length - 1;
+    writeAppend(evalErrOptions, coloredMessage, isLast ? after : undefined);
+    saveLastInfoLineData(destination, options);
+  });
 }
 
 /**
@@ -570,22 +650,36 @@ export function appendOtherOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherOut(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'otherOut',
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  try {
+    emit({
+      category: 'otherOut',
+      text: util.stripAnsi(message),
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'otherOut',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -600,40 +694,40 @@ export function appendOtherErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherErr(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'otherErr',
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  try {
+    emit({
+      category: 'otherErr',
+      text: util.stripAnsi(message),
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'otherErr',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
-function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+function writeAppendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
-  // Terminal delegates to append() which emits; other destinations need explicit emit
-  if (destination !== 'terminal') {
-    try {
-      emit({
-        category: options.outputCategory,
-        text: util.stripAnsi(message),
-        who: options.who,
-        ns: options.ns,
-        replSessionKey: options.replSessionKey,
-      });
-    } catch (e) {
-      console.error('Calva output-sink listener error', e.message);
-    }
-  }
   const didLastTerminateLine = didLastOutputTerminateLine[destination];
   didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
@@ -649,11 +743,27 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
     return;
   }
   if (destination === 'terminal') {
-    append(options, message + '\r\n', after);
+    writeAppend(options, message + '\r\n', after);
+    return;
   }
   if (destination === 'output-view') {
     appendToReplOutputWebview(options, '\n\n' + message);
   }
+}
+
+function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  try {
+    emit({
+      category: options.outputCategory,
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionKey,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  writeAppendLine(options, message, after);
 }
 
 /**
@@ -668,12 +778,28 @@ export function appendLineEvalOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalOut(message)
-      : message;
-  appendLine({ destination, outputCategory: 'evalOut', who: options.who }, coloredMessage, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  try {
+    emit({
+      category: 'evalOut',
+      text: util.stripAnsi(message),
+      who: options.who,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'evalOut', who: options.who },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -688,12 +814,28 @@ export function appendLineEvalErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalErr(message)
-      : message;
-  appendLine({ destination, outputCategory: 'evalErr', who: options.who }, coloredMessage, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(message),
+      who: options.who,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'evalErr', who: options.who },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -708,16 +850,28 @@ export function appendLineOtherOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherOut(message)
-      : message;
-  appendLine(
-    { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
-    coloredMessage,
-    after
-  );
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  try {
+    emit({
+      category: 'otherOut',
+      text: util.stripAnsi(message),
+      who: options.who ?? 'ui',
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -732,16 +886,28 @@ export function appendLineOtherErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherErr(message)
-      : message;
-  appendLine(
-    { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
-    coloredMessage,
-    after
-  );
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  try {
+    emit({
+      category: 'otherErr',
+      text: util.stripAnsi(message),
+      who: options.who ?? 'ui',
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
