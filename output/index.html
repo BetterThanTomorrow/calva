@@ -704,6 +704,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#file-path-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Path Destinations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#output-destinations-feature-comparison" class="md-nav__link">
     <span class="md-ellipsis">
       Output Destinations Feature Comparison
@@ -2214,6 +2223,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#file-path-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Path Destinations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#output-destinations-feature-comparison" class="md-nav__link">
     <span class="md-ellipsis">
       Output Destinations Feature Comparison
@@ -2307,7 +2325,7 @@
 </tr>
 </tbody>
 </table>
-<p>Each category can be relayed to one of four <strong>Output Destinations</strong>:</p>
+<p>Each category can be relayed to one or more of four <strong>Output Destinations</strong>:</p>
 <table>
 <thead>
 <tr>
@@ -2334,7 +2352,7 @@
 </tr>
 </tbody>
 </table>
-<p>The <code>calva.outputDestinations</code> setting is an object which maps from a given output category to an output destinations.</p>
+<p>The <code>calva.outputDestinations</code> setting is an object which maps each output category to a destination (or an array of destinations for simultaneous output).</p>
 <p>The default configuration is to relay all categories to the Calva output terminal:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.outputDestinations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;evalResults&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span>
@@ -2342,6 +2360,36 @@
 <span class="w">  </span><span class="nt">&quot;otherOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>You can send a category to multiple destinations by using an array:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.outputDestinations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;evalResults&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;repl-window&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;evalOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;otherOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="file-path-destinations">File Path Destinations<a class="headerlink" href="#file-path-destinations" title="Permanent link">#</a></h3>
+<p>In addition to the four built-in destinations, you can use <strong>file paths</strong> as output destinations. Output is appended to the specified file, which is auto-created (along with any parent directories) on first write.</p>
+<p>A destination is recognized as a file path if it starts with <code>./</code>, <code>../</code>, <code>/</code>, <code>~/</code>, <code>\</code>, or a Windows drive letter (e.g. <code>C:\</code>). Relative paths are resolved against the first workspace folder. Use <code>~/</code> for your home directory.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.outputDestinations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;evalResults&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;./logs/eval-results.txt&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;evalOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./logs/eval-output.txt&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;otherOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>You can also use nested arrays for path segments, which are joined with the platform path separator:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.outputDestinations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;evalResults&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;logs&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;eval-results.txt&quot;</span><span class="p">]],</span>
+<span class="w">  </span><span class="nt">&quot;evalOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;otherOutput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;terminal&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">File output behavior</p>
+<ul>
+<li>Files grow without limit. You control the destination, so manage file size as needed.</li>
+<li>Writes are fire-and-forget (async). If a write fails, Calva shows an error message once per file per session and logs subsequent errors to the console.</li>
+</ul>
+</div>
 <h3 id="output-destinations-feature-comparison">Output Destinations Feature Comparison<a class="headerlink" href="#output-destinations-feature-comparison" title="Permanent link">#</a></h3>
 <p>The table below lists the features of the different output destinations.</p>
 <table>
