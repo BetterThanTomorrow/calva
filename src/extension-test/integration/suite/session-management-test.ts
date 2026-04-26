@@ -170,9 +170,11 @@ describe(`${suiteName} suite`, () => {
           who,
         });
 
+        let lastReplText = '';
         await testUtil.waitForCondition(async () => {
           const replWindowDoc = await outputWindow.openReplWindowDoc();
-          return getDocument(replWindowDoc).document.getText().includes(code);
+          lastReplText = getDocument(replWindowDoc).document.getText();
+          return lastReplText.includes(code);
         });
 
         const evaluatedCodeEvents = events.filter(

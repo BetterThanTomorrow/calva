@@ -218,7 +218,8 @@ export function showResultOutputDestination(preserveFocus = true) {
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
-  return config.getConfig().outputDestinations || defaultDestinationConfiguration;
+  const raw = config.getConfig().outputDestinations;
+  return raw || defaultDestinationConfiguration;
 }
 
 function asClojureLineComments(message: string) {
