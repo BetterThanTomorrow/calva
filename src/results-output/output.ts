@@ -115,6 +115,12 @@ import {
   type OutputDestination,
   type OutputDestinationValue,
 } from './output-destinations';
+import {
+  isFilePathDestination,
+  resolveOutputFilePath,
+  appendToOutputFile,
+  reportFileOutputError,
+} from './file-output';
 
 export type { OutputDestination, OutputDestinationValue };
 export { normalizeDestinations };
@@ -201,7 +207,7 @@ export function showOutputTerminal(preserveFocus = true) {
 
 export function showResultOutputDestination(preserveFocus = true) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
-  const first = destinations[0];
+  const first = destinations.find((d) => !isFilePathDestination(d));
   if (!first) {
     return;
   }
@@ -232,6 +238,33 @@ function destinationSupportsAnsi(destination: string) {
 
 function messageContainsAnsi(message: string) {
   return ansiRegex().test(message);
+}
+
+function writeToFileDestination(
+  destination: string,
+  message: string,
+  after?: AfterAppendCallback
+): void {
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const resolvedPath = resolveOutputFilePath(destination, workspaceRoot);
+  if (!resolvedPath) {
+    reportFileOutputError(
+      destination,
+      new Error(`Cannot resolve file path: ${destination}`),
+      (msg) => void vscode.window.showErrorMessage(msg)
+    );
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  const stripped = util.stripAnsi(message);
+  appendToOutputFile(resolvedPath, stripped).catch((err) => {
+    reportFileOutputError(destination, err, (msg) => void vscode.window.showErrorMessage(msg));
+  });
+  if (after) {
+    after(undefined, undefined);
+  }
 }
 
 // Used to decide if new result output should be prepended with a newline or not.
@@ -317,6 +350,16 @@ function writeClojure(
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
+  if (isFilePathDestination(destination)) {
+    const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': false };
+    const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
+    writeToFileDestination(
+      destination,
+      `${didLastTerminateLine ? '' : '\n'}${prettyMessage}\n`,
+      after
+    );
+    return;
+  }
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
   } else if (destination === 'output-channel') {
@@ -527,6 +570,10 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
   didLastOutputTerminateLine.set(destination, util.stripAnsi(message).endsWith('\n'));
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message, after);
+    return;
+  }
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -783,6 +830,10 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
   const destination = options.destination;
   const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
   didLastOutputTerminateLine.set(destination, true);
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message + '\n', after);
+    return;
+  }
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -1023,6 +1074,10 @@ function formatStacktrace(stacktrace: any[]) {
 function printStackTrace(stacktrace: any[]) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
   for (const destination of destinations) {
+    if (isFilePathDestination(destination)) {
+      writeToFileDestination(destination, '\n' + formatStacktrace(stacktrace) + '\n');
+      continue;
+    }
     switch (destination) {
       case 'repl-window':
         outputWindow.printLastStacktrace();
