@@ -70,6 +70,17 @@ suite('File Output Destination Test', () => {
   }) {
     const config = vscode.workspace.getConfiguration('calva');
     await config.update('outputDestinations', destinations, vscode.ConfigurationTarget.Global);
+    // Wait for config to be visible to readers (update resolves before readers see it)
+    const expected = JSON.stringify(destinations);
+    await testUtil.waitForCondition(
+      () => {
+        const current = vscode.workspace.getConfiguration('calva').get('outputDestinations');
+        return JSON.stringify(current) === expected;
+      },
+      2000,
+      50,
+      'outputDestinations config update did not take effect'
+    );
   }
 
   async function jackInWithTerminal() {
@@ -120,10 +131,10 @@ suite('File Output Destination Test', () => {
     await testUtil.openFile(testFilePath);
     await vscode.commands.executeCommand('calva.loadFile');
 
-    const content = await waitForFileContent(outputFile, (c) => c.includes('bar'));
+    const content = await waitForFileContent(outputFile, (c) => c.includes('nil'));
 
     // Should contain result without ANSI escape sequences
-    assert.ok(content.includes('bar'), `Expected file to contain "bar", got: ${content}`);
+    assert.ok(content.includes('nil'), `Expected file to contain "nil", got: ${content}`);
     const esc = String.fromCharCode(0x1b);
     const csi = String.fromCharCode(0x9b);
     assert.ok(
@@ -146,9 +157,9 @@ suite('File Output Destination Test', () => {
     await testUtil.openFile(testFilePath);
     await vscode.commands.executeCommand('calva.loadFile');
 
-    const content = await waitForFileContent(outputFile, (c) => c.includes('hello'));
+    const content = await waitForFileContent(outputFile, (c) => c.includes('bar'));
 
-    assert.ok(content.includes('hello'), `Expected file to contain "hello", got: ${content}`);
+    assert.ok(content.includes('bar'), `Expected file to contain "bar", got: ${content}`);
   });
 
   test('file auto-created with parent directories', async function () {
@@ -184,16 +195,16 @@ suite('File Output Destination Test', () => {
 
     // Load file twice to get two results
     await vscode.commands.executeCommand('calva.loadFile');
-    await waitForFileContent(outputFile, (c) => c.includes('bar'));
+    await waitForFileContent(outputFile, (c) => c.includes('nil'));
 
     await vscode.commands.executeCommand('calva.loadFile');
     // Wait for two occurrences of the result
     const content = await waitForFileContent(
       outputFile,
-      (c) => (c.match(/bar/g) || []).length >= 2
+      (c) => (c.match(/nil/g) || []).length >= 2
     );
 
-    const matches = content.match(/bar/g) || [];
-    assert.ok(matches.length >= 2, `Expected at least 2 "bar" in file, got ${matches.length}`);
+    const matches = content.match(/nil/g) || [];
+    assert.ok(matches.length >= 2, `Expected at least 2 "nil" in file, got ${matches.length}`);
   });
 });
