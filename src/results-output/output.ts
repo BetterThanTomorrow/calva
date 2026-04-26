@@ -53,7 +53,7 @@ export type OutputCategory =
   | 'otherErr';
 
 type AppendOptions = {
-  destination: OutputDestination;
+  destination: string;
   outputCategory: OutputCategory;
   after?: AfterAppendCallback;
   who?: string;
@@ -115,6 +115,12 @@ import {
   type OutputDestination,
   type OutputDestinationValue,
 } from './output-destinations';
+import {
+  isFilePathDestination,
+  resolveOutputFilePath,
+  appendToOutputFile,
+  reportFileOutputError,
+} from './file-output';
 
 export type { OutputDestination, OutputDestinationValue };
 export { normalizeDestinations };
@@ -205,6 +211,17 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (!first) {
     return;
   }
+  if (isFilePathDestination(first)) {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const resolvedPath = resolveOutputFilePath(first, workspaceRoot);
+    if (resolvedPath) {
+      return vscode.window.showTextDocument(vscode.Uri.file(resolvedPath), {
+        preserveFocus,
+        preview: true,
+      });
+    }
+    return;
+  }
   if (first === 'output-channel') {
     return showOutputChannel(preserveFocus);
   }
@@ -226,7 +243,7 @@ function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
 }
 
-function destinationSupportsAnsi(destination: OutputDestination) {
+function destinationSupportsAnsi(destination: string) {
   return destination === 'terminal';
 }
 
@@ -234,14 +251,41 @@ function messageContainsAnsi(message: string) {
   return ansiRegex().test(message);
 }
 
+function writeToFileDestination(
+  destination: string,
+  message: string,
+  after?: AfterAppendCallback
+): void {
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const resolvedPath = resolveOutputFilePath(destination, workspaceRoot);
+  if (!resolvedPath) {
+    reportFileOutputError(
+      destination,
+      new Error(`Cannot resolve file path: ${destination}`),
+      (msg) => void vscode.window.showErrorMessage(msg)
+    );
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  const stripped = util.stripAnsi(message);
+  appendToOutputFile(resolvedPath, stripped).catch((err) => {
+    reportFileOutputError(destination, err, (msg) => void vscode.window.showErrorMessage(msg));
+  });
+  if (after) {
+    after(undefined, undefined);
+  }
+}
+
 // Used to decide if new result output should be prepended with a newline or not.
 // Also: For non-result output, whether the repl window output should be printed as line comments.
-const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
-  'repl-window': true,
-  'output-channel': true,
-  terminal: true,
-  'output-view': true,
-};
+const didLastOutputTerminateLine = new Map<string, boolean>([
+  ['repl-window', true],
+  ['output-channel', true],
+  ['terminal', true],
+  ['output-view', true],
+]);
 
 let havePrintedLegacyReplWindowOutputMessage = false;
 
@@ -260,22 +304,22 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
-const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
-  'repl-window': {},
-  'output-channel': {},
-  terminal: {},
-  'output-view': {},
-};
+const lastInfoLineData = new Map<string, AppendClojureOptions>([
+  ['repl-window', {}],
+  ['output-channel', {}],
+  ['terminal', {}],
+  ['output-view', {}],
+]);
 
-function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
+function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
   const { ns, replSessionType, who } = options;
   if (ns) {
-    lastInfoLineData[destination] = { ns, replSessionType, who };
+    lastInfoLineData.set(destination, { ns, replSessionType, who });
   }
 }
 
-function nsInfoLine(destination: OutputDestination, options: AppendClojureOptions) {
-  const last = lastInfoLineData[destination];
+function nsInfoLine(destination: string, options: AppendClojureOptions) {
+  const last = lastInfoLineData.get(destination) ?? {};
   const key = `${options.who || ''}:${options.replSessionType}:${options.ns}`;
   const lastKey = `${last.who || ''}:${last.replSessionType}:${last.ns}`;
   if (!options.ns || key === lastKey) {
@@ -317,6 +361,16 @@ function writeClojure(
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
+  if (isFilePathDestination(destination)) {
+    const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': false };
+    const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
+    writeToFileDestination(
+      destination,
+      `${didLastTerminateLine ? '' : '\n'}${prettyMessage}\n`,
+      after
+    );
+    return;
+  }
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
   } else if (destination === 'output-channel') {
@@ -353,8 +407,8 @@ function appendClojure(
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = true;
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, true);
   if (options.description) {
     appendOtherOut(options.description, {
       who: options.who,
@@ -384,25 +438,27 @@ export function appendEvaluatedCode(
   const normalizedAdditional = additionalDestinations.flatMap((d) => normalizeDestinations(d));
   const normalizedSink = normalizeDestinations(sinkDestination);
   const sinkFirst = normalizedSink[0];
-  const visibleDestinations: OutputDestination[] = writeVisible
+  const visibleDestinations: string[] = writeVisible
     ? Array.from(new Set([...normalizedDestination, ...normalizedAdditional]))
     : [];
-  const didLastTerminateLineByDestination = new Map<OutputDestination, boolean>();
+  const didLastTerminateLineByDestination = new Map<string, boolean>();
 
   for (const visibleDestination of visibleDestinations) {
     didLastTerminateLineByDestination.set(
       visibleDestination,
-      didLastOutputTerminateLine[visibleDestination]
+      didLastOutputTerminateLine.get(visibleDestination) ?? true
     );
-    didLastOutputTerminateLine[visibleDestination] = true;
+    didLastOutputTerminateLine.set(visibleDestination, true);
   }
 
   const sinkDidLastTerminateLine = sinkFirst
-    ? didLastTerminateLineByDestination.get(sinkFirst) ?? didLastOutputTerminateLine[sinkFirst]
+    ? didLastTerminateLineByDestination.get(sinkFirst) ??
+      didLastOutputTerminateLine.get(sinkFirst) ??
+      true
     : true;
 
   if (sinkFirst && !didLastTerminateLineByDestination.has(sinkFirst)) {
-    didLastOutputTerminateLine[sinkFirst] = true;
+    didLastOutputTerminateLine.set(sinkFirst, true);
   }
 
   routeEvaluatedCode({
@@ -473,8 +529,8 @@ export function appendClojureEval(
     });
   }
   destinations.forEach((destination, index) => {
-    const didLastTerminateLine = didLastOutputTerminateLine[destination];
-    didLastOutputTerminateLine[destination] = true;
+    const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+    didLastOutputTerminateLine.set(destination, true);
     if (index === 0) {
       emitClojureMessage({ ...options, outputCategory: 'evalResults' }, code, didLastTerminateLine);
     }
@@ -505,8 +561,8 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
     return;
   }
   destinations.forEach((destination, index) => {
-    const didLastTerminateLine = didLastOutputTerminateLine[destination];
-    didLastOutputTerminateLine[destination] = true;
+    const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+    didLastOutputTerminateLine.set(destination, true);
     if (index === 0) {
       emitClojureMessage({ outputCategory: 'clojure' }, message, didLastTerminateLine);
     }
@@ -523,8 +579,12 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
 
 function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = util.stripAnsi(message).endsWith('\n');
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, util.stripAnsi(message).endsWith('\n'));
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message, after);
+    return;
+  }
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -779,8 +839,12 @@ export function appendOtherErr(
 
 function writeAppendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = true;
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, true);
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message + '\n', after);
+    return;
+  }
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -990,7 +1054,7 @@ export function appendLineOtherErr(
  * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
 export async function replWindowAppendPrompt() {
-  didLastOutputTerminateLine['repl-window'] = true;
+  didLastOutputTerminateLine.set('repl-window', true);
   await outputWindow.appendPrompt();
 }
 
@@ -999,7 +1063,7 @@ export async function replWindowAppendPrompt() {
  * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
 export async function replWindowForceAppendPrompt() {
-  didLastOutputTerminateLine['repl-window'] = true;
+  didLastOutputTerminateLine.set('repl-window', true);
   await outputWindow.forceAppendPrompt();
 }
 
@@ -1021,6 +1085,10 @@ function formatStacktrace(stacktrace: any[]) {
 function printStackTrace(stacktrace: any[]) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
   for (const destination of destinations) {
+    if (isFilePathDestination(destination)) {
+      writeToFileDestination(destination, '\n' + formatStacktrace(stacktrace) + '\n');
+      continue;
+    }
     switch (destination) {
       case 'repl-window':
         outputWindow.printLastStacktrace();

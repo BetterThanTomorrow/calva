@@ -44,6 +44,34 @@ You can send a category to multiple destinations by using an array:
 }
 ```
 
+### File Path Destinations
+
+In addition to the four built-in destinations, you can use **file paths** as output destinations. Output is appended to the specified file, which is auto-created (along with any parent directories) on first write.
+
+A destination is recognized as a file path if it starts with `./`, `../`, `/`, `~/`, `\`, or a Windows drive letter (e.g. `C:\`). Relative paths are resolved against the first workspace folder. Use `~/` for your home directory.
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", "./logs/eval-results.txt"],
+  "evalOutput": "./logs/eval-output.txt",
+  "otherOutput": "terminal"
+}
+```
+
+You can also use nested arrays for path segments, which are joined with the platform path separator:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", [".", "logs", "eval-results.txt"]],
+  "evalOutput": "terminal",
+  "otherOutput": "terminal"
+}
+```
+
+!!! Note "File output behavior"
+    - Files grow without limit. You control the destination, so manage file size as needed.
+    - Writes are fire-and-forget (async). If a write fails, Calva shows an error message once per file per session and logs subsequent errors to the console.
+
 ### Output Destinations Feature Comparison
 
 The table below lists the features of the different output destinations.

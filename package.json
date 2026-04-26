@@ -167,7 +167,7 @@
           "calva.outputDestinations": {
             "type": "object",
             "markdownDescription": [
-              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, or the _Calva output_ (pseudo) terminal. Use an array to send output to multiple destinations simultaneously, e.g. `[\"terminal\", \"repl-window\"]`."
+              "Where different types of Calva output should be printed.\nCalva categorizes output into three types:\n- **evaluation results**: Clojure data returned from an evaluation.\n- **evaluation output**: stdout/stderr from an evaluation\n- **other output**: Other messages, logs, etc\n\nYou can select where each category of output should go to: the REPL Window, the _Calva Says_ Output Channel, the _Calva output_ (pseudo) terminal, or a **file path**. Use an array to send output to multiple destinations simultaneously, e.g. `[\"terminal\", \"./logs/output.txt\"]`.\n\n**File path destinations** append output (ANSI-stripped) to the specified file, creating it and any parent directories as needed. Paths starting with `./`, `../`, `/`, `~/`, or a drive letter (e.g. `C:\\`) are recognized as file paths. Relative paths are resolved against the first workspace folder. Use `~/` for your home directory. You can also use nested arrays for path segments: `[\"terminal\", [\".\", \"logs\", \"output.txt\"]]`."
             ],
             "properties": {
               "evalResults": {
@@ -182,20 +182,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
                 "anyOf": [
@@ -209,20 +226,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
                 "anyOf": [
@@ -236,20 +270,37 @@
                     ]
                   },
                   {
+                    "type": "string",
+                    "description": "A file path (absolute or relative to the project root) to append output to."
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "repl-window",
-                        "output-channel",
-                        "terminal",
-                        "output-view"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "repl-window",
+                            "output-channel",
+                            "terminal",
+                            "output-view"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "description": "A file path to append output to."
+                        },
+                        {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
+                        }
                       ]
                     }
                   }
                 ],
                 "default": "terminal",
-                "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations."
+                "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
