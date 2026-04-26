@@ -23,6 +23,7 @@ import { highlight } from './highlight/src/extension';
 import * as flareHandler from './flare-handler';
 import { normalizeEvaluateAsCommentArgs } from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
+import { normalizeDestinations } from './results-output/output-destinations';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -187,7 +188,8 @@ async function evaluateCodeUpdatingUI(
       output.appendEvaluatedCode(code, {
         destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
         additionalDestinations:
-          shouldWriteVisibleEvaluatedCode && evalResultsDestination !== 'repl-window'
+          shouldWriteVisibleEvaluatedCode &&
+          !normalizeDestinations(evalResultsDestination).includes('repl-window')
             ? [evalResultsDestination]
             : [],
         sinkDestination: evalResultsDestination,
@@ -256,7 +258,11 @@ async function evaluateCodeUpdatingUI(
             replWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
               replWindow.markLastStacktraceRange(afterResultLocation);
             });
-            if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+            if (
+              !normalizeDestinations(output.getDestinationConfiguration().evalOutput).includes(
+                'repl-window'
+              )
+            ) {
               output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
             }
           } else {
@@ -307,13 +313,21 @@ async function evaluateCodeUpdatingUI(
               console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
-        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+        if (
+          !normalizeDestinations(output.getDestinationConfiguration().evalOutput).includes(
+            'repl-window'
+          )
+        ) {
           output.appendEvalErr(err.length ? err.join('\n') : e, {
             ns,
             replSessionType: sessionKey,
             who: 'ui',
           });
-          if (output.getDestinationConfiguration().evalOutput === 'output-view') {
+          if (
+            normalizeDestinations(output.getDestinationConfiguration().evalOutput).includes(
+              'output-view'
+            )
+          ) {
             session
               .stacktrace()
               .then((stacktrace) => {
@@ -731,7 +745,11 @@ async function loadFile(
         }
       }
     );
-    if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+    if (
+      !normalizeDestinations(output.getDestinationConfiguration().evalOutput).includes(
+        'repl-window'
+      )
+    ) {
       output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who });
     }
     if (silent) {

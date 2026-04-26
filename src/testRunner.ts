@@ -10,6 +10,7 @@ import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
 import { appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
+import { normalizeDestinations } from './results-output/output-destinations';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -228,11 +229,11 @@ async function reportTests(
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
             const otherOutputDestination = output.getDestinationConfiguration().otherOutput;
-            if (otherOutputDestination !== 'repl-window') {
+            if (!normalizeDestinations(otherOutputDestination).includes('repl-window')) {
               // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
               // This is just a quick fix to avoid refactoring for now.
               output.appendLineOtherOut(message.replace(/; /gi, ''));
-              if (otherOutputDestination === 'output-view') {
+              if (normalizeDestinations(otherOutputDestination).includes('output-view')) {
                 appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
               }
             }
