@@ -197,13 +197,18 @@ export function showOutputTerminal(preserveFocus = true) {
 }
 
 export function showResultOutputDestination(preserveFocus = true) {
-  if (getDestinationConfiguration().evalResults === 'output-channel') {
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  const first = destinations[0];
+  if (!first) {
+    return;
+  }
+  if (first === 'output-channel') {
     return showOutputChannel(preserveFocus);
   }
-  if (getDestinationConfiguration().evalResults === 'terminal') {
+  if (first === 'terminal') {
     return showOutputTerminal(preserveFocus);
   }
-  if (getDestinationConfiguration().evalResults === 'output-view') {
+  if (first === 'output-view') {
     return showReplOutputWebviewPanel(preserveFocus);
   }
   return outputWindow.revealReplWindowDoc(preserveFocus);
