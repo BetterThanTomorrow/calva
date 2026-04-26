@@ -3745,7 +3745,6 @@
     "semver": "^7.3.7",
     "strip-ansi": "^7.1.0",
     "tree-kill": "^1.2.2",
-    "uuidv4": "^1.0.0",
     "vscode-languageclient": "^8.0.2",
     "vsls": "^1.0.4753"
   },
