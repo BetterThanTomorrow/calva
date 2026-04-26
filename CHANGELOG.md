@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make it possible to select several output destinations](https://github.com/BetterThanTomorrow/calva/issues/2819)
+
 ## [2.0.576] - 2026-04-25
 
 - [Make loadFile command accept an argument for which file to load](https://github.com/BetterThanTomorrow/calva/issues/3182)

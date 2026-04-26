@@ -112,11 +112,17 @@ export interface AfterAppendCallback {
 
 export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'output-view';
 
+export type OutputDestinationValue = OutputDestination | OutputDestination[];
+
 export type OutputDestinationConfiguration = {
   evalResults: OutputDestination;
   evalOutput: OutputDestination;
   otherOutput: OutputDestination;
 };
+
+export function normalizeDestinations(value: OutputDestinationValue): OutputDestination[] {
+  return Array.isArray(value) ? [...new Set(value)] : [value];
+}
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   evalResults: 'repl-window',
