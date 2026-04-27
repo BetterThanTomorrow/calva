@@ -5,8 +5,10 @@ import * as vscode from 'vscode';
 import * as mocha from 'mocha';
 import * as sinon from 'sinon';
 
-import annotations from '../../../providers/annotations';
+import * as annotationsModule from '../../../providers/annotations';
 import * as testUtil from './util';
+
+const annotations = annotationsModule.default;
 
 suite('Annotations suite', () => {
   const suite = 'Annotations';

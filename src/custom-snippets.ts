@@ -5,10 +5,12 @@ import * as getText from './util/get-text';
 import * as namespace from './namespace';
 import * as config from './config';
 import * as replSession from './nrepl/repl-session';
-import evaluate from './evaluate';
+import * as evaluateModule from './evaluate';
 import * as state from './state';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
+
+const evaluate = evaluateModule.default;
 
 export type CustomREPLCommandSnippet = {
   name: string;

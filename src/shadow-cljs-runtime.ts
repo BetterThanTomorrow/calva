@@ -5,8 +5,10 @@ import * as clientRegistry from './nrepl/client-registry';
 import * as util from './utilities';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
-import status from './status';
+import * as statusModule from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
+
+const status = statusModule.default;
 
 interface RuntimeQuickPickItem extends vscode.QuickPickItem {
   runtimeInfo: shadowRuntimeCore.RuntimeInfo;

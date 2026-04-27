@@ -6,14 +6,17 @@ import * as path from 'path';
 import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
 import * as debugUtil from './util';
-import annotations from '../providers/annotations';
+import * as annotationsModule from '../providers/annotations';
 import type * as nrepl from '../nrepl';
-import debugDecorations from './decorations';
+import * as debugDecorationsModule from './decorations';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
+
+const annotations = annotationsModule.default;
+const debugDecorations = debugDecorationsModule.default;
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',

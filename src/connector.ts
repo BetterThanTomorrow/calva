@@ -4,7 +4,7 @@ import * as state from './state';
 import * as util from './utilities';
 import * as string from './util/string';
 import open = require('open');
-import status from './status';
+import * as statusModule from './status';
 import * as projectTypes from './nrepl/project-types';
 import * as nrepl from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
@@ -15,7 +15,7 @@ import * as secondarySession from './nrepl/secondary-session';
 import * as printer from './printer';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as resultsOutputUtil from './results-output/util';
-import evaluate from './evaluate';
+import * as evaluateModule from './evaluate';
 import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
@@ -36,6 +36,9 @@ import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as projectRootUtil from './project-root';
 import * as cljsBuilds from './connector-cljs-builds';
 import * as connectorUtils from './connector-utilities';
+
+const status = statusModule.default;
+const evaluate = evaluateModule.default;
 
 function getSessionGlobMetadata(
   sessionKey: string,

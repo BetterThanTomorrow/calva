@@ -6,7 +6,7 @@ import * as util from '../utilities';
 import * as printer from '../printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
-import debugDecorations from '../debugger/decorations';
+import * as debugDecorationsModule from '../debugger/decorations';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as resultsOutputUtil from '../results-output/util';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
@@ -16,6 +16,8 @@ import * as string from '../util/string';
 import * as output from '../results-output/output';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as whoTracking from '../api/who-tracking';
+
+const debugDecorations = debugDecorationsModule.default;
 
 type PrettyPrintingOptions = printer.PrettyPrintingOptions;
 type ReplSessionType = config.ReplSessionType;

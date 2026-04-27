@@ -6,8 +6,10 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as nameSuffix from '../../../nrepl/session-name-suffix';
 import * as jackIn from '../../../nrepl/jack-in';
-import connector from '../../../connector';
+import * as connectorModule from '../../../connector';
 import * as testUtil from './util';
+
+const connector = connectorModule.default;
 
 const suiteName = 'Name Suffix';
 

@@ -11,7 +11,6 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as docMirror from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import * as state from '../../../state';
-import connector from '../../../connector';
 import * as connectorModule from '../../../connector';
 import * as connectTypes from '../../../nrepl/connect-types';
 import * as connectSequence from '../../../nrepl/connectSequence';
@@ -20,6 +19,8 @@ import * as projectTypes from '../../../nrepl/project-types';
 import * as config from '../../../config';
 import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
+
+const connector = connectorModule.default;
 
 suite('Jack-in and Connect suite', () => {
   const suite = 'Jack-in and Connect';

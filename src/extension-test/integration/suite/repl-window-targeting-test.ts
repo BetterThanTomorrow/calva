@@ -9,7 +9,9 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replSessionsMenu from '../../../repl-sessions-menu';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
-import connector from '../../../connector';
+import * as connectorModule from '../../../connector';
+
+const connector = connectorModule.default;
 
 const suiteName = 'REPL Window Targeting';
 

@@ -1,10 +1,12 @@
 import * as sessionRegistry from './session-registry';
 import * as replSession from './repl-session';
-import status from '../status';
+import * as statusModule from '../status';
 import * as util from '../utilities';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as teardownCore from './session-teardown-core';
 import * as clojureDocs from '../clojuredocs';
+
+const status = statusModule.default;
 
 function applySideEffects(removed: string[]): void {
   if (removed.length === 0) {

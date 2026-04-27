@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as which from 'which';
-import * as screenshot from 'screenshot-desktop';
+import screenshot = require('screenshot-desktop');
 import * as state from '../../../state';
 import * as projectRoot from '../../../project-root';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -12,7 +12,9 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
 import * as docMirror from '../../../doc-mirror';
-import connector from '../../../connector';
+import * as connectorModule from '../../../connector';
+
+const connector = connectorModule.default;
 
 export const testDataDir = path.join(
   __dirname,

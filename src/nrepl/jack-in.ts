@@ -3,7 +3,7 @@ import * as utilities from '../utilities';
 import * as _ from 'lodash';
 import * as state from '../state';
 import * as connector from '../connector';
-import statusbar from '../statusbar';
+import * as statusbarModule from '../statusbar';
 import * as connectSequences from './connectSequence';
 import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as projectTypes from './project-types';
@@ -16,6 +16,8 @@ import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
+
+const statusbar = statusbarModule.default;
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {

@@ -7,7 +7,9 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
-import connector from '../../../connector';
+import * as connectorModule from '../../../connector';
+
+const connector = connectorModule.default;
 
 const suiteName = 'CLJC Routing';
 

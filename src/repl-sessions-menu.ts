@@ -3,12 +3,14 @@ import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import * as replSession from './nrepl/repl-session';
 import * as clientRegistry from './nrepl/client-registry';
-import status from './status';
+import * as statusModule from './status';
 import * as projectRootUtil from './project-root';
 import * as utilities from './utilities';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
 import * as state from './state';
+
+const status = statusModule.default;
 
 const OUTPUT_SESSION_MENU_SAVE_KEY = 'repl-sessions-menu-output';
 

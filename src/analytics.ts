@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
+import * as axiosModule from 'axios';
 import * as _ from 'lodash';
+
+const axios = axiosModule.default;
 
 function userAllowsTelemetry(): boolean {
   const calvaConfig = vscode.workspace.getConfiguration('calva');

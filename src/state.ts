@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as semver from 'semver';
-import Analytics from './analytics';
+import * as analyticsModule from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fileArg from './util/resolve-file-arg';
@@ -9,6 +9,9 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 import * as connectSequences from './nrepl/connectSequence';
 import * as connectTypes from './nrepl/connect-types';
+
+const Analytics = analyticsModule.default;
+type AnalyticsInstance = InstanceType<typeof Analytics>;
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -85,7 +88,7 @@ function connectionLogChannel(): vscode.OutputChannel {
   return _outputChannel('connectionLogChannel');
 }
 
-function analytics(): Analytics {
+function analytics(): AnalyticsInstance {
   const analytics = cljsLib.getStateValue('analytics');
   if (analytics.toJS !== undefined) {
     return analytics.toJS();
