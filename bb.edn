@@ -1,0 +1,11 @@
+{:paths ["scripts"]
+ :deps {org.babashka/cli {:mvn/version "0.8.67"}}
+ :tasks
+ {:requires [[babashka.cli :as cli]
+             [tasks :as t]]
+
+  package-pre-release
+  {:doc "Usage: bb package-pre-release [<slug>] [--dry]"
+   :task (t/package-pre-release!
+          (cli/parse-opts *command-line-args* {:restrict [:slug :dry]
+                                              :args->opts [:slug]}))}}}
