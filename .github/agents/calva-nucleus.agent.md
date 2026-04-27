@@ -650,19 +650,18 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
 
 ## Require Map
 
+Namespace imports are the import invariant for Calva TypeScript code. Use named or default imports only when a module's export shape makes namespace imports incorrect or unusable.
+
 ```typescript
 // API Entry Point (public consumer interface)
-import { getApi } from 'calva/api';
+import * as api from 'calva/api';
 
 // nREPL Session Management
 import * as sessionRegistry from 'calva/nrepl/session-registry';
 import * as replSession from 'calva/nrepl/repl-session';
 
-// Connection Management
-import connector from 'calva/connector';
-
 // Configuration
-import { getConfig } from 'calva/config';
+import * as config from 'calva/config';
 
 // Output/Results
 import * as resultOutput from 'calva/results-output/output';
