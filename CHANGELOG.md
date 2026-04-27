@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- internal-dev: Update TypeScript codebase to use namespace imports throughout
+
 ## [2.0.578] - 2026-04-27
 
 - Fix: [Mirror doc init race condition](https://github.com/BetterThanTomorrow/calva/issues/3187)
