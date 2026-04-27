@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { after, before, it } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
@@ -82,53 +82,59 @@ async function undoOnce(editor: vscode.TextEditor): Promise<void> {
 }
 
 suite(suiteName, () => {
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suiteName, 'suite starting');
     await testUtil.openFile(testFilePath);
   });
 
-  after(async () => {
+  mocha.after(async () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.showMessage(suiteName, 'suite done!');
   });
 
-  it('undo once restores pre-command state for structure-preserving insertSemiColon', async () => {
-    const editor = vscode.window.activeTextEditor;
-    const initialState = '(defn foo []•  |(println "test"))';
-    const expectedAfterInsert = '(defn foo []•  ;|(println "test")•  )';
+  mocha.it(
+    'undo once restores pre-command state for structure-preserving insertSemiColon',
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+      const initialState = '(defn foo []•  |(println "test"))';
+      const expectedAfterInsert = '(defn foo []•  ;|(println "test")•  )';
 
-    await resetEditor(editor, initialState);
+      await resetEditor(editor, initialState);
 
-    await vscode.commands.executeCommand('paredit.insertSemiColon');
-    await waitForNotation(editor, expectedAfterInsert);
+      await vscode.commands.executeCommand('paredit.insertSemiColon');
+      await waitForNotation(editor, expectedAfterInsert);
 
-    assert.equal(
-      textNotationFromDocAndSelections(editor.document, editor.selections),
-      expectedAfterInsert
-    );
+      assert.equal(
+        textNotationFromDocAndSelections(editor.document, editor.selections),
+        expectedAfterInsert
+      );
 
-    await undoOnce(editor);
-    await waitForNotation(editor, initialState);
+      await undoOnce(editor);
+      await waitForNotation(editor, initialState);
 
-    assert.equal(
-      textNotationFromDocAndSelections(editor.document, editor.selections),
-      initialState
-    );
-  });
+      assert.equal(
+        textNotationFromDocAndSelections(editor.document, editor.selections),
+        initialState
+      );
+    }
+  );
 
-  it('keeps closing delimiter outside the inserted comment when cursor is before close', async () => {
-    const editor = vscode.window.activeTextEditor;
-    const initialState = '(bar 24 |)';
-    const expectedAfterInsert = '(bar 24 ;|•     )';
+  mocha.it(
+    'keeps closing delimiter outside the inserted comment when cursor is before close',
+    async () => {
+      const editor = vscode.window.activeTextEditor;
+      const initialState = '(bar 24 |)';
+      const expectedAfterInsert = '(bar 24 ;|•     )';
 
-    await resetEditor(editor, initialState);
+      await resetEditor(editor, initialState);
 
-    await vscode.commands.executeCommand('paredit.insertSemiColon');
-    await waitForNotation(editor, expectedAfterInsert);
+      await vscode.commands.executeCommand('paredit.insertSemiColon');
+      await waitForNotation(editor, expectedAfterInsert);
 
-    assert.equal(
-      textNotationFromDocAndSelections(editor.document, editor.selections),
-      expectedAfterInsert
-    );
-  });
+      assert.equal(
+        textNotationFromDocAndSelections(editor.document, editor.selections),
+        expectedAfterInsert
+      );
+    }
+  );
 });

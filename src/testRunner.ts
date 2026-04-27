@@ -2,15 +2,15 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as string from './util/string';
 import * as outputWindow from './repl-window/repl-window-doc';
-import { NReplSession } from './nrepl';
+import * as nrepl from './nrepl';
 import * as cider from './nrepl/cider';
 import * as lsp from './lsp/definitions';
 import * as namespace from './namespace';
-import { getSession, updateReplSessionType } from './nrepl/repl-session';
+import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
-import { appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
-import { normalizeDestinations } from './results-output/output-destinations';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as outputDestinations from './results-output/output-destinations';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -82,7 +82,7 @@ function existingUriForNameSpace(
 
 async function onTestResult(
   controller: vscode.TestController,
-  session: NReplSession,
+  session: nrepl.NReplSession,
   run: vscode.TestRun,
   nsName: string,
   varName: string,
@@ -161,7 +161,7 @@ async function onTestResult(
 
 async function onTestResults(
   controller: vscode.TestController,
-  session: NReplSession,
+  session: nrepl.NReplSession,
   results: cider.TestResults[]
 ) {
   const run = controller.createTestRun(new vscode.TestRunRequest(), 'Clojure', false);
@@ -182,7 +182,7 @@ function useTestExplorer(): boolean | undefined {
 
 async function reportTests(
   controller: vscode.TestController,
-  session: NReplSession,
+  session: nrepl.NReplSession,
   possibleResults: cider.TestResults[]
 ) {
   // Results can sometimes not be actual test results, such as when a namespace is not found: https://github.com/BetterThanTomorrow/calva/issues/1516.
@@ -229,12 +229,20 @@ async function reportTests(
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
             const otherOutputDestination = output.getDestinationConfiguration().otherOutput;
-            if (!normalizeDestinations(otherOutputDestination).includes('repl-window')) {
+            if (
+              !outputDestinations
+                .normalizeDestinations(otherOutputDestination)
+                .includes('repl-window')
+            ) {
               // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
               // This is just a quick fix to avoid refactoring for now.
               output.appendLineOtherOut(message.replace(/; /gi, ''));
-              if (normalizeDestinations(otherOutputDestination).includes('output-view')) {
-                appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+              if (
+                outputDestinations
+                  .normalizeDestinations(otherOutputDestination)
+                  .includes('output-view')
+              ) {
+                cljsLib.appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
               }
             }
           } else if (message) {
@@ -263,14 +271,14 @@ async function reportTests(
 
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
-  const session = getSession();
+  const session = replSession.getSession();
   output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
   } catch (e) {
     output.appendLineOtherErr(e);
   }
-  updateReplSessionType();
+  replSession.updateReplSessionType();
   void output.replWindowAppendPrompt();
 }
 
@@ -288,7 +296,7 @@ function runAllTestsCommand(controller: vscode.TestController) {
 
 async function loadTestNS() {
   const document = util.getActiveTextEditor().document;
-  const session = getSession();
+  const session = replSession.getSession();
   const doc = util.tryToGetDocument(document);
 
   const [ns, _] = namespace.getNamespace(
@@ -323,7 +331,7 @@ async function runNamespaceTestsImpl(
     return;
   }
 
-  const session = getSession();
+  const session = replSession.getSession();
 
   output.appendLineOtherOut(
     `Running tests for the following namespaces:\n${
@@ -341,7 +349,7 @@ async function runNamespaceTestsImpl(
   }
 
   outputWindow.setSession(session, nss[0]);
-  updateReplSessionType();
+  replSession.updateReplSessionType();
   void output.replWindowAppendPrompt();
 }
 
@@ -370,7 +378,7 @@ function getTestUnderCursor() {
 
 async function runTestUnderCursor(controller: vscode.TestController) {
   const doc = util.tryToGetDocument({});
-  const session = getSession();
+  const session = replSession.getSession();
   const [ns, _] = namespace.getNamespace(
     doc,
     vscode.window.activeTextEditor?.selections[0]?.active
@@ -416,7 +424,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-  const session = getSession();
+  const session = replSession.getSession();
   output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);

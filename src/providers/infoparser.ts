@@ -1,10 +1,10 @@
-import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
+import * as vscode from 'vscode';
 import * as tokenCursor from '../cursor-doc/token-cursor';
-import { getConfig } from '../config';
+import * as config from '../config';
 
 export type Completion =
   | [string, string]
-  | [MarkdownString, string | undefined]
+  | [vscode.MarkdownString, string | undefined]
   | [undefined, undefined];
 
 export class REPLInfoParser {
@@ -53,11 +53,14 @@ export class REPLInfoParser {
     }
   }
 
-  private getParameters(symbol: string, argList: string): ParameterInformation[] | undefined {
+  private getParameters(
+    symbol: string,
+    argList: string
+  ): vscode.ParameterInformation[] | undefined {
     const offsets = this.getParameterOffsets(symbol, argList);
     if (offsets !== undefined) {
       return offsets.map((o) => {
-        return new ParameterInformation(o);
+        return new vscode.ParameterInformation(o);
       });
     }
   }
@@ -97,8 +100,8 @@ export class REPLInfoParser {
     }
   }
 
-  getHover(): MarkdownString {
-    const hover = new MarkdownString();
+  getHover(): vscode.MarkdownString {
+    const hover = new vscode.MarkdownString();
     if (this._name !== '') {
       if (!this._specialForm || this._isMacro) {
         hover.appendCodeblock(this._name, 'clojure');
@@ -133,7 +136,7 @@ export class REPLInfoParser {
   }
 
   getCompletion(): Completion {
-    const name = new MarkdownString(this._docString);
+    const name = new vscode.MarkdownString(this._docString);
     if (this._name !== '') {
       if (this._specialForm) {
         return [name, this._formsString];
@@ -144,7 +147,7 @@ export class REPLInfoParser {
     return [undefined, undefined];
   }
 
-  getSignatures(symbol: string): SignatureInformation[] | undefined {
+  getSignatures(symbol: string): vscode.SignatureInformation[] | undefined {
     if (this._name !== '') {
       const argLists = this._arglist ? this._arglist : this._formsString;
       if (argLists) {
@@ -153,13 +156,13 @@ export class REPLInfoParser {
           .map((argList) => argList.trim())
           .map((argList) => {
             if (argList !== '') {
-              const signature = new SignatureInformation(`(${symbol} ${argList})`);
+              const signature = new vscode.SignatureInformation(`(${symbol} ${argList})`);
               // Skip parameter help on special forms and forms with optional arguments, for now
               if (this._arglist && !argList.match(/\?/)) {
                 signature.parameters = this.getParameters(symbol, argList);
               }
-              if (this._docString && getConfig().showDocstringInParameterHelp) {
-                signature.documentation = new MarkdownString(this._docString);
+              if (this._docString && config.getConfig().showDocstringInParameterHelp) {
+                signature.documentation = new vscode.MarkdownString(this._docString);
               }
               return signature;
             } else {
@@ -172,7 +175,7 @@ export class REPLInfoParser {
   }
 }
 
-export function getHover(msg: any): MarkdownString {
+export function getHover(msg: any): vscode.MarkdownString {
   return new REPLInfoParser(msg).getHover();
 }
 
@@ -184,6 +187,6 @@ export function getCompletion(msg: any): Completion {
   return new REPLInfoParser(msg).getCompletion();
 }
 
-export function getSignatures(msg: any, symbol: string): SignatureInformation[] | undefined {
+export function getSignatures(msg: any, symbol: string): vscode.SignatureInformation[] | undefined {
   return new REPLInfoParser(msg).getSignatures(symbol);
 }

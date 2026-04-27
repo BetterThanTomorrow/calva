@@ -6,7 +6,7 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import connector from '../../../connector';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
-import type { NReplSession, NReplClient } from '../../../nrepl';
+import type * as nrepl from '../../../nrepl';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as sessionTeardown from '../../../nrepl/session-teardown';
 import * as testUtil from './util';
@@ -15,11 +15,11 @@ const { describe, before, beforeEach, afterEach, it } = Mocha;
 
 const suiteName = 'Connection isolation';
 
-const createSession = (replType: string, clientKey?: string): NReplSession =>
+const createSession = (replType: string, clientKey?: string): nrepl.NReplSession =>
   ({
     replType,
     client: clientKey ? { clientKey } : undefined,
-  } as NReplSession);
+  } as nrepl.NReplSession);
 
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
   outputWindow.setSession(createSession(sessionType), ns, sessionType);
@@ -72,7 +72,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     const clientB = {
       clientKey: 'client-b',
@@ -80,7 +80,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     clientRegistry.registerClient(clientA, {
       connectSequenceName: 'Connection A',
@@ -136,7 +136,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     clientRegistry.registerClient(clientA, {
       connectSequenceName: 'Connection A',
@@ -179,7 +179,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    })) as unknown as NReplClient[];
+    })) as unknown as nrepl.NReplClient[];
 
     clients.forEach((client, i) => {
       clientRegistry.registerClient(client, {
@@ -226,7 +226,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     const clientB = {
       clientKey: 'client-b',
@@ -234,7 +234,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     clientRegistry.registerClient(clientA, {
       connectSequenceName: 'Connection A',

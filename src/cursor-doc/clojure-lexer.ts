@@ -14,13 +14,13 @@
 // lit   (['`~#]\s*)*
 // kw    (['`~^]\s*)*
 
-import { LexicalGrammar, Token as LexerToken } from './lexer';
+import * as lexer from './lexer';
 
 /**
  * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
  * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
-export const toplevel = new LexicalGrammar();
+export const toplevel = new lexer.LexicalGrammar();
 
 /**
  * Returns `true` if open and close are compatible parentheses
@@ -42,7 +42,7 @@ export function validPair(open: string, close: string): boolean {
   return false;
 }
 
-export interface Token extends LexerToken {
+export interface Token extends lexer.Token {
   state: ScannerState;
 }
 
@@ -141,7 +141,7 @@ toplevel.terminal('junk', /[\u0000-\uffff]/, (l, m) => ({ type: 'junk' }));
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
-const inString = new LexicalGrammar();
+const inString = new lexer.LexicalGrammar();
 // end a string
 inString.terminal('close', /"/, (l, m) => ({ type: 'close' }));
 // still within a string
@@ -178,7 +178,7 @@ export class Scanner {
     const tks: Token[] = [];
     this.state = state;
     let lex = (this.state.inString ? inString : toplevel).lex(line, this.maxLength);
-    let tk: LexerToken;
+    let tk: lexer.Token;
     do {
       tk = lex.scan();
       if (tk) {

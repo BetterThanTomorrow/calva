@@ -3,19 +3,23 @@ import * as vscode from 'vscode';
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import * as respacer from '../calva-fmt/src/respacer';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
-import {
-  ModelEdit,
-  EditableDocument,
-  EditableModel,
-  ModelEditOptions,
-  LineInputModel,
-  ModelEditRange,
-  ModelEditSelection,
-  ModelEditFunction,
-  selectionsAfterEdits,
-} from '../cursor-doc/model';
-import { isUndefined, sortedUniq } from 'lodash';
+import * as tokenCursor from '../cursor-doc/token-cursor';
+import * as documentModel from '../cursor-doc/model';
+import * as _ from 'lodash';
+
+type LispTokenCursor = tokenCursor.LispTokenCursor;
+type ModelEdit<T extends ModelEditFunction = ModelEditFunction> = documentModel.ModelEdit<T>;
+type EditableDocument = documentModel.EditableDocument;
+type EditableModel = documentModel.EditableModel;
+type ModelEditOptions = documentModel.ModelEditOptions;
+type LineInputModel = documentModel.LineInputModel;
+type ModelEditRange = documentModel.ModelEditRange;
+type ModelEditSelection = documentModel.ModelEditSelection;
+type ModelEditFunction = documentModel.ModelEditFunction;
+
+const ModelEditCtor = documentModel.ModelEdit;
+const LineInputModelCtor = documentModel.LineInputModel;
+const ModelEditSelectionCtor = documentModel.ModelEditSelection;
 
 const documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -100,7 +104,7 @@ export class DocumentModel implements EditableModel {
 
   constructor(private document: MirroredDocument) {
     this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
-    this.lineInputModel = new LineInputModel(this.lineEndingLength);
+    this.lineInputModel = new LineInputModelCtor(this.lineEndingLength);
     this.documentVersion = document.document.version;
   }
 
@@ -127,7 +131,7 @@ export class DocumentModel implements EditableModel {
    */
   resync(document: vscode.TextDocument): void {
     const text = document.getText().replace(/\r\n/g, '\n');
-    const newModel = new LineInputModel(this.lineEndingLength);
+    const newModel = new LineInputModelCtor(this.lineEndingLength);
     newModel.insertString(0, text);
     newModel.flushChanges();
     newModel.dirtyLines = [];
@@ -174,7 +178,7 @@ export class DocumentModel implements EditableModel {
 
   private postEditReformat(editor: vscode.TextEditor, offsets: number[]): Thenable<boolean> {
     // Now that the document has been edited, calculate the reformatting:
-    const reformatChange: respacer.WhitespaceChange[] = sortedUniq(offsets.sort((a, b) => b - a))
+    const reformatChange: respacer.WhitespaceChange[] = _.sortedUniq(offsets.sort((a, b) => b - a))
       .flatMap((p) => {
         try {
           const doc = this.document.document;
@@ -256,15 +260,17 @@ export class DocumentModel implements EditableModel {
       forDocumentVersion: this.document.document.version + 1, // none of this matters if another edit intervenes
       reformatOffsets: options.skipFormat
         ? undefined
-        : selectionsAfterEdits(
-            modelEdits,
-            rangesOrWhole.flatMap((r: ModelEditRange): ModelEditSelection[] => {
-              return [
-                new ModelEditSelection(r[0], r[0], r[0], r[0]),
-                new ModelEditSelection(r[1], r[1], r[1], r[1]),
-              ];
-            })
-          ).flatMap((sel) => [sel.anchor, sel.active]),
+        : documentModel
+            .selectionsAfterEdits(
+              modelEdits,
+              rangesOrWhole.flatMap((r: ModelEditRange): ModelEditSelection[] => {
+                return [
+                  new ModelEditSelectionCtor(r[0], r[0], r[0], r[0]),
+                  new ModelEditSelectionCtor(r[1], r[1], r[1], r[1]),
+                ];
+              })
+            )
+            .flatMap((sel) => [sel.anchor, sel.active]),
       selections: options.selections,
     };
     const postEditPlan =
@@ -402,7 +408,7 @@ export class MirroredDocument implements EditableDocument {
     return editor.selections.map((sel) => {
       const anchor = document.offsetAt(sel.anchor),
         active = document.offsetAt(sel.active);
-      return new ModelEditSelection(anchor, active);
+      return new ModelEditSelectionCtor(anchor, active);
     });
   }
 
@@ -438,7 +444,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
       myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
     void model.lineInputModel.edit(
       [
-        new ModelEdit('changeRange', [
+        new ModelEditCtor('changeRange', [
           myStartOffset,
           myEndOffset,
           change.text.replace(/\r\n/g, '\n'),
@@ -465,7 +471,7 @@ export function tryToGetDocument(doc: vscode.TextDocument) {
 export function getDocument(doc: vscode.TextDocument) {
   const mirrorDoc = tryToGetDocument(doc);
 
-  if (isUndefined(mirrorDoc)) {
+  if (_.isUndefined(mirrorDoc)) {
     throw new Error('Missing mirror document!');
   }
 

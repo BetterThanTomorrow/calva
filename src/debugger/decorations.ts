@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
-import { Location } from 'vscode-languageserver-protocol';
+import type * as vscodeLsp from 'vscode-languageclient/node';
+import type * as vscodeLanguageserverProtocol from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
-import { NReplSession } from '../nrepl';
+import type * as nrepl from '../nrepl';
 import * as util from '../utilities';
 import * as lsp from '../lsp';
-import { getStateValue } from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 
 let enabled = false;
 
 interface InstrumentedSymbolReferenceLocations {
   [namespace: string]: {
-    [symbol: string]: Location[];
+    [symbol: string]: vscodeLanguageserverProtocol.Location[];
   };
 }
 let instrumentedSymbolReferenceLocations: InstrumentedSymbolReferenceLocations = {};
@@ -51,8 +51,8 @@ const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecoratio
 
 async function update(
   editor: vscode.TextEditor,
-  cljSession: NReplSession,
-  lspClient: LanguageClient
+  cljSession: nrepl.NReplSession,
+  lspClient: vscodeLsp.LanguageClient
 ): Promise<void> {
   if (/(\.clj)$/.test(editor.document.fileName)) {
     if (cljSession && util.getConnectedState() && lspClient) {

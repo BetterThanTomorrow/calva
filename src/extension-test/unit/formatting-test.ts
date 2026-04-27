@@ -1,8 +1,8 @@
-import { expect } from 'expect';
-import { formatIndexes } from '../../calva-fmt/src/format-index';
-import { backspaceOnWhitespace } from '../../cursor-doc/backspace-on-whitespace';
+import * as expectLib from 'expect';
+import * as formatIndex from '../../calva-fmt/src/format-index';
+import * as backspaceOnWhitespaceLib from '../../cursor-doc/backspace-on-whitespace';
 import * as indent from '../../cursor-doc/indent';
-import { docFromTextNotation, textAndSelection } from './common/text-notation';
+import * as textNotation from './common/text-notation';
 
 describe('formatter, indenter and paredit comparison', () => {
   const configs = [
@@ -29,8 +29,8 @@ describe('formatter, indenter and paredit comparison', () => {
         const formatterIndent = getFormatterIndent('(and x\n|y)', config);
         const indenterIndent = getIndenterIndent('(and x\n|y)', config);
         const pareditIndent = getPareditIndent('(and x\n\n  |y)', config);
-        expect(formatterIndent).toEqual(indenterIndent);
-        expect(formatterIndent).toEqual(pareditIndent);
+        expectLib.expect(formatterIndent).toEqual(indenterIndent);
+        expectLib.expect(formatterIndent).toEqual(pareditIndent);
       });
     });
   });
@@ -41,8 +41,8 @@ describe('formatter, indenter and paredit comparison', () => {
         const formatterIndent = getFormatterIndent('(:kw x\n|y)', config);
         const indenterIndent = getIndenterIndent('(:kw x\n|y)', config);
         const pareditIndent = getPareditIndent('(:kw x\n\n  |y)', config);
-        expect(formatterIndent).toEqual(indenterIndent);
-        expect(formatterIndent).toEqual(pareditIndent);
+        expectLib.expect(formatterIndent).toEqual(indenterIndent);
+        expectLib.expect(formatterIndent).toEqual(pareditIndent);
       });
     });
   });
@@ -59,7 +59,7 @@ describe('formatter trimming', () => {
         },
       })
     );
-    expect(formattedText).toEqual(' (and x\n   y) ');
+    expectLib.expect(formattedText).toEqual(' (and x\n   y) ');
   });
   it('formatter trims trailing space when config enables that', () => {
     const formattedText = getFormattedText(
@@ -71,23 +71,30 @@ describe('formatter trimming', () => {
         },
       })
     );
-    expect(formattedText).toEqual(' (and x\n   y)');
+    expectLib.expect(formattedText).toEqual(' (and x\n   y)');
   });
 });
 
 function getIndenterIndent(form: string, config: ReturnType<typeof mkConfig>) {
-  const doc = docFromTextNotation(form);
-  const p = textAndSelection(doc)[1][0];
+  const doc = textNotation.docFromTextNotation(form);
+  const p = textNotation.textAndSelection(doc)[1][0];
   return indent.getIndent(doc.model, p, config);
 }
 
 function getFormattedText(notation: string, config: ReturnType<typeof mkConfig>) {
-  const doc = docFromTextNotation(notation);
-  const form = textAndSelection(doc)[0];
-  const p = textAndSelection(doc)[1][0];
+  const doc = textNotation.docFromTextNotation(notation);
+  const form = textNotation.textAndSelection(doc)[0];
+  const p = textNotation.textAndSelection(doc)[1][0];
   const docText = doc.model.getText(0, 999, false);
 
-  const formatterResult = formatIndexes(form, [0, notation.length], [p], '\n', false, config);
+  const formatterResult = formatIndex.formatIndexes(
+    form,
+    [0, notation.length],
+    [p],
+    '\n',
+    false,
+    config
+  );
   return (
     docText.substring(0, formatterResult.range[0]) +
     formatterResult['range-text'] +
@@ -104,8 +111,8 @@ function getFormatterIndent(notation: string, config: ReturnType<typeof mkConfig
   // (2) Count spaces to its left.
 
   // Non-space chars before p:
-  const doc = docFromTextNotation(notation);
-  const p = textAndSelection(doc)[1][0];
+  const doc = textNotation.docFromTextNotation(notation);
+  const p = textNotation.textAndSelection(doc)[1][0];
   const docTextBeforeP = doc.model.getText(0, p, false);
   const rxSpace = new RegExp(/[\s,]/, 'g');
   const nSolidsBeforeP = docTextBeforeP.replace(rxSpace, '').length;
@@ -123,9 +130,9 @@ function getFormatterIndent(notation: string, config: ReturnType<typeof mkConfig
 }
 
 function getPareditIndent(notation: string, config: ReturnType<typeof mkConfig>) {
-  const doc = docFromTextNotation(notation);
-  const p = textAndSelection(doc)[1][0];
-  return backspaceOnWhitespace(doc, doc.getTokenCursor(p), config).indent;
+  const doc = textNotation.docFromTextNotation(notation);
+  const p = textNotation.textAndSelection(doc)[1][0];
+  return backspaceOnWhitespaceLib.backspaceOnWhitespace(doc, doc.getTokenCursor(p), config).indent;
 }
 
 function mkConfig(options: { indents?: indent.IndentRules } & Record<string, any>) {

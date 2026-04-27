@@ -6,11 +6,11 @@ import * as namespace from '../namespace';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as replSession from '../nrepl/repl-session';
 import * as config from '../config';
-import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
-import { DefinitionRequest } from 'vscode-languageclient';
+import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
+import * as vscodeLanguageclient from 'vscode-languageclient';
 import * as lsp from '../lsp';
 
-const converter = createConverter(undefined, undefined, true);
+const converter = protocolConverter.createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
@@ -52,7 +52,7 @@ function lspDefinition(
 ) {
   const client = clientProvider.getClientForDocumentUri(document.uri);
   return client?.sendRequest(
-    DefinitionRequest.type,
+    vscodeLanguageclient.DefinitionRequest.type,
     client?.code2ProtocolConverter.asTextDocumentPositionParams(document, position),
     token
   );

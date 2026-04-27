@@ -1,46 +1,21 @@
-import {
-  LoggingDebugSession,
-  TerminatedEvent,
-  Thread,
-  StoppedEvent,
-  StackFrame,
-  Source,
-  Scope,
-  Handles,
-  Variable,
-} from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
-import {
-  debug,
-  window,
-  DebugConfigurationProvider,
-  WorkspaceFolder,
-  DebugConfiguration,
-  CancellationToken,
-  ProviderResult,
-  DebugAdapterDescriptorFactory,
-  DebugAdapterDescriptor,
-  DebugSession,
-  DebugAdapterExecutable,
-  DebugAdapterServer,
-  Position,
-} from 'vscode';
+import * as debugAdapter from '@vscode/debugadapter';
+import * as debugProtocol from '@vscode/debugprotocol';
 import * as Net from 'net';
 import * as state from '../state';
-import { basename, parse } from 'path';
+import * as path from 'path';
 import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
-import { moveTokenCursorToBreakpoint } from './util';
+import * as debugUtil from './util';
 import annotations from '../providers/annotations';
-import { NReplSession } from '../nrepl';
+import type * as nrepl from '../nrepl';
 import debugDecorations from './decorations';
-import { setStateValue, getStateValue, parseEdn } from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 
-const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
+const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
   name: 'Calva Debug',
   request: 'attach',
@@ -72,11 +47,11 @@ type ExtractedStructure = {
   originalStrings: string[];
 };
 
-class CalvaDebugSession extends LoggingDebugSession {
+class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
 
-  private _variableHandles = new Handles<string>();
+  private _variableHandles = new debugAdapter.Handles<string>();
   private _variableStructures: { [id: string]: any } = {};
 
   public constructor() {
@@ -88,8 +63,8 @@ class CalvaDebugSession extends LoggingDebugSession {
    * to interrogate the features the debug adapter provides.
    */
   protected initializeRequest(
-    response: DebugProtocol.InitializeResponse,
-    args: DebugProtocol.InitializeRequestArguments
+    response: debugProtocol.DebugProtocol.InitializeResponse,
+    args: debugProtocol.DebugProtocol.InitializeRequestArguments
   ): void {
     this.setDebuggerLinesStartAt1(args.linesStartAt1);
     this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
@@ -104,8 +79,8 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected attachRequest(
-    response: DebugProtocol.AttachResponse,
-    args: DebugProtocol.AttachRequestArguments
+    response: debugProtocol.DebugProtocol.AttachResponse,
+    args: debugProtocol.DebugProtocol.AttachRequestArguments
   ): void {
     const session = replSession.getSession();
 
@@ -113,16 +88,16 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected continueRequest(
-    response: DebugProtocol.ContinueResponse,
-    args: DebugProtocol.ContinueArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.ContinueResponse,
+    args: debugProtocol.DebugProtocol.ContinueArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':continue', id, key).then((response) => {
-        this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
       response.success = false;
@@ -132,25 +107,25 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected restartRequest(
-    response: DebugProtocol.RestartResponse,
-    args: DebugProtocol.RestartArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.RestartResponse,
+    args: debugProtocol.DebugProtocol.RestartArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     response.success = false;
     this.sendResponse(response);
   }
 
   protected nextRequest(
-    response: DebugProtocol.NextResponse,
-    args: DebugProtocol.NextArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.NextResponse,
+    args: debugProtocol.DebugProtocol.NextArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':next', id, key).then((_) => {
-        this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
       response.success = false;
@@ -160,16 +135,16 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected stepInRequest(
-    response: DebugProtocol.StepInResponse,
-    args: DebugProtocol.StepInArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.StepInResponse,
+    args: debugProtocol.DebugProtocol.StepInArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':in', id, key).then((_) => {
-        this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
       response.success = false;
@@ -179,16 +154,16 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected stepOutRequest(
-    response: DebugProtocol.StepOutResponse,
-    args: DebugProtocol.StepOutArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.StepOutResponse,
+    args: debugProtocol.DebugProtocol.StepOutArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':out', id, key).then((_) => {
-        this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
       response.success = false;
@@ -198,12 +173,12 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected threadsRequest(
-    response: DebugProtocol.ThreadsResponse,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.ThreadsResponse,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     // We do not support multiple threads. Return a dummy thread.
     response.body = {
-      threads: [new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')],
+      threads: [new debugAdapter.Thread(CalvaDebugSession.THREAD_ID, 'thread 1')],
     };
     this.sendResponse(response);
   }
@@ -227,11 +202,11 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected async stackTraceRequest(
-    response: DebugProtocol.StackTraceResponse,
-    args: DebugProtocol.StackTraceArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.StackTraceResponse,
+    args: debugProtocol.DebugProtocol.StackTraceArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): Promise<void> {
-    const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+    const debugResponse = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
     const uri =
       debugResponse.file.startsWith('jar:') || debugResponse.file.startsWith('file:')
         ? vscode.Uri.parse(debugResponse.file)
@@ -239,17 +214,17 @@ class CalvaDebugSession extends LoggingDebugSession {
     const document = await vscode.workspace.openTextDocument(uri);
     const positionLine = convertOneBasedToZeroBased(debugResponse.line);
     const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
-    const offset = document.offsetAt(new Position(positionLine, positionColumn));
+    const offset = document.offsetAt(new vscode.Position(positionLine, positionColumn));
     const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
     try {
-      moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
+      debugUtil.moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
     } catch (e) {
-      void window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'An error occurred in the breakpoint-finding logic. We would love if you submitted an issue in the Calva repo with the instrumented code, or a similar reproducible case.'
       );
       console.error('Calva debugger: moveTokenCursorToBreakpoint failed', e);
-      this.sendEvent(new TerminatedEvent());
+      this.sendEvent(new debugAdapter.TerminatedEvent());
       response.success = false;
       this.sendResponse(response);
       return;
@@ -258,9 +233,9 @@ class CalvaDebugSession extends LoggingDebugSession {
     const [line, column] = tokenCursor.rowCol;
 
     // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
-    const source = new Source(basename(debugResponse.file), debugResponse.file);
+    const source = new debugAdapter.Source(path.basename(debugResponse.file), debugResponse.file);
     const name = tokenCursor.getFunctionName();
-    const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
+    const stackFrames = [new debugAdapter.StackFrame(0, name, source, line + 1, column + 1)];
 
     response.body = {
       stackFrames,
@@ -273,18 +248,18 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected scopesRequest(
-    response: DebugProtocol.ScopesResponse,
-    args: DebugProtocol.ScopesArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.ScopesResponse,
+    args: debugProtocol.DebugProtocol.ScopesArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     response.body = {
-      scopes: [new Scope('Locals', this._variableHandles.create('locals'), false)],
+      scopes: [new debugAdapter.Scope('Locals', this._variableHandles.create('locals'), false)],
     };
 
     this.sendResponse(response);
   }
 
-  private _createVariableFromLocal(local: any[]): Variable {
+  private _createVariableFromLocal(local: any[]): debugAdapter.Variable {
     const value = local[1] as string;
     const name = local[0] as string;
     const cursor = TokenCursor.createStringCursor(value);
@@ -306,14 +281,14 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected variablesRequest(
-    response: DebugProtocol.VariablesResponse,
-    args: DebugProtocol.VariablesArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.VariablesResponse,
+    args: debugProtocol.DebugProtocol.VariablesArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const id = this._variableHandles.get(args.variablesReference);
 
     if (id === 'locals') {
-      const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+      const debugResponse = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       const variables = debugResponse.locals.map((local) => this._createVariableFromLocal(local));
 
       response.body = { variables };
@@ -379,14 +354,14 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected disconnectRequest(
-    response: DebugProtocol.DisconnectResponse,
-    args: DebugProtocol.DisconnectArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.DisconnectResponse,
+    args: debugProtocol.DebugProtocol.DisconnectArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':quit', id, key);
     }
 
@@ -394,27 +369,31 @@ class CalvaDebugSession extends LoggingDebugSession {
   }
 
   protected terminateRequest(
-    response: DebugProtocol.TerminateResponse,
-    args: DebugProtocol.TerminateArguments,
-    request?: DebugProtocol.Request
+    response: debugProtocol.DebugProtocol.TerminateResponse,
+    args: debugProtocol.DebugProtocol.TerminateArguments,
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     this.sendResponse(response);
   }
 
   protected customRequest(
     command: string,
-    response: DebugProtocol.Response,
+    response: debugProtocol.DebugProtocol.Response,
     args: any,
-    request?: DebugProtocol.Request
+    request?: debugProtocol.DebugProtocol.Request
   ): void {
     switch (command) {
       case REQUESTS.SEND_TERMINATED_EVENT: {
-        this.sendEvent(new TerminatedEvent());
+        this.sendEvent(new debugAdapter.TerminatedEvent());
         break;
       }
       case REQUESTS.SEND_STOPPED_EVENT: {
         this.sendEvent(
-          new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText)
+          new debugAdapter.StoppedEvent(
+            args.reason,
+            CalvaDebugSession.THREAD_ID,
+            args.exceptionText
+          )
         );
         break;
       }
@@ -426,19 +405,19 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 CalvaDebugSession.run(CalvaDebugSession);
 
-class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
+class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   /**
    * Massage a debug configuration just before a debug session is being launched,
    * e.g. add all missing attributes to the debug configuration.
    */
   resolveDebugConfiguration(
-    folder: WorkspaceFolder | undefined,
-    config: DebugConfiguration,
-    token?: CancellationToken
-  ): ProviderResult<DebugConfiguration> {
+    folder: vscode.WorkspaceFolder | undefined,
+    config: vscode.DebugConfiguration,
+    token?: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.DebugConfiguration> {
     // If launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
-      const editor = window.activeTextEditor;
+      const editor = vscode.window.activeTextEditor;
       if (editor && editor.document.languageId === 'clojure') {
         config = { ...config, ...CALVA_DEBUG_CONFIGURATION };
       }
@@ -448,13 +427,13 @@ class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
   }
 }
 
-class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactory {
+class CalvaDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
   private server?: Net.Server;
 
   createDebugAdapterDescriptor(
-    session: DebugSession,
-    executable: DebugAdapterExecutable | undefined
-  ): ProviderResult<DebugAdapterDescriptor> {
+    session: vscode.DebugSession,
+    executable: vscode.DebugAdapterExecutable | undefined
+  ): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
     if (!this.server) {
       // Start listening on a random port (0 means an arbitrary unused port will be used)
       this.server = Net.createServer((socket) => {
@@ -465,7 +444,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
     }
 
     // Make VS Code connect to debug server
-    return new DebugAdapterServer((this.server.address() as Net.AddressInfo).port);
+    return new vscode.DebugAdapterServer((this.server.address() as Net.AddressInfo).port);
   }
 
   dispose() {
@@ -491,10 +470,10 @@ function handleNeedDebugInput(response: any): void {
     typeof response.column === 'number' &&
     typeof response.line === 'number'
   ) {
-    setStateValue(DEBUG_RESPONSE_KEY, response);
+    cljsLib.setStateValue(DEBUG_RESPONSE_KEY, response);
 
-    if (!debug.activeDebugSession) {
-      void debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+    if (!vscode.debug.activeDebugSession) {
+      void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
     }
   } else {
     const session = replSession.getSession();
@@ -505,7 +484,7 @@ function handleNeedDebugInput(response: any): void {
   }
 }
 
-debug.onDidStartDebugSession((session) => {
+vscode.debug.onDidStartDebugSession((session) => {
   if (session.type != CALVA_DEBUG_CONFIGURATION.type) {
     return;
   }
@@ -521,7 +500,7 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
-function initializeDebugger(cljSession: NReplSession): void {
+function initializeDebugger(cljSession: nrepl.NReplSession): void {
   cljSession.initDebugger();
   debugDecorations.activate();
 }

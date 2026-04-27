@@ -4,8 +4,8 @@ import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
 import * as clojureDocs from '../clojuredocs';
-import { getConfig } from '../config';
-import { evaluateSnippet } from '../custom-snippets';
+import * as config from '../config';
+import * as customSnippets from '../custom-snippets';
 import * as getText from '../util/get-text';
 import * as lsp from '../lsp';
 import _ = require('lodash');
@@ -22,7 +22,7 @@ export async function provideHover(
     if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);
-      const customREPLHoverSnippets = getConfig().customREPLHoverSnippets;
+      const customREPLHoverSnippets = config.getConfig().customREPLHoverSnippets;
       const hovers: vscode.MarkdownString[] = [];
       if (!res.status.includes('error') && !res.status.includes('no-info')) {
         const docsMd = infoparser.getHover(res);
@@ -61,7 +61,7 @@ export async function provideHover(
       await Promise.all(
         customREPLHoverSnippets.map(async (snippet) => {
           try {
-            const text = await evaluateSnippet(editor, snippet.snippet, context, {
+            const text = await customSnippets.evaluateSnippet(editor, snippet.snippet, context, {
               evaluationSendCodeToOutputWindow: false,
               showErrorMessage: false,
               showResult: false,

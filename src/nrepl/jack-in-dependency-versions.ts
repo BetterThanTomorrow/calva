@@ -3,17 +3,14 @@ import * as vscode from 'vscode';
 import * as child from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import { parseEdn } from '../../out/cljs-lib/cljs-lib';
-import {
-  selectLatestStableAndPrerelease,
-  type JackInLatestVersionInfo,
-} from './jack-in-version-resolution';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import * as jackInVersionResolution from './jack-in-version-resolution';
 
 export type JackInDependencyKey = 'nrepl' | 'cider-nrepl' | 'cider/piggieback';
 
 export type JackInDependencyVersions = Partial<Record<JackInDependencyKey, string>>;
 export type JackInDependencyLatestVersions = Partial<
-  Record<JackInDependencyKey, JackInLatestVersionInfo>
+  Record<JackInDependencyKey, jackInVersionResolution.JackInLatestVersionInfo>
 >;
 
 const JACK_IN_DEPENDENCY_LIBRARIES: Record<JackInDependencyKey, string> = {
@@ -59,7 +56,7 @@ function parseFindVersionsOutput(output: string): string[] {
     .filter((line) => line.length > 0)
     .map((line) => {
       try {
-        return parseEdn(line);
+        return cljsLib.parseEdn(line);
       } catch (error) {
         console.warn('[Calva] Failed to parse find-versions output line', line, error);
         return undefined;
@@ -80,14 +77,16 @@ function getDepsCljJarPath(): string | undefined {
   return fs.existsSync(jarPath) ? jarPath : undefined;
 }
 
-async function fetchLatestVersion(library: string): Promise<JackInLatestVersionInfo> {
+async function fetchLatestVersion(
+  library: string
+): Promise<jackInVersionResolution.JackInLatestVersionInfo> {
   const args = ['-X:deps', 'find-versions', ':lib', library, ':n', FIND_VERSIONS_COUNT];
   const errors: string[] = [];
 
   try {
     const { stdout } = await execFileAsync('clojure', args);
     const versions = parseFindVersionsOutput(stdout);
-    const latest = selectLatestStableAndPrerelease(versions);
+    const latest = jackInVersionResolution.selectLatestStableAndPrerelease(versions);
     if (latest.stable || latest.prerelease) {
       return latest;
     }
@@ -101,7 +100,7 @@ async function fetchLatestVersion(library: string): Promise<JackInLatestVersionI
     try {
       const { stdout } = await execFileAsync('java', ['-jar', depsCljJarPath, ...args]);
       const versions = parseFindVersionsOutput(stdout);
-      const latest = selectLatestStableAndPrerelease(versions);
+      const latest = jackInVersionResolution.selectLatestStableAndPrerelease(versions);
       if (latest.stable || latest.prerelease) {
         return latest;
       }
@@ -116,9 +115,11 @@ async function fetchLatestVersion(library: string): Promise<JackInLatestVersionI
   throw new Error(errors.join(' | '));
 }
 
-function normalizeStoredLatestVersionValue(value: unknown): JackInLatestVersionInfo | undefined {
+function normalizeStoredLatestVersionValue(
+  value: unknown
+): jackInVersionResolution.JackInLatestVersionInfo | undefined {
   if (typeof value === 'string') {
-    const normalized = selectLatestStableAndPrerelease([value]);
+    const normalized = jackInVersionResolution.selectLatestStableAndPrerelease([value]);
     if (normalized.stable || normalized.prerelease) {
       return normalized;
     }

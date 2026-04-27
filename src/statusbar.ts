@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as config from './config';
 import * as shadowRuntimes from './shadow-cljs-runtime';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
 import * as sessionLabel from './nrepl/session-label';
 import * as sessionRouting from './nrepl/session-routing';
@@ -105,10 +105,10 @@ function update() {
   shadowRuntimeStatus.command = 'calva.selectShadowCljsRuntime';
   shadowRuntimeStatus.tooltip = undefined;
 
-  if (!getStateValue('connected')) {
+  if (!cljsLib.getStateValue('connected')) {
     typeStatus.hide();
   }
-  if (getStateValue('connected')) {
+  if (cljsLib.getStateValue('connected')) {
     connectionStatus.text = 'REPL $(zap)';
     connectionStatus.color = colorValue('connectedStatusColor', currentConf);
 
@@ -219,7 +219,7 @@ function update() {
     ? sessionRegistry.getConnectionStateForSession(replType)
     : undefined;
   if (
-    getStateValue('connected') &&
+    cljsLib.getStateValue('connected') &&
     isRoutedSessionSecondary &&
     routedConnectionState?.cljsTypeName === 'shadow-cljs' &&
     shadowRuntimeStatus.text

@@ -2,7 +2,7 @@ import * as config from './config';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as _ from 'lodash';
-import { ConnectType } from './nrepl/connect-types';
+import * as connectTypes from './nrepl/connect-types';
 
 export type ProjectRoot = {
   uri: vscode.Uri;
@@ -278,14 +278,14 @@ function sortPreSelectedFirst(groups: vscode.Uri[][], selected: vscode.Uri) {
 export async function pickProjectRoot(
   uris: vscode.Uri[],
   selected: vscode.Uri,
-  connectType?: ConnectType
+  connectType?: connectTypes.ConnectType
 ) {
   let menuTitle: string;
   switch (connectType) {
-    case ConnectType.Connect:
+    case connectTypes.ConnectType.Connect:
       menuTitle = 'Connect: Project Root';
       break;
-    case ConnectType.JackIn:
+    case connectTypes.ConnectType.JackIn:
       menuTitle = 'Jack-in: Project Root';
       break;
     default:

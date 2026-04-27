@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { glob } from 'glob';
+import * as globLib from 'glob';
 
-import { runTests } from '@vscode/test-electron';
+import * as testElectron from '@vscode/test-electron';
 
 async function main() {
   try {
@@ -40,7 +40,7 @@ async function main() {
     // Check if filter matches any files before launching VS Code
     if (testFilters.length > 0) {
       const testsRoot = path.resolve(__dirname, 'suite');
-      const allFiles = await glob('**/**-test.js', { cwd: testsRoot });
+      const allFiles = await globLib.glob('**/**-test.js', { cwd: testsRoot });
       const matchingFiles = allFiles.filter((filePath) =>
         testFilters.some((filterToken) =>
           filePath.toLowerCase().includes(filterToken.toLowerCase())
@@ -73,7 +73,7 @@ async function main() {
     const launchArgs = [testWorkspace, '--disable-extensions', '--disable-workspace-trust'];
 
     // Download VS Code, unzip it and run the integration test
-    await runTests({
+    await testElectron.runTests({
       version: 'insiders',
       extensionDevelopmentPath,
       extensionTestsPath,

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { https } from 'follow-redirects';
+import * as followRedirects from 'follow-redirects';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
@@ -9,15 +9,11 @@ import JSZip = require('jszip');
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
-import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
-import { getConfig } from './config';
+import * as config from './config';
 import * as fileArg from './util/resolve-file-arg';
-import {
-  isCommentFormHead as _isCommentFormHead,
-  CommentFormConfig,
-} from './cursor-doc/paredit-config';
+import * as pareditConfig from './cursor-doc/paredit-config';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = '`';
@@ -248,7 +244,7 @@ function tryToGetDocument(
 function getDocument(document: vscode.TextDocument | Record<string, never>): vscode.TextDocument {
   const doc = tryToGetDocument(document);
 
-  if (isUndefined(doc)) {
+  if (_.isUndefined(doc)) {
     throw new Error('Expected an activeTextEditor with a document!');
   }
 
@@ -549,7 +545,7 @@ async function downloadFromUrl(fileUrl: string, savePath: string) {
         });
       });
     } else {
-      https.get(fileUrl, (res) => {
+      followRedirects.https.get(fileUrl, (res) => {
         if (res.statusCode === 200) {
           res.pipe(saveFile);
         } else {
@@ -572,7 +568,7 @@ async function downloadFromUrl(fileUrl: string, savePath: string) {
 function getLatestGitHubReleaseTag(ownerRepo: string, timeoutMs = 10_000): Promise<string> {
   const releaseUrl = `https://github.com/${ownerRepo}/releases/latest`;
   return new Promise((resolve) => {
-    const request = https
+    const request = followRedirects.https
       .get(releaseUrl, (response) => {
         response.resume();
         const finalUrl = response.responseUrl ?? '';
@@ -603,7 +599,7 @@ async function fetchFromUrl(fullUrl: string): Promise<string> {
         resolve(data);
       });
     } else {
-      https
+      followRedirects.https
         .get(
           {
             host: q.hostname,
@@ -665,7 +661,7 @@ function tryToGetActiveTextEditor(): vscode.TextEditor | undefined {
 function getActiveTextEditor(): vscode.TextEditor {
   const editor = tryToGetActiveTextEditor();
 
-  if (isUndefined(editor)) {
+  if (_.isUndefined(editor)) {
     throw new Error('Expected active text editor!');
   }
 
@@ -699,12 +695,15 @@ function pathExists(path: string): boolean {
  * Convenience wrapper around paredit-config's isCommentFormHead that
  * automatically reads VS Code config when no config is supplied.
  */
-function isCommentFormHead(symbol: string, config?: CommentFormConfig): boolean {
-  if (!config) {
-    const { customCommentForms, aliasMap } = getConfig();
-    return _isCommentFormHead(symbol, { customCommentForms, aliasMap });
+function isCommentFormHead(
+  symbol: string,
+  commentFormConfig?: pareditConfig.CommentFormConfig
+): boolean {
+  if (!commentFormConfig) {
+    const { customCommentForms, aliasMap } = config.getConfig();
+    return pareditConfig.isCommentFormHead(symbol, { customCommentForms, aliasMap });
   }
-  return _isCommentFormHead(symbol, config);
+  return pareditConfig.isCommentFormHead(symbol, commentFormConfig);
 }
 
 export function lastLineIsEmpty(

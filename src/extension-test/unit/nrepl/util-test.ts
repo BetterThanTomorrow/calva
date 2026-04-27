@@ -1,4 +1,4 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as fc from 'fast-check';
 import * as nreplUtil from '../../../../src/nrepl/util';
 
@@ -27,15 +27,15 @@ const createCustomConfig = (custom: string): nreplUtil.AutoEvaluateCodeConfig =>
 describe('config', () => {
   describe('mergeAutoEvaluateConfigs', () => {
     it('Keeps defaults if no config overrides', () => {
-      expect(
-        nreplUtil.mergeAutoEvaluateConfigs([defaults, defaults, defaults], defaults)
-      ).toStrictEqual(defaults);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs([defaults, defaults, defaults], defaults))
+        .toStrictEqual(defaults);
     });
 
     it('Keeps defaults if no config overrides, also if a config is undefined', () => {
-      expect(
-        nreplUtil.mergeAutoEvaluateConfigs([defaults, defaults, undefined], defaults)
-      ).toStrictEqual(defaults);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs([defaults, defaults, undefined], defaults))
+        .toStrictEqual(defaults);
     });
 
     it('Overrides default string with null value', () => {
@@ -47,7 +47,9 @@ describe('config', () => {
         ...defaults,
         onConnect: { clj: null, cljs: null },
       };
-      expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults))
+        .toStrictEqual(expectedResult);
     });
 
     it('Concatenates non-default strings and disregards default strings', () => {
@@ -59,7 +61,9 @@ describe('config', () => {
         ...defaults,
         onConnect: { clj: 'custom1', cljs: 'custom1\ncustom2' },
       };
-      expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults))
+        .toStrictEqual(expectedResult);
     });
 
     it('Concatenates all strings when default value is null', () => {
@@ -71,7 +75,9 @@ describe('config', () => {
         ...defaults,
         onFileLoaded: { clj: 'custom1\ncustom2', cljs: 'custom1\ncustom2' },
       };
-      expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults))
+        .toStrictEqual(expectedResult);
     });
 
     it('Overrides null default value with string value', () => {
@@ -83,7 +89,9 @@ describe('config', () => {
         ...defaults,
         onFileLoaded: { clj: null, cljs: 'custom2' },
       };
-      expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults))
+        .toStrictEqual(expectedResult);
     });
 
     it('Ignores null values when default value is null', () => {
@@ -97,7 +105,9 @@ describe('config', () => {
         onFileLoaded: { clj: null, cljs: null },
       };
 
-      expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults)).toStrictEqual(expectedResult);
+      expectLib
+        .expect(nreplUtil.mergeAutoEvaluateConfigs(configs, defaults))
+        .toStrictEqual(expectedResult);
     });
 
     it('Concatenates all non-default strings, generated', () => {
@@ -121,10 +131,10 @@ describe('config', () => {
             const expectedOnFileLoaded = [custom1, custom2, custom3].join('\n');
             const expectedOnConnectClj = [custom1, custom2, custom3].join('\n');
             const expectedOnConnectCljs = [custom1, custom2, custom3].join('\n');
-            expect(merged.onFileLoaded.clj).toEqual(expectedOnFileLoaded);
-            expect(merged.onFileLoaded.cljs).toEqual(expectedOnFileLoaded);
-            expect(merged.onConnect.clj).toEqual(expectedOnConnectClj);
-            expect(merged.onConnect.cljs).toEqual(expectedOnConnectCljs);
+            expectLib.expect(merged.onFileLoaded.clj).toEqual(expectedOnFileLoaded);
+            expectLib.expect(merged.onFileLoaded.cljs).toEqual(expectedOnFileLoaded);
+            expectLib.expect(merged.onConnect.clj).toEqual(expectedOnConnectClj);
+            expectLib.expect(merged.onConnect.cljs).toEqual(expectedOnConnectCljs);
           }
         )
       );

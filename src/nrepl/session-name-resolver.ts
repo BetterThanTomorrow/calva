@@ -5,14 +5,14 @@
  * when conflicts are detected, while preserving names for reconnection scenarios.
  */
 
-import type { SessionRoleKeys } from './session-role-utils';
 import * as clientRegistry from './client-registry';
 import * as sessionRegistry from './session-registry';
 import * as nameSuffix from './session-name-suffix';
+import type * as sessionRoleUtils from './session-role-utils';
 
 export interface SessionNameResolution {
   /** Final session names to use */
-  finalNames: SessionRoleKeys;
+  finalNames: sessionRoleUtils.SessionRoleKeys;
 
   /** Name suffix applied, if any */
   suffix?: string;
@@ -24,7 +24,10 @@ export interface SessionNameResolution {
 /**
  * Check if two SessionRoleKeys have the same base names.
  */
-function sameBaseNames(a: SessionRoleKeys, b: SessionRoleKeys): boolean {
+function sameBaseNames(
+  a: sessionRoleUtils.SessionRoleKeys,
+  b: sessionRoleUtils.SessionRoleKeys
+): boolean {
   return a.primary === b.primary && a.secondary === b.secondary;
 }
 
@@ -38,7 +41,7 @@ function sameBaseNames(a: SessionRoleKeys, b: SessionRoleKeys): boolean {
  * know the port yet — e.g. jack-in starts a new server on a new port).
  */
 function findReconnectionCandidate(
-  baseNames: SessionRoleKeys,
+  baseNames: sessionRoleUtils.SessionRoleKeys,
   projectRoot: string,
   host: string,
   port: number | null
@@ -69,7 +72,7 @@ function findReconnectionCandidate(
  * regardless of host:port.
  */
 export function hasMatchingBaseConnection(
-  baseNames: SessionRoleKeys,
+  baseNames: sessionRoleUtils.SessionRoleKeys,
   projectRoot: string
 ): boolean {
   const clients = clientRegistry.listClients();
@@ -85,7 +88,7 @@ export function hasMatchingBaseConnection(
  * Check if any of the requested session keys conflict with existing sessions.
  * A conflict means the session exists and is owned by a different client.
  */
-function hasConflict(keys: SessionRoleKeys): boolean {
+function hasConflict(keys: sessionRoleUtils.SessionRoleKeys): boolean {
   const keysToCheck = [keys.primary];
   if (keys.secondary) {
     keysToCheck.push(keys.secondary);
@@ -103,8 +106,11 @@ function hasConflict(keys: SessionRoleKeys): boolean {
 /**
  * Apply a suffix to both primary and secondary session names.
  */
-function applySuffixToNames(baseNames: SessionRoleKeys, suffix: string): SessionRoleKeys {
-  const result: SessionRoleKeys = {
+function applySuffixToNames(
+  baseNames: sessionRoleUtils.SessionRoleKeys,
+  suffix: string
+): sessionRoleUtils.SessionRoleKeys {
+  const result: sessionRoleUtils.SessionRoleKeys = {
     primary: nameSuffix.applySuffix(baseNames.primary, suffix),
   };
   if (baseNames.secondary) {
@@ -129,7 +135,7 @@ function applySuffixToNames(baseNames: SessionRoleKeys, suffix: string): Session
  * @throws Error if suffix pool is exhausted when suffix is needed
  */
 export function resolveSessionNames(
-  baseNames: SessionRoleKeys,
+  baseNames: sessionRoleUtils.SessionRoleKeys,
   projectRoot: string,
   host: string,
   port: number | null

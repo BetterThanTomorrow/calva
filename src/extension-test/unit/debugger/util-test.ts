@@ -1,5 +1,5 @@
-import { expect } from 'expect';
-import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
+import * as expectLib from 'expect';
+import * as util from '../../../debugger/util';
 import * as model from '../../../cursor-doc/model';
 
 function getCoordinates(text: string): (string | number)[] {
@@ -32,8 +32,8 @@ describe('Debugger Util', () => {
       const doc = new model.StringDocument();
       doc.insertString(coorsAndBody);
       const tokenCursor = doc.getTokenCursor(0);
-      moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
-      expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
+      util.moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
+      expectLib.expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
     }
 
     it('simple example', () => {

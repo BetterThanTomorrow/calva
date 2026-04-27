@@ -1,42 +1,30 @@
-import {
-  TextDocument,
-  Position,
-  CancellationToken,
-  CompletionContext,
-  CompletionItemKind,
-  window,
-  CompletionList,
-  CompletionItemProvider,
-  CompletionItem,
-  Uri,
-  MarkdownString,
-} from 'vscode';
+import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as select from '../select';
 import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
-import { CompletionRequest, CompletionResolveRequest } from 'vscode-languageserver-protocol';
-import { createConverter } from 'vscode-languageclient/lib/common/protocolConverter';
+import * as vscodeLanguageserverProtocol from 'vscode-languageserver-protocol';
+import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import * as lsp from '../lsp';
-import { mergeCompletions } from './completion-util';
+import * as completionUtil from './completion-util';
 
 const mappings = {
-  nil: CompletionItemKind.Value,
-  macro: CompletionItemKind.Value,
-  class: CompletionItemKind.Class,
-  keyword: CompletionItemKind.Keyword,
-  namespace: CompletionItemKind.Module,
-  function: CompletionItemKind.Function,
-  'special-form': CompletionItemKind.Keyword,
-  var: CompletionItemKind.Variable,
-  local: CompletionItemKind.Variable,
-  method: CompletionItemKind.Method,
+  nil: vscode.CompletionItemKind.Value,
+  macro: vscode.CompletionItemKind.Value,
+  class: vscode.CompletionItemKind.Class,
+  keyword: vscode.CompletionItemKind.Keyword,
+  namespace: vscode.CompletionItemKind.Module,
+  function: vscode.CompletionItemKind.Function,
+  'special-form': vscode.CompletionItemKind.Keyword,
+  var: vscode.CompletionItemKind.Variable,
+  local: vscode.CompletionItemKind.Variable,
+  method: vscode.CompletionItemKind.Method,
 };
 
-const converter = createConverter(undefined, undefined, true);
+const converter = protocolConverter.createConverter(undefined, undefined, true);
 
 const completionProviderOptions = { priority: ['lsp', 'repl'], merge: true };
 
@@ -50,10 +38,10 @@ async function provideCompletions(provider: string) {
 
 async function provideCompletionItems(
   clientProvider: lsp.ClientProvider,
-  document: TextDocument,
-  position: Position,
-  token: CancellationToken,
-  context: CompletionContext
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  token: vscode.CancellationToken,
+  context: vscode.CompletionContext
 ) {
   let results = [];
   for (const provider of completionProviderOptions.priority) {
@@ -71,7 +59,7 @@ async function provideCompletionItems(
       console.log(`Failed to get results from completions provider '${provider}'`, err);
     });
     if (completions) {
-      results = mergeCompletions(results, completions);
+      results = completionUtil.mergeCompletions(results, completions);
     }
   }
 
@@ -79,24 +67,24 @@ async function provideCompletionItems(
     converter.asCompletionItem(completion)
   );
 
-  return new CompletionList(completionItems, true);
+  return new vscode.CompletionList(completionItems, true);
 }
 
-export default class CalvaCompletionItemProvider implements CompletionItemProvider {
+export default class CalvaCompletionItemProvider implements vscode.CompletionItemProvider {
   constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
   async provideCompletionItems(
-    document: TextDocument,
-    position: Position,
-    token: CancellationToken,
-    context: CompletionContext
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    token: vscode.CancellationToken,
+    context: vscode.CompletionContext
   ) {
     return provideCompletionItems(this.clientProvider, document, position, token, context);
   }
 
-  async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
+  async resolveCompletionItem(item: vscode.CompletionItem, token: vscode.CancellationToken) {
     if (util.getConnectedState() && item['data']?.provider === 'repl') {
-      const activeTextEditor = window.activeTextEditor;
+      const activeTextEditor = vscode.window.activeTextEditor;
 
       util.assertIsDefined(activeTextEditor, 'Expected window to have activeTextEditor defined!');
 
@@ -112,7 +100,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         const docFromCider = item['data']?.['completion-doc'];
 
         item.documentation =
-          doc || docFromCider ? new MarkdownString(docFromCider, true) : undefined;
+          doc || docFromCider ? new vscode.MarkdownString(docFromCider, true) : undefined;
         item.detail = details;
       }
 
@@ -120,7 +108,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     } else {
       const res = await lspResolveCompletions(
         this.clientProvider,
-        window.activeTextEditor.document.uri,
+        vscode.window.activeTextEditor.document.uri,
         item,
         token
       );
@@ -132,15 +120,15 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
 
 function lspCompletions(
   clientProvider: lsp.ClientProvider,
-  document: TextDocument,
-  position: Position,
-  token: CancellationToken,
-  context: CompletionContext
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  token: vscode.CancellationToken,
+  context: vscode.CompletionContext
 ) {
   const client = clientProvider.getClientForDocumentUri(document.uri);
   if (client) {
     return client.sendRequest(
-      CompletionRequest.type,
+      vscodeLanguageserverProtocol.CompletionRequest.type,
       client.code2ProtocolConverter.asCompletionParams(document, position, context),
       token
     );
@@ -151,13 +139,13 @@ function lspCompletions(
 
 async function lspResolveCompletions(
   clientProvider: lsp.ClientProvider,
-  uri: Uri,
-  item: CompletionItem,
-  token: CancellationToken
+  uri: vscode.Uri,
+  item: vscode.CompletionItem,
+  token: vscode.CancellationToken
 ) {
   const client = clientProvider.getClientForDocumentUri(uri);
   return await client?.sendRequest(
-    CompletionResolveRequest.type,
+    vscodeLanguageserverProtocol.CompletionResolveRequest.type,
     client.code2ProtocolConverter.asCompletionItem(item),
     token
   );
@@ -165,11 +153,11 @@ async function lspResolveCompletions(
 
 async function replCompletions(
   clientProvider: lsp.ClientProvider,
-  document: TextDocument,
-  position: Position,
-  _token: CancellationToken,
-  _context: CompletionContext
-): Promise<CompletionItem[]> {
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  _token: vscode.CancellationToken,
+  _context: vscode.CompletionContext
+): Promise<vscode.CompletionItem[]> {
   if (!util.getConnectedState()) {
     return [];
   }
@@ -205,11 +193,11 @@ async function replCompletions(
     }
   });
   return results.map((item) => {
-    const result = new CompletionItem(
+    const result = new vscode.CompletionItem(
       item.candidate,
       // +1 because the LSP CompletionItemKind enum starts at 1
       // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
-      (mappings[item.type] || CompletionItemKind.Text) + 1
+      (mappings[item.type] || vscode.CompletionItemKind.Text) + 1
     );
     const data = item[0] === '.' ? item.slice(1) : item;
     data['provider'] = 'repl';

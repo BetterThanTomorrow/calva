@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import { isUndefined } from 'lodash';
+import * as _ from 'lodash';
 
 function userAllowsTelemetry(): boolean {
   const calvaConfig = vscode.workspace.getConfiguration('calva');
@@ -25,7 +25,7 @@ export default class Analytics {
   private userID(): string {
     const KEY = 'userLogID';
     const value = this.store.get<string>(KEY);
-    if (isUndefined(value)) {
+    if (_.isUndefined(value)) {
       const newID = crypto.randomUUID();
       void this.store.update(KEY, newID);
       return newID;

@@ -1,13 +1,13 @@
-import { expect } from 'expect';
-import type { NReplSession } from '../../../../src/nrepl';
+import * as expectLib from 'expect';
+import type * as nrepl from '../../../../src/nrepl';
 import * as sessionRouting from '../../../../src/nrepl/session-routing';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 
-const createSession = (replType: string, clientKey?: string): NReplSession =>
+const createSession = (replType: string, clientKey?: string): nrepl.NReplSession =>
   ({
     replType,
     client: clientKey ? { clientKey } : undefined,
-  } as NReplSession);
+  } as nrepl.NReplSession);
 
 describe('session routing preferences', () => {
   beforeEach(() => {
@@ -22,8 +22,8 @@ describe('session routing preferences', () => {
 
     sessionRouting.pinSession('beta');
 
-    expect(sessionRouting.isPinned()).toBe(true);
-    expect(sessionRouting.resolvePinnedSession()).toBe('beta');
+    expectLib.expect(sessionRouting.isPinned()).toBe(true);
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBe('beta');
   });
 
   it('falls back to auto routing when the pinned session disappears', () => {
@@ -32,8 +32,8 @@ describe('session routing preferences', () => {
 
     sessionRegistry.unregisterSession('alpha');
 
-    expect(sessionRouting.isPinned()).toBe(false);
-    expect(sessionRouting.getRoutingMode()).toBe('auto');
+    expectLib.expect(sessionRouting.isPinned()).toBe(false);
+    expectLib.expect(sessionRouting.getRoutingMode()).toBe('auto');
   });
 });
 
@@ -52,8 +52,8 @@ describe('multi-client session routing', () => {
 
     sessionRouting.pinSession('cljs-b');
 
-    expect(sessionRouting.isPinned()).toBe(true);
-    expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
+    expectLib.expect(sessionRouting.isPinned()).toBe(true);
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
   });
 
   it('pinning overrides regardless of session type', () => {
@@ -63,14 +63,14 @@ describe('multi-client session routing', () => {
     sessionRouting.pinSession('clj-a');
 
     // When pinned, the pinned session is always returned
-    expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
   });
 
   it('resolvePinnedSession returns undefined when not pinned', () => {
     sessionRegistry.registerSession('clj-a', createSession('clj', 'client-a'), {});
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
-    expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBeUndefined();
   });
 
   it('clears pin when pinned session is unregistered even with multiple clients', () => {
@@ -80,8 +80,8 @@ describe('multi-client session routing', () => {
     sessionRouting.pinSession('clj-a');
     sessionRegistry.unregisterSession('clj-a');
 
-    expect(sessionRouting.isPinned()).toBe(false);
-    expect(sessionRouting.getRoutingMode()).toBe('auto');
+    expectLib.expect(sessionRouting.isPinned()).toBe(false);
+    expectLib.expect(sessionRouting.getRoutingMode()).toBe('auto');
   });
 
   it('switching pin between sessions from different clients works', () => {
@@ -89,9 +89,9 @@ describe('multi-client session routing', () => {
     sessionRegistry.registerSession('cljs-b', createSession('cljs', 'client-b'), {});
 
     sessionRouting.pinSession('clj-a');
-    expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBe('clj-a');
 
     sessionRouting.pinSession('cljs-b');
-    expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
+    expectLib.expect(sessionRouting.resolvePinnedSession()).toBe('cljs-b');
   });
 });

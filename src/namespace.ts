@@ -4,7 +4,7 @@ import * as docMirror from './doc-mirror/index';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
-import { NReplSession } from './nrepl';
+import type * as nrepl from './nrepl';
 import * as nsUtil from './util/ns-form';
 
 export type NsAndNsForm = [string, string];
@@ -74,7 +74,10 @@ export function getDocumentNamespace(document = {}) {
   return getNamespace(doc);
 }
 
-export async function getUriForNamespace(session: NReplSession, ns: string): Promise<vscode.Uri> {
+export async function getUriForNamespace(
+  session: nrepl.NReplSession,
+  ns: string
+): Promise<vscode.Uri> {
   const info = await session.info(ns, ns);
   return vscode.Uri.parse(info.file, true);
 }

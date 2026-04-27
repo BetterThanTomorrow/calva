@@ -1,4 +1,4 @@
-import { LanguageClient } from 'vscode-languageclient/node';
+import * as vscodeLsp from 'vscode-languageclient/node';
 import * as defs from './definitions';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -75,7 +75,7 @@ export type ServerInfo = {
   'semantic-tokens': string[];
 };
 
-export const getServerInfo = async (client: LanguageClient) => {
+export const getServerInfo = async (client: vscodeLsp.LanguageClient) => {
   try {
     return await client.sendRequest<ServerInfo>('clojure/serverInfo/raw');
   } catch (err) {
@@ -87,7 +87,10 @@ type GetClojureDocsParams = {
   symName: string;
   symNs: string;
 };
-export const getClojureDocs = async (client: LanguageClient, params: GetClojureDocsParams) => {
+export const getClojureDocs = async (
+  client: vscodeLsp.LanguageClient,
+  params: GetClojureDocsParams
+) => {
   const server_info = await getServerInfo(client);
   if (server_info['server-version'] <= '2021.10.20-16.49.47') {
     return;
@@ -99,18 +102,18 @@ export const getClojureDocs = async (client: LanguageClient, params: GetClojureD
   });
 };
 
-export async function getCljFmtConfig(client: LanguageClient) {
+export async function getCljFmtConfig(client: vscodeLsp.LanguageClient) {
   const server_info = await getServerInfo(client);
   return server_info?.['cljfmt-raw'];
 }
 
-export async function getSemanticTokens(client: LanguageClient) {
+export async function getSemanticTokens(client: vscodeLsp.LanguageClient) {
   const server_info = await getServerInfo(client);
   return server_info?.['semantic-tokens'];
 }
 
 export function getReferences(
-  client: LanguageClient,
+  client: vscodeLsp.LanguageClient,
   documentUri: vscode.Uri,
   position: vscode.Position | defs.Position,
   includeDeclaration = true
@@ -126,7 +129,7 @@ export function getReferences(
   });
 }
 
-export function getDocumentSymbols(lspClient: LanguageClient, documentUri: vscode.Uri) {
+export function getDocumentSymbols(lspClient: vscodeLsp.LanguageClient, documentUri: vscode.Uri) {
   return lspClient.sendRequest<vscode.DocumentSymbol[]>('textDocument/documentSymbol', {
     textDocument: {
       uri: documentUri.toString(),
@@ -135,7 +138,7 @@ export function getDocumentSymbols(lspClient: LanguageClient, documentUri: vscod
 }
 
 export function getCursorInfo(
-  client: LanguageClient,
+  client: vscodeLsp.LanguageClient,
   textDocument: vscode.TextDocument,
   position: vscode.Position
 ) {

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, beforeEach } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -7,7 +7,6 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
-import { commands } from 'vscode';
 import connector from '../../../connector';
 
 const suiteName = 'CLJC Routing';
@@ -43,7 +42,7 @@ suite('CLJC Routing suite', function () {
 
   let clientKey: string;
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
 
@@ -73,7 +72,7 @@ suite('CLJC Routing suite', function () {
     assert.ok(sessionKeys.includes('cljs'), 'Should have cljs session');
   });
 
-  after(async () => {
+  mocha.after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
 
     // Kill jack-in processes to prevent orphaned Java processes
@@ -92,7 +91,7 @@ suite('CLJC Routing suite', function () {
     }
   });
 
-  beforeEach(() => {
+  mocha.beforeEach(() => {
     // Reset cljc target to primary before each test
     clientRegistry.setCljcTargetForConnection(clientKey, 'primary');
   });
@@ -151,7 +150,7 @@ suite('CLJC Routing suite', function () {
     assert.strictEqual(initialRouting?.sessionKey, 'clj', 'Initial routing should be clj');
 
     // Toggle cljc target
-    await commands.executeCommand('calva.toggleCLJCSession');
+    await vscode.commands.executeCommand('calva.toggleCLJCSession');
     await waitForRouting('cljs', 'cljc-within-connection');
 
     // After toggle, should route to cljs (secondary)
@@ -170,7 +169,7 @@ suite('CLJC Routing suite', function () {
     );
 
     // Toggle again - should go back to clj
-    await commands.executeCommand('calva.toggleCLJCSession');
+    await vscode.commands.executeCommand('calva.toggleCLJCSession');
     await waitForRouting('clj', 'cljc-within-connection');
 
     const afterSecondToggleRouting = replSession.getRoutingInfo();
@@ -187,7 +186,7 @@ suite('CLJC Routing suite', function () {
     await testUtil.openFile(cljcFile);
 
     // Select secondary target directly
-    await commands.executeCommand('calva.selectCljcTarget', 'secondary');
+    await vscode.commands.executeCommand('calva.selectCljcTarget', 'secondary');
     await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterSelectSecondary = replSession.getRoutingInfo();
@@ -205,7 +204,7 @@ suite('CLJC Routing suite', function () {
     );
 
     // Select primary target directly
-    await commands.executeCommand('calva.selectCljcTarget', 'primary');
+    await vscode.commands.executeCommand('calva.selectCljcTarget', 'primary');
     await waitForRouting('clj', 'cljc-within-connection');
 
     const afterSelectPrimary = replSession.getRoutingInfo();
@@ -237,7 +236,7 @@ suite('CLJC Routing suite', function () {
     );
 
     // Toggle and verify it changes
-    await commands.executeCommand('calva.toggleCLJCSession');
+    await vscode.commands.executeCommand('calva.toggleCLJCSession');
     await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
@@ -303,7 +302,7 @@ suite('CLJC Routing suite', function () {
     );
 
     // Toggle and verify it changes
-    await commands.executeCommand('calva.toggleCLJCSession');
+    await vscode.commands.executeCommand('calva.toggleCLJCSession');
     await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
@@ -336,7 +335,7 @@ suite('CLJC Routing suite', function () {
     );
 
     // Toggle and verify it changes
-    await commands.executeCommand('calva.toggleCLJCSession');
+    await vscode.commands.executeCommand('calva.toggleCLJCSession');
     await waitForRouting('cljs', 'cljc-within-connection');
 
     const afterToggleRouting = replSession.getRoutingInfo();
@@ -354,7 +353,7 @@ suite('CLJC Routing suite', function () {
 
     // Pass the full connect sequence object directly to bypass QuickPicks
     // and avoid modifying workspace settings
-    await commands.executeCommand('calva.jackIn', {
+    await vscode.commands.executeCommand('calva.jackIn', {
       connectSequence: {
         name: 'cljc-routing-test-cljs-node',
         projectType: 'deps.edn',

@@ -3,10 +3,10 @@ import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
 import * as resultOutput from '../results-output/output';
 import * as util from '../utilities';
-import { getConfig } from '../config';
+import * as config from '../config';
 import * as sessionRegistry from '../nrepl/session-registry';
 import * as whoTracking from './who-tracking';
-import { normalizeDestinations } from '../results-output/output-destinations';
+import * as outputDestinations from '../results-output/output-destinations';
 
 type Result = {
   result: string;
@@ -212,11 +212,11 @@ export const evaluateCode = async (
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
 
   // Honor the evaluationSendCodeToOutputWindow setting like manual evaluations do
-  if (getConfig().evaluationSendCodeToOutputWindow) {
+  if (config.getConfig().evaluationSendCodeToOutputWindow) {
     if (
-      !normalizeDestinations(resultOutput.getDestinationConfiguration().evalResults).includes(
-        'repl-window'
-      )
+      !outputDestinations
+        .normalizeDestinations(resultOutput.getDestinationConfiguration().evalResults)
+        .includes('repl-window')
     ) {
       resultOutput.appendClojureEval(code, {
         ns,

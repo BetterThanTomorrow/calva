@@ -1,23 +1,22 @@
-import { NReplSession } from './index';
-import type { SessionGlobSpec } from './globs';
+import type * as globs from './globs';
+import type * as nrepl from './index';
 import * as clientRegistry from './client-registry';
-import type { ConnectionState } from './client-registry';
 
 export interface SessionMetadata {
   key: string;
   projectRoot?: string;
   globs?: string[];
-  globSpecs?: SessionGlobSpec[];
+  globSpecs?: globs.SessionGlobSpec[];
   connectionOwnerId?: string;
   isSecondary?: boolean;
   lastActivity?: number;
 }
 
-const registeredSessions = new Map<string, NReplSession>();
+const registeredSessions = new Map<string, nrepl.NReplSession>();
 
 export function registerSession(
   key: string,
-  session: NReplSession,
+  session: nrepl.NReplSession,
   metadata: Omit<SessionMetadata, 'key'> = {}
 ): void {
   const computedOwnerId = metadata.connectionOwnerId ?? session?.client?.clientKey;
@@ -32,7 +31,7 @@ export function registerSession(
   (session as any)._calvaSessionMetadata = fullMetadata;
 }
 
-export function getSession(key: string): NReplSession | undefined {
+export function getSession(key: string): nrepl.NReplSession | undefined {
   return registeredSessions.get(key);
 }
 
@@ -51,7 +50,7 @@ export function getSessionMetadata(key: string): SessionMetadata | undefined {
   return (session as any)?._calvaSessionMetadata;
 }
 
-export function updateSessionActivity(sessionOrkey: string | NReplSession): void {
+export function updateSessionActivity(sessionOrkey: string | nrepl.NReplSession): void {
   const session = typeof sessionOrkey === 'string' ? getSession(sessionOrkey) : sessionOrkey;
   if (session) {
     const metadata = (session as any)?._calvaSessionMetadata;
@@ -66,7 +65,7 @@ export function isSessionSecondary(key: string): boolean {
   return Boolean(metadata?.isSecondary);
 }
 
-export function resolveSessionKey(session?: NReplSession, fallback: string = 'clj'): string {
+export function resolveSessionKey(session?: nrepl.NReplSession, fallback: string = 'clj'): string {
   return (session as any)?._calvaSessionMetadata?.key ?? fallback;
 }
 
@@ -87,7 +86,9 @@ export function listSessionsByClient(targetClientKey: string): SessionMetadata[]
  * Find the primary (non-secondary) session for the same connection as the given session.
  * Used when we need to evaluate CLJ code for a feature related to a CLJS session.
  */
-export function findPrimarySessionForConnection(sessionKey: string): NReplSession | undefined {
+export function findPrimarySessionForConnection(
+  sessionKey: string
+): nrepl.NReplSession | undefined {
   const metadata = getSessionMetadata(sessionKey);
   if (!metadata?.connectionOwnerId) {
     return undefined;
@@ -102,7 +103,7 @@ export function findPrimarySessionForConnection(sessionKey: string): NReplSessio
  * Extended connection state that includes client info.
  * Used by code that needs both connection state AND client-level info.
  */
-export interface ConnectionContext extends ConnectionState {
+export interface ConnectionContext extends clientRegistry.ConnectionState {
   clientKey: string;
   projectRoot?: string;
 }
@@ -143,7 +144,7 @@ export function getClientKeyForSession(sessionKey: string): string | undefined {
 /**
  * Get the primary (non-secondary) session for a given client.
  */
-export function getPrimarySessionForClient(clientKey: string): NReplSession | undefined {
+export function getPrimarySessionForClient(clientKey: string): nrepl.NReplSession | undefined {
   const sessions = listSessionsByClient(clientKey);
   const primaryMeta = sessions.find((m) => !m.isSecondary);
   if (!primaryMeta) {
@@ -192,7 +193,7 @@ export function getClojureDocsSessionKey(): string | null {
 /**
  * Get the session currently designated for ClojureDocs lookups.
  */
-export function getClojureDocsSession(): NReplSession | undefined {
+export function getClojureDocsSession(): nrepl.NReplSession | undefined {
   const key = getClojureDocsSessionKey();
   return key ? getSession(key) : undefined;
 }

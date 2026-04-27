@@ -1,10 +1,12 @@
-import type { CljsTypeConfig, CljsTypes } from './nrepl/connect-sequence-types';
+import type * as connectSequenceTypes from './nrepl/connect-sequence-types';
 import * as stringUtil from './util/string';
 
 /**
  * Checks if a CLJS type configuration represents a shadow-cljs REPL.
  */
-export function isShadowCljsConnector(cljsType: CljsTypeConfig | CljsTypes): boolean {
+export function isShadowCljsConnector(
+  cljsType: connectSequenceTypes.CljsTypeConfig | connectSequenceTypes.CljsTypes
+): boolean {
   if (typeof cljsType === 'string') {
     return cljsType === 'shadow-cljs';
   }

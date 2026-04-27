@@ -1,17 +1,14 @@
 import * as assert from 'assert';
-import { before, after, suite, test } from 'mocha';
+import * as mocha from 'mocha';
 import * as vscode from 'vscode';
 import * as state from '../../../state';
 import * as testUtil from './util';
-import {
-  getEffectiveJackInDependencyVersions,
-  JackInDependencyKey,
-} from '../../../nrepl/jack-in-dependency-versions';
+import * as jackInDependencyVersions from '../../../nrepl/jack-in-dependency-versions';
 
 const SUITE = 'Jack-in dependency versions';
 const GLOBAL_STATE_KEY = 'calva.jackIn.latestDependencyVersions';
 
-type Versions = Partial<Record<JackInDependencyKey, string>>;
+type Versions = Partial<Record<jackInDependencyVersions.JackInDependencyKey, string>>;
 
 let prevWorkspaceValue: Versions | undefined;
 let originalGlobalState: vscode.Memento | undefined;
@@ -48,8 +45,8 @@ class InMemoryMemento implements vscode.Memento {
   }
 }
 
-suite(SUITE, () => {
-  before(async () => {
+mocha.suite(SUITE, () => {
+  mocha.before(async () => {
     const ext = vscode.extensions.getExtension('betterthantomorrow.calva');
     await ext?.activate();
 
@@ -73,7 +70,7 @@ suite(SUITE, () => {
     prevWorkspaceValue = inspected?.workspaceValue;
   });
 
-  after(async () => {
+  mocha.after(async () => {
     await vscode.workspace
       .getConfiguration('calva')
       .update('jackInDependencyVersions', prevWorkspaceValue, vscode.ConfigurationTarget.Workspace);
@@ -86,8 +83,8 @@ suite(SUITE, () => {
     }
   });
 
-  test('happy path: uses configured versions when set at workspace level', async () => {
-    const configured: Record<JackInDependencyKey, string> = {
+  mocha.test('happy path: uses configured versions when set at workspace level', async () => {
+    const configured: Record<jackInDependencyVersions.JackInDependencyKey, string> = {
       nrepl: 'TEST-NREPL-1',
       'cider-nrepl': 'TEST-CIDER-NREPL-2',
       'cider/piggieback': 'TEST-PIGGIEBACK-3',
@@ -97,7 +94,7 @@ suite(SUITE, () => {
       .getConfiguration('calva')
       .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
 
-    const effective = getEffectiveJackInDependencyVersions();
+    const effective = jackInDependencyVersions.getEffectiveJackInDependencyVersions();
 
     assert.deepStrictEqual(
       effective,
@@ -106,56 +103,69 @@ suite(SUITE, () => {
     );
   });
 
-  test('partial configuration: missing keys fall back while set keys are respected', async () => {
-    // Clear global state to avoid influencing this test
-    await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
+  mocha.test(
+    'partial configuration: missing keys fall back while set keys are respected',
+    async () => {
+      // Clear global state to avoid influencing this test
+      await state.extensionContext?.globalState.update(GLOBAL_STATE_KEY, {});
 
-    const inspectedDefaults = vscode.workspace
-      .getConfiguration('calva')
-      .inspect<Record<JackInDependencyKey, string>>('jackInDependencyVersions');
-    const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<JackInDependencyKey, string>;
-
-    const configured: Versions = {
-      nrepl: 'PARTIAL-NREPL-1',
-    };
-
-    await vscode.workspace
-      .getConfiguration('calva')
-      .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
-
-    await testUtil.waitForCondition(
-      () => {
-        const effective = getEffectiveJackInDependencyVersions();
-        return (
-          effective.nrepl === 'PARTIAL-NREPL-1' &&
-          effective['cider-nrepl'] === defaults['cider-nrepl'] &&
-          effective['cider/piggieback'] === defaults['cider/piggieback']
+      const inspectedDefaults = vscode.workspace
+        .getConfiguration('calva')
+        .inspect<Record<jackInDependencyVersions.JackInDependencyKey, string>>(
+          'jackInDependencyVersions'
         );
-      },
-      1000,
-      20,
-      'Timed out waiting for partial jack-in dependency version configuration'
-    );
-    const effective = getEffectiveJackInDependencyVersions();
+      const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<
+        jackInDependencyVersions.JackInDependencyKey,
+        string
+      >;
 
-    assert.strictEqual(effective.nrepl, 'PARTIAL-NREPL-1', 'nrepl should use configured value');
-    assert.strictEqual(
-      effective['cider-nrepl'],
-      defaults['cider-nrepl'],
-      'cider-nrepl should fall back to default'
-    );
-    assert.strictEqual(
-      effective['cider/piggieback'],
-      defaults['cider/piggieback'],
-      'cider/piggieback should fall back to default'
-    );
-  });
+      const configured: Versions = {
+        nrepl: 'PARTIAL-NREPL-1',
+      };
 
-  test('precedence: default is used when nothing is configured', async () => {
+      await vscode.workspace
+        .getConfiguration('calva')
+        .update('jackInDependencyVersions', configured, vscode.ConfigurationTarget.Workspace);
+
+      await testUtil.waitForCondition(
+        () => {
+          const effective = jackInDependencyVersions.getEffectiveJackInDependencyVersions();
+          return (
+            effective.nrepl === 'PARTIAL-NREPL-1' &&
+            effective['cider-nrepl'] === defaults['cider-nrepl'] &&
+            effective['cider/piggieback'] === defaults['cider/piggieback']
+          );
+        },
+        1000,
+        20,
+        'Timed out waiting for partial jack-in dependency version configuration'
+      );
+      const effective = jackInDependencyVersions.getEffectiveJackInDependencyVersions();
+
+      assert.strictEqual(effective.nrepl, 'PARTIAL-NREPL-1', 'nrepl should use configured value');
+      assert.strictEqual(
+        effective['cider-nrepl'],
+        defaults['cider-nrepl'],
+        'cider-nrepl should fall back to default'
+      );
+      assert.strictEqual(
+        effective['cider/piggieback'],
+        defaults['cider/piggieback'],
+        'cider/piggieback should fall back to default'
+      );
+    }
+  );
+
+  mocha.test('precedence: default is used when nothing is configured', async () => {
     const inspectedDefaults = vscode.workspace
       .getConfiguration('calva')
-      .inspect<Record<JackInDependencyKey, string>>('jackInDependencyVersions');
-    const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<JackInDependencyKey, string>;
+      .inspect<Record<jackInDependencyVersions.JackInDependencyKey, string>>(
+        'jackInDependencyVersions'
+      );
+    const defaults = (inspectedDefaults?.defaultValue ?? {}) as Record<
+      jackInDependencyVersions.JackInDependencyKey,
+      string
+    >;
 
     const ctx = state.extensionContext;
     if (ctx) {
@@ -167,13 +177,15 @@ suite(SUITE, () => {
 
     const defaultsJson = JSON.stringify(defaults);
     await testUtil.waitForCondition(
-      () => JSON.stringify(getEffectiveJackInDependencyVersions()) === defaultsJson,
+      () =>
+        JSON.stringify(jackInDependencyVersions.getEffectiveJackInDependencyVersions()) ===
+        defaultsJson,
       1000,
       20,
       'Timed out waiting for default jack-in dependency versions'
     );
 
-    const effective = getEffectiveJackInDependencyVersions();
+    const effective = jackInDependencyVersions.getEffectiveJackInDependencyVersions();
 
     assert.deepStrictEqual(
       effective,

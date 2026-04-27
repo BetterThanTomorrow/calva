@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { FormatOnTypeEditProvider } from './providers/ontype_formatter';
-import { RangeEditProvider } from './providers/range_formatter';
+import * as ontypeFormatter from './providers/ontype_formatter';
+import * as rangeFormatter from './providers/range_formatter';
 import * as formatter from './format';
 import * as inferer from './infer';
 import * as docmirror from '../../doc-mirror/index';
@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerOnTypeFormattingEditProvider(
       calvaConfig.documentSelector,
-      new FormatOnTypeEditProvider(),
+      new ontypeFormatter.FormatOnTypeEditProvider(),
       '\r',
       '\n',
       ')',
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerDocumentRangeFormattingEditProvider(
       calvaConfig.documentSelector,
-      new RangeEditProvider()
+      new rangeFormatter.RangeEditProvider()
     )
   );
   vscode.window.onDidChangeActiveTextEditor(inferer.updateState);

@@ -1,13 +1,13 @@
-import { expect } from 'expect';
-import type { NReplSession } from '../../../../src/nrepl';
+import * as expectLib from 'expect';
+import type * as nrepl from '../../../../src/nrepl';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as sessionRouting from '../../../../src/nrepl/session-routing';
 import * as teardown from '../../../../src/nrepl/session-teardown-core';
 
-const createSession = (clientKey: string): NReplSession =>
+const createSession = (clientKey: string): nrepl.NReplSession =>
   ({
     client: { clientKey },
-  } as NReplSession);
+  } as nrepl.NReplSession);
 
 describe('session teardown', () => {
   beforeEach(() => {
@@ -29,9 +29,9 @@ describe('session teardown', () => {
 
     const removed = teardown.teardownSessionsForClient('client');
 
-    expect(removed.sort()).toEqual(['alpha', 'beta']);
+    expectLib.expect(removed.sort()).toEqual(['alpha', 'beta']);
     const remaining = sessionRegistry.listSessions().map((meta) => meta.key);
-    expect(remaining).toEqual(['gamma']);
+    expectLib.expect(remaining).toEqual(['gamma']);
   });
 
   it('clears routing references to removed session keys', () => {
@@ -42,6 +42,6 @@ describe('session teardown', () => {
 
     teardown.teardownSessionKeys(['alpha', 'beta']);
 
-    expect(sessionRouting.getPinnedSessionKey()).toBeUndefined();
+    expectLib.expect(sessionRouting.getPinnedSessionKey()).toBeUndefined();
   });
 });

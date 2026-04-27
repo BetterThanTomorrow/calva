@@ -1,14 +1,14 @@
 import * as messages from './messages';
-import { provideSignatureHelp } from '../../providers/signature';
-import { provideHover } from '../../providers/hover';
-import { isReplWindowDoc } from '../../repl-window/repl-window-doc';
+import * as signature from '../../providers/signature';
+import * as hover from '../../providers/hover';
+import * as replWindowDoc from '../../repl-window/repl-window-doc';
 import * as vscode_lsp from 'vscode-languageclient/node';
 import * as defs from '../definitions';
 import * as config from '../../config';
 import * as utils from '../utils';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { getClientProvider } from '../state';
+import * as lspState from '../state';
 import * as tokenFilter from './semantic-token-filter';
 import * as api from '../api';
 
@@ -158,19 +158,19 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
       },
       middleware: {
         didOpen: (document, next) => {
-          if (isReplWindowDoc(document)) {
+          if (replWindowDoc.isReplWindowDoc(document)) {
             return Promise.resolve();
           }
           return next(document);
         },
         didSave: (document, next) => {
-          if (isReplWindowDoc(document)) {
+          if (replWindowDoc.isReplWindowDoc(document)) {
             return Promise.resolve();
           }
           return next(document);
         },
         didChange: (change, next) => {
-          if (isReplWindowDoc(change.document)) {
+          if (replWindowDoc.isReplWindowDoc(change.document)) {
             return Promise.resolve();
           }
           return next(change);
@@ -179,7 +179,7 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           return null;
         },
         async provideHover(document, position, token, next) {
-          const hovers = await provideHover(getClientProvider(), document, position);
+          const hovers = await hover.provideHover(lspState.getClientProvider(), document, position);
           if (hovers) {
             return null;
           } else {
@@ -245,7 +245,7 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           return filterTokens(result);
         },
         async provideSignatureHelp(document, position, context, token, next) {
-          const help = await provideSignatureHelp(document, position, token);
+          const help = await signature.provideSignatureHelp(document, position, token);
           if (help) {
             return null;
           } else {

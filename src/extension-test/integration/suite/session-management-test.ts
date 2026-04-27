@@ -9,12 +9,12 @@ import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
 import evaluate from '../../../evaluate';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
-import type { NReplSession, NReplClient } from '../../../nrepl';
+import type * as nrepl from '../../../nrepl';
 import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
-import { buildGlobSpecsFromTiers } from '../../../nrepl/globs';
-import { getDocument } from '../../../doc-mirror';
+import * as globs from '../../../nrepl/globs';
+import * as docMirror from '../../../doc-mirror';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -22,13 +22,13 @@ const suiteName = 'Session management';
 const serverSessionKey = 'session-management/server';
 const uiSessionKey = 'session-management/ui';
 
-const createSession = (replType: string, clientKey?: string): NReplSession =>
+const createSession = (replType: string, clientKey?: string): nrepl.NReplSession =>
   ({
     replType,
     client: clientKey ? { clientKey } : undefined,
-  } as NReplSession);
+  } as nrepl.NReplSession);
 
-const createEvaluatingSession = (result: string, clientKey?: string): NReplSession =>
+const createEvaluatingSession = (result: string, clientKey?: string): nrepl.NReplSession =>
   ({
     replType: 'clj',
     sessionId: 'session-management/evaluate-session-id',
@@ -40,7 +40,7 @@ const createEvaluatingSession = (result: string, clientKey?: string): NReplSessi
       errorOutput: '',
     }),
     stacktrace: () => Promise.resolve(undefined),
-  } as unknown as NReplSession);
+  } as unknown as nrepl.NReplSession);
 
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
   outputWindow.setSession(createSession(sessionType), ns, sessionType);
@@ -48,7 +48,7 @@ const resetOutputWindowSession = (sessionType: string, ns: string): void => {
 
 const getReplWindowText = async (): Promise<string> => {
   const replWindowDoc = await outputWindow.openReplWindowDoc();
-  return getDocument(replWindowDoc).document.getText();
+  return docMirror.getDocument(replWindowDoc).document.getText();
 };
 
 describe(`${suiteName} suite`, () => {
@@ -173,7 +173,7 @@ describe(`${suiteName} suite`, () => {
         let lastReplText = '';
         await testUtil.waitForCondition(async () => {
           const replWindowDoc = await outputWindow.openReplWindowDoc();
-          lastReplText = getDocument(replWindowDoc).document.getText();
+          lastReplText = docMirror.getDocument(replWindowDoc).document.getText();
           return lastReplText.includes(code);
         });
 
@@ -190,7 +190,7 @@ describe(`${suiteName} suite`, () => {
         assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
 
         const replWindowDoc = await outputWindow.openReplWindowDoc();
-        const replText = getDocument(replWindowDoc).document.getText();
+        const replText = docMirror.getDocument(replWindowDoc).document.getText();
         const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
 
         assert.strictEqual(
@@ -398,7 +398,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     clientRegistry.registerClient(stubClient, {
       connectSequenceName: 'Test Connection',
@@ -497,7 +497,7 @@ describe(`${suiteName} suite`, () => {
       disconnect: () => undefined,
       addOnCloseHandler: () => undefined,
       removeOnCloseHandler: () => undefined,
-    } as unknown as NReplClient;
+    } as unknown as nrepl.NReplClient;
 
     clientRegistry.registerClient(stubClient, {
       connectSequenceName: 'Test Connection',
@@ -519,12 +519,15 @@ describe(`${suiteName} suite`, () => {
 
     sessionRegistry.registerSession('general-cljs', generalCljs, {
       globs: ['**/*.cljs'],
-      globSpecs: buildGlobSpecsFromTiers({ 'always-claim': ['**/*.cljs'], 'is-fallback-for': [] }),
+      globSpecs: globs.buildGlobSpecsFromTiers({
+        'always-claim': ['**/*.cljs'],
+        'is-fallback-for': [],
+      }),
     });
 
     sessionRegistry.registerSession('joyride', joyrideCljs, {
       globs: ['**/.joyride/**/*.cljs'],
-      globSpecs: buildGlobSpecsFromTiers({
+      globSpecs: globs.buildGlobSpecsFromTiers({
         'always-claim': ['**/.joyride/**/*.cljs'],
         'is-fallback-for': [],
       }),
@@ -543,7 +546,7 @@ describe(`${suiteName} suite`, () => {
 
     sessionRegistry.registerSession('bb', bbSession, {
       globs: ['**/*.bb', '**/*.clj', '**/*.cljc'],
-      globSpecs: buildGlobSpecsFromTiers({
+      globSpecs: globs.buildGlobSpecsFromTiers({
         'always-claim': ['**/*.bb'],
         'is-fallback-for': ['**/*.clj', '**/*.cljc'],
       }),
@@ -551,7 +554,10 @@ describe(`${suiteName} suite`, () => {
 
     sessionRegistry.registerSession('clj', cljSession, {
       globs: ['**/*.clj'],
-      globSpecs: buildGlobSpecsFromTiers({ 'always-claim': ['**/*.clj'], 'is-fallback-for': [] }),
+      globSpecs: globs.buildGlobSpecsFromTiers({
+        'always-claim': ['**/*.clj'],
+        'is-fallback-for': [],
+      }),
     });
 
     const cljFilePath = path.join(testUtil.testDataDir, 'test.clj');

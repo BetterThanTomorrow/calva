@@ -1,11 +1,11 @@
 import statusbar from './statusbar';
-import { updateReplSessionType } from './nrepl/repl-session';
-import { setCljsTypeContext } from './when-contexts';
+import * as replSession from './nrepl/repl-session';
+import * as whenContexts from './when-contexts';
 
 function update() {
-  updateReplSessionType();
+  replSession.updateReplSessionType();
   statusbar.update();
-  setCljsTypeContext();
+  whenContexts.setCljsTypeContext();
 }
 
 export default {

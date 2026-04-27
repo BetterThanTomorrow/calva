@@ -10,8 +10,8 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as output from '../../../results-output/output';
-import { normalizeDestinations } from '../../../results-output/output-destinations';
-import { getDocument } from '../../../doc-mirror';
+import * as outputDestinations from '../../../results-output/output-destinations';
+import * as docMirror from '../../../doc-mirror';
 import connector from '../../../connector';
 
 export const testDataDir = path.join(
@@ -246,7 +246,7 @@ export async function waitForJackInCompletionCount(
   const currentCount = await waitForValue(
     async () => {
       const resultsEditor = await outputWindow.openReplWindowDoc();
-      const text = getDocument(resultsEditor).document.getText();
+      const text = docMirror.getDocument(resultsEditor).document.getText();
       const matchCount = (text.match(/Jack-in done\./g) || []).length;
       return matchCount > previousCount ? matchCount : undefined;
     },
@@ -437,9 +437,9 @@ export class JackInHarness {
 
   async waitForJackInCompletion(timeoutMs = 60_000): Promise<void> {
     if (
-      !normalizeDestinations(output.getDestinationConfiguration().otherOutput).includes(
-        'repl-window'
-      )
+      !outputDestinations
+        .normalizeDestinations(output.getDestinationConfiguration().otherOutput)
+        .includes('repl-window')
     ) {
       log(
         this.suiteName,

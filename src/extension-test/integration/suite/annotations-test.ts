@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { before, after, afterEach } from 'mocha';
+import * as mocha from 'mocha';
 import * as sinon from 'sinon';
 
 import annotations from '../../../providers/annotations';
@@ -11,16 +11,16 @@ import * as testUtil from './util';
 suite('Annotations suite', () => {
   const suite = 'Annotations';
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suite, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
   });
 
-  after(() => {
+  mocha.after(() => {
     testUtil.showMessage(suite, `suite done!`);
   });
 
-  afterEach(function () {
+  mocha.afterEach(function () {
     sinon.restore(); // Restore original methods
   });
 
