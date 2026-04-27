@@ -2,7 +2,7 @@
   (:require [clojure.string :as string]
             util))
 
-(defn package-pre-release! [{:keys [slug dry]}]
+(defn package-dev-release! [{:keys [slug dry]}]
   (let [current-version (-> (util/sh false "node" "-p" "require('./package').version")
                             :out string/trim)
         slug (or slug (-> (util/sh false "git" "rev-parse" "--abbrev-ref" "HEAD")

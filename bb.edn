@@ -4,8 +4,8 @@
  {:requires [[babashka.cli :as cli]
              [tasks :as t]]
 
-  package-pre-release
-  {:doc "Usage: bb package-pre-release [<slug>] [--dry]"
-   :task (t/package-pre-release!
+  package-dev-release
+  {:doc "Usage: bb package-dev-release [<slug>] [--dry]"
+   :task (t/package-dev-release!
           (cli/parse-opts *command-line-args* {:restrict [:slug :dry]
                                               :args->opts [:slug]}))}}}
