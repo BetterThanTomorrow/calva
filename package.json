@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.577",
+  "version": "2.0.578",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -204,7 +204,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
@@ -248,7 +250,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
@@ -292,7 +296,9 @@
                         },
                         {
                           "type": "array",
-                          "items": { "type": "string" },
+                          "items": {
+                            "type": "string"
+                          },
                           "description": "Path segments to join into a file path (e.g. [\".\", \"logs\", \"output.txt\"])"
                         }
                       ]
@@ -3793,13 +3799,13 @@
     "watch-ts": "npx tsc --watch --project ./tsconfig.json",
     "watch-cljs": "clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,\"1.3.1\"},cider/cider-nrepl {:mvn/version,\"0.55.4\"}}}' -M:dev:test -m nrepl.cmdline --middleware \"[cider.nrepl/cider-middleware shadow.cljs.devtools.server.nrepl/middleware]\"",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
-    "release-cljs": "npx shadow-cljs release -A:test :calva-lib :test :repl-output-ui",
+    "release-cljs": "npx shadow-cljs release -A:ci:test :calva-lib :test :repl-output-ui",
     "release": "webpack --mode production",
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
-    "package-vsix": "vsce package",
-    "package-vsix-prerelease": "vsce package",
+    "package-vsix": "vsce package --no-dependencies",
+    "package-vsix-prerelease": "vsce package --no-dependencies",
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",

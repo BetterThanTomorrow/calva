@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.578] - 2026-04-27
+
+- Fix: [Mirror doc init race condition](https://github.com/BetterThanTomorrow/calva/issues/3187)
+
 ## [2.0.577] - 2026-04-26
 
 - [Make it possible to select several output destinations](https://github.com/BetterThanTomorrow/calva/issues/2819)
