@@ -4,14 +4,12 @@ import * as path from 'path';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
-import * as connectorModule from '../../../connector';
+import * as connector from '../../../connector';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type * as nrepl from '../../../nrepl';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as sessionTeardown from '../../../nrepl/session-teardown';
 import * as testUtil from './util';
-
-const connector = connectorModule.default;
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 

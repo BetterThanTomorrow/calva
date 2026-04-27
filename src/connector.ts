@@ -4,7 +4,7 @@ import * as state from './state';
 import * as util from './utilities';
 import * as string from './util/string';
 import open = require('open');
-import * as statusModule from './status';
+import * as status from './status';
 import * as projectTypes from './nrepl/project-types';
 import * as nrepl from './nrepl';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
@@ -15,7 +15,7 @@ import * as secondarySession from './nrepl/secondary-session';
 import * as printer from './printer';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as resultsOutputUtil from './results-output/util';
-import * as evaluateModule from './evaluate';
+import * as evaluate from './evaluate';
 import * as liveShareSupport from './live-share';
 import * as calvaDebug from './debugger/calva-debug';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
@@ -36,9 +36,6 @@ import * as sessionNameResolver from './nrepl/session-name-resolver';
 import * as projectRootUtil from './project-root';
 import * as cljsBuilds from './connector-cljs-builds';
 import * as connectorUtils from './connector-utilities';
-
-const status = statusModule.default;
-const evaluate = evaluateModule.default;
 
 function getSessionGlobMetadata(
   sessionKey: string,
@@ -1338,278 +1335,282 @@ async function disconnectClientByKey(
   status.update();
 }
 
-export default {
-  connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
-    await state.setOrCreateNonProjectRoot(context, true);
-    const connectSequence = await connectSequences.askForConnectSequence(
-      projectTypes.getAllProjectTypes(),
-      connectTypes.ConnectType.Connect,
-      undefined
-    );
-    inspector.revealOnConnect();
-    await outputWindow.initReplWindowDoc();
-    await outputWindow.openReplWindowDoc();
+export async function connectNonProjectREPLCommand(context: vscode.ExtensionContext) {
+  await state.setOrCreateNonProjectRoot(context, true);
+  const connectSequence = await connectSequences.askForConnectSequence(
+    projectTypes.getAllProjectTypes(),
+    connectTypes.ConnectType.Connect,
+    undefined
+  );
+  inspector.revealOnConnect();
+  await outputWindow.initReplWindowDoc();
+  await outputWindow.openReplWindowDoc();
 
-    if (connectSequence) {
-      output.appendLineOtherOut(`Connecting ...`);
-      void state.analytics().logGA4Pageview('/connect-initiated');
-      void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
+  if (connectSequence) {
+    output.appendLineOtherOut(`Connecting ...`);
+    void state.analytics().logGA4Pageview('/connect-initiated');
+    void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
 
-      return connect(connectSequence, false);
-    } else {
-      output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
-    }
-  },
-  connectCommand: async (options?: {
-    host?: string;
-    port?: string;
-    connectSequence?: string | connectSequences.ReplConnectSequence;
-    disableAutoSelect?: boolean;
-  }) => {
-    const host = options && options.host ? options.host : undefined;
-    const port = options && options.port ? options.port : undefined;
-    let connectSequence: connectSequences.ReplConnectSequence;
-    if (options && typeof options.connectSequence === 'string') {
-      connectSequence = connectSequences
-        .getConnectSequences(projectTypes.getAllProjectTypes())
-        .find((s) => s.name === options.connectSequence);
-    } else if (options && options.connectSequence) {
-      connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
-    }
-    await state
-      .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
-      .catch((e) => {
-        void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
-      });
-    const cljTypes = await projectTypes.detectProjectTypes();
-    if (!connectSequence) {
-      try {
-        connectSequence = await connectSequences.askForConnectSequence(
-          cljTypes,
-          connectTypes.ConnectType.Connect,
-          options?.disableAutoSelect
-        );
-      } catch (e) {
-        output.appendLineOtherErr(`${e}\nAborting connect.`);
-        void vscode.window.showErrorMessage(`${e}`, 'OK');
-        return;
-      }
-    }
-    await liveShareSupport.setupLiveShareListener().catch((e) => {
-      console.error('Error initializing LiveShare support: ', e);
+    return connect(connectSequence, false);
+  } else {
+    output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
+  }
+}
+
+export async function connectCommand(options?: {
+  host?: string;
+  port?: string;
+  connectSequence?: string | connectSequences.ReplConnectSequence;
+  disableAutoSelect?: boolean;
+}) {
+  const host = options && options.host ? options.host : undefined;
+  const port = options && options.port ? options.port : undefined;
+  let connectSequence: connectSequences.ReplConnectSequence;
+  if (options && typeof options.connectSequence === 'string') {
+    connectSequence = connectSequences
+      .getConnectSequences(projectTypes.getAllProjectTypes())
+      .find((s) => s.name === options.connectSequence);
+  } else if (options && options.connectSequence) {
+    connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
+  }
+  await state
+    .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
+    .catch((e) => {
+      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
     });
-    return standaloneConnect(connectSequence, host, port).catch((e) => {
-      void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
-    });
-  },
-  shouldAutoConnect: async () => {
-    return config.getConfig().autoConnectRepl && nReplPortFileExists();
-  },
-  disconnect: (
-    options: {
-      clientKey?: string;
-      disconnectAll?: boolean;
-      preserveSuffix?: boolean;
-    } | null = null,
-    callback = () => {
-      // do nothing
+  const cljTypes = await projectTypes.detectProjectTypes();
+  if (!connectSequence) {
+    try {
+      connectSequence = await connectSequences.askForConnectSequence(
+        cljTypes,
+        connectTypes.ConnectType.Connect,
+        options?.disableAutoSelect
+      );
+    } catch (e) {
+      output.appendLineOtherErr(`${e}\nAborting connect.`);
+      void vscode.window.showErrorMessage(`${e}`, 'OK');
+      return;
     }
-  ) => {
-    return (async () => {
-      const clients = clientRegistry.listClients();
-      if (clients.length === 0) {
-        callback();
-        return;
-      }
+  }
+  await liveShareSupport.setupLiveShareListener().catch((e) => {
+    console.error('Error initializing LiveShare support: ', e);
+  });
+  return standaloneConnect(connectSequence, host, port).catch((e) => {
+    void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
+  });
+}
 
-      let disconnectAll = options?.disconnectAll === true;
-      let targetClientKey = options?.clientKey;
-      const preserveSuffix = options?.preserveSuffix ?? false;
+export async function shouldAutoConnect() {
+  return config.getConfig().autoConnectRepl && nReplPortFileExists();
+}
 
-      if (!disconnectAll && !targetClientKey) {
-        const selection = await promptForClientDisconnect(clients);
-        if (!selection) {
-          return;
-        }
-        if (selection.kind === 'all') {
-          disconnectAll = true;
-        } else {
-          targetClientKey = selection.clientKey;
-        }
-      }
-
-      if (disconnectAll) {
-        for (const client of [...clients]) {
-          await disconnectClientByKey(client.key, { preserveSuffix });
-        }
-      } else {
-        const keyToDisconnect = targetClientKey || clients[0].key;
-        await disconnectClientByKey(keyToDisconnect, { preserveSuffix });
-      }
-
+export function disconnect(
+  options: {
+    clientKey?: string;
+    disconnectAll?: boolean;
+    preserveSuffix?: boolean;
+  } | null = null,
+  callback = () => {
+    // do nothing
+  }
+) {
+  return (async () => {
+    const clients = clientRegistry.listClients();
+    if (clients.length === 0) {
       callback();
-    })();
-  },
-  toggleCLJCSession: () => {
-    if (!cljsLib.getStateValue('connected')) {
       return;
     }
 
-    const routingInfo = replSession.getRoutingInfo();
-    if (!routingInfo) {
-      return;
+    let disconnectAll = options?.disconnectAll === true;
+    let targetClientKey = options?.clientKey;
+    const preserveSuffix = options?.preserveSuffix ?? false;
+
+    if (!disconnectAll && !targetClientKey) {
+      const selection = await promptForClientDisconnect(clients);
+      if (!selection) {
+        return;
+      }
+      if (selection.kind === 'all') {
+        disconnectAll = true;
+      } else {
+        targetClientKey = selection.clientKey;
+      }
     }
 
-    const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
-    if (!clientKey) {
-      return;
+    if (disconnectAll) {
+      for (const client of [...clients]) {
+        await disconnectClientByKey(client.key, { preserveSuffix });
+      }
+    } else {
+      const keyToDisconnect = targetClientKey || clients[0].key;
+      await disconnectClientByKey(keyToDisconnect, { preserveSuffix });
     }
 
-    // Check if this connection has both primary and secondary sessions
-    const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
-    if (!secondaryKey) {
-      // No secondary session, nothing to toggle
-      return;
-    }
+    callback();
+  })();
+}
 
-    const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
-    const newTarget = currentTarget === 'primary' ? 'secondary' : 'primary';
-    clientRegistry.setCljcTargetForConnection(clientKey, newTarget);
+export function toggleCLJCSession() {
+  if (!cljsLib.getStateValue('connected')) {
+    return;
+  }
+
+  const routingInfo = replSession.getRoutingInfo();
+  if (!routingInfo) {
+    return;
+  }
+
+  const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
+  if (!clientKey) {
+    return;
+  }
+
+  // Check if this connection has both primary and secondary sessions
+  const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+  if (!secondaryKey) {
+    // No secondary session, nothing to toggle
+    return;
+  }
+
+  const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
+  const newTarget = currentTarget === 'primary' ? 'secondary' : 'primary';
+  clientRegistry.setCljcTargetForConnection(clientKey, newTarget);
+  replSession.updateReplSessionType();
+  status.update();
+}
+
+export async function selectCljcTarget(target?: 'primary' | 'secondary') {
+  if (!cljsLib.getStateValue('connected')) {
+    return;
+  }
+
+  const routingInfo = replSession.getRoutingInfo();
+  if (!routingInfo) {
+    return;
+  }
+
+  const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
+  if (!clientKey) {
+    return;
+  }
+
+  // Check if this connection has both primary and secondary sessions
+  const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
+  const primaryKey = sessionRegistry.getPrimarySessionKeyForClient(clientKey);
+  if (!secondaryKey || !primaryKey) {
+    void vscode.window.showInformationMessage(
+      'CLJC target selection requires both CLJ and CLJS sessions.'
+    );
+    return;
+  }
+
+  if (target === 'primary' || target === 'secondary') {
+    clientRegistry.setCljcTargetForConnection(clientKey, target);
     replSession.updateReplSessionType();
     status.update();
-  },
-  selectCljcTarget: async (target?: 'primary' | 'secondary') => {
-    if (!cljsLib.getStateValue('connected')) {
-      return;
-    }
+    return;
+  }
 
-    const routingInfo = replSession.getRoutingInfo();
-    if (!routingInfo) {
-      return;
-    }
+  // Show picker
+  const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
+  const items = [
+    {
+      label: currentTarget === 'primary' ? `$(check) ${primaryKey}` : primaryKey,
+      description: 'Primary session (CLJ)',
+      target: 'primary' as const,
+    },
+    {
+      label: currentTarget === 'secondary' ? `$(check) ${secondaryKey}` : secondaryKey,
+      description: 'Secondary session (CLJS)',
+      target: 'secondary' as const,
+    },
+  ];
 
-    const clientKey = sessionRegistry.getClientKeyForSession(routingInfo.sessionKey);
-    if (!clientKey) {
-      return;
-    }
+  const activeDoc = vscode.window.activeTextEditor?.document;
+  const activeFilePath = activeDoc
+    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+    : 'no file selected';
 
-    // Check if this connection has both primary and secondary sessions
-    const secondaryKey = sessionRegistry.getSecondarySessionKeyForClient(clientKey);
-    const primaryKey = sessionRegistry.getPrimarySessionKeyForClient(clientKey);
-    if (!secondaryKey || !primaryKey) {
-      void vscode.window.showInformationMessage(
-        'CLJC target selection requires both CLJ and CLJS sessions.'
-      );
-      return;
-    }
+  const selection = await vscode.window.showQuickPick(items, {
+    title: 'Select CLJC Target',
+    placeHolder: `Current file: ${activeFilePath}`,
+  });
 
-    if (target === 'primary' || target === 'secondary') {
-      clientRegistry.setCljcTargetForConnection(clientKey, target);
-      replSession.updateReplSessionType();
-      status.update();
-      return;
-    }
-
-    // Show picker
-    const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
-    const items = [
-      {
-        label: currentTarget === 'primary' ? `$(check) ${primaryKey}` : primaryKey,
-        description: 'Primary session (CLJ)',
-        target: 'primary' as const,
-      },
-      {
-        label: currentTarget === 'secondary' ? `$(check) ${secondaryKey}` : secondaryKey,
-        description: 'Secondary session (CLJS)',
-        target: 'secondary' as const,
-      },
-    ];
-
-    const activeDoc = vscode.window.activeTextEditor?.document;
-    const activeFilePath = activeDoc
-      ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
-      : 'no file selected';
-
-    const selection = await vscode.window.showQuickPick(items, {
-      title: 'Select CLJC Target',
-      placeHolder: `Current file: ${activeFilePath}`,
-    });
-
-    if (selection) {
-      clientRegistry.setCljcTargetForConnection(clientKey, selection.target);
-      replSession.updateReplSessionType();
-      status.update();
-    }
-  },
-  switchCljsBuild: async () => {
-    // Follow the same pattern as shadow-runtime: routed session → connection state → everything
-    const routedSessionKey = replSession.getReplSessionTypeFromState();
-    if (!routedSessionKey) {
-      return;
-    }
-
-    const connectionStateData = sessionRegistry.getConnectionStateForSession(routedSessionKey);
-    if (!connectionStateData) {
-      return;
-    }
-
-    const connectSequence = connectionStateData.connectSequence;
-    if (!connectSequence || !secondarySession.shouldUseSecondarySession(connectSequence)) {
-      return;
-    }
-
-    // Get everything from connection state
-    const {
-      clientKey,
-      projectRoot,
-      cljsTypeName,
-      sessionRoleKeys: roleKeys,
-      sessionGlobMap: globMap,
-    } = connectionStateData;
-    const projectRootUri = projectRoot ? vscode.Uri.parse(projectRoot) : state.getProjectRootUri();
-
-    if (!roleKeys?.secondary || !globMap) {
-      output.appendLineOtherErr(
-        'Cannot switch build: connection state missing role keys or glob map'
-      );
-      return;
-    }
-
-    // Get the main session for this connection early so we can query active builds
-    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
-    if (!cljSession) {
-      return;
-    }
-
-    // Show build selection menu with active build status
-    const selectedBuild = await selectCljsBuild(cljsTypeName, projectRootUri, cljSession);
-    if (!selectedBuild) {
-      return; // User cancelled or no builds available
-    }
-
-    const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
-    const cljsType: connectSequences.CljsTypeConfig = isBuiltinType
-      ? connectSequences.getDefaultCljsType(connectSequence.cljsType as string)
-      : (connectSequence.cljsType as connectSequences.CljsTypeConfig);
-
-    const connector = createCljsReplConnector(
-      cljsType,
-      projectTypes.getCljsTypeName(connectSequence),
-      connectSequence,
-      clientKey,
-      roleKeys,
-      { useDefaultBuild: false, preSelectedBuild: selectedBuild }
-    );
-
-    const [cljsSession, build] = await makeCljsSessionClone(
-      cljSession,
-      connector,
-      cljsTypeName,
-      clientKey
-    );
-    if (cljsSession) {
-      await setUpCljsRepl(cljsSession, build, roleKeys.secondary, clientKey, globMap);
-    }
+  if (selection) {
+    clientRegistry.setCljcTargetForConnection(clientKey, selection.target);
+    replSession.updateReplSessionType();
     status.update();
-  },
-};
+  }
+}
+
+export async function switchCljsBuild() {
+  // Follow the same pattern as shadow-runtime: routed session → connection state → everything
+  const routedSessionKey = replSession.getReplSessionTypeFromState();
+  if (!routedSessionKey) {
+    return;
+  }
+
+  const connectionStateData = sessionRegistry.getConnectionStateForSession(routedSessionKey);
+  if (!connectionStateData) {
+    return;
+  }
+
+  const connectSequence = connectionStateData.connectSequence;
+  if (!connectSequence || !secondarySession.shouldUseSecondarySession(connectSequence)) {
+    return;
+  }
+
+  // Get everything from connection state
+  const {
+    clientKey,
+    projectRoot,
+    cljsTypeName,
+    sessionRoleKeys: roleKeys,
+    sessionGlobMap: globMap,
+  } = connectionStateData;
+  const projectRootUri = projectRoot ? vscode.Uri.parse(projectRoot) : state.getProjectRootUri();
+
+  if (!roleKeys?.secondary || !globMap) {
+    output.appendLineOtherErr(
+      'Cannot switch build: connection state missing role keys or glob map'
+    );
+    return;
+  }
+
+  // Get the main session for this connection early so we can query active builds
+  const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
+  if (!cljSession) {
+    return;
+  }
+
+  // Show build selection menu with active build status
+  const selectedBuild = await selectCljsBuild(cljsTypeName, projectRootUri, cljSession);
+  if (!selectedBuild) {
+    return; // User cancelled or no builds available
+  }
+
+  const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
+  const cljsType: connectSequences.CljsTypeConfig = isBuiltinType
+    ? connectSequences.getDefaultCljsType(connectSequence.cljsType as string)
+    : (connectSequence.cljsType as connectSequences.CljsTypeConfig);
+
+  const cljsConnector = createCljsReplConnector(
+    cljsType,
+    projectTypes.getCljsTypeName(connectSequence),
+    connectSequence,
+    clientKey,
+    roleKeys,
+    { useDefaultBuild: false, preSelectedBuild: selectedBuild }
+  );
+
+  const [cljsSession, build] = await makeCljsSessionClone(
+    cljSession,
+    cljsConnector,
+    cljsTypeName,
+    clientKey
+  );
+  if (cljsSession) {
+    await setUpCljsRepl(cljsSession, build, roleKeys.secondary, clientKey, globMap);
+  }
+  status.update();
+}

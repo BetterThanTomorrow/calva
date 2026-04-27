@@ -1,9 +1,7 @@
 'use strict';
 import * as vscode from 'vscode';
-import * as statusbarModule from '../statusbar';
+import * as statusbar from '../statusbar';
 import * as paredit from './extension';
-
-const statusbar = statusbarModule.default;
 
 export class StatusBar {
   private _visible: boolean;

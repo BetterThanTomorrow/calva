@@ -12,9 +12,7 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
 import * as docMirror from '../../../doc-mirror';
-import * as connectorModule from '../../../connector';
-
-const connector = connectorModule.default;
+import * as connector from '../../../connector';
 
 export const testDataDir = path.join(
   __dirname,

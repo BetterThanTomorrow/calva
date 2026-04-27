@@ -11,7 +11,7 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as docMirror from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import * as state from '../../../state';
-import * as connectorModule from '../../../connector';
+import * as connector from '../../../connector';
 import * as connectTypes from '../../../nrepl/connect-types';
 import * as connectSequence from '../../../nrepl/connectSequence';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
@@ -19,8 +19,6 @@ import * as projectTypes from '../../../nrepl/project-types';
 import * as config from '../../../config';
 import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
-
-const connector = connectorModule.default;
 
 suite('Jack-in and Connect suite', () => {
   const suite = 'Jack-in and Connect';
@@ -365,12 +363,7 @@ suite('Jack-in and Connect suite', () => {
     await state.initProjectDir(connectTypes.ConnectType.Connect, reconnectSequence, true);
 
     // Connect directly using the same sequence, host, and port as the first jack-in
-    await connectorModule.connect(
-      reconnectSequence,
-      true,
-      firstClientHost,
-      String(firstClientPort)
-    );
+    await connector.connect(reconnectSequence, true, firstClientHost, String(firstClientPort));
     const reconnectedClientKey = await waitForNextClient(suite);
     await waitForSessionsReady(suite, reconnectedClientKey);
 
@@ -545,7 +538,7 @@ async function reconnectAndAssert(
     connectSequenceOverride
   );
 
-  await connectorModule.connect(connectSequence, true);
+  await connector.connect(connectSequence, true);
 
   await loadAndAssert(suite, testFilePath, needle, { waitForJackInOutput: false });
   await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

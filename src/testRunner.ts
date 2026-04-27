@@ -525,7 +525,7 @@ function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreePar
   }
 }
 
-export default {
+export {
   initialize,
   runNamespaceTests,
   runNamespaceTestsCommand,

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as state from './state';
-import * as annotationsModule from './providers/annotations';
+import * as annotations from './providers/annotations';
 import * as path from 'path';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
-import * as statusbarModule from './statusbar';
+import * as statusbar from './statusbar';
 import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
@@ -24,9 +24,6 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
-
-const annotations = annotationsModule.default;
-const statusbar = statusbarModule.default;
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -956,7 +953,7 @@ async function evaluateInCurrentEditor(
   }
 }
 
-export default {
+export {
   interruptAllEvaluations,
   loadDocument,
   loadFileCommand,

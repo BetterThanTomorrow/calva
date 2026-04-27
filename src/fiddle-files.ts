@@ -3,13 +3,11 @@ import * as fiddleFilesUtil from './util/fiddle-files';
 import * as state from './state';
 import * as config from './config';
 import * as nsUtil from './util/ns-form';
-import * as evaluateModule from './evaluate';
+import * as evaluate from './evaluate';
 import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as output from './results-output/output';
 import * as sessionRegistry from './nrepl/session-registry';
-
-const evaluate = evaluateModule.default;
 
 // TODO: This viewColumn memory could probably be a shared thing for all of Calva.
 //       At least the REPL window has similar functionality an could benefit from this more general approach.

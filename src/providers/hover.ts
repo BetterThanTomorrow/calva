@@ -90,7 +90,7 @@ export async function provideHover(
   }
 }
 
-export default class HoverProvider implements vscode.HoverProvider {
+export class HoverProvider implements vscode.HoverProvider {
   constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
   async provideHover(document, position, _) {

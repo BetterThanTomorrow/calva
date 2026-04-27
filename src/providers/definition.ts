@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
-import * as annotationsModule from './annotations';
+import * as annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as replSession from '../nrepl/repl-session';
@@ -9,8 +9,6 @@ import * as config from '../config';
 import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
 import * as vscodeLanguageclient from 'vscode-languageclient';
 import * as lsp from '../lsp';
-
-const annotations = annotationsModule.default;
 
 const converter = protocolConverter.createConverter(undefined, undefined, true);
 

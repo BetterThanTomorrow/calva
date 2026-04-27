@@ -4,10 +4,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
-import * as connectorModule from '../../../connector';
+import * as connector from '../../../connector';
 import * as replApi from '../../../api/repl-v1';
 import * as replSession from '../../../nrepl/repl-session';
-import * as evaluateModule from '../../../evaluate';
+import * as evaluate from '../../../evaluate';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type * as nrepl from '../../../nrepl';
 import * as testUtil from './util';
@@ -15,9 +15,6 @@ import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as globs from '../../../nrepl/globs';
 import * as docMirror from '../../../doc-mirror';
-
-const connector = connectorModule.default;
-const evaluate = evaluateModule.default;
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 

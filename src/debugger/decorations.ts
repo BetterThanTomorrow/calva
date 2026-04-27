@@ -166,7 +166,4 @@ function activate() {
   });
 }
 
-export default {
-  activate,
-  triggerUpdateAndRenderDecorations,
-};
+export { activate, triggerUpdateAndRenderDecorations };

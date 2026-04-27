@@ -232,7 +232,4 @@ function update() {
   prettyPrintToggle.show();
 }
 
-export default {
-  update,
-  color,
-};
+export { update, color };

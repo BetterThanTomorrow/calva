@@ -9,21 +9,21 @@ import * as replSessionsMenu from './repl-sessions-menu';
 import * as drams from './nrepl/drams';
 import * as util from './utilities';
 import * as notebookProvider from './NotebookProvider';
-import * as statusModule from './status';
-import * as connectorModule from './connector';
-import * as calvaCompletionItemProviderModule from './providers/completion';
-import * as jarContentProviderModule from './providers/content';
-import * as hoverProviderModule from './providers/hover';
+import * as status from './status';
+import * as connector from './connector';
+import * as completion from './providers/completion';
+import * as content from './providers/content';
+import * as hover from './providers/hover';
 import * as definition from './providers/definition';
 import * as signature from './providers/signature';
-import * as testRunnerModule from './testRunner';
-import * as annotationsModule from './providers/annotations';
-import * as evaluateModule from './evaluate';
+import * as testRunner from './testRunner';
+import * as annotations from './providers/annotations';
+import * as evaluate from './evaluate';
 import * as refresh from './refresh';
 import * as greetings from './greet';
 import * as analyticsModule from './analytics';
 import open = require('open');
-import * as statusbarModule from './statusbar';
+import * as statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './repl-window/repl-window-doc';
@@ -48,17 +48,6 @@ import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as shadowRuntime from './shadow-cljs-runtime';
-
-const status = statusModule.default;
-const connector = connectorModule.default;
-const CalvaCompletionItemProvider = calvaCompletionItemProviderModule.default;
-const JarContentProvider = jarContentProviderModule.default;
-const HoverProvider = hoverProviderModule.default;
-const testRunner = testRunnerModule.default;
-const annotations = annotationsModule.default;
-const evaluate = evaluateModule.default;
-const Analytics = analyticsModule.default;
-const statusbar = statusbarModule.default;
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -142,7 +131,7 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
-  cljsLib.setStateValue('analytics', new Analytics(context));
+  cljsLib.setStateValue('analytics', new analyticsModule.Analytics(context));
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -414,12 +403,12 @@ async function activate(context: vscode.ExtensionContext) {
 
   // PROVIDERS
   context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider())
+    vscode.workspace.registerTextDocumentContentProvider('jar', new content.JarContentProvider())
   );
 
   const languageProviders = {
     completionItemProvider: {
-      provider: new CalvaCompletionItemProvider(clientProvider),
+      provider: new completion.CalvaCompletionItemProvider(clientProvider),
     },
     definitionProvider: [
       {
@@ -430,7 +419,7 @@ async function activate(context: vscode.ExtensionContext) {
       },
     ],
     hoverProvider: {
-      provider: new HoverProvider(clientProvider),
+      provider: new hover.HoverProvider(clientProvider),
     },
     signatureHelpProvider: {
       provider: new signature.CalvaSignatureHelpProvider(),

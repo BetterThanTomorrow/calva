@@ -7,12 +7,8 @@ import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
 import * as vscodeLanguageserverProtocol from 'vscode-languageserver-protocol';
 import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
-import * as protocolCompletionItemModule from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import * as lsp from '../lsp';
 import * as completionUtil from './completion-util';
-
-const ProtocolCompletionItem = protocolCompletionItemModule.default;
-type ProtocolCompletionItemInstance = InstanceType<typeof ProtocolCompletionItem>;
 
 const mappings = {
   nil: vscode.CompletionItemKind.Value,
@@ -66,14 +62,12 @@ async function provideCompletionItems(
     }
   }
 
-  const completionItems: ProtocolCompletionItemInstance[] = results.map((completion) =>
-    converter.asCompletionItem(completion)
-  );
+  const completionItems = results.map((completion) => converter.asCompletionItem(completion));
 
   return new vscode.CompletionList(completionItems, true);
 }
 
-export default class CalvaCompletionItemProvider implements vscode.CompletionItemProvider {
+export class CalvaCompletionItemProvider implements vscode.CompletionItemProvider {
   constructor(private readonly clientProvider: lsp.ClientProvider) {}
 
   async provideCompletionItems(
