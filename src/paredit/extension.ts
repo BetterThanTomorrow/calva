@@ -1,27 +1,27 @@
-import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
-import {
-  commands,
-  window,
-  Event,
-  EventEmitter,
-  ExtensionContext,
-  workspace,
-  ConfigurationChangeEvent,
-} from 'vscode';
+import * as statusbar from './statusbar';
 import * as paredit from '../cursor-doc/paredit';
 import * as handlers from './commands';
 import * as docMirror from '../doc-mirror/index';
-import { EditableDocument } from '../cursor-doc/model';
-import { assertIsDefined } from '../utilities';
+import type * as model from '../cursor-doc/model';
+import * as utilities from '../utilities';
 import * as config from '../formatter-config';
 import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
-import { createPareditConfig, defaultBindingForms } from '../cursor-doc/paredit-config';
-import type { PareditConfig } from '../cursor-doc/paredit-config';
+import * as pareditConfig from '../cursor-doc/paredit-config';
 
-const onPareditKeyMapChangedEmitter = new EventEmitter<string>();
+type EditableDocument = model.EditableDocument;
+type PareditConfig = pareditConfig.PareditConfig;
+type Event<T> = vscode.Event<T>;
+type ExtensionContext = vscode.ExtensionContext;
+type ConfigurationChangeEvent = vscode.ConfigurationChangeEvent;
+
+const commands = vscode.commands;
+const window = vscode.window;
+const workspace = vscode.workspace;
+
+const onPareditKeyMapChangedEmitter = new vscode.EventEmitter<string>();
 
 const languages = new Set(['clojure', 'lisp', 'scheme']);
 const enabled = true;
@@ -58,7 +58,7 @@ let pareditConfigCache: PareditConfig | null = null;
 export function getPareditConfig(): PareditConfig {
   if (!pareditConfigCache) {
     const cfg = mainConfig.getConfig();
-    pareditConfigCache = createPareditConfig(
+    pareditConfigCache = pareditConfig.createPareditConfig(
       cfg.customPairForms,
       cfg.customThreadingMacros,
       cfg.aliasMap
@@ -535,7 +535,7 @@ function wrapPareditCommand<C extends PareditCommand>(command: C) {
     try {
       const textEditor = window.activeTextEditor;
 
-      assertIsDefined(textEditor, 'Expected window to have an activeTextEditor!');
+      utilities.assertIsDefined(textEditor, 'Expected window to have an activeTextEditor!');
 
       const mDoc: EditableDocument = docMirror.getDocument(textEditor.document);
       if (!enabled || !languages.has(textEditor.document.languageId)) {
@@ -585,7 +585,7 @@ function setKeyMapConf() {
 setKeyMapConf();
 
 export function activate(context: ExtensionContext) {
-  const statusBar = new StatusBar(getKeyMapConf());
+  const statusBar = new statusbar.StatusBar(getKeyMapConf());
 
   context.subscriptions.push(
     statusBar,

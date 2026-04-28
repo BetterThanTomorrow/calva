@@ -5,24 +5,20 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replSession from '../../../nrepl/repl-session';
 import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
-import type { NReplSession } from '../../../nrepl';
+import type * as nrepl from '../../../nrepl';
 import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
-import {
-  constructGlobsFromFilePatterns,
-  createCatchAllGlobSpec,
-  SessionGlobSpec,
-} from '../../../nrepl/globs';
+import * as globs from '../../../nrepl/globs';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
 const suiteName = 'Multi-project routing';
 
-const createSession = (replType: string): NReplSession =>
+const createSession = (replType: string): nrepl.NReplSession =>
   ({
     replType,
-  } as NReplSession);
+  } as nrepl.NReplSession);
 
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
   outputWindow.setSession(createSession(sessionType), ns, sessionType);
@@ -32,10 +28,10 @@ const resetOutputWindowSession = (sessionType: string, ns: string): void => {
  * Helper to build glob specs for a project, mimicking what connector.ts does
  * for a deps.edn/clj connect sequence.
  */
-function buildProjectGlobSpecs(projectRoot: string): SessionGlobSpec[] {
+function buildProjectGlobSpecs(projectRoot: string): globs.SessionGlobSpec[] {
   // Typical deps.edn always-claim patterns
   const alwaysClaimPatterns = ['*.clj', '*.edn'];
-  const alwaysClaim = constructGlobsFromFilePatterns(
+  const alwaysClaim = globs.constructGlobsFromFilePatterns(
     projectRoot,
     alwaysClaimPatterns,
     'always-claim'
@@ -43,14 +39,14 @@ function buildProjectGlobSpecs(projectRoot: string): SessionGlobSpec[] {
 
   // Typical deps.edn is-fallback-for patterns
   const fallbackPatterns = ['*.cljc'];
-  const isFallbackFor = constructGlobsFromFilePatterns(
+  const isFallbackFor = globs.constructGlobsFromFilePatterns(
     projectRoot,
     fallbackPatterns,
     'is-fallback-for'
   );
 
   // Add the catch-all for the project
-  const catchAll = createCatchAllGlobSpec(projectRoot);
+  const catchAll = globs.createCatchAllGlobSpec(projectRoot);
 
   return [...alwaysClaim, ...isFallbackFor, catchAll];
 }
@@ -142,10 +138,10 @@ describe(`${suiteName} suite`, () => {
       const sessionB = createSession('clj');
 
       // Session A: has workspace-wide is-fallback-for patterns
-      const sessionASpecs: SessionGlobSpec[] = [
-        ...constructGlobsFromFilePatterns(projectARoot, ['*.clj', '*.edn'], 'always-claim'),
-        ...constructGlobsFromFilePatterns(projectARoot, ['**/*.cljc'], 'is-fallback-for'), // workspace-wide!
-        createCatchAllGlobSpec(projectARoot),
+      const sessionASpecs: globs.SessionGlobSpec[] = [
+        ...globs.constructGlobsFromFilePatterns(projectARoot, ['*.clj', '*.edn'], 'always-claim'),
+        ...globs.constructGlobsFromFilePatterns(projectARoot, ['**/*.cljc'], 'is-fallback-for'), // workspace-wide!
+        globs.createCatchAllGlobSpec(projectARoot),
       ];
 
       sessionRegistry.registerSession('project-a-clj', sessionA, {
@@ -155,9 +151,9 @@ describe(`${suiteName} suite`, () => {
       });
 
       // Session B: only has project-scoped catch-all (no is-fallback-for)
-      const sessionBSpecs: SessionGlobSpec[] = [
-        ...constructGlobsFromFilePatterns(projectBRoot, ['*.clj', '*.edn'], 'always-claim'),
-        createCatchAllGlobSpec(projectBRoot),
+      const sessionBSpecs: globs.SessionGlobSpec[] = [
+        ...globs.constructGlobsFromFilePatterns(projectBRoot, ['*.clj', '*.edn'], 'always-claim'),
+        globs.createCatchAllGlobSpec(projectBRoot),
       ];
 
       sessionRegistry.registerSession('project-b-clj', sessionB, {
@@ -194,8 +190,8 @@ describe(`${suiteName} suite`, () => {
       sessionRegistry.registerSession('project-a-clj', sessionA, {
         projectRoot: `file://${projectARoot}`,
         globSpecs: [
-          ...constructGlobsFromFilePatterns(projectARoot, ['*.clj'], 'always-claim'),
-          createCatchAllGlobSpec(projectARoot),
+          ...globs.constructGlobsFromFilePatterns(projectARoot, ['*.clj'], 'always-claim'),
+          globs.createCatchAllGlobSpec(projectARoot),
         ],
         globs: ['*.clj', '**/*'],
       });
@@ -205,8 +201,8 @@ describe(`${suiteName} suite`, () => {
       sessionRegistry.registerSession('joyride', joyrideSession, {
         projectRoot: `file://${deepProjectRoot}`,
         globSpecs: [
-          ...constructGlobsFromFilePatterns(deepProjectRoot, ['*.cljs'], 'always-claim'),
-          createCatchAllGlobSpec(deepProjectRoot),
+          ...globs.constructGlobsFromFilePatterns(deepProjectRoot, ['*.cljs'], 'always-claim'),
+          globs.createCatchAllGlobSpec(deepProjectRoot),
         ],
         globs: ['*.cljs', '**/*'],
       });
@@ -266,19 +262,19 @@ describe(`${suiteName} suite`, () => {
       sessionRegistry.registerSession('project-a-clj', cljSession, {
         projectRoot: `file://${projectARoot}`,
         globSpecs: [
-          ...constructGlobsFromFilePatterns(projectARoot, ['*.clj', '*.edn'], 'always-claim'),
-          createCatchAllGlobSpec(projectARoot),
+          ...globs.constructGlobsFromFilePatterns(projectARoot, ['*.clj', '*.edn'], 'always-claim'),
+          globs.createCatchAllGlobSpec(projectARoot),
         ],
         globs: ['*.clj', '*.edn', '**/*'],
       });
 
       // BB session: workspace-wide fallback for .clj (like bb project type)
       // This simulates: is-fallback-for: ['**/*.clj']
-      const bbSpecs: SessionGlobSpec[] = [
-        ...constructGlobsFromFilePatterns(projectBRoot, ['*.bb'], 'always-claim'),
+      const bbSpecs: globs.SessionGlobSpec[] = [
+        ...globs.constructGlobsFromFilePatterns(projectBRoot, ['*.bb'], 'always-claim'),
         // Workspace-wide fallback - note the **/ prefix
-        ...constructGlobsFromFilePatterns(projectBRoot, ['**/*.clj'], 'is-fallback-for'),
-        createCatchAllGlobSpec(projectBRoot),
+        ...globs.constructGlobsFromFilePatterns(projectBRoot, ['**/*.clj'], 'is-fallback-for'),
+        globs.createCatchAllGlobSpec(projectBRoot),
       ];
 
       sessionRegistry.registerSession('bb', bbSession, {
@@ -311,8 +307,8 @@ describe(`${suiteName} suite`, () => {
       sessionRegistry.registerSession('project-a-clj', sessionA, {
         projectRoot: `file://${projectARoot}`,
         globSpecs: [
-          ...constructGlobsFromFilePatterns(projectARoot, ['*.edn'], 'always-claim'),
-          createCatchAllGlobSpec(projectARoot),
+          ...globs.constructGlobsFromFilePatterns(projectARoot, ['*.edn'], 'always-claim'),
+          globs.createCatchAllGlobSpec(projectARoot),
         ],
         globs: ['*.edn', '**/*'],
       });
@@ -321,9 +317,9 @@ describe(`${suiteName} suite`, () => {
       sessionRegistry.registerSession('project-b-clj', sessionB, {
         projectRoot: `file://${projectBRoot}`,
         globSpecs: [
-          ...constructGlobsFromFilePatterns(projectBRoot, ['*.edn'], 'always-claim'),
-          ...constructGlobsFromFilePatterns(projectBRoot, ['**/*.clj'], 'is-fallback-for'),
-          createCatchAllGlobSpec(projectBRoot),
+          ...globs.constructGlobsFromFilePatterns(projectBRoot, ['*.edn'], 'always-claim'),
+          ...globs.constructGlobsFromFilePatterns(projectBRoot, ['**/*.clj'], 'is-fallback-for'),
+          globs.createCatchAllGlobSpec(projectBRoot),
         ],
         globs: ['*.edn', '**/*.clj', '**/*'],
       });

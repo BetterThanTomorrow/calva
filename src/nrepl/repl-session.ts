@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
 import * as minimatchLib from 'minimatch';
-import { NReplSession } from '.';
-import { cljsLib, tryToGetDocument, getFileType } from '../utilities';
+import type * as globs from './globs';
+import type * as nrepl from '.';
+import * as utilities from '../utilities';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
 import * as clientRegistry from './client-registry';
-import type { WorkspaceFolderInfo } from './glob-paths';
 import * as globPaths from './glob-paths';
-import type { SessionGlobTier } from './globs';
 import * as sessionLabel from './session-label';
 
 // Re-export for consumers
@@ -20,7 +19,7 @@ export { formatSessionLabel, type SessionLabelContext } from './session-label';
 export type RoutingReason =
   | { type: 'pinned' }
   | { type: 'repl-window' }
-  | { type: 'glob-match'; tier: SessionGlobTier; matchingPattern?: string }
+  | { type: 'glob-match'; tier: globs.SessionGlobTier; matchingPattern?: string }
   | { type: 'cljc-within-connection' } // TODO: Find a better name
   | { type: 'first-available' };
 
@@ -37,7 +36,7 @@ function buildCandidatePaths(doc: vscode.TextDocument): string[] {
   }
 
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-  const folders: WorkspaceFolderInfo[] = [];
+  const folders: globPaths.WorkspaceFolderInfo[] = [];
 
   if (workspaceFolder) {
     folders.push({ fsPath: workspaceFolder.uri.fsPath, name: workspaceFolder.name });
@@ -55,7 +54,7 @@ function buildCandidatePaths(doc: vscode.TextDocument): string[] {
 
 interface GlobMatchResult {
   sessionKey: string;
-  tier: SessionGlobTier;
+  tier: globs.SessionGlobTier;
   matchingPattern: string;
   score: number;
   order: number;
@@ -63,7 +62,7 @@ interface GlobMatchResult {
 
 function findSessionKeyForDocument(
   doc?: vscode.TextDocument
-): { sessionKey: string; tier: SessionGlobTier; matchingPattern: string } | undefined {
+): { sessionKey: string; tier: globs.SessionGlobTier; matchingPattern: string } | undefined {
   if (!doc) {
     return undefined;
   }
@@ -202,7 +201,7 @@ function resolveCljcWithinConnection(
  * Returns detailed routing information for UI display.
  */
 function getRoutingInfo(): RoutingResult | undefined {
-  const doc = tryToGetDocument({});
+  const doc = utilities.tryToGetDocument({});
 
   // 1. Pinned session takes priority
   const pinnedSession = sessionRouting.resolvePinnedSession();
@@ -265,7 +264,7 @@ function getSessionKey(): string | undefined {
   return getRoutingInfo()?.sessionKey;
 }
 
-function getSession(): NReplSession {
+function getSession(): nrepl.NReplSession {
   const sessionKey = getSessionKey();
 
   // Try getting from registry first
@@ -277,7 +276,7 @@ function getSession(): NReplSession {
   }
 
   // Fallback for REPL window session
-  if (outputWindow.isReplWindowDoc(tryToGetDocument({}))) {
+  if (outputWindow.isReplWindowDoc(utilities.tryToGetDocument({}))) {
     return outputWindow.getSession();
   }
 
@@ -286,11 +285,11 @@ function getSession(): NReplSession {
 
 function updateReplSessionType() {
   const replSessionType = getSessionKey();
-  cljsLib.setStateValue('current-session-type', replSessionType);
+  utilities.cljsLib.setStateValue('current-session-type', replSessionType);
 }
 
 function getReplSessionTypeFromState() {
-  return cljsLib.getStateValue('current-session-type');
+  return utilities.cljsLib.getStateValue('current-session-type');
 }
 
 /**
@@ -305,9 +304,9 @@ function getSessionLabelContext(options?: {
   isPinned?: boolean;
   doc?: vscode.TextDocument;
 }): sessionLabel.SessionLabelContext {
-  const { isPinned = false, doc = tryToGetDocument({}) } = options ?? {};
+  const { isPinned = false, doc = utilities.tryToGetDocument({}) } = options ?? {};
   const routingInfo = getRoutingInfo();
-  const fileType = getFileType(doc);
+  const fileType = utilities.getFileType(doc);
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,

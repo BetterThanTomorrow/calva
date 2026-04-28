@@ -1,12 +1,12 @@
 import * as assert from 'assert';
-import { before, after, beforeEach } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as nameSuffix from '../../../nrepl/session-name-suffix';
 import * as jackIn from '../../../nrepl/jack-in';
-import connector from '../../../connector';
+import * as connector from '../../../connector';
 import * as testUtil from './util';
 
 const suiteName = 'Name Suffix';
@@ -19,21 +19,21 @@ suite('Name Suffix suite', () => {
   let baseClientKey: string | undefined;
   let secondClientKey: string | undefined;
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     await jackInHarness.disconnectAllClients();
     nameSuffix.resetPool();
   });
 
-  after(async () => {
+  mocha.after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
     await jackIn.calvaJackout({ force: true });
     await testUtil.waitForJackOutComplete(suiteName);
     nameSuffix.resetPool();
   });
 
-  beforeEach(async () => {
+  mocha.beforeEach(async () => {
     await outputWindow.clearReplWindowDoc();
     jackInHarness.reset();
     await ensureBaseConnection();

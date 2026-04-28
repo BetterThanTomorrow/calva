@@ -1,28 +1,28 @@
 import * as project_utils from '../../../project-root';
-import { describe, it } from 'mocha';
-import { expect } from 'expect';
+import * as mocha from 'mocha';
+import * as expectLib from 'expect';
 import * as vscode from 'vscode';
 
-describe('project root utils', () => {
-  it('should return the furthest parent', () => {
+mocha.describe('project root utils', () => {
+  mocha.it('should return the furthest parent', () => {
     const furthest = project_utils.findFurthestParent(vscode.Uri.parse('/a/b/c/d'), [
       vscode.Uri.parse('/a/b/c'),
       vscode.Uri.parse('/a/b'),
     ]);
 
-    expect(furthest.path).toBe('/a/b');
+    expectLib.expect(furthest.path).toBe('/a/b');
   });
 
-  it('should return the closest parent', () => {
+  mocha.it('should return the closest parent', () => {
     const furthest = project_utils.findClosestParent(vscode.Uri.parse('/a/b/c/d'), [
       vscode.Uri.parse('/a/b/c'),
       vscode.Uri.parse('/a/b'),
     ]);
 
-    expect(furthest.path).toBe('/a/b/c');
+    expectLib.expect(furthest.path).toBe('/a/b/c');
   });
 
-  it('should return a filtered set of shortest, distinct paths', () => {
+  mocha.it('should return a filtered set of shortest, distinct paths', () => {
     try {
       const distinct = project_utils.filterShortestDistinctPaths([
         vscode.Uri.parse('/a/b/c'),
@@ -32,7 +32,7 @@ describe('project root utils', () => {
         vscode.Uri.parse('/a/b/d/c'),
       ]);
 
-      expect(distinct.map((uri) => uri.path)).toEqual(['/a/b/c', '/a/b/d']);
+      expectLib.expect(distinct.map((uri) => uri.path)).toEqual(['/a/b/c', '/a/b/d']);
     } catch (err) {
       console.log('err', err);
     }

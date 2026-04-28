@@ -1,4 +1,4 @@
-import { trim } from 'lodash';
+import _ = require('lodash');
 
 export const isCljOrJsRegex = (regexp: string) => {
   return regexp.startsWith('#"') || regexp.startsWith('/');
@@ -12,6 +12,6 @@ export const testCljOrJsRegex = (regexp: string, str: string) => {
   }
   const clojureReMatches = regexp.match(/^#"(.*)"$/);
   const normalizedRe =
-    (clojureReMatches && RegExp(clojureReMatches[1])) || RegExp(trim(regexp, '/'));
+    (clojureReMatches && RegExp(clojureReMatches[1])) || RegExp(_.trim(regexp, '/'));
   return normalizedRe.test(str.replace(/^.*\//, ''));
 };

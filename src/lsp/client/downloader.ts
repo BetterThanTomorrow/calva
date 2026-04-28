@@ -1,11 +1,11 @@
 import * as extractZip from 'extract-zip';
-import { https } from 'follow-redirects';
+import * as followRedirects from 'follow-redirects';
 import * as util from '../../utilities';
 import * as config from '../../config';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
-import { downloadWithBackupRecovery } from './downloader-utils';
+import * as downloaderUtils from './downloader-utils';
 
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 
@@ -60,7 +60,7 @@ export async function readVersionFile(extensionPath: string) {
 function downloadArtifact(url: string, filePath: string): Promise<void> {
   console.log('Downloading clojure-lsp from', url);
   return new Promise((resolve, reject) => {
-    const request = https
+    const request = followRedirects.https
       .get(url, (response) => {
         if (response.statusCode === 200) {
           const writeStream = fs.createWriteStream(filePath);
@@ -110,7 +110,7 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
   const downloadPath = path.join(extensionPath, artifactName);
   const clojureLspPath = getClojureLspPath(extensionPath);
 
-  const result = await downloadWithBackupRecovery(clojureLspPath, async () => {
+  const result = await downloaderUtils.downloadWithBackupRecovery(clojureLspPath, async () => {
     await downloadArtifact(url, downloadPath);
     if (path.extname(downloadPath) === '.zip') {
       await unzipFile(downloadPath, extensionPath);

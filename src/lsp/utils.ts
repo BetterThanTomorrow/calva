@@ -1,5 +1,5 @@
 import * as vscode_lsp from 'vscode-languageclient/node';
-import { LspStatus, LspClient } from './definitions';
+import * as definitions from './definitions';
 import * as roots from '../project-root';
 import * as vscode from 'vscode';
 
@@ -41,16 +41,16 @@ export const findClojureProjectRootForUri = async (
   return vscode.workspace.getWorkspaceFolder(uri)?.uri;
 };
 
-export const lspClientStateToStatus = (state: vscode_lsp.State): LspStatus => {
+export const lspClientStateToStatus = (state: vscode_lsp.State): definitions.LspStatus => {
   switch (state) {
     case vscode_lsp.State.Stopped: {
-      return LspStatus.Stopped;
+      return definitions.LspStatus.Stopped;
     }
     case vscode_lsp.State.Starting: {
-      return LspStatus.Starting;
+      return definitions.LspStatus.Starting;
     }
     case vscode_lsp.State.Running: {
-      return LspStatus.Running;
+      return definitions.LspStatus.Running;
     }
   }
 };

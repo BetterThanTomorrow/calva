@@ -1,4 +1,4 @@
-import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as sessionRegistry from './session-registry';
 
 export type SessionRoutingMode = 'auto' | 'pinned';
@@ -7,12 +7,12 @@ const ROUTING_MODE_STATE_KEY = 'session-routing-mode';
 const PINNED_SESSION_STATE_KEY = 'session-routing-pinned-session-key';
 
 function readStoredKey(stateKey: string): string | undefined {
-  const value = getStateValue(stateKey);
+  const value = cljsLib.getStateValue(stateKey);
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 function clearStateKey(stateKey: string): void {
-  setStateValue(stateKey, null);
+  cljsLib.setStateValue(stateKey, null);
 }
 
 function ensureActiveSession(key: string | undefined): string | undefined {
@@ -28,12 +28,12 @@ function ensureActiveSession(key: string | undefined): string | undefined {
 }
 
 export function getRoutingMode(): SessionRoutingMode {
-  const stored = getStateValue(ROUTING_MODE_STATE_KEY);
+  const stored = cljsLib.getStateValue(ROUTING_MODE_STATE_KEY);
   return stored === 'pinned' ? 'pinned' : 'auto';
 }
 
 function setRoutingMode(mode: SessionRoutingMode): void {
-  setStateValue(ROUTING_MODE_STATE_KEY, mode);
+  cljsLib.setStateValue(ROUTING_MODE_STATE_KEY, mode);
 }
 
 export function getPinnedSessionKey(): string | undefined {
@@ -54,7 +54,7 @@ export function pinSession(sessionKey: string | undefined): void {
     return;
   }
 
-  setStateValue(PINNED_SESSION_STATE_KEY, sessionKey);
+  cljsLib.setStateValue(PINNED_SESSION_STATE_KEY, sessionKey);
   setRoutingMode('pinned');
 }
 

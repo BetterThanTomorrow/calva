@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, beforeEach } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -9,8 +9,7 @@ import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replSessionsMenu from '../../../repl-sessions-menu';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
-import { commands } from 'vscode';
-import connector from '../../../connector';
+import * as connector from '../../../connector';
 
 const suiteName = 'REPL Window Targeting';
 
@@ -42,7 +41,7 @@ suite('REPL Window Targeting suite', function () {
 
   let clientKey: string;
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
 
@@ -72,7 +71,7 @@ suite('REPL Window Targeting suite', function () {
     assert.ok(sessionKeys.includes('cljs'), 'Should have cljs session');
   });
 
-  after(async () => {
+  mocha.after(async () => {
     testUtil.showMessage(suiteName, `suite done!`);
 
     // Kill jack-in processes to prevent orphaned Java processes
@@ -91,7 +90,7 @@ suite('REPL Window Targeting suite', function () {
     }
   });
 
-  beforeEach(async () => {
+  mocha.beforeEach(async () => {
     // Reset REPL window to clj session before each test
     replSessionsMenu.setReplWindowSession('clj');
     await testUtil.waitForCondition(
@@ -123,7 +122,7 @@ suite('REPL Window Targeting suite', function () {
     assert.strictEqual(outputWindow.getSessionType(), 'clj', 'Initial session should be clj');
 
     // Change to cljs via command
-    await commands.executeCommand('calva.selectReplWindowSession', 'cljs');
+    await vscode.commands.executeCommand('calva.selectReplWindowSession', 'cljs');
     await testUtil.waitForCondition(() => outputWindow.getSessionType() === 'cljs', 2000, 10);
 
     assert.strictEqual(
@@ -133,7 +132,7 @@ suite('REPL Window Targeting suite', function () {
     );
 
     // Change back to clj
-    await commands.executeCommand('calva.selectReplWindowSession', 'clj');
+    await vscode.commands.executeCommand('calva.selectReplWindowSession', 'clj');
     await testUtil.waitForCondition(() => outputWindow.getSessionType() === 'clj', 2000, 10);
 
     assert.strictEqual(
@@ -257,7 +256,7 @@ suite('REPL Window Targeting suite', function () {
       async () => {
         await testUtil.openFile(cljsFile);
         testUtil.log(suiteName, `Opened file for jack-in: ${cljsFile}`);
-        await commands.executeCommand('calva.jackIn', {
+        await vscode.commands.executeCommand('calva.jackIn', {
           connectSequence: {
             name: 'repl-window-targeting-test-cljs-node',
             projectType: 'deps.edn',

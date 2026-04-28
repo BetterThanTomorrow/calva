@@ -1,9 +1,9 @@
-import { EditableModel } from './model';
+import type * as model from './model';
 import * as _ from 'lodash';
 import * as regexUtil from '../util/regex';
-import { FormatterConfig } from '../formatter-config';
+import type * as formatterConfig from '../formatter-config';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib.js';
-import { escapeStringRegexp } from '../util/string';
+import * as stringUtil from '../util/string';
 
 const whitespace = new Set(['ws', 'comment', 'eol']);
 
@@ -50,9 +50,9 @@ export interface IndentInformation {
  * @param maxLines The maximum number of lines above the position to search until we bail with an imprecise answer.
  */
 export function collectIndents(
-  document: EditableModel,
+  document: model.EditableModel,
   offset: number,
-  config: FormatterConfig,
+  config: formatterConfig.FormatterConfig,
   maxDepth: number = 3,
   maxLines: number = 20
 ): IndentInformation[] {
@@ -118,7 +118,10 @@ export function collectIndents(
         _.find(
           combinedRules,
           (rule) =>
-            regexUtil.testCljOrJsRegex(`#"^(.*/)?${[escapeStringRegexp(rule[0])]}$"`, token) ||
+            regexUtil.testCljOrJsRegex(
+              `#"^(.*/)?${[stringUtil.escapeStringRegexp(rule[0])]}$"`,
+              token
+            ) ||
             (regexUtil.isCljOrJsRegex(rule[0]) && regexUtil.testCljOrJsRegex(rule[0], token))
         );
 
@@ -219,9 +222,9 @@ const calculateIndent = (
 
 /** Returns the expected newline indent for the given position, in characters. */
 export function getIndent(
-  document: EditableModel,
+  document: model.EditableModel,
   offset: number,
-  config: FormatterConfig = {
+  config: formatterConfig.FormatterConfig = {
     'cljfmt-options': {
       indents: indentRules,
     },

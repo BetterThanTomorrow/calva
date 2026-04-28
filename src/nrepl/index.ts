@@ -1,27 +1,40 @@
 import * as net from 'net';
-import { BEncoderStream, BDecoderStream } from './bencode';
+import * as bencode from './bencode';
 import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
-import {
-  PrettyPrintingOptions,
-  disabledPrettyPrinter,
-  getServerSidePrinter,
-  prettyPrint,
-} from '../printer';
+import * as printer from '../printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
-import debugDecorations from '../debugger/decorations';
+import * as debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../repl-window/repl-window-doc';
-import { formatAsLineComments } from '../results-output/util';
-import type { ReplSessionType } from '../config';
-import { getStateValue } from '../../out/cljs-lib/cljs-lib';
-import { getConfig } from '../config';
-import { log, Direction } from './logging';
+import * as resultsOutputUtil from '../results-output/util';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import * as config from '../config';
+import * as logging from './logging';
 import * as string from '../util/string';
 import * as output from '../results-output/output';
-import { handleShadowRemoteMessage } from '../shadow-cljs-runtime';
+import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as whoTracking from '../api/who-tracking';
+
+type PrettyPrintingOptions = printer.PrettyPrintingOptions;
+type ReplSessionType = config.ReplSessionType;
+
+const BEncoderStream = bencode.BEncoderStream;
+const BDecoderStream = bencode.BDecoderStream;
+const disabledPrettyPrinter = printer.disabledPrettyPrinter;
+const getServerSidePrinter = printer.getServerSidePrinter;
+const prettyPrint = printer.prettyPrint;
+const formatAsLineComments = resultsOutputUtil.formatAsLineComments;
+const getStateValue = cljsLib.getStateValue;
+const getConfig = config.getConfig;
+const log = logging.log;
+const Direction = {
+  ClientToServer: logging.Direction.ClientToServer,
+  ServerToClient: logging.Direction.ServerToClient,
+  ClientToServerNotSupported: logging.Direction.ClientToServerNotSupported,
+} as const;
+const handleShadowRemoteMessage = shadowCljsRuntime.handleShadowRemoteMessage;
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;

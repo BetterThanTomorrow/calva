@@ -3,8 +3,8 @@ import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import * as replSession from './nrepl/repl-session';
 import * as clientRegistry from './nrepl/client-registry';
-import status from './status';
-import { getPathRelativeToWorkspace } from './project-root';
+import * as status from './status';
+import * as projectRootUtil from './project-root';
 import * as utilities from './utilities';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
@@ -28,7 +28,7 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
   }
   try {
     const uri = vscode.Uri.parse(projectRoot);
-    return getPathRelativeToWorkspace(uri);
+    return projectRootUtil.getPathRelativeToWorkspace(uri);
   } catch {
     return projectRoot;
   }
@@ -476,7 +476,9 @@ export async function showReplSessionsMenu(): Promise<void> {
 
   // Build placeholder with active file path if available
   const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc ? getPathRelativeToWorkspace(activeDoc.uri) : undefined;
+  const activeFilePath = activeDoc
+    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+    : undefined;
   const placeHolder = activeFilePath
     ? `Selecting a session pins it. ${activeFilePath}`
     : 'Selecting a session pins it';

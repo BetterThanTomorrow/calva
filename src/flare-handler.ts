@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { parseEdn } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 
 type EvaluateFunction = (code: string) => Promise<string | null>;
 
@@ -33,7 +33,7 @@ export function inspect(edn: string, evaluate: EvaluateFunction): any {
       const match = edn.match(/^#(?:flare|cursive)\/(\w+)\s*(\{.*})\s*$/s);
       if (match) {
         const tag = match[1];
-        const flare = parseEdn(match[2]);
+        const flare = cljsLib.parseEdn(match[2]);
         const handler = actHandlers[tag];
         if (handler) {
           handler(flare, evaluate);

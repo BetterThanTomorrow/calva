@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as path from 'path';
-import { before, after, beforeEach, afterEach } from 'mocha';
-import { getDocument } from '../../../doc-mirror';
+import * as mocha from 'mocha';
+import * as docMirror from '../../../doc-mirror';
 import * as jackIn from '../../../nrepl/jack-in';
-import {
-  ReplConnectSequence,
-  ProjectTypes,
-  CljsTypes,
-} from '../../../nrepl/connect-sequence-types';
+import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as testUtil from './util';
 
@@ -19,36 +15,36 @@ suite('Load File Command Test', () => {
 
   const testFile = 'test.clj';
   const testFilePath = path.join(testUtil.testDataDir, testFile);
-  const connectSequence: ReplConnectSequence = {
-    projectType: ProjectTypes['deps.edn'],
+  const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+    projectType: connectSequenceTypes.ProjectTypes['deps.edn'],
     name: 'deps.edn',
-    cljsType: CljsTypes.none,
+    cljsType: connectSequenceTypes.CljsTypes.none,
     projectRootPath: [path.join(testUtil.testDataDir, '..')],
     menuSelections: { cljAliases: [] },
   };
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     const config = vscode.workspace.getConfiguration('calva');
     originalDestinations = config.inspect('outputDestinations')?.globalValue;
   });
 
-  after(async () => {
+  mocha.after(async () => {
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
     await testUtil.waitForJackOutComplete(suite);
     testUtil.showMessage(suite, 'suite done!');
   });
 
-  beforeEach(async function () {
+  mocha.beforeEach(async function () {
     this.timeout(60_000);
     await outputWindow.clearReplWindowDoc();
     jackInHarness.reset();
     await jackInHarness.disconnectAllClients();
   });
 
-  afterEach(async () => {
+  mocha.afterEach(async () => {
     const config = vscode.workspace.getConfiguration('calva');
     await config.update(
       'outputDestinations',
@@ -88,7 +84,7 @@ suite('Load File Command Test', () => {
 
   async function getReplWindowText() {
     const replWindowDoc = await outputWindow.openReplWindowDoc();
-    return getDocument(replWindowDoc).document.getText();
+    return docMirror.getDocument(replWindowDoc).document.getText();
   }
 
   test('execute calva.loadFile with repl-window output and verify results', async function () {

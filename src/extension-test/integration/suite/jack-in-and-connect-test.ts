@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, beforeEach, afterEach } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as util from '../../../utilities';
@@ -8,35 +8,30 @@ import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
-import { commands } from 'vscode';
-import { getDocument } from '../../../doc-mirror';
+import * as docMirror from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import * as state from '../../../state';
-import connector, { connect as connectDirect } from '../../../connector';
-import { ConnectType } from '../../../nrepl/connect-types';
-import { getConnectSequences } from '../../../nrepl/connectSequence';
-import {
-  CljsTypes,
-  ProjectTypes,
-  ReplConnectSequence,
-} from '../../../nrepl/connect-sequence-types';
+import * as connector from '../../../connector';
+import * as connectTypes from '../../../nrepl/connect-types';
+import * as connectSequence from '../../../nrepl/connectSequence';
+import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as projectTypes from '../../../nrepl/project-types';
-import { getConfig } from '../../../config';
+import * as config from '../../../config';
 import * as output from '../../../results-output/output';
-import { normalizeDestinations } from '../../../results-output/output-destinations';
+import * as outputDestinations from '../../../results-output/output-destinations';
 
 suite('Jack-in and Connect suite', () => {
   const suite = 'Jack-in and Connect';
   let originalDestinations: any;
 
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     const config = vscode.workspace.getConfiguration('calva');
     originalDestinations = config.inspect('outputDestinations')?.globalValue;
   });
 
-  after(async () => {
+  mocha.after(async () => {
     // Ensure all REPL processes are killed at suite end to prevent orphaned Java processes
     // Use force=true because test harness shutdown is similar to VS Code deactivation
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
@@ -45,14 +40,14 @@ suite('Jack-in and Connect suite', () => {
     testUtil.showMessage(suite, 'suite done!');
   });
 
-  beforeEach(async () => {
+  mocha.beforeEach(async () => {
     await setOutputDestinations('repl-window');
     await outputWindow.clearReplWindowDoc();
     resetConnectionTracking();
     await disconnectExistingClients();
   });
 
-  afterEach(async () => {
+  mocha.afterEach(async () => {
     const config = vscode.workspace.getConfiguration('calva');
     await config.update(
       'outputDestinations',
@@ -74,7 +69,7 @@ suite('Jack-in and Connect suite', () => {
 
   test('start repl and connect (jack-in) to Basilisp', async function () {
     testUtil.log(suite, 'start repl and connect (jack-in) to Basilisp');
-    const basilispPath = getConfig().basilispPath;
+    const basilispPath = config.getConfig().basilispPath;
     const executablePath = testUtil.getExecutablePath(basilispPath);
 
     if (executablePath === null && !testUtil.isCircleCI) {
@@ -99,12 +94,12 @@ suite('Jack-in and Connect suite', () => {
 
   test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
     testUtil.log(suite, 'Reconnect: afterPrimaryReplConnectedCode (string)');
-    const connectSequence: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['deps.edn'],
       name: 'string-afterPrimaryReplConnectedCode',
       autoSelectForJackIn: true,
       afterPrimaryReplConnectedCode: '(println :hello :world!)',
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
     await reconnectAndAssert(
       suite,
@@ -117,12 +112,12 @@ suite('Jack-in and Connect suite', () => {
 
   test('Jack-in afterPrimaryReplConnectedCode can be an array', async () => {
     testUtil.log(suite, 'Reconnect: afterPrimaryReplConnectedCode (array)');
-    const connectSequence: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['deps.edn'],
       name: 'array-afterPrimaryReplConnectedCode',
       autoSelectForJackIn: true,
       afterPrimaryReplConnectedCode: ['(println :hello)', '(println :world!)'].join('\n'),
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
     await reconnectAndAssert(
       suite,
@@ -135,12 +130,12 @@ suite('Jack-in and Connect suite', () => {
 
   test('Jack-in still accepts afterCLJReplJackInCode', async () => {
     testUtil.log(suite, 'Reconnect: afterCLJReplJackInCode');
-    const connectSequence: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['deps.edn'],
       name: 'legacy-afterCLJReplJackInCode',
       autoSelectForJackIn: true,
       afterCLJReplJackInCode: '(println :legacy :hook!)',
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
     await reconnectAndAssert(
       suite,
@@ -154,11 +149,11 @@ suite('Jack-in and Connect suite', () => {
   test('Jack-in works with auto-selected project type', async () => {
     testUtil.log(suite, 'Reconnect: auto-selected project type');
 
-    const connectSequence: ReplConnectSequence = {
-      projectType: ProjectTypes['deps.edn'],
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['deps.edn'],
       name: 'auto-select',
       autoSelectForJackIn: true,
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
     await reconnectAndAssert(
       suite,
@@ -196,17 +191,17 @@ suite('Jack-in and Connect suite', () => {
     await testUtil.openFile(testFilePath);
     testUtil.log(suite, 'projectless test.clj opened');
 
-    const connectSequence: ReplConnectSequence = {
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
       name: 'Clojure (projectless)',
-      projectType: ProjectTypes['clj-projectless'],
-      cljsType: CljsTypes.none,
+      projectType: connectSequenceTypes.ProjectTypes['clj-projectless'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
       projectRootPath: [projectlessDir],
     };
 
     // Clear clipboard so we can detect if command generation failed
     await vscode.env.clipboard.writeText('');
 
-    await commands.executeCommand('calva.copyJackInCommandToClipboard', {
+    await vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
       connectSequence,
       disableAutoSelect: true,
     });
@@ -233,10 +228,10 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'Reconnection: different sequence name, same session names');
 
     // First jack-in with Babashka (fast, lightweight)
-    const sequence1: ReplConnectSequence = {
-      projectType: ProjectTypes['babashka'],
+    const sequence1: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
       name: 'First Babashka Sequence',
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
       afterPrimaryReplConnectedCode: '(println "First connection")',
     };
 
@@ -254,10 +249,10 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, `First client key: ${firstClientKey}`);
 
     // Second jack-in with different sequence name but same base session name (bb)
-    const sequence2: ReplConnectSequence = {
-      projectType: ProjectTypes['babashka'],
+    const sequence2: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
       name: 'Second Babashka Sequence', // Different name!
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
       afterPrimaryReplConnectedCode: '(println "Second connection")',
     };
 
@@ -301,10 +296,10 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'Manual reconnect: two jack-ins, then reconnect first');
 
     // First jack-in with Babashka (fast, lightweight)
-    const sequence1: ReplConnectSequence = {
-      projectType: ProjectTypes['babashka'],
+    const sequence1: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
       name: 'First Manual Reconnect Test',
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
 
     const testFile1 = 'bb-mini/test.clj';
@@ -335,10 +330,10 @@ suite('Jack-in and Connect suite', () => {
     );
 
     // Second jack-in to bb-mini2 (different project root to avoid reconnection during jack-in)
-    const sequence2: ReplConnectSequence = {
-      projectType: ProjectTypes['babashka'],
+    const sequence2: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
       name: 'Second Manual Reconnect Test',
-      cljsType: CljsTypes.none,
+      cljsType: connectSequenceTypes.CljsTypes.none,
     };
 
     const testFile2 = 'bb-mini2/test.clj';
@@ -365,10 +360,10 @@ suite('Jack-in and Connect suite', () => {
       ...sequence1,
       projectRootPath: [firstProjectRootPath],
     };
-    await state.initProjectDir(ConnectType.Connect, reconnectSequence, true);
+    await state.initProjectDir(connectTypes.ConnectType.Connect, reconnectSequence, true);
 
     // Connect directly using the same sequence, host, and port as the first jack-in
-    await connectDirect(reconnectSequence, true, firstClientHost, String(firstClientPort));
+    await connector.connect(reconnectSequence, true, firstClientHost, String(firstClientPort));
     const reconnectedClientKey = await waitForNextClient(suite);
     await waitForSessionsReady(suite, reconnectedClientKey);
 
@@ -438,12 +433,12 @@ async function loadAndAssert(
   );
   testUtil.log(suite, 'opened test.clj document again');
 
-  await commands.executeCommand('calva.loadFile');
+  await vscode.commands.executeCommand('calva.loadFile');
   let haystack: string[] = [];
   await testUtil.waitForCondition(
     async () => {
       const replWindowDoc = await outputWindow.openReplWindowDoc();
-      haystack = getDocument(replWindowDoc).document.getText().split(/\r?\n/);
+      haystack = docMirror.getDocument(replWindowDoc).document.getText().split(/\r?\n/);
       return appearInOrder(needle, haystack);
     },
     10_000,
@@ -466,7 +461,7 @@ async function waitForResult(suite: string, options?: { waitForJackInOutput?: bo
   await waitForSessionsReady(suite, clientKey);
   testUtil.log(suite, 'connected to repl');
 
-  return getDocument(await outputWindow.openReplWindowDoc());
+  return docMirror.getDocument(await outputWindow.openReplWindowDoc());
 }
 
 async function waitForNextClient(suite: string): Promise<string> {
@@ -477,7 +472,9 @@ async function waitForNextClient(suite: string): Promise<string> {
 
 async function waitForJackInCompletion(suite: string) {
   if (
-    !normalizeDestinations(output.getDestinationConfiguration().otherOutput).includes('repl-window')
+    !outputDestinations
+      .normalizeDestinations(output.getDestinationConfiguration().otherOutput)
+      .includes('repl-window')
   ) {
     testUtil.log(
       suite,
@@ -506,7 +503,7 @@ async function startJackInProcedure(
   cmdId: string,
   projectType: string | undefined,
   testFile: string,
-  connectSequenceOverride?: ReplConnectSequence
+  connectSequenceOverride?: connectSequenceTypes.ReplConnectSequence
 ) {
   const { testFilePath, connectSequence } = await openTestFileAndBuildSequence(
     suite,
@@ -516,9 +513,9 @@ async function startJackInProcedure(
   );
 
   if (cmdId === 'calva.jackIn' || cmdId === 'calva.copyJackInCommandToClipboard') {
-    await commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
+    await vscode.commands.executeCommand(cmdId, { connectSequence, disableAutoSelect: true });
   } else {
-    await commands.executeCommand(cmdId);
+    await vscode.commands.executeCommand(cmdId);
   }
 
   return testFilePath;
@@ -529,7 +526,7 @@ async function reconnectAndAssert(
   projectType: string | undefined,
   testFile: string,
   needle: string[],
-  connectSequenceOverride?: ReplConnectSequence
+  connectSequenceOverride?: connectSequenceTypes.ReplConnectSequence
 ) {
   await disconnectExistingClients();
   resetConnectionTracking();
@@ -541,7 +538,7 @@ async function reconnectAndAssert(
     connectSequenceOverride
   );
 
-  await connectDirect(connectSequence, true);
+  await connector.connect(connectSequence, true);
 
   await loadAndAssert(suite, testFilePath, needle, { waitForJackInOutput: false });
   await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
@@ -552,7 +549,7 @@ async function openTestFileAndBuildSequence(
   suite: string,
   projectType: string | undefined,
   testFile: string,
-  connectSequenceOverride?: ReplConnectSequence
+  connectSequenceOverride?: connectSequenceTypes.ReplConnectSequence
 ) {
   const testFilePath = path.join(testUtil.testDataDir, testFile);
   await testUtil.openFile(testFilePath);
@@ -575,9 +572,9 @@ async function openTestFileAndBuildSequence(
 function buildConnectSequence(
   projectType: string | undefined,
   projectRootUri: vscode.Uri
-): ReplConnectSequence {
-  const configuredSequences = getConfig().replConnectSequences ?? [];
-  const defaultSequences = getConnectSequences(projectTypes.getAllProjectTypes());
+): connectSequenceTypes.ReplConnectSequence {
+  const configuredSequences = config.getConfig().replConnectSequences ?? [];
+  const defaultSequences = connectSequence.getConnectSequences(projectTypes.getAllProjectTypes());
   const sequences = configuredSequences.concat(defaultSequences);
 
   const sequenceFromProjectType = projectType
@@ -588,19 +585,19 @@ function buildConnectSequence(
 
   const effectiveProjectType = (projectType ??
     sequenceFromProjectType?.projectType ??
-    'deps.edn') as ReplConnectSequence['projectType'];
+    'deps.edn') as connectSequenceTypes.ReplConnectSequence['projectType'];
   const baseSequence =
     sequenceFromProjectType ??
     ({
       name: effectiveProjectType,
       projectType: effectiveProjectType,
-      cljsType: CljsTypes.none,
-    } as ReplConnectSequence);
+      cljsType: connectSequenceTypes.CljsTypes.none,
+    } as connectSequenceTypes.ReplConnectSequence);
 
   return {
     ...baseSequence,
     projectRootPath: [projectRootUri.fsPath],
-    cljsType: baseSequence.cljsType ?? CljsTypes.none,
+    cljsType: baseSequence.cljsType ?? connectSequenceTypes.CljsTypes.none,
   };
 }
 

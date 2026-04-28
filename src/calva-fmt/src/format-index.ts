@@ -1,4 +1,4 @@
-import { formatTextAtIdx, formatTextAtIdxOnType, jsify } from '../../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../../out/cljs-lib/cljs-lib';
 
 /**
  *
@@ -25,7 +25,9 @@ export function formatIndexes(
     range,
     config,
   };
-  const result = jsify((onType ? formatTextAtIdxOnType : formatTextAtIdx)(d));
+  const result = cljsLib.jsify(
+    (onType ? cljsLib.formatTextAtIdxOnType : cljsLib.formatTextAtIdx)(d)
+  );
   if (!result['error']) {
     return result;
   } else {
