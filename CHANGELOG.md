@@ -6,6 +6,19 @@ Changes to Calva.
 
 - [Dragging sexps has weird behavior with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
 
+## [2.0.578] - 2026-04-27
+
+- Fix: [Mirror doc init race condition](https://github.com/BetterThanTomorrow/calva/issues/3187)
+
+## [2.0.577] - 2026-04-26
+
+- [Make it possible to select several output destinations](https://github.com/BetterThanTomorrow/calva/issues/2819)
+- [Support file paths as output destinations](https://github.com/BetterThanTomorrow/calva/issues/3185)
+
+## [2.0.576] - 2026-04-25
+
+- [Make loadFile command accept an argument for which file to load](https://github.com/BetterThanTomorrow/calva/issues/3182)
+
 ## [2.0.575] - 2026-04-23
 
 - Fix: ["clojure-lsp Refactor: Extract to New Function" command fails](https://github.com/BetterThanTomorrow/calva/issues/3181)

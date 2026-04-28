@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import axios from 'axios';
-import * as uuid from 'uuidv4';
 import { isUndefined } from 'lodash';
 
 function userAllowsTelemetry(): boolean {
@@ -27,7 +26,7 @@ export default class Analytics {
     const KEY = 'userLogID';
     const value = this.store.get<string>(KEY);
     if (isUndefined(value)) {
-      const newID = uuid.uuid();
+      const newID = crypto.randomUUID();
       void this.store.update(KEY, newID);
       return newID;
     } else {

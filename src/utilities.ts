@@ -13,6 +13,7 @@ import { isUndefined } from 'lodash';
 import * as fiddleFiles from './fiddle-files';
 import * as output from './results-output/output';
 import { getConfig } from './config';
+import * as fileArg from './util/resolve-file-arg';
 import {
   isCommentFormHead as _isCommentFormHead,
   CommentFormConfig,
@@ -438,6 +439,29 @@ function scrollToBottom(editor: vscode.TextEditor) {
   editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 
+/**
+ * Resolves a file argument to a `vscode.Uri`.
+ * Thin wrapper around `fileArg.resolveFilePath` for call-sites that need a URI.
+ */
+function resolveFileArgToUri(
+  arg: unknown,
+  workspaceFolders: readonly { uri: vscode.Uri }[] | undefined
+): vscode.Uri | undefined {
+  // Fast path: already a vscode.Uri
+  if (
+    arg != null &&
+    typeof arg === 'object' &&
+    !Array.isArray(arg) &&
+    typeof (arg as any).scheme === 'string'
+  ) {
+    return arg as vscode.Uri;
+  }
+
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+  const resolved = fileArg.resolveFilePath(arg, workspaceRoot);
+  return resolved ? vscode.Uri.file(resolved) : undefined;
+}
+
 async function getFileContents(path: string) {
   const doc = vscode.workspace.textDocuments.find(
     (d) => d.uri.path === path && d.uri.scheme === 'file'
@@ -738,4 +762,5 @@ export {
   pathExists,
   calvaTmpDir,
   showBooleanInformationMessage,
+  resolveFileArgToUri,
 };

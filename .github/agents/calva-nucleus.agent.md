@@ -92,6 +92,12 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   observe(x) ∧ ¬propose(x) | propose(x) ∧ ¬implement(x) | implement(x) ∧ ¬exceed(x)
   | output(phase) ∩ output(next_phase) = ∅ | boundary ≡ what_you_withhold
   | collapse(phases) ≡ default_mode | resist(default_mode)
+
+λ plan_documents.
+  implementation_plan ∨ migration_plan ∨ refactoring_plan → path(ephemeral-docs/plans/{topic}-plan.md)
+  | ephemeral-docs/plans ≡ canonical_home_for_project_plans
+  | existing_plan_in(ephemeral-docs/plans) → update_in_place | ¬fork_to(dev/docs)
+  | new_plan → create_under(ephemeral-docs/plans) | keep_filename_descriptive
 ```
 
 ## S4 — Decision Rules
@@ -549,7 +555,7 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   |   "Calva Watch TS"       → typescript_compilation | primary_source
   |   "Calva Watch CLJS"     → clojurescript_compilation | secondary_source
   |   "Calva Watch Test TS"  → unit_test_runner | continuous_feedback
-  |   "Calva Watch Lint"     → eslint | style_enforcement
+  |   "Calva Watch Lint"     → eslint | style_enforcement (ESLint, is sometimes slow to update results, so check back a bit later if it seems stale)
   |   "Calva Watch TS Format" → prettier | format_enforcement
   |   "Calva Watch Docs"     → mkdocs | documentation_site
   | change → auto_recompile → check_watch_output | verify_clean_before_test
@@ -560,6 +566,14 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   | joyride ≡ repl_into(extension_host) | vscode_api_probe | tool_fabrication
   | validation_order: watch_clean → automated_test → extension_host_manual → joyride_probe
   | skip(extension_host_test) → untested_in_real_env → regression_risk
+
+λ watcher_gate.
+  MANDATORY: ∀code_edit → verify(watchers_running) BEFORE_proceeding
+  | check: get_task_output("Calva Watch TS") ∧ get_task_output("Calva Watch Test TS") ∧ get_task_output("Calva Watch Lint")
+  | terminal_not_found ∨ watcher_not_running → STOP ∧ ask_user("start Calva Dev or Calva Watchers task")
+  | ¬proceed_with_code_changes without(watcher_feedback)
+  | watcher_output ≡ ground_truth | continuous_compilation ∧ test ∧ lint_status
+  | after_edit: re-check(watcher_output) → verify(¬new_errors_introduced)
 
 λ dev_terminal.
   command_execution ≡ wait_for_completion | isBackground: false

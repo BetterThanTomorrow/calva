@@ -13,7 +13,7 @@ Calva categorizes output into three types.
 | `evalOutput` | `stdout` and `stderr` produced by an evaluation |
 | `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
 
-Each category can be relayed to one of four **Output Destinations**:
+Each category can be relayed to one or more of four **Output Destinations**:
 
 | Destination |     |
 | ------------| --- |
@@ -22,7 +22,7 @@ Each category can be relayed to one of four **Output Destinations**:
 | `"repl-window"` | The [REPL Window](repl-window.md) (an editor-based read/write output view). |
 | `"output-channel"` | The _Calva Says_ Output Channel. |
 
-The `calva.outputDestinations` setting is an object which maps from a given output category to an output destinations.
+The `calva.outputDestinations` setting is an object which maps each output category to a destination (or an array of destinations for simultaneous output).
 
 The default configuration is to relay all categories to the Calva output terminal:
 
@@ -33,6 +33,44 @@ The default configuration is to relay all categories to the Calva output termina
   "otherOutput": "terminal"
 }
 ```
+
+You can send a category to multiple destinations by using an array:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", "repl-window"],
+  "evalOutput": "terminal",
+  "otherOutput": "terminal"
+}
+```
+
+### File Path Destinations
+
+In addition to the four built-in destinations, you can use **file paths** as output destinations. Output is appended to the specified file, which is auto-created (along with any parent directories) on first write.
+
+A destination is recognized as a file path if it starts with `./`, `../`, `/`, `~/`, `\`, or a Windows drive letter (e.g. `C:\`). Relative paths are resolved against the first workspace folder. Use `~/` for your home directory.
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", "./logs/eval-results.txt"],
+  "evalOutput": "./logs/eval-output.txt",
+  "otherOutput": "terminal"
+}
+```
+
+You can also use nested arrays for path segments, which are joined with the platform path separator:
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", [".", "logs", "eval-results.txt"]],
+  "evalOutput": "terminal",
+  "otherOutput": "terminal"
+}
+```
+
+!!! Note "File output behavior"
+    - Files grow without limit. You control the destination, so manage file size as needed.
+    - Writes are fire-and-forget (async). If a write fails, Calva shows an error message once per file per session and logs subsequent errors to the console.
 
 ### Output Destinations Feature Comparison
 

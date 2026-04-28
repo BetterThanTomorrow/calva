@@ -248,7 +248,10 @@ function updateRainbowBrackets() {
   }
 
   const doc = activeEditor.document;
-  const mirrorDoc = docMirror.getDocument(doc);
+  const mirrorDoc = docMirror.tryToGetDocument(doc);
+  if (!mirrorDoc) {
+    return;
+  }
   const rainbow = rainbowTypes.map(() => []);
   const rainbowGuides = rainbowTypes.map(() => []);
   const misplaced = [];
@@ -494,7 +497,10 @@ function decorateActiveGuides() {
   }
   activeEditor.selections.forEach((selection) => {
     const doc = activeEditor.document;
-    const mirrorDoc = docMirror.getDocument(doc);
+    const mirrorDoc = docMirror.tryToGetDocument(doc);
+    if (!mirrorDoc) {
+      return;
+    }
     const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
     const visitedEndPositions = [selection.start];
     findActiveGuide: while (cursor.forwardList() && cursor.upList()) {

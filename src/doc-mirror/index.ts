@@ -498,7 +498,9 @@ export function activate() {
   }
   registered = true;
 
-  addDocument(utilities.tryToGetDocument({}));
+  // Mirror all currently open Clojure documents, not just the active one.
+  // Documents opened before Calva activated won't fire onDidOpenTextDocument.
+  vscode.workspace.textDocuments.forEach(addDocument);
 
   vscode.workspace.onDidCloseTextDocument((e) => {
     if (e.languageId == 'clojure') {
