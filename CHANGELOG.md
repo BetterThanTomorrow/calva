@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.579] - 2026-04-28
+
 - internal-dev: Update TypeScript codebase to use namespace imports throughout
 
 ## [2.0.578] - 2026-04-27
