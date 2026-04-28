@@ -1,9 +1,9 @@
 import * as expectLib from 'expect';
-import { validateLogMessage, apiCategoryToOutputCategory } from '../../api/log-util';
+import * as logUtil from '../../api/log-util';
 
 describe('repl-v1 log() validation', () => {
   it('maps evaluatedCode to evaluatedCode (same name)', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'evaluatedCode',
       text: '(+ 1 2)',
       who: 'test-agent',
@@ -12,7 +12,7 @@ describe('repl-v1 log() validation', () => {
   });
 
   it('maps evaluationResults to evalResults', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'evaluationResults',
       text: '3',
       who: 'test-agent',
@@ -21,7 +21,7 @@ describe('repl-v1 log() validation', () => {
   });
 
   it('maps evaluationOutput to evalOut', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'evaluationOutput',
       text: 'hello',
       who: 'test-agent',
@@ -30,7 +30,7 @@ describe('repl-v1 log() validation', () => {
   });
 
   it('maps evaluationErrorOutput to evalErr', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'evaluationErrorOutput',
       text: 'boom',
       who: 'test-agent',
@@ -39,7 +39,7 @@ describe('repl-v1 log() validation', () => {
   });
 
   it('maps otherOutput to otherOut', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'otherOutput',
       text: 'info',
       who: 'test-agent',
@@ -48,7 +48,7 @@ describe('repl-v1 log() validation', () => {
   });
 
   it('maps otherErrorOutput to otherErr', () => {
-    const result = validateLogMessage({
+    const result = logUtil.validateLogMessage({
       category: 'otherErrorOutput',
       text: 'warn',
       who: 'test-agent',
@@ -59,7 +59,7 @@ describe('repl-v1 log() validation', () => {
   it('throws on reserved who value "ui"', () => {
     expectLib
       .expect(() => {
-        validateLogMessage({ category: 'otherOutput', text: 'test', who: 'ui' });
+        logUtil.validateLogMessage({ category: 'otherOutput', text: 'test', who: 'ui' });
       })
       .toThrow(/reserved/);
   });
@@ -67,7 +67,7 @@ describe('repl-v1 log() validation', () => {
   it('throws on reserved who value "api"', () => {
     expectLib
       .expect(() => {
-        validateLogMessage({ category: 'otherOutput', text: 'test', who: 'api' });
+        logUtil.validateLogMessage({ category: 'otherOutput', text: 'test', who: 'api' });
       })
       .toThrow(/reserved/);
   });
@@ -75,7 +75,7 @@ describe('repl-v1 log() validation', () => {
   it('throws on empty text', () => {
     expectLib
       .expect(() => {
-        validateLogMessage({ category: 'otherOutput', text: '', who: 'test-agent' });
+        logUtil.validateLogMessage({ category: 'otherOutput', text: '', who: 'test-agent' });
       })
       .toThrow(/non-empty text/);
   });
@@ -83,17 +83,17 @@ describe('repl-v1 log() validation', () => {
   it('throws on unknown category', () => {
     expectLib
       .expect(() => {
-        validateLogMessage({ category: 'bogus', text: 'test', who: 'test-agent' });
+        logUtil.validateLogMessage({ category: 'bogus', text: 'test', who: 'test-agent' });
       })
       .toThrow(/Unknown category/);
   });
 
   it('allows who to be omitted', () => {
-    const result = validateLogMessage({ category: 'otherOutput', text: 'no who' });
+    const result = logUtil.validateLogMessage({ category: 'otherOutput', text: 'no who' });
     expectLib.expect(result).toBe('otherOut');
   });
 
   it('apiCategoryToOutputCategory covers all 6 categories', () => {
-    expectLib.expect(Object.keys(apiCategoryToOutputCategory)).toHaveLength(6);
+    expectLib.expect(Object.keys(logUtil.apiCategoryToOutputCategory)).toHaveLength(6);
   });
 });

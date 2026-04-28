@@ -7,7 +7,7 @@ import * as config from '../config';
 import * as sessionRegistry from '../nrepl/session-registry';
 import * as whoTracking from './who-tracking';
 import * as outputDestinations from '../results-output/output-destinations';
-import { validateLogMessage, apiCategoryToOutputCategory } from './log-util';
+import * as logUtil from './log-util';
 
 type Result = {
   result: string;
@@ -314,7 +314,7 @@ const outputCategoryToApiCategory: Record<string, OutputCategory> = {
 };
 
 export function log(message: OutputMessage): void {
-  const internalCategory = validateLogMessage(message);
+  const internalCategory = logUtil.validateLogMessage(message);
   resultOutput.emitExternal({
     category: internalCategory,
     text: message.text,
