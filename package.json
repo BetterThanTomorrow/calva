@@ -3685,7 +3685,7 @@
   },
   "scripts": {
     "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve",
-    "clean": "node -e \"var fs=require('fs'),p=require('path');try{for(var f of fs.readdirSync('./out'))if(f!=='cljs-lib')fs.rmSync(p.join('./out',f),{recursive:true,force:true})}catch(e){if(e.code!=='ENOENT')throw e}\" && rimraf ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
+    "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
     "precompile": "npm i && npm run clean && npm run update-grammar",
     "compile-cljs": "npx shadow-cljs -A:dev:test compile :calva-lib :test :repl-output-ui",
