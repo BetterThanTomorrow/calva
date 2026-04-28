@@ -1,34 +1,26 @@
-import {
-  TextDocument,
-  Position,
-  Range,
-  CancellationToken,
-  SignatureHelp,
-  SignatureHelpProvider,
-  SignatureInformation,
-} from 'vscode';
+import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import * as tokenCursor from '../cursor-doc/token-cursor';
 import * as docMirror from '../doc-mirror/index';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
 
-export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
+export class CalvaSignatureHelpProvider implements vscode.SignatureHelpProvider {
   async provideSignatureHelp(
-    document: TextDocument,
-    position: Position,
-    token: CancellationToken
-  ): Promise<SignatureHelp | undefined> {
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    token: vscode.CancellationToken
+  ): Promise<vscode.SignatureHelp | undefined> {
     return provideSignatureHelp(document, position, token);
   }
 }
 
 export async function provideSignatureHelp(
-  document: TextDocument,
-  position: Position,
-  _token: CancellationToken
-): Promise<SignatureHelp | undefined> {
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  _token: vscode.CancellationToken
+): Promise<vscode.SignatureHelp | undefined> {
   if (util.getConnectedState()) {
     const [ns, _] = namespace.getNamespace(document, position),
       idx = document.offsetAt(position),
@@ -40,7 +32,7 @@ export async function provideSignatureHelp(
         const res = await client.info(ns, symbol),
           signatures = infoparser.getSignatures(res, symbol);
         if (signatures) {
-          const help = new SignatureHelp(),
+          const help = new vscode.SignatureHelp(),
             currentArgsRanges = getCurrentArgsRanges(document, idx);
           help.signatures = signatures;
           help.activeSignature = getActiveSignatureIdx(signatures, currentArgsRanges.length);
@@ -61,8 +53,11 @@ export async function provideSignatureHelp(
   return undefined;
 }
 
-function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] | undefined {
-  const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
+function getCurrentArgsRanges(
+  document: vscode.TextDocument,
+  idx: number
+): vscode.Range[] | undefined {
+  const cursor: tokenCursor.LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
     allRanges = cursor.rowColRangesForSexpsInList('(');
 
   // Are we in a function that gets a threaded first parameter?
@@ -76,24 +71,29 @@ function getCurrentArgsRanges(document: TextDocument, idx: number): Range[] | un
   }
 }
 
-function getActiveSignatureIdx(signatures: SignatureInformation[], currentArgsCount): number {
+function getActiveSignatureIdx(
+  signatures: vscode.SignatureInformation[],
+  currentArgsCount
+): number {
   const activeSignatureIdx = signatures.findIndex(
     (signature) => signature.parameters && signature.parameters.length >= currentArgsCount
   );
   return activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
 }
 
-function getSymbol(document: TextDocument, idx: number): string {
-  const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
+function getSymbol(document: vscode.TextDocument, idx: number): string {
+  const cursor: tokenCursor.LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
   return cursor.getFunctionName();
 }
 
-function coordsToRange(coords: [[number, number], [number, number]]): Range {
-  return new Range(new Position(...coords[0]), new Position(...coords[1]));
+function coordsToRange(coords: [[number, number], [number, number]]): vscode.Range {
+  return new vscode.Range(new vscode.Position(...coords[0]), new vscode.Position(...coords[1]));
 }
 
-function getPreviousRangeIndexAndFunction(document: TextDocument, idx: number) {
-  const peekBehindCursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
+function getPreviousRangeIndexAndFunction(document: vscode.TextDocument, idx: number) {
+  const peekBehindCursor: tokenCursor.LispTokenCursor = docMirror
+    .getDocument(document)
+    .getTokenCursor(idx);
   peekBehindCursor.backwardFunction(1);
   const previousFunction = peekBehindCursor.getFunctionName(0),
     previousRanges = peekBehindCursor.rowColRangesForSexpsInList('(').map(coordsToRange),

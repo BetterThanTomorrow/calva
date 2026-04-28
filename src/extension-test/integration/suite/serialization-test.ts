@@ -2,12 +2,12 @@ import assert = require('assert');
 import * as fsPromises from 'fs/promises';
 import path = require('path');
 import * as testUtil from './util';
-import { NotebookProvider } from '../../../NotebookProvider';
-import { before, after } from 'mocha';
-import { serialize } from 'v8';
+import * as notebookProvider from '../../../NotebookProvider';
+import * as mocha from 'mocha';
+import * as v8 from 'v8';
 import _ = require('lodash');
 
-const tester = new NotebookProvider();
+const tester = new notebookProvider.NotebookProvider();
 const suiteName = 'notebook';
 const decoder = new TextDecoder();
 
@@ -27,11 +27,11 @@ async function absoluteFileNamesIn(directoryName, results: string[] = []) {
 }
 
 suite('serialization', () => {
-  before(() => {
+  mocha.before(() => {
     testUtil.showMessage(suiteName, `suite starting!`);
   });
 
-  after(() => {
+  mocha.after(() => {
     testUtil.showMessage(suiteName, `suite done!`);
   });
 

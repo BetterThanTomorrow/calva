@@ -1,4 +1,4 @@
-import { clojureDocsCiderNReplLookup } from '../clojuredocs';
+import * as clojuredocs from '../clojuredocs';
 import * as replSession from '../nrepl/repl-session';
 import * as sessionRegistry from '../nrepl/session-registry';
 
@@ -9,7 +9,7 @@ export const getClojureDocsDotOrg = async (symbol: string, ns = 'user') => {
   if (!session) {
     return { error: "Can't retrieve REPL session for session key. Is the REPL connected?" };
   }
-  const clojureDocs = await clojureDocsCiderNReplLookup(session, symbol, ns);
+  const clojureDocs = await clojuredocs.clojureDocsCiderNReplLookup(session, symbol, ns);
   return clojureDocs;
 };
 

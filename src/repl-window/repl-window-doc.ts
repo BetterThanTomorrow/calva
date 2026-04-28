@@ -1,21 +1,21 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as state from '../state';
-import { highlight } from '../highlight/src/extension';
-import { NReplSession } from '../nrepl';
+import * as highlightExtension from '../highlight/src/extension';
+import * as nrepl from '../nrepl';
 import * as util from '../utilities';
 import * as select from '../select';
-import { formatCode } from '../calva-fmt/src/format';
+import * as formatter from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
 import * as config from '../config';
-import type { ReplSessionType } from '../config';
+import type * as configTypes from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
-import { PrintStackTraceCodelensProvider } from '../providers/codelense';
+import * as codelense from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
-import { formatAsLineComments, splitEditQueueForTextBatching } from '../results-output/util';
+import * as resultsOutputUtil from '../results-output/util';
 import * as output from '../results-output/output';
-import { normalizeDestinations } from '../results-output/output-destinations';
+import * as outputDestinations from '../results-output/output-destinations';
 
 const REPL_DOC_NAME = `repl.${config.REPL_FILE_EXT}`;
 
@@ -40,9 +40,9 @@ You can configure this with the setting:
 function outputDestinationSettingMessage() {
   const destinations = config.getConfig().outputDestinations;
   if (
-    normalizeDestinations(destinations.evalResults).includes('repl-window') ||
-    normalizeDestinations(destinations.evalOutput).includes('repl-window') ||
-    normalizeDestinations(destinations.otherOutput).includes('repl-window')
+    outputDestinations.normalizeDestinations(destinations.evalResults).includes('repl-window') ||
+    outputDestinations.normalizeDestinations(destinations.evalOutput).includes('repl-window') ||
+    outputDestinations.normalizeDestinations(destinations.otherOutput).includes('repl-window')
   ) {
     return OUTPUT_DESTINATION_SETTINGS_MESSAGE;
   }
@@ -91,10 +91,10 @@ function getDocDir(): vscode.Uri {
 
 type SessionInfo = {
   ns?: string;
-  session?: NReplSession;
+  session?: nrepl.NReplSession;
 };
 
-let _sessionType: ReplSessionType = 'clj';
+let _sessionType: configTypes.ReplSessionType = 'clj';
 const _sessionInfo: Record<string, SessionInfo> = {
   clj: {},
   cljs: {},
@@ -113,7 +113,10 @@ function ensureSessionEntries(sessionType: string) {
   }
 }
 
-function resolveSessionType(session?: NReplSession, override?: string): ReplSessionType {
+function resolveSessionType(
+  session?: nrepl.NReplSession,
+  override?: string
+): configTypes.ReplSessionType {
   if (override) {
     return override;
   }
@@ -133,7 +136,7 @@ export function getPrompt(): string {
   let prompt = `${_sessionType}꞉${getNs()}꞉> `;
   if (showPrompt[_sessionType]) {
     showPrompt[_sessionType] = false;
-    prompt = `${prompt} ${formatAsLineComments(PROMPT_HINT)}`;
+    prompt = `${prompt} ${resultsOutputUtil.formatAsLineComments(PROMPT_HINT)}`;
   }
   return prompt;
 }
@@ -143,16 +146,16 @@ export function getNs(): string | undefined {
   return _sessionInfo[_sessionType].ns;
 }
 
-export function getSessionType(): ReplSessionType {
+export function getSessionType(): configTypes.ReplSessionType {
   return _sessionType;
 }
 
-export function getSession(): NReplSession | undefined {
+export function getSession(): nrepl.NReplSession | undefined {
   ensureSessionEntries(_sessionType);
   return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs?: string, sessionKey?: string): void {
+export function setSession(session: nrepl.NReplSession, newNs?: string, sessionKey?: string): void {
   const resolvedType = resolveSessionType(session, sessionKey);
   ensureSessionEntries(resolvedType);
   _sessionType = resolvedType;
@@ -228,7 +231,9 @@ let havePrintedResultsElsewhereMessage = false;
  */
 export function maybePrintResultsInOtherDestinationMessage(): void {
   if (
-    normalizeDestinations(output.getDestinationConfiguration().evalResults).includes('repl-window')
+    outputDestinations
+      .normalizeDestinations(output.getDestinationConfiguration().evalResults)
+      .includes('repl-window')
   ) {
     return;
   }
@@ -237,7 +242,9 @@ export function maybePrintResultsInOtherDestinationMessage(): void {
   }
   havePrintedResultsElsewhereMessage = true;
 
-  const destinations = normalizeDestinations(output.getDestinationConfiguration().evalResults);
+  const destinations = outputDestinations.normalizeDestinations(
+    output.getDestinationConfiguration().evalResults
+  );
   const destinationNames: Record<output.OutputDestination, string> = {
     'repl-window': 'REPL Window',
     'output-channel': 'Output Channel',
@@ -251,7 +258,7 @@ export function maybePrintResultsInOtherDestinationMessage(): void {
 To reveal the output, use the command:
 > Calva: Show/Open the result output destination`;
   appendLine();
-  appendLine(formatAsLineComments(message));
+  appendLine(resultsOutputUtil.formatAsLineComments(message));
 }
 
 function getViewColumn(): vscode.ViewColumn {
@@ -365,7 +372,9 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
     return doc;
   }
 
-  const greetings = `${formatAsLineComments(START_GREETINGS)}\n\n${formatAsLineComments(
+  const greetings = `${resultsOutputUtil.formatAsLineComments(
+    START_GREETINGS
+  )}\n\n${resultsOutputUtil.formatAsLineComments(
     CLJ_CONNECT_GREETINGS
   )}${outputDestinationSettingMessage()}\n\n`;
   const edit = new vscode.WorkspaceEdit();
@@ -378,7 +387,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
 
   vscode.languages.registerCodeLensProvider(
     config.documentSelector,
-    new PrintStackTraceCodelensProvider()
+    new codelense.PrintStackTraceCodelensProvider()
   );
 
   replHistory.resetState();
@@ -428,9 +437,9 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   let code = '';
   if (selection.isEmpty) {
     const formSelection = select.getFormSelection(doc, selection.active, topLevel);
-    code = formatCode(doc.getText(formSelection), doc.eol);
+    code = formatter.formatCode(doc.getText(formSelection), doc.eol);
   } else {
-    code = formatCode(doc.getText(selection), doc.eol);
+    code = formatter.formatCode(doc.getText(selection), doc.eol);
   }
   if (code != '') {
     setSession(session, ns);
@@ -491,7 +500,7 @@ async function writeToReplWindowDoc({ text, onAppended }: ResultsBufferEntry): P
   const editors = visibleReplWindowEditors();
   editors.forEach((editor) => {
     util.scrollToBottom(editor);
-    highlight(editor);
+    highlightExtension.highlight(editor);
   });
 }
 
@@ -518,7 +527,7 @@ async function writeNextOutputBatch() {
     return await writeToReplWindowDoc(resultsBuffer.shift());
   }
   // Batch all remaining entries up until another onAppended callback.
-  const [nextText, remaining] = splitEditQueueForTextBatching(resultsBuffer);
+  const [nextText, remaining] = resultsOutputUtil.splitEditQueueForTextBatching(resultsBuffer);
   resultsBuffer = remaining;
   await writeToReplWindowDoc({ text: nextText.join('') });
 }

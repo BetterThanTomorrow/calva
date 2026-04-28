@@ -1,23 +1,22 @@
 import * as vscode from 'vscode';
-import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
-import { isArray } from 'util';
+import * as nodeUtil from 'util';
 import * as docMirror from '../../doc-mirror/index';
-import { Token, validPair } from '../../cursor-doc/clojure-lexer';
-import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { tryToGetActiveTextEditor, getActiveTextEditor } from '../../utilities';
-import { isCommentFormHead } from '../../cursor-doc/paredit-config';
-import { getConfig } from '../../config';
+import * as clojureLexer from '../../cursor-doc/clojure-lexer';
+import * as tokenCursor from '../../cursor-doc/token-cursor';
+import * as utilities from '../../utilities';
+import * as pareditConfig from '../../cursor-doc/paredit-config';
+import * as config from '../../config';
 
 type StackItem = {
   char: string;
-  start: Position;
-  end: Position;
+  start: vscode.Position;
+  end: vscode.Position;
   pair_idx: number;
   opens_comment_form?: boolean;
 };
 
-function position_str(pos: Position) {
+function position_str(pos: vscode.Position) {
   return '' + pos.line + ':' + pos.character;
 }
 function is_clojure(editor) {
@@ -46,8 +45,8 @@ let lastHighlightedEditor,
   enableBracketColors,
   useRainbowIndentGuides,
   highlightActiveIndent,
-  pairsBack: Map<string, [Range, Range]> = new Map(),
-  pairsForward: Map<string, [Range, Range]> = new Map(),
+  pairsBack: Map<string, [vscode.Range, vscode.Range]> = new Map(),
+  pairsForward: Map<string, [vscode.Range, vscode.Range]> = new Map(),
   placedGuidesColor: Map<string, number> = new Map(),
   rainbowTimer = undefined,
   matchTimer = undefined,
@@ -61,7 +60,7 @@ function decorationType(opts) {
 }
 
 function colorDecorationType(color) {
-  if (isArray(color)) {
+  if (nodeUtil.isArray(color)) {
     return decorationType({
       light: { color: color[0] },
       dark: { color: color[1] },
@@ -72,7 +71,7 @@ function colorDecorationType(color) {
 }
 
 function guidesDecorationType_(color, isActive: boolean): vscode.TextEditorDecorationType {
-  if (isArray(color)) {
+  if (nodeUtil.isArray(color)) {
     return decorationType({
       light: {
         borderWidth: `0; border-right-width: ${
@@ -270,15 +269,15 @@ function updateRainbowBrackets() {
   pairsBack = new Map();
   pairsForward = new Map();
   placedGuidesColor = new Map();
-  const { customCommentForms, aliasMap } = getConfig();
+  const { customCommentForms, aliasMap } = config.getConfig();
   const commentFormConfig = { customCommentForms, aliasMap };
   activeEditor.visibleRanges.forEach((range) => {
     // Find the visible forms
     const startOffset = doc.offsetAt(range.start);
     const endOffset = doc.offsetAt(range.end);
-    const startCursor: LispTokenCursor = mirrorDoc.getTokenCursor(0);
+    const startCursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(0);
     const startRange = startCursor.rangeForDefun(startOffset, false);
-    const endCursor: LispTokenCursor = mirrorDoc.getTokenCursor(endOffset);
+    const endCursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(endOffset);
     const endRange = endCursor.rangeForDefun(endOffset, false);
     const rangeStart = startRange ? startRange[0] : startOffset;
     const rangeEnd = endRange ? endRange[1] : endOffset;
@@ -298,12 +297,12 @@ function updateRainbowBrackets() {
       }
     }
     // Start painting!
-    const cursor: LispTokenCursor = mirrorDoc.getTokenCursor(startPaintingFrom);
+    const cursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(startPaintingFrom);
     do {
       cursor.forwardWhitespace();
       {
         // Skip pass strings and literals, and highlight ignored forms.
-        const token: Token = cursor.getToken();
+        const token: clojureLexer.Token = cursor.getToken();
         if (token.type === 'str-inside' || token.raw.includes('"')) {
           continue;
         } else if (token.type === 'lit') {
@@ -322,9 +321,9 @@ function updateRainbowBrackets() {
           }
           const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
           if (cursor.atTopLevel()) {
-            topLevelIgnores.push(new Range(ignore_start, ignore_end));
+            topLevelIgnores.push(new vscode.Range(ignore_start, ignore_end));
           } else {
-            ignores.push(new Range(ignore_start, ignore_end));
+            ignores.push(new vscode.Range(ignore_start, ignore_end));
           }
         }
       }
@@ -332,7 +331,7 @@ function updateRainbowBrackets() {
         char = token.raw,
         charLength = char.length;
       // Highlight (comment ...) forms
-      if (!in_comment_form && isCommentFormHead(char, commentFormConfig)) {
+      if (!in_comment_form && pareditConfig.isCommentFormHead(char, commentFormConfig)) {
         const peekCursor = cursor.clone();
         peekCursor.backwardWhitespace();
         if (peekCursor.getPrevToken().raw === '(') {
@@ -346,7 +345,7 @@ function updateRainbowBrackets() {
         readerCursor.backwardThroughAnyReader();
         const start = activeEditor.document.positionAt(readerCursor.offsetStart),
           end = activeEditor.document.positionAt(cursor.offsetEnd),
-          openRange = new Range(start, end),
+          openRange = new vscode.Range(start, end),
           openString = activeEditor.document.getText(openRange);
         if (colorsEnabled) {
           const decoration = { range: openRange };
@@ -363,19 +362,23 @@ function updateRainbowBrackets() {
         continue;
       } else if (token.type === 'close') {
         const pos = activeEditor.document.positionAt(cursor.offsetStart),
-          decoration = { range: new Range(pos, pos.translate(0, 1)) };
+          decoration = { range: new vscode.Range(pos, pos.translate(0, 1)) };
         let pair_idx = stack.length - 1;
         while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
           pair_idx = stack[pair_idx].pair_idx - 1;
         }
-        if (pair_idx === undefined || pair_idx < 0 || !validPair(stack[pair_idx].char, char)) {
+        if (
+          pair_idx === undefined ||
+          pair_idx < 0 ||
+          !clojureLexer.validPair(stack[pair_idx].char, char)
+        ) {
           misplaced.push(decoration);
         } else {
           const pair = stack[pair_idx],
-            closing = new Range(pos, pos.translate(0, charLength)),
-            opening = new Range(pair.end.translate(0, -1), pair.end);
+            closing = new vscode.Range(pos, pos.translate(0, charLength)),
+            opening = new vscode.Range(pair.end.translate(0, -1), pair.end);
           if (in_comment_form && pair.opens_comment_form) {
-            comment_forms.push(new Range(pair.start, pos.translate(0, charLength)));
+            comment_forms.push(new vscode.Range(pair.start, pos.translate(0, charLength)));
             in_comment_form = false;
           }
           stack.push({
@@ -481,7 +484,7 @@ function decorateGuide(
   for (let lineDelta = 1; lineDelta <= endPos.line - startPos.line; lineDelta++) {
     const guidePos = startPos.translate(lineDelta, 0);
     if (doc.lineAt(guidePos).text.match(/^ */)[0].length >= startPos.character) {
-      const guidesDecoration = { range: new Range(guidePos, guidePos) };
+      const guidesDecoration = { range: new vscode.Range(guidePos, guidePos) };
       guides.push(guidesDecoration);
       guideLength++;
     }
@@ -491,7 +494,7 @@ function decorateGuide(
 
 function decorateActiveGuides() {
   const activeGuides = [];
-  activeEditor = getActiveTextEditor();
+  activeEditor = utilities.getActiveTextEditor();
   if (activeGuidesTypes) {
     activeGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
   }
@@ -532,7 +535,7 @@ function decorateActiveGuides() {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  activeEditor = tryToGetActiveTextEditor();
+  activeEditor = utilities.tryToGetActiveTextEditor();
 
   vscode.window.onDidChangeActiveTextEditor(
     (editor) => {
@@ -547,7 +550,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeTextEditorSelection(
     (event) => {
-      const activeEditor = tryToGetActiveTextEditor();
+      const activeEditor = utilities.tryToGetActiveTextEditor();
       if (activeEditor && event.textEditor === activeEditor && is_clojure(event.textEditor)) {
         if (lastHighlightedEditor !== event.textEditor) {
           scheduleRainbowBrackets();
@@ -558,7 +561,7 @@ export function activate(context: vscode.ExtensionContext) {
           matchTimer = setTimeout(() => {
             matchPairs();
             if (highlightActiveIndent && rainbowTypes.length) {
-              const activeEditor = tryToGetActiveTextEditor();
+              const activeEditor = utilities.tryToGetActiveTextEditor();
               if (activeEditor) {
                 decorateActiveGuides();
               }

@@ -2,19 +2,19 @@ import * as vscode from 'vscode';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CustomREPLCommandSnippet } from './custom-snippets';
-import { ReplConnectSequence } from './nrepl/connectSequence';
-import { PrettyPrintingOptions } from './printer';
-import { readConfigEdn } from '../out/cljs-lib/cljs-lib';
+import type * as customSnippets from './custom-snippets';
+import type * as connectSequence from './nrepl/connectSequence';
+import type * as printer from './printer';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as fiddleFilesUtil from './util/fiddle-files';
 import * as state from './state';
 import _ = require('lodash');
-import { isDefined } from './utilities';
+import * as utilities from './utilities';
 import * as converters from './converters';
 import * as nreplUtil from './nrepl/util';
 import * as output from './results-output/output';
-import { getEffectiveJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
-import type { PairFormConfig, ThreadingMacrosConfig } from './cursor-doc/paredit-config';
+import * as jackInDependencyVersions from './nrepl/jack-in-dependency-versions';
+import type * as pareditConfig from './cursor-doc/paredit-config';
 
 const REPL_FILE_EXT = 'calva-repl';
 const FIDDLE_FILE_EXT = 'fiddle';
@@ -101,9 +101,9 @@ async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
     let resolvedUri: vscode.Uri;
     const configPath = state.resolvePath('.calva/config.edn');
 
-    if (isDefined(uri)) {
+    if (utilities.isDefined(uri)) {
       resolvedUri = uri;
-    } else if (isDefined(configPath)) {
+    } else if (utilities.isDefined(configPath)) {
       resolvedUri = configPath;
     } else {
       throw new Error('Expected a uri to be passed in or a config to exist at .calva/config.edn');
@@ -116,9 +116,9 @@ async function updateCalvaConfigFromEdn(uri?: vscode.Uri) {
 }
 
 function mergeSnippets(
-  oldSnippets: CustomREPLCommandSnippet[],
-  newSnippets: CustomREPLCommandSnippet[]
-): CustomREPLCommandSnippet[] {
+  oldSnippets: customSnippets.CustomREPLCommandSnippet[],
+  newSnippets: customSnippets.CustomREPLCommandSnippet[]
+): customSnippets.CustomREPLCommandSnippet[] {
   return newSnippets.concat(
     _.reject(
       oldSnippets,
@@ -131,9 +131,9 @@ function mergeSnippets(
  * Merges two threading macro configurations by concatenating their arrays.
  */
 function mergeThreadingMacros(
-  a: Partial<ThreadingMacrosConfig>,
-  b: Partial<ThreadingMacrosConfig>
-): Partial<ThreadingMacrosConfig> {
+  a: Partial<pareditConfig.ThreadingMacrosConfig>,
+  b: Partial<pareditConfig.ThreadingMacrosConfig>
+): Partial<pareditConfig.ThreadingMacrosConfig> {
   return {
     firstArg: [...(a.firstArg ?? []), ...(b.firstArg ?? [])],
     lastArg: [...(a.lastArg ?? []), ...(b.lastArg ?? [])],
@@ -149,7 +149,7 @@ function mergeThreadingMacros(
  */
 function addEdnConfig(data: string) {
   try {
-    const parsed = readConfigEdn(data);
+    const parsed = cljsLib.readConfigEdn(data);
     const old = state.getProjectConfig();
 
     state.setProjectConfig({
@@ -186,21 +186,25 @@ function getConfig() {
   const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
 
   const commands = (
-    configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
+    configOptions.inspect<customSnippets.CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
       ?.workspaceValue ?? []
   ).concat(
-    (state.getProjectConfig()?.customREPLCommandSnippets as CustomREPLCommandSnippet[]) ?? []
+    (state.getProjectConfig()
+      ?.customREPLCommandSnippets as customSnippets.CustomREPLCommandSnippet[]) ?? []
   );
   const hoverSnippets = (
-    configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLHoverSnippets')?.workspaceValue ??
-    []
-  ).concat((state.getProjectConfig()?.customREPLHoverSnippets as CustomREPLCommandSnippet[]) ?? []);
+    configOptions.inspect<customSnippets.CustomREPLCommandSnippet[]>('customREPLHoverSnippets')
+      ?.workspaceValue ?? []
+  ).concat(
+    (state.getProjectConfig()
+      ?.customREPLHoverSnippets as customSnippets.CustomREPLCommandSnippet[]) ?? []
+  );
 
   const autoEvaluateCode =
     configOptions.inspect<nreplUtil.AutoEvaluateCodeConfig>('autoEvaluateCode');
 
   const replConnectSequencesConfig =
-    configOptions.inspect<ReplConnectSequence[]>('replConnectSequences');
+    configOptions.inspect<connectSequence.ReplConnectSequence[]>('replConnectSequences');
   const normalizeAfterMainReplCode = (code: string | string[] | undefined): string | undefined => {
     if (Array.isArray(code)) {
       return code.join('\n');
@@ -235,7 +239,7 @@ function getConfig() {
     testOnSave: configOptions.get('testOnSave'),
     showDocstringInParameterHelp: configOptions.get<boolean>('showDocstringInParameterHelp'),
     jackInEnv: configOptions.get('jackInEnv'),
-    jackInDependencyVersions: getEffectiveJackInDependencyVersions(),
+    jackInDependencyVersions: jackInDependencyVersions.getEffectiveJackInDependencyVersions(),
     clojureLspVersion: configOptions.get<string>('clojureLspVersion'),
     clojureLspPath: configOptions.get<string>('clojureLspPath'),
     openBrowserWhenFigwheelStarted: configOptions.get<boolean>('openBrowserWhenFigwheelStarted'),
@@ -244,19 +248,20 @@ function getConfig() {
     myLeinProfiles: configOptions.get<string[]>('myLeinProfiles', []).map(_trimAliasName),
     myCljAliases: configOptions.get<string[]>('myCljAliases', []).map(_trimAliasName),
     asyncOutputDestination: configOptions.get<string>('sendAsyncOutputTo'),
-    customREPLCommandSnippets: configOptions.get<CustomREPLCommandSnippet[]>(
+    customREPLCommandSnippets: configOptions.get<customSnippets.CustomREPLCommandSnippet[]>(
       'customREPLCommandSnippets',
       []
     ),
     customREPLCommandSnippetsGlobal:
-      configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')?.globalValue ??
-      [],
+      configOptions.inspect<customSnippets.CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
+        ?.globalValue ?? [],
     customREPLCommandSnippetsWorkspace: commands,
     customREPLCommandSnippetsWorkspaceFolder:
-      configOptions.inspect<CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
+      configOptions.inspect<customSnippets.CustomREPLCommandSnippet[]>('customREPLCommandSnippets')
         ?.workspaceFolderValue ?? [],
     customREPLHoverSnippets: hoverSnippets,
-    prettyPrintingOptions: configOptions.get<PrettyPrintingOptions>('prettyPrintingOptions'),
+    prettyPrintingOptions:
+      configOptions.get<printer.PrettyPrintingOptions>('prettyPrintingOptions'),
     evaluationSendCodeToOutputWindow: configOptions.get<boolean>(
       'evaluationSendCodeToOutputWindow'
     ),
@@ -295,10 +300,10 @@ function getConfig() {
     refreshNssBeforeFn: configOptions.get<string>('refreshNssBeforeFn'),
     refreshNssAfterFn: configOptions.get<string>('refreshNssAfterFn'),
     customPairForms: pareditOptions
-      .get<PairFormConfig[]>('customPairForms', [])
+      .get<pareditConfig.PairFormConfig[]>('customPairForms', [])
       .concat(state.getProjectConfig()?.customPairForms ?? []),
     customThreadingMacros: mergeThreadingMacros(
-      pareditOptions.get<Partial<ThreadingMacrosConfig>>('customThreadingMacros', {}),
+      pareditOptions.get<Partial<pareditConfig.ThreadingMacrosConfig>>('customThreadingMacros', {}),
       state.getProjectConfig()?.customThreadingMacros ?? {}
     ),
     customCommentForms: configOptions.get<string[]>('customCommentForms', []),

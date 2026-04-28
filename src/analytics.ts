@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
-import { isUndefined } from 'lodash';
+import * as axios from 'axios';
+import * as _ from 'lodash';
 
 function userAllowsTelemetry(): boolean {
   const calvaConfig = vscode.workspace.getConfiguration('calva');
@@ -13,7 +13,7 @@ function userAllowsTelemetry(): boolean {
   return calvaTelemetryEnabled;
 }
 
-export default class Analytics {
+export class Analytics {
   private store: vscode.Memento;
   private GA4_TOKEN = process.env.CALVA_DEV_GA4_TOKEN ?? 'GgrUWszmTo2FG538YCUGpw';
   private GA4_MEASUREMENT_ID = process.env.CALVA_DEV_GA4_ID ?? 'G-HYZ3MX6DL1';
@@ -25,7 +25,7 @@ export default class Analytics {
   private userID(): string {
     const KEY = 'userLogID';
     const value = this.store.get<string>(KEY);
-    if (isUndefined(value)) {
+    if (_.isUndefined(value)) {
       const newID = crypto.randomUUID();
       void this.store.update(KEY, newID);
       return newID;
@@ -39,7 +39,7 @@ export default class Analytics {
       return;
     }
     try {
-      return axios
+      return axios.default
         .post(
           `https://www.google-analytics.com/mp/collect?measurement_id=${this.GA4_MEASUREMENT_ID}&api_secret=${this.GA4_TOKEN}`,
           {

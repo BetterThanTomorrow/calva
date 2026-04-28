@@ -1,16 +1,12 @@
-import { expect } from 'expect';
-import {
-  routeEvaluatedCode,
-  type EvaluatedCodeMessage,
-  type VisibleEvaluatedCodeWrite,
-} from '../../../results-output/evaluated-code';
+import * as expectLib from 'expect';
+import * as evaluatedCode from '../../../results-output/evaluated-code';
 
 describe('routeEvaluatedCode', () => {
   it('emits one evaluatedCode message while preserving metadata', () => {
-    const messages: EvaluatedCodeMessage[] = [];
-    const visibleWrites: VisibleEvaluatedCodeWrite[] = [];
+    const messages: evaluatedCode.EvaluatedCodeMessage[] = [];
+    const visibleWrites: evaluatedCode.VisibleEvaluatedCodeWrite[] = [];
 
-    routeEvaluatedCode({
+    evaluatedCode.routeEvaluatedCode({
       code: '(inc 1)',
       didLastTerminateLine: true,
       ns: 'user',
@@ -20,7 +16,7 @@ describe('routeEvaluatedCode', () => {
       writeVisible: (write) => visibleWrites.push(write),
     });
 
-    expect(messages).toEqual([
+    expectLib.expect(messages).toEqual([
       {
         category: 'evaluatedCode',
         text: '(inc 1)',
@@ -29,7 +25,7 @@ describe('routeEvaluatedCode', () => {
         replSessionKey: 'clj',
       },
     ]);
-    expect(visibleWrites).toEqual([
+    expectLib.expect(visibleWrites).toEqual([
       {
         code: '(inc 1)',
         didLastTerminateLine: true,

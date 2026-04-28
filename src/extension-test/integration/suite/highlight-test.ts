@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 
@@ -9,11 +9,11 @@ import * as highlight from '../../../highlight/src/extension';
 suite('Highlight suite', () => {
   const suite = 'Highlight';
 
-  before(() => {
+  mocha.before(() => {
     testUtil.showMessage(suite, `suite starting!`);
   });
 
-  after(() => {
+  mocha.after(() => {
     testUtil.showMessage(suite, `suite done!`);
   });
 

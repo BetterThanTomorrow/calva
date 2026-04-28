@@ -1,22 +1,17 @@
 import * as vscode from 'vscode';
 import * as config from '../../formatter-config';
 import * as outputWindow from '../../repl-window/repl-window-doc';
-import {
-  getIndent,
-  getDocumentOffset,
-  getDocument,
-  nonOverlappingRanges,
-} from '../../doc-mirror/index';
-import { formatTextAtRange, formatText, jsify } from '../../../out/cljs-lib/cljs-lib';
+import * as docMirror from '../../doc-mirror/index';
+import * as cljsLib from '../../../out/cljs-lib/cljs-lib';
 import * as util from '../../utilities';
 import * as respacer from './respacer';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
-import { isUndefined, cloneDeep } from 'lodash';
-import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { formatIndexes } from './format-index';
+import _ = require('lodash');
+import type * as tokenCursor from '../../cursor-doc/token-cursor';
+import * as formatIndex from './format-index';
 import * as state from '../../state';
 import * as healer from './healer';
-import { nsRangeFromText } from '../../util/ns-form';
+import * as nsForm from '../../util/ns-form';
 
 /**
  * Calculates the indent edit needed for a position without performing it.
@@ -27,9 +22,9 @@ export function calculateIndentEdit(
   position: vscode.Position,
   document: vscode.TextDocument
 ): vscode.TextEdit[] {
-  const indent = getIndent(
-    getDocument(document).model.lineInputModel,
-    getDocumentOffset(document, position),
+  const indent = docMirror.getIndent(
+    docMirror.getDocument(document).model.lineInputModel,
+    docMirror.getDocumentOffset(document, position),
     config.getConfigNow(document)
   );
   const currentIndent = document.lineAt(position.line).firstNonWhitespaceCharacterIndex;
@@ -56,9 +51,9 @@ export function calculateIndentEdit(
 export async function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
   const editor = util.getActiveTextEditor();
   const pos = new vscode.Position(position.line, 0);
-  const indent = getIndent(
-    getDocument(document).model.lineInputModel,
-    getDocumentOffset(document, position),
+  const indent = docMirror.getIndent(
+    docMirror.getDocument(document).model.lineInputModel,
+    docMirror.getDocumentOffset(document, position),
     await config.getConfig(document)
   );
   const newPosition = new vscode.Position(position.line, indent);
@@ -111,8 +106,8 @@ function whitespaceAndNsEdits(
   if (previousText == formattedText) {
     return [];
   } else {
-    const previousNsInfo = nsRangeFromText(previousText);
-    const formattedNsInfo = nsRangeFromText(formattedText);
+    const previousNsInfo = nsForm.nsRangeFromText(previousText);
+    const formattedNsInfo = nsForm.nsRangeFromText(formattedText);
     if (previousNsInfo && formattedNsInfo) {
       const [previousNsName, previousNsRange] = previousNsInfo;
       const [formattedNsName, formattedNsRange] = formattedNsInfo;
@@ -141,7 +136,7 @@ function rangeReformatChanges(
   originalRange: vscode.Range,
   onType: boolean
 ): respacer.WhitespaceChange[] | undefined {
-  const mirrorDoc = getDocument(document);
+  const mirrorDoc = docMirror.getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
   const cursor = mirrorDoc.getTokenCursor(startIndex);
   // Do not format comments as individual ranges.
@@ -188,8 +183,8 @@ export async function formatRange(document: vscode.TextDocument, range: vscode.R
   const wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
   const edits = formatRangeEdits(document, range);
 
-  if (isUndefined(edits)) {
-    console.error('formatRangeEdits returned undefined!', cloneDeep({ document, range }));
+  if (_.isUndefined(edits)) {
+    console.error('formatRangeEdits returned undefined!', _.cloneDeep({ document, range }));
     return false;
   }
 
@@ -203,7 +198,7 @@ export function formatDocIndexRange(
   index: number,
   extraConfig: CljFmtConfig
 ): [number, number] {
-  const mDoc = getDocument(doc);
+  const mDoc = docMirror.getDocument(doc);
   if (mDoc.model.documentVersion != doc.version) {
     console.warn('Model is stale; skipping reformatting');
     return;
@@ -222,7 +217,7 @@ export function formatDocIndexesInfo(
   cursorIndexes: number[],
   extraConfig: CljFmtConfig = {}
 ) {
-  const mDoc = getDocument(doc);
+  const mDoc = docMirror.getDocument(doc);
   const formatRange = formatDocIndexRange(doc, indexOfRange, extraConfig);
   if (!formatRange || (formatRange[0] == -1 && formatRange[1] == -1)) {
     return;
@@ -233,7 +228,7 @@ export function formatDocIndexesInfo(
   const formatted: {
     'range-text': string;
     range: number[];
-  } = formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
+  } = formatIndex.formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
     ...config.getConfigNow(),
     ...extraConfig,
     'comment-form?': util.isCommentFormHead(cursor.getFunctionName()),
@@ -267,7 +262,7 @@ interface CljFmtConfig {
  */
 function _calculateFormatRange(
   config: CljFmtConfig,
-  cursor: LispTokenCursor,
+  cursor: tokenCursor.LispTokenCursor,
   index: number
 ): [number, number] {
   const rangeForTopLevelForm = cursor.rangeForDefun(index, false);
@@ -299,7 +294,7 @@ function _calculateFormatRange(
   }
 
   const rangeForCurrentForm = cursor.rangeForCurrentForm(index);
-  if (!isUndefined(rangeForCurrentForm)) {
+  if (!_.isUndefined(rangeForCurrentForm)) {
     if (rangeForCurrentForm[0] === rangeForTopLevelForm[0]) {
       if (topLevelStartCursor.rowCol[1] !== 0) {
         const formStart = rangeForCurrentForm[0];
@@ -343,7 +338,7 @@ export async function formatPosition(
       onType
     );
   } else {
-    const dedupedRanges = nonOverlappingRanges(ranges);
+    const dedupedRanges = docMirror.nonOverlappingRanges(ranges);
     const cursorOffsets = editor.selections.map((sel) => doc.offsetAt(sel.active));
     orderedChanges = dedupedRanges
       .map((rng) => rng[0])
@@ -426,7 +421,7 @@ export function formatCode(code: string, eol: number, fullDocument: boolean = tr
     eol: _convertEolNumToStringNotation(eol),
     config: { ...config.getConfigNow(), 'full-document?': fullDocument },
   };
-  const result = jsify(formatText(d));
+  const result = cljsLib.jsify(cljsLib.formatText(d));
   if (!result['error']) {
     return result['range-text'];
   } else {
@@ -448,7 +443,7 @@ async function _formatRange(
     eol: eol,
     config: { ...(await config.getConfig()), 'full-document?': false },
   };
-  const result = jsify(formatTextAtRange(d));
+  const result = cljsLib.jsify(cljsLib.formatTextAtRange(d));
   if (!result['error']) {
     return result['range-text'];
   }

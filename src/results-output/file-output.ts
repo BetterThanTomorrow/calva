@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { resolveFilePath } from '../util/resolve-file-arg';
+import * as resolveFileArg from '../util/resolve-file-arg';
 
 /**
  * Returns true if the destination string looks like a file path.
@@ -41,11 +41,11 @@ export function resolveOutputFilePath(
   workspaceRoot: string | undefined
 ): string | undefined {
   if (typeof destination === 'string') {
-    return resolveFilePath(expandTilde(destination), workspaceRoot);
+    return resolveFileArg.resolveFilePath(expandTilde(destination), workspaceRoot);
   }
   // Array of path segments — join first, then expand + resolve
   const joined = path.join(...destination);
-  return resolveFilePath(expandTilde(joined), workspaceRoot);
+  return resolveFileArg.resolveFilePath(expandTilde(joined), workspaceRoot);
 }
 
 /**

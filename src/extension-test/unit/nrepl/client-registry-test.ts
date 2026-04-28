@@ -1,11 +1,11 @@
-import { expect } from 'expect';
-import type { NReplClient } from '../../../../src/nrepl';
+import * as expectLib from 'expect';
+import type * as nrepl from '../../../../src/nrepl';
 import * as clientRegistry from '../../../../src/nrepl/client-registry';
 
-const createClient = (key: string): NReplClient =>
+const createClient = (key: string): nrepl.NReplClient =>
   ({
     clientKey: key,
-  } as unknown as NReplClient);
+  } as unknown as nrepl.NReplClient);
 
 describe('client registry', () => {
   afterEach(() => {
@@ -20,7 +20,7 @@ describe('client registry', () => {
     clientRegistry.registerClient(beta, { connectSequenceName: 'Beta' });
 
     const clients = clientRegistry.listClients();
-    expect(clients.map((c) => c.key)).toEqual(['alpha-client', 'beta-client']);
+    expectLib.expect(clients.map((c) => c.key)).toEqual(['alpha-client', 'beta-client']);
   });
 
   it('unregisters clients correctly', () => {
@@ -31,7 +31,7 @@ describe('client registry', () => {
 
     clientRegistry.unregisterClient('beta-client');
     const clients = clientRegistry.listClients();
-    expect(clients.map((c) => c.key)).toEqual(['alpha-client']);
+    expectLib.expect(clients.map((c) => c.key)).toEqual(['alpha-client']);
   });
 });
 
@@ -44,11 +44,11 @@ describe('cljc target for connection', () => {
     const client = createClient('test-client');
     clientRegistry.registerClient(client, { connectSequenceName: 'Test' });
 
-    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
   });
 
   it('returns primary for non-existent client', () => {
-    expect(clientRegistry.getCljcTargetForConnection('non-existent')).toBe('primary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('non-existent')).toBe('primary');
   });
 
   it('sets and gets cljc target', () => {
@@ -56,10 +56,10 @@ describe('cljc target for connection', () => {
     clientRegistry.registerClient(client, { connectSequenceName: 'Test' });
 
     clientRegistry.setCljcTargetForConnection('test-client', 'secondary');
-    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
 
     clientRegistry.setCljcTargetForConnection('test-client', 'primary');
-    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('primary');
   });
 
   it('preserves cljc target when updating other connection state', () => {
@@ -69,7 +69,7 @@ describe('cljc target for connection', () => {
     clientRegistry.setCljcTargetForConnection('test-client', 'secondary');
     clientRegistry.setConnectionState('test-client', { cljsBuild: ':app' });
 
-    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
   });
 
   it('can set cljc target via connection state', () => {
@@ -79,6 +79,6 @@ describe('cljc target for connection', () => {
       connectionState: { cljcTarget: 'secondary' },
     });
 
-    expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
+    expectLib.expect(clientRegistry.getCljcTargetForConnection('test-client')).toBe('secondary');
   });
 });

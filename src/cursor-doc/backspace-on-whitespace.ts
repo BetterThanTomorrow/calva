@@ -1,14 +1,14 @@
-import { FormatterConfig } from '../formatter-config';
-import { getIndent } from './indent';
-import { EditableDocument } from './model';
-import { LispTokenCursor } from './token-cursor';
+import type * as formatterConfig from '../formatter-config';
+import * as indent from './indent';
+import type * as model from './model';
+import type * as tokenCursor from './token-cursor';
 
 export function backspaceOnWhitespace(
-  doc: EditableDocument,
-  cursor: LispTokenCursor,
-  config?: FormatterConfig
+  doc: model.EditableDocument,
+  cursor: tokenCursor.LispTokenCursor,
+  config?: formatterConfig.FormatterConfig
 ) {
-  const origIndent = getIndent(doc.model, cursor.offsetStart, config);
+  const origIndent = indent.getIndent(doc.model, cursor.offsetStart, config);
   const onCloseToken = cursor.getToken().type === 'close';
   let start = doc.selections[0].anchor;
   let token = cursor.getToken();
@@ -36,9 +36,9 @@ export function backspaceOnWhitespace(
   }
 
   const destTokenType = cursor.getToken().type;
-  let indent = destTokenType === 'eol' ? origIndent : 1;
+  let targetIndent = destTokenType === 'eol' ? origIndent : 1;
   if (destTokenType === 'open' || onCloseToken) {
-    indent = 0;
+    targetIndent = 0;
   }
-  return { start, end, indent };
+  return { start, end, indent: targetIndent };
 }

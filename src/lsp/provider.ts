@@ -10,7 +10,7 @@ import * as lsp_client from './client';
 import * as commands from './commands';
 import * as config from './config';
 import * as defs from './definitions';
-import { ProjectTreeExplorer } from './project-tree';
+import * as projectTree from './project-tree';
 import * as status_bar from './status-bar';
 import * as utils from './utils';
 
@@ -149,7 +149,7 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
           calvaSaysChannel.appendLine(`clj-kondo version used: ${serverInfo['clj-kondo-version']}`);
         }
 
-        new ProjectTreeExplorer(client.client);
+        new projectTree.ProjectTreeExplorer(client.client);
       }
     });
 

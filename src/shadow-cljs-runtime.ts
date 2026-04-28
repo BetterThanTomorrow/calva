@@ -3,9 +3,9 @@ import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as clientRegistry from './nrepl/client-registry';
 import * as util from './utilities';
-import { parseEdn, parseEdnWithInst } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
-import status from './status';
+import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 
 interface RuntimeQuickPickItem extends vscode.QuickPickItem {
@@ -103,7 +103,8 @@ async function getShadowRuntimesForClient(
 
     // Parse the EDN data structure returned by shadow-cljs
     try {
-      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
+      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] =
+        cljsLib.parseEdnWithInst(result);
       return apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo);
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
@@ -144,7 +145,8 @@ export async function getShadowRuntimes(): Promise<shadowRuntimeCore.RuntimeInfo
 
     // Parse the EDN data structure returned by shadow-cljs
     try {
-      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] = parseEdnWithInst(result);
+      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] =
+        cljsLib.parseEdnWithInst(result);
       return apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo);
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
@@ -398,7 +400,7 @@ export function clearRuntimeState(clientKey?: string): void {
 export async function handleShadowRemoteMessage(msgData: any, clientKey: string): Promise<void> {
   try {
     if (msgData.data) {
-      const data = parseEdn(msgData.data);
+      const data = cljsLib.parseEdn(msgData.data);
       const currentRuntimeId = getSelectedRuntimeId(clientKey);
       const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
 

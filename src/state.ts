@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import * as semver from 'semver';
-import Analytics from './analytics';
+import * as analyticsModule from './analytics';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fileArg from './util/resolve-file-arg';
 import * as child from 'child_process';
-import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
-import { getCustomConnectSequences, ReplConnectSequence } from './nrepl/connectSequence';
-import { ConnectType } from './nrepl/connect-types';
+import * as connectSequences from './nrepl/connectSequence';
+import * as connectTypes from './nrepl/connect-types';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -38,14 +38,14 @@ export function initDepsEdnJackInExecutable() {
       console.warn(
         `deps.edn launcher check: '${launcherCheckCommand}' command failed, using 'deps.clj'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+      cljsLib.setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
       return;
     }
     if (stdout.match('version')) {
       console.info(
         `deps.edn launcher check: '${launcherCheckCommand}' command works, using 'clojure'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'clojure');
+      cljsLib.setStateValue('depsEdnJackInDefaultExecutable', 'clojure');
       const version = stdout.match(/version\s+([\d.]+)/)[1];
       console.info(`clojure version: ${version}`);
       ancientCLICheck(version);
@@ -53,7 +53,7 @@ export function initDepsEdnJackInExecutable() {
       console.warn(
         `deps.edn launcher check: '${launcherCheckCommand}' command not returning expected output, using 'deps.clj'`
       );
-      setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
+      cljsLib.setStateValue('depsEdnJackInDefaultExecutable', 'deps.clj');
     }
   });
 }
@@ -62,14 +62,14 @@ function ancientCLICheck(version: string) {
   const ancientVersion = '1.10.697';
   if (semver.lt(semver.coerce(version), ancientVersion)) {
     console.warn(`The installed 'clojure' version is ancient, even lower than ${ancientVersion}.`);
-    setStateValue('isClojureCLIVersionAncient', true);
+    cljsLib.setStateValue('isClojureCLIVersionAncient', true);
   }
 }
 
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
-  const channel = getStateValue(name);
+  const channel = cljsLib.getStateValue(name);
   if (channel.toJS !== undefined) {
     return channel.toJS();
   } else {
@@ -85,8 +85,8 @@ function connectionLogChannel(): vscode.OutputChannel {
   return _outputChannel('connectionLogChannel');
 }
 
-function analytics(): Analytics {
-  const analytics = getStateValue('analytics');
+function analytics(): analyticsModule.Analytics {
+  const analytics = cljsLib.getStateValue('analytics');
   if (analytics.toJS !== undefined) {
     return analytics.toJS();
   } else {
@@ -100,23 +100,23 @@ const PROJECT_CONFIG_MAP = 'config';
 
 export function getProjectRootLocal(useCache = true): string | undefined {
   if (useCache) {
-    return getStateValue(PROJECT_DIR_KEY);
+    return cljsLib.getStateValue(PROJECT_DIR_KEY);
   }
 }
 
 export function getProjectConfig(useCache = true) {
   if (useCache) {
-    return getStateValue(PROJECT_CONFIG_MAP);
+    return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
   }
 }
 
 export function setProjectConfig(config) {
-  return setStateValue(PROJECT_CONFIG_MAP, config);
+  return cljsLib.setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
   if (useCache) {
-    const res = getStateValue(PROJECT_DIR_URI_KEY);
+    const res = cljsLib.getStateValue(PROJECT_DIR_URI_KEY);
     if (res) {
       return res;
     }
@@ -140,8 +140,8 @@ export async function setOrCreateNonProjectRoot(
     const subDir = util.randomSlug();
     root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
   }
-  await setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-  await setStateValue(PROJECT_DIR_URI_KEY, root);
+  await cljsLib.setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+  await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
   return root;
 }
 
@@ -163,8 +163,8 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
  * Figures out the current clojure project root, and stores it in Calva state
  */
 export async function initProjectDir(
-  connectType: ConnectType,
-  connectSequence: ReplConnectSequence,
+  connectType: connectTypes.ConnectType,
+  connectSequence: connectSequences.ReplConnectSequence,
   disableAutoSelect = false
 ) {
   // When a connectSequence with projectRootPath is explicitly provided, use it directly
@@ -181,8 +181,8 @@ export async function initProjectDir(
         'calva:projectRoot',
         projectRootPath.fsPath
       );
-      await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-      await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+      await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+      await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
       return projectRootPath;
     }
   }
@@ -194,12 +194,15 @@ export async function initProjectDir(
     ? projectRoot.findClosestParent(active_uri, candidatePaths)
     : undefined;
 
-  const sequences: ReplConnectSequence[] = getCustomConnectSequences();
+  const sequences: connectSequences.ReplConnectSequence[] =
+    connectSequences.getCustomConnectSequences();
 
   const defaultSequences = disableAutoSelect
     ? [connectSequence]
     : sequences.filter((s) =>
-        connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
+        connectType === connectTypes.ConnectType.Connect
+          ? s.autoSelectForConnect
+          : s.autoSelectForJackIn
       );
   const defaultSequence =
     defaultSequences.find(
@@ -225,8 +228,8 @@ export async function initProjectDir(
   if (projectRootPath) {
     console.log('Setting project root to: ', projectRootPath.fsPath);
     void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    await setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
+    await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
+    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
     return projectRootPath;
   }
   return setOrCreateNonProjectRoot(extensionContext, true);

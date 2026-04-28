@@ -1,55 +1,55 @@
-import { EditableDocument, ModelEditDirectedRange } from '../cursor-doc/model';
+import type * as model from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
-import type { PareditConfig } from '../cursor-doc/paredit-config';
+import type * as pareditConfig from '../cursor-doc/paredit-config';
 
 // MOVEMENT
 
-export function forwardSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function forwardSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.forwardSexpRange(doc, s.end));
   paredit.moveToRangeRight(doc, ranges);
 }
-export function backwardSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function backwardSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.backwardSexpRange(doc, s.start));
   paredit.moveToRangeLeft(doc, ranges);
 }
-export function forwardDownSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function forwardDownSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToForwardDownList(doc, s.end));
   paredit.moveToRangeRight(doc, ranges);
 }
-export function backwardDownSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function backwardDownSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToBackwardDownList(doc, s.start));
   paredit.moveToRangeLeft(doc, ranges);
 }
-export function forwardUpSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function forwardUpSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToForwardUpList(doc, s.end));
   paredit.moveToRangeRight(doc, ranges);
 }
-export function backwardUpSexp(doc: EditableDocument, isMulti: boolean = false) {
+export function backwardUpSexp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToBackwardUpList(doc, s.start));
   paredit.moveToRangeLeft(doc, ranges);
 }
-export function forwardSexpOrUp(doc: EditableDocument, isMulti: boolean = false) {
+export function forwardSexpOrUp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.forwardSexpOrUpRange(doc, s.end));
   paredit.moveToRangeRight(doc, ranges);
 }
-export function backwardSexpOrUp(doc: EditableDocument, isMulti: boolean = false) {
+export function backwardSexpOrUp(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.backwardSexpOrUpRange(doc, s.end));
   paredit.moveToRangeLeft(doc, ranges);
 }
-export function closeList(doc: EditableDocument, isMulti: boolean = false) {
+export function closeList(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToForwardList(doc, s.end));
   paredit.moveToRangeRight(doc, ranges);
 }
-export function openList(doc: EditableDocument, isMulti: boolean = false) {
+export function openList(doc: model.EditableDocument, isMulti: boolean = false) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeToBackwardList(doc, s.start));
   paredit.moveToRangeLeft(doc, ranges);
@@ -57,67 +57,67 @@ export function openList(doc: EditableDocument, isMulti: boolean = false) {
 
 // SELECTION
 
-export function selectCurrentForm(doc: EditableDocument, isMulti: boolean = false) {
+export function selectCurrentForm(doc: model.EditableDocument, isMulti: boolean = false) {
   paredit.selectCurrentForm(doc, false, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function rangeForDefun(doc: EditableDocument, isMulti: boolean) {
+export function rangeForDefun(doc: model.EditableDocument, isMulti: boolean) {
   const selections = isMulti ? doc.selections : [doc.selections[0]];
   const ranges = selections.map((s) => paredit.rangeForDefun(doc, s.active));
   paredit.selectRange(doc, ranges);
 }
 export function sexpRangeExpansion(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   isMulti: boolean,
-  config?: PareditConfig
+  config?: pareditConfig.PareditConfig
 ) {
   paredit.growSelection(doc, isMulti ? doc.selections : [doc.selections[0]], config);
 }
-export function sexpRangeContraction(doc: EditableDocument, isMulti: boolean) {
+export function sexpRangeContraction(doc: model.EditableDocument, isMulti: boolean) {
   paredit.shrinkSelection(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectForwardSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectForwardSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectForwardSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectRight(doc: EditableDocument, isMulti: boolean) {
+export function selectRight(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectRight(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
 /* export function selectLeft(doc: EditableDocument, isMulti: boolean) {
   paredit.selectLeft(doc, isMulti ? doc.selections : [doc.selections[0]]);
 } */
-export function selectBackwardSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectBackwardSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectBackwardSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectForwardDownSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectForwardDownSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectForwardDownSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectBackwardDownSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectBackwardDownSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectBackwardDownSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectForwardUpSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectForwardUpSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectForwardUpSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectForwardSexpOrUp(doc: EditableDocument, isMulti: boolean) {
+export function selectForwardSexpOrUp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectForwardSexpOrUp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectBackwardSexpOrUp(doc: EditableDocument, isMulti: boolean) {
+export function selectBackwardSexpOrUp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectBackwardSexpOrUp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectBackwardUpSexp(doc: EditableDocument, isMulti: boolean) {
+export function selectBackwardUpSexp(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectBackwardUpSexp(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectCloseList(doc: EditableDocument, isMulti: boolean) {
+export function selectCloseList(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectCloseList(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
-export function selectOpenList(doc: EditableDocument, isMulti: boolean) {
+export function selectOpenList(doc: model.EditableDocument, isMulti: boolean) {
   paredit.selectOpenList(doc, isMulti ? doc.selections : [doc.selections[0]]);
 }
 
 // DELETION
 
 export async function killLeft(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   isMulti: boolean,
-  onRange?: (doc: EditableDocument, range: ModelEditDirectedRange) => Promise<void>
+  onRange?: (doc: model.EditableDocument, range: model.ModelEditDirectedRange) => Promise<void>
 ) {
   // TODO: support multi-cursor
   const result = paredit.backwardHybridSexpRange(doc);
@@ -133,22 +133,22 @@ export async function killLeft(
 
 // REWRAP
 
-export function rewrapQuote(doc: EditableDocument, isMulti: boolean) {
+export function rewrapQuote(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '"', '"', isMulti ? doc.selections : [doc.selections[0]]);
 }
 
-export function rewrapSet(doc: EditableDocument, isMulti: boolean) {
+export function rewrapSet(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '#{', '}', isMulti ? doc.selections : [doc.selections[0]]);
 }
 
-export function rewrapCurly(doc: EditableDocument, isMulti: boolean) {
+export function rewrapCurly(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '{', '}', isMulti ? doc.selections : [doc.selections[0]]);
 }
 
-export function rewrapSquare(doc: EditableDocument, isMulti: boolean) {
+export function rewrapSquare(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '[', ']', isMulti ? doc.selections : [doc.selections[0]]);
 }
 
-export function rewrapParens(doc: EditableDocument, isMulti: boolean) {
+export function rewrapParens(doc: model.EditableDocument, isMulti: boolean) {
   return paredit.rewrapSexpr(doc, '(', ')', isMulti ? doc.selections : [doc.selections[0]]);
 }

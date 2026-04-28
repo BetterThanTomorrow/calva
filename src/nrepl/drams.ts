@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import { ConnectType } from './connect-types';
+import * as connectTypes from './connect-types';
 import * as dramManifest from './dram-manifest';
 import * as dramStaging from './dram-staging';
 import * as replMenu from './repl-menu';
@@ -359,7 +359,7 @@ export async function startDram() {
   const config = (await deserializeDramStartConfig(state.getProjectRootUri())).config;
   console.debug('Dram start config:', config);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
-  await state.initProjectDir(ConnectType.JackIn, null, false);
+  await state.initProjectDir(connectTypes.ConnectType.JackIn, null, false);
   const projectRootUri = state.getProjectRootUri();
   const openPaths = dramManifest.resolveDramOpenPaths(config);
 

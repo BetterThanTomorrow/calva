@@ -4,7 +4,7 @@
  * Author: Matt Seddon
  */
 import * as stream from 'stream';
-import { Buffer } from 'buffer';
+import * as buffer from 'buffer';
 
 /** Bencode the given JSON object */
 const bencode = (value) => {
@@ -18,7 +18,7 @@ const bencode = (value) => {
     return 'i' + value + 'e';
   }
   if (typeof value == 'string') {
-    return Buffer.byteLength(value, 'utf8') + ':' + value;
+    return buffer.Buffer.byteLength(value, 'utf8') + ':' + value;
   }
   if (value instanceof Array) {
     return 'l' + value.map(bencode).join('') + 'e';
@@ -184,7 +184,7 @@ class BIncrementalDecoder {
     } else if (this.state.id == 'string-body') {
       this.state.accum.push(byte);
       if (this.state.accum.length >= this.state.length) {
-        return this.complete(Buffer.from(this.state.accum).toString('utf8'));
+        return this.complete(buffer.Buffer.from(this.state.accum).toString('utf8'));
       }
     } else if (this.state.id == 'list') {
       return this.complete(this.state.accum);

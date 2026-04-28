@@ -1,40 +1,40 @@
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import type * as tokenCursorTypes from '../cursor-doc/token-cursor';
 
-function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
-  const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList(1);
-  const text = tokenCursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
+function moveCursorPastStringInList(cursor: tokenCursorTypes.LispTokenCursor, s: string): void {
+  const [listOffsetStart, listOffsetEnd] = cursor.rangeForList(1);
+  const text = cursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
 
   const stringIndexInList = text.indexOf(s);
   if (stringIndexInList !== -1) {
     const coorOffset = listOffsetStart + stringIndexInList;
-    while (tokenCursor.offsetStart !== coorOffset) {
-      tokenCursor.forwardSexp();
-      tokenCursor.forwardWhitespace();
+    while (cursor.offsetStart !== coorOffset) {
+      cursor.forwardSexp();
+      cursor.forwardWhitespace();
     }
-    tokenCursor.forwardSexp();
+    cursor.forwardSexp();
   } else {
     throw 'Cannot find string in list';
   }
 }
 
 function moveTokenCursorToBreakpoint(
-  tokenCursor: LispTokenCursor,
+  cursor: tokenCursorTypes.LispTokenCursor,
   debugResponse: any
-): LispTokenCursor {
+): tokenCursorTypes.LispTokenCursor {
   const errorMessage = 'Error finding position of breakpoint';
-  const defunRange = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
+  const defunRange = cursor.rangeForDefun(cursor.offsetStart);
   if (!defunRange) {
     throw errorMessage + ': no defun range found';
   }
   const [defunStart, defunEnd] = defunRange;
-  tokenCursor.set(tokenCursor.doc.getTokenCursor(defunStart));
+  cursor.set(cursor.doc.getTokenCursor(defunStart));
   let inSyntaxQuote = false;
 
   const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
 
   for (let i = 0; i < coor.length; i++) {
-    tokenCursor.downListSkippingMeta();
-    const previousToken = tokenCursor.getPrevToken();
+    cursor.downListSkippingMeta();
+    const previousToken = cursor.getPrevToken();
 
     // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
     // `(. .) is read as (seq (concat (list .) (list .))).
@@ -68,39 +68,39 @@ function moveTokenCursorToBreakpoint(
 
     // If coor is a string it represents a map key
     if (typeof coor[i] === 'string') {
-      moveCursorPastStringInList(tokenCursor, coor[i]);
+      moveCursorPastStringInList(cursor, coor[i]);
     } else {
       for (let k = 0; k < coor[i]; k++) {
-        if (!tokenCursor.forwardSexp(true, true, true)) {
+        if (!cursor.forwardSexp(true, true, true)) {
           throw errorMessage + `: cannot move down list at coor index ${i}`;
         }
       }
     }
 
-    tokenCursor.forwardWhitespace();
+    cursor.forwardWhitespace();
 
     // If the next sexpr starts with `@` it's dereffing a value, and that is expanded
     // to (deref value) behind the scenes. We will get a coor path to go down the
     // deref form, but can't really act on it. So we break here.
-    if (tokenCursor.getToken().raw.startsWith('@')) {
+    if (cursor.getToken().raw.startsWith('@')) {
       i++;
     }
   }
 
   // Move past the target sexp
-  if (!tokenCursor.forwardSexp(true, true, true)) {
+  if (!cursor.forwardSexp(true, true, true)) {
     throw errorMessage + `: cannot move forward at coor ${JSON.stringify(coor)}`;
   }
 
   // Make sure we're still inside the original instrumented form, otherwise something went wrong
-  if (tokenCursor.offsetStart > defunEnd) {
+  if (cursor.offsetStart > defunEnd) {
     throw (
       errorMessage +
-      `: moved past original instrumented form (defunStart=${defunStart}, defunEnd=${defunEnd}, offset=${tokenCursor.offsetStart})`
+      `: moved past original instrumented form (defunStart=${defunStart}, defunEnd=${defunEnd}, offset=${cursor.offsetStart})`
     );
   }
 
-  return tokenCursor;
+  return cursor;
 }
 
 export { moveTokenCursorToBreakpoint };

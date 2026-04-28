@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as util from './util';
 import * as projectRoot from '../project-root';
-import { getActiveTextEditor } from '../utilities';
+import * as utilities from '../utilities';
 
 function openFile(file: string | vscode.Uri) {
   const fileUri: vscode.Uri = file instanceof vscode.Uri ? file : vscode.Uri.file(file);
@@ -34,7 +34,7 @@ function askToCreateANewFile(dir: vscode.Uri, filename: string) {
 }
 
 export async function toggleBetweenImplAndTest() {
-  const activeFile = getActiveTextEditor();
+  const activeFile = utilities.getActiveTextEditor();
   const openedFilename = activeFile.document.fileName;
   const projectRootUri = projectRoot.findClosestParent(
     vscode.window.activeTextEditor?.document.uri,

@@ -1,5 +1,5 @@
-import { takeWhile } from 'lodash';
-import type { ResultsBuffer } from '../repl-window/repl-window-doc';
+import * as _ from 'lodash';
+import type * as replWindowDoc from '../repl-window/repl-window-doc';
 
 function addToHistory(history: string[], content?: string): string[] {
   if (content) {
@@ -18,10 +18,10 @@ function formatAsLineComments(str: string): string {
 }
 
 function splitEditQueueForTextBatching(
-  editQueue: ResultsBuffer,
+  editQueue: replWindowDoc.ResultsBuffer,
   maxBatchSize: number = 1000
-): [string[], ResultsBuffer] {
-  const nextBatch = takeWhile(editQueue, (value, index) => {
+): [string[], replWindowDoc.ResultsBuffer] {
+  const nextBatch = _.takeWhile(editQueue, (value, index) => {
     return index < maxBatchSize && !value.onAppended;
   }).map((x) => x.text);
   const remainingEditQueue = [...editQueue].slice(nextBatch.length);
