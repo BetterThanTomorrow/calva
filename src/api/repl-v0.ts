@@ -1,7 +1,6 @@
 import * as printer from '../printer';
 import * as replSession from '../nrepl/repl-session';
 import * as sessionRegistry from '../nrepl/session-registry';
-import { cljsLib } from '../utilities';
 
 type Result = {
   result: string;

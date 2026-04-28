@@ -1,19 +1,16 @@
 import * as state from '../state';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as getPort from 'get-port';
+import getPort = require('get-port');
 import * as utilities from '../utilities';
 import * as pprint from '../printer';
-import { getConfig } from '../config';
-import { keywordize, unKeywordize } from '../util/string';
-import {
-  getEffectiveJackInDependencyVersions,
-  type JackInDependencyKey,
-} from './jack-in-dependency-versions';
+import * as config from '../config';
+import * as stringUtil from '../util/string';
+import * as jackInDependencyVersions from './jack-in-dependency-versions';
 import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as connectSequences from './connectSequence';
-import { getStateValue, parseForms, parseEdn } from '../../out/cljs-lib/cljs-lib';
 import * as joyride from '../joyride';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -103,7 +100,7 @@ export function shadowConfigFile(projectRootUri?: vscode.Uri): vscode.Uri {
 
 export async function shadowBuilds(projectRootUri?: vscode.Uri): Promise<string[]> {
   const data = await vscode.workspace.fs.readFile(shadowConfigFile(projectRootUri));
-  const parsed = parseEdn(new TextDecoder('utf-8').decode(data));
+  const parsed = cljsLib.parseEdn(new TextDecoder('utf-8').decode(data));
   return [
     ...(parsed.builds
       ? Object.keys(parsed.builds).map((key: string) => {
@@ -185,7 +182,9 @@ async function selectShadowBuilds(
     selectedBuilds = selectedBuildItems.map((item) => item.label);
   }
   const aliases: string[] =
-    menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : [];
+    menuSelections && menuSelections.cljAliases
+      ? menuSelections.cljAliases.map(stringUtil.keywordize)
+      : [];
   const aliasesOption = aliases.length > 0 ? ['-A', aliases.join('')] : [];
   const args: string[] = [];
   if (aliasesOption && aliasesOption.length) {
@@ -203,7 +202,7 @@ async function leinDefProject(): Promise<any> {
   );
   const data = new TextDecoder('utf-8').decode(bytes);
   try {
-    const parsed = parseForms(data);
+    const parsed = cljsLib.parseForms(data);
     return parsed.find((x) => x[0] == 'defproject');
   } catch (e) {
     void vscode.window.showErrorMessage(
@@ -227,7 +226,7 @@ async function leinProfilesAndAlias(
         const menuSelections = connectSequence.menuSelections,
           leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
         if (leinAlias) {
-          alias = unKeywordize(leinAlias);
+          alias = stringUtil.unKeywordize(leinAlias);
         } else if (leinAlias === null) {
           alias = undefined;
         } else {
@@ -255,15 +254,15 @@ async function leinProfilesAndAlias(
       menuSelections = connectSequence.menuSelections,
       launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
     if (launchProfiles) {
-      profiles = launchProfiles.map(keywordize);
+      profiles = launchProfiles.map(stringUtil.keywordize);
     } else {
       let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
-      const myProfiles = getConfig().myLeinProfiles;
+      const myProfiles = config.getConfig().myLeinProfiles;
       if (myProfiles && myProfiles.length) {
         projectProfiles = [...projectProfiles, ...myProfiles];
       }
       if (projectProfiles.length) {
-        profiles = projectProfiles.map(keywordize);
+        profiles = projectProfiles.map(stringUtil.keywordize);
         if (profiles.length) {
           const profilItems = await utilities.quickPickMulti({
             values: profiles.map((a) => ({ label: a })),
@@ -284,7 +283,8 @@ export enum JackInDependency {
   'cider/piggieback' = 'cider/piggieback',
 }
 
-const jackInVersionFor = (key: JackInDependencyKey) => getEffectiveJackInDependencyVersions()[key];
+const jackInVersionFor = (key: jackInDependencyVersions.JackInDependencyKey) =>
+  jackInDependencyVersions.getEffectiveJackInDependencyVersions()[key];
 
 const NREPL_VERSION = () => jackInVersionFor('nrepl'),
   CIDER_NREPL_VERSION = () => jackInVersionFor('cider-nrepl'),
@@ -382,9 +382,9 @@ function depsCljWindowsPath() {
 
 const clojureCmdFn = () => {
   const configuredCmd =
-    getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
-      ? getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
-      : getConfig().depsEdnJackInExecutable;
+    config.getConfig().depsEdnJackInExecutable === 'clojure or deps.clj'
+      ? cljsLib.getStateValue('depsEdnJackInDefaultExecutable') ?? 'deps.clj'
+      : config.getConfig().depsEdnJackInExecutable;
   return configuredCmd === 'deps.clj'
     ? ['java', '-jar', `"${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}"`]
     : ['clojure'];
@@ -684,10 +684,10 @@ const projectTypes: { [id: string]: ProjectType } = {
   basilisp: {
     name: 'basilisp',
     cmd: () => {
-      return [getConfig().basilispPath];
+      return [config.getConfig().basilispPath];
     },
     winCmd: () => {
-      return [getConfig().basilispPath];
+      return [config.getConfig().basilispPath];
     },
     processShellUnix: true,
     processShellWin: false,
@@ -852,7 +852,7 @@ async function cljCommandLine(
     const bytes = await vscode.workspace.fs.readFile(depsUri);
     const data = new TextDecoder('utf-8').decode(bytes);
     try {
-      parsed = parseEdn(data);
+      parsed = cljsLib.parseEdn(data);
     } catch (e) {
       void vscode.window.showErrorMessage('Could not parse deps.edn');
       throw e;
@@ -865,7 +865,7 @@ async function cljCommandLine(
   const aliasesWithMain: string[] = [];
   let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
   for (const projectAlias of projectAliases) {
-    const aliasKey = unKeywordize(projectAlias);
+    const aliasKey = stringUtil.unKeywordize(projectAlias);
     if (parsed && parsed.aliases) {
       const alias = parsed.aliases[aliasKey];
       if (alias && alias['main-opts'] != undefined && alias['main-opts'].length > 0) {
@@ -874,16 +874,16 @@ async function cljCommandLine(
     }
   }
   if (launchAliases) {
-    aliases = launchAliases.map(keywordize);
+    aliases = launchAliases.map(stringUtil.keywordize);
   } else {
-    const myAliases = getConfig().myCljAliases;
+    const myAliases = config.getConfig().myCljAliases;
     if (myAliases && myAliases.length) {
       projectAliases = [...projectAliases, ...myAliases];
     }
     if (projectAliases.length) {
       const aliasItems = await utilities.quickPickMulti({
         values: projectAliases
-          .map(keywordize)
+          .map(stringUtil.keywordize)
           .sort()
           .map((a) =>
             aliasesWithMain.includes(a)
@@ -913,7 +913,9 @@ async function cljCommandLine(
     ...(connectSequence.extraNReplMiddleware || []),
   ];
 
-  const aliasesFlag = getStateValue('isClojureCLIVersionAncient') ? ['-A', ''] : ['-M', '-M'];
+  const aliasesFlag = cljsLib.getStateValue('isClojureCLIVersionAncient')
+    ? ['-A', '']
+    : ['-M', '-M'];
   const aliasesOption =
     aliases.length > 0 ? `${aliasesFlag[0]}${aliases.join('')}` : aliasesFlag[1];
   const q = isWin ? '"' : "'";
@@ -999,7 +1001,7 @@ async function leinCommandLine(
     );
   }
   if (profiles.length) {
-    args.push('with-profile', profiles.map((x) => `+${unKeywordize(x)}`).join(','));
+    args.push('with-profile', profiles.map((x) => `+${stringUtil.unKeywordize(x)}`).join(','));
   }
 
   args.push(...command);
@@ -1013,7 +1015,7 @@ async function leinCommandLine(
         ...cljsDependencies()[cljsType],
         ...serverPrinterDependencies,
       }),
-      'LEIN-PROFILES': profiles.map((x) => unKeywordize(x)).join(','),
+      'LEIN-PROFILES': profiles.map((x) => stringUtil.unKeywordize(x)).join(','),
       ...(alias ? { 'LEIN-LAUNCH-ALIAS': alias } : {}),
       'CLJ-MIDDLEWARE': middleware.join(','),
       ...(cljsType ? { 'CLJS-MIDDLEWARE': cljsMiddleware[cljsType].join(',') } : {}),

@@ -1,29 +1,29 @@
-import { LspStatus } from './definitions';
+import * as definitions from './definitions';
 import * as vscode from 'vscode';
 
-export const updateStatusBar = (item: vscode.StatusBarItem, status: LspStatus) => {
+export const updateStatusBar = (item: vscode.StatusBarItem, status: definitions.LspStatus) => {
   switch (status) {
-    case LspStatus.Stopped: {
+    case definitions.LspStatus.Stopped: {
       item.text = '$(circle-outline) clojure-lsp';
       item.tooltip = 'Clojure-lsp is not active, click to get a menu';
       break;
     }
-    case LspStatus.Starting: {
+    case definitions.LspStatus.Starting: {
       item.text = '$(sync~spin) clojure-lsp';
       item.tooltip = 'Clojure-lsp is starting';
       break;
     }
-    case LspStatus.Running: {
+    case definitions.LspStatus.Running: {
       item.text = '$(circle-filled) clojure-lsp';
       item.tooltip = 'Clojure-lsp is active';
       break;
     }
-    case LspStatus.Failed: {
+    case definitions.LspStatus.Failed: {
       item.text = '$(error) clojure-lsp';
       item.tooltip = 'Clojure-lsp failed to start';
       break;
     }
-    case LspStatus.Unknown: {
+    case definitions.LspStatus.Unknown: {
       item.text = 'clojure-lsp';
       item.tooltip = 'Open a clojure file to see the server status';
       break;

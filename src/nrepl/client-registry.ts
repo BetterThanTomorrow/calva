@@ -1,6 +1,6 @@
-import type { NReplClient } from './index';
-import type { SessionRoleKeys, SessionGlobMap } from './session-role-utils';
-import type { ReplConnectSequence } from './connectSequence';
+import type * as connectSequence from './connectSequence';
+import type * as nrepl from './index';
+import type * as sessionRoleUtils from './session-role-utils';
 
 export type CljcTargetRole = 'primary' | 'secondary';
 
@@ -12,13 +12,13 @@ export interface ConnectionState {
   cljsBuild: string | null;
   cljsTypeName: string | null;
   hasBuilds: boolean;
-  sessionRoleKeys?: SessionRoleKeys;
-  sessionGlobMap?: SessionGlobMap;
-  connectSequence?: ReplConnectSequence;
+  sessionRoleKeys?: sessionRoleUtils.SessionRoleKeys;
+  sessionGlobMap?: sessionRoleUtils.SessionGlobMap;
+  connectSequence?: connectSequence.ReplConnectSequence;
   shadowCljsRuntimeId?: number;
   shadowCljsRuntimeInfo?: any;
   /** Base session names before any suffix was applied */
-  baseSessionNames?: SessionRoleKeys;
+  baseSessionNames?: sessionRoleUtils.SessionRoleKeys;
   /** The suffix applied to this connection, if any */
   suffix?: string;
   /** Which session role should handle .cljc files for this connection */
@@ -27,7 +27,7 @@ export interface ConnectionState {
 
 export interface RegisteredClient {
   key: string;
-  client: NReplClient;
+  client: nrepl.NReplClient;
   connectSequenceName?: string;
   projectRoot?: string;
   host?: string;
@@ -45,7 +45,7 @@ const defaultConnectionState: ConnectionState = {
 };
 
 export function registerClient(
-  client: NReplClient,
+  client: nrepl.NReplClient,
   metadata: Omit<RegisteredClient, 'key' | 'client' | 'connectedAt' | 'connectionState'> & {
     connectionState?: Partial<ConnectionState>;
   } = {}
@@ -79,7 +79,7 @@ export function listClients(): RegisteredClient[] {
   return Array.from(registeredClients.values()).sort((a, b) => a.connectedAt - b.connectedAt);
 }
 
-export function getClient(clientKey: string): NReplClient | undefined {
+export function getClient(clientKey: string): nrepl.NReplClient | undefined {
   return registeredClients.get(clientKey)?.client;
 }
 

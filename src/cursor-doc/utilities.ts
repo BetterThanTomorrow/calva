@@ -1,5 +1,5 @@
 import * as model from './model';
-import { LispTokenCursor } from './token-cursor';
+import type * as tokenCursor from './token-cursor';
 
 export type MissingTexts = {
   append: string;
@@ -35,7 +35,7 @@ export function getMissingBrackets(text: string): MissingTexts {
   }
 }
 
-export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
+export function isRightSexpStructural(cursor: tokenCursor.LispTokenCursor): boolean {
   cursor.forwardWhitespace();
   if (cursor.getToken().type === 'comment') {
     return false;
@@ -50,7 +50,7 @@ export function isRightSexpStructural(cursor: LispTokenCursor): boolean {
   return false;
 }
 
-export function textForRightSexp(cursor: LispTokenCursor): string {
+export function textForRightSexp(cursor: tokenCursor.LispTokenCursor): string {
   const probe = cursor.clone();
   const start = cursor.offsetStart;
   probe.forwardSexp();
@@ -67,7 +67,9 @@ export function textForRightSexp(cursor: LispTokenCursor): string {
  * an array. In both cases the values in the structure are returned as objects of the shape
  * `{ value: any, originalString: string }`.
  * */
-export function structureForRightSexp(cursor: LispTokenCursor): any | any[] | Map<any, any> {
+export function structureForRightSexp(
+  cursor: tokenCursor.LispTokenCursor
+): any | any[] | Map<any, any> {
   const probe = cursor.clone();
   if (!isRightSexpStructural(probe)) {
     return textForRightSexp(probe);

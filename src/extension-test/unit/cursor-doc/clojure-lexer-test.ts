@@ -1,6 +1,6 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as fc from 'fast-check';
-import { Scanner, toplevel, validPair } from '../../../cursor-doc/clojure-lexer';
+import * as clojureLexer from '../../../cursor-doc/clojure-lexer';
 
 const MAX_LINE_LENGTH = 100;
 
@@ -98,7 +98,7 @@ function list(): fc.Arbitrary<string> {
   return fc
     .tuple(open(), symbol(), close())
     .filter(([o, _s, c]) => {
-      return validPair(o[o.length - 1], c);
+      return clojureLexer.validPair(o[o.length - 1], c);
     })
     .map(([o, s, c]) => `${o}${s}${c}`);
 }
@@ -116,10 +116,10 @@ function testTokens(data) {
 }
 
 describe('Scanner', () => {
-  let scanner: Scanner;
+  let scanner: clojureLexer.Scanner;
 
   beforeEach(() => {
-    scanner = new Scanner(MAX_LINE_LENGTH);
+    scanner = new clojureLexer.Scanner(MAX_LINE_LENGTH);
   });
 
   describe('simple', () => {
@@ -128,8 +128,8 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(symbol(), (data) => {
             const tokens = scanner.processLine(data);
-            expect(tokens[0].type).toBe('id');
-            expect(tokens[0].raw).toBe(data);
+            expectLib.expect(tokens[0].type).toBe('id');
+            expectLib.expect(tokens[0].raw).toBe(data);
           })
         );
       });
@@ -137,22 +137,22 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(underscoreSymbol(), (data) => {
             const tokens = scanner.processLine(data);
-            expect(tokens[0].type).toBe('id');
-            expect(tokens[0].raw).toBe(data);
+            expectLib.expect(tokens[0].type).toBe('id');
+            expectLib.expect(tokens[0].raw).toBe(data);
           })
         );
       });
       it('tokenizes _ as a symbol', () => {
         const tokens = scanner.processLine('_');
-        expect(tokens[0].type).toBe('id');
-        expect(tokens[0].raw).toBe('_');
+        expectLib.expect(tokens[0].type).toBe('id');
+        expectLib.expect(tokens[0].raw).toBe('_');
       });
       it('does not tokenize something with leading digit as a symbol', () => {
         const tokens = scanner.processLine('1foo');
-        expect(tokens[0].type).toBe('lit');
-        expect(tokens[0].raw).toBe('1');
-        expect(tokens[1].type).toBe('id');
-        expect(tokens[1].raw).toBe('foo');
+        expectLib.expect(tokens[0].type).toBe('lit');
+        expectLib.expect(tokens[0].raw).toBe('1');
+        expectLib.expect(tokens[1].type).toBe('id');
+        expectLib.expect(tokens[1].raw).toBe('foo');
       });
     });
     it('tokenizes whitespace', () => {
@@ -160,15 +160,15 @@ describe('Scanner', () => {
         fc.property(ws(), (data) => {
           // Remove extra eol put in there by the scanner
           const tokens = scanner.processLine(data).slice(0, -1);
-          expect(tokens.map((t) => t.raw).join('')).toBe(data);
+          expectLib.expect(tokens.map((t) => t.raw).join('')).toBe(data);
           tokens.forEach((t) => {
-            expect(t.type).toBe('ws');
+            expectLib.expect(t.type).toBe('ws');
           });
         })
       );
       const tokens = scanner.processLine('foo   bar');
-      expect(tokens[1].type).toBe('ws');
-      expect(tokens[1].raw).toBe('   ');
+      expectLib.expect(tokens[1].type).toBe('ws');
+      expectLib.expect(tokens[1].raw).toBe('   ');
     });
     describe('numbers', () => {
       it('tokenizes ints', () => {
@@ -177,8 +177,8 @@ describe('Scanner', () => {
             fc.constantFrom(...['42', '0', '-007', '+42', '-0', '-42', '+3r11', '-25Rn', '00M']),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text);
             }
           )
         );
@@ -201,8 +201,8 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text);
             }
           )
         );
@@ -228,8 +228,8 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text);
             }
           )
         );
@@ -253,8 +253,8 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text);
             }
           )
         );
@@ -263,8 +263,8 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(fc.constantFrom(...['1/2', '01/02', '-100/200', '+1/0']), (text) => {
             const tokens = scanner.processLine(text);
-            expect(tokens[0].type).toBe('lit');
-            expect(tokens[0].raw).toBe(text);
+            expectLib.expect(tokens[0].type).toBe('lit');
+            expectLib.expect(tokens[0].raw).toBe(text);
           })
         );
       });
@@ -276,8 +276,8 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text);
             }
           )
         );
@@ -290,10 +290,10 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text.substr(0, text.indexOf(';')));
-              expect(tokens[1].type).toBe('comment');
-              expect(tokens[1].raw).toBe(text.substr(text.indexOf(';')));
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text.substr(0, text.indexOf(';')));
+              expectLib.expect(tokens[1].type).toBe('comment');
+              expectLib.expect(tokens[1].raw).toBe(text.substr(text.indexOf(';')));
             }
           )
         );
@@ -306,8 +306,8 @@ describe('Scanner', () => {
             ),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text.substr(0, text.indexOf('\\')));
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text.substr(0, text.indexOf('\\')));
             }
           )
         );
@@ -317,8 +317,8 @@ describe('Scanner', () => {
       fc.assert(
         fc.property(keyword(), (data) => {
           const tokens = scanner.processLine(data);
-          expect(tokens[0].type).toBe('kw');
-          expect(tokens[0].raw).toBe(data);
+          expectLib.expect(tokens[0].type).toBe('kw');
+          expectLib.expect(tokens[0].raw).toBe(data);
         })
       );
     });
@@ -327,8 +327,8 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(quotedUnicode(), (data) => {
             const tokens = scanner.processLine(data);
-            expect(tokens[0].type).toBe('lit');
-            expect(tokens[0].raw).toBe(data);
+            expectLib.expect(tokens[0].type).toBe('lit');
+            expectLib.expect(tokens[0].raw).toBe(data);
           })
         );
       });
@@ -336,8 +336,8 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(fc.constantFrom(...['\\']), (data) => {
             const tokens = scanner.processLine(data);
-            expect(tokens[0].type).toBe('lit');
-            expect(tokens[0].raw).toBe(data);
+            expectLib.expect(tokens[0].type).toBe('lit');
+            expectLib.expect(tokens[0].raw).toBe(data);
           })
         );
       });
@@ -349,15 +349,15 @@ describe('Scanner', () => {
             ),
             (data) => {
               const tokens = scanner.processLine(data);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(data);
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(data);
             }
           )
         );
         const data = '\\\b';
         const tokens = scanner.processLine(data);
-        expect(tokens[0].type).toBe('lit');
-        expect(tokens[0].raw).toBe(data);
+        expectLib.expect(tokens[0].type).toBe('lit');
+        expectLib.expect(tokens[0].raw).toBe(data);
       });
       it('tokenizes named literals', () => {
         fc.assert(
@@ -365,8 +365,8 @@ describe('Scanner', () => {
             fc.constantFrom(...['\\space', '\\space,', '\\space;', '\\space ', '\\space\\newline']),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe('\\space');
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe('\\space');
             }
           )
         );
@@ -377,10 +377,10 @@ describe('Scanner', () => {
             fc.constantFrom(...['\\newline;', '\\space;comment', '\\space; comment', '1;', '+1;']),
             (text) => {
               const tokens = scanner.processLine(text);
-              expect(tokens[0].type).toBe('lit');
-              expect(tokens[0].raw).toBe(text.substr(0, text.indexOf(';')));
-              expect(tokens[1].type).toBe('comment');
-              expect(tokens[1].raw).toBe(text.substr(text.indexOf(';')));
+              expectLib.expect(tokens[0].type).toBe('lit');
+              expectLib.expect(tokens[0].raw).toBe(text.substr(0, text.indexOf(';')));
+              expectLib.expect(tokens[1].type).toBe('comment');
+              expectLib.expect(tokens[1].raw).toBe(text.substr(text.indexOf(';')));
             }
           )
         );
@@ -389,7 +389,7 @@ describe('Scanner', () => {
         fc.assert(
           fc.property(fc.constantFrom(...['1#_', '+1#_', '-12#_', '4.2#_', '42.2#_']), (text) => {
             const tokens = scanner.processLine(text);
-            expect(selectKeysTypeRaw(tokens)).toEqual(
+            expectLib.expect(selectKeysTypeRaw(tokens)).toEqual(
               testTokens([
                 ['lit', text.substr(0, text.indexOf('#_'))],
                 ['ignore', '#_'],
@@ -401,95 +401,95 @@ describe('Scanner', () => {
     });
     it('tokenizes literal named character', () => {
       const tokens = scanner.processLine('\\space');
-      expect(tokens[0].type).toBe('lit');
-      expect(tokens[0].raw).toBe('\\space');
+      expectLib.expect(tokens[0].type).toBe('lit');
+      expectLib.expect(tokens[0].raw).toBe('\\space');
     });
     it('tokenizes line comments', () => {
       const tokens = scanner.processLine('; foo');
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw).toBe('; foo');
+      expectLib.expect(tokens[0].type).toBe('comment');
+      expectLib.expect(tokens[0].raw).toBe('; foo');
     });
     describe('tokenizes ignores', () => {
       it('sole, no ws', () => {
         const tokens = scanner.processLine('#_foo');
-        expect(tokens[0].type).toBe('ignore');
-        expect(tokens[0].raw).toBe('#_');
-        expect(tokens[1].type).toBe('id');
-        expect(tokens[1].raw).toBe('foo');
+        expectLib.expect(tokens[0].type).toBe('ignore');
+        expectLib.expect(tokens[0].raw).toBe('#_');
+        expectLib.expect(tokens[1].type).toBe('id');
+        expectLib.expect(tokens[1].raw).toBe('foo');
       });
       it('sole, trailing ws', () => {
         const tokens = scanner.processLine('#_ foo');
-        expect(tokens[0].type).toBe('ignore');
-        expect(tokens[0].raw).toBe('#_');
-        expect(tokens[1].type).toBe('ws');
-        expect(tokens[1].raw).toBe(' ');
-        expect(tokens[2].type).toBe('id');
-        expect(tokens[2].raw).toBe('foo');
+        expectLib.expect(tokens[0].type).toBe('ignore');
+        expectLib.expect(tokens[0].raw).toBe('#_');
+        expectLib.expect(tokens[1].type).toBe('ws');
+        expectLib.expect(tokens[1].raw).toBe(' ');
+        expectLib.expect(tokens[2].type).toBe('id');
+        expectLib.expect(tokens[2].raw).toBe('foo');
       });
       it('sole, leading symbol/id, no ws', () => {
         const tokens = scanner.processLine('foo#_bar');
-        expect(tokens[0].type).toBe('id');
-        expect(tokens[0].raw).toBe('foo#_bar');
+        expectLib.expect(tokens[0].type).toBe('id');
+        expectLib.expect(tokens[0].raw).toBe('foo#_bar');
       });
       it('sole, leading number, no ws', () => {
         const tokens = scanner.processLine('1.2#_foo');
-        expect(tokens[0].type).toBe('lit');
-        expect(tokens[0].raw).toBe('1.2');
-        expect(tokens[1].type).toBe('ignore');
-        expect(tokens[1].raw).toBe('#_');
-        expect(tokens[2].type).toBe('id');
-        expect(tokens[2].raw).toBe('foo');
+        expectLib.expect(tokens[0].type).toBe('lit');
+        expectLib.expect(tokens[0].raw).toBe('1.2');
+        expectLib.expect(tokens[1].type).toBe('ignore');
+        expectLib.expect(tokens[1].raw).toBe('#_');
+        expectLib.expect(tokens[2].type).toBe('id');
+        expectLib.expect(tokens[2].raw).toBe('foo');
       });
       it('many, no ws', () => {
         const tokens = scanner.processLine('#_#_#_foo');
-        expect(tokens[0].type).toBe('ignore');
-        expect(tokens[0].raw).toBe('#_');
-        expect(tokens[1].type).toBe('ignore');
-        expect(tokens[1].raw).toBe('#_');
-        expect(tokens[2].type).toBe('ignore');
-        expect(tokens[2].raw).toBe('#_');
-        expect(tokens[3].type).toBe('id');
-        expect(tokens[3].raw).toBe('foo');
+        expectLib.expect(tokens[0].type).toBe('ignore');
+        expectLib.expect(tokens[0].raw).toBe('#_');
+        expectLib.expect(tokens[1].type).toBe('ignore');
+        expectLib.expect(tokens[1].raw).toBe('#_');
+        expectLib.expect(tokens[2].type).toBe('ignore');
+        expectLib.expect(tokens[2].raw).toBe('#_');
+        expectLib.expect(tokens[3].type).toBe('id');
+        expectLib.expect(tokens[3].raw).toBe('foo');
       });
       it('adjacent after literals it is part of the token', () => {
         fc.assert(
           fc.property(fc.constantFrom(...['\\c#_']), (text) => {
             const tokens = scanner.processLine(text);
-            expect(tokens[0].raw).toBe(text);
+            expectLib.expect(tokens[0].raw).toBe(text);
           })
         );
       });
     });
     it('tokenizes the Calva repl prompt', () => {
       const tokens = scanner.processLine('foo꞉bar.baz꞉> ()');
-      expect(tokens[0].type).toBe('prompt');
-      expect(tokens[0].raw).toBe('foo꞉bar.baz꞉> ');
-      expect(tokens[1].type).toBe('open');
-      expect(tokens[1].raw).toBe('(');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe(')');
+      expectLib.expect(tokens[0].type).toBe('prompt');
+      expectLib.expect(tokens[0].raw).toBe('foo꞉bar.baz꞉> ');
+      expectLib.expect(tokens[1].type).toBe('open');
+      expectLib.expect(tokens[1].raw).toBe('(');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe(')');
     });
     it('only tokenizes the Calva repl prompt if it is at the start of a line', () => {
       const tokens = scanner.processLine(' foo꞉bar.baz꞉> ()');
-      expect(tokens[0].type).toBe('ws');
-      expect(tokens[0].raw).toBe(' ');
-      expect(tokens[1].type).toBe('id');
-      expect(tokens[1].raw).toBe('foo꞉bar.baz꞉>');
-      expect(tokens[2].type).toBe('junk');
-      expect(tokens[2].raw).toBe(' ');
-      expect(tokens[3].type).toBe('open');
-      expect(tokens[3].raw).toBe('(');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe(')');
+      expectLib.expect(tokens[0].type).toBe('ws');
+      expectLib.expect(tokens[0].raw).toBe(' ');
+      expectLib.expect(tokens[1].type).toBe('id');
+      expectLib.expect(tokens[1].raw).toBe('foo꞉bar.baz꞉>');
+      expectLib.expect(tokens[2].type).toBe('junk');
+      expectLib.expect(tokens[2].raw).toBe(' ');
+      expectLib.expect(tokens[3].type).toBe('open');
+      expectLib.expect(tokens[3].raw).toBe('(');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe(')');
     });
     it('only tokenizes the Calva repl prompt if it ends with a space', () => {
       const tokens = scanner.processLine('foo꞉bar.baz꞉>()');
-      expect(tokens[0].type).toBe('id');
-      expect(tokens[0].raw).toBe('foo꞉bar.baz꞉>');
-      expect(tokens[1].type).toBe('open');
-      expect(tokens[1].raw).toBe('(');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe(')');
+      expectLib.expect(tokens[0].type).toBe('id');
+      expectLib.expect(tokens[0].raw).toBe('foo꞉bar.baz꞉>');
+      expectLib.expect(tokens[1].type).toBe('open');
+      expectLib.expect(tokens[1].raw).toBe('(');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe(')');
     });
   });
   describe('lists', () => {
@@ -498,161 +498,161 @@ describe('Scanner', () => {
         fc.property(list(), (data) => {
           const tokens = scanner.processLine(data);
           const numTokens = tokens.length;
-          expect(tokens[numTokens - 4].type).toBe('open');
-          expect(tokens[numTokens - 2].type).toBe('close');
+          expectLib.expect(tokens[numTokens - 4].type).toBe('open');
+          expectLib.expect(tokens[numTokens - 2].type).toBe('close');
         })
       );
     });
     it('tokenizes list', () => {
       const tokens = scanner.processLine('(foo)');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('(');
-      expect(tokens[1].type).toBe('id');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe(')');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('(');
+      expectLib.expect(tokens[1].type).toBe('id');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe(')');
     });
     it('tokenizes vector', () => {
       const tokens = scanner.processLine('[foo]');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('[');
-      expect(tokens[1].type).toBe('id');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe(']');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('[');
+      expectLib.expect(tokens[1].type).toBe('id');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe(']');
     });
     it('tokenizes map', () => {
       const tokens = scanner.processLine('{:foo bar}');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('{');
-      expect(tokens[1].type).toBe('kw');
-      expect(tokens[1].raw).toBe(':foo');
-      expect(tokens[2].type).toBe('ws');
-      expect(tokens[2].raw).toBe(' ');
-      expect(tokens[3].type).toBe('id');
-      expect(tokens[3].raw).toBe('bar');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe('}');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('{');
+      expectLib.expect(tokens[1].type).toBe('kw');
+      expectLib.expect(tokens[1].raw).toBe(':foo');
+      expectLib.expect(tokens[2].type).toBe('ws');
+      expectLib.expect(tokens[2].raw).toBe(' ');
+      expectLib.expect(tokens[3].type).toBe('id');
+      expectLib.expect(tokens[3].raw).toBe('bar');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe('}');
     });
     it('tokenizes shorthand lambda', () => {
       const tokens = scanner.processLine('#(foo bar)');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('#(');
-      expect(tokens[1].type).toBe('id');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('ws');
-      expect(tokens[2].raw).toBe(' ');
-      expect(tokens[3].type).toBe('id');
-      expect(tokens[3].raw).toBe('bar');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe(')');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('#(');
+      expectLib.expect(tokens[1].type).toBe('id');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('ws');
+      expectLib.expect(tokens[2].raw).toBe(' ');
+      expectLib.expect(tokens[3].type).toBe('id');
+      expectLib.expect(tokens[3].raw).toBe('bar');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe(')');
     });
     it('tokenizes set', () => {
       const tokens = scanner.processLine('#{:foo :bar}');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('#{');
-      expect(tokens[1].type).toBe('kw');
-      expect(tokens[1].raw).toBe(':foo');
-      expect(tokens[2].type).toBe('ws');
-      expect(tokens[2].raw).toBe(' ');
-      expect(tokens[3].type).toBe('kw');
-      expect(tokens[3].raw).toBe(':bar');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe('}');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('#{');
+      expectLib.expect(tokens[1].type).toBe('kw');
+      expectLib.expect(tokens[1].raw).toBe(':foo');
+      expectLib.expect(tokens[2].type).toBe('ws');
+      expectLib.expect(tokens[2].raw).toBe(' ');
+      expectLib.expect(tokens[3].type).toBe('kw');
+      expectLib.expect(tokens[3].raw).toBe(':bar');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe('}');
     });
     it('tokenizes string', () => {
       const tokens = scanner.processLine('"foo"');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe('"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('"');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe('"');
     });
     it('tokenizes regex', () => {
       const tokens = scanner.processLine('#"foo"');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('#"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe('"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('#"');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe('"');
     });
     it('tokenizes the `#` in `#[]` separately', () => {
       const tokens = scanner.processLine('#[foo bar]');
-      expect(tokens[0].type).toBe('junk');
-      expect(tokens[0].raw).toBe('#');
-      expect(tokens[1].type).toBe('open');
-      expect(tokens[1].raw).toBe('[');
-      expect(tokens[2].type).toBe('id');
-      expect(tokens[2].raw).toBe('foo');
-      expect(tokens[3].type).toBe('ws');
-      expect(tokens[3].raw).toBe(' ');
-      expect(tokens[4].type).toBe('id');
-      expect(tokens[4].raw).toBe('bar');
-      expect(tokens[5].type).toBe('close');
-      expect(tokens[5].raw).toBe(']');
+      expectLib.expect(tokens[0].type).toBe('junk');
+      expectLib.expect(tokens[0].raw).toBe('#');
+      expectLib.expect(tokens[1].type).toBe('open');
+      expectLib.expect(tokens[1].raw).toBe('[');
+      expectLib.expect(tokens[2].type).toBe('id');
+      expectLib.expect(tokens[2].raw).toBe('foo');
+      expectLib.expect(tokens[3].type).toBe('ws');
+      expectLib.expect(tokens[3].raw).toBe(' ');
+      expectLib.expect(tokens[4].type).toBe('id');
+      expectLib.expect(tokens[4].raw).toBe('bar');
+      expectLib.expect(tokens[5].type).toBe('close');
+      expectLib.expect(tokens[5].raw).toBe(']');
     });
   });
   describe('data reader tags', () => {
     it('tokenizes tag, separate line', () => {
       const tokens = scanner.processLine('#foo');
-      expect(tokens[0].type).toBe('reader');
-      expect(tokens[0].raw).toBe('#foo');
+      expectLib.expect(tokens[0].type).toBe('reader');
+      expectLib.expect(tokens[0].raw).toBe('#foo');
     });
     it('tokenizes tag, with underscores', () => {
       const tokens = scanner.processLine('#foo_bar');
-      expect(tokens[0].type).toBe('reader');
-      expect(tokens[0].raw).toBe('#foo_bar');
+      expectLib.expect(tokens[0].type).toBe('reader');
+      expectLib.expect(tokens[0].raw).toBe('#foo_bar');
     });
     it('does not treat var quote plus open token as reader tag plus open token', () => {
       const tokens = scanner.processLine("#'foo []");
-      expect(tokens[0].type).toBe('id');
-      expect(tokens[0].raw).toBe("#'foo");
-      expect(tokens[1].type).toBe('ws');
-      expect(tokens[1].raw).toBe(' ');
-      expect(tokens[2].type).toBe('open');
-      expect(tokens[2].raw).toBe('[');
-      expect(tokens[3].type).toBe('close');
-      expect(tokens[3].raw).toBe(']');
+      expectLib.expect(tokens[0].type).toBe('id');
+      expectLib.expect(tokens[0].raw).toBe("#'foo");
+      expectLib.expect(tokens[1].type).toBe('ws');
+      expectLib.expect(tokens[1].raw).toBe(' ');
+      expectLib.expect(tokens[2].type).toBe('open');
+      expectLib.expect(tokens[2].raw).toBe('[');
+      expectLib.expect(tokens[3].type).toBe('close');
+      expectLib.expect(tokens[3].raw).toBe(']');
     });
   });
   describe('strings', () => {
     it('tokenizes words in strings', () => {
       const tokens = scanner.processLine('"(foo :bar)"');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('(foo');
-      expect(tokens[2].type).toBe('ws');
-      expect(tokens[2].raw).toBe(' ');
-      expect(tokens[3].type).toBe('str-inside');
-      expect(tokens[3].raw).toBe(':bar)');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe('"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('"');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('(foo');
+      expectLib.expect(tokens[2].type).toBe('ws');
+      expectLib.expect(tokens[2].raw).toBe(' ');
+      expectLib.expect(tokens[3].type).toBe('str-inside');
+      expectLib.expect(tokens[3].raw).toBe(':bar)');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe('"');
     });
     it('tokenizes newlines in strings', () => {
       const tokens = scanner.processLine('"foo\nbar"');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('foo');
-      expect(tokens[2].type).toBe('ws');
-      expect(tokens[2].raw).toBe('\n');
-      expect(tokens[3].type).toBe('str-inside');
-      expect(tokens[3].raw).toBe('bar');
-      expect(tokens[4].type).toBe('close');
-      expect(tokens[4].raw).toBe('"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('"');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('foo');
+      expectLib.expect(tokens[2].type).toBe('ws');
+      expectLib.expect(tokens[2].raw).toBe('\n');
+      expectLib.expect(tokens[3].type).toBe('str-inside');
+      expectLib.expect(tokens[3].raw).toBe('bar');
+      expectLib.expect(tokens[4].type).toBe('close');
+      expectLib.expect(tokens[4].raw).toBe('"');
     });
     it('tokenizes quoted quotes in strings', () => {
       let tokens = scanner.processLine('"\\""');
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('\\"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('"');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('\\"');
       tokens = scanner.processLine('"foo\\"bar"');
-      expect(tokens[1].type).toBe('str-inside');
-      expect(tokens[1].raw).toBe('foo\\"bar');
+      expectLib.expect(tokens[1].type).toBe('str-inside');
+      expectLib.expect(tokens[1].raw).toBe('foo\\"bar');
     });
   });
   describe('Reported issues', () => {
@@ -660,57 +660,57 @@ describe('Scanner', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/556
       const longLine = 'foo '.repeat(26),
         tokens = scanner.processLine(longLine);
-      expect(tokens[0].type).toBe('too-long-line');
-      expect(tokens[0].raw).toBe(longLine);
+      expectLib.expect(tokens[0].type).toBe('too-long-line');
+      expectLib.expect(tokens[0].raw).toBe(longLine);
     });
     it('handles literal quotes - #566', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/566
       const tokens = scanner.processLine("\\' foo");
-      expect(tokens[0].type).toBe('lit');
-      expect(tokens[0].raw).toBe("\\'");
-      expect(tokens[1].type).toBe('ws');
-      expect(tokens[1].raw).toBe(' ');
-      expect(tokens[2].type).toBe('id');
-      expect(tokens[2].raw).toBe('foo');
+      expectLib.expect(tokens[0].type).toBe('lit');
+      expectLib.expect(tokens[0].raw).toBe("\\'");
+      expectLib.expect(tokens[1].type).toBe('ws');
+      expectLib.expect(tokens[1].raw).toBe(' ');
+      expectLib.expect(tokens[2].type).toBe('id');
+      expectLib.expect(tokens[2].raw).toBe('foo');
     });
     it('handles symbols ending in =? - #566', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/566
       const tokens = scanner.processLine('foo=? foo');
-      expect(tokens[0].type).toBe('id');
-      expect(tokens[0].raw).toBe('foo=?');
-      expect(tokens[1].type).toBe('ws');
-      expect(tokens[1].raw).toBe(' ');
-      expect(tokens[2].type).toBe('id');
-      expect(tokens[2].raw).toBe('foo');
+      expectLib.expect(tokens[0].type).toBe('id');
+      expectLib.expect(tokens[0].raw).toBe('foo=?');
+      expectLib.expect(tokens[1].type).toBe('ws');
+      expectLib.expect(tokens[1].raw).toBe(' ');
+      expectLib.expect(tokens[2].type).toBe('id');
+      expectLib.expect(tokens[2].raw).toBe('foo');
     });
     it('does not treat var quoted symbols as reader tags - #584', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/584
       const tokens = scanner.processLine("#'foo");
-      expect(tokens[0].type).toBe('id');
-      expect(tokens[0].raw).toBe("#'foo");
+      expectLib.expect(tokens[0].type).toBe('id');
+      expectLib.expect(tokens[0].raw).toBe("#'foo");
     });
     it('does not croak on funny data in strings - #659', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/659
       const tokens = scanner.processLine('" "'); // <- That's not a regular space
-      expect(tokens[0].type).toBe('open');
-      expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('junk');
-      expect(tokens[1].raw).toBe(' ');
-      expect(tokens[2].type).toBe('close');
-      expect(tokens[2].raw).toBe('"');
+      expectLib.expect(tokens[0].type).toBe('open');
+      expectLib.expect(tokens[0].raw).toBe('"');
+      expectLib.expect(tokens[1].type).toBe('junk');
+      expectLib.expect(tokens[1].raw).toBe(' ');
+      expectLib.expect(tokens[2].type).toBe('close');
+      expectLib.expect(tokens[2].raw).toBe('"');
     });
     it('does not hang on matching token rule regexes against a string of hashes', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/667
       const text = '#################################################';
-      const rule = toplevel.rules.find((rule) => rule.name === 'open');
-      toplevel.rules.forEach((rule) => {
+      const rule = clojureLexer.toplevel.rules.find((rule) => rule.name === 'open');
+      clojureLexer.toplevel.rules.forEach((rule) => {
         console.log(`Testing rule: ${rule.name}`);
         const x = rule.r.exec(text);
         console.log(`Tested rule: ${rule.name}`);
         if (!['reader', 'junk'].includes(rule.name)) {
-          expect(x).toBeNull();
+          expectLib.expect(x).toBeNull();
         } else {
-          expect(x.length).toBe(1);
+          expectLib.expect(x.length).toBe(1);
         }
       });
     });
@@ -718,9 +718,9 @@ describe('Scanner', () => {
       // https://github.com/BetterThanTomorrow/calva/issues/659
       const text = ';; ################################################# FRONTEND';
       const tokens = scanner.processLine(text);
-      expect(tokens.length).toBe(2);
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw === text);
+      expectLib.expect(tokens.length).toBe(2);
+      expectLib.expect(tokens[0].type).toBe('comment');
+      expectLib.expect(tokens[0].raw === text);
     });
   });
 });

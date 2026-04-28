@@ -1,8 +1,8 @@
-import { CompletionItemKind, CompletionItemLabel } from 'vscode';
+import * as vscode from 'vscode';
 
 type CompletionObject = {
-  label: string | CompletionItemLabel;
-  kind: CompletionItemKind | number;
+  label: string | vscode.CompletionItemLabel;
+  kind: vscode.CompletionItemKind | number;
   [key: string]: any;
 };
 

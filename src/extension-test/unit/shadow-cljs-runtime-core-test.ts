@@ -1,6 +1,6 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as shadowRuntimeCore from '../../../src/shadow-cljs-runtime-core';
-import type { ConnectionState } from '../../../src/nrepl/client-registry';
+import type * as clientRegistry from '../../../src/nrepl/client-registry';
 
 describe('shadow-cljs-runtime-core', () => {
   describe('normalizeRuntimeInfo', () => {
@@ -17,11 +17,11 @@ describe('shadow-cljs-runtime-core', () => {
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
 
-      expect(result.clientId).toBe(42);
-      expect(result.buildId).toBe(':app');
-      expect(result.host).toBe('localhost');
-      expect(result.workerId).toBe(1);
-      expect(result.description).toBe('Test Browser');
+      expectLib.expect(result.clientId).toBe(42);
+      expectLib.expect(result.buildId).toBe(':app');
+      expectLib.expect(result.host).toBe('localhost');
+      expectLib.expect(result.workerId).toBe(1);
+      expectLib.expect(result.description).toBe('Test Browser');
     });
 
     it('falls back to user-agent when desc is missing', () => {
@@ -36,7 +36,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
-      expect(result.description).toBe('Mozilla/5.0');
+      expectLib.expect(result.description).toBe('Mozilla/5.0');
     });
 
     it('uses "No description" when neither desc nor user-agent exists', () => {
@@ -50,7 +50,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
-      expect(result.description).toBe('No description');
+      expectLib.expect(result.description).toBe('No description');
     });
 
     it('computes sinceInst from since Date', () => {
@@ -66,7 +66,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
-      expect(result.sinceInst).toBe(testDate.getTime());
+      expectLib.expect(result.sinceInst).toBe(testDate.getTime());
     });
   });
 
@@ -75,14 +75,14 @@ describe('shadow-cljs-runtime-core', () => {
       const data: shadowRuntimeCore.NotifyMessageData = { op: 'other' };
       const result = shadowRuntimeCore.decideMessageAction(data, undefined);
 
-      expect(result.type).toBe('no-action');
+      expectLib.expect(result.type).toBe('no-action');
     });
 
     it('returns no-action for notify without client-id', () => {
       const data: shadowRuntimeCore.NotifyMessageData = { op: 'notify' };
       const result = shadowRuntimeCore.decideMessageAction(data, undefined);
 
-      expect(result.type).toBe('no-action');
+      expectLib.expect(result.type).toBe('no-action');
     });
 
     it('returns runtime-disconnected when current runtime disconnects', () => {
@@ -93,7 +93,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, 42);
 
-      expect(result).toEqual({ type: 'runtime-disconnected', clientId: 42 });
+      expectLib.expect(result).toEqual({ type: 'runtime-disconnected', clientId: 42 });
     });
 
     it('returns no-action when a different runtime disconnects', () => {
@@ -104,7 +104,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, 42);
 
-      expect(result.type).toBe('no-action');
+      expectLib.expect(result.type).toBe('no-action');
     });
 
     it('returns runtime-connected when new runtime appears while disconnected', () => {
@@ -124,11 +124,11 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, undefined);
 
-      expect(result.type).toBe('runtime-connected');
+      expectLib.expect(result.type).toBe('runtime-connected');
       if (result.type === 'runtime-connected') {
-        expect(result.clientId).toBe(42);
-        expect(result.runtimeInfo.description).toBe('New Browser');
-        expect(result.runtimeInfo.clientId).toBe(42); // Should be set from outer client-id
+        expectLib.expect(result.clientId).toBe(42);
+        expectLib.expect(result.runtimeInfo.description).toBe('New Browser');
+        expectLib.expect(result.runtimeInfo.clientId).toBe(42); // Should be set from outer client-id
       }
     });
 
@@ -148,7 +148,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, 42);
 
-      expect(result.type).toBe('no-action');
+      expectLib.expect(result.type).toBe('no-action');
     });
 
     it('returns no-action when client-connect lacks client-info', () => {
@@ -159,13 +159,13 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, undefined);
 
-      expect(result.type).toBe('no-action');
+      expectLib.expect(result.type).toBe('no-action');
     });
   });
 
   describe('formatSinceDescription', () => {
     it('returns "Unknown time" for undefined', () => {
-      expect(shadowRuntimeCore.formatSinceDescription(undefined)).toBe('Unknown time');
+      expectLib.expect(shadowRuntimeCore.formatSinceDescription(undefined)).toBe('Unknown time');
     });
 
     it('formats date to locale string', () => {
@@ -173,8 +173,8 @@ describe('shadow-cljs-runtime-core', () => {
       const result = shadowRuntimeCore.formatSinceDescription(date);
 
       // Just verify it produces some non-empty string (locale-dependent)
-      expect(result.length).toBeGreaterThan(0);
-      expect(result).not.toBe('Unknown time');
+      expectLib.expect(result.length).toBeGreaterThan(0);
+      expectLib.expect(result).not.toBe('Unknown time');
     });
   });
 });

@@ -9,20 +9,22 @@ TypeScript coding conventions and patterns that improve code quality and maintai
 
 ## Import Patterns
 
-### Prefer Module Namespace Imports
-When importing multiple functions from a module, use namespace imports instead of destructuring:
+### Module Namespace Imports Are Required
+In Calva TypeScript and TSX code, treat module namespace imports as the default and required import style:
 
 ```typescript
-// Preferred
+// Required in normal cases
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 await shadowCljsRuntime.initializeShadowRemoteNotifications();
 
-// Instead of
+// Do not do this for Calva code
 import { initializeShadowRemoteNotifications } from './shadow-cljs-runtime';
 await initializeShadowRemoteNotifications();
 ```
 
-**Why:** This approach provides better context about where functions originate and makes it easier to track module dependencies throughout the codebase.
+Use named imports or default imports only when the module's export shape makes a namespace import incorrect or unusable. Typical exceptions are callable CommonJS-style packages, where the correct form may instead be `import x = require('...')`.
+
+**Why:** Namespace imports make call sites show module ownership explicitly, reduce symbol ambiguity during refactors, and keep import style consistent across the Calva TypeScript codebase.
 
 ## Isolate VS Code Dependencies for Unit Testing
 

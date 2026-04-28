@@ -1,6 +1,9 @@
-import { getFirstEol, LineInputModel } from './model';
-import { Token, validPair } from './clojure-lexer';
-import { isCommentFormHead, CommentFormConfig } from './paredit-config';
+import * as model from './model';
+import * as clojureLexer from './clojure-lexer';
+import * as pareditConfig from './paredit-config';
+
+type Token = clojureLexer.Token;
+type CommentFormConfig = pareditConfig.CommentFormConfig;
 
 function tokenIsWhiteSpace(token: Token) {
   return token.type === 'eol' || token.type == 'ws';
@@ -10,7 +13,7 @@ function tokenIsWhiteSpace(token: Token) {
  * A mutable cursor into the token stream.
  */
 export class TokenCursor {
-  constructor(public doc: LineInputModel, public line: number, public token: number) {}
+  constructor(public doc: model.LineInputModel, public line: number, public token: number) {}
 
   /** Create a copy of this cursor. */
   clone() {
@@ -158,7 +161,7 @@ function _rangesForSexpsInList(
 }
 
 export class LispTokenCursor extends TokenCursor {
-  constructor(public doc: LineInputModel, public line: number, public token: number) {
+  constructor(public doc: model.LineInputModel, public line: number, public token: number) {
     super(doc, line, token);
   }
 
@@ -289,7 +292,7 @@ export class LispTokenCursor extends TokenCursor {
           const close = token.raw;
           let open: string;
           while ((open = stack.pop())) {
-            if (validPair(open, close)) {
+            if (clojureLexer.validPair(open, close)) {
               this.next();
               break;
             }
@@ -368,7 +371,7 @@ export class LispTokenCursor extends TokenCursor {
           const open = tk.raw;
           let close: string;
           while ((close = stack.pop())) {
-            if (validPair(open, close)) {
+            if (clojureLexer.validPair(open, close)) {
               break;
             }
           }
@@ -831,7 +834,7 @@ export class LispTokenCursor extends TokenCursor {
       commentCursor.backwardDownList();
       if (
         commentCreatesTopLevel &&
-        isCommentFormHead(getFunctionPositionText(commentCursor), commentFormConfig)
+        pareditConfig.isCommentFormHead(getFunctionPositionText(commentCursor), commentFormConfig)
       ) {
         if (commentCursor.getToken().raw !== ')') {
           commentCursor.upList();
@@ -1027,7 +1030,10 @@ export class LispTokenCursor extends TokenCursor {
   ): boolean {
     const tlCursor = this.clone();
     if (tlCursor.forwardList() && tlCursor.upList()) {
-      if (commentCreatesTopLevel && isCommentFormHead(this.getFunctionName(), commentFormConfig)) {
+      if (
+        commentCreatesTopLevel &&
+        pareditConfig.isCommentFormHead(this.getFunctionName(), commentFormConfig)
+      ) {
         return true;
       }
       return false;
@@ -1050,8 +1056,8 @@ export class LispTokenCursor extends TokenCursor {
  * Creates a `LispTokenCursor` for walking and manipulating the string `s`.
  */
 export function createStringCursor(s: string): LispTokenCursor {
-  const eol = getFirstEol(s);
-  const model = new LineInputModel(eol ? eol.length : 1);
-  model.insertString(0, s);
-  return model.getTokenCursor(0);
+  const eol = model.getFirstEol(s);
+  const inputModel = new model.LineInputModel(eol ? eol.length : 1);
+  inputModel.insertString(0, s);
+  return inputModel.getTokenCursor(0);
 }

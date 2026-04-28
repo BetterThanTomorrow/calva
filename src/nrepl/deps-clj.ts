@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as util from '../utilities';
 import * as fs from 'fs';
-import { https } from 'follow-redirects';
+import * as followRedirects from 'follow-redirects';
 
 const DEPS_CLJ_FILE = 'deps.clj.jar';
 const DEPS_CLJ_VERSION_FILE = 'deps-clj-version';
@@ -33,7 +33,7 @@ function restoreBackupFile(depsCljPath: string, backupPath: string): string {
 function downloadArtifact(url: string, filePath: string): Promise<void> {
   console.log('Downloading deps.clj.jar from', url);
   return new Promise((resolve, reject) => {
-    https
+    followRedirects.https
       .get(url, (response) => {
         if (response.statusCode === 200) {
           const writeStream = fs.createWriteStream(filePath);

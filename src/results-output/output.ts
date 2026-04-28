@@ -5,16 +5,12 @@ import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
-import * as ansiRegex from 'ansi-regex';
+import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
-import {
-  appendToReplOutputWebview,
-  showReplOutputWebviewPanel,
-  appendStackTraceToReplOutputWebview,
-} from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
-import { routeEvaluatedCode } from './evaluated-code';
+import * as evaluatedCode from './evaluated-code';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -110,17 +106,17 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-import {
-  normalizeDestinations,
-  type OutputDestination,
-  type OutputDestinationValue,
-} from './output-destinations';
-import {
-  isFilePathDestination,
-  resolveOutputFilePath,
-  appendToOutputFile,
-  reportFileOutputError,
-} from './file-output';
+import * as outputDestinations from './output-destinations';
+import * as fileOutput from './file-output';
+
+type OutputDestination = outputDestinations.OutputDestination;
+type OutputDestinationValue = outputDestinations.OutputDestinationValue;
+
+const normalizeDestinations = outputDestinations.normalizeDestinations;
+const isFilePathDestination = fileOutput.isFilePathDestination;
+const resolveOutputFilePath = fileOutput.resolveOutputFilePath;
+const appendToOutputFile = fileOutput.appendToOutputFile;
+const reportFileOutputError = fileOutput.reportFileOutputError;
 
 export type { OutputDestination, OutputDestinationValue };
 export { normalizeDestinations };
@@ -229,7 +225,7 @@ export function showResultOutputDestination(preserveFocus = true) {
     return showOutputTerminal(preserveFocus);
   }
   if (first === 'output-view') {
-    return showReplOutputWebviewPanel(preserveFocus);
+    return cljsLib.showReplOutputWebviewPanel(preserveFocus);
   }
   return outputWindow.revealReplWindowDoc(preserveFocus);
 }
@@ -394,7 +390,7 @@ function writeClojure(
       after(undefined, undefined);
     }
   } else if (destination === 'output-view') {
-    appendToReplOutputWebview(options, message);
+    cljsLib.appendToReplOutputWebview(options, message);
     if (after) {
       after(undefined, undefined);
     }
@@ -461,7 +457,7 @@ export function appendEvaluatedCode(
     didLastOutputTerminateLine.set(sinkFirst, true);
   }
 
-  routeEvaluatedCode({
+  evaluatedCode.routeEvaluatedCode({
     code,
     didLastTerminateLine: sinkDidLastTerminateLine,
     who: metadataOptions.who,
@@ -608,7 +604,7 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
     return;
   }
   if (destination === 'output-view') {
-    appendToReplOutputWebview(options, message);
+    cljsLib.appendToReplOutputWebview(options, message);
   }
 }
 
@@ -862,7 +858,7 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
     return;
   }
   if (destination === 'output-view') {
-    appendToReplOutputWebview(options, '\n\n' + message);
+    cljsLib.appendToReplOutputWebview(options, '\n\n' + message);
   }
 }
 
@@ -1095,7 +1091,7 @@ function printStackTrace(stacktrace: any[]) {
         void replWindowAppendPrompt();
         break;
       case 'output-view':
-        appendStackTraceToReplOutputWebview(stacktrace);
+        cljsLib.appendStackTraceToReplOutputWebview(stacktrace);
         break;
       case 'output-channel':
         outputChannel.appendLine('');

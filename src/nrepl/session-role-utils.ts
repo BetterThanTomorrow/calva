@@ -1,12 +1,7 @@
-import {
-  ReplConnectSequence,
-  SessionFilePatternsConfig,
-  SessionFilePatternsRulesConfig,
-} from './connect-sequence-types';
-import type { SessionGlobTiers, SessionGlobSpec } from './globs';
+import type * as connectSequenceTypes from './connect-sequence-types';
 import * as globs from './globs';
 import * as secondarySession from './secondary-session';
-import { getProjectTypeForName } from './project-types';
+import * as projectTypes from './project-types';
 
 export type SessionRole = 'primary' | 'secondary';
 
@@ -15,7 +10,7 @@ export interface SessionRoleKeys {
   secondary?: string;
 }
 
-export type SessionGlobMap = Record<string, SessionGlobSpec[]>;
+export type SessionGlobMap = Record<string, globs.SessionGlobSpec[]>;
 
 const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
   primary: 'clj',
@@ -27,7 +22,7 @@ const DEFAULT_SESSION_ROLE_KEYS: SessionRoleKeys = {
  * These are simple patterns like `*.clj` that get combined with the project root
  * to form full globs like `/path/to/project/**\/*.clj`.
  */
-const DEFAULT_SESSION_ROLE_FILE_PATTERNS: Record<SessionRole, SessionGlobTiers> = {
+const DEFAULT_SESSION_ROLE_FILE_PATTERNS: Record<SessionRole, globs.SessionGlobTiers> = {
   primary: { 'always-claim': ['*.clj', '*.edn'], 'is-fallback-for': [] },
   secondary: { 'always-claim': ['*.cljs'], 'is-fallback-for': [] },
 };
@@ -43,8 +38,8 @@ function normalizeTierConfig(value?: string | string[]): string[] {
 }
 
 function normalizePatternEntry(
-  value: string | string[] | SessionFilePatternsRulesConfig | undefined
-): SessionGlobTiers {
+  value: string | string[] | connectSequenceTypes.SessionFilePatternsRulesConfig | undefined
+): globs.SessionGlobTiers {
   if (value === undefined) {
     return { 'always-claim': [], 'is-fallback-for': [] };
   }
@@ -66,7 +61,9 @@ function normalizePatternEntry(
  *
  * This is a pure function that does NOT set any global state.
  */
-export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRoleKeys {
+export function deriveSessionRoleKeys(
+  sequence?: connectSequenceTypes.ReplConnectSequence
+): SessionRoleKeys {
   // Check sequence config first
   const sequenceConfig = sequence?.replSessionNames;
 
@@ -74,7 +71,7 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
   let projectTypePrimary: string | undefined;
   let projectTypeSecondary: string | undefined;
   if (sequence?.projectType) {
-    const projectType = getProjectTypeForName(sequence.projectType);
+    const projectType = projectTypes.getProjectTypeForName(sequence.projectType);
     projectTypePrimary = projectType?.defaultReplSessionNames?.primary;
     projectTypeSecondary = projectType?.defaultReplSessionNames?.secondary;
   }
@@ -96,8 +93,8 @@ export function deriveSessionRoleKeys(sequence?: ReplConnectSequence): SessionRo
  */
 function buildGlobSpecsFromPatterns(
   projectRootPath: string,
-  patternTiers: SessionGlobTiers
-): SessionGlobSpec[] {
+  patternTiers: globs.SessionGlobTiers
+): globs.SessionGlobSpec[] {
   const alwaysClaimSpecs = globs.constructGlobsFromFilePatterns(
     projectRootPath,
     patternTiers['always-claim'],
@@ -120,8 +117,8 @@ function buildGlobSpecsFromPatterns(
  */
 function getFilePatternsForRole(
   role: SessionRole,
-  sequence: ReplConnectSequence | undefined
-): SessionGlobTiers {
+  sequence: connectSequenceTypes.ReplConnectSequence | undefined
+): globs.SessionGlobTiers {
   // 1. Check sequence's explicit replSessionFilePatterns
   const sequencePatterns = sequence?.replSessionFilePatterns?.[role];
   if (sequencePatterns) {
@@ -130,7 +127,7 @@ function getFilePatternsForRole(
 
   // 2. Check project type's defaultFilePatterns
   if (sequence?.projectType) {
-    const projectType = getProjectTypeForName(sequence.projectType);
+    const projectType = projectTypes.getProjectTypeForName(sequence.projectType);
     const projectTypePatterns = projectType?.defaultFilePatterns?.[role];
     if (projectTypePatterns) {
       return normalizePatternEntry(projectTypePatterns);
@@ -162,7 +159,7 @@ function getFilePatternsForRole(
  * @param projectRootPath - The project root as an fsPath, used to construct full globs
  */
 export function deriveSessionGlobMap(
-  sequence: ReplConnectSequence | undefined,
+  sequence: connectSequenceTypes.ReplConnectSequence | undefined,
   keys: SessionRoleKeys,
   projectRootPath: string
 ): SessionGlobMap {
@@ -192,6 +189,6 @@ export function deriveSessionGlobMap(
 /**
  * Get glob specs for a specific session key from a glob map.
  */
-export function getGlobSpecsFromMap(globMap: SessionGlobMap, key: string): SessionGlobSpec[] {
+export function getGlobSpecsFromMap(globMap: SessionGlobMap, key: string): globs.SessionGlobSpec[] {
   return globMap[key] ?? [];
 }

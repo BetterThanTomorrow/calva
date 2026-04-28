@@ -1,16 +1,20 @@
 'use strict';
-import { window, StatusBarAlignment, StatusBarItem } from 'vscode';
-import statusbar from '../statusbar';
+import * as vscode from 'vscode';
+import * as statusbar from '../statusbar';
 import * as paredit from './extension';
 
 export class StatusBar {
   private _visible: boolean;
   private _keyMap: string;
 
-  private _toggleBarItem: StatusBarItem;
+  private _toggleBarItem: vscode.StatusBarItem;
 
   constructor(keymap: string) {
-    this._toggleBarItem = window.createStatusBarItem('paredit', StatusBarAlignment.Right, null);
+    this._toggleBarItem = vscode.window.createStatusBarItem(
+      'paredit',
+      vscode.StatusBarAlignment.Right,
+      null
+    );
     this._toggleBarItem.text = '(λ)';
     this._toggleBarItem.tooltip = '';
     this._toggleBarItem.command = 'paredit.togglemode';

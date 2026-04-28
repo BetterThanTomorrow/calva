@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
-import { TextDecoder, TextEncoder } from 'util';
-import { prettyPrint } from '../out/cljs-lib/cljs-lib';
+import * as nodeUtil from 'util';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as tokenCursor from './cursor-doc/token-cursor';
 import * as repl from './api/repl-v1';
 import _ = require('lodash');
-import { isInteger } from 'lodash';
-import { getNamespace } from './api/document';
-import { isCommentFormHead } from './utilities';
+import * as documentApi from './api/document';
+import * as utilities from './utilities';
 
 export class NotebookProvider implements vscode.NotebookSerializer {
-  private readonly decoder = new TextDecoder();
-  private readonly encoder = new TextEncoder();
+  private readonly decoder = new nodeUtil.TextDecoder();
+  private readonly encoder = new nodeUtil.TextEncoder();
 
   deserializeNotebook(
     data: Uint8Array,
@@ -34,7 +33,7 @@ export class NotebookProvider implements vscode.NotebookSerializer {
 }
 
 function substring(content: string, [start, end]) {
-  if (isInteger(start) && isInteger(end)) {
+  if (_.isInteger(start) && _.isInteger(end)) {
     return content.substring(start, end);
   }
   return '';
@@ -65,7 +64,7 @@ function parseClojure(content: string): vscode.NotebookCellData[] {
     const endForm = cursor.doc.getTokenCursor(end - endAdjustment);
     const afterForm = cursor.doc.getTokenCursor(end);
 
-    if (isCommentFormHead(endForm.getFunctionName())) {
+    if (utilities.isCommentFormHead(endForm.getFunctionName())) {
       const commentRange = afterForm.rangeForCurrentForm(0);
       const commentStartCursor = cursor.doc.getTokenCursor(commentRange[0]);
       const commentCells = [];
@@ -184,7 +183,7 @@ async function doExecution(
   controller: vscode.NotebookController
 ): Promise<void> {
   const firstCell = cell.notebook.getCells()[0];
-  const ns = cell !== firstCell ? getNamespace(firstCell.document) : undefined;
+  const ns = cell !== firstCell ? documentApi.getNamespace(firstCell.document) : undefined;
   const execution = controller.createNotebookCellExecution(cell);
   execution.start(Date.now());
 
@@ -209,7 +208,7 @@ async function doExecution(
         }
       )
     ).result;
-    const pretty = prettyPrint(response).value;
+    const pretty = cljsLib.prettyPrint(response).value;
     const output = [
       vscode.NotebookCellOutputItem.text(response),
       vscode.NotebookCellOutputItem.text('```clojure\n' + pretty + '\n```', 'text/markdown'),

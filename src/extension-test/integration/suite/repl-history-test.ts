@@ -5,7 +5,7 @@ import * as testUtil from './util';
 import * as state from '../../../state';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replHistory from '../../../repl-window/repl-history';
-import type { NReplSession } from '../../../nrepl';
+import type * as nrepl from '../../../nrepl';
 
 const suiteName = 'REPL history';
 const serverSessionKey = 'app.server';
@@ -23,7 +23,7 @@ async function clearHistoryForSessions() {
 }
 
 function setSessionKey(sessionKey: string) {
-  const fakeSession = undefined as unknown as NReplSession;
+  const fakeSession = undefined as unknown as nrepl.NReplSession;
   outputWindow.setSession(fakeSession, 'user', sessionKey);
 }
 

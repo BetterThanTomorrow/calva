@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { before, after, it } from 'mocha';
+import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
@@ -100,30 +100,30 @@ async function reformatUsingActiveEditor(textAndSelections: string) {
 }
 
 suite(suiteName, () => {
-  before(async () => {
+  mocha.before(async () => {
     testUtil.showMessage(suiteName, `suite starting`);
     await testUtil.openFile(testFilePath);
   });
 
-  after(async () => {
+  mocha.after(async () => {
     console.log('Finally, format suite is closing the active editor');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.showMessage(suiteName, `suite done!`);
   });
 
-  it('should add indenting spaces on lines where cursors are', async () => {
+  mocha.it('should add indenting spaces on lines where cursors are', async () => {
     assert.equal(await reformatUsingActiveEditor('(foo•|•|1 :a)'), '(foo•  |•|1  :a)');
   });
 
-  it('should advance indented cursors to proper indentation spot', async () => {
+  mocha.it('should advance indented cursors to proper indentation spot', async () => {
     assert.equal(await reformatUsingActiveEditor('(foo•|• |1:a)'), '(foo•  |•  |1:a)');
   });
 
-  it('should remove spaces and commas from an empty list', async () => {
+  mocha.it('should remove spaces and commas from an empty list', async () => {
     assert.equal(await reformatUsingActiveEditor('(•|•,)'), '(|)');
   });
 
-  it('should format deftype', async () => {
+  mocha.it('should format deftype', async () => {
     assert.equal(
       await reformatUsingActiveEditor(
         '(deftype MyType [arg1 arg2]•  IMyProto•  (method1 [this]•           |(smth)))'
@@ -132,35 +132,35 @@ suite(suiteName, () => {
     );
   });
 
-  it('should not remove a single blank line', async () => {
+  mocha.it('should not remove a single blank line', async () => {
     assert.equal(
       await reformatUsingActiveEditor('(defn bar• |   [x]••    baz)'),
       '(defn bar• | [x]••  baz)'
     );
   });
 
-  it('should collapse consecutive blank lines to a single line', async () => {
+  mocha.it('should collapse consecutive blank lines to a single line', async () => {
     assert.equal(
       await reformatUsingActiveEditor('(defn bar• |   [x]• •,••    baz)'),
       '(defn bar• | [x]••  baz)'
     );
   });
 
-  it('should close a rich comment form on a new line (1)', async () => {
+  mocha.it('should close a rich comment form on a new line (1)', async () => {
     assert.equal(
       await reformatUsingActiveEditor('(comment•  (def foo•:foo)|)'),
       '(comment•  (def foo•    :foo)•  |)'
     );
   });
 
-  it('should close a rich comment form on a new line (2)', async () => {
+  mocha.it('should close a rich comment form on a new line (2)', async () => {
     assert.equal(
       await reformatUsingActiveEditor('(comment•  |(def foo•:foo))'),
       '(comment•  |(def foo•    :foo)•  )'
     );
   });
 
-  it('should automatically reformat all paredited forms', async () => {
+  mocha.it('should automatically reformat all paredited forms', async () => {
     assert.equal(
       await reformat(
         vscode.window.activeTextEditor,
@@ -171,7 +171,7 @@ suite(suiteName, () => {
     );
   });
 
-  it('should format a ns form alone', async () => {
+  mocha.it('should format a ns form alone', async () => {
     assert.equal(await reformatUsingActiveEditor('(ns •       |foo)'), '(ns• |foo)');
   });
 });

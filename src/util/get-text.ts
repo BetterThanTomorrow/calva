@@ -3,8 +3,8 @@ import * as select from '../select';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
-import { EditableDocument } from '../cursor-doc/model';
-import { getPareditConfig } from '../paredit/extension';
+import type * as model from '../cursor-doc/model';
+import * as pareditExtension from '../paredit/extension';
 
 export type SelectionAndText = [vscode.Selection | undefined, string];
 
@@ -35,7 +35,7 @@ export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position):
   const cursorDoc = docMirror.getDocument(doc);
   const cursorPos = doc.offsetAt(pos);
   const cursor = cursorDoc.getTokenCursor(cursorPos);
-  const pareditConfig = getPareditConfig();
+  const pareditConfig = pareditExtension.getPareditConfig();
   if (paredit.isInPairsList(cursor, pareditConfig)) {
     const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true, pareditConfig);
     const selection = select.selectionFromOffsetRange(doc, range);
@@ -95,7 +95,7 @@ export function currentTopLevelFunction(doc: vscode.TextDocument): SelectionAndT
 
 function selectionAndText(
   doc: vscode.TextDocument,
-  textGetter: (doc: EditableDocument, active: number) => cursorTextGetter.RangeAndText,
+  textGetter: (doc: model.EditableDocument, active: number) => cursorTextGetter.RangeAndText,
   pos: vscode.Position
 ): SelectionAndText {
   if (doc) {
@@ -145,7 +145,7 @@ export function startOFileToCursor(
 
 function fromFn(
   doc: vscode.TextDocument,
-  cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
+  cursorDocFn: (doc: model.EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
   if (doc) {
     const cursorDoc = docMirror.getDocument(doc);

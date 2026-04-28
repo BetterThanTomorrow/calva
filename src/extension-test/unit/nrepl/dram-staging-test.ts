@@ -1,4 +1,4 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -37,31 +37,35 @@ describe('dram staging', () => {
 
     await dramStaging.stageGithubArchive(zipPath, destinationPath);
 
-    expect(fs.existsSync(path.join(destinationPath, 'src/try_clojure/core.clj'))).toBe(true);
-    expect(fs.existsSync(path.join(destinationPath, 'calva-README.md'))).toBe(true);
-    expect(fs.existsSync(path.join(destinationPath, 'try-clojure-main'))).toBe(false);
+    expectLib
+      .expect(fs.existsSync(path.join(destinationPath, 'src/try_clojure/core.clj')))
+      .toBe(true);
+    expectLib.expect(fs.existsSync(path.join(destinationPath, 'calva-README.md'))).toBe(true);
+    expectLib.expect(fs.existsSync(path.join(destinationPath, 'try-clojure-main'))).toBe(false);
   });
 
   it('normalizes safe archive paths and rejects traversal paths', () => {
-    expect(
-      dramStaging.buildGithubArchiveStagingPlan([
-        'try-clojure-main/src/../README.md',
-        'try-clojure-main/src/try_clojure/core.clj',
-      ])
-    ).toEqual([
-      {
-        archivePath: 'try-clojure-main/src/../README.md',
-        relativePath: 'README.md',
-      },
-      {
-        archivePath: 'try-clojure-main/src/try_clojure/core.clj',
-        relativePath: 'src/try_clojure/core.clj',
-      },
-    ]);
+    expectLib
+      .expect(
+        dramStaging.buildGithubArchiveStagingPlan([
+          'try-clojure-main/src/../README.md',
+          'try-clojure-main/src/try_clojure/core.clj',
+        ])
+      )
+      .toEqual([
+        {
+          archivePath: 'try-clojure-main/src/../README.md',
+          relativePath: 'README.md',
+        },
+        {
+          archivePath: 'try-clojure-main/src/try_clojure/core.clj',
+          relativePath: 'src/try_clojure/core.clj',
+        },
+      ]);
 
-    expect(() =>
-      dramStaging.buildGithubArchiveStagingPlan(['try-clojure-main/../../evil.txt'])
-    ).toThrow('Unsafe archive entry path: try-clojure-main/../../evil.txt');
+    expectLib
+      .expect(() => dramStaging.buildGithubArchiveStagingPlan(['try-clojure-main/../../evil.txt']))
+      .toThrow('Unsafe archive entry path: try-clojure-main/../../evil.txt');
   });
 
   it('lets later overlay files replace extracted archive files in the staging area', async () => {
@@ -78,8 +82,8 @@ describe('dram staging', () => {
     await dramStaging.stageGithubArchive(zipPath, destinationPath);
     await dramStaging.stageOverlayFile(overlaySourcePath, destinationPath, 'calva-README.md');
 
-    expect(fs.readFileSync(path.join(destinationPath, 'calva-README.md'), 'utf8')).toBe(
-      '# Overlay README'
-    );
+    expectLib
+      .expect(fs.readFileSync(path.join(destinationPath, 'calva-README.md'), 'utf8'))
+      .toBe('# Overlay README');
   });
 });

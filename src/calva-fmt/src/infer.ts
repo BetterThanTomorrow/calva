@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { inferParens, inferIndents } from '../../../out/cljs-lib/cljs-lib';
-import { isUndefined, cloneDeep } from 'lodash';
+import * as cljsLib from '../../../out/cljs-lib/cljs-lib';
+import _ = require('lodash');
 
 interface CFEdit {
   edit: string;
@@ -26,7 +26,7 @@ export function inferParensCommand(editor: vscode.TextEditor) {
   const position: vscode.Position = editor.selections[0].active,
     document = editor.document,
     currentText = document.getText(),
-    r: ResultOptions = inferParens({
+    r: ResultOptions = cljsLib.inferParens({
       text: currentText,
       line: position.line,
       character: position.character,
@@ -73,7 +73,7 @@ export function indentCommand(editor: vscode.TextEditor, spacing: string, forwar
       if (doEdit) {
         const position: vscode.Position = editor.selections[0].active,
           currentText = document.getText(),
-          r: ResultOptions = inferIndents({
+          r: ResultOptions = cljsLib.inferIndents({
             text: currentText,
             line: position.line,
             character: position.character,
@@ -98,17 +98,17 @@ function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
     void editor
       .edit(
         (editBuilder) => {
-          if (isUndefined(r.edits)) {
-            console.error('Edits were undefined!', cloneDeep({ editBuilder, r, editor }));
+          if (_.isUndefined(r.edits)) {
+            console.error('Edits were undefined!', _.cloneDeep({ editBuilder, r, editor }));
             return;
           }
           r.edits.forEach((edit: CFEdit) => {
             const start = new vscode.Position(edit.start.line, edit.start.character),
               end = new vscode.Position(edit.end.line, edit.end.character);
-            if (isUndefined(edit.text)) {
+            if (_.isUndefined(edit.text)) {
               console.error(
                 'edit.text was undefined!',
-                cloneDeep({ edit, editBuilder, r, editor })
+                _.cloneDeep({ edit, editBuilder, r, editor })
               );
               return;
             }

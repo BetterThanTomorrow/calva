@@ -1,18 +1,18 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as clientRegistry from '../../nrepl/client-registry';
 import * as sessionRegistry from '../../nrepl/session-registry';
 import * as nameSuffix from '../../nrepl/session-name-suffix';
 import * as clientTeardown from '../../nrepl/client-teardown';
-import type { NReplClient, NReplSession } from '../../nrepl';
+import type * as nrepl from '../../nrepl';
 
-const createMockClient = (clientKey: string): NReplClient =>
+const createMockClient = (clientKey: string): nrepl.NReplClient =>
   ({
     clientKey,
     close: () => Promise.resolve(undefined),
     disconnect: () => undefined,
     addOnCloseHandler: () => undefined,
     removeOnCloseHandler: () => undefined,
-  } as unknown as NReplClient);
+  } as unknown as nrepl.NReplClient);
 
 describe('client-teardown', () => {
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe('client-teardown', () => {
       // Setup: Register a client with a suffix
       const client = createMockClient('client-a');
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
+      expectLib.expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test Connection',
@@ -50,15 +50,15 @@ describe('client-teardown', () => {
       });
 
       // Verify suffix is in use
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Call the teardown helper that releases the suffix
       clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
       // Verify suffix is released
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
-      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
     });
 
     it('handles teardown of client without suffix (no-op for suffix release)', () => {
@@ -85,14 +85,14 @@ describe('client-teardown', () => {
       clientRegistry.unregisterClient('client-b');
 
       // Verify no suffixes are used
-      expect(nameSuffix.getUsedSuffixes()).toEqual([]);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toEqual([]);
     });
 
     it('does not release suffix when teardown is called with undefined clientKey', () => {
       // Setup: Register a client with a suffix
       const client = createMockClient('client-a');
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
+      expectLib.expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test Connection',
@@ -113,21 +113,21 @@ describe('client-teardown', () => {
       clientTeardown.releaseClientSuffix(undefined as unknown as string);
 
       // Suffix should still be in use because we didn't tear down client-a
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
     it('releases suffix even when client has already been unregistered', () => {
       // This tests the scenario where we need to track suffix separately
       // because the client might be gone but we still have the suffix stored
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
+      expectLib.expect(suffix).toBeDefined();
 
       // Store suffix separately (simulating what happens if we track it before client registration)
       // Then release it
       nameSuffix.releaseSuffix(suffix);
 
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
-      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
     });
   });
 
@@ -135,7 +135,7 @@ describe('client-teardown', () => {
     it('releases suffix when client has nameSuffix in connectionState', () => {
       const client = createMockClient('client-x');
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
+      expectLib.expect(suffix).toBeDefined();
 
       clientRegistry.registerClient(client, {
         connectSequenceName: 'Test',
@@ -152,12 +152,12 @@ describe('client-teardown', () => {
         },
       });
 
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       const released = clientTeardown.releaseClientSuffix('client-x');
 
-      expect(released).toBe(suffix);
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(released).toBe(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
     it('returns undefined when connectionState is undefined', () => {
@@ -165,8 +165,8 @@ describe('client-teardown', () => {
 
       const released = clientTeardown.releaseClientSuffix('nonexistent-client');
 
-      expect(released).toBeUndefined();
-      expect(nameSuffix.getUsedSuffixes()).toEqual(initialUsed);
+      expectLib.expect(released).toBeUndefined();
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toEqual(initialUsed);
     });
 
     it('returns undefined when connectionState has no nameSuffix', () => {
@@ -189,36 +189,36 @@ describe('client-teardown', () => {
 
       const released = clientTeardown.releaseClientSuffix('client-no-suffix');
 
-      expect(released).toBeUndefined();
+      expectLib.expect(released).toBeUndefined();
     });
 
     it('returns undefined when clientKey is undefined', () => {
       const released = clientTeardown.releaseClientSuffix(undefined);
 
-      expect(released).toBeUndefined();
+      expectLib.expect(released).toBeUndefined();
     });
   });
 
   describe('releaseSuffixDirectly', () => {
     it('releases suffix when provided', () => {
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(suffix).toBeDefined();
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       clientTeardown.releaseSuffixDirectly(suffix);
 
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
     it('does nothing when suffix is undefined', () => {
       const suffix = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffix).toBeDefined();
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(suffix).toBeDefined();
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       clientTeardown.releaseSuffixDirectly(undefined);
 
       // Original suffix should still be in use
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
   });
 
@@ -229,8 +229,8 @@ describe('client-teardown', () => {
       const clientB = createMockClient('client-b');
       const suffixA = nameSuffix.acquireNextAvailableSuffix();
       const suffixB = nameSuffix.acquireNextAvailableSuffix();
-      expect(suffixA).toBeDefined();
-      expect(suffixB).toBeDefined();
+      expectLib.expect(suffixA).toBeDefined();
+      expectLib.expect(suffixB).toBeDefined();
 
       clientRegistry.registerClient(clientA, {
         connectSequenceName: 'Connection A',
@@ -263,16 +263,16 @@ describe('client-teardown', () => {
       });
 
       // Verify both suffixes are in use
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffixA);
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffixA);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
 
       // Tear down only client A using the helper
       clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
       // Only the suffix for client A should be released
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffixA);
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffixA);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffixB);
     });
   });
 
@@ -304,7 +304,7 @@ describe('client-teardown', () => {
         },
       });
 
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Simulate reconnection: resolver has already reserved the suffix again
       // (this happens before teardown in real code)
@@ -316,7 +316,7 @@ describe('client-teardown', () => {
       clientRegistry.unregisterClient('client-a');
 
       // Suffix should STILL be reserved (not released)
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Now a new client can be registered with the same suffix
       const clientB = createMockClient('client-b');
@@ -336,7 +336,7 @@ describe('client-teardown', () => {
       });
 
       // Suffix remains in use with new client
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
     it('suffix would be stolen without preservation (demonstrates the bug fix)', () => {
@@ -362,19 +362,19 @@ describe('client-teardown', () => {
         },
       });
 
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // If we DO release the suffix during teardown (the old buggy behavior)
       clientTeardown.releaseClientSuffix('client-a');
       clientRegistry.unregisterClient('client-a');
 
       // Suffix is now available - another connection could grab it!
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
-      expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(nameSuffix.getAvailableSuffixes()).toContain(suffix);
 
       // Reserve the suffix again (simulating what another project might do)
       const wasReserved = nameSuffix.reserveSuffix(suffix);
-      expect(wasReserved).toBe(true); // Demonstrates the vulnerability - suffix was available to steal
+      expectLib.expect(wasReserved).toBe(true); // Demonstrates the vulnerability - suffix was available to steal
     });
 
     it('markSuffixPreserved prevents release by releaseClientSuffix', () => {
@@ -402,7 +402,7 @@ describe('client-teardown', () => {
         },
       });
 
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Mark suffix as preserved (simulating what disconnectClientByKey does with preserveSuffix: true)
       clientTeardown.markSuffixPreserved('client-a');
@@ -412,8 +412,8 @@ describe('client-teardown', () => {
       const released = clientTeardown.releaseClientSuffix('client-a');
 
       // Suffix should NOT have been released
-      expect(released).toBeUndefined();
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(released).toBeUndefined();
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
 
     it('clearSuffixPreserved allows subsequent release', () => {
@@ -444,8 +444,8 @@ describe('client-teardown', () => {
 
       // Now release should work
       const released = clientTeardown.releaseClientSuffix('client-a');
-      expect(released).toBe(suffix);
-      expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
+      expectLib.expect(released).toBe(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).not.toContain(suffix);
     });
 
     it('simulates full reconnection flow with on-close handler', () => {
@@ -478,7 +478,7 @@ describe('client-teardown', () => {
         },
       });
 
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Step 2: resolveSessionNames would reserve the suffix again (already reserved, but stays in set)
       // In real code, this happens before disconnectClientByKey
@@ -491,15 +491,15 @@ describe('client-teardown', () => {
       clientRegistry.unregisterClient('client-a');
 
       // At this point, getConnectionState('client-a') would return undefined
-      expect(clientRegistry.getConnectionState('client-a')).toBeUndefined();
+      expectLib.expect(clientRegistry.getConnectionState('client-a')).toBeUndefined();
 
       // Step 4: on-close handler fires and calls releaseClientSuffix
       // This should NOT release the suffix because it's marked as preserved
       const released = clientTeardown.releaseClientSuffix('client-a');
 
       // Suffix should NOT have been released
-      expect(released).toBeUndefined();
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(released).toBeUndefined();
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
 
       // Step 5: New client can now be registered with the same suffix
       const clientB = createMockClient('client-b');
@@ -519,7 +519,7 @@ describe('client-teardown', () => {
       });
 
       // Suffix remains in use with new client
-      expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
+      expectLib.expect(nameSuffix.getUsedSuffixes()).toContain(suffix);
     });
   });
 });

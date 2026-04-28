@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
-import { deepEqual } from './util/object';
+import * as objectUtil from './util/object';
 import * as docMirror from './doc-mirror';
 import * as context from './cursor-doc/cursor-context';
 import * as util from './utilities';
 import * as namespace from './namespace';
 import * as session from './nrepl/repl-session';
 import * as state from './state';
-import { cljsLib } from './utilities';
 
 /* Determining the "calva:ns" cursor context takes time,
 so figure it out after x milliseconds of quiet. */

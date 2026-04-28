@@ -204,7 +204,7 @@ function _getEvalSelectionDecorationTypes(status: AnnotationStatus) {
 
 // ------------------------------------------------------------------------------
 
-export default {
+export {
   _getDecorateSelectionHeader,
   _getEvalSelectionDecorationTypes,
   AnnotationStatus,

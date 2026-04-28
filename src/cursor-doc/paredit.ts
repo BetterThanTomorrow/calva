@@ -1,29 +1,37 @@
-import { FormatterConfig } from '../formatter-config';
-import { validPair } from './clojure-lexer';
-import {
-  ModelEdit,
-  EditableDocument,
-  ModelEditSelection,
-  ModelEditRange,
-  ModelEditDirectedRange,
-  ModelEditOptions,
-} from './model';
-import { LispTokenCursor } from './token-cursor';
-import { backspaceOnWhitespace } from './backspace-on-whitespace';
+import type * as formatterConfig from '../formatter-config';
+import * as clojureLexer from './clojure-lexer';
+import * as model from './model';
+import type * as tokenCursor from './token-cursor';
+import * as whitespaceBackspace from './backspace-on-whitespace';
 import _ = require('lodash');
-import { isEqual, last, property } from 'lodash';
-import { TextEditorEdit } from 'vscode';
-import {
-  PareditConfig,
-  KeywordPairForm,
-  FlatPairForm,
-  AliasMapConfig,
-  defaultGroupedDefaultPairForms,
-  defaultThreadingMacros,
-  resolveAliasedSymbol,
-  isCommentFormHead,
-} from './paredit-config';
-import { Token } from './lexer';
+import * as vscode from 'vscode';
+import * as pareditConfig from './paredit-config';
+import type * as lexer from './lexer';
+
+type FormatterConfig = formatterConfig.FormatterConfig;
+type EditableDocument = model.EditableDocument;
+type ModelEdit<T extends model.ModelEditFunction> = model.ModelEdit<T>;
+type ModelEditSelection = model.ModelEditSelection;
+type ModelEditRange = model.ModelEditRange;
+type ModelEditDirectedRange = model.ModelEditDirectedRange;
+type ModelEditOptions = model.ModelEditOptions;
+type LispTokenCursor = tokenCursor.LispTokenCursor;
+type TextEditorEdit = vscode.TextEditorEdit;
+type PareditConfig = pareditConfig.PareditConfig;
+type KeywordPairForm = pareditConfig.KeywordPairForm;
+type FlatPairForm = pareditConfig.FlatPairForm;
+type AliasMapConfig = pareditConfig.AliasMapConfig;
+type Token = lexer.Token;
+
+const ModelEdit = model.ModelEdit;
+const ModelEditSelection = model.ModelEditSelection;
+const last = _.last;
+const isEqual = _.isEqual;
+const property = _.property;
+const defaultGroupedDefaultPairForms = pareditConfig.defaultGroupedDefaultPairForms;
+const defaultThreadingMacros = pareditConfig.defaultThreadingMacros;
+const resolveAliasedSymbol = pareditConfig.resolveAliasedSymbol;
+const isCommentFormHead = pareditConfig.isCommentFormHead;
 
 const OPEN_DELIMITERS_REGEX = /[([{"]/;
 
@@ -814,7 +822,7 @@ export async function joinSexp(
     cursor.forwardWhitespace();
     const nextToken = cursor.getToken(),
       nextStart = cursor.offsetStart;
-    if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
+    if (clojureLexer.validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
       return doc.model.edit(
         [
           new ModelEdit('changeRange', [
@@ -846,7 +854,7 @@ export async function spliceSexp(
     cursor.forwardList();
     const close = cursor.getToken();
     const end = cursor.offsetStart;
-    if (close.type == 'close' && validPair(open.raw, close.raw)) {
+    if (close.type == 'close' && clojureLexer.validPair(open.raw, close.raw)) {
       return doc.model.edit(
         [
           new ModelEdit('changeRange', [end, end + close.raw.length, '']),
@@ -1135,7 +1143,7 @@ function backspaceOnWhitespaceEdit(
   cursor: LispTokenCursor,
   config?: FormatterConfig
 ) {
-  const changeArgs = backspaceOnWhitespace(doc, cursor, config);
+  const changeArgs = whitespaceBackspace.backspaceOnWhitespace(doc, cursor, config);
   return doc.model.editNow(
     [
       new ModelEdit('deleteRange', [changeArgs.end, changeArgs.start - changeArgs.end]),
