@@ -2028,7 +2028,9 @@ describe('paredit', () => {
         const a = textNotation.docFromTextNotation(`"B" ;a|••;;b•(str "Hello" " " "World")`);
         const b = textNotation.docFromTextNotation(`;;b•(str "Hello" " " "World")••"B" ;a|`);
         await paredit.dragSexprForward(a);
-        expectLib.expect(textNotation.textAndSelection(a)).toEqual(textNotation.textAndSelection(b));
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
       });
 
       it('drags forward across a blank line when caret is at start of trailing inline comment', async () => {
