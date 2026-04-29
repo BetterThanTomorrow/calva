@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.580] - 2026-04-29
+
 - [Add a `repl.log()` to the API, for other extensions to log to the Calva output sink](https://github.com/BetterThanTomorrow/calva/issues/3191)
 
 ## [2.0.579] - 2026-04-28
