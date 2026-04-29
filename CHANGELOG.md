@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add a `repl.log()` to the API, for other extensions to log to the Calva output sink](https://github.com/BetterThanTomorrow/calva/issues/3191)
+
 ## [2.0.579] - 2026-04-28
 
 - internal-dev: Update TypeScript codebase to use namespace imports throughout
