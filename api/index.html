@@ -2018,6 +2018,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repllog" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.log()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="repl.log()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#replonoutputlogged" class="md-nav__link">
     <span class="md-ellipsis">
       repl.onOutputLogged()
@@ -2557,6 +2590,39 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#repllog" class="md-nav__link">
+    <span class="md-ellipsis">
+      repl.log()
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="repl.log()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#replonoutputlogged" class="md-nav__link">
     <span class="md-ellipsis">
       repl.onOutputLogged()
@@ -3027,6 +3093,28 @@
 </div>
 </div>
 </div>
+<h3 id="repllog"><code>repl.log()</code><a class="headerlink" href="#repllog" title="Permanent link">#</a></h3>
+<p>Log a message to Calva's output subscriber bus without writing to Calva's own UI destinations (output channel, REPL window, terminal). This is intended for other extensions that have their own output UI but want their messages to appear in the Calva output subscriber stream — for example, so that <a href="https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.calva-backseat-driver">Backseat Driver</a> can query them.</p>
+<p>The signature in TypeScript:</p>
+<div class="highlight"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">log</span><span class="p">(</span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">OutputMessage</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+</code></pre></div>
+<p>The <code>OutputMessage</code> interface is the same one used by <a href="#replonoutputlogged"><code>onOutputLogged()</code></a>.</p>
+<h4 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">#</a></h4>
+<ul>
+<li><code>text</code> must be a non-empty string</li>
+<li><code>category</code> must be a valid <code>OutputCategory</code></li>
+<li><code>who</code> follows the same rules as <a href="#replevaluate"><code>evaluate()</code></a> — the reserved values <code>"ui"</code> and <code>"api"</code> are rejected</li>
+</ul>
+<h4 id="example">Example<a class="headerlink" href="#example" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">calvaApi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">extensions</span><span class="p">.</span><span class="nx">getExtension</span><span class="p">(</span><span class="s2">&quot;betterthantomorrow.calva&quot;</span><span class="p">)</span><span class="o">?</span><span class="p">.</span><span class="nx">exports</span><span class="p">;</span>
+
+<span class="nx">calvaApi</span><span class="p">.</span><span class="nx">v1</span><span class="p">.</span><span class="nx">repl</span><span class="p">.</span><span class="nx">log</span><span class="p">({</span>
+<span class="w">  </span><span class="nx">category</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;evaluatedCode&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">text</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;(+ 1 2)&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">who</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;my-extension&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">ns</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span>
+<span class="p">});</span>
+</code></pre></div>
 <h3 id="replonoutputlogged"><code>repl.onOutputLogged()</code><a class="headerlink" href="#replonoutputlogged" title="Permanent link">#</a></h3>
 <p>Subscribe to Calva REPL output messages. Returns a <code>vscode.Disposable</code> that you should dispose when you no longer need updates. (For fire-and-forget convenience, push it onto your extension’s <code>context.subscriptions</code>).</p>
 <p>The signature in TypeScript:</p>
