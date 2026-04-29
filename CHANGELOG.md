@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Dragging sexps has weird behavior with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
+
+## [2.0.579] - 2026-04-28
+
 - internal-dev: Update TypeScript codebase to use namespace imports throughout
 
 ## [2.0.578] - 2026-04-27
