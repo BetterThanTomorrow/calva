@@ -41,6 +41,7 @@ export type ProjectType = {
   defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
   defaultReplSessionNames?: connectSequences.SessionNamesConfig;
   defaultFallbackPort?: number;
+  defaultWebSocketPort?: number | boolean;
 };
 
 function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
@@ -762,6 +763,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     defaultNReplPortFile: ['.scittle-nrepl-port'],
     defaultReplSessionNames: { primary: 'scittle' },
     defaultFallbackPort: 1339,
+    defaultWebSocketPort: 1340,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.cljs'],
@@ -805,6 +807,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellWin: true,
     useWhenExists: [],
     defaultFallbackPort: 3339,
+    defaultWebSocketPort: 3340,
     defaultNReplPortFile: ['.epupp-nrepl-port'],
     defaultReplSessionNames: { primary: 'epupp' },
     defaultFilePatterns: {

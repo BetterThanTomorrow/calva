@@ -1331,7 +1331,10 @@ export async function connect(
   let result: ConnectResult = { connected: false };
   try {
     // WebSocket transport: skip TCP port resolution entirely
-    const wsPort = connectSequence.webSocketPort;
+    const wsPort = connectSequenceInheritance.effectiveWebSocketPort(
+      connectSequence,
+      projectTypes.getProjectTypeForName(connectSequence.projectType)
+    );
     if (wsPort !== undefined && wsPort !== false) {
       let resolvedWsPort: number;
       if (wsPort === true) {

@@ -164,7 +164,6 @@ const scittleBuiltIns: csTypes.ReplConnectSequence[] = [
     name: 'scittle',
     projectType: csTypes.ProjectTypes['scittle'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
-    webSocketPort: 1340,
   },
 ];
 
@@ -198,7 +197,6 @@ const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
     projectType: csTypes.ProjectTypes['epupp'],
     cljsType: csTypes.CljsTypes['ClojureScript nREPL'],
     selectedPortBehaviour: 'prompt',
-    webSocketPort: 3340,
   },
 ];
 
