@@ -791,9 +791,15 @@
                 },
                 "webSocketPort": {
                   "anyOf": [
-                    { "type": "number" },
-                    { "type": "null" },
-                    { "const": false }
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "const": false
+                    }
                   ],
                   "markdownDescription": "Connect to a browser-based nREPL server over WebSocket instead of TCP. Set to a port number to start a WebSocket server on that port, `null` to be prompted, or `false` to explicitly use TCP/bencode. When omitted, the connection uses TCP/bencode as usual. See [WebSocket Connections](https://calva.io/connect/#websocket-connections-browser-repls)."
                 },
@@ -3875,6 +3881,7 @@
     "@types/semver": "^7.3.9",
     "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.67.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "@vscode/test-electron": "^2.5.2",
