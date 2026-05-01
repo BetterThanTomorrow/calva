@@ -1,4 +1,5 @@
 import WebSocket = require('ws');
+import * as net from 'net';
 import { AddressInfo } from 'net';
 
 export class WsPortInUseError extends Error {
@@ -6,6 +7,23 @@ export class WsPortInUseError extends Error {
     super(`WebSocket port ${port} is in use`);
     this.name = 'WsPortInUseError';
   }
+}
+
+/**
+ * Check if a port is already in use by attempting a TCP connection.
+ * On macOS, Node.js sets SO_REUSEADDR by default, which allows two servers
+ * to bind the same port without error. This pre-check detects that case.
+ */
+function isPortInUse(port: number, host: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const conn = net.createConnection({ port, host }, () => {
+      conn.destroy();
+      resolve(true);
+    });
+    conn.on('error', () => {
+      resolve(false);
+    });
+  });
 }
 
 export class NReplWsServer {
@@ -31,7 +49,13 @@ export class NReplWsServer {
     return this._host;
   }
 
-  start(): Promise<void> {
+  async start(): Promise<void> {
+    // Pre-check for port conflicts. On macOS, SO_REUSEADDR allows two servers
+    // to bind the same port silently. This detects existing listeners first.
+    if (this._port !== 0 && (await isPortInUse(this._port, this._host))) {
+      throw new WsPortInUseError(this._port);
+    }
+
     return new Promise((resolve, reject) => {
       this.wss = new WebSocket.Server({
         port: this._port,
