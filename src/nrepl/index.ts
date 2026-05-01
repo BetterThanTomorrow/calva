@@ -382,8 +382,20 @@ export class NReplClient {
   }
 
   /**
+   * Handle an incoming EDN message from the WebSocket transport.
+   * Decodes and dispatches to the appropriate session.
+   */
+  handleIncomingMessage(ednString: string) {
+    const data = ednTransport.ednDecodeNReplMessage(ednString);
+    log(data, Direction.ServerToClient);
+    this._dispatchMessage(data);
+  }
+
+  /**
    * Create an NReplClient backed by a WebSocket server + EDN transport.
    * Performs a local handshake (no messages to browser).
+   * Event wiring (onMessage, onClientDisconnected, onError) is the
+   * caller's responsibility — see connectViaWebSocket() in connector.ts.
    */
   static createFromWebSocket(opts: {
     server: wsNReplServer.WsNReplServer;
@@ -409,25 +421,6 @@ export class NReplClient {
       },
     };
     client.ns = 'user';
-
-    // Wire incoming browser messages to session dispatch
-    opts.server.onMessage((ednString) => {
-      const data = ednTransport.ednDecodeNReplMessage(ednString);
-      log(data, Direction.ServerToClient);
-      client._dispatchMessage(data);
-    });
-
-    // Wire browser disconnect to close handlers
-    opts.server.onClientDisconnected(() => {
-      state.connectionLogChannel().appendLine('Browser REPL disconnected');
-      client._fireCloseHandlers();
-    });
-
-    opts.server.onError((e) => {
-      console.error('WebSocket server error:', e);
-      state.connectionLogChannel().appendLine(`WebSocket error: ${e.message}`);
-      opts.onError(e);
-    });
 
     return client;
   }
