@@ -65,6 +65,95 @@ See also [Customizing Jack-in and Connect](customizing-jack-in-and-connect.md)
 
 If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about [embedding nREPL in your application](https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application).
 
+## WebSocket Connections (Browser REPLs)
+
+Calva can connect to browser-based nREPL servers — like those provided by [Scittle](https://github.com/babashka/scittle), [Epupp](https://github.com/PEZ/epupp), or any [sci.nrepl](https://github.com/babashka/scittle/tree/main/doc/nrepl) compatible runtime. Instead of the traditional TCP/bencode nREPL connection, Calva starts a WebSocket server that the browser connects to directly.
+
+### How It Works
+
+1. You connect in Calva using a connect sequence with `webSocketPort` configured
+2. Calva starts a WebSocket server and shows "Waiting for browser REPL..."
+3. You connect the browser to the same port (e.g. via Epupp, or by loading a page with Scittle nREPL)
+4. Calva picks up the connection — you can evaluate code, get completions, look up docs
+
+If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically.
+
+!!! Note "One browser client at a time"
+    Calva's WebSocket server accepts one client connection. If a new browser or browser tab connects, Calva switches to the new client. This means Calva is always connected to whichever browser client most recently connected to its server.
+
+### Configuration
+
+Valid values for `webSocketPort`:
+
+* A port number (e.g. `1340`) — start the WebSocket server on that port
+* `null` — prompt for the port each time you connect
+* `false` — disable WebSocket, use TCP/bencode instead (for use when extending the built-in `scittle` and `epupp` sequences but connecting via an external relay)
+
+If `webSocketPort` is omitted, the connection uses TCP/bencode as usual.
+
+When `webSocketPort` is set, the TCP-related properties (`nReplPortFile`, `fallbackPort`, host/port prompts) are not used.
+
+By default, the WebSocket server binds to `127.0.0.1` (localhost only). To accept connections from other machines — for example when the browser runs on a different host or in a Docker container — set `webSocketHost`:
+
+```json
+{
+  "calva.replConnectSequences": [
+    {
+      "name": "Browser REPL (network)",
+      "projectType": "scittle",
+      "webSocketPort": 1340,
+      "webSocketHost": "0.0.0.0"
+    }
+  ]
+}
+```
+
+!!! Warning "Security: binding to all interfaces"
+    Setting `webSocketHost` to `"0.0.0.0"` exposes the nREPL WebSocket server to your network. Only do this when you need remote access and understand the implications.
+
+The built-in **scittle** and **epupp** connect sequences come with WebSocket enabled by default:
+
+| Project type | WebSocket port |
+|---|---|
+| scittle | 1340 |
+| epupp | 3340 |
+
+For most setups, this works out of the box — just make sure the browser-side client is configured to connect to the same port.
+
+To use a different port, override `webSocketPort` in your connect sequence:
+
+```json
+{
+  "calva.replConnectSequences": [
+    {
+      "name": "My Browser REPL",
+      "projectType": "scittle",
+      "webSocketPort": 4200
+    }
+  ]
+}
+```
+
+See [Connect Sequences](connect-sequences.md) for the full `webSocketPort` reference.
+
+### Port Conflicts
+
+WebSocket ports are shared across the OS. If the port is already in use (by another VS Code window or another process), Calva will prompt you with the port pre-filled so you can either enter a different port or free the existing one and retry.
+
+### Using with Scittle
+
+[Scittle](https://github.com/babashka/scittle) provides an nREPL server that runs in the browser. See the [Scittle nREPL docs](https://github.com/babashka/scittle/tree/main/doc/nrepl) for how to add nREPL to your page. Once set up:
+
+1. Connect in Calva using the **scittle** connect sequence (starts the WebSocket server on port 1340)
+2. Load your page in the browser — the Scittle nREPL client connects automatically
+
+### Using with Epupp
+
+[Epupp](https://github.com/PEZ/epupp) lets you connect an nREPL to any web page. With WebSocket connections in Calva, the setup is:
+
+1. Connect in Calva using the **epupp** connect sequence (starts the WebSocket server on port 3340)
+2. In Epupp, set the WebSocket port to match and click Connect
+
 ## Auto-select Project Type and Project Root
 
 You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See [Connect Sequences](connect-sequences.md).
