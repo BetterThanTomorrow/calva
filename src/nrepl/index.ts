@@ -144,14 +144,6 @@ export class NReplClient {
    */
   write(data: any) {
     if (this._wsServer) {
-      // Convert load-file to eval before processing.
-      // Browser nREPL does not support load-file; the bb relay converts it the same way.
-      if (data.op === 'load-file' && data.file) {
-        data = { ...data, op: 'eval', code: data.file };
-        delete data.file;
-        delete data['file-name'];
-        delete data['file-path'];
-      }
       const localResponse = this._handleLocalOp(data);
       if (localResponse) {
         log(data, Direction.ClientToServer);
@@ -162,7 +154,17 @@ export class NReplClient {
         return;
       }
       log(data, Direction.ClientToServer);
-      this._wsServer.send(ednTransport.ednEncodeNReplMessage(data));
+      // Convert load-file to eval for the wire.
+      // Browser nREPL does not support load-file; the bb relay converts it the same way.
+      // Done after logging so the nREPL log shows the original load-file op.
+      let wireData = data;
+      if (data.op === 'load-file' && data.file) {
+        wireData = { ...data, op: 'eval', code: data.file };
+        delete wireData.file;
+        delete wireData['file-name'];
+        delete wireData['file-path'];
+      }
+      this._wsServer.send(ednTransport.ednEncodeNReplMessage(wireData));
     } else {
       this.encoder.write(data);
       log(data, Direction.ClientToServer);
