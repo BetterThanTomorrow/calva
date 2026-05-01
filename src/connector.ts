@@ -346,8 +346,32 @@ async function connectViaWebSocket(
       state.connectionLogChannel().appendLine(`WebSocket error: ${e.message}`);
     });
 
-    // Wait for the first browser connection and registration
-    await firstConnectionPromise;
+    // Wait for the first browser connection with a cancellable progress notification
+    const connected = await new Promise<boolean>((resolve) => {
+      void vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
+          cancellable: true,
+        },
+        async (_progress, token) => {
+          token.onCancellationRequested(async () => {
+            output.appendLineOtherOut('WebSocket connection cancelled by user.');
+            await server.stop();
+            resolve(false);
+          });
+          await firstConnectionPromise;
+          if (!token.isCancellationRequested) {
+            resolve(true);
+          }
+        }
+      );
+    });
+
+    if (!connected) {
+      util.setConnectingState(false);
+      return { connected: false };
+    }
   } catch (e) {
     return cleanUpAfterError(e, {
       clientKey: activeClient?.clientKey,
