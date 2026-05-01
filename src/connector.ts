@@ -1334,7 +1334,7 @@ export async function connect(
     const wsPort = connectSequence.webSocketPort;
     if (wsPort !== undefined && wsPort !== false) {
       let resolvedWsPort: number;
-      if (wsPort === null) {
+      if (wsPort === true) {
         const portStr = await vscode.window.showInputBox({
           prompt: 'Enter WebSocket port for browser REPL',
           value: '3340',

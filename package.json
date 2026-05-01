@@ -795,13 +795,10 @@
                       "type": "number"
                     },
                     {
-                      "type": "null"
-                    },
-                    {
-                      "const": false
+                      "type": "boolean"
                     }
                   ],
-                  "markdownDescription": "Connect to a browser-based nREPL server over WebSocket instead of TCP. Set to a port number to start a WebSocket server on that port, `null` to be prompted, or `false` to explicitly use TCP/bencode. When omitted, the connection uses TCP/bencode as usual. See [WebSocket Connections](https://calva.io/connect/#websocket-connections-browser-repls)."
+                  "markdownDescription": "Connect to a browser-based nREPL server over WebSocket instead of TCP. Set to a port number to start a WebSocket server on that port, `true` to be prompted, or `false` to explicitly use TCP/bencode. When omitted, the connection uses TCP/bencode as usual. See [WebSocket Connections](https://calva.io/connect/#websocket-connections-browser-repls)."
                 },
                 "webSocketHost": {
                   "type": "string",

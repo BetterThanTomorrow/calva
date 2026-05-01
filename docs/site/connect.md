@@ -86,7 +86,7 @@ If the browser disconnects (tab reload, navigation, tab close), Calva keeps the 
 Valid values for `webSocketPort`:
 
 * A port number (e.g. `1340`) — start the WebSocket server on that port
-* `null` — prompt for the port each time you connect
+* `true` — prompt for the port each time you connect
 * `false` — disable WebSocket, use TCP/bencode instead (for use when extending the built-in `scittle` and `epupp` sequences but connecting via an external relay)
 
 If `webSocketPort` is omitted, the connection uses TCP/bencode as usual.
