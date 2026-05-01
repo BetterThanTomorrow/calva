@@ -789,6 +789,18 @@
                   ],
                   "markdownDescription": "When Calva has selected the port of the nREPL server, should it automatically connect or prompt you so that you can edit the `host:port`?"
                 },
+                "webSocketPort": {
+                  "anyOf": [
+                    { "type": "number" },
+                    { "type": "null" },
+                    { "const": false }
+                  ],
+                  "markdownDescription": "Connect to a browser-based nREPL server over WebSocket instead of TCP. Set to a port number to start a WebSocket server on that port, `null` to be prompted, or `false` to explicitly use TCP/bencode. When omitted, the connection uses TCP/bencode as usual. See [WebSocket Connections](https://calva.io/connect/#websocket-connections-browser-repls)."
+                },
+                "webSocketHost": {
+                  "type": "string",
+                  "markdownDescription": "The address the WebSocket server binds to. Defaults to `\"127.0.0.1\"` (localhost only). Set to `\"0.0.0.0\"` to accept connections from other machines. Only used when `webSocketPort` is active."
+                },
                 "customJackInCommandLine": {
                   "type": "string",
                   "markdownDescription": "A custom command line, completely up to you.",
