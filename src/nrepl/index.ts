@@ -181,6 +181,10 @@ export class NReplClient {
     if (this.socket) {
       this.socket.destroy();
     }
+    if (this._wsServer) {
+      this._wsServer.dispose();
+      this._wsServer = null;
+    }
   }
 
   /**
