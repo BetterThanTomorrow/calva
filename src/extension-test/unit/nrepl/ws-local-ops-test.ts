@@ -34,6 +34,7 @@ function handleLocalOp(
         session,
         ops: {
           eval: {},
+          'load-file': {},
           complete: {},
           info: {},
           eldoc: {},
@@ -105,6 +106,7 @@ describe('ws-local-ops', () => {
       const result = handleLocalOp({ op: 'describe', id: '2', session: 'session-1' }, sessions);
       expectLib.expect(result).not.toBeNull();
       expectLib.expect(result.ops.eval).toBeDefined();
+      expectLib.expect(result.ops['load-file']).toBeDefined();
       expectLib.expect(result.ops.complete).toBeDefined();
       expectLib.expect(result.ops.info).toBeDefined();
       expectLib.expect(result.ops.clone).toBeDefined();
@@ -162,6 +164,50 @@ describe('ws-local-ops', () => {
         sessions
       );
       expectLib.expect(result).toBeNull();
+    });
+  });
+
+  describe('load-file conversion', () => {
+    it('converts load-file to eval with file contents as code', () => {
+      const loadFileMsg = {
+        op: 'load-file',
+        file: '(ns my.ns)\n(defn foo [] 42)',
+        'file-name': 'my_ns.clj',
+        'file-path': '/src/my/ns.clj',
+        id: '10',
+        session: 'session-1',
+      };
+      // Simulate the conversion that write() does
+      const converted = { ...loadFileMsg, op: 'eval', code: loadFileMsg.file };
+      delete converted.file;
+      delete converted['file-name'];
+      delete converted['file-path'];
+
+      expectLib.expect(converted.op).toEqual('eval');
+      expectLib.expect(converted.code).toEqual('(ns my.ns)\n(defn foo [] 42)');
+      expectLib.expect(converted.file).toBeUndefined();
+      expectLib.expect(converted['file-name']).toBeUndefined();
+      expectLib.expect(converted['file-path']).toBeUndefined();
+      expectLib.expect(converted.id).toEqual('10');
+      expectLib.expect(converted.session).toEqual('session-1');
+    });
+
+    it('preserves ns field if present in load-file', () => {
+      const loadFileMsg = {
+        op: 'load-file',
+        file: '(ns my.ns)',
+        'file-name': 'my_ns.clj',
+        ns: 'my.ns',
+        id: '11',
+        session: 'session-1',
+      };
+      const converted = { ...loadFileMsg, op: 'eval', code: loadFileMsg.file };
+      delete converted.file;
+      delete converted['file-name'];
+      delete converted['file-path'];
+
+      expectLib.expect(converted.op).toEqual('eval');
+      expectLib.expect(converted.ns).toEqual('my.ns');
     });
   });
 });

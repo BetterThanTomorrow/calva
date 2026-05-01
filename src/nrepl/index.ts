@@ -144,6 +144,14 @@ export class NReplClient {
    */
   write(data: any) {
     if (this._wsServer) {
+      // Convert load-file to eval before processing.
+      // Browser nREPL does not support load-file; the bb relay converts it the same way.
+      if (data.op === 'load-file' && data.file) {
+        data = { ...data, op: 'eval', code: data.file };
+        delete data.file;
+        delete data['file-name'];
+        delete data['file-path'];
+      }
       const localResponse = this._handleLocalOp(data);
       if (localResponse) {
         log(data, Direction.ClientToServer);
@@ -331,6 +339,7 @@ export class NReplClient {
           session,
           ops: {
             eval: {},
+            'load-file': {},
             complete: {},
             info: {},
             eldoc: {},
@@ -410,6 +419,7 @@ export class NReplClient {
     client.describe = {
       ops: {
         eval: {},
+        'load-file': {},
         complete: {},
         info: {},
         eldoc: {},
