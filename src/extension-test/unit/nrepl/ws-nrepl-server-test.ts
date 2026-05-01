@@ -1,9 +1,9 @@
 import * as expectLib from 'expect';
-import * as wsServer from '../../../nrepl/ws-nrepl-server';
+import * as wsServer from '../../../nrepl/nrepl-ws-server';
 import WebSocket = require('ws');
 
 describe('ws-nrepl-server', () => {
-  let server: wsServer.WsNReplServer;
+  let server: wsServer.NReplWsServer;
 
   afterEach(async () => {
     if (server) {
@@ -13,7 +13,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('starts and stops cleanly', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     expectLib.expect(server.isListening()).toBe(true);
     await server.stop();
     expectLib.expect(server.isListening()).toBe(false);
@@ -21,15 +21,15 @@ describe('ws-nrepl-server', () => {
   });
 
   it('assigns an ephemeral port when started with port 0', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     expectLib.expect(server.port).toBeGreaterThan(0);
   });
 
   it('throws WsPortInUseError on port conflict', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const port = server.port;
     try {
-      await wsServer.startWsNReplServer(port);
+      await wsServer.startNReplWsServer(port);
       expectLib.expect(true).toBe(false); // should not reach
     } catch (err) {
       expectLib.expect(err).toBeInstanceOf(wsServer.WsPortInUseError);
@@ -38,7 +38,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('accepts client connections', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const connected = new Promise<void>((resolve) => {
       server.onClientConnected(() => resolve());
     });
@@ -53,7 +53,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('receives messages from client', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const messagePromise = new Promise<string>((resolve) => {
       server.onMessage((msg) => resolve(msg));
     });
@@ -69,7 +69,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('sends messages to connected client', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const client = new WebSocket(`ws://127.0.0.1:${server.port}/_nrepl`);
     const messagePromise = new Promise<string>((resolve) => {
       client.on('message', (data) => resolve(data.toString()));
@@ -85,7 +85,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('fires disconnection handler on client close', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const disconnected = new Promise<void>((resolve) => {
       server.onClientDisconnected(() => resolve());
     });
@@ -99,7 +99,7 @@ describe('ws-nrepl-server', () => {
   });
 
   it('replaces previous client on new connection', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     const disconnected = new Promise<void>((resolve) => {
       server.onClientDisconnected(() => resolve());
     });
@@ -119,13 +119,13 @@ describe('ws-nrepl-server', () => {
   });
 
   it('send is a no-op when no client is connected', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     // Should not throw
     server.send('orphan message');
   });
 
   it('stop is idempotent', async () => {
-    server = await wsServer.startWsNReplServer(0);
+    server = await wsServer.startNReplWsServer(0);
     await server.stop();
     await server.stop(); // second stop should not throw
     server = undefined;

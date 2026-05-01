@@ -8,7 +8,7 @@ export class WsPortInUseError extends Error {
   }
 }
 
-export class WsNReplServer {
+export class NReplWsServer {
   private wss: WebSocket.Server | null = null;
   private client: WebSocket | null = null;
   private _port: number;
@@ -146,8 +146,8 @@ export class WsNReplServer {
   }
 }
 
-export async function startWsNReplServer(port: number, host?: string): Promise<WsNReplServer> {
-  const server = new WsNReplServer(port, host);
+export async function startNReplWsServer(port: number, host?: string): Promise<NReplWsServer> {
+  const server = new NReplWsServer(port, host);
   await server.start();
   return server;
 }

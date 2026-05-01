@@ -7,7 +7,7 @@ import open = require('open');
 import * as status from './status';
 import * as projectTypes from './nrepl/project-types';
 import * as nrepl from './nrepl';
-import * as wsNReplServer from './nrepl/ws-nrepl-server';
+import * as nReplWsServer from './nrepl/nrepl-ws-server';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as jackIn from './nrepl/jack-in';
 import * as connectSequenceInheritance from './nrepl/connect-sequence-inheritance';
@@ -139,15 +139,15 @@ async function connectViaWebSocket(
 
   try {
     // Start WebSocket server with port conflict retry
-    let server: wsNReplServer.WsNReplServer;
+    let server: nReplWsServer.NReplWsServer;
     let currentPort = wsPort;
     // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
-        server = await wsNReplServer.startWsNReplServer(currentPort, wsHost);
+        server = await nReplWsServer.startNReplWsServer(currentPort, wsHost);
         break;
       } catch (e) {
-        if (e instanceof wsNReplServer.WsPortInUseError) {
+        if (e instanceof nReplWsServer.WsPortInUseError) {
           const newPort = await vscode.window.showInputBox({
             prompt: `WebSocket port ${currentPort} is in use. Enter a different port:`,
             value: String(currentPort),

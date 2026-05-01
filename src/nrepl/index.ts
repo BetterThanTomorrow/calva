@@ -18,7 +18,7 @@ import * as output from '../results-output/output';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as whoTracking from '../api/who-tracking';
 import * as ednTransport from './edn-transport';
-import * as wsNReplServer from './ws-nrepl-server';
+import * as nReplWsServer from './nrepl-ws-server';
 
 type PrettyPrintingOptions = printer.PrettyPrintingOptions;
 type ReplSessionType = config.ReplSessionType;
@@ -77,7 +77,7 @@ export class NReplClient {
   private encoder = new BEncoderStream();
   private decoder = new BDecoderStream();
   session: NReplSession;
-  private _wsServer: wsNReplServer.WsNReplServer | null = null;
+  private _wsServer: nReplWsServer.NReplWsServer | null = null;
 
   /** Result of running describe at boot */
   describe: any;
@@ -398,7 +398,7 @@ export class NReplClient {
    * caller's responsibility — see connectViaWebSocket() in connector.ts.
    */
   static createFromWebSocket(opts: {
-    server: wsNReplServer.WsNReplServer;
+    server: nReplWsServer.NReplWsServer;
     onError: (e: Error) => void;
   }): NReplClient {
     const client = new NReplClient(null, opts.onError);
