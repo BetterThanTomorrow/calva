@@ -5,12 +5,12 @@
 (defn project-path [path]
   (str "projects/scittle-replicant-tic-tac-toe/" path))
 
-(defn replicant-ttt []
+(defn replicant-ttt [port]
   (flare/flare!+
    {:html [:html
            [:head
-            [:script "var SCITTLE_NREPL_WEBSOCKET_PORT = 1340;
-                      var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';"]
+            [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " port ";
+                      var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
             [:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.8.31/dist/scittle.js"
                       :type "application/javascript"}]
             [:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.8.31/dist/scittle.nrepl.js"
@@ -39,5 +39,5 @@
     :title "Greetings, Professor Falken."}))
 
 (comment
-  (replicant-ttt)
+  (replicant-ttt 1340)
   :rcf)
