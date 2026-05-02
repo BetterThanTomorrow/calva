@@ -76,8 +76,13 @@ suite('WebSocket nREPL Connect suite', function () {
     // and then open the webview.
     const connectPromise = connector.connect(connectSequence, true);
 
-    // Give the WS server a moment to start listening
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait for the WS server to be accepting connections
+    await testUtil.waitForCondition(
+      () => testUtil.canConnectToPort(WS_PORT_EVAL),
+      5_000,
+      20,
+      `WS server not listening on port ${WS_PORT_EVAL}`
+    );
 
     // Open a webview panel that loads the scittle app — this is the "browser"
     webviewPanel = createScittleWebview(projectDir, WS_PORT_EVAL);
@@ -177,7 +182,14 @@ suite('WebSocket nREPL Connect suite', function () {
     };
 
     const connectPromise = connector.connect(connectSequence, true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Wait for the WS server to be accepting connections
+    await testUtil.waitForCondition(
+      () => testUtil.canConnectToPort(WS_PORT_LOAD),
+      5_000,
+      20,
+      `WS server not listening on port ${WS_PORT_LOAD}`
+    );
 
     webviewPanel = createScittleWebview(projectDir, WS_PORT_LOAD);
     testUtil.log(suite, 'Webview created');
