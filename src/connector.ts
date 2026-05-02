@@ -139,13 +139,11 @@ async function connectViaWebSocket(
 
   try {
     // Start WebSocket server with port conflict retry
-    let server: nReplWsServer.NReplWsServer;
+    let server: nReplWsServer.NReplWsServer | undefined;
     let currentPort = wsPort;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    while (!server) {
       try {
         server = await nReplWsServer.startNReplWsServer(currentPort, wsHost);
-        break;
       } catch (e) {
         if (e instanceof nReplWsServer.WsPortInUseError) {
           const newPort = await vscode.window.showInputBox({
@@ -162,9 +160,9 @@ async function connectViaWebSocket(
             return { connected: false };
           }
           currentPort = parseInt(newPort);
-          continue;
+        } else {
+          throw e;
         }
-        throw e;
       }
     }
 
