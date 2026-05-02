@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as cp from 'child_process';
 import * as globLib from 'glob';
 
 import * as testElectron from '@vscode/test-electron';
@@ -9,8 +9,6 @@ async function main() {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, ...['..', '..', '..']);
-    const vscodeTestPath = path.resolve(extensionDevelopmentPath, '.vscode-test');
-    fs.rmSync(vscodeTestPath, { recursive: true, force: true });
 
     // The path to the extension test runner script
     // Passed to --extensionTestsPath
@@ -70,11 +68,21 @@ async function main() {
           }
         : undefined;
 
-    const launchArgs = [testWorkspace, '--disable-extensions', '--disable-workspace-trust'];
+    const launchArgs = [testWorkspace, '--disable-workspace-trust'];
 
-    // Download VS Code, unzip it and run the integration test
+    // Download VS Code and install Joyride extension (needed for WebSocket tests)
+    const vscodeExecutablePath = await testElectron.downloadAndUnzipVSCode('insiders');
+    const [cliPath, ...cliArgs] =
+      testElectron.resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+    cp.spawnSync(
+      cliPath,
+      [...cliArgs, '--install-extension', 'betterthantomorrow.joyride', '--force', ...launchArgs],
+      { encoding: 'utf-8', stdio: 'inherit' }
+    );
+
+    // Run the integration tests using the downloaded VS Code instance
     await testElectron.runTests({
-      version: 'insiders',
+      vscodeExecutablePath,
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs,

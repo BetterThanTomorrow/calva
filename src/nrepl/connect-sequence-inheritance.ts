@@ -3,6 +3,7 @@ import type * as connectSequenceTypes from './connect-sequence-types';
 export interface ConnectSequenceProjectTypeDefaults {
   defaultNReplPortFile?: string[];
   defaultFallbackPort?: number;
+  defaultWebSocketPort?: number | boolean;
 }
 
 export function effectiveNReplPortFileSegments(
@@ -18,6 +19,13 @@ export function effectiveFallbackPort(
   projectTypeDefaults?: ConnectSequenceProjectTypeDefaults
 ): number | undefined {
   return sequence.fallbackPort ?? projectTypeDefaults?.defaultFallbackPort;
+}
+
+export function effectiveWebSocketPort(
+  sequence: Pick<connectSequenceTypes.ReplConnectSequence, 'webSocketPort'>,
+  projectTypeDefaults?: ConnectSequenceProjectTypeDefaults
+): number | boolean | undefined {
+  return sequence.webSocketPort ?? projectTypeDefaults?.defaultWebSocketPort;
 }
 
 export function effectiveSelectedPortBehaviour(

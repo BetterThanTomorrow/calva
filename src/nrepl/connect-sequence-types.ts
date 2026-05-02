@@ -88,6 +88,8 @@ interface ReplConnectSequence {
   replSessionFilePatterns?: SessionFilePatternsConfig;
   fallbackPort?: number;
   selectedPortBehaviour?: SelectedPortBehaviour;
+  webSocketPort?: number | boolean;
+  webSocketHost?: string;
 }
 
 export {

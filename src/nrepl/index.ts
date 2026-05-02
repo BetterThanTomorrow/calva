@@ -1,4 +1,5 @@
 import * as net from 'net';
+import * as crypto from 'crypto';
 import * as bencode from './bencode';
 import * as cider from './cider';
 import * as state from './../state';
@@ -16,6 +17,8 @@ import * as string from '../util/string';
 import * as output from '../results-output/output';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as whoTracking from '../api/who-tracking';
+import * as ednTransport from './edn-transport';
+import * as nReplWsServer from './nrepl-ws-server';
 
 type PrettyPrintingOptions = printer.PrettyPrintingOptions;
 type ReplSessionType = config.ReplSessionType;
@@ -70,10 +73,11 @@ export class NReplClient {
     return ++this._nextId + '';
   }
 
-  private socket: net.Socket;
+  private socket: net.Socket | null;
   private encoder = new BEncoderStream();
   private decoder = new BDecoderStream();
   session: NReplSession;
+  private _wsServer: nReplWsServer.NReplWsServer | null = null;
 
   /** Result of running describe at boot */
   describe: any;
@@ -83,27 +87,33 @@ export class NReplClient {
 
   ns: string = 'user';
 
-  private constructor(socket: net.Socket, onError: (e) => void) {
+  private constructor(socket: net.Socket | null, onError: (e) => void) {
     this.socket = socket;
-    this.socket.on('error', (e) => {
-      console.error(e);
-      state.connectionLogChannel().appendLine(e.message);
-      onError(e);
-    });
-    this.socket.on('close', (v) => {
-      console.log('Socket closed', v);
-      state.connectionLogChannel().appendLine('Socket closed');
-      try {
-        this._closeHandlers.forEach((x) => x(this));
-        for (const x in this.sessions) {
-          this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
-        }
-      } catch (e) {
+    if (socket) {
+      socket.on('error', (e) => {
         console.error(e);
+        state.connectionLogChannel().appendLine(e.message);
+        onError(e);
+      });
+      socket.on('close', (v) => {
+        console.log('Socket closed', v);
+        state.connectionLogChannel().appendLine('Socket closed');
+        this._fireCloseHandlers();
+      });
+      this.encoder.pipe(socket);
+      socket.pipe(this.decoder);
+    }
+  }
+
+  private _fireCloseHandlers() {
+    try {
+      this._closeHandlers.forEach((x) => x(this));
+      for (const x in this.sessions) {
+        this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
       }
-    });
-    this.encoder.pipe(this.socket);
-    this.socket.pipe(this.decoder);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   private _closeHandlers: ((c: NReplClient) => void)[] = [];
@@ -128,12 +138,35 @@ export class NReplClient {
   }
 
   /**
-   * Send a Javascript object over the wire as bencode.
-   * @param data
+   * Send a Javascript object over the wire.
+   * In TCP mode: bencode-encoded via socket.
+   * In WebSocket mode: EDN-encoded via WebSocket, with local op interception.
    */
   write(data: any) {
-    this.encoder.write(data);
-    log(data, Direction.ClientToServer);
+    if (this._wsServer) {
+      // Convert load-file to eval before processing.
+      // Browser nREPL does not support load-file; the bb relay converts it the same way.
+      if (data.op === 'load-file' && data.file) {
+        data = { ...data, op: 'eval', code: data.file };
+        delete data.file;
+        delete data['file-name'];
+        delete data['file-path'];
+      }
+      const localResponse = this._handleLocalOp(data);
+      if (localResponse) {
+        log(data, Direction.ClientToServer);
+        process.nextTick(() => {
+          log(localResponse, Direction.ServerToClient);
+          this._dispatchMessage(localResponse);
+        });
+        return;
+      }
+      log(data, Direction.ClientToServer);
+      this._wsServer.send(ednTransport.ednEncodeNReplMessage(data));
+    } else {
+      this.encoder.write(data);
+      log(data, Direction.ClientToServer);
+    }
   }
 
   async close() {
@@ -153,7 +186,13 @@ export class NReplClient {
   }
 
   disconnect() {
-    this.socket.destroy();
+    if (this.socket) {
+      this.socket.destroy();
+    }
+    if (this._wsServer) {
+      this._wsServer.dispose();
+      this._wsServer = null;
+    }
   }
 
   /**
@@ -265,6 +304,135 @@ export class NReplClient {
       });
       const client = new NReplClient(socket, opts.onError);
     });
+  }
+
+  /** JVM probe patterns to intercept in WebSocket mode */
+  private static readonly JVM_PROBE_PATTERNS = [
+    /clojure\.main\/repl-requires/,
+    /System\/getProperty/,
+  ];
+
+  private _isJvmProbe(code: string): boolean {
+    return NReplClient.JVM_PROBE_PATTERNS.some((pattern) => pattern.test(code));
+  }
+
+  /**
+   * Handle operations locally in WebSocket mode.
+   * Returns a response object if the op was handled, null if it should be forwarded.
+   */
+  private _handleLocalOp(data: any): any {
+    const op = data.op;
+    const id = data.id;
+    const session = data.session;
+
+    switch (op) {
+      case 'clone':
+        return {
+          id,
+          'new-session': crypto.randomUUID(),
+          status: ['done'],
+        };
+
+      case 'describe':
+        return {
+          id,
+          session,
+          ops: {
+            eval: {},
+            'load-file': {},
+            complete: {},
+            info: {},
+            eldoc: {},
+            lookup: {},
+            close: {},
+            clone: {},
+            describe: {},
+            'ls-sessions': {},
+          },
+          status: ['done'],
+        };
+
+      case 'ls-sessions':
+        return {
+          id,
+          session,
+          sessions: Object.keys(this.sessions),
+          status: ['done'],
+        };
+
+      case 'eval':
+        if (data.code && this._isJvmProbe(data.code)) {
+          return {
+            id,
+            session,
+            value: 'nil',
+            ns: 'user',
+            status: ['done'],
+          };
+        }
+        return null;
+
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Dispatch a decoded message to the appropriate session handler.
+   */
+  private _dispatchMessage(data: any) {
+    debug.onNreplMessage(data);
+    if (data['session']) {
+      const session = this.sessions[data['session']];
+      if (session) {
+        session._response(data);
+      }
+    }
+  }
+
+  /**
+   * Handle an incoming EDN message from the WebSocket transport.
+   * Decodes and dispatches to the appropriate session.
+   */
+  handleIncomingMessage(ednString: string) {
+    const data = ednTransport.ednDecodeNReplMessage(ednString);
+    log(data, Direction.ServerToClient);
+    this._dispatchMessage(data);
+  }
+
+  /**
+   * Create an NReplClient backed by a WebSocket server + EDN transport.
+   * Performs a local handshake (no messages to browser).
+   * Event wiring (onMessage, onClientDisconnected, onError) is the
+   * caller's responsibility — see connectViaWebSocket() in connector.ts.
+   */
+  static createFromWebSocket(opts: {
+    server: nReplWsServer.NReplWsServer;
+    onError: (e: Error) => void;
+  }): NReplClient {
+    const client = new NReplClient(null, opts.onError);
+    client._wsServer = opts.server;
+
+    // Local handshake: generate session and describe without contacting the browser
+    const sessionId = crypto.randomUUID();
+    client.session = new NReplSession(sessionId, client);
+    client.describe = {
+      ops: {
+        eval: {},
+        'load-file': {},
+        complete: {},
+        info: {},
+        eldoc: {},
+        lookup: {},
+        close: {},
+        clone: {},
+        describe: {},
+        'ls-sessions': {},
+      },
+    };
+    client.ns = 'user';
+
+    return client;
   }
 }
 
