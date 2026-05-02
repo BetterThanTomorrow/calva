@@ -13,10 +13,41 @@ import * as docMirror from '../../../doc-mirror';
 const WS_PORT_EVAL = 51340;
 const WS_PORT_LOAD = 51341;
 
+/**
+ * Create a scittle webview via Joyride flare.
+ * The flare handles CSP, resource URIs, and script loading correctly.
+ */
+function flareCode(port: number): string {
+  return `
+(require '[joyride.flare :as flare])
+(defn project-path [p]
+  (str "projects/scittle-replicant-tic-tac-toe/" p))
+(flare/flare!+
+  {:html [:html
+          [:head
+           [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " ${port} ";\\n                     var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
+           [:script {:src (project-path "resources/scittle/dist/scittle.js")
+                     :type "application/javascript"}]
+           [:script {:src (project-path "resources/scittle/dist/scittle.nrepl.js")
+                     :type "application/javascript"}]
+           [:script {:src (project-path "resources/scittle/dist/scittle.replicant.js")
+                     :type "application/javascript"}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/ui.cljs")}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/game.cljs")}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/core.cljs")}]]
+          [:body
+           [:div#app]]]
+   :key :ws-test-${port}
+   :title "WS Integration Test"})
+`;
+}
+
 suite('WebSocket nREPL Connect suite', function () {
   this.timeout(60_000);
   const suite = 'WebSocket Connect';
-  let webviewPanel: vscode.WebviewPanel | undefined;
 
   mocha.before(() => {
     testUtil.showMessage(suite, 'suite starting!');
@@ -27,10 +58,6 @@ suite('WebSocket nREPL Connect suite', function () {
   });
 
   mocha.afterEach(async () => {
-    if (webviewPanel) {
-      webviewPanel.dispose();
-      webviewPanel = undefined;
-    }
     const clients = clientRegistry.listClients();
     for (const client of clients) {
       try {
@@ -50,17 +77,6 @@ suite('WebSocket nREPL Connect suite', function () {
       'projects',
       'scittle-replicant-tic-tac-toe'
     );
-
-    // Open a file in the scittle project to set project root context
-    const coreFile = path.join(
-      projectDir,
-      'resources',
-      'scittle',
-      'replicant_tictactoe',
-      'core.cljs'
-    );
-    await testUtil.openFile(coreFile);
-    testUtil.log(suite, 'core.cljs opened');
 
     const connectSequence: connectSequenceTypes.ReplConnectSequence = {
       name: 'scittle-ws-test',
@@ -84,9 +100,9 @@ suite('WebSocket nREPL Connect suite', function () {
       `WS server not listening on port ${WS_PORT_EVAL}`
     );
 
-    // Open a webview panel that loads the scittle app — this is the "browser"
-    webviewPanel = createScittleWebview(projectDir, WS_PORT_EVAL, suite);
-    testUtil.log(suite, 'Webview panel created, waiting for browser REPL to connect...');
+    // Open a webview panel via Joyride flare — this is the "browser"
+    await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_EVAL));
+    testUtil.log(suite, 'Flare webview created, waiting for browser REPL to connect...');
 
     // Wait for the connection to complete
     const result = await connectPromise;
@@ -105,13 +121,26 @@ suite('WebSocket nREPL Connect suite', function () {
     assert.strictEqual(evalResult, '3', 'Simple eval should return 3');
     testUtil.log(suite, `(+ 1 2) => ${evalResult}`);
 
-    // Load the file first — this runs (main) which defs !store and event-handler!
-    await vscode.commands.executeCommand('calva.loadFile');
-    testUtil.log(suite, 'core.cljs loaded');
-
-    // Play tic-tac-toe from the REPL — proves the app is live and interactive
-    // SCI nREPL evaluates in 'user' but we can switch ns inline
+    // Scittle's x-script processing already loaded all namespaces and called (main),
+    // which defined !store and event-handler! — just switch namespace to access them.
     await session.eval("(in-ns 'replicant-tictactoe.core)", 'user').value;
+    testUtil.log(suite, 'Switched to replicant-tictactoe.core');
+
+    // Wait for !store to be available (x-script processing is async relative to WS connect)
+    await testUtil.waitForCondition(
+      async () => {
+        try {
+          const r = await session.eval("(try (eval '!store) true (catch :default _ false))", 'user')
+            .value;
+          return r === 'true';
+        } catch {
+          return false;
+        }
+      },
+      5_000,
+      20,
+      '!store not defined in replicant-tictactoe.core'
+    );
 
     // Check initial game state
     const initialState = await session.eval('@!store', 'user').value;
@@ -191,7 +220,7 @@ suite('WebSocket nREPL Connect suite', function () {
       `WS server not listening on port ${WS_PORT_LOAD}`
     );
 
-    webviewPanel = createScittleWebview(projectDir, WS_PORT_LOAD, suite);
+    await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_LOAD));
     testUtil.log(suite, 'Webview created');
 
     const result = await connectPromise;
@@ -206,7 +235,7 @@ suite('WebSocket nREPL Connect suite', function () {
     );
 
     // Load the core.cljs file
-    await vscode.commands.executeCommand('calva.loadFile');
+    await vscode.commands.executeCommand('calva.loadFile', { path: coreFile });
     testUtil.log(suite, 'Load file command executed');
 
     // Verify eval result appears in repl output
@@ -225,92 +254,3 @@ suite('WebSocket nREPL Connect suite', function () {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 });
-
-/**
- * Create a VS Code webview panel that loads the scittle tic-tac-toe app.
- * This acts as the "browser" that connects to the WS nREPL server.
- */
-function createScittleWebview(
-  projectDir: string,
-  port: number,
-  suiteName: string
-): vscode.WebviewPanel {
-  const panel = vscode.window.createWebviewPanel(
-    'scittle-ws-test',
-    'Scittle WS Test',
-    vscode.ViewColumn.Two,
-    {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-      localResourceRoots: [vscode.Uri.file(projectDir)],
-    }
-  );
-
-  panel.webview.onDidReceiveMessage((msg) => {
-    testUtil.log(suiteName, `[webview] ${msg.type}: ${msg.detail || ''}`);
-  });
-
-  const scittleDist = panel.webview.asWebviewUri(
-    vscode.Uri.file(path.join(projectDir, 'resources', 'scittle', 'dist'))
-  );
-  const resourceBase = panel.webview.asWebviewUri(
-    vscode.Uri.file(path.join(projectDir, 'resources', 'scittle', 'replicant_tictactoe'))
-  );
-
-  panel.webview.html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' ${panel.webview.cspSource}; connect-src ws://127.0.0.1:*;">
-    <script>
-      // Diagnostic: report back to extension host
-      const vscode = acquireVsCodeApi();
-      function diag(type, detail) {
-        vscode.postMessage({type: type, detail: detail});
-      }
-      diag('js-started', 'inline script executing');
-      window.onerror = function(msg, src, line, col, err) {
-        diag('js-error', msg + ' at ' + src + ':' + line);
-      };
-      // Intercept WebSocket to log connection attempts
-      const OrigWS = WebSocket;
-      window.WebSocket = function(url, protocols) {
-        diag('ws-connecting', url);
-        const ws = new OrigWS(url, protocols);
-        ws.addEventListener('open', () => diag('ws-open', url));
-        ws.addEventListener('error', (e) => diag('ws-error', url + ' ' + String(e)));
-        ws.addEventListener('close', (e) => diag('ws-close', url + ' code=' + e.code));
-        return ws;
-      };
-      window.WebSocket.prototype = OrigWS.prototype;
-      Object.defineProperty(window.WebSocket, 'CONNECTING', {value: 0});
-      Object.defineProperty(window.WebSocket, 'OPEN', {value: 1});
-      Object.defineProperty(window.WebSocket, 'CLOSING', {value: 2});
-      Object.defineProperty(window.WebSocket, 'CLOSED', {value: 3});
-    </script>
-    <script>
-      var SCITTLE_NREPL_WEBSOCKET_PORT = ${port};
-      var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';
-    </script>
-    <script src="${scittleDist}/scittle.js" type="application/javascript"
-            onload="diag('script-loaded', 'scittle.js')"
-            onerror="diag('script-failed', 'scittle.js')"></script>
-    <script src="${scittleDist}/scittle.nrepl.js" type="application/javascript"
-            onload="diag('script-loaded', 'scittle.nrepl.js')"
-            onerror="diag('script-failed', 'scittle.nrepl.js')"></script>
-    <script src="${scittleDist}/scittle.replicant.js" type="application/javascript"
-            onload="diag('script-loaded', 'scittle.replicant.js')"
-            onerror="diag('script-failed', 'scittle.replicant.js')"></script>
-    <script type="application/x-scittle" src="${resourceBase}/ui.cljs"></script>
-    <script type="application/x-scittle" src="${resourceBase}/game.cljs"></script>
-    <script type="application/x-scittle" src="${resourceBase}/core.cljs"></script>
-    <script>diag('all-scripts-processed', 'end of head');</script>
-  </head>
-  <body>
-    <h1>Scittle WS Integration Test</h1>
-    <div id="app"></div>
-  </body>
-</html>`;
-
-  return panel;
-}

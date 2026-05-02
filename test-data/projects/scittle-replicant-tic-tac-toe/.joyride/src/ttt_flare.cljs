@@ -11,11 +11,11 @@
            [:head
             [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " port ";
                       var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
-            [:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.8.31/dist/scittle.js"
+            [:script {:src (project-path "resources/scittle/dist/scittle.js")
                       :type "application/javascript"}]
-            [:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.8.31/dist/scittle.nrepl.js"
+            [:script {:src (project-path "resources/scittle/dist/scittle.nrepl.js")
                       :type "application/javascript"}]
-            [:script {:src "https://cdn.jsdelivr.net/npm/scittle@0.8.31/dist/scittle.replicant.js"
+            [:script {:src (project-path "resources/scittle/dist/scittle.replicant.js")
                       :type "application/javascript"}]
             [:script {:type "application/x-scittle"
                       :src (project-path "resources/scittle/replicant_tictactoe/ui.cljs")}]
