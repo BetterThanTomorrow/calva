@@ -189,8 +189,8 @@ suite('WebSocket nREPL Connect suite', function () {
     // Wait for sessions to be fully ready
     await testUtil.waitForCondition(
       () => sessionRegistry.listSessions().length > 0,
-      10_000,
-      50,
+      2_000,
+      20,
       'Timed out waiting for sessions'
     );
 
@@ -205,8 +205,8 @@ suite('WebSocket nREPL Connect suite', function () {
         const text = docMirror.getDocument(replWindowDoc).document.getText();
         return text.includes('nil');
       },
-      10_000,
-      50,
+      2_000,
+      20,
       'Timed out waiting for load-file result in REPL window'
     );
 
