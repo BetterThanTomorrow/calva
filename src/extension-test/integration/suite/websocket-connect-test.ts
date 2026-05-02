@@ -69,6 +69,8 @@ suite('WebSocket nREPL Connect suite', function () {
   });
 
   test('Connect via WebSocket and evaluate code', async function () {
+    const t0 = Date.now();
+    const elapsed = () => `${Date.now() - t0}ms`;
     testUtil.log(suite, 'Connect via WebSocket and evaluate code');
 
     const projectDir = path.join(
@@ -91,6 +93,7 @@ suite('WebSocket nREPL Connect suite', function () {
     // so we kick off the connect (which will block on firstConnectionPromise)
     // and then open the webview.
     const connectPromise = connector.connect(connectSequence, true);
+    testUtil.log(suite, `[TIMING] connector.connect kicked off: ${elapsed()}`);
 
     // Wait for the WS server to be accepting connections
     await testUtil.waitForCondition(
@@ -99,15 +102,16 @@ suite('WebSocket nREPL Connect suite', function () {
       20,
       `WS server not listening on port ${WS_PORT_EVAL}`
     );
+    testUtil.log(suite, `[TIMING] WS server listening: ${elapsed()}`);
 
     // Open a webview panel via Joyride flare — this is the "browser"
     await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_EVAL));
-    testUtil.log(suite, 'Flare webview created, waiting for browser REPL to connect...');
+    testUtil.log(suite, `[TIMING] Flare webview created: ${elapsed()}`);
 
     // Wait for the connection to complete
     const result = await connectPromise;
     assert.ok(result.connected, 'WebSocket connection should succeed');
-    testUtil.log(suite, `Connected with clientKey: ${result.clientKey}`);
+    testUtil.log(suite, `[TIMING] Connection complete: ${elapsed()}`);
 
     // Verify sessions are registered
     const sessions = sessionRegistry.listSessions();
@@ -120,6 +124,8 @@ suite('WebSocket nREPL Connect suite', function () {
     const evalResult = await session.eval('(+ 1 2)', 'user').value;
     assert.strictEqual(evalResult, '3', 'Simple eval should return 3');
     testUtil.log(suite, `(+ 1 2) => ${evalResult}`);
+
+    testUtil.log(suite, `[TIMING] Basic eval done: ${elapsed()}`);
 
     // Scittle's x-script processing already loaded all namespaces and called (main),
     // which defined !store and event-handler! — just switch namespace to access them.
@@ -141,6 +147,7 @@ suite('WebSocket nREPL Connect suite', function () {
       20,
       '!store not defined in replicant-tictactoe.core'
     );
+    testUtil.log(suite, `[TIMING] !store available: ${elapsed()}`);
 
     // Check initial game state
     const initialState = await session.eval('@!store', 'user').value;
@@ -179,10 +186,12 @@ suite('WebSocket nREPL Connect suite', function () {
     testUtil.log(suite, 'Game reset verified');
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    testUtil.log(suite, 'Test complete');
+    testUtil.log(suite, `[TIMING] Test 1 complete: ${elapsed()}`);
   });
 
   test('Load file via WebSocket', async function () {
+    const t0 = Date.now();
+    const elapsed = () => `${Date.now() - t0}ms`;
     testUtil.log(suite, 'Load file via WebSocket');
 
     const projectDir = path.join(
@@ -221,7 +230,7 @@ suite('WebSocket nREPL Connect suite', function () {
     );
 
     await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_LOAD));
-    testUtil.log(suite, 'Webview created');
+    testUtil.log(suite, `[TIMING] Webview created: ${elapsed()}`);
 
     const result = await connectPromise;
     assert.ok(result.connected, 'Should connect');
@@ -250,7 +259,7 @@ suite('WebSocket nREPL Connect suite', function () {
       'Timed out waiting for load-file result in REPL window'
     );
 
-    testUtil.log(suite, 'Load file completed successfully');
+    testUtil.log(suite, `[TIMING] Test 2 complete: ${elapsed()}`);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 });
