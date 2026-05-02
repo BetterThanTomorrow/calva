@@ -85,7 +85,7 @@ suite('WebSocket nREPL Connect suite', function () {
     );
 
     // Open a webview panel that loads the scittle app — this is the "browser"
-    webviewPanel = createScittleWebview(projectDir, WS_PORT_EVAL);
+    webviewPanel = createScittleWebview(projectDir, WS_PORT_EVAL, suite);
     testUtil.log(suite, 'Webview panel created, waiting for browser REPL to connect...');
 
     // Wait for the connection to complete
@@ -191,7 +191,7 @@ suite('WebSocket nREPL Connect suite', function () {
       `WS server not listening on port ${WS_PORT_LOAD}`
     );
 
-    webviewPanel = createScittleWebview(projectDir, WS_PORT_LOAD);
+    webviewPanel = createScittleWebview(projectDir, WS_PORT_LOAD, suite);
     testUtil.log(suite, 'Webview created');
 
     const result = await connectPromise;
@@ -230,7 +230,11 @@ suite('WebSocket nREPL Connect suite', function () {
  * Create a VS Code webview panel that loads the scittle tic-tac-toe app.
  * This acts as the "browser" that connects to the WS nREPL server.
  */
-function createScittleWebview(projectDir: string, port: number): vscode.WebviewPanel {
+function createScittleWebview(
+  projectDir: string,
+  port: number,
+  suiteName: string
+): vscode.WebviewPanel {
   const panel = vscode.window.createWebviewPanel(
     'scittle-ws-test',
     'Scittle WS Test',
@@ -241,6 +245,10 @@ function createScittleWebview(projectDir: string, port: number): vscode.WebviewP
       localResourceRoots: [vscode.Uri.file(projectDir)],
     }
   );
+
+  panel.webview.onDidReceiveMessage((msg) => {
+    testUtil.log(suiteName, `[webview] ${msg.type}: ${msg.detail || ''}`);
+  });
 
   const scittleDist = panel.webview.asWebviewUri(
     vscode.Uri.file(path.join(projectDir, 'resources', 'scittle', 'dist'))
@@ -253,16 +261,50 @@ function createScittleWebview(projectDir: string, port: number): vscode.WebviewP
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' ${panel.webview.cspSource}; connect-src ws://127.0.0.1:*;">
+    <script>
+      // Diagnostic: report back to extension host
+      const vscode = acquireVsCodeApi();
+      function diag(type, detail) {
+        vscode.postMessage({type: type, detail: detail});
+      }
+      diag('js-started', 'inline script executing');
+      window.onerror = function(msg, src, line, col, err) {
+        diag('js-error', msg + ' at ' + src + ':' + line);
+      };
+      // Intercept WebSocket to log connection attempts
+      const OrigWS = WebSocket;
+      window.WebSocket = function(url, protocols) {
+        diag('ws-connecting', url);
+        const ws = new OrigWS(url, protocols);
+        ws.addEventListener('open', () => diag('ws-open', url));
+        ws.addEventListener('error', (e) => diag('ws-error', url + ' ' + String(e)));
+        ws.addEventListener('close', (e) => diag('ws-close', url + ' code=' + e.code));
+        return ws;
+      };
+      window.WebSocket.prototype = OrigWS.prototype;
+      Object.defineProperty(window.WebSocket, 'CONNECTING', {value: 0});
+      Object.defineProperty(window.WebSocket, 'OPEN', {value: 1});
+      Object.defineProperty(window.WebSocket, 'CLOSING', {value: 2});
+      Object.defineProperty(window.WebSocket, 'CLOSED', {value: 3});
+    </script>
     <script>
       var SCITTLE_NREPL_WEBSOCKET_PORT = ${port};
       var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';
     </script>
-    <script src="${scittleDist}/scittle.js" type="application/javascript"></script>
-    <script src="${scittleDist}/scittle.nrepl.js" type="application/javascript"></script>
-    <script src="${scittleDist}/scittle.replicant.js" type="application/javascript"></script>
+    <script src="${scittleDist}/scittle.js" type="application/javascript"
+            onload="diag('script-loaded', 'scittle.js')"
+            onerror="diag('script-failed', 'scittle.js')"></script>
+    <script src="${scittleDist}/scittle.nrepl.js" type="application/javascript"
+            onload="diag('script-loaded', 'scittle.nrepl.js')"
+            onerror="diag('script-failed', 'scittle.nrepl.js')"></script>
+    <script src="${scittleDist}/scittle.replicant.js" type="application/javascript"
+            onload="diag('script-loaded', 'scittle.replicant.js')"
+            onerror="diag('script-failed', 'scittle.replicant.js')"></script>
     <script type="application/x-scittle" src="${resourceBase}/ui.cljs"></script>
     <script type="application/x-scittle" src="${resourceBase}/game.cljs"></script>
     <script type="application/x-scittle" src="${resourceBase}/core.cljs"></script>
+    <script>diag('all-scripts-processed', 'end of head');</script>
   </head>
   <body>
     <h1>Scittle WS Integration Test</h1>
