@@ -38,12 +38,6 @@ npm run integration-test -- cljc
 
 This passes the filter as a command line argument accessible via `process.argv`, ensuring reliable configuration in the VS Code Extension Host environment.
 
-## Integration Test Invariant: Poll, Never Sleep
+## Integration Test Invariant: Poll instead of Sleep
 
-**Never use blind `setTimeout` waits in integration tests.** Always poll for the condition you're actually waiting for using `waitForCondition` or `waitForValue`.
-
-- Blind waits (e.g., `await new Promise(r => setTimeout(r, 500))`) are fragile — they pass locally but fail in slower environments like CI.
-- Use `testUtil.waitForCondition(predicate, timeout, interval, message)` to poll until the precondition is met.
-- For port readiness: `testUtil.canConnectToPort(port)` returns a `Promise<boolean>` suitable as a `waitForCondition` predicate.
-- For session availability: poll `sessionRegistry.listSessions().length > 0`.
-- For REPL output: poll the REPL window document text for expected content.
+The integration test suite has helpers for witing for conditions without using fixed sleeps.
