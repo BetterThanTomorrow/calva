@@ -446,6 +446,66 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#websocket-connections-browser-repls" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Connections (Browser REPLs)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WebSocket Connections (Browser REPLs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How It Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port Conflicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-with-scittle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using with Scittle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-with-epupp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using with Epupp
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#auto-select-project-type-and-project-root" class="md-nav__link">
     <span class="md-ellipsis">
       Auto-select Project Type and Project Root
@@ -2382,6 +2442,66 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#websocket-connections-browser-repls" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Connections (Browser REPLs)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="WebSocket Connections (Browser REPLs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How It Works
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port Conflicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-with-scittle" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using with Scittle
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-with-epupp" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using with Epupp
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#auto-select-project-type-and-project-root" class="md-nav__link">
     <span class="md-ellipsis">
       Auto-select Project Type and Project Root
@@ -2559,6 +2679,91 @@
 <p>See also <a href="../customizing-jack-in-and-connect/">Customizing Jack-in and Connect</a></p>
 <h3 id="starting-the-repl-from-application-code">Starting the REPL from application code?<a class="headerlink" href="#starting-the-repl-from-application-code" title="Permanent link">#</a></h3>
 <p>If your project is setup so that the REPL server is started by the application code, you will need to get the cider-nrepl middleware in place. See the cider-nrepl docs about <a href="https://docs.cider.mx/cider-nrepl/usage.html#via-embedding-nrepl-in-your-application">embedding nREPL in your application</a>.</p>
+<h2 id="websocket-connections-browser-repls">WebSocket Connections (Browser REPLs)<a class="headerlink" href="#websocket-connections-browser-repls" title="Permanent link">#</a></h2>
+<p>Calva can connect to browser-based nREPL servers — like those provided by <a href="https://github.com/babashka/scittle">Scittle</a>, <a href="https://github.com/PEZ/epupp">Epupp</a>, or any <a href="https://github.com/babashka/scittle/tree/main/doc/nrepl">sci.nrepl</a> compatible runtime. Instead of the traditional TCP/bencode nREPL connection, Calva starts a WebSocket server that the browser connects to directly.</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">#</a></h3>
+<ol>
+<li>You connect in Calva using a connect sequence with <code>webSocketPort</code> configured</li>
+<li>Calva starts a WebSocket server and shows "Waiting for browser REPL..."</li>
+<li>You connect the browser to the same port (e.g. via Epupp, or by loading a page with Scittle nREPL)</li>
+<li>Calva picks up the connection — you can evaluate code, get completions, look up docs</li>
+</ol>
+<p>If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically.</p>
+<div class="admonition note">
+<p class="admonition-title">One browser client at a time</p>
+<p>Calva's WebSocket server accepts one client connection. If a new browser or browser tab connects, Calva switches to the new client. This means Calva is always connected to whichever browser client most recently connected to its server.</p>
+</div>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h3>
+<p>Valid values for <code>webSocketPort</code>:</p>
+<ul>
+<li>A port number (e.g. <code>1340</code>) — start the WebSocket server on that port</li>
+<li><code>true</code> — prompt for the port each time you connect</li>
+<li><code>false</code> — disable WebSocket, use TCP/bencode instead (for use when extending the built-in <code>scittle</code> and <code>epupp</code> sequences but connecting via an external relay)</li>
+</ul>
+<p>If <code>webSocketPort</code> is omitted, the connection uses TCP/bencode as usual.</p>
+<p>When <code>webSocketPort</code> is set, the TCP-related properties (<code>nReplPortFile</code>, <code>fallbackPort</code>, host/port prompts) are not used.</p>
+<p>By default, the WebSocket server binds to <code>127.0.0.1</code> (localhost only). To accept connections from other machines — for example when the browser runs on a different host or in a Docker container — set <code>webSocketHost</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Browser REPL (network)&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scittle&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;webSocketPort&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1340</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;webSocketHost&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Security: binding to all interfaces</p>
+<p>Setting <code>webSocketHost</code> to <code>"0.0.0.0"</code> exposes the nREPL WebSocket server to your network. Only do this when you need remote access and understand the implications.</p>
+</div>
+<p>The built-in <strong>scittle</strong> and <strong>epupp</strong> connect sequences come with WebSocket enabled by default:</p>
+<table>
+<thead>
+<tr>
+<th>Project type</th>
+<th>WebSocket port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>scittle</td>
+<td>1340</td>
+</tr>
+<tr>
+<td>epupp</td>
+<td>3340</td>
+</tr>
+</tbody>
+</table>
+<p>For most setups, this works out of the box — just make sure the browser-side client is configured to connect to the same port.</p>
+<p>To use a different port, override <code>webSocketPort</code> in your connect sequence:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Browser REPL&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scittle&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;webSocketPort&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4200</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>See <a href="../connect-sequences/">Connect Sequences</a> for the full <code>webSocketPort</code> reference.</p>
+<h3 id="port-conflicts">Port Conflicts<a class="headerlink" href="#port-conflicts" title="Permanent link">#</a></h3>
+<p>WebSocket ports are shared across the OS. If the port is already in use (by another VS Code window or another process), Calva will prompt you with the port pre-filled so you can either enter a different port or free the existing one and retry.</p>
+<h3 id="using-with-scittle">Using with Scittle<a class="headerlink" href="#using-with-scittle" title="Permanent link">#</a></h3>
+<p><a href="https://github.com/babashka/scittle">Scittle</a> provides an nREPL server that runs in the browser. See the <a href="https://github.com/babashka/scittle/tree/main/doc/nrepl">Scittle nREPL docs</a> for how to add nREPL to your page. Once set up:</p>
+<ol>
+<li>Connect in Calva using the <strong>scittle</strong> connect sequence (starts the WebSocket server on port 1340)</li>
+<li>Load your page in the browser — the Scittle nREPL client connects automatically</li>
+</ol>
+<h3 id="using-with-epupp">Using with Epupp<a class="headerlink" href="#using-with-epupp" title="Permanent link">#</a></h3>
+<p><a href="https://github.com/PEZ/epupp">Epupp</a> lets you connect an nREPL to any web page. With WebSocket connections in Calva, the setup is:</p>
+<ol>
+<li>Connect in Calva using the <strong>epupp</strong> connect sequence (starts the WebSocket server on port 3340)</li>
+<li>In Epupp, set the WebSocket port to match and click Connect</li>
+</ol>
 <h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root<a class="headerlink" href="#auto-select-project-type-and-project-root" title="Permanent link">#</a></h2>
 <p>You can make both Jack-in and Connect stop prompting you for project type and project root path in projects where you always want to use the same. See <a href="../connect-sequences/">Connect Sequences</a>.</p>
 <h2 id="monorepos-multiple-clojure-projects-in-one-workspace">Monorepos / multiple Clojure projects in one workspace<a class="headerlink" href="#monorepos-multiple-clojure-projects-in-one-workspace" title="Permanent link">#</a></h2>
