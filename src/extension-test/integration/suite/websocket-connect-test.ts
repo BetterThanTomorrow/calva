@@ -12,7 +12,6 @@ import * as docMirror from '../../../doc-mirror';
 
 const WS_PORT_EVAL = 51340;
 const WS_PORT_LOAD = 51341;
-const SCITTLE_VERSION = '0.8.31';
 
 suite('WebSocket nREPL Connect suite', function () {
   this.timeout(60_000);
@@ -231,6 +230,9 @@ function createScittleWebview(projectDir: string, port: number): vscode.WebviewP
     }
   );
 
+  const scittleDist = panel.webview.asWebviewUri(
+    vscode.Uri.file(path.join(projectDir, 'resources', 'scittle', 'dist'))
+  );
   const resourceBase = panel.webview.asWebviewUri(
     vscode.Uri.file(path.join(projectDir, 'resources', 'scittle', 'replicant_tictactoe'))
   );
@@ -243,9 +245,9 @@ function createScittleWebview(projectDir: string, port: number): vscode.WebviewP
       var SCITTLE_NREPL_WEBSOCKET_PORT = ${port};
       var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/scittle@${SCITTLE_VERSION}/dist/scittle.js" type="application/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/scittle@${SCITTLE_VERSION}/dist/scittle.nrepl.js" type="application/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/scittle@${SCITTLE_VERSION}/dist/scittle.replicant.js" type="application/javascript"></script>
+    <script src="${scittleDist}/scittle.js" type="application/javascript"></script>
+    <script src="${scittleDist}/scittle.nrepl.js" type="application/javascript"></script>
+    <script src="${scittleDist}/scittle.replicant.js" type="application/javascript"></script>
     <script type="application/x-scittle" src="${resourceBase}/ui.cljs"></script>
     <script type="application/x-scittle" src="${resourceBase}/game.cljs"></script>
     <script type="application/x-scittle" src="${resourceBase}/core.cljs"></script>
