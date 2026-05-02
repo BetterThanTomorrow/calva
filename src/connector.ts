@@ -7,6 +7,7 @@ import open = require('open');
 import * as status from './status';
 import * as projectTypes from './nrepl/project-types';
 import * as nrepl from './nrepl';
+import * as nReplWsServer from './nrepl/nrepl-ws-server';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as jackIn from './nrepl/jack-in';
 import * as connectSequenceInheritance from './nrepl/connect-sequence-inheritance';
@@ -83,6 +84,301 @@ async function readRuntimeConfigs(session: nrepl.NReplSession) {
 interface ConnectResult {
   connected: boolean;
   clientKey?: string;
+}
+
+/**
+ * Connect via a WebSocket server that the browser REPL connects to.
+ * Starts a WS server, waits for browser connection, then registers sessions.
+ * Handles browser disconnect/reconnect lifecycle automatically.
+ */
+async function connectViaWebSocket(
+  wsPort: number,
+  wsHost: string,
+  connectSequence: connectSequences.ReplConnectSequence,
+  isJackIn = false
+): Promise<ConnectResult> {
+  let activeClient: nrepl.NReplClient | undefined;
+  const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
+  const projectRootPath = state.getProjectRootUri().fsPath;
+  const projectRoot = state.getProjectRootUri().toString();
+  const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
+
+  const resolution = sessionNameResolver.resolveSessionNames(
+    baseSessionNames,
+    projectRoot,
+    wsHost,
+    isJackIn ? null : wsPort
+  );
+  const sessionRoleKeys = resolution.finalNames;
+
+  if (resolution.reconnectClientKey) {
+    output.appendLineOtherOut(
+      `Reconnecting: disconnecting existing client for sessions: ${Object.values(sessionRoleKeys)
+        .filter(Boolean)
+        .join(', ')}`
+    );
+    if (isJackIn) {
+      await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
+        preserveSuffix: true,
+      });
+    }
+    if (clientRegistry.getClient(resolution.reconnectClientKey)) {
+      await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
+    }
+  }
+
+  const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
+    connectSequence,
+    sessionRoleKeys,
+    projectRootPath
+  );
+
+  util.setConnectingState(true);
+  void vscode.commands.executeCommand('setContext', 'calva:connectSequence', connectSequence.name);
+  status.update();
+
+  try {
+    // Start WebSocket server with port conflict retry
+    let server: nReplWsServer.NReplWsServer | undefined;
+    let currentPort = wsPort;
+    while (!server) {
+      try {
+        server = await nReplWsServer.startNReplWsServer(currentPort, wsHost);
+      } catch (e) {
+        if (e instanceof nReplWsServer.WsPortInUseError) {
+          const newPort = await vscode.window.showInputBox({
+            prompt: `WebSocket port ${currentPort} is in use. Enter a different port:`,
+            value: String(currentPort),
+            ignoreFocusOut: true,
+            validateInput: (v) => {
+              const n = parseInt(v);
+              return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
+            },
+          });
+          if (newPort === undefined) {
+            util.setConnectingState(false);
+            return { connected: false };
+          }
+          currentPort = parseInt(newPort);
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
+    output.appendLineOtherOut('Waiting for browser REPL to connect...');
+
+    // Track first connection to resolve the initial await
+    let resolveFirstConnection: (() => void) | null = null;
+    const firstConnectionPromise = new Promise<void>((resolve) => {
+      resolveFirstConnection = resolve;
+    });
+
+    /**
+     * Register a new NReplClient for the currently-connected browser and
+     * set up sessions, CLJS, and all post-connect initialization.
+     */
+    const registerBrowserClient = async () => {
+      const client = nrepl.NReplClient.createFromWebSocket({
+        server,
+        onError: (e) => {
+          output.appendLineOtherErr(`WebSocket connection error: ${e}`);
+        },
+      });
+      activeClient = client;
+
+      clientRegistry.registerClient(client, {
+        connectSequenceName: connectSequence.name,
+        projectRoot,
+        host: wsHost,
+        port: currentPort,
+        connectionState: {
+          cljsBuild: null,
+          cljsTypeName: projectTypes.getCljsTypeName(connectSequence),
+          hasBuilds: false,
+          sessionRoleKeys,
+          sessionGlobMap,
+          connectSequence,
+          baseSessionNames,
+          suffix: resolution.suffix,
+        },
+      });
+
+      const mainSession = client.session;
+      mainSession.replType = 'clj';
+      util.setConnectingState(false);
+      util.setConnectedState(true);
+      void state.analytics().logGA4Pageview('/connected-clj-repl');
+
+      const mainKey = sessionRoleKeys.primary;
+      const mainGlobMetadata = getSessionGlobMetadata(mainKey, sessionGlobMap);
+      sessionRegistry.registerSession(mainKey, mainSession, {
+        projectRoot,
+        globs: mainGlobMetadata.globs,
+        globSpecs: mainGlobMetadata.globSpecs,
+      });
+      clientRegistry.setCljcTargetForConnection(client.clientKey, 'primary');
+
+      status.update();
+      output.appendLineOtherOut(`Connected session: ${mainKey}, ws://${wsHost}:${currentPort}`);
+      replSession.updateReplSessionType();
+
+      outputWindow.setSession(mainSession, client.ns, mainKey);
+
+      if (config.getConfig().autoEvaluateCode.onConnect.clj) {
+        output.appendLineOtherOut(
+          `Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.clj'`
+        );
+        await evaluate.evaluateInOutputWindow(
+          config.getConfig().autoEvaluateCode.onConnect.clj,
+          mainKey,
+          outputWindow.getNs(),
+          {}
+        );
+      }
+      void output.replWindowAppendPrompt();
+
+      const afterMainReplCode =
+        connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
+      if (afterMainReplCode) {
+        output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
+        await evaluate.evaluateInOutputWindow(afterMainReplCode, mainKey, outputWindow.getNs(), {});
+      }
+      if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
+        output.maybePrintLegacyREPLWindowOutputMessage();
+      }
+      void output.replWindowAppendPrompt();
+
+      let cljsSession = null,
+        cljsBuild = null;
+      try {
+        if (
+          useSecondarySession &&
+          sessionRoleKeys.secondary &&
+          connectSequence.cljsType &&
+          connectSequence.cljsType != 'none'
+        ) {
+          const isBuiltinType: boolean = typeof connectSequence.cljsType == 'string';
+          const cljsType: connectSequences.CljsTypeConfig = isBuiltinType
+            ? connectSequences.getDefaultCljsType(connectSequence.cljsType as string)
+            : (connectSequence.cljsType as connectSequences.CljsTypeConfig);
+
+          const connector = createCljsReplConnector(
+            cljsType,
+            projectTypes.getCljsTypeName(connectSequence),
+            connectSequence,
+            client.clientKey,
+            sessionRoleKeys,
+            sessionGlobMap
+          );
+
+          [cljsSession, cljsBuild] = await makeCljsSessionClone(
+            mainSession,
+            connector,
+            connectSequence.name,
+            client.clientKey
+          );
+          void state.analytics().logGA4Pageview('/connected-cljs-repl');
+        }
+        if (cljsSession && sessionRoleKeys.secondary) {
+          await setUpCljsRepl(
+            cljsSession,
+            cljsBuild,
+            sessionRoleKeys.secondary,
+            client.clientKey,
+            sessionGlobMap
+          );
+        }
+      } catch (e) {
+        output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
+      }
+
+      status.update();
+    };
+
+    // Wire server events once — they use `activeClient` for dispatch
+    server.onMessage((ednString) => {
+      if (activeClient) {
+        activeClient.handleIncomingMessage(ednString);
+      }
+    });
+
+    server.onClientDisconnected(() => {
+      // Guard: if server was stopped (user disconnect), don't try to reconnect
+      if (!server.isListening()) {
+        return;
+      }
+      if (activeClient) {
+        const clientKey = activeClient.clientKey;
+        output.appendLineOtherOut('Browser REPL disconnected, waiting for reconnection...');
+        state.connectionLogChannel().appendLine('Browser REPL disconnected');
+
+        // Clean up client and sessions but keep server alive
+        clientTeardown.releaseClientSuffix(clientKey);
+        const wasRegistered = clientRegistry.unregisterClient(clientKey);
+        if (wasRegistered) {
+          sessionTeardown.teardownSessionsForClient(clientKey);
+        }
+        activeClient = undefined;
+
+        const remainingSessions = sessionRegistry.listSessions().length;
+        util.setConnectedState(remainingSessions > 0);
+        status.update();
+      }
+    });
+
+    server.onClientConnected(() => {
+      output.appendLineOtherOut('Browser REPL connected');
+      state.connectionLogChannel().appendLine('Browser REPL connected');
+      void registerBrowserClient().then(() => {
+        if (resolveFirstConnection) {
+          resolveFirstConnection();
+          resolveFirstConnection = null;
+        }
+      });
+    });
+
+    server.onError((e) => {
+      console.error('WebSocket server error:', e);
+      state.connectionLogChannel().appendLine(`WebSocket error: ${e.message}`);
+    });
+
+    // Wait for the first browser connection with a cancellable progress notification
+    const connected = await new Promise<boolean>((resolve) => {
+      void vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
+          cancellable: true,
+        },
+        async (_progress, token) => {
+          token.onCancellationRequested(async () => {
+            output.appendLineOtherOut('WebSocket connection cancelled by user.');
+            await server.stop();
+            resolve(false);
+          });
+          await firstConnectionPromise;
+          if (!token.isCancellationRequested) {
+            resolve(true);
+          }
+        }
+      );
+    });
+
+    if (!connected) {
+      util.setConnectingState(false);
+      return { connected: false };
+    }
+  } catch (e) {
+    return cleanUpAfterError(e, {
+      clientKey: activeClient?.clientKey,
+      suffix: resolution.suffix,
+      client: activeClient,
+    });
+  }
+
+  return { connected: true, clientKey: activeClient.clientKey };
 }
 
 async function connectToHost(
@@ -1056,6 +1352,37 @@ export async function connect(
 
   let result: ConnectResult = { connected: false };
   try {
+    // WebSocket transport: skip TCP port resolution entirely
+    const wsPort = connectSequenceInheritance.effectiveWebSocketPort(
+      connectSequence,
+      projectTypes.getProjectTypeForName(connectSequence.projectType)
+    );
+    if (wsPort !== undefined && wsPort !== false) {
+      let resolvedWsPort: number;
+      if (wsPort === true) {
+        const portStr = await vscode.window.showInputBox({
+          prompt: 'Enter WebSocket port for browser REPL',
+          value: '3340',
+          ignoreFocusOut: true,
+          validateInput: (v) => {
+            const n = parseInt(v);
+            return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
+          },
+        });
+        if (portStr === undefined) {
+          output.appendLineOtherOut('Connect aborted.');
+          return { connected: false };
+        }
+        resolvedWsPort = parseInt(portStr);
+      } else {
+        resolvedWsPort = wsPort;
+      }
+      const wsHost = connectSequence.webSocketHost || '127.0.0.1';
+      result = await connectViaWebSocket(resolvedWsPort, wsHost, connectSequence, isJackIn);
+      status.update();
+      return result;
+    }
+
     if (port === undefined) {
       try {
         output.appendLineOtherOut(`Reading port file: ${portFile} ...`);

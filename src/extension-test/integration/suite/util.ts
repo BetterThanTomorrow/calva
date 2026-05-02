@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as which from 'which';
@@ -210,6 +211,20 @@ export async function waitForCondition(
     intervalMs,
     timeoutMessage
   );
+}
+
+export function canConnectToPort(port: number, host = '127.0.0.1'): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect(port, host);
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
 }
 
 export async function waitForNewClient(
