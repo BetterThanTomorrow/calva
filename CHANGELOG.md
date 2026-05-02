@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.581] - 2026-05-02
+
 - [WebSocket nREPL transport for browser REPLs](https://github.com/BetterThanTomorrow/calva/issues/3193)
 
 ## [2.0.580] - 2026-04-29
