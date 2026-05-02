@@ -1341,6 +1341,7 @@ export async function connect(
   port?: string,
   isJackIn = false
 ): Promise<ConnectResult> {
+  await outputWindow.initReplWindowDoc();
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
   const portFile = projectTypes.nreplPortFileUri(connectSequence);
