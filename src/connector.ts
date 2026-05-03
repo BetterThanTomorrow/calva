@@ -347,12 +347,23 @@ async function connectViaWebSocket(
       state.connectionLogChannel().appendLine(`WebSocket error: ${e.message}`);
     });
 
+    // Wire up a stop signal so external callers (e.g. disconnect menu) can dismiss the progress
+    let resolveServerStopped: (() => void) | null = null;
+    const serverStoppedPromise = new Promise<void>((resolve) => {
+      resolveServerStopped = resolve;
+    });
+    const originalStop = server.stop.bind(server);
+    server.stop = async () => {
+      await originalStop();
+      resolveServerStopped?.();
+    };
+
     // Wait for the first browser connection with a cancellable progress notification
     const connected = await new Promise<boolean>((resolve) => {
       void vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: `Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
+          title: `${connectSequence.name}: Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
           cancellable: true,
         },
         async (_progress, token) => {
@@ -362,9 +373,9 @@ async function connectViaWebSocket(
             await server.stop();
             resolve(false);
           });
-          await firstConnectionPromise;
+          await Promise.race([firstConnectionPromise, serverStoppedPromise]);
           if (!token.isCancellationRequested) {
-            resolve(true);
+            resolve(server.isListening());
           }
         }
       );
