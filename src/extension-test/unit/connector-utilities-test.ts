@@ -9,7 +9,9 @@ describe('connector-utilities', () => {
         connectSequenceName: 'My Project REPL',
         sessionKeys: [],
       };
-      expectLib.expect(connectorUtils.buildDisconnectItemLabel(client)).toBe('My Project REPL');
+      expectLib
+        .expect(connectorUtils.buildDisconnectItemLabel(client, 'icon'))
+        .toBe('$(icon) My Project REPL');
     });
 
     it('falls back to client key when no connectSequenceName', () => {
@@ -17,7 +19,9 @@ describe('connector-utilities', () => {
         key: 'client-abc',
         sessionKeys: [],
       };
-      expectLib.expect(connectorUtils.buildDisconnectItemLabel(client)).toBe('client-abc');
+      expectLib
+        .expect(connectorUtils.buildDisconnectItemLabel(client, 'icon'))
+        .toBe('$(icon) client-abc');
     });
 
     it('prefers connectSequenceName over key', () => {
@@ -26,7 +30,9 @@ describe('connector-utilities', () => {
         connectSequenceName: 'Descriptive Name',
         sessionKeys: ['clj', 'cljs'],
       };
-      expectLib.expect(connectorUtils.buildDisconnectItemLabel(client)).toBe('Descriptive Name');
+      expectLib
+        .expect(connectorUtils.buildDisconnectItemLabel(client, 'icon'))
+        .toBe('$(icon) Descriptive Name');
     });
   });
 
@@ -72,19 +78,21 @@ describe('connector-utilities', () => {
     });
 
     it('returns host only when no port', () => {
-      expectLib.expect(connectorUtils.buildDisconnectItemDetail('localhost')).toBe('localhost');
+      expectLib
+        .expect(connectorUtils.buildDisconnectItemDetail('localhost'))
+        .toBe('nrepl://localhost');
     });
 
     it('returns host:port when both provided', () => {
       expectLib
         .expect(connectorUtils.buildDisconnectItemDetail('localhost', 12345))
-        .toBe('localhost:12345');
+        .toBe('nrepl://localhost:12345');
     });
 
     it('handles IP addresses', () => {
       expectLib
         .expect(connectorUtils.buildDisconnectItemDetail('127.0.0.1', 8080))
-        .toBe('127.0.0.1:8080');
+        .toBe('nrepl://127.0.0.1:8080');
     });
   });
 });

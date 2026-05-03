@@ -16,6 +16,7 @@ import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
+import * as nReplWsServer from './nrepl-ws-server';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -691,6 +692,9 @@ export function calvaDisconnect() {
           output.appendLineOtherOut('Interrupting Jack-in process.');
         }
       });
+    return;
+  } else if (nReplWsServer.getActiveServers().size > 0) {
+    void connector.disconnect();
     return;
   }
   void vscode.window.showInformationMessage('Not connected to a REPL server');

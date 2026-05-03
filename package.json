@@ -1740,7 +1740,7 @@
       {
         "command": "calva.disconnect",
         "title": "Disconnect from the REPL Server",
-        "enablement": "calva:connected || calva:connecting || calva:launching",
+        "enablement": "calva:connected || calva:connecting || calva:launching || calva:webSocketServerRunning",
         "category": "Calva"
       },
       {

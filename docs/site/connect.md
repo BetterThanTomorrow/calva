@@ -9,6 +9,8 @@ search:
 
 When connected to your project's REPL Calva lets you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an [nREPL](https://github.com/nrepl/nrepl) server running, and that the [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) middleware is enabled.
 
+![alt text](images/connections-menu.png)
+
 For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called **Jack-in** command.
 
 ## Jack-in: Let Calva Start the REPL For You
@@ -76,7 +78,7 @@ Calva can connect to browser-based nREPL servers — like those provided by [Sci
 3. You connect the browser to the same port (e.g. via Epupp, or by loading a page with Scittle nREPL)
 4. Calva picks up the connection — you can evaluate code, get completions, look up docs
 
-If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically.
+If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically. You can stop the server from the **Disconnect REPL Connection...** menu.
 
 !!! Note "One browser client at a time"
     Calva's WebSocket server accepts one client connection. If a new browser or browser tab connects, Calva switches to the new client. This means Calva is always connected to whichever browser client most recently connected to its server.
@@ -134,7 +136,7 @@ To use a different port, override `webSocketPort` in your connect sequence:
 }
 ```
 
-See [Connect Sequences](connect-sequences.md) for the full `webSocketPort` reference.
+See also: [Connect Sequences](connect-sequences.md).
 
 ### Port Conflicts
 

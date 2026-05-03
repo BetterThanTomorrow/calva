@@ -5,6 +5,9 @@ import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
 import * as drams from './drams';
 import * as replSessionsMenu from '../repl-sessions-menu';
+import * as connector from '../connector';
+
+import * as nReplWsServer from './nrepl-ws-server';
 
 type MenuSlug = { prefix: string; suffix: string };
 
@@ -21,6 +24,7 @@ export type MenuItem = vscode.QuickPickItem & {
   dramSrc?: any;
   condition?: () => boolean;
   kind?: vscode.QuickPickItemKind;
+  action?: () => Promise<void>;
 };
 
 const RE_JACK_IN_OPTION = 'Restart the Project REPL (a.k.a. Re-jack-in)';
@@ -29,8 +33,6 @@ const JACK_OUT_OPTION = 'Stop/Kill all Project REPLs started by Calva (a.k.a. Ja
 const JACK_OUT_COMMAND = 'calva.jackOut';
 const INTERRUPT_OPTION = 'Interrupt running Evaluations';
 const INTERRUPT_COMMAND = 'calva.interruptAllEvaluations';
-const DISCONNECT_OPTION = 'Disconnect a REPL connection…';
-const DISCONNECT_COMMAND = 'calva.disconnect';
 const OPEN_REPL_WINDOW_OPTION = 'Show the REPL Window';
 const OPEN_REPL_WINDOW_COMMAND = 'calva.showReplWindow';
 const OPEN_INSPECTOR_OPTION = 'Show the Inspector';
@@ -54,8 +56,45 @@ const CONNECT_PROJECT_COMMAND = 'calva.connect';
 const CONNECT_STANDALONE_OPTION = 'Connect to a running REPL, not in your project';
 const CONNECT_STANDALONE_COMMAND = 'calva.connectNonProjectREPL';
 
+function connectionMenuItems(): MenuItem[] {
+  const items = connector.getConnectionItems();
+  if (items.length === 0) {
+    return [];
+  }
+  const menuItems: MenuItem[] = items.map((item) => ({
+    label: item.label,
+    description: item.description,
+    detail: item.detail,
+    action: async () => {
+      const name = item.label.replace(/^\$\([^)]+\)\s*/, '');
+      const answer = await vscode.window.showWarningMessage(
+        `Disconnect ${name}?`,
+        { modal: true },
+        'Disconnect'
+      );
+      if (answer === 'Disconnect') {
+        if (item.clientKey) {
+          void connector.disconnect({ clientKey: item.clientKey });
+        } else if (item.wsServer) {
+          void connector.disconnect({ wsServerPort: item.wsServer.port });
+        }
+      }
+    },
+  }));
+  menuItems.unshift({
+    label: 'REPL Connections, click to disconnect',
+    kind: vscode.QuickPickItemKind.Separator,
+  });
+  menuItems.push({
+    label: '',
+    kind: vscode.QuickPickItemKind.Separator,
+  });
+  return menuItems;
+}
+
 function connectedMenuItems(): MenuItem[] {
   return [
+    ...connectionMenuItems(),
     {
       label: RE_JACK_IN_OPTION,
       command: RE_JACK_IN_COMMAND,
@@ -66,7 +105,6 @@ function connectedMenuItems(): MenuItem[] {
       command: JACK_OUT_COMMAND,
       condition: utilities.getJackedInState,
     },
-    { label: DISCONNECT_OPTION, command: DISCONNECT_COMMAND },
     { label: INTERRUPT_OPTION, command: INTERRUPT_COMMAND },
     {
       label: 'List Active REPL sessions…',
@@ -154,7 +192,9 @@ export async function showReplMenu() {
   });
   if (pickedItem) {
     const menuItem = menuItems.find((item) => item.label === pickedItem.label);
-    if (menuItem?.command) {
+    if (menuItem?.action) {
+      return menuItem.action();
+    } else if (menuItem?.command) {
       if ('dramSrc' in menuItem) {
         return vscode.commands.executeCommand(menuItem.command, menuItem.label, menuItem.dramSrc);
       } else {
@@ -166,6 +206,9 @@ export async function showReplMenu() {
 
 function shouldShowConnectedMenu() {
   return (
-    utilities.getConnectedState() || utilities.getConnectingState() || utilities.getLaunchingState()
+    utilities.getConnectedState() ||
+    utilities.getConnectingState() ||
+    utilities.getLaunchingState() ||
+    nReplWsServer.getActiveServers().size > 0
   );
 }

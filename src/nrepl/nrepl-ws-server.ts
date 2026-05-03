@@ -31,6 +31,9 @@ export class NReplWsServer {
   private client: WebSocket | null = null;
   private _port: number;
   private _host: string;
+  private _connectSequenceName?: string;
+  private _projectRoot?: string;
+  private _sessionKeys: string[] = [];
   private connectionHandlers: Array<(socket: WebSocket) => void> = [];
   private disconnectionHandlers: Array<() => void> = [];
   private messageHandlers: Array<(msg: string) => void> = [];
@@ -47,6 +50,30 @@ export class NReplWsServer {
 
   get host(): string {
     return this._host;
+  }
+
+  get connectSequenceName(): string | undefined {
+    return this._connectSequenceName;
+  }
+
+  set connectSequenceName(name: string | undefined) {
+    this._connectSequenceName = name;
+  }
+
+  get projectRoot(): string | undefined {
+    return this._projectRoot;
+  }
+
+  set projectRoot(root: string | undefined) {
+    this._projectRoot = root;
+  }
+
+  get sessionKeys(): string[] {
+    return this._sessionKeys;
+  }
+
+  set sessionKeys(keys: string[]) {
+    this._sessionKeys = keys;
   }
 
   async start(): Promise<void> {
@@ -174,4 +201,41 @@ export async function startNReplWsServer(port: number, host?: string): Promise<N
   const server = new NReplWsServer(port, host);
   await server.start();
   return server;
+}
+
+// --- Active WS server tracking ---
+
+const activeServers = new Set<NReplWsServer>();
+
+function updateWsServerContext() {
+  // Dynamic require to avoid breaking unit tests (vscode module unavailable outside extension host)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const vscode = require('vscode');
+  void vscode.commands.executeCommand(
+    'setContext',
+    'calva:webSocketServerRunning',
+    activeServers.size > 0
+  );
+}
+
+export function trackServer(
+  server: NReplWsServer,
+  connectSequenceName?: string,
+  projectRoot?: string,
+  sessionKeys?: string[]
+): void {
+  server.connectSequenceName = connectSequenceName;
+  server.projectRoot = projectRoot;
+  server.sessionKeys = sessionKeys ?? [];
+  activeServers.add(server);
+  updateWsServerContext();
+}
+
+export function untrackServer(server: NReplWsServer): void {
+  activeServers.delete(server);
+  updateWsServerContext();
+}
+
+export function getActiveServers(): ReadonlySet<NReplWsServer> {
+  return activeServers;
 }

@@ -169,6 +169,9 @@ async function connectViaWebSocket(
     output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
     output.appendLineOtherOut('Waiting for browser REPL to connect...');
 
+    const sessionKeyValues = Object.values(sessionRoleKeys).filter(Boolean) as string[];
+    nReplWsServer.trackServer(server, connectSequence.name, projectRoot, sessionKeyValues);
+
     // Track first connection to resolve the initial await
     let resolveFirstConnection: (() => void) | null = null;
     const firstConnectionPromise = new Promise<void>((resolve) => {
@@ -344,23 +347,35 @@ async function connectViaWebSocket(
       state.connectionLogChannel().appendLine(`WebSocket error: ${e.message}`);
     });
 
+    // Wire up a stop signal so external callers (e.g. disconnect menu) can dismiss the progress
+    let resolveServerStopped: (() => void) | null = null;
+    const serverStoppedPromise = new Promise<void>((resolve) => {
+      resolveServerStopped = resolve;
+    });
+    const originalStop = server.stop.bind(server);
+    server.stop = async () => {
+      await originalStop();
+      resolveServerStopped?.();
+    };
+
     // Wait for the first browser connection with a cancellable progress notification
     const connected = await new Promise<boolean>((resolve) => {
       void vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: `Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
+          title: `${connectSequence.name}: Waiting for browser REPL on ws://${wsHost}:${currentPort}/_nrepl`,
           cancellable: true,
         },
         async (_progress, token) => {
           token.onCancellationRequested(async () => {
             output.appendLineOtherOut('WebSocket connection cancelled by user.');
+            nReplWsServer.untrackServer(server);
             await server.stop();
             resolve(false);
           });
-          await firstConnectionPromise;
+          await Promise.race([firstConnectionPromise, serverStoppedPromise]);
           if (!token.isCancellationRequested) {
-            resolve(true);
+            resolve(server.isListening());
           }
         }
       );
@@ -1535,6 +1550,7 @@ type DisconnectSelection = connectorUtils.DisconnectSelection;
 
 interface DisconnectQuickPickItem extends vscode.QuickPickItem {
   clientKey?: string;
+  wsServer?: nReplWsServer.NReplWsServer;
   disconnectAll?: boolean;
 }
 
@@ -1550,45 +1566,89 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
   }
 }
 
-async function promptForClientDisconnect(
-  clients: clientRegistry.RegisteredClient[]
-): Promise<DisconnectSelection | undefined> {
-  const items: DisconnectQuickPickItem[] = clients.map((client) => {
+/**
+ * Builds the list of connection items for display in menus.
+ * Shared by the REPL menu and the disconnect picker.
+ */
+export function getConnectionItems(): connectorUtils.ConnectionItemData[] {
+  const clients = clientRegistry.listClients();
+
+  // Identify which WS servers are owned by a connected client
+  const clientOwnedServers = new Set<nReplWsServer.NReplWsServer>();
+  for (const client of clients) {
+    if (client.client.isWebSocket && client.client.wsServer) {
+      clientOwnedServers.add(client.client.wsServer);
+    }
+  }
+
+  const items: connectorUtils.ConnectionItemData[] = clients.map((client) => {
     const sessions = sessionRegistry.listSessionsByClient(client.key);
     const sessionKeys = sessions.map((s) => s.key);
-
-    // Format project root as relative path for readability
     const relativeProjectRoot = formatRelativeProjectRoot(client.projectRoot);
 
-    // Use extracted pure functions for building display strings
     const description = connectorUtils.buildDisconnectItemDescription(
       sessionKeys,
       relativeProjectRoot
     );
-    const detail = connectorUtils.buildDisconnectItemDetail(client.host, client.port);
-    const label = connectorUtils.buildDisconnectItemLabel({
-      key: client.key,
-      connectSequenceName: client.connectSequenceName,
-      sessionKeys,
-    });
+    const detail = client.client.isWebSocket
+      ? `ws://${client.host}:${client.port}/_nrepl`
+      : connectorUtils.buildDisconnectItemDetail(client.host, client.port);
+    const label = connectorUtils.buildDisconnectItemLabel(
+      {
+        key: client.key,
+        connectSequenceName: client.connectSequenceName,
+        sessionKeys,
+      },
+      'debug-connected'
+    );
 
-    return {
-      label,
-      description,
-      detail,
-      clientKey: client.key,
-    };
+    return { label, description, detail, clientKey: client.key };
   });
 
-  if (clients.length > 1) {
+  // Add orphaned WS servers (listening but no client connected)
+  for (const server of nReplWsServer.getActiveServers()) {
+    if (!clientOwnedServers.has(server)) {
+      items.push({
+        label: connectorUtils.buildDisconnectItemLabel(
+          {
+            key: `${server.port}`,
+            connectSequenceName: server.connectSequenceName || `WebSocket Server`,
+            sessionKeys: [],
+          },
+          'debug-disconnect'
+        ),
+        description: connectorUtils.buildDisconnectItemDescription(
+          server.sessionKeys,
+          formatRelativeProjectRoot(server.projectRoot)
+        ),
+        detail: `ws://${server.host}:${server.port}/_nrepl`,
+        wsServer: server,
+      });
+    }
+  }
+
+  return items;
+}
+
+async function promptForClientDisconnect(
+  clients: clientRegistry.RegisteredClient[]
+): Promise<DisconnectSelection | undefined> {
+  const items: DisconnectQuickPickItem[] = getConnectionItems();
+
+  if (items.length === 0) {
+    return undefined;
+  }
+
+  if (items.length > 1) {
     items.push({
       label: 'Close all',
-      description: 'Disconnect every connected REPL client',
+      description: 'Disconnect all REPL connections and stop all WebSocket servers',
       disconnectAll: true,
     });
   }
 
   const selection = await vscode.window.showQuickPick(items, {
+    title: 'REPL Connections',
     placeHolder: 'Select the REPL connection to disconnect',
     canPickMany: false,
   });
@@ -1603,6 +1663,10 @@ async function promptForClientDisconnect(
 
   if (selection.clientKey) {
     return { kind: 'single', clientKey: selection.clientKey };
+  }
+
+  if (selection.wsServer) {
+    return { kind: 'ws-server', wsServer: selection.wsServer };
   }
 
   return undefined;
@@ -1659,6 +1723,15 @@ async function disconnectClientByKey(
   }
 
   liveShareSupport.didDisconnectRepl();
+  status.update();
+}
+
+async function stopWsServer(server: nReplWsServer.NReplWsServer): Promise<void> {
+  output.appendLineOtherOut(
+    `Stopping WebSocket server on ws://${server.host}:${server.port}/_nrepl`
+  );
+  nReplWsServer.untrackServer(server);
+  await server.stop();
   status.update();
 }
 
@@ -1734,6 +1807,7 @@ export async function shouldAutoConnect() {
 export function disconnect(
   options: {
     clientKey?: string;
+    wsServerPort?: number;
     disconnectAll?: boolean;
     preserveSuffix?: boolean;
   } | null = null,
@@ -1743,24 +1817,40 @@ export function disconnect(
 ) {
   return (async () => {
     const clients = clientRegistry.listClients();
-    if (clients.length === 0) {
+    const hasOrphanedWsServers =
+      nReplWsServer.getActiveServers().size > 0 &&
+      [...nReplWsServer.getActiveServers()].some(
+        (server) => !clients.some((c) => c.client.wsServer === server)
+      );
+
+    if (clients.length === 0 && !hasOrphanedWsServers) {
       callback();
       return;
     }
 
     let disconnectAll = options?.disconnectAll === true;
     let targetClientKey = options?.clientKey;
+    let targetWsServer: nReplWsServer.NReplWsServer | undefined;
     const preserveSuffix = options?.preserveSuffix ?? false;
 
-    if (!disconnectAll && !targetClientKey) {
+    // Resolve wsServerPort to actual server reference
+    if (options?.wsServerPort !== undefined) {
+      targetWsServer = [...nReplWsServer.getActiveServers()].find(
+        (s) => s.port === options.wsServerPort
+      );
+    }
+
+    if (!disconnectAll && !targetClientKey && !targetWsServer) {
       const selection = await promptForClientDisconnect(clients);
       if (!selection) {
         return;
       }
       if (selection.kind === 'all') {
         disconnectAll = true;
-      } else {
+      } else if (selection.kind === 'single') {
         targetClientKey = selection.clientKey;
+      } else if (selection.kind === 'ws-server') {
+        targetWsServer = selection.wsServer;
       }
     }
 
@@ -1768,6 +1858,12 @@ export function disconnect(
       for (const client of [...clients]) {
         await disconnectClientByKey(client.key, { preserveSuffix });
       }
+      // Stop any orphaned WS servers
+      for (const server of [...nReplWsServer.getActiveServers()]) {
+        await stopWsServer(server);
+      }
+    } else if (targetWsServer) {
+      await stopWsServer(targetWsServer);
     } else {
       const keyToDisconnect = targetClientKey || clients[0].key;
       await disconnectClientByKey(keyToDisconnect, { preserveSuffix });
