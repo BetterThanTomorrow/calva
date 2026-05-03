@@ -169,7 +169,8 @@ async function connectViaWebSocket(
     output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
     output.appendLineOtherOut('Waiting for browser REPL to connect...');
 
-    nReplWsServer.trackServer(server);
+    const sessionKeyValues = Object.values(sessionRoleKeys).filter(Boolean) as string[];
+    nReplWsServer.trackServer(server, connectSequence.name, projectRoot, sessionKeyValues);
 
     // Track first connection to resolve the initial await
     let resolveFirstConnection: (() => void) | null = null;
@@ -1604,12 +1605,15 @@ async function promptForClientDisconnect(
         label: connectorUtils.buildDisconnectItemLabel(
           {
             key: `${server.port}`,
-            connectSequenceName: `WebSocket Server`,
+            connectSequenceName: server.connectSequenceName || `WebSocket Server`,
             sessionKeys: [],
           },
           'debug-disconnect'
         ),
-        description: 'Waiting for browser…',
+        description: connectorUtils.buildDisconnectItemDescription(
+          server.sessionKeys,
+          formatRelativeProjectRoot(server.projectRoot)
+        ),
         detail: `ws://${server.host}:${server.port}/_nrepl`,
         wsServer: server,
       });
