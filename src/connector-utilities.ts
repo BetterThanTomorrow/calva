@@ -10,7 +10,15 @@ export interface DisconnectSelectionSingle {
   clientKey: string;
 }
 
-export type DisconnectSelection = DisconnectSelectionAll | DisconnectSelectionSingle;
+export interface DisconnectSelectionWsServer {
+  kind: 'ws-server';
+  wsServer: import('./nrepl/nrepl-ws-server').NReplWsServer;
+}
+
+export type DisconnectSelection =
+  | DisconnectSelectionAll
+  | DisconnectSelectionSingle
+  | DisconnectSelectionWsServer;
 
 /**
  * Information about a client for display in disconnect picker.

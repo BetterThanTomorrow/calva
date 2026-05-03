@@ -1538,6 +1538,7 @@ type DisconnectSelection = connectorUtils.DisconnectSelection;
 
 interface DisconnectQuickPickItem extends vscode.QuickPickItem {
   clientKey?: string;
+  wsServer?: nReplWsServer.NReplWsServer;
   disconnectAll?: boolean;
 }
 
@@ -1556,6 +1557,14 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
 async function promptForClientDisconnect(
   clients: clientRegistry.RegisteredClient[]
 ): Promise<DisconnectSelection | undefined> {
+  // Identify which WS servers are owned by a connected client
+  const clientOwnedServers = new Set<nReplWsServer.NReplWsServer>();
+  for (const client of clients) {
+    if (client.client.isWebSocket && client.client.wsServer) {
+      clientOwnedServers.add(client.client.wsServer);
+    }
+  }
+
   const items: DisconnectQuickPickItem[] = clients.map((client) => {
     const sessions = sessionRegistry.listSessionsByClient(client.key);
     const sessionKeys = sessions.map((s) => s.key);
@@ -1576,17 +1585,33 @@ async function promptForClientDisconnect(
     });
 
     return {
-      label,
+      label: client.client.isWebSocket ? `$(globe) ${label}` : label,
       description,
       detail,
       clientKey: client.key,
     };
   });
 
-  if (clients.length > 1) {
+  // Add orphaned WS servers (listening but no client connected)
+  for (const server of nReplWsServer.getActiveServers()) {
+    if (!clientOwnedServers.has(server)) {
+      items.push({
+        label: `$(globe) WebSocket Server`,
+        description: 'Waiting for browser…',
+        detail: `ws://${server.host}:${server.port}/_nrepl`,
+        wsServer: server,
+      });
+    }
+  }
+
+  if (items.length === 0) {
+    return undefined;
+  }
+
+  if (items.length > 1) {
     items.push({
       label: 'Close all',
-      description: 'Disconnect every connected REPL client',
+      description: 'Disconnect all REPL connections and stop all WebSocket servers',
       disconnectAll: true,
     });
   }
@@ -1606,6 +1631,10 @@ async function promptForClientDisconnect(
 
   if (selection.clientKey) {
     return { kind: 'single', clientKey: selection.clientKey };
+  }
+
+  if (selection.wsServer) {
+    return { kind: 'ws-server', wsServer: selection.wsServer };
   }
 
   return undefined;
@@ -1662,6 +1691,15 @@ async function disconnectClientByKey(
   }
 
   liveShareSupport.didDisconnectRepl();
+  status.update();
+}
+
+async function stopWsServer(server: nReplWsServer.NReplWsServer): Promise<void> {
+  output.appendLineOtherOut(
+    `Stopping WebSocket server on ws://${server.host}:${server.port}/_nrepl`
+  );
+  nReplWsServer.untrackServer(server);
+  await server.stop();
   status.update();
 }
 
@@ -1746,13 +1784,20 @@ export function disconnect(
 ) {
   return (async () => {
     const clients = clientRegistry.listClients();
-    if (clients.length === 0) {
+    const hasOrphanedWsServers =
+      nReplWsServer.getActiveServers().size > 0 &&
+      [...nReplWsServer.getActiveServers()].some(
+        (server) => !clients.some((c) => c.client.wsServer === server)
+      );
+
+    if (clients.length === 0 && !hasOrphanedWsServers) {
       callback();
       return;
     }
 
     let disconnectAll = options?.disconnectAll === true;
     let targetClientKey = options?.clientKey;
+    let targetWsServer: nReplWsServer.NReplWsServer | undefined;
     const preserveSuffix = options?.preserveSuffix ?? false;
 
     if (!disconnectAll && !targetClientKey) {
@@ -1762,8 +1807,10 @@ export function disconnect(
       }
       if (selection.kind === 'all') {
         disconnectAll = true;
-      } else {
+      } else if (selection.kind === 'single') {
         targetClientKey = selection.clientKey;
+      } else if (selection.kind === 'ws-server') {
+        targetWsServer = selection.wsServer;
       }
     }
 
@@ -1771,6 +1818,12 @@ export function disconnect(
       for (const client of [...clients]) {
         await disconnectClientByKey(client.key, { preserveSuffix });
       }
+      // Stop any orphaned WS servers
+      for (const server of [...nReplWsServer.getActiveServers()]) {
+        await stopWsServer(server);
+      }
+    } else if (targetWsServer) {
+      await stopWsServer(targetWsServer);
     } else {
       const keyToDisconnect = targetClientKey || clients[0].key;
       await disconnectClientByKey(keyToDisconnect, { preserveSuffix });

@@ -1,7 +1,6 @@
 import WebSocket = require('ws');
 import * as net from 'net';
 import { AddressInfo } from 'net';
-import * as vscode from 'vscode';
 
 export class WsPortInUseError extends Error {
   constructor(public readonly port: number) {
@@ -182,6 +181,8 @@ export async function startNReplWsServer(port: number, host?: string): Promise<N
 const activeServers = new Set<NReplWsServer>();
 
 function updateWsServerContext() {
+  // Dynamic require to avoid breaking unit tests (vscode module unavailable outside extension host)
+  const vscode = require('vscode');
   void vscode.commands.executeCommand(
     'setContext',
     'calva:webSocketServerRunning',
