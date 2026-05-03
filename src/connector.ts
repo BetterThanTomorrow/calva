@@ -1644,6 +1644,7 @@ async function promptForClientDisconnect(
   }
 
   const selection = await vscode.window.showQuickPick(items, {
+    title: 'REPL Connections',
     placeHolder: 'Select the REPL connection to disconnect',
     canPickMany: false,
   });
