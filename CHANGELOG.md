@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.582] - 2026-05-03
+
+- [Make Orphaned/dicsonnected WebSocket servers closable](https://github.com/BetterThanTomorrow/calva/issues/3195)
+
 ## [2.0.581] - 2026-05-02
 
 - [WebSocket nREPL transport for browser REPLs](https://github.com/BetterThanTomorrow/calva/issues/3193)
