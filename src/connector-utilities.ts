@@ -68,3 +68,15 @@ export function buildDisconnectItemDetail(host?: string, port?: number): string 
   }
   return port ? `nrepl://${host}:${port}` : `nrepl://${host}`;
 }
+
+/**
+ * A connection item with display properties and action metadata.
+ * Used by both the REPL menu and the disconnect picker.
+ */
+export interface ConnectionItemData {
+  label: string;
+  description: string;
+  detail?: string;
+  clientKey?: string;
+  wsServer?: import('./nrepl/nrepl-ws-server').NReplWsServer;
+}

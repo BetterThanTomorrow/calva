@@ -1566,9 +1566,13 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
   }
 }
 
-async function promptForClientDisconnect(
-  clients: clientRegistry.RegisteredClient[]
-): Promise<DisconnectSelection | undefined> {
+/**
+ * Builds the list of connection items for display in menus.
+ * Shared by the REPL menu and the disconnect picker.
+ */
+export function getConnectionItems(): connectorUtils.ConnectionItemData[] {
+  const clients = clientRegistry.listClients();
+
   // Identify which WS servers are owned by a connected client
   const clientOwnedServers = new Set<nReplWsServer.NReplWsServer>();
   for (const client of clients) {
@@ -1577,14 +1581,11 @@ async function promptForClientDisconnect(
     }
   }
 
-  const items: DisconnectQuickPickItem[] = clients.map((client) => {
+  const items: connectorUtils.ConnectionItemData[] = clients.map((client) => {
     const sessions = sessionRegistry.listSessionsByClient(client.key);
     const sessionKeys = sessions.map((s) => s.key);
-
-    // Format project root as relative path for readability
     const relativeProjectRoot = formatRelativeProjectRoot(client.projectRoot);
 
-    // Use extracted pure functions for building display strings
     const description = connectorUtils.buildDisconnectItemDescription(
       sessionKeys,
       relativeProjectRoot
@@ -1601,12 +1602,7 @@ async function promptForClientDisconnect(
       'debug-connected'
     );
 
-    return {
-      label,
-      description,
-      detail,
-      clientKey: client.key,
-    };
+    return { label, description, detail, clientKey: client.key };
   });
 
   // Add orphaned WS servers (listening but no client connected)
@@ -1630,6 +1626,14 @@ async function promptForClientDisconnect(
       });
     }
   }
+
+  return items;
+}
+
+async function promptForClientDisconnect(
+  clients: clientRegistry.RegisteredClient[]
+): Promise<DisconnectSelection | undefined> {
+  const items: DisconnectQuickPickItem[] = getConnectionItems();
 
   if (items.length === 0) {
     return undefined;
@@ -1803,6 +1807,7 @@ export async function shouldAutoConnect() {
 export function disconnect(
   options: {
     clientKey?: string;
+    wsServerPort?: number;
     disconnectAll?: boolean;
     preserveSuffix?: boolean;
   } | null = null,
@@ -1828,7 +1833,14 @@ export function disconnect(
     let targetWsServer: nReplWsServer.NReplWsServer | undefined;
     const preserveSuffix = options?.preserveSuffix ?? false;
 
-    if (!disconnectAll && !targetClientKey) {
+    // Resolve wsServerPort to actual server reference
+    if (options?.wsServerPort !== undefined) {
+      targetWsServer = [...nReplWsServer.getActiveServers()].find(
+        (s) => s.port === options.wsServerPort
+      );
+    }
+
+    if (!disconnectAll && !targetClientKey && !targetWsServer) {
       const selection = await promptForClientDisconnect(clients);
       if (!selection) {
         return;
