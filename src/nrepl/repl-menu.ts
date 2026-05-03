@@ -6,6 +6,8 @@ import * as joyride from '../joyride';
 import * as drams from './drams';
 import * as replSessionsMenu from '../repl-sessions-menu';
 
+import * as nReplWsServer from './nrepl-ws-server';
+
 type MenuSlug = { prefix: string; suffix: string };
 
 export function menuSlugForProjectRoot(): MenuSlug {
@@ -166,6 +168,9 @@ export async function showReplMenu() {
 
 function shouldShowConnectedMenu() {
   return (
-    utilities.getConnectedState() || utilities.getConnectingState() || utilities.getLaunchingState()
+    utilities.getConnectedState() ||
+    utilities.getConnectingState() ||
+    utilities.getLaunchingState() ||
+    nReplWsServer.getActiveServers().size > 0
   );
 }
