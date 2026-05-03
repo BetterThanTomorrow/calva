@@ -1577,15 +1577,20 @@ async function promptForClientDisconnect(
       sessionKeys,
       relativeProjectRoot
     );
-    const detail = connectorUtils.buildDisconnectItemDetail(client.host, client.port);
-    const label = connectorUtils.buildDisconnectItemLabel({
-      key: client.key,
-      connectSequenceName: client.connectSequenceName,
-      sessionKeys,
-    });
+    const detail = client.client.isWebSocket
+      ? `ws://${client.host}:${client.port}/_nrepl`
+      : connectorUtils.buildDisconnectItemDetail(client.host, client.port);
+    const label = connectorUtils.buildDisconnectItemLabel(
+      {
+        key: client.key,
+        connectSequenceName: client.connectSequenceName,
+        sessionKeys,
+      },
+      'debug-connected'
+    );
 
     return {
-      label: client.client.isWebSocket ? `$(globe) ${label}` : label,
+      label,
       description,
       detail,
       clientKey: client.key,
@@ -1596,7 +1601,14 @@ async function promptForClientDisconnect(
   for (const server of nReplWsServer.getActiveServers()) {
     if (!clientOwnedServers.has(server)) {
       items.push({
-        label: `$(globe) WebSocket Server`,
+        label: connectorUtils.buildDisconnectItemLabel(
+          {
+            key: `${server.port}`,
+            connectSequenceName: `WebSocket Server`,
+            sessionKeys: [],
+          },
+          'debug-disconnect'
+        ),
         description: 'Waiting for browser…',
         detail: `ws://${server.host}:${server.port}/_nrepl`,
         wsServer: server,

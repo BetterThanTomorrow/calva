@@ -37,8 +37,8 @@ export interface ClientDisplayInfo {
  * Builds the label for a disconnect picker item.
  * Uses connectSequenceName if available, otherwise falls back to client key.
  */
-export function buildDisconnectItemLabel(client: ClientDisplayInfo): string {
-  return client.connectSequenceName || client.key;
+export function buildDisconnectItemLabel(client: ClientDisplayInfo, codicon: string): string {
+  return `$(${codicon}) ${client.connectSequenceName || client.key}`;
 }
 
 /**
@@ -66,5 +66,5 @@ export function buildDisconnectItemDetail(host?: string, port?: number): string 
   if (!host) {
     return undefined;
   }
-  return port ? `${host}:${port}` : host;
+  return port ? `nrepl://${host}:${port}` : `nrepl://${host}`;
 }
