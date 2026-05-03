@@ -2641,6 +2641,7 @@
 
 <h1 id="connect-calva-to-your-project">Connect Calva to Your Project<a class="headerlink" href="#connect-calva-to-your-project" title="Permanent link">#</a></h1>
 <p>When connected to your project's REPL Calva lets you evaluate code, supporting Interactive Programming. The REPL connection is also used to provide IDE functionality through the dynamic knowledge about the project that the REPL enables. The REPL communication depends on that your project has an <a href="https://github.com/nrepl/nrepl">nREPL</a> server running, and that the <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a> middleware is enabled.</p>
+<p><img alt="alt text" src="../images/connections-menu.png" /></p>
 <p>For the easiest way to provide your project with these dependencies, the recommended way to connect is to use the so called <strong>Jack-in</strong> command.</p>
 <h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva Start the REPL For You<a class="headerlink" href="#jack-in-let-calva-start-the-repl-for-you" title="Permanent link">#</a></h2>
 <p>This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as <strong>Jack in</strong> (because that is what it is called in CIDER).</p>
@@ -2688,7 +2689,7 @@
 <li>You connect the browser to the same port (e.g. via Epupp, or by loading a page with Scittle nREPL)</li>
 <li>Calva picks up the connection — you can evaluate code, get completions, look up docs</li>
 </ol>
-<p>If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically.</p>
+<p>If the browser disconnects (tab reload, navigation, tab close), Calva keeps the server running and waits for a reconnection. When the browser comes back, Calva resumes automatically. You can stop the server from the <strong>Disconnect REPL Connection...</strong> menu.</p>
 <div class="admonition note">
 <p class="admonition-title">One browser client at a time</p>
 <p>Calva's WebSocket server accepts one client connection. If a new browser or browser tab connects, Calva switches to the new client. This means Calva is always connected to whichever browser client most recently connected to its server.</p>
@@ -2749,7 +2750,7 @@
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<p>See <a href="../connect-sequences/">Connect Sequences</a> for the full <code>webSocketPort</code> reference.</p>
+<p>See also: <a href="../connect-sequences/">Connect Sequences</a>.</p>
 <h3 id="port-conflicts">Port Conflicts<a class="headerlink" href="#port-conflicts" title="Permanent link">#</a></h3>
 <p>WebSocket ports are shared across the OS. If the port is already in use (by another VS Code window or another process), Calva will prompt you with the port pre-filled so you can either enter a different port or free the existing one and retry.</p>
 <h3 id="using-with-scittle">Using with Scittle<a class="headerlink" href="#using-with-scittle" title="Permanent link">#</a></h3>
