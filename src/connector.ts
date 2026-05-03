@@ -169,6 +169,8 @@ async function connectViaWebSocket(
     output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
     output.appendLineOtherOut('Waiting for browser REPL to connect...');
 
+    nReplWsServer.trackServer(server);
+
     // Track first connection to resolve the initial await
     let resolveFirstConnection: (() => void) | null = null;
     const firstConnectionPromise = new Promise<void>((resolve) => {
@@ -355,6 +357,7 @@ async function connectViaWebSocket(
         async (_progress, token) => {
           token.onCancellationRequested(async () => {
             output.appendLineOtherOut('WebSocket connection cancelled by user.');
+            nReplWsServer.untrackServer(server);
             await server.stop();
             resolve(false);
           });

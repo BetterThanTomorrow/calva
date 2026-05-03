@@ -79,6 +79,14 @@ export class NReplClient {
   session: NReplSession;
   private _wsServer: nReplWsServer.NReplWsServer | null = null;
 
+  get isWebSocket(): boolean {
+    return this._wsServer !== null;
+  }
+
+  get wsServer(): nReplWsServer.NReplWsServer | null {
+    return this._wsServer;
+  }
+
   /** Result of running describe at boot */
   describe: any;
 
@@ -190,6 +198,7 @@ export class NReplClient {
       this.socket.destroy();
     }
     if (this._wsServer) {
+      nReplWsServer.untrackServer(this._wsServer);
       this._wsServer.dispose();
       this._wsServer = null;
     }

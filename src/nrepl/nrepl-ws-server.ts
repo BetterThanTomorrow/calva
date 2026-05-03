@@ -1,6 +1,7 @@
 import WebSocket = require('ws');
 import * as net from 'net';
 import { AddressInfo } from 'net';
+import * as vscode from 'vscode';
 
 export class WsPortInUseError extends Error {
   constructor(public readonly port: number) {
@@ -174,4 +175,30 @@ export async function startNReplWsServer(port: number, host?: string): Promise<N
   const server = new NReplWsServer(port, host);
   await server.start();
   return server;
+}
+
+// --- Active WS server tracking ---
+
+const activeServers = new Set<NReplWsServer>();
+
+function updateWsServerContext() {
+  void vscode.commands.executeCommand(
+    'setContext',
+    'calva:webSocketServerRunning',
+    activeServers.size > 0
+  );
+}
+
+export function trackServer(server: NReplWsServer): void {
+  activeServers.add(server);
+  updateWsServerContext();
+}
+
+export function untrackServer(server: NReplWsServer): void {
+  activeServers.delete(server);
+  updateWsServerContext();
+}
+
+export function getActiveServers(): ReadonlySet<NReplWsServer> {
+  return activeServers;
 }
