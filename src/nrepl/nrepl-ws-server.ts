@@ -209,6 +209,7 @@ const activeServers = new Set<NReplWsServer>();
 
 function updateWsServerContext() {
   // Dynamic require to avoid breaking unit tests (vscode module unavailable outside extension host)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const vscode = require('vscode');
   void vscode.commands.executeCommand(
     'setContext',
