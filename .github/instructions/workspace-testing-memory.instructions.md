@@ -37,3 +37,7 @@ npm run integration-test -- cljc
 ```
 
 This passes the filter as a command line argument accessible via `process.argv`, ensuring reliable configuration in the VS Code Extension Host environment.
+
+## Integration Test Invariant: Poll instead of Sleep
+
+The integration test suite has helpers for witing for conditions without using fixed sleeps.

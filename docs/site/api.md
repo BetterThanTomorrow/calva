@@ -277,6 +277,37 @@ An example:
     }
     ```
 
+### `repl.log()`
+
+Log a message to Calva's output subscriber bus without writing to Calva's own UI destinations (output channel, REPL window, terminal). This is intended for other extensions that have their own output UI but want their messages to appear in the Calva output subscriber stream — for example, so that [Backseat Driver](https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.calva-backseat-driver) can query them.
+
+The signature in TypeScript:
+
+```typescript
+export function log(message: OutputMessage): void;
+```
+
+The `OutputMessage` interface is the same one used by [`onOutputLogged()`](#replonoutputlogged).
+
+#### Validation
+
+* `text` must be a non-empty string
+* `category` must be a valid `OutputCategory`
+* `who` follows the same rules as [`evaluate()`](#replevaluate) — the reserved values `"ui"` and `"api"` are rejected
+
+#### Example
+
+```typescript
+const calvaApi = vscode.extensions.getExtension("betterthantomorrow.calva")?.exports;
+
+calvaApi.v1.repl.log({
+  category: "evaluatedCode",
+  text: "(+ 1 2)",
+  who: "my-extension",
+  ns: "user",
+});
+```
+
 ### `repl.onOutputLogged()`
 
 Subscribe to Calva REPL output messages. Returns a `vscode.Disposable` that you should dispose when you no longer need updates. (For fire-and-forget convenience, push it onto your extension’s `context.subscriptions`).

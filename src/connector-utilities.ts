@@ -10,7 +10,15 @@ export interface DisconnectSelectionSingle {
   clientKey: string;
 }
 
-export type DisconnectSelection = DisconnectSelectionAll | DisconnectSelectionSingle;
+export interface DisconnectSelectionWsServer {
+  kind: 'ws-server';
+  wsServer: import('./nrepl/nrepl-ws-server').NReplWsServer;
+}
+
+export type DisconnectSelection =
+  | DisconnectSelectionAll
+  | DisconnectSelectionSingle
+  | DisconnectSelectionWsServer;
 
 /**
  * Information about a client for display in disconnect picker.
@@ -29,8 +37,8 @@ export interface ClientDisplayInfo {
  * Builds the label for a disconnect picker item.
  * Uses connectSequenceName if available, otherwise falls back to client key.
  */
-export function buildDisconnectItemLabel(client: ClientDisplayInfo): string {
-  return client.connectSequenceName || client.key;
+export function buildDisconnectItemLabel(client: ClientDisplayInfo, codicon: string): string {
+  return `$(${codicon}) ${client.connectSequenceName || client.key}`;
 }
 
 /**
@@ -58,5 +66,17 @@ export function buildDisconnectItemDetail(host?: string, port?: number): string 
   if (!host) {
     return undefined;
   }
-  return port ? `${host}:${port}` : host;
+  return port ? `nrepl://${host}:${port}` : `nrepl://${host}`;
+}
+
+/**
+ * A connection item with display properties and action metadata.
+ * Used by both the REPL menu and the disconnect picker.
+ */
+export interface ConnectionItemData {
+  label: string;
+  description: string;
+  detail?: string;
+  clientKey?: string;
+  wsServer?: import('./nrepl/nrepl-ws-server').NReplWsServer;
 }

@@ -395,8 +395,14 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
 }
 
 export async function openReplWindowDoc(): Promise<vscode.TextDocument> {
-  const doc = await vscode.workspace.openTextDocument(getDocUri());
-  return doc;
+  const docUri = getDocUri();
+  try {
+    return await vscode.workspace.openTextDocument(docUri);
+  } catch {
+    await vscode.workspace.fs.createDirectory(getDocDir());
+    await util.writeTextToFile(docUri, '');
+    return await vscode.workspace.openTextDocument(docUri);
+  }
 }
 
 export function revealReplWindowDoc(preserveFocus = true) {

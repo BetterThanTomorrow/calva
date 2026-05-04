@@ -6,6 +6,18 @@ Changes to Calva.
 
 - [Dragging sexps has weird behavior with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
 
+## [2.0.582] - 2026-05-03
+
+- [Make Orphaned/dicsonnected WebSocket servers closable](https://github.com/BetterThanTomorrow/calva/issues/3195)
+
+## [2.0.581] - 2026-05-02
+
+- [WebSocket nREPL transport for browser REPLs](https://github.com/BetterThanTomorrow/calva/issues/3193)
+
+## [2.0.580] - 2026-04-29
+
+- [Add a `repl.log()` to the API, for other extensions to log to the Calva output sink](https://github.com/BetterThanTomorrow/calva/issues/3191)
+
 ## [2.0.579] - 2026-04-28
 
 - internal-dev: Update TypeScript codebase to use namespace imports throughout

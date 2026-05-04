@@ -39,6 +39,14 @@ function emit(msg: SubscriberOutputMessage) {
   }
 }
 
+/**
+ * Emit a message to subscribers only, without writing to any UI destinations.
+ * Used by the API `log()` function for external extensions.
+ */
+export function emitExternal(msg: SubscriberOutputMessage) {
+  emit(msg);
+}
+
 export type OutputCategory =
   | 'evalResults'
   | 'evaluatedCode'

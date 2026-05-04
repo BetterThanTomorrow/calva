@@ -57,6 +57,7 @@ repl-output-ui/js
 # This and that
 .nrepl-port
 dist/
+!test-data/**/dist/
 pom.xml
 .idea
 *.iml
