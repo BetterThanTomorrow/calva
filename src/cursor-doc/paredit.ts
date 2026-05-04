@@ -2362,6 +2362,15 @@ const isCommentLine = (line: LineInfo) => line.trimmed.startsWith(';');
 const isBlankLine = (line: LineInfo) => line.trimmed === '';
 const isResultCommentStartLine = (line: LineInfo) => /^;{1,2}=>/.test(line.trimmed);
 
+function isResultCommentBlock(lines: LineInfo[]): boolean {
+  if (!lines.length || !isResultCommentStartLine(lines[0])) {
+    return false;
+  }
+
+  const semicolonPrefix = lines[0].trimmed.startsWith(';;=>') ? ';;' : ';';
+  return lines.slice(1).every((line) => line.trimmed.startsWith(`${semicolonPrefix}   `));
+}
+
 function trailingResultCommentBlockEnd(text: string, fromLineEnd: number): number | null {
   const first = nextLine(text, fromLineEnd);
   if (!first || !isResultCommentStartLine(first)) {
@@ -2375,7 +2384,7 @@ function trailingResultCommentBlockEnd(text: string, fromLineEnd: number): numbe
     end = line.end;
     line = nextLine(text, line.end);
   }
-  return text[end] === '\n' ? end + 1 : end;
+  return end;
 }
 
 /**
@@ -2395,12 +2404,13 @@ function extendRangeOverAttachedComments(
   let lo = start;
   const startLine = lineInfoAt(text, start);
   if (text.substring(startLine.start, start).trim() === '') {
-    for (
-      let line = prevLine(text, startLine.start);
-      line && isCommentLine(line);
-      line = prevLine(text, line.start)
-    ) {
-      lo = line.start;
+    const leadingCommentLines: LineInfo[] = [];
+    for (let line = prevLine(text, startLine.start); line && isCommentLine(line); ) {
+      leadingCommentLines.unshift(line);
+      line = prevLine(text, line.start);
+    }
+    if (leadingCommentLines.length && !isResultCommentBlock(leadingCommentLines)) {
+      lo = leadingCommentLines[0].start;
     }
   }
 
@@ -2507,14 +2517,25 @@ export async function dragSexprForward(
     formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
   const forwardCursor = doc.getTokenCursor(baseRange[1]);
-  forwardCursor.forwardSexp();
-  const forwardBase = currentSexpsRange(
+  forwardCursor.forwardWhitespace();
+  let forwardBase = currentSexpsRange(
     doc,
     forwardCursor,
     forwardCursor.offsetStart,
     usePairs,
     config
   );
+  if (forwardBase[0] === baseRange[0]) {
+    forwardCursor.forwardSexp();
+    forwardCursor.forwardWhitespace();
+    forwardBase = currentSexpsRange(
+      doc,
+      forwardCursor,
+      forwardCursor.offsetStart,
+      usePairs,
+      config
+    );
+  }
   if (forwardBase[0] !== baseRange[0]) {
     const forwardRange = extendRangeOverAttachedComments(doc, forwardBase);
     const leftText = doc.model.getText(currentRange[0], currentRange[1]);
