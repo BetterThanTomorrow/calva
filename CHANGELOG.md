@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Enable renaming of REPL sessions](https://github.com/BetterThanTomorrow/calva/issues/3197)
 - Fix: [Calva disconnects and closed the WebSocket server when connecting a websocket REPL configured for the same port](https://github.com/BetterThanTomorrow/calva/issues/3198)
 
 ## [2.0.582] - 2026-05-03

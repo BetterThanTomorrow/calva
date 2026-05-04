@@ -2,12 +2,14 @@ import * as expectLib from 'expect';
 import type * as nrepl from '../../../../src/nrepl';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as clientRegistry from '../../../../src/nrepl/client-registry';
+import * as sessionNameSuffix from '../../../../src/nrepl/session-name-suffix';
 
 describe('session registry', () => {
   afterEach(() => {
     sessionRegistry._testUtility_registeredSessions.clear();
     sessionRegistry.setClojureDocsSessionKey(null);
     clientRegistry._testUtility_registeredClients.clear();
+    sessionNameSuffix.resetPool();
   });
 
   describe('resolveSessionKey', () => {
@@ -146,6 +148,90 @@ describe('session registry', () => {
 
       expectLib.expect((mainForA as any)?._calvaSessionMetadata?.key).toBe('clj-a');
       expectLib.expect((mainForB as any)?._calvaSessionMetadata?.key).toBe('clj-b');
+    });
+  });
+
+  describe('renameSession', () => {
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
+
+    const createMockClient = (clientKey: string) =>
+      ({ clientKey } as unknown as Parameters<typeof clientRegistry.registerClient>[0]);
+
+    it('renames session: accessible under new key, not under old', () => {
+      sessionRegistry.registerSession('epupp', createSession('client-a'), {});
+
+      const result = sessionRegistry.renameSession('epupp', 'epupp-youtube');
+
+      expectLib.expect(result).toBe(true);
+      expectLib.expect(sessionRegistry.getSession('epupp-youtube')).toBeDefined();
+      expectLib.expect(sessionRegistry.getSession('epupp')).toBeUndefined();
+    });
+
+    it('returns false if old key not found', () => {
+      const result = sessionRegistry.renameSession('nonexistent', 'new-name');
+
+      expectLib.expect(result).toBe(false);
+    });
+
+    it('returns false if new key already exists', () => {
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
+      sessionRegistry.registerSession('beta', createSession('client-b'), {});
+
+      const result = sessionRegistry.renameSession('alpha', 'beta');
+
+      expectLib.expect(result).toBe(false);
+      expectLib.expect(sessionRegistry.getSession('alpha')).toBeDefined();
+    });
+
+    it('updates sessionRoleKeys for primary session', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
+
+      sessionRegistry.renameSession('clj', 'my-clj');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.sessionRoleKeys?.primary).toBe('my-clj');
+      expectLib.expect(state?.sessionRoleKeys?.secondary).toBe('cljs');
+    });
+
+    it('updates sessionRoleKeys for secondary session', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
+
+      sessionRegistry.renameSession('cljs', 'my-cljs');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.sessionRoleKeys?.primary).toBe('clj');
+      expectLib.expect(state?.sessionRoleKeys?.secondary).toBe('my-cljs');
+    });
+
+    it('releases suffix when renaming away from suffixed name', () => {
+      const suffix = sessionNameSuffix.acquireNextAvailableSuffix();
+      expectLib.expect(suffix).toBe('2');
+
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'epupp:2' },
+        },
+      });
+      sessionRegistry.registerSession('epupp:2', createSession('client-a'), {});
+
+      sessionRegistry.renameSession('epupp:2', 'epupp-youtube');
+
+      // Suffix "2" should be released back to the pool
+      const nextSuffix = sessionNameSuffix.acquireNextAvailableSuffix();
+      expectLib.expect(nextSuffix).toBe('2');
     });
   });
 });
