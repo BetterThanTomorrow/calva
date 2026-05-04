@@ -2507,6 +2507,9 @@
 <li>When two or more sessions use the same session name, numbered suffixes will be used to separate the sessions.</li>
 </ul>
 <p>E.g. connect three Babashka repls and you will have one session named <code>bb</code> another named <code>bb:2</code>, and a third named <code>bb:3</code>. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: <code>clj</code>, <code>cljs</code>, <code>clj:4</code>, <code>cljs:4</code>.</p>
+<ul>
+<li>You can rename any session by clicking the pencil icon next to it in the sessions menu. This lets you give sessions meaningful names like <code>epupp-youtube</code> instead of the auto-generated <code>epupp:2</code>. Renames take effect immediately for routing and evaluation, but do not persist across reconnection.</li>
+</ul>
 <p><img alt="REPL Sessions Menu" src="../images/repl-ui/repl-sessions-menu.png" /></p>
 <h2 id="ui-components-overview">UI Components Overview<a class="headerlink" href="#ui-components-overview" title="Permanent link">#</a></h2>
 <h3 id="file-editors">File Editors<a class="headerlink" href="#file-editors" title="Permanent link">#</a></h3>
