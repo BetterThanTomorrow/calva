@@ -25,6 +25,8 @@ Calva keeps every nREPL connection alive until you explicitly disconnect it. Thi
 
   E.g. connect three Babashka repls and you will have one session named `bb` another named `bb:2`, and a third named `bb:3`. If you then connect two Clojure + ClojureScript repls using default session names, you will have four more sessions named: `clj`, `cljs`, `clj:4`, `cljs:4`.
 
+- You can rename any session by clicking the pencil icon next to it in the sessions menu. This lets you give sessions meaningful names like `epupp-youtube` instead of the auto-generated `epupp:2`. Renames take effect immediately for routing and evaluation, but do not persist across reconnection.
+
 ![REPL Sessions Menu](images/repl-ui/repl-sessions-menu.png)
 
 ## UI Components Overview
