@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Dragging sexps has weird behavior with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
+- [Dragging sexps with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
 
 ## [2.0.582] - 2026-05-03
 
