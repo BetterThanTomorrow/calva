@@ -2367,6 +2367,24 @@ describe('paredit', () => {
             .expect(textNotation.textAndSelection(a))
             .toEqual(textNotation.textAndSelection(b));
         });
+
+        it('drags sexp backward with ;;=> result comment when next form follows immediately', async () => {
+          const a = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;;=> 3`);
+          const b = textNotation.docFromTextNotation(`(+ 1 2)|•;;=> 3•(+ 2 3)`);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('drags sexp backward with ;=> result comment when next form follows immediately', async () => {
+          const a = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;=> 3`);
+          const b = textNotation.docFromTextNotation(`(+ 1 2)|•;=> 3•(+ 2 3)`);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
       });
     });
 
