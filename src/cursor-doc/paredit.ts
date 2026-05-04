@@ -2360,6 +2360,23 @@ const nextLine = (text: string, lineEnd: number) =>
 
 const isCommentLine = (line: LineInfo) => line.trimmed.startsWith(';');
 const isBlankLine = (line: LineInfo) => line.trimmed === '';
+const isResultCommentStartLine = (line: LineInfo) => /^;{1,2}=>/.test(line.trimmed);
+
+function trailingResultCommentBlockEnd(text: string, fromLineEnd: number): number | null {
+  const first = nextLine(text, fromLineEnd);
+  if (!first || !isResultCommentStartLine(first)) {
+    return null;
+  }
+
+  const semicolonPrefix = first.trimmed.startsWith(';;=>') ? ';;' : ';';
+  let end = first.end;
+  let line = nextLine(text, first.end);
+  while (line && isCommentLine(line) && line.trimmed.startsWith(`${semicolonPrefix}   `)) {
+    end = line.end;
+    line = nextLine(text, line.end);
+  }
+  return text[end] === '\n' ? end + 1 : end;
+}
 
 /**
  * Extends a form's range to include its attached line comments:
@@ -2392,6 +2409,12 @@ function extendRangeOverAttachedComments(
   if (/^\s*;/.test(text.substring(end, endLine.end))) {
     hi = endLine.end;
   }
+
+  const resultCommentsEnd = trailingResultCommentBlockEnd(text, endLine.end);
+  if (resultCommentsEnd !== null) {
+    hi = resultCommentsEnd;
+  }
+
   const trailingEnds: number[] = [];
   let below = nextLine(text, endLine.end);
   while (below && isCommentLine(below)) {
