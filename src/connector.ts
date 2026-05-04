@@ -103,29 +103,17 @@ async function connectViaWebSocket(
   const projectRoot = state.getProjectRootUri().toString();
   const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
+  // WebSocket connections skip reconnection candidate detection entirely.
+  // Each WS server is single-client, so multiple browser tabs require separate
+  // servers on different ports. The port-in-use prompt handles conflicts naturally.
   const resolution = sessionNameResolver.resolveSessionNames(
     baseSessionNames,
     projectRoot,
     wsHost,
-    isJackIn ? null : wsPort
+    wsPort,
+    { skipReconnect: true }
   );
   const sessionRoleKeys = resolution.finalNames;
-
-  if (resolution.reconnectClientKey) {
-    output.appendLineOtherOut(
-      `Reconnecting: disconnecting existing client for sessions: ${Object.values(sessionRoleKeys)
-        .filter(Boolean)
-        .join(', ')}`
-    );
-    if (isJackIn) {
-      await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
-        preserveSuffix: true,
-      });
-    }
-    if (clientRegistry.getClient(resolution.reconnectClientKey)) {
-      await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
-    }
-  }
 
   const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
     connectSequence,

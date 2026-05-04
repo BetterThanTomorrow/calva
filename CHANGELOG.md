@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Calva disconnects and closed the WebSocket server when connecting a websocket REPL configured for the same port](https://github.com/BetterThanTomorrow/calva/issues/3198)
+
 ## [2.0.582] - 2026-05-03
 
 - [Make Orphaned/dicsonnected WebSocket servers closable](https://github.com/BetterThanTomorrow/calva/issues/3195)

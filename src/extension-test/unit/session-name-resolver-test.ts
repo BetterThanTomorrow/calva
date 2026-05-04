@@ -285,6 +285,61 @@ describe('session-name-resolver', () => {
       });
     });
 
+    describe('skipReconnect option', () => {
+      it('skips reconnection and treats as conflict when skipReconnect is true', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/project-a';
+
+        // Register existing client that would normally trigger reconnection
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 3340,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+        sessionRegistry.registerSession('clj', createSession('client-a'), {});
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          3340,
+          { skipReconnect: true }
+        );
+
+        expectLib.expect(resolution.reconnectClientKey).toBeUndefined();
+        expectLib.expect(resolution.suffix).toBeDefined();
+        expectLib.expect(resolution.finalNames.primary).toMatch(/^clj:\w+$/);
+        expectLib.expect(resolution.finalNames.secondary).toMatch(/^cljs:\w+$/);
+      });
+
+      it('still finds reconnection candidate when skipReconnect is false', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/project-a';
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 3340,
+          connectionState: {
+            baseSessionNames: baseNames,
+          },
+        });
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          3340,
+          { skipReconnect: false }
+        );
+
+        expectLib.expect(resolution.reconnectClientKey).toBe('client-a');
+      });
+    });
+
     describe('reconnection scenario (port-unaware, e.g. jack-in)', () => {
       it('detects reconnection when baseNames and projectRoot match (port is null)', () => {
         const baseNames = { primary: 'bb' };
