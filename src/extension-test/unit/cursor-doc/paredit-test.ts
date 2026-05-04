@@ -3,7 +3,6 @@ import * as paredit from '../../../cursor-doc/paredit';
 import * as model from '../../../cursor-doc/model';
 import * as textNotation from '../common/text-notation';
 import * as _ from 'lodash';
-import { text } from 'stream/consumers';
 
 model.initScanner(20000);
 
