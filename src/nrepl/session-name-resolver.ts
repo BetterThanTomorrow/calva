@@ -138,9 +138,12 @@ export function resolveSessionNames(
   baseNames: sessionRoleUtils.SessionRoleKeys,
   projectRoot: string,
   host: string,
-  port: number | null
+  port: number | null,
+  options?: { skipReconnect?: boolean }
 ): SessionNameResolution {
-  const reconnectClientKey = findReconnectionCandidate(baseNames, projectRoot, host, port);
+  const reconnectClientKey = options?.skipReconnect
+    ? undefined
+    : findReconnectionCandidate(baseNames, projectRoot, host, port);
   if (reconnectClientKey) {
     const existingState = clientRegistry.getConnectionState(reconnectClientKey);
     const existingSuffix = existingState?.suffix;
