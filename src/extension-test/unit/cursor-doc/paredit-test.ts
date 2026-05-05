@@ -2310,6 +2310,33 @@ describe('paredit', () => {
             .toEqual(textNotation.textAndSelection(b));
         });
 
+        it('drags a commented form forward in a comment form without adding indentation', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  :b•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :b•  ; a•  :a|•  )`);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('drags a commented form backward after a forward drag without accumulating indentation', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :b•  ; a•  :a|•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  :b•  )`);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('keeps both comments attached when dragging forward in a comment form', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  ; b•  :b•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  ; b•  :b•  ; a•  :a|•  )`);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
         it('drags comment-form pair backward when cursor is in the comment', async () => {
           const a = textNotation.docFromTextNotation(`(str "a")••;; b|•(str "Hello" " " "world")`);
           const b = textNotation.docFromTextNotation(`;; b|•(str "Hello" " " "world")••(str "a")`);
