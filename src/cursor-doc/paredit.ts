@@ -2473,6 +2473,20 @@ function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number
     return null;
   }
 
+  if (isResultCommentStartLine(here)) {
+    let above = prevLine(text, here.start);
+    while (above && isCommentLine(above)) {
+      above = prevLine(text, above.start);
+    }
+    if (above && !isBlankLine(above)) {
+      const formEnd = above.start + above.content.trimEnd().length;
+      const cursor = doc.getTokenCursor(formEnd);
+      cursor.backwardSexp();
+      return cursor.rangeForCurrentForm(cursor.offsetStart);
+    }
+    return null;
+  }
+
   let below = nextLine(text, here.end);
   while (below && isCommentLine(below)) {
     below = nextLine(text, below.end);
