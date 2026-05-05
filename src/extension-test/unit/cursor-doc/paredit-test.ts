@@ -2430,6 +2430,51 @@ describe('paredit', () => {
             .expect(textNotation.textAndSelection(a))
             .toEqual(textNotation.textAndSelection(b));
         });
+
+        it('drags a form forward with its tight result comment', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :a•  :b|•  ;=> b•  :c•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :a•  :c•  :b|•  ;=> b•  )`);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('drags a form backward with its tight result comment', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :a•  :b|•  ;=> b•  :c•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :b|•  ;=> b•  :a•  :c•  )`);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('does not attach tight result comments to the following form on drag backward', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :b•  :c|•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :c|•  :b•  )`);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('does not move a tight result comment when dragging the following form forward', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :b|•  :c•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :c•  :b|•  )`);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
+
+        it('drags forward when cursor is in a tight result comment line', async () => {
+          const a = textNotation.docFromTextNotation(`(comment•  :c•  :b•  ;=> b|•  :a•  )`);
+          const b = textNotation.docFromTextNotation(`(comment•  :c•  :a•  :b•  ;=> b|•  )`);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        });
       });
     });
 
