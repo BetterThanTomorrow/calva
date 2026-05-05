@@ -171,6 +171,14 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
+Drag forward/backward also treats certain line comments as attached to forms:
+
+- Contiguous comment lines immediately above a form move with that form.
+- Trailing same-line comments move with the form on that line.
+- Tight result comments such as `;=>` and `;;=>` are attached to the form immediately above them, and move with that form when it is dragged.
+- When the cursor is on an attached comment line, dragging acts on the
+  associated form-comment pair rather than on the comment line by itself.
+
 ## Toggle Comment Behavior
 
 The **Toggle Comment** command (`ctrl+/` / `cmd+/`) behavior when there is no text selected and the cursor is not in a line comment is controlled by the `calva.paredit.toggleCommentBehavior` setting:
