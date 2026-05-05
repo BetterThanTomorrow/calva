@@ -2387,6 +2387,27 @@ function trailingResultCommentBlockEnd(text: string, fromLineEnd: number): numbe
   return end;
 }
 
+function extendRangeToLineIndent(text: string, [start, end]: [number, number]): [number, number] {
+  const startLine = lineInfoAt(text, start);
+  return text.substring(startLine.start, start).trim() === ''
+    ? [startLine.start, end]
+    : [start, end];
+}
+
+function normalizeSwapRangesForLeadingComments(
+  text: string,
+  leftRange: [number, number],
+  rightRange: [number, number]
+): [[number, number], [number, number]] {
+  const leftStartsWithComment = isCommentLine(lineInfoAt(text, leftRange[0]));
+  const rightStartsWithComment = isCommentLine(lineInfoAt(text, rightRange[0]));
+
+  return [
+    rightStartsWithComment ? extendRangeToLineIndent(text, leftRange) : leftRange,
+    leftStartsWithComment ? extendRangeToLineIndent(text, rightRange) : rightRange,
+  ];
+}
+
 /**
  * Extends a form's range to include its attached line comments:
  * - Backward: contiguous comment lines immediately above the form (only when
@@ -2483,6 +2504,7 @@ export async function dragSexprBackward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const baseRange =
     formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
@@ -2491,15 +2513,26 @@ export async function dragSexprBackward(
   const backBase = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backBase[0] !== baseRange[0]) {
     const backRange = extendRangeOverAttachedComments(doc, backBase);
-    const leftText = doc.model.getText(backRange[0], backRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+    const [normalizedCurrentRange, normalizedBackRange] = normalizeSwapRangesForLeadingComments(
+      text,
+      currentRange,
+      backRange
+    );
+    const leftText = doc.model.getText(normalizedBackRange[0], normalizedBackRange[1]);
+    const currentText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
-        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
+        new ModelEdit('changeRange', [
+          normalizedCurrentRange[0],
+          normalizedCurrentRange[1],
+          leftText,
+        ]),
+        new ModelEdit('changeRange', [normalizedBackRange[0], normalizedBackRange[1], currentText]),
       ],
       {
-        selections: [new ModelEditSelection(backRange[0] + right - currentRange[0])],
+        selections: [
+          new ModelEditSelection(normalizedBackRange[0] + right - normalizedCurrentRange[0]),
+        ],
       }
     );
   }
@@ -2513,6 +2546,7 @@ export async function dragSexprForward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const baseRange =
     formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
@@ -2538,15 +2572,30 @@ export async function dragSexprForward(
   }
   if (forwardBase[0] !== baseRange[0]) {
     const forwardRange = extendRangeOverAttachedComments(doc, forwardBase);
-    const leftText = doc.model.getText(currentRange[0], currentRange[1]);
-    const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
+    const [normalizedCurrentRange, normalizedForwardRange] = normalizeSwapRangesForLeadingComments(
+      text,
+      currentRange,
+      forwardRange
+    );
+    const leftText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
+    const rightText = doc.model.getText(normalizedForwardRange[0], normalizedForwardRange[1]);
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], leftText]),
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
+        new ModelEdit('changeRange', [
+          normalizedForwardRange[0],
+          normalizedForwardRange[1],
+          leftText,
+        ]),
+        new ModelEdit('changeRange', [
+          normalizedCurrentRange[0],
+          normalizedCurrentRange[1],
+          rightText,
+        ]),
       ],
       {
-        selections: [new ModelEditSelection(forwardRange[1] + right - currentRange[1])],
+        selections: [
+          new ModelEditSelection(normalizedForwardRange[1] + right - normalizedCurrentRange[1]),
+        ],
       }
     );
   }
