@@ -195,19 +195,27 @@ export function renameSession(oldKey: string, newKey: string): boolean {
     metadata.key = newKey;
   }
 
-  // Update ConnectionState.sessionRoleKeys
+  // Update ConnectionState.sessionRoleKeys and track rename for reconnection
   const clientKey = metadata?.connectionOwnerId;
   if (clientKey) {
     const connState = clientRegistry.getConnectionState(clientKey);
     if (connState?.sessionRoleKeys) {
       const roleKeys = { ...connState.sessionRoleKeys };
+      const renamedSessionNames: Partial<typeof roleKeys> = {
+        ...connState.renamedSessionNames,
+      };
       if (roleKeys.primary === oldKey) {
         roleKeys.primary = newKey;
+        renamedSessionNames.primary = newKey;
       }
       if (roleKeys.secondary === oldKey) {
         roleKeys.secondary = newKey;
+        renamedSessionNames.secondary = newKey;
       }
-      clientRegistry.setConnectionState(clientKey, { sessionRoleKeys: roleKeys });
+      clientRegistry.setConnectionState(clientKey, {
+        sessionRoleKeys: roleKeys,
+        renamedSessionNames,
+      });
     }
   }
 

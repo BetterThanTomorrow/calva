@@ -12,6 +12,7 @@ import * as docMirror from '../../../doc-mirror';
 
 const WS_PORT_EVAL = 51340;
 const WS_PORT_LOAD = 51341;
+const WS_PORT_RENAME = 51342;
 
 /**
  * Create a scittle webview via Joyride flare.
@@ -261,5 +262,103 @@ suite('WebSocket nREPL Connect suite', function () {
 
     testUtil.log(suite, `[TIMING] Test 2 complete: ${elapsed()}`);
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('Renamed session survives browser reconnection', async function () {
+    const t0 = Date.now();
+    const elapsed = () => `${Date.now() - t0}ms`;
+    testUtil.log(suite, 'Renamed session survives browser reconnection');
+
+    const projectDir = path.join(
+      testUtil.testDataDir,
+      '..',
+      'projects',
+      'scittle-replicant-tic-tac-toe'
+    );
+
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      name: 'scittle-ws-test',
+      projectType: connectSequenceTypes.ProjectTypes['scittle'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      webSocketPort: WS_PORT_RENAME,
+      projectRootPath: [projectDir],
+    };
+
+    // 1. Connect via WebSocket
+    const connectPromise = connector.connect(connectSequence, true);
+
+    await testUtil.waitForCondition(
+      () => testUtil.canConnectToPort(WS_PORT_RENAME),
+      5_000,
+      20,
+      `WS server not listening on port ${WS_PORT_RENAME}`
+    );
+
+    await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_RENAME));
+    const result = await connectPromise;
+    assert.ok(result.connected, 'Initial WS connection should succeed');
+    testUtil.log(suite, `[TIMING] Initial connection: ${elapsed()}`);
+
+    // 2. Verify original session name and rename it
+    const originalSessions = sessionRegistry.listSessions();
+    const originalKey = originalSessions[0].key;
+    testUtil.log(suite, `Original session key: ${originalKey}`);
+
+    const renamedKey = 'my-scittle';
+    const renamed = sessionRegistry.renameSession(originalKey, renamedKey);
+    assert.ok(renamed, 'Rename should succeed');
+    assert.ok(sessionRegistry.getSession(renamedKey), 'Session should exist under renamed key');
+    testUtil.log(suite, `Renamed to: ${renamedKey}, ${elapsed()}`);
+
+    // 3. Close the webview (simulates browser tab close / reload)
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, `[TIMING] Webview closed: ${elapsed()}`);
+
+    // Wait for disconnect to clean up sessions
+    await testUtil.waitForCondition(
+      () => sessionRegistry.listSessions().length === 0,
+      5_000,
+      20,
+      'Timed out waiting for session cleanup after webview close'
+    );
+    testUtil.log(suite, `[TIMING] Sessions cleaned up: ${elapsed()}`);
+
+    // 4. Re-open webview (browser reconnects to the still-listening WS server)
+    await vscode.commands.executeCommand('joyride.runCode', flareCode(WS_PORT_RENAME));
+    testUtil.log(suite, `[TIMING] Webview re-opened: ${elapsed()}`);
+
+    // 5. Wait for session to be re-registered
+    await testUtil.waitForCondition(
+      () => sessionRegistry.listSessions().length > 0,
+      10_000,
+      50,
+      'Timed out waiting for session after browser reconnection'
+    );
+
+    // 6. Verify the renamed key survived the reconnection
+    const reconnectedSessions = sessionRegistry.listSessions();
+    const reconnectedKeys = reconnectedSessions.map((s) => s.key);
+    testUtil.log(suite, `Reconnected session keys: ${reconnectedKeys.join(', ')}`);
+
+    assert.ok(
+      reconnectedKeys.includes(renamedKey),
+      `Renamed key '${renamedKey}' should survive browser reconnection, got: ${reconnectedKeys.join(
+        ', '
+      )}`
+    );
+    assert.ok(
+      !reconnectedKeys.includes(originalKey),
+      `Original key '${originalKey}' should not reappear after reconnection`
+    );
+
+    // 7. Verify the session is functional
+    const session = sessionRegistry.getSession(renamedKey);
+    assert.ok(session, 'Should get session by renamed key');
+    const evalResult = await session.eval('(+ 10 20)', 'user').value;
+    assert.strictEqual(evalResult, '30', 'Eval through renamed session should work');
+    testUtil.log(suite, `Eval via renamed session: (+ 10 20) => ${evalResult}`);
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    testUtil.log(suite, `[TIMING] Test 3 complete: ${elapsed()}`);
   });
 });

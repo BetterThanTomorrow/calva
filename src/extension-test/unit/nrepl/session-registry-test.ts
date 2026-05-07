@@ -233,5 +233,35 @@ describe('session registry', () => {
       const nextSuffix = sessionNameSuffix.acquireNextAvailableSuffix();
       expectLib.expect(nextSuffix).toBe('2');
     });
+
+    it('stores renamedSessionNames in ConnectionState for primary', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+
+      sessionRegistry.renameSession('clj', 'my-clj');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.renamedSessionNames).toEqual({ primary: 'my-clj' });
+    });
+
+    it('stores renamedSessionNames in ConnectionState for secondary', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('cljs', createSession('client-a'), {
+        isSecondary: true,
+      });
+
+      sessionRegistry.renameSession('cljs', 'my-cljs');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.renamedSessionNames).toEqual({ secondary: 'my-cljs' });
+    });
   });
 });

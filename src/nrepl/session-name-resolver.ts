@@ -19,6 +19,9 @@ export interface SessionNameResolution {
 
   /** Client to disconnect for reconnection, if any */
   reconnectClientKey?: string;
+
+  /** User-assigned custom names from the previous connection, if any */
+  renamedSessionNames?: Partial<sessionRoleUtils.SessionRoleKeys>;
 }
 
 /**
@@ -157,6 +160,7 @@ export function resolveSessionNames(
       finalNames,
       suffix: existingSuffix,
       reconnectClientKey,
+      renamedSessionNames: existingState?.renamedSessionNames,
     };
   }
 
