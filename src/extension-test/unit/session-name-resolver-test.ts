@@ -195,6 +195,31 @@ describe('session-name-resolver', () => {
         expectLib.expect(resolution.suffix).toBe('2');
       });
 
+      it('passes through renamedSessionNames from previous connection', () => {
+        const baseNames = { primary: 'clj', secondary: 'cljs' };
+        const projectRoot = '/test-project';
+
+        clientRegistry.registerClient(createMockClient('client-a'), {
+          projectRoot,
+          host: 'localhost',
+          port: 1234,
+          connectionState: {
+            baseSessionNames: baseNames,
+            renamedSessionNames: { primary: 'my-clj' },
+          },
+        });
+
+        const resolution = sessionNameResolver.resolveSessionNames(
+          baseNames,
+          projectRoot,
+          'localhost',
+          1234
+        );
+
+        expectLib.expect(resolution.reconnectClientKey).toBe('client-a');
+        expectLib.expect(resolution.renamedSessionNames).toEqual({ primary: 'my-clj' });
+      });
+
       it('detects reconnection even when projectRoot differs (matches on host:port)', () => {
         const baseNames = { primary: 'clj', secondary: 'cljs' };
 
