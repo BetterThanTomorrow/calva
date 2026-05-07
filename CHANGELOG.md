@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.584] - 2026-05-07
+
 - [enable new clojure-lsp code actions: inline function, if<->cond, extract selection to function, move to :let](https://github.com/BetterThanTomorrow/calva/issues/3204)
 - Fix: [Calva forgets the renamed session name on disconnect->reconnect](https://github.com/BetterThanTomorrow/calva/issues/3207)
 
