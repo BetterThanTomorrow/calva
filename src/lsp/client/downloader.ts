@@ -163,8 +163,36 @@ export const ensureServerDownloaded = async (
     });
   console.log(`clojure-lsp binary exists: ${exists}`);
 
-  // If there's no existing clojure-lsp file, and we can't fetch the latest version, throw an error, because the download of clojure-lsp will fail
   if (downloadVersion === '' && !exists) {
+    const restored = await downloaderUtils.restoreFromBackup(clojureLspPath);
+    if (restored) {
+      const restoredVersion = currentVersion ? ` (${currentVersion})` : '';
+      void vscode.window.showWarningMessage(
+        `Could not fetch the latest clojure-lsp version. Using a previously downloaded version${restoredVersion} restored from backup.`
+      );
+      console.log(`clojure-lsp restored from backup at ${clojureLspPath}`);
+      return clojureLspPath;
+    }
+    const localFallback = await downloaderUtils.findHighestLocalClojureLsp(
+      context.extensionPath,
+      path.basename(clojureLspPath),
+      versionFileName
+    );
+    if (localFallback) {
+      await downloaderUtils.adoptLocalClojureLsp(
+        localFallback,
+        clojureLspPath,
+        getVersionFilePath(context.extensionPath)
+      );
+      const adoptedVersion = localFallback.version || 'unknown';
+      void vscode.window.showWarningMessage(
+        `Could not fetch the latest clojure-lsp version. Using ${adoptedVersion} found in another Calva install.`
+      );
+      console.log(
+        `clojure-lsp adopted from sibling install: ${localFallback.binaryPath} -> ${clojureLspPath}`
+      );
+      return clojureLspPath;
+    }
     throw 'Could not fetch latest version for clojure-lsp. Please check your internet connection and try again. You can also download clojure-lsp manually and set the path in the Calva settings. See https://calva.io/clojure-lsp/#using-a-custom-clojure-lsp for more info.';
   } else if (
     (currentVersion !== downloadVersion && downloadVersion !== '') ||
