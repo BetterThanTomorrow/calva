@@ -155,7 +155,7 @@ const clojureLspCommands: ClojureLspCommand[] = [
   {
     command: 'inline-function',
     category: 'clojureLsp.refactor',
-  },  
+  },
   {
     command: 'extract-function-2',
     afterCommandFn: renameAfterRefactor,
