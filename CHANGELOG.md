@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- enable new clojure-lsp code actions: inline function, if<->cond, extract selection to function, move to :let
 
 ## [2.0.583] - 2026-05-04
 
