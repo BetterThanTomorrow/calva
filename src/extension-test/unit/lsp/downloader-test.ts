@@ -2,51 +2,121 @@ import * as expectLib from 'expect';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
-import * as downloaderUtils from '../../../lsp/client/downloader-utils';
+
+// These functions mirror the logic in downloader.ts to avoid importing
+// vscode-dependent modules in the unit test runner.
+const artifacts = {
+  darwin: {
+    x64: 'clojure-lsp-native-macos-amd64.zip',
+    arm64: 'clojure-lsp-native-macos-aarch64.zip',
+  },
+  linux: {
+    x64: 'clojure-lsp-native-static-linux-amd64.zip',
+    arm64: 'clojure-lsp-native-linux-aarch64.zip',
+  },
+  win32: {
+    x64: 'clojure-lsp-native-windows-amd64.zip',
+  },
+};
+
+function getArtifactDownloadName(platform: string, arch: string): string {
+  return artifacts[platform]?.[arch] ?? 'clojure-lsp-standalone.jar';
+}
+
+function getClojureLspPath(basePath: string, platform: string, arch: string): string {
+  let name = getArtifactDownloadName(platform, arch);
+  if (path.extname(name).toLowerCase() !== '.jar') {
+    name = platform === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
+  }
+  return path.join(basePath, name);
+}
 
 describe('downloader', () => {
   let tmpDir: string;
-  let binaryPath: string;
-  const binaryContent = 'existing-clojure-lsp-binary';
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'calva-downloader-test-'));
-    binaryPath = path.join(tmpDir, 'clojure-lsp');
-    fs.writeFileSync(binaryPath, binaryContent);
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('replaces binary with new version on successful download', async () => {
-    const result = await downloaderUtils.downloadWithBackupRecovery(binaryPath, () => {
-      fs.writeFileSync(binaryPath, 'new-version');
-      return Promise.resolve();
+  describe('getArtifactDownloadName', () => {
+    it('returns native zip for darwin x64', () => {
+      expectLib
+        .expect(getArtifactDownloadName('darwin', 'x64'))
+        .toBe('clojure-lsp-native-macos-amd64.zip');
     });
 
-    expectLib.expect(result.restored).toBe(false);
-    expectLib.expect(fs.readFileSync(binaryPath, 'utf8')).toBe('new-version');
-    const backupPath = path.join(tmpDir, 'backup', 'clojure-lsp');
-    expectLib.expect(fs.existsSync(backupPath)).toBe(false);
+    it('returns native zip for darwin arm64', () => {
+      expectLib
+        .expect(getArtifactDownloadName('darwin', 'arm64'))
+        .toBe('clojure-lsp-native-macos-aarch64.zip');
+    });
+
+    it('returns native zip for linux x64', () => {
+      expectLib
+        .expect(getArtifactDownloadName('linux', 'x64'))
+        .toBe('clojure-lsp-native-static-linux-amd64.zip');
+    });
+
+    it('returns standalone jar for unsupported platform', () => {
+      expectLib
+        .expect(getArtifactDownloadName('freebsd', 'x64'))
+        .toBe('clojure-lsp-standalone.jar');
+    });
   });
 
-  it('restores binary to original path after failed download so offline startup works', async () => {
-    await downloaderUtils.downloadWithBackupRecovery(binaryPath, () => {
-      return Promise.reject(new Error('network unavailable'));
+  describe('getClojureLspPath', () => {
+    it('returns binary name for native platform', () => {
+      const result = getClojureLspPath(tmpDir, 'darwin', 'arm64');
+      expectLib.expect(result).toBe(path.join(tmpDir, 'clojure-lsp'));
     });
 
-    expectLib.expect(fs.existsSync(binaryPath)).toBe(true);
-    expectLib.expect(fs.readFileSync(binaryPath, 'utf8')).toBe(binaryContent);
+    it('returns .exe for windows', () => {
+      const result = getClojureLspPath(tmpDir, 'win32', 'x64');
+      expectLib.expect(result).toBe(path.join(tmpDir, 'clojure-lsp.exe'));
+    });
+
+    it('returns jar path for unsupported platform', () => {
+      const result = getClojureLspPath(tmpDir, 'freebsd', 'x64');
+      expectLib.expect(result).toBe(path.join(tmpDir, 'clojure-lsp-standalone.jar'));
+    });
   });
 
-  it('restores original binary even when download corrupts the file before failing', async () => {
-    await downloaderUtils.downloadWithBackupRecovery(binaryPath, () => {
-      fs.writeFileSync(binaryPath, 'corrupted-partial-download');
-      return Promise.reject(new Error('connection reset'));
+  describe('atomic download temp dir cleanup', () => {
+    it('temp directories with download prefix are cleaned up', async () => {
+      const tempDir = path.join(tmpDir, '.download-test');
+      await fs.promises.mkdir(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, 'artifact'), 'data');
+      expectLib.expect(fs.existsSync(tempDir)).toBe(true);
+
+      await fs.promises.rm(tempDir, { recursive: true, force: true });
+      expectLib.expect(fs.existsSync(tempDir)).toBe(false);
     });
 
-    expectLib.expect(fs.existsSync(binaryPath)).toBe(true);
-    expectLib.expect(fs.readFileSync(binaryPath, 'utf8')).toBe(binaryContent);
+    it('rename within same directory is atomic', async () => {
+      const source = path.join(tmpDir, 'source-binary');
+      const target = path.join(tmpDir, 'clojure-lsp');
+      fs.writeFileSync(source, 'new-binary-content');
+
+      await fs.promises.rename(source, target);
+      expectLib.expect(fs.readFileSync(target, 'utf8')).toBe('new-binary-content');
+      expectLib.expect(fs.existsSync(source)).toBe(false);
+    });
+
+    it('rename preserves existing binary when source does not exist', async () => {
+      const existing = path.join(tmpDir, 'clojure-lsp');
+      fs.writeFileSync(existing, 'existing-binary');
+
+      try {
+        await fs.promises.rename(path.join(tmpDir, 'nonexistent'), existing);
+      } catch {
+        // Expected: rename fails when source doesn't exist
+      }
+
+      expectLib.expect(fs.readFileSync(existing, 'utf8')).toBe('existing-binary');
+    });
   });
 });

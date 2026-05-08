@@ -5,8 +5,6 @@ import * as config from '../../config';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
-import * as downloaderUtils from './downloader-utils';
-
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 
 const versionFileName = 'clojure-lsp-version';
@@ -111,27 +109,39 @@ async function downloadClojureLsp(storageDir: string, version: string): Promise<
       : getArtifactDownloadName('darwin', 'x64');
   const repo = isNightly ? 'clojure-lsp-dev-builds' : 'clojure-lsp';
   const url = `https://github.com/clojure-lsp/${repo}/releases/download/${version}/${artifactName}`;
-  const downloadPath = path.join(storageDir, artifactName);
   const clojureLspPath = getClojureLspPath(storageDir);
 
-  const result = await downloaderUtils.downloadWithBackupRecovery(clojureLspPath, async () => {
-    await downloadArtifact(url, downloadPath);
-    if (path.extname(downloadPath) === '.zip') {
-      await unzipFile(downloadPath, storageDir);
+  const tempDir = path.join(storageDir, `.download-${Date.now()}`);
+  try {
+    await fs.promises.mkdir(tempDir, { recursive: true });
+    const tempDownloadPath = path.join(tempDir, artifactName);
+    await downloadArtifact(url, tempDownloadPath);
+    if (path.extname(tempDownloadPath) === '.zip') {
+      await unzipFile(tempDownloadPath, tempDir);
+      await fs.promises.unlink(tempDownloadPath).catch(() => undefined);
     }
-    if (path.extname(clojureLspPath) === '') {
-      await fs.promises.chmod(clojureLspPath, 0o775);
+    const tempBinaryName = getClojureLspPath(tempDir);
+    if (path.extname(tempBinaryName) === '') {
+      await fs.promises.chmod(tempBinaryName, 0o775);
+    }
+    try {
+      await fs.promises.rename(tempBinaryName, clojureLspPath);
+    } catch (renameErr) {
+      if ((renameErr as NodeJS.ErrnoException).code === 'EXDEV') {
+        await fs.promises.copyFile(tempBinaryName, clojureLspPath);
+        await fs.promises.unlink(tempBinaryName).catch(() => undefined);
+      } else {
+        throw renameErr;
+      }
     }
     writeVersionFile(storageDir, version);
-  });
-
-  if (result.restored) {
-    const reason = result.error ? `: ${result.error}` : '';
-    console.warn(
-      `Failed to download clojure-lsp ${version}${reason}. Falling back to previously downloaded version.`
-    );
+  } catch (err) {
+    console.error('clojure-lsp download failed:', err);
+    throw err;
+  } finally {
+    await fs.promises.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
   }
-  return result.path;
+  return clojureLspPath;
 }
 
 export const ensureServerDownloaded = async (
