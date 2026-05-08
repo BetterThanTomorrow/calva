@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Calva fail to start when the latest clojure-lsp cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
+- Fix: [clojure-lsp fails to start when the latest version cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
 
 ## [2.0.584] - 2026-05-07
 
