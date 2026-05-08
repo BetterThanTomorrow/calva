@@ -131,11 +131,13 @@ async function openLogFile(clients: defs.LspClientStore, id: string) {
 
 const downloadServerHandler = async (context: vscode.ExtensionContext) => {
   void vscode.window.showInformationMessage(`Downloading clojure-lsp server binary...`);
-  try {
-    const path = await downloader.ensureLSPServer(context, true);
-    void vscode.window.showInformationMessage(`Downloaded clojure-lsp to: ${path}`);
-  } catch (e) {
-    void vscode.window.showErrorMessage(`Failed to download clojure-lsp server. ${e}`);
+  const downloadedPath = await downloader.ensureLSPServer(context, true);
+  if (downloadedPath) {
+    void vscode.window.showInformationMessage(`Downloaded clojure-lsp to: ${downloadedPath}`);
+  } else {
+    void vscode.window.showErrorMessage(
+      'Failed to download clojure-lsp server. Please check your internet connection and try again.'
+    );
   }
 };
 
@@ -225,14 +227,12 @@ const manageHandler = async (
     {
       label: 'Open trace level settings',
       value: '::trace-settings',
+    },
+    {
+      label: 'Download clojure-lsp',
+      value: '::download',
     }
   );
-  if (active_roots.length === 0) {
-    choices.push({
-      label: 'Download latest clojure-lsp version',
-      value: '::download',
-    });
-  }
 
   const picker = vscode.window.createQuickPick();
   picker.items = choices;

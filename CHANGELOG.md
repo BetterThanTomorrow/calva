@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [clojure-lsp fails to start when the latest version cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
+
 ## [2.0.584] - 2026-05-07
 
 - [enable new clojure-lsp code actions: inline function, if<->cond, extract selection to function, move to :let](https://github.com/BetterThanTomorrow/calva/issues/3204)

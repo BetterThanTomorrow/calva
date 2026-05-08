@@ -42,6 +42,7 @@ export enum LspStatus {
   Starting = 'Starting',
   Running = 'Running',
   Failed = 'Failed',
+  DownloadFailed = 'DownloadFailed',
   Unknown = 'Unknown',
 }
 
