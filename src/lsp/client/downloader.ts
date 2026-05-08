@@ -147,60 +147,92 @@ async function downloadClojureLsp(storageDir: string, version: string): Promise<
 export const ensureServerDownloaded = async (
   context: vscode.ExtensionContext,
   forceDownload = false
-): Promise<string> => {
+): Promise<string | undefined> => {
   const storageDir = getClojureLspStorageDir(context);
   await fs.promises.mkdir(storageDir, { recursive: true });
 
-  const currentVersion = await readVersionFile(storageDir);
-  console.log(`Current clojure-lsp version: ${currentVersion}`);
-  const configuredVersion: string = config.getConfig().clojureLspVersion;
   const clojureLspPath = getClojureLspPath(storageDir);
-  const versionSource = ['', 'latest'].includes(configuredVersion)
-    ? 'latest'
-    : configuredVersion === 'nightly'
-    ? 'nightly'
-    : 'configured';
-  console.log(`clojure-lsp version source: ${versionSource} (setting: '${configuredVersion}')`);
-  const downloadVersion =
-    versionSource === 'latest'
-      ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
-      : versionSource === 'nightly'
-      ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
-      : configuredVersion;
-  console.log(`clojure-lsp download version: ${downloadVersion}`);
 
   const exists = await fs.promises
     .stat(clojureLspPath)
     .then(() => true)
     .catch((err) => {
       if (err.code !== 'ENOENT') {
-        throw err;
+        console.error('Error checking clojure-lsp binary:', err);
       }
       return false;
     });
-  console.log(`clojure-lsp binary exists: ${exists}`);
 
-  // If there's no existing clojure-lsp file, and we can't fetch the latest version, throw an error, because the download of clojure-lsp will fail
-  if (downloadVersion === '' && !exists) {
-    throw 'Could not fetch latest version for clojure-lsp. Please check your internet connection and try again. You can also download clojure-lsp manually and set the path in the Calva settings. See https://calva.io/clojure-lsp/#using-a-custom-clojure-lsp for more info.';
-  } else if (
-    (currentVersion !== downloadVersion && downloadVersion !== '') ||
-    forceDownload ||
-    !exists
-  ) {
-    console.log(
-      `clojure-lsp downloading: currentVersion='${currentVersion}', downloadVersion='${downloadVersion}', forceDownload=${forceDownload}, exists=${exists}`
-    );
-    return await downloadClojureLsp(storageDir, downloadVersion);
+  // If binary exists and not forcing download, return immediately — no network, no blocking
+  if (exists && !forceDownload) {
+    console.log('clojure-lsp binary found, starting immediately');
+    return clojureLspPath;
   }
-  console.log(`clojure-lsp skipping download, already up to date (${currentVersion})`);
-  return clojureLspPath;
+
+  // Binary missing or force download — must download now
+  try {
+    const configuredVersion: string = config.getConfig().clojureLspVersion;
+    const versionSource = ['', 'latest'].includes(configuredVersion)
+      ? 'latest'
+      : configuredVersion === 'nightly'
+      ? 'nightly'
+      : 'configured';
+    const downloadVersion =
+      versionSource === 'latest'
+        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
+        : versionSource === 'nightly'
+        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
+        : configuredVersion;
+
+    if (downloadVersion === '') {
+      console.error('Could not determine clojure-lsp version to download');
+      return undefined;
+    }
+
+    console.log(`clojure-lsp downloading version ${downloadVersion}`);
+    return await downloadClojureLsp(storageDir, downloadVersion);
+  } catch (err) {
+    console.error('clojure-lsp download failed:', err);
+    return undefined;
+  }
 };
+
+export async function checkForUpgrade(context: vscode.ExtensionContext): Promise<void> {
+  try {
+    const storageDir = getClojureLspStorageDir(context);
+    const currentVersion = await readVersionFile(storageDir);
+    const configuredVersion: string = config.getConfig().clojureLspVersion;
+    const versionSource = ['', 'latest'].includes(configuredVersion)
+      ? 'latest'
+      : configuredVersion === 'nightly'
+      ? 'nightly'
+      : 'configured';
+    const latestVersion =
+      versionSource === 'latest'
+        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
+        : versionSource === 'nightly'
+        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
+        : configuredVersion;
+
+    if (latestVersion === '' || latestVersion === currentVersion) {
+      console.log(`clojure-lsp is up to date (${currentVersion})`);
+      return;
+    }
+
+    console.log(
+      `clojure-lsp upgrade available: ${currentVersion} → ${latestVersion}, downloading in background`
+    );
+    await downloadClojureLsp(storageDir, latestVersion);
+    console.log(`clojure-lsp upgraded to ${latestVersion}`);
+  } catch (err) {
+    console.error('clojure-lsp background upgrade failed (will retry next activation):', err);
+  }
+}
 
 export async function ensureLSPServer(
   context: vscode.ExtensionContext,
   forceDownload = false
-): Promise<string> {
+): Promise<string | undefined> {
   const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
   if (userConfiguredClojureLspPath !== '') {
     if (forceDownload) {
