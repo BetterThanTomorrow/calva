@@ -227,14 +227,12 @@ const manageHandler = async (
     {
       label: 'Open trace level settings',
       value: '::trace-settings',
-    }
-  );
-  if (active_roots.length === 0) {
-    choices.push({
+    },
+    {
       label: 'Download clojure-lsp',
       value: '::download',
-    });
-  }
+    }
+  );
 
   const picker = vscode.window.createQuickPick();
   picker.items = choices;
