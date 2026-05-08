@@ -23,6 +23,11 @@ export const updateStatusBar = (item: vscode.StatusBarItem, status: definitions.
       item.tooltip = 'Clojure-lsp failed to start';
       break;
     }
+    case definitions.LspStatus.DownloadFailed: {
+      item.text = '$(cloud-download) clojure-lsp';
+      item.tooltip = 'clojure-lsp: download failed — click to manage';
+      break;
+    }
     case definitions.LspStatus.Unknown: {
       item.text = 'clojure-lsp';
       item.tooltip = 'Open a clojure file to see the server status';

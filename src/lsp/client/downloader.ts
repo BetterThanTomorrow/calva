@@ -123,7 +123,7 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
 
   if (result.restored) {
     const reason = result.error ? `: ${result.error}` : '';
-    void vscode.window.showWarningMessage(
+    console.warn(
       `Failed to download clojure-lsp ${version}${reason}. Falling back to previously downloaded version.`
     );
   }

@@ -111,7 +111,8 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
       try {
         lsp_server_path = await lsp_client.ensureLSPServer(params.context);
       } catch (err) {
-        void vscode.window.showErrorMessage(`Failed to download clojure-lsp server. ${err}`);
+        console.error('Failed to download clojure-lsp server:', err);
+        status_bar.updateStatusBar(status_bar_item, defs.LspStatus.DownloadFailed);
         return;
       }
     }

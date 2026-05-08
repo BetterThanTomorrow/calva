@@ -229,7 +229,7 @@ const manageHandler = async (
   );
   if (active_roots.length === 0) {
     choices.push({
-      label: 'Download latest clojure-lsp version',
+      label: 'Download clojure-lsp',
       value: '::download',
     });
   }
