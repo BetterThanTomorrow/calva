@@ -11,6 +11,10 @@ const DOWNLOAD_TIMEOUT_MS = 120_000;
 
 const versionFileName = 'clojure-lsp-version';
 
+export function getClojureLspStorageDir(context: vscode.ExtensionContext): string {
+  return path.join(context.globalStorageUri.fsPath, 'clojure-lsp');
+}
+
 const artifacts = {
   darwin: {
     x64: 'clojure-lsp-native-macos-amd64.zip',
@@ -98,7 +102,7 @@ async function unzipFile(zipFilePath: string, extensionPath: string): Promise<vo
   return extractZip(zipFilePath, { dir: extensionPath });
 }
 
-async function downloadClojureLsp(extensionPath: string, version: string): Promise<string> {
+async function downloadClojureLsp(storageDir: string, version: string): Promise<string> {
   const isNightly = version.endsWith('-nightly');
   // There were no Apple Silicon builds prior to version 2022.06.22-14.09.50
   const artifactName =
@@ -107,18 +111,18 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
       : getArtifactDownloadName('darwin', 'x64');
   const repo = isNightly ? 'clojure-lsp-dev-builds' : 'clojure-lsp';
   const url = `https://github.com/clojure-lsp/${repo}/releases/download/${version}/${artifactName}`;
-  const downloadPath = path.join(extensionPath, artifactName);
-  const clojureLspPath = getClojureLspPath(extensionPath);
+  const downloadPath = path.join(storageDir, artifactName);
+  const clojureLspPath = getClojureLspPath(storageDir);
 
   const result = await downloaderUtils.downloadWithBackupRecovery(clojureLspPath, async () => {
     await downloadArtifact(url, downloadPath);
     if (path.extname(downloadPath) === '.zip') {
-      await unzipFile(downloadPath, extensionPath);
+      await unzipFile(downloadPath, storageDir);
     }
     if (path.extname(clojureLspPath) === '') {
       await fs.promises.chmod(clojureLspPath, 0o775);
     }
-    writeVersionFile(extensionPath, version);
+    writeVersionFile(storageDir, version);
   });
 
   if (result.restored) {
@@ -134,10 +138,13 @@ export const ensureServerDownloaded = async (
   context: vscode.ExtensionContext,
   forceDownload = false
 ): Promise<string> => {
-  const currentVersion = await readVersionFile(context.extensionPath);
+  const storageDir = getClojureLspStorageDir(context);
+  await fs.promises.mkdir(storageDir, { recursive: true });
+
+  const currentVersion = await readVersionFile(storageDir);
   console.log(`Current clojure-lsp version: ${currentVersion}`);
   const configuredVersion: string = config.getConfig().clojureLspVersion;
-  const clojureLspPath = getClojureLspPath(context.extensionPath);
+  const clojureLspPath = getClojureLspPath(storageDir);
   const versionSource = ['', 'latest'].includes(configuredVersion)
     ? 'latest'
     : configuredVersion === 'nightly'
@@ -174,7 +181,7 @@ export const ensureServerDownloaded = async (
     console.log(
       `clojure-lsp downloading: currentVersion='${currentVersion}', downloadVersion='${downloadVersion}', forceDownload=${forceDownload}, exists=${exists}`
     );
-    return await downloadClojureLsp(context.extensionPath, downloadVersion);
+    return await downloadClojureLsp(storageDir, downloadVersion);
   }
   console.log(`clojure-lsp skipping download, already up to date (${currentVersion})`);
   return clojureLspPath;
