@@ -62,13 +62,12 @@ function downloadArtifact(url: string, filePath: string): Promise<void> {
       .get(url, (response) => {
         if (response.statusCode === 200) {
           const writeStream = fs.createWriteStream(filePath);
-          response
-            .on('end', () => {
-              writeStream.close();
-              console.log('Clojure-lsp artifact downloaded to', filePath);
-              resolve();
-            })
-            .pipe(writeStream);
+          writeStream.on('close', () => {
+            console.log('Clojure-lsp artifact downloaded to', filePath);
+            resolve();
+          });
+          writeStream.on('error', reject);
+          response.pipe(writeStream);
         } else {
           response.resume();
           reject(new Error(response.statusMessage));
@@ -145,7 +144,12 @@ export const ensureServerDownloaded = async (
   forceDownload = false
 ): Promise<string | undefined> => {
   const storageDir = getClojureLspStorageDir(context);
-  await fs.promises.mkdir(storageDir, { recursive: true });
+  try {
+    await fs.promises.mkdir(storageDir, { recursive: true });
+  } catch (err) {
+    console.error('Could not create clojure-lsp storage directory:', err);
+    return undefined;
+  }
 
   const clojureLspPath = getClojureLspPath(storageDir);
 
@@ -166,6 +170,9 @@ export const ensureServerDownloaded = async (
   }
 
   // Binary missing or force download — must download now
+  // forceDownload bypasses the lock intentionally: atomic temp-dir download
+  // means concurrent downloads can't corrupt the binary — worst case one
+  // download's work is discarded by the other's final rename.
   const locked = forceDownload || (await acquireDownloadLock(storageDir));
   if (!locked) {
     return undefined;

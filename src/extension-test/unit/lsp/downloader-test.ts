@@ -148,11 +148,13 @@ describe('downloader', () => {
 
     it('stale lock can be detected by mtime', async () => {
       const lockPath = path.join(tmpDir, lockFileName);
-      await fs.promises.writeFile(lockPath, (Date.now() - 3 * 60 * 1000).toString());
+      await fs.promises.writeFile(lockPath, 'locked');
+      // Backdate mtime to 3 minutes ago
+      const oldTime = new Date(Date.now() - 3 * 60 * 1000);
+      await fs.promises.utimes(lockPath, oldTime, oldTime);
       const stat = await fs.promises.stat(lockPath);
-      // Lock mtime is recent (just written), but content timestamp is old
-      // In production, mtime is checked — stale if > 2 minutes old
-      expectLib.expect(stat.mtimeMs).toBeGreaterThan(0);
+      // Production code considers lock stale when mtime >= 2 minutes old
+      expectLib.expect(Date.now() - stat.mtimeMs).toBeGreaterThanOrEqual(2 * 60 * 1000);
     });
   });
 });
