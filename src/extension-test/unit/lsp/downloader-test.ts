@@ -2,34 +2,12 @@ import * as expectLib from 'expect';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
-
-// These functions mirror the logic in downloader.ts to avoid importing
-// vscode-dependent modules in the unit test runner.
-const artifacts = {
-  darwin: {
-    x64: 'clojure-lsp-native-macos-amd64.zip',
-    arm64: 'clojure-lsp-native-macos-aarch64.zip',
-  },
-  linux: {
-    x64: 'clojure-lsp-native-static-linux-amd64.zip',
-    arm64: 'clojure-lsp-native-linux-aarch64.zip',
-  },
-  win32: {
-    x64: 'clojure-lsp-native-windows-amd64.zip',
-  },
-};
-
-function getArtifactDownloadName(platform: string, arch: string): string {
-  return artifacts[platform]?.[arch] ?? 'clojure-lsp-standalone.jar';
-}
-
-function getClojureLspPath(basePath: string, platform: string, arch: string): string {
-  let name = getArtifactDownloadName(platform, arch);
-  if (path.extname(name).toLowerCase() !== '.jar') {
-    name = platform === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
-  }
-  return path.join(basePath, name);
-}
+import {
+  getArtifactDownloadName,
+  getClojureLspPath,
+  getVersionFilePath,
+  readVersionFile,
+} from '../../../lsp/client/downloader-paths';
 
 describe('downloader', () => {
   let tmpDir: string;
@@ -117,6 +95,26 @@ describe('downloader', () => {
       }
 
       expectLib.expect(fs.readFileSync(existing, 'utf8')).toBe('existing-binary');
+    });
+  });
+
+  describe('getVersionFilePath', () => {
+    it('returns path to version file in given directory', () => {
+      const result = getVersionFilePath(tmpDir);
+      expectLib.expect(result).toBe(path.join(tmpDir, 'clojure-lsp-version'));
+    });
+  });
+
+  describe('readVersionFile', () => {
+    it('returns version string when file exists', async () => {
+      fs.writeFileSync(path.join(tmpDir, 'clojure-lsp-version'), '2024.01.01');
+      const result = await readVersionFile(tmpDir);
+      expectLib.expect(result).toBe('2024.01.01');
+    });
+
+    it('returns undefined when file does not exist', async () => {
+      const result = await readVersionFile(tmpDir);
+      expectLib.expect(result).toBeUndefined();
     });
   });
 
