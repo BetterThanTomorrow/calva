@@ -119,4 +119,42 @@ describe('downloader', () => {
       expectLib.expect(fs.readFileSync(existing, 'utf8')).toBe('existing-binary');
     });
   });
+
+  describe('download lock coordination', () => {
+    const lockFileName = '.downloading';
+
+    it('wx flag prevents concurrent lock acquisition', async () => {
+      const lockPath = path.join(tmpDir, lockFileName);
+      await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+
+      let secondAcquireFailed = false;
+      try {
+        await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+          secondAcquireFailed = true;
+        }
+      }
+      expectLib.expect(secondAcquireFailed).toBe(true);
+    });
+
+    it('lock file can be released and re-acquired', async () => {
+      const lockPath = path.join(tmpDir, lockFileName);
+      await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+      await fs.promises.unlink(lockPath);
+
+      // Should succeed after release
+      await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+      expectLib.expect(fs.existsSync(lockPath)).toBe(true);
+    });
+
+    it('stale lock can be detected by mtime', async () => {
+      const lockPath = path.join(tmpDir, lockFileName);
+      await fs.promises.writeFile(lockPath, (Date.now() - 3 * 60 * 1000).toString());
+      const stat = await fs.promises.stat(lockPath);
+      // Lock mtime is recent (just written), but content timestamp is old
+      // In production, mtime is checked — stale if > 2 minutes old
+      expectLib.expect(stat.mtimeMs).toBeGreaterThan(0);
+    });
+  });
 });

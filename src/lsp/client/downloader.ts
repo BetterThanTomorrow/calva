@@ -6,11 +6,45 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 const DOWNLOAD_TIMEOUT_MS = 120_000;
+const LOCK_STALE_MS = 2 * 60 * 1000; // 2 minutes
 
 const versionFileName = 'clojure-lsp-version';
+const lockFileName = '.downloading';
 
 export function getClojureLspStorageDir(context: vscode.ExtensionContext): string {
   return path.join(context.globalStorageUri.fsPath, 'clojure-lsp');
+}
+
+async function acquireDownloadLock(storageDir: string): Promise<boolean> {
+  const lockPath = path.join(storageDir, lockFileName);
+  try {
+    await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+    return true;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
+      console.error('Unexpected error acquiring download lock:', err);
+      return true; // Proceed on unexpected errors rather than blocking
+    }
+    // Lock file exists — check if it's stale
+    try {
+      const stat = await fs.promises.stat(lockPath);
+      if (Date.now() - stat.mtimeMs >= LOCK_STALE_MS) {
+        console.log('Stale download lock detected, removing');
+        await fs.promises.unlink(lockPath).catch(() => undefined);
+        await fs.promises.writeFile(lockPath, Date.now().toString(), { flag: 'wx' });
+        return true;
+      }
+    } catch {
+      return true; // Lock disappeared between check and stat — proceed
+    }
+    console.log('Another instance is downloading clojure-lsp, skipping');
+    return false;
+  }
+}
+
+async function releaseDownloadLock(storageDir: string): Promise<void> {
+  const lockPath = path.join(storageDir, lockFileName);
+  await fs.promises.unlink(lockPath).catch(() => undefined);
 }
 
 const artifacts = {
@@ -170,6 +204,10 @@ export const ensureServerDownloaded = async (
   }
 
   // Binary missing or force download — must download now
+  const locked = forceDownload || (await acquireDownloadLock(storageDir));
+  if (!locked) {
+    return undefined;
+  }
   try {
     const configuredVersion: string = config.getConfig().clojureLspVersion;
     const versionSource = ['', 'latest'].includes(configuredVersion)
@@ -194,36 +232,47 @@ export const ensureServerDownloaded = async (
   } catch (err) {
     console.error('clojure-lsp download failed:', err);
     return undefined;
+  } finally {
+    if (!forceDownload) {
+      await releaseDownloadLock(storageDir);
+    }
   }
 };
 
 export async function checkForUpgrade(context: vscode.ExtensionContext): Promise<void> {
   try {
     const storageDir = getClojureLspStorageDir(context);
-    const currentVersion = await readVersionFile(storageDir);
-    const configuredVersion: string = config.getConfig().clojureLspVersion;
-    const versionSource = ['', 'latest'].includes(configuredVersion)
-      ? 'latest'
-      : configuredVersion === 'nightly'
-      ? 'nightly'
-      : 'configured';
-    const latestVersion =
-      versionSource === 'latest'
-        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
-        : versionSource === 'nightly'
-        ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
-        : configuredVersion;
-
-    if (latestVersion === '' || latestVersion === currentVersion) {
-      console.log(`clojure-lsp is up to date (${currentVersion})`);
+    if (!(await acquireDownloadLock(storageDir))) {
       return;
     }
+    try {
+      const currentVersion = await readVersionFile(storageDir);
+      const configuredVersion: string = config.getConfig().clojureLspVersion;
+      const versionSource = ['', 'latest'].includes(configuredVersion)
+        ? 'latest'
+        : configuredVersion === 'nightly'
+        ? 'nightly'
+        : 'configured';
+      const latestVersion =
+        versionSource === 'latest'
+          ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp')
+          : versionSource === 'nightly'
+          ? await util.getLatestGitHubReleaseTag('clojure-lsp/clojure-lsp-dev-builds')
+          : configuredVersion;
 
-    console.log(
-      `clojure-lsp upgrade available: ${currentVersion} → ${latestVersion}, downloading in background`
-    );
-    await downloadClojureLsp(storageDir, latestVersion);
-    console.log(`clojure-lsp upgraded to ${latestVersion}`);
+      if (latestVersion === '' || latestVersion === currentVersion) {
+        console.log(`clojure-lsp is up to date (${currentVersion})`);
+        return;
+      }
+
+      console.log(
+        `clojure-lsp upgrade available: ${currentVersion} → ${latestVersion}, downloading in background`
+      );
+      await downloadClojureLsp(storageDir, latestVersion);
+      console.log(`clojure-lsp upgraded to ${latestVersion}`);
+    } finally {
+      await releaseDownloadLock(storageDir);
+    }
   } catch (err) {
     console.error('clojure-lsp background upgrade failed (will retry next activation):', err);
   }
