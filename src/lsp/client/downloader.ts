@@ -69,7 +69,7 @@ export function getArtifactDownloadName(
 }
 
 export function getClojureLspPath(
-  extensionPath: string,
+  baseDir: string,
   platform: string = process.platform,
   arch: string = process.arch
 ): string {
@@ -77,15 +77,15 @@ export function getClojureLspPath(
   if (path.extname(name).toLowerCase() !== '.jar') {
     name = platform === 'win32' ? 'clojure-lsp.exe' : 'clojure-lsp';
   }
-  return path.join(extensionPath, name);
+  return path.join(baseDir, name);
 }
 
-export function getVersionFilePath(extensionPath: string): string {
-  return path.join(extensionPath, versionFileName);
+export function getVersionFilePath(baseDir: string): string {
+  return path.join(baseDir, versionFileName);
 }
 
-export async function readVersionFile(extensionPath: string) {
-  const filePath = getVersionFilePath(extensionPath);
+export async function readVersionFile(baseDir: string) {
+  const filePath = getVersionFilePath(baseDir);
   try {
     return await fs.promises.readFile(filePath, 'utf8');
   } catch (e) {
@@ -119,9 +119,9 @@ function downloadArtifact(url: string, filePath: string): Promise<void> {
   });
 }
 
-function writeVersionFile(extensionPath: string, version: string): void {
+function writeVersionFile(baseDir: string, version: string): void {
   console.log('Writing version file');
-  const filePath = getVersionFilePath(extensionPath);
+  const filePath = getVersionFilePath(baseDir);
   try {
     fs.writeFileSync(filePath, version);
   } catch (e) {
@@ -129,9 +129,9 @@ function writeVersionFile(extensionPath: string, version: string): void {
   }
 }
 
-async function unzipFile(zipFilePath: string, extensionPath: string): Promise<void> {
+async function unzipFile(zipFilePath: string, targetDir: string): Promise<void> {
   console.log('Unzipping file');
-  return extractZip(zipFilePath, { dir: extensionPath });
+  return extractZip(zipFilePath, { dir: targetDir });
 }
 
 async function downloadClojureLsp(storageDir: string, version: string): Promise<string> {
