@@ -454,7 +454,15 @@ class CalvaDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescripto
   }
 }
 
+function calvaDebugSession(session: vscode.DebugSession) {
+  return session?.type === CALVA_DEBUG_CONFIGURATION.type;
+}
+
 function onNreplMessage(data: any): void {
+  if (!calvaDebugSession(vscode.debug.activeDebugSession)) {
+    return;
+  }
+
   if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
     annotations.clearAllEvaluationDecorations();
     void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
@@ -485,7 +493,7 @@ function handleNeedDebugInput(response: any): void {
 }
 
 vscode.debug.onDidStartDebugSession((session) => {
-  if (session.type != CALVA_DEBUG_CONFIGURATION.type) {
+  if (!calvaDebugSession(session)) {
     return;
   }
 
@@ -506,6 +514,10 @@ function initializeDebugger(cljSession: nrepl.NReplSession): void {
 }
 
 function terminateDebugSession(): void {
+  if (!calvaDebugSession(vscode.debug.activeDebugSession)) {
+    return;
+  }
+
   if (vscode.debug.activeDebugSession) {
     void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
   }
