@@ -735,6 +735,31 @@ const projectTypes: { [id: string]: ProjectType } = {
       };
     },
   },
+  glojure: {
+    name: 'glojure',
+    cmd: ['glj'],
+    winCmd: ['glj'],
+    processShellUnix: true,
+    processShellWin: true,
+    useWhenExists: [],
+    defaultNReplPortFile: ['.glj-nrepl-port'],
+    defaultReplSessionNames: { primary: 'glj' },
+    defaultFilePatterns: {
+      primary: {
+        'always-claim': ['*.glj'],
+        'is-fallback-for': ['**/*.glj', '**/*.clj'],
+      },
+    },
+    commandLine: async (
+      _connectSequence: connectSequences.ReplConnectSequence,
+      _cljsType: connectSequences.CljsTypes
+    ) => {
+      return {
+        args: ['--nrepl'],
+        substitutions: {},
+      };
+    },
+  },
   joyride: {
     name: 'joyride',
     cmd: [],
@@ -1080,12 +1105,13 @@ export async function detectProjectTypes(): Promise<string[]> {
     'clj-projectless',
     'cljs-only',
     'babashka',
-    'let-go',
     'nbb',
     'joyride',
     'scittle',
     'squint',
     'epupp',
+    'glojure',
+    'let-go',
     'custom',
     'generic',
   ];

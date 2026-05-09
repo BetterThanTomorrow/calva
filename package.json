@@ -102,6 +102,7 @@
           ".boot",
           ".bb",
           ".lg",
+          ".glj",
           ".ly",
           ".lpy",
           ".jank",
@@ -738,6 +739,7 @@
                   "enum": [
                     "Leiningen",
                     "deps.edn",
+                    "clj-projectless",
                     "shadow-cljs",
                     "lein-shadow",
                     "Gradle",
@@ -746,11 +748,11 @@
                     "scittle",
                     "squint",
                     "basilisp",
-                    "let-go",
                     "epupp",
                     "joyride",
+                    "let-go",
+                    "glojure",
                     "generic",
-                    "clj-projectless",
                     "custom",
                     "cljs-only"
                   ]
