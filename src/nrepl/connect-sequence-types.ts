@@ -8,6 +8,7 @@ enum ProjectTypes {
   'nbb' = 'nbb',
   'basilisp' = 'basilisp',
   'let-go' = 'let-go',
+  'glojure' = 'glojure',
   'joyride' = 'joyride',
   'scittle' = 'scittle',
   'squint' = 'squint',
