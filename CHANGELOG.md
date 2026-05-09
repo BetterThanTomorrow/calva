@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Prevent calva from breaking other debugging session](https://github.com/BetterThanTomorrow/calva/pull/2936)
+
 ## [2.0.585] - 2026-05-08
 
 - Fix: [clojure-lsp fails to start when the latest version cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
