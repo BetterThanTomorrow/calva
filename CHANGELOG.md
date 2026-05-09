@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.586] - 2026-05-09
+
 - Fix: [Prevent calva from breaking other debugging session](https://github.com/BetterThanTomorrow/calva/pull/2936)
 - [Add built-in Glojure Jack-in and Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/3103)
 
