@@ -11,37 +11,6 @@ const targetFilePath = path.join(testUtil.testDataDir, 'edit-replace-target.clj'
 const otherFilePath = path.join(testUtil.testDataDir, 'reformattable.clj');
 
 suite(suiteName, function () {
-  let targetEditor: vscode.TextEditor;
-  let otherEditor: vscode.TextEditor;
-
-  setup(async function () {
-    // Open the target file in a second column without focusing it
-    const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
-    targetEditor = await vscode.window.showTextDocument(targetDoc, {
-      viewColumn: vscode.ViewColumn.Two,
-      preserveFocus: true,
-      preview: false,
-    });
-
-    // Open a different file as the active editor
-    otherEditor = await testUtil.openFile(otherFilePath);
-
-    // Wait for the mirror doc to be available for the target file
-    await testUtil.waitForCondition(
-      () => {
-        try {
-          docMirror.getDocument(targetEditor.document);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      4000,
-      50,
-      'Timed out waiting for mirror document for target file'
-    );
-  });
-
   teardown(async function () {
     // Revert target file to original content
     const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
@@ -57,21 +26,51 @@ suite(suiteName, function () {
   });
 
   test('should apply edit to the passed editor, not activeTextEditor', async function () {
+    // Open the other file in Column One first — establishes the editor group
+    await testUtil.openFile(otherFilePath);
+
+    // Open the target file in Column Two — capture a fresh editor reference
+    const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
+    const targetEditor = await vscode.window.showTextDocument(targetDoc, {
+      viewColumn: vscode.ViewColumn.Two,
+      preview: false,
+    });
+
+    // Wait for the mirror doc to be available for the target file
+    await testUtil.waitForCondition(
+      () => {
+        try {
+          docMirror.getDocument(targetDoc);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      4000,
+      50,
+      'Timed out waiting for mirror document for target file'
+    );
+
+    // Focus back to Column One so activeTextEditor is the other file
+    await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
+    await testUtil.waitForCondition(
+      () => vscode.window.activeTextEditor?.document.uri.fsPath === otherFilePath,
+      4000,
+      50,
+      'Timed out waiting for focus to return to other file'
+    );
+
     // Confirm precondition: active editor is NOT the target file
-    const activeFileBefore = vscode.window.activeTextEditor?.document.uri.fsPath;
+    const activeEditor = vscode.window.activeTextEditor;
+    assert.ok(activeEditor, 'There should be an active editor');
     assert.strictEqual(
-      activeFileBefore,
+      activeEditor.document.uri.fsPath,
       otherFilePath,
       'Precondition: active editor should be the other file'
     );
-    assert.notStrictEqual(
-      activeFileBefore,
-      targetFilePath,
-      'Precondition: active editor should NOT be the target file'
-    );
 
-    const targetContentBefore = targetEditor.document.getText();
-    const otherContentBefore = otherEditor.document.getText();
+    const targetContentBefore = targetDoc.getText();
+    const otherContentBefore = activeEditor.document.getText();
 
     // Call edit.replace with the target editor (which is NOT activeTextEditor)
     const range = new vscode.Range(
@@ -85,7 +84,7 @@ suite(suiteName, function () {
     assert.strictEqual(result, true, 'edit.replace should return true');
 
     // The edit should have gone to the target file
-    const targetContentAfter = targetEditor.document.getText();
+    const targetContentAfter = targetDoc.getText();
     assert.ok(
       targetContentAfter.includes('(def a 42)'),
       `Target file should contain the replacement text. Got: ${targetContentAfter}`
@@ -96,7 +95,7 @@ suite(suiteName, function () {
     );
 
     // The active editor's file should be unchanged
-    const otherContentAfter = otherEditor.document.getText();
+    const otherContentAfter = activeEditor.document.getText();
     assert.strictEqual(
       otherContentAfter,
       otherContentBefore,
