@@ -171,7 +171,7 @@ export class DocumentModel implements EditableModel {
       this.document.selections = options.selections;
     }
     if (!options.skipFormat) {
-      const editor = utilities.getActiveTextEditor();
+      const editor = (options.editor as vscode.TextEditor) ?? utilities.getActiveTextEditor();
       void formatter.scheduleFormatAsType(editor, {});
     }
   }
@@ -279,7 +279,7 @@ export class DocumentModel implements EditableModel {
         : undefined;
     // Do the edits (with undoStopAfter=false if we will reformat,
     // to include the reformatting in the same undo-unit as the edit).
-    const editor = utilities.getActiveTextEditor();
+    const editor = (options.editor as vscode.TextEditor) ?? utilities.getActiveTextEditor();
     const editCompletion = editor.edit(
       (builder) => {
         this.editNowTextOnly(modelEdits, { builder: builder, ...options });
@@ -327,8 +327,7 @@ export class DocumentModel implements EditableModel {
     oldSelection?: [number, number],
     newSelection?: [number, number]
   ) {
-    const editor = utilities.getActiveTextEditor(),
-      document = editor.document;
+    const document = this.document.document;
     builder.insert(document.positionAt(offset), text);
   }
 
@@ -340,8 +339,7 @@ export class DocumentModel implements EditableModel {
     oldSelection?: [number, number],
     newSelection?: [number, number]
   ) {
-    const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
+    const document = this.document.document,
       range = new vscode.Range(document.positionAt(start), document.positionAt(end));
     builder.replace(range, text);
   }
@@ -353,8 +351,7 @@ export class DocumentModel implements EditableModel {
     oldSelection?: [number, number],
     newSelection?: [number, number]
   ) {
-    const editor = utilities.getActiveTextEditor(),
-      document = editor.document,
+    const document = this.document.document,
       range = new vscode.Range(document.positionAt(offset), document.positionAt(offset + count));
     builder.delete(range);
   }

@@ -633,6 +633,7 @@ export function replace(
         undoStopBefore: true,
       },
       ...options,
+      editor,
     }
   );
 }

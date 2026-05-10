@@ -250,6 +250,7 @@ export type ModelEditOptions = {
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
+  editor?: unknown;
 };
 
 export interface EditableModel {
