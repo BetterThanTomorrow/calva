@@ -26,9 +26,6 @@ suite(suiteName, function () {
   });
 
   test('should apply edit to the passed editor, not activeTextEditor', async function () {
-    // Open the other file in Column One first — establishes the editor group
-    await testUtil.openFile(otherFilePath);
-
     // Open the target file in Column Two — capture a fresh editor reference
     const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
     const targetEditor = await vscode.window.showTextDocument(targetDoc, {
@@ -51,13 +48,18 @@ suite(suiteName, function () {
       'Timed out waiting for mirror document for target file'
     );
 
-    // Focus back to Column One so activeTextEditor is the other file
-    await vscode.commands.executeCommand('workbench.action.focusFirstEditorGroup');
+    // Show the other file in Column One — explicitly setting viewColumn
+    // ensures it opens in a different group and becomes activeTextEditor
+    const otherDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(otherFilePath));
+    await vscode.window.showTextDocument(otherDoc, {
+      viewColumn: vscode.ViewColumn.One,
+      preview: false,
+    });
     await testUtil.waitForCondition(
       () => vscode.window.activeTextEditor?.document.uri.fsPath === otherFilePath,
       4000,
       50,
-      'Timed out waiting for focus to return to other file'
+      'Timed out waiting for other file to become active'
     );
 
     // Confirm precondition: active editor is NOT the target file
