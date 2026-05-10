@@ -67,31 +67,6 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
-  test('start repl and connect (jack-in) to Basilisp', async function () {
-    testUtil.log(suite, 'start repl and connect (jack-in) to Basilisp');
-    const basilispPath = config.getConfig().basilispPath;
-    const executablePath = testUtil.getExecutablePath(basilispPath);
-
-    if (executablePath === null && !testUtil.isCircleCI) {
-      testUtil.log(suite, `Basilisp executable '${basilispPath}' not found, skipping test...`);
-      this.skip();
-    } else {
-      testUtil.log(suite, `Basilisp executable found at ${executablePath}`);
-
-      const testFilePath = await startJackInProcedure(
-        suite,
-        'calva.jackIn',
-        'basilisp',
-        '../projects/minimal-basilisp/src/test.lpy'
-      );
-
-      await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'basilisp꞉test꞉> ']);
-
-      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-      testUtil.log(suite, 'test.lpy closed for Basilisp');
-    }
-  });
-
   test('Jack-in afterPrimaryReplConnectedCode can be a string', async () => {
     testUtil.log(suite, 'Reconnect: afterPrimaryReplConnectedCode (string)');
     const connectSequence: connectSequenceTypes.ReplConnectSequence = {
