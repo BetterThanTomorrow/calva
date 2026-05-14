@@ -351,10 +351,16 @@ The `ranges` module contains functions for retreiving [vscode.Range](https://cod
 All functions in this module have the following TypeScript signature:
 
 ```typescript
-(editor = vscode.window.activeTextEditor, position = editor?.selection?.active) => [vscode.Range, string];
+(editorOrDocument?: vscode.TextEditor | vscode.TextDocument, position?: vscode.Position) => [vscode.Range, string];
 ```
 
-I.e. they expect a [vscode.TextEditor](https://code.visualstudio.com/api/references/vscode-api#TextEditor) – defaulting to the currently active editor – and a [vscode.Position](https://code.visualstudio.com/api/references/vscode-api#Position) – defaulting to the current active position in the editor (or the first active position if multiple selections/positions exist, and will return a tuple with the range, and the text for the piece of interest requested.
+They can be called in three ways:
+
+* **No arguments**: uses the active text editor’s document and cursor position.
+* **A `TextEditor`**: uses its document and primary cursor position (or the given `position` if provided).
+* **A `TextDocument` + `Position`**: uses them directly — no visible editor required. This is useful for programmatic/API usage where you have a document reference but no open editor tab.
+
+All variants return a tuple with the range and the text for the piece of interest requested.
 
 !!! Note "Custom REPL Commands"
     The `ranges` function have corresponding [REPL Snippets/Commands](custom-commands.md) substitution variables. It is the same implementation functions used in both cases.
@@ -402,6 +408,17 @@ _Corresponding [REPL Snippet](custom-commands.md) variable: `$top-level-defined-
       ...)
     ```
 
+=== "Joyride (with TextDocument + Position)"
+
+    ```clojure
+    ;; Query a form without the file being open in an editor
+    (p/let [uri (vscode/Uri.file "/path/to/file.clj")
+            doc (vscode/workspace.openTextDocument uri)
+            pos (vscode/Position. 5 0)
+            [range text] (calva/ranges.currentTopLevelForm doc pos)]
+      (println "Form at line 5:" text))
+    ```
+
 === "ClojureScript"
 
     ```clojure
@@ -421,11 +438,13 @@ The `editor` module has facilites (well, a facility, so far) for editing Clojure
 
 ### `editor.replace()`
 
-With `editor.replace()` you can replace a range in a Clojure editor with new text. The arguments are:
+With `editor.replace()` you can replace a range in a Clojure document with new text. The arguments are:
 
-* `editor`, a `vscode.TextEditor`
+* `editorOrDocument`, a `vscode.TextEditor` or a `vscode.TextDocument`
 * `range`, a `vscode.Range`
 * `newText`, a string
+
+When a `TextEditor` is provided, the edit uses `TextEditor.edit()` with undo grouping and formatting. When a `TextDocument` is provided, the edit uses `WorkspaceEdit` — no visible editor is required, making it suitable for programmatic edits from other extensions.
 
 === "Joyride"
 
@@ -433,6 +452,19 @@ With `editor.replace()` you can replace a range in a Clojure editor with new tex
     (-> (p/let [top-level-form-range (first (calva/ranges.currentTopLevelForm))
                 _ (calva/editor.replace vscode/window.activeTextEditor top-level-form-range "Some new text")]
           (println "Text replaced!"))
+        (p/catch (fn [e]
+                   (println "Error replacing text:" e))))
+    ```
+
+=== "Joyride (editor-free)"
+
+    ```clojure
+    ;; Edit a document without opening it in an editor
+    (-> (p/let [uri (vscode/Uri.file "/path/to/file.clj")
+                doc (vscode/workspace.openTextDocument uri)
+                range (vscode/Range. (vscode/Position. 2 0) (vscode/Position. 2 9))
+                _ (calva/editor.replace doc range "(def a 42)")]
+          (println "Text replaced without opening an editor!"))
         (p/catch (fn [e]
                    (println "Error replacing text:" e))))
     ```
