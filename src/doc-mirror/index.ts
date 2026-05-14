@@ -241,12 +241,47 @@ export class DocumentModel implements EditableModel {
     );
   }
 
+  private applyViaWorkspaceEdit(modelEdits: ModelEdit<ModelEditFunction>[]): Thenable<boolean> {
+    const doc = this.document.document;
+    const wsEdit = new vscode.WorkspaceEdit();
+    for (const modelEdit of modelEdits) {
+      switch (modelEdit.editFn) {
+        case 'insertString': {
+          const [offset, text] = modelEdit.args as documentModel.ModelEditArgs<'insertString'>;
+          wsEdit.insert(doc.uri, doc.positionAt(offset), text);
+          break;
+        }
+        case 'changeRange': {
+          const [start, end, text] = modelEdit.args as documentModel.ModelEditArgs<'changeRange'>;
+          const range = new vscode.Range(doc.positionAt(start), doc.positionAt(end));
+          wsEdit.replace(doc.uri, range, text);
+          break;
+        }
+        case 'deleteRange': {
+          const [offset, count] = modelEdit.args as documentModel.ModelEditArgs<'deleteRange'>;
+          const range = new vscode.Range(doc.positionAt(offset), doc.positionAt(offset + count));
+          wsEdit.delete(doc.uri, range);
+          break;
+        }
+        default:
+          break;
+      }
+    }
+    this.staleDocumentVersion = this.documentVersion;
+    return vscode.workspace.applyEdit(wsEdit);
+  }
+
   edit(modelEdits: ModelEdit<ModelEditFunction>[], options: ModelEditOptions): Thenable<boolean> {
     // undoStopBefore===false joins this edit with the prior one in a single undoable unit.
     const undoStopBefore = !(options.undoStopBefore === false);
     // Nothing to do?
     if (!modelEdits || modelEdits.length == 0) {
       return Promise.resolve(true);
+    }
+    // Editor-free path: when no formatting, no selections, and no explicit editor,
+    // use WorkspaceEdit which only needs a document URI (no visible editor required).
+    if (options.skipFormat && !options.selections && !options.editor) {
+      return this.applyViaWorkspaceEdit(modelEdits);
     }
     // Reformatting will retouch the spots affected by edits.
     // The edits are stated in terms of the document-as-it-is, before any of the edits.
