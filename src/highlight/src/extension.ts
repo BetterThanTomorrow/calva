@@ -494,7 +494,10 @@ function decorateGuide(
 
 function decorateActiveGuides() {
   const activeGuides = [];
-  activeEditor = utilities.getActiveTextEditor();
+  activeEditor = utilities.tryToGetActiveTextEditor();
+  if (!activeEditor) {
+    return;
+  }
   if (activeGuidesTypes) {
     activeGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
   }
