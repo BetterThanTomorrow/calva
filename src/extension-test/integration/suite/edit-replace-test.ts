@@ -106,52 +106,98 @@ suite(suiteName, function () {
     );
   });
 
-  test('should apply edit via TextDocument without a visible editor', async function () {
-    // Open the target file as a TextDocument only — no showTextDocument()
-    const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
+  suite('Editor-less API', function () {
+    async function openDocWithMirror(): Promise<vscode.TextDocument> {
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
+      await testUtil.waitForCondition(
+        () => {
+          try {
+            docMirror.getDocument(doc);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        4000,
+        50,
+        'Timed out waiting for mirror document (no editor)'
+      );
+      return doc;
+    }
 
-    // Wait for the mirror doc to be available
-    await testUtil.waitForCondition(
-      () => {
-        try {
-          docMirror.getDocument(targetDoc);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      4000,
-      50,
-      'Timed out waiting for mirror document for target file (no editor)'
-    );
+    test('edit.replace applies edit via TextDocument', async function () {
+      const targetDoc = await openDocWithMirror();
 
-    // Call edit.replace with a TextDocument (not a TextEditor)
-    const range = new vscode.Range(
-      new vscode.Position(2, 0),
-      new vscode.Position(2, '(def a 1)'.length)
-    );
-    const result = await edit.replace(targetDoc, range, '(def a 42)', {
-      skipFormat: true,
+      const range = new vscode.Range(
+        new vscode.Position(2, 0),
+        new vscode.Position(2, '(def a 1)'.length)
+      );
+      const result = await edit.replace(targetDoc, range, '(def a 42)', {
+        skipFormat: true,
+      });
+
+      assert.strictEqual(result, true, 'edit.replace should return true');
+      const content = targetDoc.getText();
+      assert.ok(content.includes('(def a 42)'), `Should contain replacement. Got: ${content}`);
+      assert.ok(!content.includes('(def a 1)'), `Should not contain original. Got: ${content}`);
     });
 
-    assert.strictEqual(result, true, 'edit.replace should return true');
+    test('ranges.currentForm resolves with TextDocument + Position', async function () {
+      const targetDoc = await openDocWithMirror();
 
-    // The edit should have been applied to the document
-    const targetContentAfter = targetDoc.getText();
-    assert.ok(
-      targetContentAfter.includes('(def a 42)'),
-      `Target file should contain the replacement text. Got: ${targetContentAfter}`
-    );
-    assert.ok(
-      !targetContentAfter.includes('(def a 1)'),
-      `Target file should no longer contain the original text. Got: ${targetContentAfter}`
-    );
+      // Position on the opening paren — currentForm returns the whole list
+      const pos = new vscode.Position(2, 0);
+      const [formRange, formText] = ranges.currentForm(targetDoc, pos);
+      assert.ok(formRange, 'should return a range');
+      assert.strictEqual(formText, '(def a 1)', `should return the form. Got: ${formText}`);
+    });
 
-    // Verify range query works on a TextDocument without a visible editor
-    const pos = new vscode.Position(2, 5); // inside (def a 42)
-    const [formRange, formText] = ranges.currentForm(targetDoc, pos);
-    assert.ok(formRange, 'currentForm should return a range for a document with no visible editor');
-    assert.ok(formText, 'currentForm should return text for a document with no visible editor');
-    assert.ok(formText.includes('def'), `currentForm text should contain 'def'. Got: ${formText}`);
+    test('ranges.currentTopLevelForm resolves with TextDocument + Position', async function () {
+      const targetDoc = await openDocWithMirror();
+
+      // Position inside a symbol — currentTopLevelForm still returns the enclosing def
+      const pos = new vscode.Position(2, 5);
+      const [formRange, formText] = ranges.currentTopLevelForm(targetDoc, pos);
+      assert.ok(formRange, 'should return a range');
+      assert.strictEqual(
+        formText,
+        '(def a 1)',
+        `should return the top-level form. Got: ${formText}`
+      );
+    });
+
+    test('ranges.currentEnclosingForm resolves with TextDocument + Position', async function () {
+      const targetDoc = await openDocWithMirror();
+
+      // Position on symbol 'a' — enclosing form is (def a 1)
+      const pos = new vscode.Position(2, 5);
+      const [formRange, formText] = ranges.currentEnclosingForm(targetDoc, pos);
+      assert.ok(formRange, 'should return a range');
+      assert.strictEqual(
+        formText,
+        '(def a 1)',
+        `should return the enclosing form. Got: ${formText}`
+      );
+    });
+
+    test('edit then ranges: doc mirror reflects the edit', async function () {
+      const targetDoc = await openDocWithMirror();
+
+      // Replace (def a 1) with (def a 42)
+      const range = new vscode.Range(
+        new vscode.Position(2, 0),
+        new vscode.Position(2, '(def a 1)'.length)
+      );
+      await edit.replace(targetDoc, range, '(def a 42)', { skipFormat: true });
+
+      // Range query on the edited content should see the new form
+      const pos = new vscode.Position(2, 0);
+      const [, formText] = ranges.currentForm(targetDoc, pos);
+      assert.strictEqual(
+        formText,
+        '(def a 42)',
+        `After edit, form should be updated. Got: ${formText}`
+      );
+    });
   });
 });
