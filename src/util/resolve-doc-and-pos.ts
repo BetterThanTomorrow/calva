@@ -24,30 +24,33 @@ export function resolveDocAndPos(
   position: unknown,
   activeEditor: EditorLike | undefined
 ): { doc: DocLike; pos: unknown } | undefined {
-  let doc: DocLike;
-  let pos: unknown;
-
-  if (!editorOrDoc) {
-    if (!activeEditor) {
-      return undefined;
-    }
-    doc = activeEditor.document;
-    pos = activeEditor.selections[0].active;
-  } else if ('edit' in editorOrDoc) {
-    const editor = editorOrDoc as EditorLike;
-    doc = editor.document;
-    pos = position !== undefined ? position : editor.selections[0].active;
-  } else {
-    if (position === undefined) {
-      return undefined;
-    }
-    doc = editorOrDoc as DocLike;
-    pos = position;
-  }
-
-  if (doc.languageId !== 'clojure') {
+  const resolved = resolveInput(editorOrDoc, position, activeEditor);
+  if (!resolved || resolved.doc.languageId !== 'clojure') {
     return undefined;
   }
+  return resolved;
+}
 
-  return { doc, pos };
+function resolveInput(
+  editorOrDoc: EditorLike | DocLike | undefined,
+  position: unknown,
+  activeEditor: EditorLike | undefined
+): { doc: DocLike; pos: unknown } | undefined {
+  if (!editorOrDoc && !activeEditor) {
+    return undefined;
+  }
+  if (!editorOrDoc) {
+    return { doc: activeEditor.document, pos: activeEditor.selections[0].active };
+  }
+  if ('edit' in editorOrDoc) {
+    const editor = editorOrDoc as EditorLike;
+    return {
+      doc: editor.document,
+      pos: position !== undefined ? position : editor.selections[0].active,
+    };
+  }
+  if (position === undefined) {
+    return undefined;
+  }
+  return { doc: editorOrDoc as DocLike, pos: position };
 }

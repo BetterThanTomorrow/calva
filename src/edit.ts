@@ -613,6 +613,18 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
   );
 }
 
+/**
+ * Replaces text in a Clojure document within the given range.
+ *
+ * @param editorOrDocument When a `TextEditor` is provided, uses `TextEditor.edit()`
+ *   with undo grouping, formatting, and selection restoration (the interactive editing path).
+ *   When a `TextDocument` is provided, uses `WorkspaceEdit` via `vscode.workspace.applyEdit()`,
+ *   which requires no visible editor and causes no UI side effects — suitable for
+ *   programmatic/API edits where `skipFormat` is true and no selections are needed.
+ * @param range The document range to replace.
+ * @param newText The replacement text.
+ * @param options Edit options forwarded to `DocumentModel.edit()`.
+ */
 export function replace(
   editorOrDocument: vscode.TextEditor | vscode.TextDocument,
   range: vscode.Range,
