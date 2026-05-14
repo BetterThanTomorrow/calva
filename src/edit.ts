@@ -620,7 +620,7 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
  *   with undo grouping, formatting, and selection restoration (the interactive editing path).
  *   When a `TextDocument` is provided, uses `WorkspaceEdit` via `vscode.workspace.applyEdit()`,
  *   which requires no visible editor and causes no UI side effects — suitable for
- *   programmatic/API edits where `skipFormat` is true and no selections are needed.
+ *   programmatic/API edits. Formatting is automatically skipped since it requires a visible editor.
  * @param range The document range to replace.
  * @param newText The replacement text.
  * @param options Edit options forwarded to `DocumentModel.edit()`.
