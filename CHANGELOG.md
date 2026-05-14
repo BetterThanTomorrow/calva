@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump deps.clj to v1.12.5.1638
+
 ## [2.0.587] - 2026-05-10
 
 - Fix: [The structural editor fails in some API usage scenarios](https://github.com/BetterThanTomorrow/calva/issues/3218)
