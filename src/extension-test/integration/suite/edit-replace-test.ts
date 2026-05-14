@@ -199,5 +199,48 @@ suite(suiteName, function () {
         `After edit, form should be updated. Got: ${formText}`
       );
     });
+
+    test('edit.replace edits the target document, not the active editor', async function () {
+      const targetDoc = await openDocWithMirror();
+
+      // Open a different file as the active editor
+      const otherDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(otherFilePath));
+      await vscode.window.showTextDocument(otherDoc, {
+        viewColumn: vscode.ViewColumn.One,
+        preview: false,
+      });
+      await testUtil.waitForCondition(
+        () => vscode.window.activeTextEditor?.document.uri.fsPath === otherFilePath,
+        4000,
+        50,
+        'Timed out waiting for other file to become active'
+      );
+
+      const otherContentBefore = vscode.window.activeTextEditor.document.getText();
+
+      // Edit the target via TextDocument (no skipFormat — the exact scenario that was buggy)
+      const range = new vscode.Range(
+        new vscode.Position(2, 0),
+        new vscode.Position(2, '(def a 1)'.length)
+      );
+      const result = await edit.replace(targetDoc, range, '(def a 42)');
+
+      assert.strictEqual(result, true, 'edit.replace should return true');
+
+      // Target document should have the edit
+      const targetContent = targetDoc.getText();
+      assert.ok(
+        targetContent.includes('(def a 42)'),
+        `Target should contain replacement. Got: ${targetContent}`
+      );
+
+      // Active editor's document should be untouched
+      const otherContentAfter = vscode.window.activeTextEditor.document.getText();
+      assert.strictEqual(
+        otherContentAfter,
+        otherContentBefore,
+        'Active editor content should be unchanged when editing via TextDocument'
+      );
+    });
   });
 });

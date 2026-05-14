@@ -631,7 +631,8 @@ export function replace(
   newText: string,
   options = {}
 ) {
-  const document = isTextEditor(editorOrDocument) ? editorOrDocument.document : editorOrDocument;
+  const hasEditor = isTextEditor(editorOrDocument);
+  const document = hasEditor ? editorOrDocument.document : editorOrDocument;
   const mirrorDoc: model.EditableDocument = docMirror.getDocument(document);
   return mirrorDoc.model.edit(
     [
@@ -646,7 +647,9 @@ export function replace(
         undoStopBefore: true,
       },
       ...options,
-      ...(isTextEditor(editorOrDocument) ? { editor: editorOrDocument } : {}),
+      // Without a TextEditor, formatting and selection restoration can't work,
+      // so force skipFormat to route through WorkspaceEdit.
+      ...(hasEditor ? { editor: editorOrDocument } : { skipFormat: true }),
     }
   );
 }
