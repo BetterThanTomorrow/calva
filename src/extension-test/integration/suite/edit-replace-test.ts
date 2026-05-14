@@ -4,6 +4,7 @@ import * as testUtil from './util';
 import * as vscode from 'vscode';
 import * as edit from '../../../edit';
 import * as docMirror from '../../../doc-mirror';
+import * as ranges from '../../../api/ranges';
 
 const suiteName = 'Edit Replace Suite';
 
@@ -103,5 +104,54 @@ suite(suiteName, function () {
       otherContentBefore,
       'Active editor content should be unchanged'
     );
+  });
+
+  test('should apply edit via TextDocument without a visible editor', async function () {
+    // Open the target file as a TextDocument only — no showTextDocument()
+    const targetDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(targetFilePath));
+
+    // Wait for the mirror doc to be available
+    await testUtil.waitForCondition(
+      () => {
+        try {
+          docMirror.getDocument(targetDoc);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      4000,
+      50,
+      'Timed out waiting for mirror document for target file (no editor)'
+    );
+
+    // Call edit.replace with a TextDocument (not a TextEditor)
+    const range = new vscode.Range(
+      new vscode.Position(2, 0),
+      new vscode.Position(2, '(def a 1)'.length)
+    );
+    const result = await edit.replace(targetDoc, range, '(def a 42)', {
+      skipFormat: true,
+    });
+
+    assert.strictEqual(result, true, 'edit.replace should return true');
+
+    // The edit should have been applied to the document
+    const targetContentAfter = targetDoc.getText();
+    assert.ok(
+      targetContentAfter.includes('(def a 42)'),
+      `Target file should contain the replacement text. Got: ${targetContentAfter}`
+    );
+    assert.ok(
+      !targetContentAfter.includes('(def a 1)'),
+      `Target file should no longer contain the original text. Got: ${targetContentAfter}`
+    );
+
+    // Verify range query works on a TextDocument without a visible editor
+    const pos = new vscode.Position(2, 5); // inside (def a 42)
+    const [formRange, formText] = ranges.currentForm(targetDoc, pos);
+    assert.ok(formRange, 'currentForm should return a range for a document with no visible editor');
+    assert.ok(formText, 'currentForm should return text for a document with no visible editor');
+    assert.ok(formText.includes('def'), `currentForm text should contain 'def'. Got: ${formText}`);
   });
 });
