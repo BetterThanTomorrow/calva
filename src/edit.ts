@@ -7,6 +7,7 @@ import * as printer from './printer';
 import * as paredit from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
 import * as commentPrefix from './comment-prefix';
+import { isTextEditor } from './util/editor-utils';
 
 type CandidatesMap = Map<number, number[]>;
 
@@ -613,12 +614,12 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
 }
 
 export function replace(
-  editor: vscode.TextEditor,
+  editorOrDocument: vscode.TextEditor | vscode.TextDocument,
   range: vscode.Range,
   newText: string,
   options = {}
 ) {
-  const document = editor.document;
+  const document = isTextEditor(editorOrDocument) ? editorOrDocument.document : editorOrDocument;
   const mirrorDoc: model.EditableDocument = docMirror.getDocument(document);
   return mirrorDoc.model.edit(
     [
@@ -633,7 +634,7 @@ export function replace(
         undoStopBefore: true,
       },
       ...options,
-      editor,
+      ...(isTextEditor(editorOrDocument) ? { editor: editorOrDocument } : {}),
     }
   );
 }
