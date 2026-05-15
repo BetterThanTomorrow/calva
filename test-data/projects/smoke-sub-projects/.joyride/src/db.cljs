@@ -1,1 +1,1 @@
-../../../../../src/extension-test/e2e-test/.joyride/src/db.cljs
+../../../../../src/extension-test/smoke-test/.joyride/src/db.cljs
