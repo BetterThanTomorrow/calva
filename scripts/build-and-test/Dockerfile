@@ -206,9 +206,9 @@ CMD npm run integration-test
 
 
 ################################################################################
-# e2e test step
+# smoke test step
 ################################################################################
-FROM cimg/clojure:1.11-browsers as step-test-e2e
+FROM cimg/clojure:1.11-browsers as step-test-smoke
 
 # install missing base image deps
 ENV DEBIAN_FRONTEND=noninteractive
@@ -227,12 +227,12 @@ COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci
 COPY --chown=circleci --from=step-build /home/circleci/calva/package.json /home/circleci/calva/
 COPY --chown=circleci --from=step-build /home/circleci/calva/*.vsix /home/circleci/calva/
 
-CMD npm run e2e-test -- --calva-vsix=/home/circleci/calva/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/e2e-test
+CMD npm run smoke-test -- --calva-vsix=/home/circleci/calva/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=src/extension-test/smoke-test
 
 ################################################################################
-# subproject e2e test step
+# subproject smoke test step
 ################################################################################
-FROM cimg/clojure:1.11-browsers as step-test-e2e-sub-projects
+FROM cimg/clojure:1.11-browsers as step-test-smoke-sub-projects
 
 # install missing base image deps
 ENV DEBIAN_FRONTEND=noninteractive
@@ -251,4 +251,4 @@ COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci
 COPY --chown=circleci --from=step-build /home/circleci/calva/package.json /home/circleci/calva/
 COPY --chown=circleci --from=step-build /home/circleci/calva/*.vsix /home/circleci/calva/
 
-CMD npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/e2e-sub-projects
+CMD npm run smoke-test -- --calva-vsix=/tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --test-workspace=test-data/projects/smoke-sub-projects

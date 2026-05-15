@@ -39,11 +39,11 @@ jobs:
     requires: [build]
     filters:: filters()
 
-- test-e2e:
+- test-smoke:
     requires: [build]
     filters:: filters()
 
-- test-e2e-sub-projects:
+- test-smoke-sub-projects:
     requires: [build]
     filters:: filters()
 
@@ -58,8 +58,8 @@ jobs:
     - test-grammar
     - test-cljslib
     - test-integration
-    - test-e2e
-    - test-e2e-sub-projects
+    - test-smoke
+    - test-smoke-sub-projects
     - test-ts-unit
     filters:: filters()
     context: Calva

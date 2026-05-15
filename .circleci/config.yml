@@ -233,7 +233,7 @@ jobs:
     - store_artifacts:
         path: ~/calva/out/extension-test/integration/screenshots
         destination: integration-screenshots
-  test-e2e:
+  test-smoke:
     docker:
     - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
@@ -247,11 +247,11 @@ jobs:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
-        name: Run VSIX E2E Tests
-        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=src/extension-test/e2e-test
+        name: Run VSIX Smoke Tests
+        command: npm run smoke-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=src/extension-test/smoke-test
     - store_test_results:
         path: ~/calva/junit
-  test-e2e-sub-projects:
+  test-smoke-sub-projects:
     docker:
     - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
@@ -265,8 +265,8 @@ jobs:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
-        name: Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-        command: npm run e2e-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=test-data/projects/e2e-sub-projects
+        name: Run VSIX Smoke Tests for test-data/projects/smoke-sub-projects
+        command: npm run smoke-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=test-data/projects/smoke-sub-projects
     - store_test_results:
         path: ~/calva/junit
   github-release:
@@ -508,10 +508,10 @@ workflows:
     - test-integration:
         requires:
         - build
-    - test-e2e:
+    - test-smoke:
         requires:
         - build
-    - test-e2e-sub-projects:
+    - test-smoke-sub-projects:
         requires:
         - build
     - test-ts-unit:
@@ -524,8 +524,8 @@ workflows:
         - test-grammar
         - test-cljslib
         - test-integration
-        - test-e2e
-        - test-e2e-sub-projects
+        - test-smoke
+        - test-smoke-sub-projects
         - test-ts-unit
         filters:
           branches:
@@ -587,7 +587,7 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - test-e2e:
+    - test-smoke:
         requires:
         - build
         filters:
@@ -595,7 +595,7 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - test-e2e-sub-projects:
+    - test-smoke-sub-projects:
         requires:
         - build
         filters:
@@ -618,8 +618,8 @@ workflows:
         - test-grammar
         - test-cljslib
         - test-integration
-        - test-e2e
-        - test-e2e-sub-projects
+        - test-smoke
+        - test-smoke-sub-projects
         - test-ts-unit
         filters:
           branches:

@@ -31,8 +31,8 @@ job-names =::
 - test-cljslib
 - test-ts-unit
 - test-integration
-- test-e2e
-- test-e2e-sub-projects
+- test-smoke
+- test-smoke-sub-projects
 - github-release
 - marketplace-publish
 - marketplace-preview-publish

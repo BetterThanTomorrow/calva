@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Containerized VS Code E2E Test Runner
-# Runs the Joyride-based e2e tests inside Docker container
+# Containerized VS Code Smoke Test Runner
+# Runs the Joyride-based smoke tests inside Docker container
 
 set -e
 
@@ -23,5 +23,5 @@ docker compose run --rm --entrypoint bash vscode-testing -c "
     sleep 2
 
     # Run the tests
-    npm run e2e-test -- $ARGS
+    npm run smoke-test -- $ARGS
 "
