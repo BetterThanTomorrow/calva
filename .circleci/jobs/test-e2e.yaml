@@ -24,11 +24,11 @@ steps:
 
 - !:cmd
   - Run Extension Tests
-  - npm run integration-test
+  - npm run e2e-test
 
 - !:store
     test_results: ~/calva/junit
 
 - store_artifacts:
-    path: ~/calva/out/extension-test/integration/screenshots
-    destination: integration-screenshots
+    path: ~/calva/out/extension-test/e2e/screenshots
+    destination: e2e-screenshots

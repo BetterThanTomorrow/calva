@@ -3826,7 +3826,7 @@
     "vscode:prepublish": "npm run release",
     "bump-version": "npm set git-tag-version false && npm version patch",
     "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
-    "integration-test": "node ./out/extension-test/integration/runTests.js",
+    "e2e-test": "node ./out/extension-test/e2e/runTests.js",
     "smoke-test": "node ./src/extension-test/smoke-test/launch.js",
     "presmoke-test": "cd ./src/extension-test/smoke-test/ && npm i",
     "smoke-test-containerized": "./src/extension-test/smoke-test/run-containerized.sh",

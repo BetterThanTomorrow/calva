@@ -30,7 +30,7 @@ job-names =::
 - eslint-check
 - test-cljslib
 - test-ts-unit
-- test-integration
+- test-e2e
 - test-smoke
 - test-smoke-sub-projects
 - github-release

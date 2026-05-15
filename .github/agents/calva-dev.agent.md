@@ -84,7 +84,7 @@ This makes the tool:
 Example:
 ```javascript
 run_in_terminal({
-  command: "npm run integration-test",
+  command: "npm run e2e-test",
   explanation: "Running tests",
   isBackground: false  // Wait for completion
 })

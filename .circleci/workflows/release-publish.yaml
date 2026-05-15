@@ -35,7 +35,7 @@ jobs:
     requires: [build]
     filters:: filters()
 
-- test-integration:
+- test-e2e:
     requires: [build]
     filters:: filters()
 
@@ -57,7 +57,7 @@ jobs:
     - eslint-check
     - test-grammar
     - test-cljslib
-    - test-integration
+    - test-e2e
     - test-smoke
     - test-smoke-sub-projects
     - test-ts-unit

@@ -182,9 +182,9 @@ CMD npm run unit-test
 
 
 ################################################################################
-# Integration tests step
+# E2E tests step
 ################################################################################
-FROM cimg/clojure:1.11-browsers as step-test-integration
+FROM cimg/clojure:1.11-browsers as step-test-e2e
 
 # install missing base image deps
 ENV DEBIAN_FRONTEND=noninteractive
@@ -202,7 +202,7 @@ COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci
 
 RUN npm run compile-test
 
-CMD npm run integration-test
+CMD npm run e2e-test
 
 
 ################################################################################
