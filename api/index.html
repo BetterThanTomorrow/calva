@@ -3147,9 +3147,15 @@
 <h2 id="ranges"><code>ranges</code><a class="headerlink" href="#ranges" title="Permanent link">#</a></h2>
 <p>The <code>ranges</code> module contains functions for retreiving <a href="https://code.visualstudio.com/api/references/vscode-api#Range">vscode.Range</a>s and text for pieces of interest in a Clojure document.</p>
 <p>All functions in this module have the following TypeScript signature:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nx">editor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nb">window</span><span class="p">.</span><span class="nx">activeTextEditor</span><span class="p">,</span><span class="w"> </span><span class="nx">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">editor</span><span class="o">?</span><span class="p">.</span><span class="nx">selection</span><span class="o">?</span><span class="p">.</span><span class="nx">active</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[</span><span class="nx">vscode</span><span class="p">.</span><span class="nx">Range</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">];</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nx">editorOrDocument?</span><span class="o">:</span><span class="w"> </span><span class="kt">vscode.TextEditor</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nx">vscode</span><span class="p">.</span><span class="nx">TextDocument</span><span class="p">,</span><span class="w"> </span><span class="nx">position?</span><span class="o">:</span><span class="w"> </span><span class="kt">vscode.Position</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">[</span><span class="nx">vscode</span><span class="p">.</span><span class="nx">Range</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="p">];</span>
 </code></pre></div>
-<p>I.e. they expect a <a href="https://code.visualstudio.com/api/references/vscode-api#TextEditor">vscode.TextEditor</a> – defaulting to the currently active editor – and a <a href="https://code.visualstudio.com/api/references/vscode-api#Position">vscode.Position</a> – defaulting to the current active position in the editor (or the first active position if multiple selections/positions exist, and will return a tuple with the range, and the text for the piece of interest requested.</p>
+<p>They can be called in three ways:</p>
+<ul>
+<li><strong>No arguments</strong>: uses the active text editor’s document and cursor position.</li>
+<li><strong>A <code>TextEditor</code></strong>: uses its document and primary cursor position (or the given <code>position</code> if provided).</li>
+<li><strong>A <code>TextDocument</code> + <code>Position</code></strong>: uses them directly — no visible editor required. This is useful for programmatic/API usage where you have a document reference but no open editor tab.</li>
+</ul>
+<p>All variants return a tuple with the range and the text for the piece of interest requested.</p>
 <div class="admonition note">
 <p class="admonition-title">Custom REPL Commands</p>
 <p>The <code>ranges</code> function have corresponding <a href="../custom-commands/">REPL Snippets/Commands</a> substitution variables. It is the same implementation functions used in both cases.</p>
@@ -3172,11 +3178,20 @@
 <p>The symbol being defined by the current top level form. NB: Will stupidly assume it is the second form. I.e. it does not check that it is an actual definition, and will often return nonsense if used in Rich comments.</p>
 <p><em>Corresponding <a href="../custom-commands/">REPL Snippet</a> variable: <code>$top-level-defined-symbol</code>.</em></p>
 <h3 id="example-rangescurrenttoplevelform">Example: <code>ranges.currentTopLevelForm()</code><a class="headerlink" href="#example-rangescurrenttoplevelform" title="Permanent link">#</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="8:3"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><input id="__tabbed_8_3" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">Joyride</label><label for="__tabbed_8_2">ClojureScript</label><label for="__tabbed_8_3">JavaScript</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:4"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><input id="__tabbed_8_3" name="__tabbed_8" type="radio" /><input id="__tabbed_8_4" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">Joyride</label><label for="__tabbed_8_2">Joyride (with TextDocument + Position)</label><label for="__tabbed_8_3">ClojureScript</label><label for="__tabbed_8_4">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nb">range </span><span class="nv">text</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="p">)]</span>
 <span class="w">  </span><span class="nv">...</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1">;; Query a form without the file being open in an editor</span>
+<span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">uri</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/Uri.file</span><span class="w"> </span><span class="s">&quot;/path/to/file.clj&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="nb">doc </span><span class="p">(</span><span class="nf">vscode/workspace.openTextDocument</span><span class="w"> </span><span class="nv">uri</span><span class="p">)</span>
+<span class="w">        </span><span class="nv">pos</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/Position.</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="p">[</span><span class="nb">range </span><span class="nv">text</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="w"> </span><span class="nb">doc </span><span class="nv">pos</span><span class="p">)]</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Form at line 5:&quot;</span><span class="w"> </span><span class="nv">text</span><span class="p">))</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
@@ -3193,18 +3208,30 @@
 <h2 id="editor"><code>editor</code><a class="headerlink" href="#editor" title="Permanent link">#</a></h2>
 <p>The <code>editor</code> module has facilites (well, a facility, so far) for editing Clojure documents.</p>
 <h3 id="editorreplace"><code>editor.replace()</code><a class="headerlink" href="#editorreplace" title="Permanent link">#</a></h3>
-<p>With <code>editor.replace()</code> you can replace a range in a Clojure editor with new text. The arguments are:</p>
+<p>With <code>editor.replace()</code> you can replace a range in a Clojure document with new text. The arguments are:</p>
 <ul>
-<li><code>editor</code>, a <code>vscode.TextEditor</code></li>
+<li><code>editorOrDocument</code>, a <code>vscode.TextEditor</code> or a <code>vscode.TextDocument</code></li>
 <li><code>range</code>, a <code>vscode.Range</code></li>
 <li><code>newText</code>, a string</li>
 </ul>
-<div class="tabbed-set tabbed-alternate" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">Joyride</label><label for="__tabbed_9_2">JavaScript</label></div>
+<p>When a <code>TextEditor</code> is provided, the edit uses <code>TextEditor.edit()</code> with undo grouping and formatting. When a <code>TextDocument</code> is provided, the edit uses <code>WorkspaceEdit</code> — no visible editor is required, making it suitable for programmatic edits from other extensions.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="9:3"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><input id="__tabbed_9_3" name="__tabbed_9" type="radio" /><div class="tabbed-labels"><label for="__tabbed_9_1">Joyride</label><label for="__tabbed_9_2">Joyride (editor-free)</label><label for="__tabbed_9_3">JavaScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">top-level-form-range</span><span class="w"> </span><span class="p">(</span><span class="nb">first </span><span class="p">(</span><span class="nf">calva/ranges.currentTopLevelForm</span><span class="p">))</span>
 <span class="w">            </span><span class="nv">_</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/editor.replace</span><span class="w"> </span><span class="nv">vscode/window.activeTextEditor</span><span class="w"> </span><span class="nv">top-level-form-range</span><span class="w"> </span><span class="s">&quot;Some new text&quot;</span><span class="p">)]</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Text replaced!&quot;</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span>
+<span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Error replacing text:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1">;; Edit a document without opening it in an editor</span>
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">p/let</span><span class="w"> </span><span class="p">[</span><span class="nv">uri</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/Uri.file</span><span class="w"> </span><span class="s">&quot;/path/to/file.clj&quot;</span><span class="p">)</span>
+<span class="w">            </span><span class="nb">doc </span><span class="p">(</span><span class="nf">vscode/workspace.openTextDocument</span><span class="w"> </span><span class="nv">uri</span><span class="p">)</span>
+<span class="w">            </span><span class="nb">range </span><span class="p">(</span><span class="nf">vscode/Range.</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/Position.</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">vscode/Position.</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">9</span><span class="p">))</span>
+<span class="w">            </span><span class="nv">_</span><span class="w"> </span><span class="p">(</span><span class="nf">calva/editor.replace</span><span class="w"> </span><span class="nb">doc range </span><span class="s">&quot;(def a 42)&quot;</span><span class="p">)]</span>
+<span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Text replaced without opening an editor!&quot;</span><span class="p">))</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">p/catch</span><span class="w"> </span><span class="p">(</span><span class="k">fn </span><span class="p">[</span><span class="nv">e</span><span class="p">]</span>
 <span class="w">               </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Error replacing text:&quot;</span><span class="w"> </span><span class="nv">e</span><span class="p">))))</span>
 </code></pre></div>
