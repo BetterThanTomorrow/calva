@@ -19,7 +19,7 @@ export const testDataDir = path.join(
   __dirname,
   ...['..', '..', '..', '..'],
   'test-data',
-  'e2e-test'
+  'integration-test'
 );
 
 export const isCircleCI = process.env.CIRCLECI === 'true';
