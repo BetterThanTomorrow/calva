@@ -73,9 +73,8 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       // When debugging tests, it can be good to use the development version Joyride
       // extensionDevelopmentPath: '/Users/pez/Projects/joyride',
       vscodeExecutablePath,
-      reuseMachineInstall: true,
       extensionTestsPath,
-      launchArgs: [testWorkspace],
+      launchArgs: [testWorkspace, '--user-data-dir', process.env.VSCODE_USER_DATA_DIR],
     };
     if (calvaVSIXPathOrLabel === 'extension-development') {
       runOptions.extensionDevelopmentPath = path.resolve(__dirname, '../../..');
