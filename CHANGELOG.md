@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make API clojure editing independent of a `TextEditor` instance](https://github.com/BetterThanTomorrow/calva/issues/3220)
 - Bump deps.clj to v1.12.5.1638
 
 ## [2.0.587] - 2026-05-10
