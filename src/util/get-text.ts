@@ -65,14 +65,19 @@ export function currentEnclosingFormText(
   return [undefined, ''];
 }
 
-export function _currentFunction(doc: vscode.TextDocument, topLevel = false): SelectionAndText {
+export function _currentFunction(
+  doc: vscode.TextDocument,
+  topLevel = false,
+  pos?: vscode.Position
+): SelectionAndText {
   if (doc) {
     const cursorDoc = docMirror.getDocument(doc);
-    const tokenCursor = cursorDoc.getTokenCursor();
+    const offset = pos !== undefined ? doc.offsetAt(pos) : undefined;
+    const tokenCursor =
+      offset !== undefined ? cursorDoc.getTokenCursor(offset) : cursorDoc.getTokenCursor();
     if (topLevel) {
-      tokenCursor.set(
-        cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(cursorDoc.selections[0].active)[1] - 1)
-      );
+      const activeOffset = offset ?? cursorDoc.selections[0].active;
+      tokenCursor.set(cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(activeOffset)[1] - 1));
     }
     const [start, end] = tokenCursor.getFunctionSexpRange();
     if (start && end) {
@@ -85,12 +90,15 @@ export function _currentFunction(doc: vscode.TextDocument, topLevel = false): Se
   return [undefined, ''];
 }
 
-export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
-  return _currentFunction(doc, false);
+export function currentFunction(doc: vscode.TextDocument, pos?: vscode.Position): SelectionAndText {
+  return _currentFunction(doc, false, pos);
 }
 
-export function currentTopLevelFunction(doc: vscode.TextDocument): SelectionAndText {
-  return _currentFunction(doc, true);
+export function currentTopLevelFunction(
+  doc: vscode.TextDocument,
+  pos?: vscode.Position
+): SelectionAndText {
+  return _currentFunction(doc, true, pos);
 }
 
 function selectionAndText(

@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.588] - 2026-05-15
+
+- [Make API clojure editing independent of a `TextEditor` instance](https://github.com/BetterThanTomorrow/calva/issues/3220)
+- Bump deps.clj to v1.12.5.1638
+
 ## [2.0.587] - 2026-05-10
 
 - Fix: [The structural editor fails in some API usage scenarios](https://github.com/BetterThanTomorrow/calva/issues/3218)
