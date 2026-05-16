@@ -1,7 +1,7 @@
 {
   "name": "calva-vsix-test-workspace",
   "version": "1.0.0",
-  "description": "VSIX e2e test workspace for Calva",
+  "description": "VSIX smoke test workspace for Calva",
   "scripts": {},
   "keywords": [],
   "author": {

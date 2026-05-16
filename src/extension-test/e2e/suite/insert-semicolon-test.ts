@@ -3,7 +3,7 @@ import * as mocha from 'mocha';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as vscode from 'vscode';
-import * as textNotation from '../integration-text-notation';
+import * as textNotation from '../e2e-text-notation';
 
 const suiteName = 'Insert Semicolon Suite';
 const testFilePath = path.join(testUtil.testDataDir, 'reformattable.clj');
