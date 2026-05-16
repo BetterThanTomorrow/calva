@@ -45,6 +45,10 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
     const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
     const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodeExecutablePath);
 
+    // Extensions must be installed to the same dir that runTests will use
+    const extensionsDir = path.resolve('.vscode-test', 'extensions');
+    fs.mkdirSync(extensionsDir, { recursive: true });
+
     const launchArgs = [
       testWorkspace,
       '--verbose',
@@ -52,6 +56,8 @@ async function main(calvaVSIXPathOrLabel, testWorkspace) {
       '--no-sandbox',
       '--user-data-dir',
       process.env.VSCODE_USER_DATA_DIR,
+      '--extensions-dir',
+      extensionsDir,
       // When debugging tests, it can be good to use the development version of Joyride
       // If you do, comment out the install of the Joyride extension here
       // And set the `extensionDevelopmentPath` in the `runTests` call below
