@@ -2394,6 +2394,38 @@ function extendRangeToLineIndent(text: string, [start, end]: [number, number]): 
     : [start, end];
 }
 
+type StructuralTrailing = {
+  parensStart: number;
+  parensEnd: number;
+  commentStart: number;
+  commentEnd: number;
+};
+
+/**
+ * Detects an enclosing list's closing paren(s) followed by a same-line trailing
+ * comment, on the line where `formEnd` sits. When present, the trailing comment
+ * is "attached" to the form ending at `formEnd` even though it sits past the
+ * enclosing-list paren(s). The paren(s) are structural and must stay with
+ * whichever form ends up being last in the enclosing list after a drag.
+ */
+function findStructuralTrailing(text: string, formEnd: number): StructuralTrailing | null {
+  const endLine = lineInfoAt(text, formEnd);
+  const after = text.substring(formEnd, endLine.end);
+  const match = after.match(/^(\s*)(\)+)(\s*)(;.*)$/);
+  if (!match) {
+    return null;
+  }
+  const wsBefore = match[1].length;
+  const parens = match[2];
+  const wsAfter = match[3].length;
+  return {
+    parensStart: formEnd + wsBefore,
+    parensEnd: formEnd + wsBefore + parens.length,
+    commentStart: formEnd + wsBefore + parens.length + wsAfter,
+    commentEnd: endLine.end,
+  };
+}
+
 function normalizeSwapRangesForLeadingComments(
   text: string,
   leftRange: [number, number],
@@ -2460,6 +2492,30 @@ function extendRangeOverAttachedComments(
 }
 
 /**
+ * If `offset` sits inside a trailing same-line comment on a form line (e.g.
+ * `(form)  ; trail|ing`) — i.e. the cursor is past the line's `;` but the line
+ * itself isn't a comment line — returns the range of the form whose body
+ * starts on that line. Returns `null` otherwise.
+ */
+function formOnTrailingCommentLineAt(
+  doc: EditableDocument,
+  offset: number
+): [number, number] | null {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const here = lineInfoAt(text, offset);
+  if (isCommentLine(here)) {
+    return null;
+  }
+  const beforeCursor = here.content.substring(0, offset - here.start);
+  if (beforeCursor.lastIndexOf(';') < 0) {
+    return null;
+  }
+  const indentLen = here.content.length - here.trimmed.length;
+  const formStart = here.start + indentLen;
+  return doc.getTokenCursor(formStart).rangeForCurrentForm(formStart);
+}
+
+/**
  * If `offset` is on a line-comment line, returns the range of the form that
  * comment is attached to: the form immediately below when contiguous (no
  * blank line between), else the form immediately above when the comment is a
@@ -2520,20 +2576,50 @@ export async function dragSexprBackward(
   const usePairs = isInPairsList(cursor, config);
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const baseRange =
-    formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
-  const currentRange = extendRangeOverAttachedComments(doc, baseRange);
+    formAttachedToCommentAt(doc, right) ??
+    formOnTrailingCommentLineAt(doc, right) ??
+    currentSexpsRange(doc, cursor, right, usePairs, config);
+  const initialCurrentRange = extendRangeOverAttachedComments(doc, baseRange);
   const backCursor = doc.getTokenCursor(baseRange[0]);
   backCursor.backwardSexp();
   const backBase = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
   if (backBase[0] !== baseRange[0]) {
     const backRange = extendRangeOverAttachedComments(doc, backBase);
+
+    // When the form ends with enclosing-list paren(s) followed by a same-line
+    // trailing comment, treat that comment as attached to the form and let the
+    // paren(s) stay with whichever form ends up being last after the drag.
+    const structural = findStructuralTrailing(text, baseRange[1]);
+    const currentRange: [number, number] = structural
+      ? [initialCurrentRange[0], structural.commentEnd]
+      : initialCurrentRange;
+
     const [normalizedCurrentRange, normalizedBackRange] = normalizeSwapRangesForLeadingComments(
       text,
       currentRange,
       backRange
     );
-    const leftText = doc.model.getText(normalizedBackRange[0], normalizedBackRange[1]);
+    const backText = doc.model.getText(normalizedBackRange[0], normalizedBackRange[1]);
     const currentText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
+
+    let leftText = backText;
+    let newCurrentText = currentText;
+    const cursorOffsetInCurrent = right - normalizedCurrentRange[0];
+    let cursorOffsetInNewCurrent = cursorOffsetInCurrent;
+    if (structural) {
+      const parens = text.substring(structural.parensStart, structural.parensEnd);
+      const stripFrom = structural.parensStart - normalizedCurrentRange[0];
+      const stripTo = structural.parensEnd - normalizedCurrentRange[0];
+      newCurrentText = currentText.substring(0, stripFrom) + currentText.substring(stripTo);
+      const insertAt = backBase[1] - normalizedBackRange[0];
+      leftText = backText.substring(0, insertAt) + parens + backText.substring(insertAt);
+      if (cursorOffsetInCurrent >= stripTo) {
+        cursorOffsetInNewCurrent -= parens.length;
+      } else if (cursorOffsetInCurrent > stripFrom) {
+        cursorOffsetInNewCurrent = stripFrom;
+      }
+    }
+
     return doc.model.edit(
       [
         new ModelEdit('changeRange', [
@@ -2541,12 +2627,14 @@ export async function dragSexprBackward(
           normalizedCurrentRange[1],
           leftText,
         ]),
-        new ModelEdit('changeRange', [normalizedBackRange[0], normalizedBackRange[1], currentText]),
+        new ModelEdit('changeRange', [
+          normalizedBackRange[0],
+          normalizedBackRange[1],
+          newCurrentText,
+        ]),
       ],
       {
-        selections: [
-          new ModelEditSelection(normalizedBackRange[0] + right - normalizedCurrentRange[0]),
-        ],
+        selections: [new ModelEditSelection(normalizedBackRange[0] + cursorOffsetInNewCurrent)],
       }
     );
   }
@@ -2562,7 +2650,9 @@ export async function dragSexprForward(
   const usePairs = isInPairsList(cursor, config);
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
   const baseRange =
-    formAttachedToCommentAt(doc, right) ?? currentSexpsRange(doc, cursor, right, usePairs, config);
+    formAttachedToCommentAt(doc, right) ??
+    formOnTrailingCommentLineAt(doc, right) ??
+    currentSexpsRange(doc, cursor, right, usePairs, config);
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
   const forwardCursor = doc.getTokenCursor(baseRange[1]);
   forwardCursor.forwardWhitespace();
@@ -2585,14 +2675,43 @@ export async function dragSexprForward(
     );
   }
   if (forwardBase[0] !== baseRange[0]) {
-    const forwardRange = extendRangeOverAttachedComments(doc, forwardBase);
+    const initialForwardRange = extendRangeOverAttachedComments(doc, forwardBase);
+
+    // When the next form is followed by enclosing-list paren(s) and a same-line
+    // trailing comment, treat that comment as attached to it and let the
+    // paren(s) stay with whichever form ends up being last after the drag.
+    const structural = findStructuralTrailing(text, forwardBase[1]);
+    const forwardRange: [number, number] = structural
+      ? [initialForwardRange[0], structural.commentEnd]
+      : initialForwardRange;
+
     const [normalizedCurrentRange, normalizedForwardRange] = normalizeSwapRangesForLeadingComments(
       text,
       currentRange,
       forwardRange
     );
-    const leftText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
-    const rightText = doc.model.getText(normalizedForwardRange[0], normalizedForwardRange[1]);
+    const currentText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
+    const forwardText = doc.model.getText(normalizedForwardRange[0], normalizedForwardRange[1]);
+
+    let leftText = currentText;
+    let newForwardText = forwardText;
+    const cursorOffsetInCurrent = right - normalizedCurrentRange[0];
+    let cursorOffsetInLeft = cursorOffsetInCurrent;
+    if (structural) {
+      const parens = text.substring(structural.parensStart, structural.parensEnd);
+      const stripFrom = structural.parensStart - normalizedForwardRange[0];
+      const stripTo = structural.parensEnd - normalizedForwardRange[0];
+      newForwardText = forwardText.substring(0, stripFrom) + forwardText.substring(stripTo);
+      const insertAt = baseRange[1] - normalizedCurrentRange[0];
+      leftText = currentText.substring(0, insertAt) + parens + currentText.substring(insertAt);
+      if (cursorOffsetInCurrent > insertAt) {
+        cursorOffsetInLeft += parens.length;
+      }
+    }
+
+    const newCursorPos =
+      normalizedForwardRange[0] + (newForwardText.length - currentText.length) + cursorOffsetInLeft;
+
     return doc.model.edit(
       [
         new ModelEdit('changeRange', [
@@ -2603,13 +2722,11 @@ export async function dragSexprForward(
         new ModelEdit('changeRange', [
           normalizedCurrentRange[0],
           normalizedCurrentRange[1],
-          rightText,
+          newForwardText,
         ]),
       ],
       {
-        selections: [
-          new ModelEditSelection(normalizedForwardRange[1] + right - normalizedCurrentRange[1]),
-        ],
+        selections: [new ModelEditSelection(newCursorPos)],
       }
     );
   }

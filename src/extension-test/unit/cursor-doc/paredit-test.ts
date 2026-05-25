@@ -2487,6 +2487,73 @@ describe('paredit', () => {
               .toEqual(textNotation.textAndSelection(b));
           });
         });
+
+        describe('structural trailing paren + same-line comment', () => {
+          it('drag backward of last form: closing paren and trailing comment stay on the new last line', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; lead•  (r3)|) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3)| ; c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward of last form, cursor on the leading ;; line', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; |lead•  (r3)) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; |lead•  (r3) ; c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward of last form, cursor in the trailing comment after closing paren', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; lead•  (r3)) ; |c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3) ; |c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag forward: closing paren follows the new last form', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2)| ; b•  ;; lead•  (r3)) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3) ; c•  (r2)|) ; b`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward with multiple structural closing parens', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(let [x 1]•  (-> content•    (r1) ; a•    (r2)|)) ; b`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(let [x 1]•  (-> content•    (r2)| ; b•    (r1))) ; a`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
       });
     });
 
