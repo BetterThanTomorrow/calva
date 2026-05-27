@@ -6,7 +6,7 @@ TARGET="${1:-}"
 
 if [ -z "$TARGET" ]; then
     echo 'Must run as ./run.sh <TARGET> where target is one of the steps in the Dockerfile.
-For example ./run.sh step-test-integration' 1>&2
+For example ./run.sh step-test-smoke' 1>&2
     exit 1
 fi
 

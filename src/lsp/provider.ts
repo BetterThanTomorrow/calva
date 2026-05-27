@@ -83,6 +83,11 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
       return status_bar.updateStatusBar(status_bar_item, defs.LspStatus.Starting);
     }
 
+    if (downloadFailed && clients.size === 0) {
+      status_bar.updateStatusBar(status_bar_item, defs.LspStatus.DownloadFailed);
+      return;
+    }
+
     const active_editor = vscode.window.activeTextEditor?.document;
     if (!active_editor || active_editor.languageId !== 'clojure') {
       // If there are multiple clients then we don't know which client to show the status for and we set it to unknown
@@ -105,20 +110,18 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     status_bar.updateStatusBar(status_bar_item, client.status);
   };
 
-  let lsp_server_path: string;
+  let lsp_server_path: string | undefined;
+  let downloadFailed = false;
   const provisionClient = async (uri: vscode.Uri, id = uri.fsPath) => {
     if (lsp_server_path === undefined) {
-      try {
-        lsp_server_path = await lsp_client.ensureLSPServer(params.context);
-      } catch (err) {
-        void vscode.window.showErrorMessage(`Failed to download clojure-lsp server. ${err}`);
+      lsp_server_path = await lsp_client.ensureLSPServer(params.context);
+      if (!lsp_server_path) {
+        downloadFailed = true;
+        status_bar.updateStatusBar(status_bar_item, defs.LspStatus.DownloadFailed);
         return;
       }
-    }
-
-    if (!lsp_server_path) {
-      console.error('Server path could not be resolved');
-      return;
+      // Binary found or downloaded — check for upgrades in background
+      void lsp_client.checkForUpgrade(params.context);
     }
 
     const existing = clients.get(id);

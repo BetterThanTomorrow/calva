@@ -49,11 +49,11 @@ export function sleep(ms: number): Promise<void> {
 }
 
 export function log(suite: string, ...things: any[]) {
-  console.log(`Integration testing, ${suite}:`, ...things);
+  console.log(`E2E testing, ${suite}:`, ...things);
 }
 
 export function showMessage(suite: string, message: string) {
-  void vscode.window.showInformationMessage(`Integration testing, ${suite}: ${message}`);
+  void vscode.window.showInformationMessage(`E2E testing, ${suite}: ${message}`);
 }
 
 export function getExecutablePath(executablePathMaybe: string) {

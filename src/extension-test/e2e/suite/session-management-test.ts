@@ -135,7 +135,7 @@ describe(`${suiteName} suite`, () => {
     const sessionKey = 'session-management/evaluate';
     const code = '(inc 1)';
     const evaluationResult = '2';
-    const who = 'integration-test';
+    const who = 'e2e-test';
     const events: replApi.OutputMessage[] = [];
 
     sessionRegistry.registerSession(sessionKey, createEvaluatingSession(evaluationResult), {

@@ -6,6 +6,34 @@ Changes to Calva.
 
 - [Dragging sexps with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
 
+## [2.0.588] - 2026-05-15
+
+- [Make API clojure editing independent of a `TextEditor` instance](https://github.com/BetterThanTomorrow/calva/issues/3220)
+- Bump deps.clj to v1.12.5.1638
+
+## [2.0.587] - 2026-05-10
+
+- Fix: [The structural editor fails in some API usage scenarios](https://github.com/BetterThanTomorrow/calva/issues/3218)
+
+## [2.0.586] - 2026-05-09
+
+- Fix: [Prevent calva from breaking other debugging session](https://github.com/BetterThanTomorrow/calva/pull/2936)
+- [Add built-in Glojure Jack-in and Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/3103)
+
+## [2.0.585] - 2026-05-08
+
+- Fix: [clojure-lsp fails to start when the latest version cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
+
+## [2.0.584] - 2026-05-07
+
+- [enable new clojure-lsp code actions: inline function, if<->cond, extract selection to function, move to :let](https://github.com/BetterThanTomorrow/calva/issues/3204)
+- Fix: [Calva forgets the renamed session name on disconnect->reconnect](https://github.com/BetterThanTomorrow/calva/issues/3207)
+
+## [2.0.583] - 2026-05-04
+
+- [Enable renaming of REPL sessions](https://github.com/BetterThanTomorrow/calva/issues/3197)
+- Fix: [Calva disconnects and closed the WebSocket server when connecting a websocket REPL configured for the same port](https://github.com/BetterThanTomorrow/calva/issues/3198)
+
 ## [2.0.582] - 2026-05-03
 
 - [Make Orphaned/dicsonnected WebSocket servers closable](https://github.com/BetterThanTomorrow/calva/issues/3195)

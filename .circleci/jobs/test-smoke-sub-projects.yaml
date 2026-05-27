@@ -13,22 +13,18 @@ steps:
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
 - !:cmd
-  - Compile Extension Tests
-  - npm run compile-test
-
-- !:cmd
   - Apt install missing dependencies
   - sudo apt-key adv --keyserver keyserver.ubuntu.com
                      --recv-keys E88979FB9B30ACF2;
-    sudo apt update && sudo apt install -y libnss3 imagemagick
+    sudo apt update && sudo apt install -y libnss3
 
 - !:cmd
-  - Run Extension Tests
-  - npm run e2e-test
+  - Run VSIX Smoke Tests for test-data/projects/smoke-sub-projects
+  - npm run smoke-test --
+      --calva-vsix=/tmp/artifacts/calva-$(
+          node -p 'require("./package.json").version'
+        ).vsix
+      --test-workspace=test-data/projects/smoke-sub-projects
 
 - !:store
     test_results: ~/calva/junit
-
-- store_artifacts:
-    path: ~/calva/out/extension-test/e2e/screenshots
-    destination: e2e-screenshots

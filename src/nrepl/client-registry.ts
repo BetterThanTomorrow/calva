@@ -23,6 +23,8 @@ export interface ConnectionState {
   suffix?: string;
   /** Which session role should handle .cljc files for this connection */
   cljcTarget?: CljcTargetRole;
+  /** User-assigned custom names per role, preserved across reconnection */
+  renamedSessionNames?: Partial<sessionRoleUtils.SessionRoleKeys>;
 }
 
 export interface RegisteredClient {

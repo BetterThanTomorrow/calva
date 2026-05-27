@@ -35,15 +35,15 @@ jobs:
     requires: [build]
     filters:: filters()
 
-- test-integration:
-    requires: [build]
-    filters:: filters()
-
 - test-e2e:
     requires: [build]
     filters:: filters()
 
-- test-e2e-sub-projects:
+- test-smoke:
+    requires: [build]
+    filters:: filters()
+
+- test-smoke-sub-projects:
     requires: [build]
     filters:: filters()
 
@@ -57,9 +57,9 @@ jobs:
     - eslint-check
     - test-grammar
     - test-cljslib
-    - test-integration
     - test-e2e
-    - test-e2e-sub-projects
+    - test-smoke
+    - test-smoke-sub-projects
     - test-ts-unit
     filters:: filters()
     context: Calva

@@ -1,6 +1,7 @@
 import type * as globs from './globs';
 import type * as nrepl from './index';
 import * as clientRegistry from './client-registry';
+import * as sessionNameSuffix from './session-name-suffix';
 
 export interface SessionMetadata {
   key: string;
@@ -169,6 +170,62 @@ export function getSecondarySessionKeyForClient(clientKey: string): string | und
   const sessions = listSessionsByClient(clientKey);
   const secondaryMeta = sessions.find((m) => m.isSecondary);
   return secondaryMeta?.key;
+}
+
+// --- Session renaming ---
+
+/**
+ * Rename a registered session from oldKey to newKey.
+ * Updates the registry, metadata, connection state, routing, and suffix pool.
+ * Returns true on success, false if oldKey is not found or newKey already exists.
+ */
+export function renameSession(oldKey: string, newKey: string): boolean {
+  const session = registeredSessions.get(oldKey);
+  if (!session || registeredSessions.has(newKey)) {
+    return false;
+  }
+
+  // Re-key the registry
+  registeredSessions.delete(oldKey);
+  registeredSessions.set(newKey, session);
+
+  // Update metadata
+  const metadata = (session as any)._calvaSessionMetadata as SessionMetadata | undefined;
+  if (metadata) {
+    metadata.key = newKey;
+  }
+
+  // Update ConnectionState.sessionRoleKeys and track rename for reconnection
+  const clientKey = metadata?.connectionOwnerId;
+  if (clientKey) {
+    const connState = clientRegistry.getConnectionState(clientKey);
+    if (connState?.sessionRoleKeys) {
+      const roleKeys = { ...connState.sessionRoleKeys };
+      const renamedSessionNames: Partial<typeof roleKeys> = {
+        ...connState.renamedSessionNames,
+      };
+      if (roleKeys.primary === oldKey) {
+        roleKeys.primary = newKey;
+        renamedSessionNames.primary = newKey;
+      }
+      if (roleKeys.secondary === oldKey) {
+        roleKeys.secondary = newKey;
+        renamedSessionNames.secondary = newKey;
+      }
+      clientRegistry.setConnectionState(clientKey, {
+        sessionRoleKeys: roleKeys,
+        renamedSessionNames,
+      });
+    }
+  }
+
+  // Release suffix if old name had one
+  const suffix = sessionNameSuffix.extractSuffix(oldKey);
+  if (suffix) {
+    sessionNameSuffix.releaseSuffix(suffix);
+  }
+
+  return true;
 }
 
 // --- ClojureDocs dedicated session ---

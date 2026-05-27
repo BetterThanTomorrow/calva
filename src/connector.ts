@@ -98,34 +98,23 @@ async function connectViaWebSocket(
   isJackIn = false
 ): Promise<ConnectResult> {
   let activeClient: nrepl.NReplClient | undefined;
+  let preservedRenames: Partial<sessionRoleUtils.SessionRoleKeys> | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
   const projectRoot = state.getProjectRootUri().toString();
   const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
+  // WebSocket connections skip reconnection candidate detection entirely.
+  // Each WS server is single-client, so multiple browser tabs require separate
+  // servers on different ports. The port-in-use prompt handles conflicts naturally.
   const resolution = sessionNameResolver.resolveSessionNames(
     baseSessionNames,
     projectRoot,
     wsHost,
-    isJackIn ? null : wsPort
+    wsPort,
+    { skipReconnect: true }
   );
   const sessionRoleKeys = resolution.finalNames;
-
-  if (resolution.reconnectClientKey) {
-    output.appendLineOtherOut(
-      `Reconnecting: disconnecting existing client for sessions: ${Object.values(sessionRoleKeys)
-        .filter(Boolean)
-        .join(', ')}`
-    );
-    if (isJackIn) {
-      await jackIn.stopJackInProcessesByClientKey(resolution.reconnectClientKey, {
-        preserveSuffix: true,
-      });
-    }
-    if (clientRegistry.getClient(resolution.reconnectClientKey)) {
-      await disconnectClientByKey(resolution.reconnectClientKey, { preserveSuffix: true });
-    }
-  }
 
   const sessionGlobMap = sessionRoleUtils.deriveSessionGlobMap(
     connectSequence,
@@ -205,6 +194,7 @@ async function connectViaWebSocket(
           connectSequence,
           baseSessionNames,
           suffix: resolution.suffix,
+          renamedSessionNames: preservedRenames,
         },
       });
 
@@ -223,11 +213,21 @@ async function connectViaWebSocket(
       });
       clientRegistry.setCljcTargetForConnection(client.clientKey, 'primary');
 
+      // Apply preserved rename from previous browser connection
+      const renamedPrimary = preservedRenames?.primary;
+      if (renamedPrimary && renamedPrimary !== mainKey) {
+        sessionRegistry.renameSession(mainKey, renamedPrimary);
+      }
+      const effectiveMainKey = renamedPrimary ?? mainKey;
+      preservedRenames = undefined;
+
       status.update();
-      output.appendLineOtherOut(`Connected session: ${mainKey}, ws://${wsHost}:${currentPort}`);
+      output.appendLineOtherOut(
+        `Connected session: ${effectiveMainKey}, ws://${wsHost}:${currentPort}`
+      );
       replSession.updateReplSessionType();
 
-      outputWindow.setSession(mainSession, client.ns, mainKey);
+      outputWindow.setSession(mainSession, client.ns, effectiveMainKey);
 
       if (config.getConfig().autoEvaluateCode.onConnect.clj) {
         output.appendLineOtherOut(
@@ -235,7 +235,7 @@ async function connectViaWebSocket(
         );
         await evaluate.evaluateInOutputWindow(
           config.getConfig().autoEvaluateCode.onConnect.clj,
-          mainKey,
+          effectiveMainKey,
           outputWindow.getNs(),
           {}
         );
@@ -246,7 +246,12 @@ async function connectViaWebSocket(
         connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
       if (afterMainReplCode) {
         output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
-        await evaluate.evaluateInOutputWindow(afterMainReplCode, mainKey, outputWindow.getNs(), {});
+        await evaluate.evaluateInOutputWindow(
+          afterMainReplCode,
+          effectiveMainKey,
+          outputWindow.getNs(),
+          {}
+        );
       }
       if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
         output.maybePrintLegacyREPLWindowOutputMessage();
@@ -316,6 +321,9 @@ async function connectViaWebSocket(
         const clientKey = activeClient.clientKey;
         output.appendLineOtherOut('Browser REPL disconnected, waiting for reconnection...');
         state.connectionLogChannel().appendLine('Browser REPL disconnected');
+
+        // Preserve renames across browser reconnections
+        preservedRenames = clientRegistry.getConnectionState(clientKey)?.renamedSessionNames;
 
         // Clean up client and sessions but keep server alive
         clientTeardown.releaseClientSuffix(clientKey);
@@ -478,6 +486,7 @@ async function connectToHost(
         connectSequence,
         baseSessionNames,
         suffix: resolution.suffix,
+        renamedSessionNames: resolution.renamedSessionNames,
       },
     });
     localClient.addOnCloseHandler((c) => {
@@ -516,11 +525,18 @@ async function connectToHost(
     });
     clientRegistry.setCljcTargetForConnection(localClient.clientKey, 'primary');
 
+    // Apply preserved rename from previous connection
+    const renamedPrimary = resolution.renamedSessionNames?.primary;
+    if (renamedPrimary && renamedPrimary !== mainKey) {
+      sessionRegistry.renameSession(mainKey, renamedPrimary);
+    }
+    const effectivePrimaryKey = renamedPrimary ?? mainKey;
+
     status.update();
-    output.appendLineOtherOut(`Connected session: ${mainKey}, port: ${port}`);
+    output.appendLineOtherOut(`Connected session: ${effectivePrimaryKey}, port: ${port}`);
     replSession.updateReplSessionType();
 
-    outputWindow.setSession(mainSession, localClient.ns, mainKey);
+    outputWindow.setSession(mainSession, localClient.ns, effectivePrimaryKey);
 
     if (config.getConfig().autoEvaluateCode.onConnect.clj) {
       output.appendLineOtherOut(
@@ -528,7 +544,7 @@ async function connectToHost(
       );
       await evaluate.evaluateInOutputWindow(
         config.getConfig().autoEvaluateCode.onConnect.clj,
-        mainKey,
+        effectivePrimaryKey,
         outputWindow.getNs(),
         {}
       );
@@ -539,14 +555,19 @@ async function connectToHost(
       connectSequence.afterPrimaryReplConnectedCode ?? connectSequence.afterCLJReplJackInCode;
     if (afterMainReplCode) {
       output.appendLineOtherOut(`Evaluating 'afterPrimaryReplConnectedCode'`);
-      await evaluate.evaluateInOutputWindow(afterMainReplCode, mainKey, outputWindow.getNs(), {});
+      await evaluate.evaluateInOutputWindow(
+        afterMainReplCode,
+        effectivePrimaryKey,
+        outputWindow.getNs(),
+        {}
+      );
     }
     if (!connectSequence.cljsType || connectSequence.cljsType === 'none') {
       output.maybePrintLegacyREPLWindowOutputMessage();
     }
     void output.replWindowAppendPrompt();
 
-    clojureDocs.probeAndSetSession(mainSession, mainKey);
+    clojureDocs.probeAndSetSession(mainSession, effectivePrimaryKey);
 
     let cljsSession = null,
       cljsBuild = null;
@@ -712,24 +733,34 @@ async function setUpCljsRepl(
   });
   clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
 
-  clojureDocs.probeAndSetSession(session, cljsKey);
+  // Apply preserved rename from previous connection
+  const renamedSecondary =
+    clientRegistry.getConnectionState(clientKey)?.renamedSessionNames?.secondary;
+  const effectiveCljsKey =
+    renamedSecondary && renamedSecondary !== cljsKey
+      ? (sessionRegistry.renameSession(cljsKey, renamedSecondary), renamedSecondary)
+      : cljsKey;
+
+  clojureDocs.probeAndSetSession(session, effectiveCljsKey);
 
   status.update();
-  output.appendLineOtherOut(`Connected session: ${cljsKey}${build ? ', repl: ' + build : ''}`);
+  output.appendLineOtherOut(
+    `Connected session: ${effectiveCljsKey}${build ? ', repl: ' + build : ''}`
+  );
   outputWindow.appendLine(
     resultsOutputUtil.formatAsLineComments(outputWindow.CLJS_CONNECT_GREETINGS)
   );
   const description = await session.describe(true);
   const ns = description.aux?.['current-ns'] || 'user';
   await session.eval(`(in-ns '${ns})`, 'user').value;
-  outputWindow.setSession(session, ns, cljsKey);
+  outputWindow.setSession(session, ns, effectiveCljsKey);
   if (config.getConfig().autoEvaluateCode.onConnect.cljs) {
     output.appendLineOtherOut(
       `Evaluating code from settings: 'calva.autoEvaluateCode.onConnect.cljs'`
     );
     await evaluate.evaluateInOutputWindow(
       config.getConfig().autoEvaluateCode.onConnect.cljs,
-      cljsKey,
+      effectiveCljsKey,
       ns,
       {}
     );

@@ -191,6 +191,14 @@ const letGoBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const glojureBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'glojure',
+    projectType: csTypes.ProjectTypes['glojure'],
+    cljsType: csTypes.CljsTypes.none,
+  },
+];
+
 const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'epupp',
@@ -213,6 +221,7 @@ const builtInSequences = {
   nbb: nbbBuiltIns,
   basilisp: basilispBuiltIns,
   'let-go': letGoBuiltIns,
+  glojure: glojureBuiltIns,
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
   squint: squintBuiltIns,

@@ -216,7 +216,7 @@
         "${workspaceRoot}/test-data",
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceRoot}",
-        "--extensionTestsPath=${workspaceRoot}/out/extension-test/integration/suite"
+        "--extensionTestsPath=${workspaceRoot}/out/extension-test/e2e/suite"
       ],
       "preLaunchTask": "npm: compile-test",
       "outFiles": ["${workspaceRoot}/out/test/**/*.js"]

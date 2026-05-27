@@ -1,0 +1,2 @@
+* When delegating Calva design/development to a subagent, use the calva-nucleus agent. It has the Tao of Calva encoded.
+* When designing UI and Ux, follow the principles in [.impeccable.md](../.impeccable.md).

@@ -1,15 +1,24 @@
 import * as vscode from 'vscode';
 import * as getText from '../util/get-text';
+import { resolveDocAndPos } from '../util/resolve-doc-and-pos';
 
+/**
+ * Wraps a `(document, position) => [Range, string]` function so it can be called with:
+ * - No arguments: uses the active text editor's document and cursor position.
+ * - A `TextEditor`: uses its document and primary cursor position.
+ * - A `TextDocument` + `Position`: uses them directly, no visible editor required.
+ *
+ * Returns `[undefined, undefined]` when no document/position can be resolved.
+ */
 const wrapSelectionAndTextFunction = (
   f: (document: vscode.TextDocument, position: vscode.Position) => [vscode.Range, string]
 ) => {
-  return (editor = vscode.window.activeTextEditor, position = editor?.selections?.[0]?.active) => {
-    if (editor && position && editor.document && editor.document.languageId === 'clojure') {
-      return f(editor.document, position);
-    } else {
+  return (editorOrDoc?: vscode.TextEditor | vscode.TextDocument, position?: vscode.Position) => {
+    const resolved = resolveDocAndPos(editorOrDoc, position, vscode.window.activeTextEditor);
+    if (!resolved) {
       return [undefined, undefined];
     }
+    return f(resolved.doc as vscode.TextDocument, resolved.pos as vscode.Position);
   };
 };
 
