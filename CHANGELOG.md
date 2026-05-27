@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [debugging stops working](https://github.com/BetterThanTomorrow/calva/issues/3224)
 
 ## [2.0.588] - 2026-05-15
 
