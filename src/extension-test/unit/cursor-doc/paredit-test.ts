@@ -2136,6 +2136,425 @@ describe('paredit', () => {
           .expect(textNotation.textAndSelection(a))
           .toEqual(textNotation.textAndSelection(b));
       });
+
+      describe('with attached comments', () => {
+        describe('form-comment pairs', () => {
+          it('keeps leading comments attached when dragging from trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(do•;;b•(str "Hello" " " "World")•"B" ;a|•)`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(do•"B" ;a|•;;b•(str "Hello" " " "World")•)`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('keeps leading comments attached at top level when dragging backward from trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(`;;b•(str "Hello" " " "World")•"B" ;a|`);
+            const b = textNotation.docFromTextNotation(`"B" ;a|•;;b•(str "Hello" " " "World")`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags forward across a blank line when caret is before a form with trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(`|"B" ;a••;;b•(str "Hello" " " "World")`);
+            const b = textNotation.docFromTextNotation(`;;b•(str "Hello" " " "World")••"B" ;a|`);
+            await paredit.dragSexprForward(a);
+            expectLib.expect(a.model.getText(0, Infinity)).toEqual(b.model.getText(0, Infinity));
+          });
+
+          it('drags forward across a blank line when caret is after trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(`"B" ;a|••;;b•(str "Hello" " " "World")`);
+            const b = textNotation.docFromTextNotation(`;;b•(str "Hello" " " "World")••"B" ;a|`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags forward across a blank line when caret is at start of trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(`"B" |;a••;b•(str "Hello" " " "World")`);
+            const b = textNotation.docFromTextNotation(`;b•(str "Hello" " " "World")••"B" |;a`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags backward from end of trailing inline comment and keeps single-semicolon comment attached', async () => {
+            const a = textNotation.docFromTextNotation(`;b•(str "Hello" " " "World")••"B" ;a|`);
+            const b = textNotation.docFromTextNotation(`"B" ;a|••;b•(str "Hello" " " "World")`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags backward when caret is in whitespace before trailing inline comment', async () => {
+            const a = textNotation.docFromTextNotation(`;b•(str "Hello" " " "World")••"B" |;a`);
+            const b = textNotation.docFromTextNotation(`"B" |;a••;b•(str "Hello" " " "World")`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('keeps ;=> result comments attached to form under drag', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 1 2)•;=> 3••"B" ;a|`);
+            const b = textNotation.docFromTextNotation(`"B" ;a|••(+ 1 2)•;=> 3`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
+
+        describe('preceding line comments', () => {
+          it('drags sexp backward with its preceding comment', async () => {
+            const a = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Bar•(do bar)••;; Baz•(do baz)|`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Baz•(do baz)|••;; Bar•(do bar)`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward with its preceding comment', async () => {
+            const a = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Bar•(do bar)|••;; Baz•(do baz)`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Baz•(do baz)••;; Bar•(do bar)|`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward without a preceding comment when there is a blank line', async () => {
+            // A blank line between a comment and a form breaks the association.
+            const a = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Bar•(do bar)•••(do baz)|`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••(do baz)|•••;; Bar•(do bar)`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward without a preceding comment when there is a blank line', async () => {
+            const a = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)•••;; Bar•(do bar)|••;; Baz•(do baz)`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)•••;; Baz•(do baz)••;; Bar•(do bar)|`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward with multiple preceding comment lines', async () => {
+            const a = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Bar•;; Extra bar comment•(do bar)••;; Baz•(do baz)|`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; Foo•(do foo)••;; Baz•(do baz)|••;; Bar•;; Extra bar comment•(do bar)`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward without comment when form has no preceding comment', async () => {
+            const a = textNotation.docFromTextNotation(`(do foo)•(do bar)|••;; Baz•(do baz)`);
+            const b = textNotation.docFromTextNotation(`(do foo)•;; Baz•(do baz)••(do bar)|`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward when only preceding form has a comment', async () => {
+            const a = textNotation.docFromTextNotation(`;; Foo•(do foo)•(do bar)|`);
+            const b = textNotation.docFromTextNotation(`(do bar)|•;; Foo•(do foo)`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags indented sexp backward with its preceding comment inside a container', async () => {
+            const a = textNotation.docFromTextNotation(`(do•  ;; A•  (form-a)•  ;; B•  (form-b)|)`);
+            const b = textNotation.docFromTextNotation(`(do•  ;; B•  (form-b)|•  ;; A•  (form-a))`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags indented sexp forward with its preceding comment inside a container', async () => {
+            const a = textNotation.docFromTextNotation(`(do•  ;; A•  (form-a)|•  ;; B•  (form-b))`);
+            const b = textNotation.docFromTextNotation(`(do•  ;; B•  (form-b)•  ;; A•  (form-a)|)`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags a commented form forward in a comment form without adding indentation', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  :b•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :b•  ; a•  :a|•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags a commented form backward after a forward drag without accumulating indentation', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :b•  ; a•  :a|•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  :b•  )`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('keeps both comments attached when dragging forward in a comment form', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  ; a•  :a|•  ; b•  :b•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  ; b•  :b•  ; a•  :a|•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags comment-form pair backward when cursor is in the comment', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(str "a")••;; b|•(str "Hello" " " "world")`
+            );
+            const b = textNotation.docFromTextNotation(
+              `;; b|•(str "Hello" " " "world")••(str "a")`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags comment-form pair forward when cursor is in the comment', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(str "a")••;; b|•(str "Hello" " " "world")••(str "z")`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(str "a")••(str "z")••;; b|•(str "Hello" " " "world")`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward with its trailing same-line comment', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)| ; => 3`);
+            const b = textNotation.docFromTextNotation(`(+ 1 2)| ; => 3•(+ 2 3)`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward with its trailing same-line comment', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 1 2)| ; => 3•(+ 2 3)`);
+            const b = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)| ; => 3`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward with a comment on the line below (before a blank)', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 2 3)••(+ 1 2)|•;=> 3`);
+            const b = textNotation.docFromTextNotation(`(+ 1 2)|•;=> 3••(+ 2 3)`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward with a comment on the line below (before a blank)', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 1 2)|•;=> 3••(+ 2 3)`);
+            const b = textNotation.docFromTextNotation(`(+ 2 3)••(+ 1 2)|•;=> 3`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward with ;;=> result comment when next form follows immediately', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;;=> 3`);
+            const b = textNotation.docFromTextNotation(`(+ 1 2)|•;;=> 3•(+ 2 3)`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp backward with ;=> result comment when next form follows immediately', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;=> 3`);
+            const b = textNotation.docFromTextNotation(`(+ 1 2)|•;=> 3•(+ 2 3)`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward with ;;=> result comment when next form follows immediately', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 1 2)|•;;=> 3•(+ 2 3)`);
+            const b = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;;=> 3`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags sexp forward with ;=> result comment when next form follows immediately', async () => {
+            const a = textNotation.docFromTextNotation(`(+ 1 2)|•;=> 3•(+ 2 3)`);
+            const b = textNotation.docFromTextNotation(`(+ 2 3)•(+ 1 2)|•;=> 3`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags a form forward with its tight result comment', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a•  :b|•  ;=> b•  :c•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :a•  :c•  :b|•  ;=> b•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags a form backward with its tight result comment', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a•  :b|•  ;=> b•  :c•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :b|•  ;=> b•  :a•  :c•  )`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('does not attach tight result comments to the following form on drag backward', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :b•  :c|•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :c|•  :b•  )`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('does not move a tight result comment when dragging the following form forward', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :b|•  :c•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :a•  ;=> a•  :c•  :b|•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drags forward when cursor is in a tight result comment line', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :c•  :b•  ;=> b|•  :a•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :c•  :a•  :b•  ;=> b|•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
+
+        describe('structural trailing paren + same-line comment', () => {
+          it('drag backward of last form: closing paren and trailing comment stay on the new last line', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; lead•  (r3)|) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3)| ; c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward of last form, cursor on the leading ;; line', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; |lead•  (r3)) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; |lead•  (r3) ; c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward of last form, cursor in the trailing comment after closing paren', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2) ; b•  ;; lead•  (r3)) ; |c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3) ; |c•  (r2)) ; b`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag forward: closing paren follows the new last form', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  (r2)| ; b•  ;; lead•  (r3)) ; c`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(-> content•  (r1) ; a•  ;; lead•  (r3) ; c•  (r2)|) ; b`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward with multiple structural closing parens', async () => {
+            const a = textNotation.docFromTextNotation(
+              `(let [x 1]•  (-> content•    (r1) ; a•    (r2)|)) ; b`
+            );
+            const b = textNotation.docFromTextNotation(
+              `(let [x 1]•  (-> content•    (r2)| ; b•    (r1))) ; a`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
+      });
     });
 
     describe('backwardUp - one line', () => {
