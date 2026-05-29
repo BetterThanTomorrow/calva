@@ -459,13 +459,11 @@ function calvaDebugSession(session: vscode.DebugSession) {
 }
 
 function onNreplMessage(data: any): void {
-  if (!calvaDebugSession(vscode.debug.activeDebugSession)) {
-    return;
-  }
-
   if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
-    annotations.clearAllEvaluationDecorations();
-    void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+    if (calvaDebugSession(vscode.debug.activeDebugSession)) {
+      annotations.clearAllEvaluationDecorations();
+      void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+    }
   } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
     handleNeedDebugInput(data);
   }
