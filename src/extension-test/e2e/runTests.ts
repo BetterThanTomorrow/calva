@@ -24,14 +24,14 @@ async function main() {
 
     if (hasSpacesInFilter || looksLikeTestName) {
       console.error('\n⚠️  Filter pattern looks incorrect\n');
-      console.error('Usage: npm run integration-test [-- filter]\n');
+      console.error('Usage: npm run e2e-test [-- filter]\n');
       console.error('The filter matches against test FILE NAMES, not test case names.\n');
       console.error('Examples:');
-      console.error('  npm run integration-test              # Run all tests');
-      console.error('  npm run integration-test -- jack-in   # Run files matching "jack-in"');
-      console.error('  npm run integration-test -- cljc      # Run files matching "cljc"');
-      console.error('  npm run integration-test -- session   # Run files matching "session"\n');
-      console.error('Available test files are in src/extension-test/integration/suite/\n');
+      console.error('  npm run e2e-test              # Run all tests');
+      console.error('  npm run e2e-test -- jack-in   # Run files matching "jack-in"');
+      console.error('  npm run e2e-test -- cljc      # Run files matching "cljc"');
+      console.error('  npm run e2e-test -- session   # Run files matching "session"\n');
+      console.error('Available test files are in src/extension-test/e2e/suite/\n');
       process.exit(1);
     }
 
@@ -49,10 +49,10 @@ async function main() {
         console.error(`\n⚠️  No test files match filter: "${testFilters.join(', ')}"\n`);
         console.error('Available test files:');
         allFiles.forEach((file) => console.error(`  - ${file.replace(/-test\.js$/, '')}`));
-        console.error('\nUsage: npm run integration-test [-- filter]\n');
+        console.error('\nUsage: npm run e2e-test [-- filter]\n');
         console.error('Examples:');
-        console.error('  npm run integration-test -- jack-in');
-        console.error('  npm run integration-test -- session\n');
+        console.error('  npm run e2e-test -- jack-in');
+        console.error('  npm run e2e-test -- session\n');
         process.exit(1);
       }
 
@@ -64,7 +64,7 @@ async function main() {
     const extensionTestsEnv =
       testFilters.length > 0
         ? {
-            CALVA_INTEGRATION_SUITE_FILTER: testFilters.join(','),
+            CALVA_E2E_SUITE_FILTER: testFilters.join(','),
           }
         : undefined;
 
@@ -80,7 +80,7 @@ async function main() {
       { encoding: 'utf-8', stdio: 'inherit' }
     );
 
-    // Run the integration tests using the downloaded VS Code instance
+    // Run the e2e tests using the downloaded VS Code instance
     await testElectron.runTests({
       vscodeExecutablePath,
       extensionDevelopmentPath,

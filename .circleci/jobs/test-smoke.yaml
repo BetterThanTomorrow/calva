@@ -19,12 +19,12 @@ steps:
     sudo apt update && sudo apt install -y libnss3
 
 - !:cmd
-  - Run VSIX E2E Tests for test-data/projects/e2e-sub-projects
-  - npm run e2e-test --
+  - Run VSIX Smoke Tests
+  - npm run smoke-test --
       --calva-vsix=/tmp/artifacts/calva-$(
           node -p 'require("./package.json").version'
         ).vsix
-      --test-workspace=test-data/projects/e2e-sub-projects
+      --test-workspace=src/extension-test/smoke-test
 
 - !:store
     test_results: ~/calva/junit

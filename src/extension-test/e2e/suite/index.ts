@@ -17,7 +17,7 @@ export async function run(): Promise<void> {
   });
 
   const testsRoot = path.resolve(__dirname, '..');
-  const filtersRaw = process.env.CALVA_INTEGRATION_SUITE_FILTER ?? '';
+  const filtersRaw = process.env.CALVA_E2E_SUITE_FILTER ?? '';
   const filters = filtersRaw
     .split(',')
     .map((token) => token.trim())
@@ -32,7 +32,7 @@ export async function run(): Promise<void> {
 
   filteredFiles.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-  console.log('Integration suites selected:', filteredFiles);
+  console.log('E2E suites selected:', filteredFiles);
 
   return new Promise((resolve, reject) => {
     try {

@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.589] - 2026-05-31
+
+- Fix: [debugging stops working](https://github.com/BetterThanTomorrow/calva/issues/3224)
+
 ## [2.0.588] - 2026-05-15
 
 - [Make API clojure editing independent of a `TextEditor` instance](https://github.com/BetterThanTomorrow/calva/issues/3220)
