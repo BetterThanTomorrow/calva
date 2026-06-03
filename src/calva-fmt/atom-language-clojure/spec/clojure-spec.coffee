@@ -178,6 +178,11 @@ describe "Clojure grammar", ->
       expect(tokens[1]).toEqual value: macro, scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "storage.control.clojure"]
       expect(tokens[3]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "entity.global.clojure"]
 
+  it "tokenizes negative number values in global definitions as numbers", ->
+    {tokens} = grammar.tokenizeLine "(def x -2000)"
+    expect(tokens[3]).toEqual value: "x", scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "entity.global.clojure"]
+    expect(tokens[5]).toEqual value: "-2000", scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "constant.numeric.long.clojure"]
+
   it "tokenizes dynamic variables", ->
     mutables = ["*ns*", "*foo-bar*", "*åÄÖπç*"]
 
