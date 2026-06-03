@@ -297,7 +297,9 @@
           {
             # recognizing a symbol as being defined here
             # copied and pasted from #symbol, screw it
-            'match': '([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*][\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*\\d]*)'
+            # the negative lookahead keeps sign-prefixed numbers (e.g. -2000)
+            # from being mistaken for a symbol being defined
+            'match': '(?![-+]?\\d)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*][\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*\\d]*)'
             'name': 'entity.global.clojure'
           }
           {
