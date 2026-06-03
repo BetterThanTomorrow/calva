@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Negative number values in `def`s are not highlighted as numbers](https://github.com/BetterThanTomorrow/calva/issues/3233)
+- Bump deps.clj to v1.12.5.1654
 
 ## [2.0.589] - 2026-05-31
 
