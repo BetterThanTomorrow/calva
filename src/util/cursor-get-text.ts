@@ -2,12 +2,12 @@
  * Can be unit tested since vscode and stuff is not imported
  */
 
-import { EditableDocument, StringDocument } from '../cursor-doc/model';
+import * as model from '../cursor-doc/model';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
 
 export function currentTopLevelDefined(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   active: number = doc.selections[0].active
 ): RangeAndText {
   const defunCursor = doc.getTokenCursor(active);
@@ -33,14 +33,14 @@ export function currentTopLevelDefined(
   return [undefined, ''];
 }
 
-export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
+export function currentTopLevelForm(doc: model.EditableDocument): RangeAndText {
   const defunCursor = doc.getTokenCursor(doc.selections[0].active);
   const defunRange = defunCursor.rangeForDefun(doc.selections[0].active);
   return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
 function rangeToCursor(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   foldRange: [number, number],
   startFrom: number,
   active: number
@@ -63,25 +63,25 @@ function rangeToCursor(
   return [undefined, ''];
 }
 
-export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
+export function currentEnclosingFormToCursor(doc: model.EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selections[0].active);
   const enclosingRange = cursor.rangeForList(1);
   return rangeToCursor(doc, enclosingRange, enclosingRange[0], doc.selections[0].active);
 }
 
-export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
+export function currentTopLevelFormToCursor(doc: model.EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selections[0].active);
   const defunRange = cursor.rangeForDefun(doc.selections[0].active);
   return rangeToCursor(doc, defunRange, defunRange[0], doc.selections[0].active);
 }
 
-export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
+export function startOfFileToCursor(doc: model.EditableDocument): RangeAndText {
   const cursor = doc.getTokenCursor(doc.selections[0].active);
   const defunRange = cursor.rangeForDefun(doc.selections[0].active, false);
   return rangeToCursor(doc, defunRange, 0, doc.selections[0].active);
 }
 
-export function selectionAddingBrackets(doc: EditableDocument): RangeAndText {
+export function selectionAddingBrackets(doc: model.EditableDocument): RangeAndText {
   const [left, right] = [doc.selections[0].anchor, doc.selections[0].active].sort((a, b) => a - b);
   const cursor = doc.getTokenCursor(left);
   cursor.forwardSexp(true, true, true);

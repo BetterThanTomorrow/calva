@@ -1,4 +1,4 @@
-import { Disposable } from 'vscode';
+import * as vscode from 'vscode';
 import * as vsls from 'vsls';
 import * as config from './config';
 
@@ -6,11 +6,11 @@ import * as config from './config';
 let liveShare: vsls.LiveShare = null;
 
 // Keeps hold of the LiveShare listener, to prevent it from being disposed immediately.
-let liveShareListener: Disposable = null;
+let liveShareListener: vscode.Disposable = null;
 
 let connectedPort: number = null;
 let jackedIn = false;
-const sharedPorts: Map<number, Disposable> = new Map();
+const sharedPorts: Map<number, vscode.Disposable> = new Map();
 
 export async function setupLiveShareListener() {
   if (liveShareListener !== null) {

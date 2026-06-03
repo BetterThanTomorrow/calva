@@ -1,41 +1,43 @@
-import { expect } from 'expect';
-import type { NReplSession } from '../../../../src/nrepl';
+import * as expectLib from 'expect';
+import type * as nrepl from '../../../../src/nrepl';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as clientRegistry from '../../../../src/nrepl/client-registry';
+import * as sessionNameSuffix from '../../../../src/nrepl/session-name-suffix';
 
 describe('session registry', () => {
   afterEach(() => {
     sessionRegistry._testUtility_registeredSessions.clear();
     sessionRegistry.setClojureDocsSessionKey(null);
     clientRegistry._testUtility_registeredClients.clear();
+    sessionNameSuffix.resetPool();
   });
 
   describe('resolveSessionKey', () => {
     it('returns the metadata key when available', () => {
-      const session = { replType: 'clj' } as unknown as NReplSession;
+      const session = { replType: 'clj' } as unknown as nrepl.NReplSession;
       (session as any)._calvaSessionMetadata = { key: 'bb' };
 
-      expect(sessionRegistry.resolveSessionKey(session)).toBe('bb');
+      expectLib.expect(sessionRegistry.resolveSessionKey(session)).toBe('bb');
     });
 
     it('uses the provided fallback when there is no session', () => {
-      expect(sessionRegistry.resolveSessionKey(undefined, 'custom')).toBe('custom');
+      expectLib.expect(sessionRegistry.resolveSessionKey(undefined, 'custom')).toBe('custom');
     });
 
     it('uses the default fallback when session has no metadata', () => {
-      const session = { replType: 'cljs' } as unknown as NReplSession;
+      const session = { replType: 'cljs' } as unknown as nrepl.NReplSession;
 
-      expect(sessionRegistry.resolveSessionKey(session)).toBe('clj');
+      expectLib.expect(sessionRegistry.resolveSessionKey(session)).toBe('clj');
     });
   });
 
   describe('listSessionsByClient', () => {
-    const createSession = (clientKey: string): NReplSession =>
-      ({ client: { clientKey } } as unknown as NReplSession);
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
 
     it('returns empty array for empty clientKey', () => {
       sessionRegistry.registerSession('alpha', createSession('client-a'), {});
-      expect(sessionRegistry.listSessionsByClient('')).toEqual([]);
+      expectLib.expect(sessionRegistry.listSessionsByClient('')).toEqual([]);
     });
 
     it('returns sessions belonging to the specified client', () => {
@@ -45,8 +47,8 @@ describe('session registry', () => {
 
       const sessions = sessionRegistry.listSessionsByClient('client-a');
 
-      expect(sessions).toHaveLength(2);
-      expect(sessions.map((s) => s.key).sort()).toEqual(['alpha', 'beta']);
+      expectLib.expect(sessions).toHaveLength(2);
+      expectLib.expect(sessions.map((s) => s.key).sort()).toEqual(['alpha', 'beta']);
     });
 
     it('returns empty array when no sessions match', () => {
@@ -54,13 +56,13 @@ describe('session registry', () => {
 
       const sessions = sessionRegistry.listSessionsByClient('client-unknown');
 
-      expect(sessions).toEqual([]);
+      expectLib.expect(sessions).toEqual([]);
     });
   });
 
   describe('getConnectionStateForSession', () => {
-    const createSession = (clientKey: string): NReplSession =>
-      ({ client: { clientKey } } as unknown as NReplSession);
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
 
     const createMockClient = (clientKey: string) =>
       ({ clientKey } as unknown as Parameters<typeof clientRegistry.registerClient>[0]);
@@ -76,13 +78,13 @@ describe('session registry', () => {
 
       const state = sessionRegistry.getConnectionStateForSession('alpha');
 
-      expect(state?.cljsBuild).toBe(':app');
-      expect(state?.cljsTypeName).toBe('shadow-cljs');
+      expectLib.expect(state?.cljsBuild).toBe(':app');
+      expectLib.expect(state?.cljsTypeName).toBe('shadow-cljs');
     });
 
     it('returns undefined for unregistered session', () => {
       const state = sessionRegistry.getConnectionStateForSession('unknown');
-      expect(state).toBeUndefined();
+      expectLib.expect(state).toBeUndefined();
     });
 
     it('returns correct state when multiple clients exist', () => {
@@ -95,14 +97,18 @@ describe('session registry', () => {
       sessionRegistry.registerSession('alpha', createSession('client-a'), {});
       sessionRegistry.registerSession('beta', createSession('client-b'), {});
 
-      expect(sessionRegistry.getConnectionStateForSession('alpha')?.cljsBuild).toBe(':app');
-      expect(sessionRegistry.getConnectionStateForSession('beta')?.cljsBuild).toBe(':admin');
+      expectLib
+        .expect(sessionRegistry.getConnectionStateForSession('alpha')?.cljsBuild)
+        .toBe(':app');
+      expectLib
+        .expect(sessionRegistry.getConnectionStateForSession('beta')?.cljsBuild)
+        .toBe(':admin');
     });
   });
 
   describe('findPrimarySessionForConnection', () => {
-    const createSession = (clientKey: string): NReplSession =>
-      ({ client: { clientKey } } as unknown as NReplSession);
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
 
     it('finds primary session for same connection', () => {
       sessionRegistry.registerSession('clj', createSession('client-a'), { isSecondary: false });
@@ -110,17 +116,17 @@ describe('session registry', () => {
 
       const mainSession = sessionRegistry.findPrimarySessionForConnection('cljs');
 
-      expect(mainSession).toBeDefined();
-      expect((mainSession as any)._calvaSessionMetadata?.key).toBe('clj');
+      expectLib.expect(mainSession).toBeDefined();
+      expectLib.expect((mainSession as any)._calvaSessionMetadata?.key).toBe('clj');
     });
 
     it('returns undefined when session has no owner', () => {
-      const session = { replType: 'clj' } as unknown as NReplSession;
+      const session = { replType: 'clj' } as unknown as nrepl.NReplSession;
       (session as any)._calvaSessionMetadata = { key: 'orphan' };
 
       const mainSession = sessionRegistry.findPrimarySessionForConnection('orphan');
 
-      expect(mainSession).toBeUndefined();
+      expectLib.expect(mainSession).toBeUndefined();
     });
 
     it('returns undefined when no main session exists', () => {
@@ -128,7 +134,7 @@ describe('session registry', () => {
 
       const mainSession = sessionRegistry.findPrimarySessionForConnection('cljs');
 
-      expect(mainSession).toBeUndefined();
+      expectLib.expect(mainSession).toBeUndefined();
     });
 
     it('finds main session across multiple connections', () => {
@@ -140,8 +146,122 @@ describe('session registry', () => {
       const mainForA = sessionRegistry.findPrimarySessionForConnection('cljs-a');
       const mainForB = sessionRegistry.findPrimarySessionForConnection('cljs-b');
 
-      expect((mainForA as any)?._calvaSessionMetadata?.key).toBe('clj-a');
-      expect((mainForB as any)?._calvaSessionMetadata?.key).toBe('clj-b');
+      expectLib.expect((mainForA as any)?._calvaSessionMetadata?.key).toBe('clj-a');
+      expectLib.expect((mainForB as any)?._calvaSessionMetadata?.key).toBe('clj-b');
+    });
+  });
+
+  describe('renameSession', () => {
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
+
+    const createMockClient = (clientKey: string) =>
+      ({ clientKey } as unknown as Parameters<typeof clientRegistry.registerClient>[0]);
+
+    it('renames session: accessible under new key, not under old', () => {
+      sessionRegistry.registerSession('epupp', createSession('client-a'), {});
+
+      const result = sessionRegistry.renameSession('epupp', 'epupp-youtube');
+
+      expectLib.expect(result).toBe(true);
+      expectLib.expect(sessionRegistry.getSession('epupp-youtube')).toBeDefined();
+      expectLib.expect(sessionRegistry.getSession('epupp')).toBeUndefined();
+    });
+
+    it('returns false if old key not found', () => {
+      const result = sessionRegistry.renameSession('nonexistent', 'new-name');
+
+      expectLib.expect(result).toBe(false);
+    });
+
+    it('returns false if new key already exists', () => {
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
+      sessionRegistry.registerSession('beta', createSession('client-b'), {});
+
+      const result = sessionRegistry.renameSession('alpha', 'beta');
+
+      expectLib.expect(result).toBe(false);
+      expectLib.expect(sessionRegistry.getSession('alpha')).toBeDefined();
+    });
+
+    it('updates sessionRoleKeys for primary session', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
+
+      sessionRegistry.renameSession('clj', 'my-clj');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.sessionRoleKeys?.primary).toBe('my-clj');
+      expectLib.expect(state?.sessionRoleKeys?.secondary).toBe('cljs');
+    });
+
+    it('updates sessionRoleKeys for secondary session', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+      sessionRegistry.registerSession('cljs', createSession('client-a'), { isSecondary: true });
+
+      sessionRegistry.renameSession('cljs', 'my-cljs');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.sessionRoleKeys?.primary).toBe('clj');
+      expectLib.expect(state?.sessionRoleKeys?.secondary).toBe('my-cljs');
+    });
+
+    it('releases suffix when renaming away from suffixed name', () => {
+      const suffix = sessionNameSuffix.acquireNextAvailableSuffix();
+      expectLib.expect(suffix).toBe('2');
+
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'epupp:2' },
+        },
+      });
+      sessionRegistry.registerSession('epupp:2', createSession('client-a'), {});
+
+      sessionRegistry.renameSession('epupp:2', 'epupp-youtube');
+
+      // Suffix "2" should be released back to the pool
+      const nextSuffix = sessionNameSuffix.acquireNextAvailableSuffix();
+      expectLib.expect(nextSuffix).toBe('2');
+    });
+
+    it('stores renamedSessionNames in ConnectionState for primary', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('clj', createSession('client-a'), {});
+
+      sessionRegistry.renameSession('clj', 'my-clj');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.renamedSessionNames).toEqual({ primary: 'my-clj' });
+    });
+
+    it('stores renamedSessionNames in ConnectionState for secondary', () => {
+      clientRegistry.registerClient(createMockClient('client-a'), {
+        connectionState: {
+          sessionRoleKeys: { primary: 'clj', secondary: 'cljs' },
+        },
+      });
+      sessionRegistry.registerSession('cljs', createSession('client-a'), {
+        isSecondary: true,
+      });
+
+      sessionRegistry.renameSession('cljs', 'my-cljs');
+
+      const state = clientRegistry.getConnectionState('client-a');
+      expectLib.expect(state?.renamedSessionNames).toEqual({ secondary: 'my-cljs' });
     });
   });
 });

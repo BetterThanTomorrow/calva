@@ -3,17 +3,17 @@ description: 'Testing organization and patterns for Calva extension development.
 applyTo: '**'
 ---
 
-# Structure tests across unit, integration, and E2E layers for effective Calva development.
+# Structure tests across unit, E2E, and smoke layers for effective Calva development.
 
 ## Test Layer Selection
 
 Calva organizes tests into three layers for focused verification:
 
 - **Unit tests** (`src/extension-test/unit/`): Test pure logic and functions without VS Code APIs (e.g., session analysis, glob matching). Run fast and isolated.
-- **Integration tests** (`src/extension-test/integration/`): Test features requiring VS Code APIs in depth (e.g., session routing, file operations). Feature-level verification within VS Code.
-- **E2E tests** (`src/extension-test/e2e-test/`): Smoke tests for overall extension functionality. Verify end-to-end behavior.
+- **E2E tests** (`src/extension-test/e2e/`): Test features requiring VS Code APIs in depth (e.g., session routing, file operations). Feature-level verification within VS Code.
+- **Smoke tests** (`src/extension-test/smoke-test/`): VSIX-level smoke tests for overall extension functionality. Verify end-to-end behavior on packaged extension.
 
-Choose the appropriate layer based on scope: unit for logic, integration for VS Code-dependent features, E2E for holistic verification.
+Choose the appropriate layer based on scope: unit for logic, E2E for VS Code-dependent features, smoke for holistic VSIX verification.
 
 ## Verifying Test Status
 
@@ -28,12 +28,16 @@ The 'Calva Watch Test TS' task continuously runs the full unit test suite on eve
 
 **Pattern:** After making code changes, simply call `get_task_output` for 'Calva Watch Test TS' to see if tests pass. The watcher will have already re-run the suite.
 
-## Filtering Integration Tests
+## Filtering E2E Tests
 
-To filter which integration tests to run, pass arguments directly to the npm script using `--`:
+To filter which E2E tests to run, pass arguments directly to the npm script using `--`:
 
 ```bash
-npm run integration-test -- cljc
+npm run e2e-test -- cljc
 ```
 
 This passes the filter as a command line argument accessible via `process.argv`, ensuring reliable configuration in the VS Code Extension Host environment.
+
+## E2E Test Invariant: Poll instead of Sleep
+
+The E2E test suite has helpers for witing for conditions without using fixed sleeps.

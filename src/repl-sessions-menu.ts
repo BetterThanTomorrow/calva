@@ -3,8 +3,8 @@ import * as sessionRegistry from './nrepl/session-registry';
 import * as sessionRouting from './nrepl/session-routing';
 import * as replSession from './nrepl/repl-session';
 import * as clientRegistry from './nrepl/client-registry';
-import status from './status';
-import { getPathRelativeToWorkspace } from './project-root';
+import * as status from './status';
+import * as projectRootUtil from './project-root';
 import * as utilities from './utilities';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
@@ -15,6 +15,11 @@ const OUTPUT_SESSION_MENU_SAVE_KEY = 'repl-sessions-menu-output';
 const CLJC_TARGET_BUTTON: vscode.QuickInputButton = {
   iconPath: new vscode.ThemeIcon('arrow-right'),
   tooltip: 'Make cljc target',
+};
+
+const RENAME_BUTTON: vscode.QuickInputButton = {
+  iconPath: new vscode.ThemeIcon('edit'),
+  tooltip: 'Rename session',
 };
 
 interface SessionQuickPickItem extends vscode.QuickPickItem {
@@ -28,7 +33,7 @@ function formatRelativeProjectRoot(projectRoot?: string): string | undefined {
   }
   try {
     const uri = vscode.Uri.parse(projectRoot);
-    return getPathRelativeToWorkspace(uri);
+    return projectRootUtil.getPathRelativeToWorkspace(uri);
   } catch {
     return projectRoot;
   }
@@ -268,6 +273,7 @@ function buildSessionPickItems(options?: {
     if (hasSibling && !isCljcTarget) {
       buttons.push(CLJC_TARGET_BUTTON);
     }
+    buttons.push(RENAME_BUTTON);
 
     return {
       label,
@@ -275,7 +281,7 @@ function buildSessionPickItems(options?: {
       detail,
       action: 'session',
       sessionKey: session.key,
-      buttons: buttons.length > 0 ? buttons : undefined,
+      buttons,
     };
   });
 }
@@ -476,7 +482,9 @@ export async function showReplSessionsMenu(): Promise<void> {
 
   // Build placeholder with active file path if available
   const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc ? getPathRelativeToWorkspace(activeDoc.uri) : undefined;
+  const activeFilePath = activeDoc
+    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+    : undefined;
   const placeHolder = activeFilePath
     ? `Selecting a session pins it. ${activeFilePath}`
     : 'Selecting a session pins it';
@@ -503,6 +511,10 @@ export async function showReplSessionsMenu(): Promise<void> {
           // Refresh the menu items to reflect the change
           qp.items = buildMenuItems();
         }
+      } else if (event.button === RENAME_BUTTON && item.sessionKey) {
+        const oldKey = item.sessionKey;
+        qp.hide();
+        void handleRenameSession(oldKey);
       }
     });
 
@@ -536,4 +548,51 @@ export async function showReplSessionsMenu(): Promise<void> {
 
     qp.show();
   });
+}
+
+async function handleRenameSession(oldKey: string): Promise<void> {
+  // Read pinned key BEFORE rename (getPinnedSessionKey auto-clears if key deleted from registry)
+  const pinnedKey = sessionRouting.getPinnedSessionKey();
+
+  const newKey = await vscode.window.showInputBox({
+    prompt: 'New session name',
+    value: oldKey,
+    validateInput: (value) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return 'Name cannot be empty';
+      }
+      if (trimmed.includes(':')) {
+        return 'Name cannot contain ":"';
+      }
+      if (trimmed !== oldKey && sessionRegistry.getSession(trimmed)) {
+        return `Session "${trimmed}" already exists`;
+      }
+      return undefined;
+    },
+  });
+
+  if (!newKey || newKey.trim() === oldKey) {
+    return;
+  }
+
+  const trimmedKey = newKey.trim();
+  const success = sessionRegistry.renameSession(oldKey, trimmedKey);
+  if (!success) {
+    return;
+  }
+
+  // Follow pinned session (handled here to avoid circular dependency in session-registry)
+  if (pinnedKey === oldKey) {
+    sessionRouting.pinSession(trimmedKey);
+  }
+
+  // Update output window binding
+  const session = sessionRegistry.getSession(trimmedKey);
+  if (session) {
+    const ns = (session as any)._calvaSessionMetadata?.ns;
+    outputWindow.setSession(session, ns ?? 'user', trimmedKey);
+  }
+
+  status.update();
 }

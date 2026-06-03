@@ -4,6 +4,63 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.589] - 2026-05-31
+
+- Fix: [debugging stops working](https://github.com/BetterThanTomorrow/calva/issues/3224)
+
+## [2.0.588] - 2026-05-15
+
+- [Make API clojure editing independent of a `TextEditor` instance](https://github.com/BetterThanTomorrow/calva/issues/3220)
+- Bump deps.clj to v1.12.5.1638
+
+## [2.0.587] - 2026-05-10
+
+- Fix: [The structural editor fails in some API usage scenarios](https://github.com/BetterThanTomorrow/calva/issues/3218)
+
+## [2.0.586] - 2026-05-09
+
+- Fix: [Prevent calva from breaking other debugging session](https://github.com/BetterThanTomorrow/calva/pull/2936)
+- [Add built-in Glojure Jack-in and Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/3103)
+
+## [2.0.585] - 2026-05-08
+
+- Fix: [clojure-lsp fails to start when the latest version cannot be downloaded](https://github.com/BetterThanTomorrow/calva/issues/3211)
+
+## [2.0.584] - 2026-05-07
+
+- [enable new clojure-lsp code actions: inline function, if<->cond, extract selection to function, move to :let](https://github.com/BetterThanTomorrow/calva/issues/3204)
+- Fix: [Calva forgets the renamed session name on disconnect->reconnect](https://github.com/BetterThanTomorrow/calva/issues/3207)
+
+## [2.0.583] - 2026-05-04
+
+- [Enable renaming of REPL sessions](https://github.com/BetterThanTomorrow/calva/issues/3197)
+- Fix: [Calva disconnects and closed the WebSocket server when connecting a websocket REPL configured for the same port](https://github.com/BetterThanTomorrow/calva/issues/3198)
+
+## [2.0.582] - 2026-05-03
+
+- [Make Orphaned/dicsonnected WebSocket servers closable](https://github.com/BetterThanTomorrow/calva/issues/3195)
+
+## [2.0.581] - 2026-05-02
+
+- [WebSocket nREPL transport for browser REPLs](https://github.com/BetterThanTomorrow/calva/issues/3193)
+
+## [2.0.580] - 2026-04-29
+
+- [Add a `repl.log()` to the API, for other extensions to log to the Calva output sink](https://github.com/BetterThanTomorrow/calva/issues/3191)
+
+## [2.0.579] - 2026-04-28
+
+- internal-dev: Update TypeScript codebase to use namespace imports throughout
+
+## [2.0.578] - 2026-04-27
+
+- Fix: [Mirror doc init race condition](https://github.com/BetterThanTomorrow/calva/issues/3187)
+
+## [2.0.577] - 2026-04-26
+
+- [Make it possible to select several output destinations](https://github.com/BetterThanTomorrow/calva/issues/2819)
+- [Support file paths as output destinations](https://github.com/BetterThanTomorrow/calva/issues/3185)
+
 ## [2.0.576] - 2026-04-25
 
 - [Make loadFile command accept an argument for which file to load](https://github.com/BetterThanTomorrow/calva/issues/3182)

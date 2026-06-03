@@ -5,16 +5,12 @@ import * as util from '../utilities';
 import * as model from '../cursor-doc/model';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as chalk from 'chalk';
-import * as ansiRegex from 'ansi-regex';
+import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
-import {
-  appendToReplOutputWebview,
-  showReplOutputWebviewPanel,
-  appendStackTraceToReplOutputWebview,
-} from '../../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
-import { routeEvaluatedCode } from './evaluated-code';
+import * as evaluatedCode from './evaluated-code';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -43,6 +39,14 @@ function emit(msg: SubscriberOutputMessage) {
   }
 }
 
+/**
+ * Emit a message to subscribers only, without writing to any UI destinations.
+ * Used by the API `log()` function for external extensions.
+ */
+export function emitExternal(msg: SubscriberOutputMessage) {
+  emit(msg);
+}
+
 export type OutputCategory =
   | 'evalResults'
   | 'evaluatedCode'
@@ -53,7 +57,7 @@ export type OutputCategory =
   | 'otherErr';
 
 type AppendOptions = {
-  destination: OutputDestination;
+  destination: string;
   outputCategory: OutputCategory;
   after?: AfterAppendCallback;
   who?: string;
@@ -70,9 +74,9 @@ export type AppendClojureOptions = {
 };
 
 export type AppendEvaluatedCodeOptions = {
-  destination: OutputDestination;
-  additionalDestinations?: OutputDestination[];
-  sinkDestination?: OutputDestination;
+  destination: OutputDestinationValue;
+  additionalDestinations?: OutputDestinationValue[];
+  sinkDestination?: OutputDestinationValue;
   writeVisible?: boolean;
   visibleOutputCategory?: OutputCategory;
   ns?: string;
@@ -110,12 +114,25 @@ export interface AfterAppendCallback {
   (insertLocation: vscode.Location, newPosition?: vscode.Location): any;
 }
 
-export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'output-view';
+import * as outputDestinations from './output-destinations';
+import * as fileOutput from './file-output';
+
+type OutputDestination = outputDestinations.OutputDestination;
+type OutputDestinationValue = outputDestinations.OutputDestinationValue;
+
+const normalizeDestinations = outputDestinations.normalizeDestinations;
+const isFilePathDestination = fileOutput.isFilePathDestination;
+const resolveOutputFilePath = fileOutput.resolveOutputFilePath;
+const appendToOutputFile = fileOutput.appendToOutputFile;
+const reportFileOutputError = fileOutput.reportFileOutputError;
+
+export type { OutputDestination, OutputDestinationValue };
+export { normalizeDestinations };
 
 export type OutputDestinationConfiguration = {
-  evalResults: OutputDestination;
-  evalOutput: OutputDestination;
-  otherOutput: OutputDestination;
+  evalResults: OutputDestinationValue;
+  evalOutput: OutputDestinationValue;
+  otherOutput: OutputDestinationValue;
 };
 
 export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
@@ -193,27 +210,44 @@ export function showOutputTerminal(preserveFocus = true) {
 }
 
 export function showResultOutputDestination(preserveFocus = true) {
-  if (getDestinationConfiguration().evalResults === 'output-channel') {
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  const first = destinations[0];
+  if (!first) {
+    return;
+  }
+  if (isFilePathDestination(first)) {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const resolvedPath = resolveOutputFilePath(first, workspaceRoot);
+    if (resolvedPath) {
+      return vscode.window.showTextDocument(vscode.Uri.file(resolvedPath), {
+        preserveFocus,
+        preview: true,
+      });
+    }
+    return;
+  }
+  if (first === 'output-channel') {
     return showOutputChannel(preserveFocus);
   }
-  if (getDestinationConfiguration().evalResults === 'terminal') {
+  if (first === 'terminal') {
     return showOutputTerminal(preserveFocus);
   }
-  if (getDestinationConfiguration().evalResults === 'output-view') {
-    return showReplOutputWebviewPanel(preserveFocus);
+  if (first === 'output-view') {
+    return cljsLib.showReplOutputWebviewPanel(preserveFocus);
   }
   return outputWindow.revealReplWindowDoc(preserveFocus);
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
-  return config.getConfig().outputDestinations || defaultDestinationConfiguration;
+  const raw = config.getConfig().outputDestinations;
+  return raw || defaultDestinationConfiguration;
 }
 
 function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
 }
 
-function destinationSupportsAnsi(destination: OutputDestination) {
+function destinationSupportsAnsi(destination: string) {
   return destination === 'terminal';
 }
 
@@ -221,21 +255,50 @@ function messageContainsAnsi(message: string) {
   return ansiRegex().test(message);
 }
 
+function writeToFileDestination(
+  destination: string,
+  message: string,
+  after?: AfterAppendCallback
+): void {
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const resolvedPath = resolveOutputFilePath(destination, workspaceRoot);
+  if (!resolvedPath) {
+    reportFileOutputError(
+      destination,
+      new Error(`Cannot resolve file path: ${destination}`),
+      (msg) => void vscode.window.showErrorMessage(msg)
+    );
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  const stripped = util.stripAnsi(message);
+  appendToOutputFile(resolvedPath, stripped).catch((err) => {
+    reportFileOutputError(destination, err, (msg) => void vscode.window.showErrorMessage(msg));
+  });
+  if (after) {
+    after(undefined, undefined);
+  }
+}
+
 // Used to decide if new result output should be prepended with a newline or not.
 // Also: For non-result output, whether the repl window output should be printed as line comments.
-const didLastOutputTerminateLine: Record<OutputDestination, boolean> = {
-  'repl-window': true,
-  'output-channel': true,
-  terminal: true,
-  'output-view': true,
-};
+const didLastOutputTerminateLine = new Map<string, boolean>([
+  ['repl-window', true],
+  ['output-channel', true],
+  ['terminal', true],
+  ['output-view', true],
+]);
 
 let havePrintedLegacyReplWindowOutputMessage = false;
 
 export function maybePrintLegacyREPLWindowOutputMessage() {
   if (
     !havePrintedLegacyReplWindowOutputMessage &&
-    config.getConfig().outputDestinations.evalOutput === 'repl-window' &&
+    normalizeDestinations(config.getConfig().outputDestinations.evalOutput).includes(
+      'repl-window'
+    ) &&
     !config.getConfig().legacyPrintBareReplWindowOutput
   ) {
     const message =
@@ -245,22 +308,22 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
-const lastInfoLineData: Record<OutputDestination, AppendClojureOptions> = {
-  'repl-window': {},
-  'output-channel': {},
-  terminal: {},
-  'output-view': {},
-};
+const lastInfoLineData = new Map<string, AppendClojureOptions>([
+  ['repl-window', {}],
+  ['output-channel', {}],
+  ['terminal', {}],
+  ['output-view', {}],
+]);
 
-function saveLastInfoLineData(destination: OutputDestination, options: AppendClojureOptions) {
+function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
   const { ns, replSessionType, who } = options;
   if (ns) {
-    lastInfoLineData[destination] = { ns, replSessionType, who };
+    lastInfoLineData.set(destination, { ns, replSessionType, who });
   }
 }
 
-function nsInfoLine(destination: OutputDestination, options: AppendClojureOptions) {
-  const last = lastInfoLineData[destination];
+function nsInfoLine(destination: string, options: AppendClojureOptions) {
+  const last = lastInfoLineData.get(destination) ?? {};
   const key = `${options.who || ''}:${options.replSessionType}:${options.ns}`;
   const lastKey = `${last.who || ''}:${last.replSessionType}:${last.ns}`;
   if (!options.ns || key === lastKey) {
@@ -302,6 +365,16 @@ function writeClojure(
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
+  if (isFilePathDestination(destination)) {
+    const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': false };
+    const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
+    writeToFileDestination(
+      destination,
+      `${didLastTerminateLine ? '' : '\n'}${prettyMessage}\n`,
+      after
+    );
+    return;
+  }
   if (destination === 'repl-window') {
     outputWindow.appendLine(`${didLastTerminateLine ? '' : '\n'}${message}`, after);
   } else if (destination === 'output-channel') {
@@ -325,7 +398,7 @@ function writeClojure(
       after(undefined, undefined);
     }
   } else if (destination === 'output-view') {
-    appendToReplOutputWebview(options, message);
+    cljsLib.appendToReplOutputWebview(options, message);
     if (after) {
       after(undefined, undefined);
     }
@@ -338,8 +411,8 @@ function appendClojure(
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = true;
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, true);
   if (options.description) {
     appendOtherOut(options.description, {
       who: options.who,
@@ -365,28 +438,34 @@ export function appendEvaluatedCode(
     visibleOutputCategory = 'evalResults',
     ...metadataOptions
   } = options;
-  const visibleDestinations = writeVisible
-    ? Array.from(new Set([destination, ...additionalDestinations]))
+  const normalizedDestination = normalizeDestinations(destination);
+  const normalizedAdditional = additionalDestinations.flatMap((d) => normalizeDestinations(d));
+  const normalizedSink = normalizeDestinations(sinkDestination);
+  const sinkFirst = normalizedSink[0];
+  const visibleDestinations: string[] = writeVisible
+    ? Array.from(new Set([...normalizedDestination, ...normalizedAdditional]))
     : [];
-  const didLastTerminateLineByDestination = new Map<OutputDestination, boolean>();
+  const didLastTerminateLineByDestination = new Map<string, boolean>();
 
   for (const visibleDestination of visibleDestinations) {
     didLastTerminateLineByDestination.set(
       visibleDestination,
-      didLastOutputTerminateLine[visibleDestination]
+      didLastOutputTerminateLine.get(visibleDestination) ?? true
     );
-    didLastOutputTerminateLine[visibleDestination] = true;
+    didLastOutputTerminateLine.set(visibleDestination, true);
   }
 
-  const sinkDidLastTerminateLine =
-    didLastTerminateLineByDestination.get(sinkDestination) ??
-    didLastOutputTerminateLine[sinkDestination];
+  const sinkDidLastTerminateLine = sinkFirst
+    ? didLastTerminateLineByDestination.get(sinkFirst) ??
+      didLastOutputTerminateLine.get(sinkFirst) ??
+      true
+    : true;
 
-  if (!didLastTerminateLineByDestination.has(sinkDestination)) {
-    didLastOutputTerminateLine[sinkDestination] = true;
+  if (sinkFirst && !didLastTerminateLineByDestination.has(sinkFirst)) {
+    didLastOutputTerminateLine.set(sinkFirst, true);
   }
 
-  routeEvaluatedCode({
+  evaluatedCode.routeEvaluatedCode({
     code,
     didLastTerminateLine: sinkDidLastTerminateLine,
     who: metadataOptions.who,
@@ -439,8 +518,35 @@ export function appendClojureEval(
   options: AppendClojureOptions,
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalResults;
-  appendClojure({ destination, outputCategory: 'evalResults', ...options }, code, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  if (options.description) {
+    appendOtherOut(options.description, {
+      who: options.who,
+      ns: options.ns,
+      replSessionType: options.replSessionType,
+    });
+  }
+  destinations.forEach((destination, index) => {
+    const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+    didLastOutputTerminateLine.set(destination, true);
+    if (index === 0) {
+      emitClojureMessage({ ...options, outputCategory: 'evalResults' }, code, didLastTerminateLine);
+    }
+    const isLast = index === destinations.length - 1;
+    writeClojure(
+      { destination, outputCategory: 'evalResults', ...options },
+      code,
+      didLastTerminateLine,
+      isLast ? after : undefined
+    );
+    saveLastInfoLineData(destination, options);
+  });
 }
 
 /**
@@ -451,25 +557,38 @@ export function appendClojureEval(
  * @param after Optional callback to run after the append
  */
 export function appendClojureOther(message: string, after?: AfterAppendCallback) {
-  const destination = getDestinationConfiguration().otherOutput;
-  appendClojure({ destination, outputCategory: 'clojure' }, message, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  destinations.forEach((destination, index) => {
+    const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+    didLastOutputTerminateLine.set(destination, true);
+    if (index === 0) {
+      emitClojureMessage({ outputCategory: 'clojure' }, message, didLastTerminateLine);
+    }
+    const isLast = index === destinations.length - 1;
+    writeClojure(
+      { destination, outputCategory: 'clojure' },
+      message,
+      didLastTerminateLine,
+      isLast ? after : undefined
+    );
+    saveLastInfoLineData(destination, {});
+  });
 }
 
-function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
-  try {
-    emit({
-      category: options.outputCategory,
-      text: util.stripAnsi(message),
-      who: options.who,
-      ns: options.ns,
-      replSessionKey: options.replSessionKey,
-    });
-  } catch (e) {
-    console.error('Calva output-sink listener error', e.message);
-  }
+function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = util.stripAnsi(message).endsWith('\n');
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, util.stripAnsi(message).endsWith('\n'));
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message, after);
+    return;
+  }
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -493,8 +612,23 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
     return;
   }
   if (destination === 'output-view') {
-    appendToReplOutputWebview(options, message);
+    cljsLib.appendToReplOutputWebview(options, message);
   }
+}
+
+function append(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  try {
+    emit({
+      category: options.outputCategory,
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionKey,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  writeAppend(options, message, after);
 }
 
 /**
@@ -508,22 +642,42 @@ export function appendEvalOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalOut(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'evalOut',
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'evalOut',
+      text: util.stripAnsi(message),
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'evalOut',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -537,22 +691,54 @@ export function appendEvalErr(
   options: AppendClojureOptions,
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalErr(message)
-      : message;
-  // TODO: Figure if it's worth a setting to opt-in on an ns info line
-  const evalErrOptions: AppendOptions = {
-    destination,
-    outputCategory: 'evalErr',
-    who: options.who,
-    ns: options.ns,
-    replSessionKey: options.replSessionType,
-  };
-  append(evalErrOptions, nsInfoLine(destination, options));
-  append(evalErrOptions, coloredMessage, after);
-  saveLastInfoLineData(destination, options);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  // Emit nsInfoLine and message once each (using first destination for representative info line)
+  const firstInfoLine = nsInfoLine(destinations[0], options);
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(firstInfoLine),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalErr(message)
+        : message;
+    const evalErrOptions: AppendOptions = {
+      destination,
+      outputCategory: 'evalErr',
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+    };
+    writeAppend(evalErrOptions, nsInfoLine(destination, options));
+    const isLast = index === destinations.length - 1;
+    writeAppend(evalErrOptions, coloredMessage, isLast ? after : undefined);
+    saveLastInfoLineData(destination, options);
+  });
 }
 
 /**
@@ -567,22 +753,42 @@ export function appendOtherOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherOut(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'otherOut',
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'otherOut',
+      text: util.stripAnsi(message),
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'otherOut',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -597,42 +803,52 @@ export function appendOtherErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherErr(message)
-      : message;
-  append(
-    {
-      destination,
-      outputCategory: 'otherErr',
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'otherErr',
+      text: util.stripAnsi(message),
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
-    },
-    coloredMessage,
-    after
-  );
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppend(
+      {
+        destination,
+        outputCategory: 'otherErr',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+      },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
-function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+function writeAppendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   const destination = options.destination;
-  // Terminal delegates to append() which emits; other destinations need explicit emit
-  if (destination !== 'terminal') {
-    try {
-      emit({
-        category: options.outputCategory,
-        text: util.stripAnsi(message),
-        who: options.who,
-        ns: options.ns,
-        replSessionKey: options.replSessionKey,
-      });
-    } catch (e) {
-      console.error('Calva output-sink listener error', e.message);
-    }
+  const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
+  didLastOutputTerminateLine.set(destination, true);
+  if (isFilePathDestination(destination)) {
+    writeToFileDestination(destination, message + '\n', after);
+    return;
   }
-  const didLastTerminateLine = didLastOutputTerminateLine[destination];
-  didLastOutputTerminateLine[destination] = true;
   if (destination === 'repl-window') {
     const decoratedMessage =
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
@@ -646,11 +862,27 @@ function appendLine(options: AppendOptions, message: string, after?: AfterAppend
     return;
   }
   if (destination === 'terminal') {
-    append(options, message + '\r\n', after);
+    writeAppend(options, message + '\r\n', after);
+    return;
   }
   if (destination === 'output-view') {
-    appendToReplOutputWebview(options, '\n\n' + message);
+    cljsLib.appendToReplOutputWebview(options, '\n\n' + message);
   }
+}
+
+function appendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  try {
+    emit({
+      category: options.outputCategory,
+      text: util.stripAnsi(message),
+      who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionKey,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  writeAppendLine(options, message, after);
 }
 
 /**
@@ -665,12 +897,34 @@ export function appendLineEvalOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalOut(message)
-      : message;
-  appendLine({ destination, outputCategory: 'evalOut', who: options.who }, coloredMessage, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'evalOut',
+      text: util.stripAnsi(message),
+      who: options.who,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'evalOut', who: options.who },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -685,12 +939,34 @@ export function appendLineEvalErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().evalOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().evalErr(message)
-      : message;
-  appendLine({ destination, outputCategory: 'evalErr', who: options.who }, coloredMessage, after);
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'evalErr',
+      text: util.stripAnsi(message),
+      who: options.who,
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().evalErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'evalErr', who: options.who },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -705,16 +981,34 @@ export function appendLineOtherOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherOut(message)
-      : message;
-  appendLine(
-    { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
-    coloredMessage,
-    after
-  );
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'otherOut',
+      text: util.stripAnsi(message),
+      who: options.who ?? 'ui',
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherOut(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -729,16 +1023,34 @@ export function appendLineOtherErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destination = getDestinationConfiguration().otherOutput;
-  const coloredMessage =
-    destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
-      ? themedChalk().otherErr(message)
-      : message;
-  appendLine(
-    { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
-    coloredMessage,
-    after
-  );
+  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  if (!destinations.length) {
+    if (after) {
+      after(undefined, undefined);
+    }
+    return;
+  }
+  try {
+    emit({
+      category: 'otherErr',
+      text: util.stripAnsi(message),
+      who: options.who ?? 'ui',
+    });
+  } catch (e) {
+    console.error('Calva output-sink listener error', e.message);
+  }
+  destinations.forEach((destination, index) => {
+    const coloredMessage =
+      destinationSupportsAnsi(destination) && !messageContainsAnsi(message)
+        ? themedChalk().otherErr(message)
+        : message;
+    const isLast = index === destinations.length - 1;
+    writeAppendLine(
+      { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+      coloredMessage,
+      isLast ? after : undefined
+    );
+  });
 }
 
 /**
@@ -746,7 +1058,7 @@ export function appendLineOtherErr(
  * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
 export async function replWindowAppendPrompt() {
-  didLastOutputTerminateLine['repl-window'] = true;
+  didLastOutputTerminateLine.set('repl-window', true);
   await outputWindow.appendPrompt();
 }
 
@@ -755,7 +1067,7 @@ export async function replWindowAppendPrompt() {
  * Needs to be called via here, because we keep track of whether the last output ended with a newline or not.
  */
 export async function replWindowForceAppendPrompt() {
-  didLastOutputTerminateLine['repl-window'] = true;
+  didLastOutputTerminateLine.set('repl-window', true);
   await outputWindow.forceAppendPrompt();
 }
 
@@ -775,28 +1087,34 @@ function formatStacktrace(stacktrace: any[]) {
 }
 
 function printStackTrace(stacktrace: any[]) {
-  const evalResultsOutputDestination = getDestinationConfiguration().evalResults;
-  switch (evalResultsOutputDestination) {
-    case 'repl-window':
-      outputWindow.printLastStacktrace();
-      void replWindowAppendPrompt();
-      break;
-    case 'output-view':
-      appendStackTraceToReplOutputWebview(stacktrace);
-      break;
-    case 'output-channel':
-      outputChannel.appendLine('');
-      outputChannel.appendLine(formatStacktrace(stacktrace));
-      break;
-    case 'terminal':
-      getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
-      break;
-    default:
-      console.error(
-        'Printing the last stacktrace is not supported for the configured results output destination:',
-        evalResultsOutputDestination
-      );
-      break;
+  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  for (const destination of destinations) {
+    if (isFilePathDestination(destination)) {
+      writeToFileDestination(destination, '\n' + formatStacktrace(stacktrace) + '\n');
+      continue;
+    }
+    switch (destination) {
+      case 'repl-window':
+        outputWindow.printLastStacktrace();
+        void replWindowAppendPrompt();
+        break;
+      case 'output-view':
+        cljsLib.appendStackTraceToReplOutputWebview(stacktrace);
+        break;
+      case 'output-channel':
+        outputChannel.appendLine('');
+        outputChannel.appendLine(formatStacktrace(stacktrace));
+        break;
+      case 'terminal':
+        getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
+        break;
+      default:
+        console.error(
+          'Printing the last stacktrace is not supported for the configured results output destination:',
+          destination
+        );
+        break;
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { clone, entries, first, last, orderBy, partialRight, toInteger } from 'lodash';
+import * as _ from 'lodash';
 import * as model from '../../../cursor-doc/model';
 
 /**
@@ -16,7 +16,7 @@ import * as model from '../../../cursor-doc/model';
 function textNotationToTextAndSelection(content: string): [string, model.ModelEditSelection[]] {
   const cursorSymbolRegExPattern =
     /(?<cursorType>(?:(?<selectionDirection><|>(?=\d{1})))|(?:\|))(?<cursorNumber>\d{1})?/g;
-  const text = clone(content).replace(/•/g, '\n').replace(cursorSymbolRegExPattern, '');
+  const text = _.clone(content).replace(/•/g, '\n').replace(cursorSymbolRegExPattern, '');
 
   /**
    * 3 capt groups:
@@ -48,9 +48,9 @@ function textNotationToTextAndSelection(content: string): [string, model.ModelEd
 
   const selections = [].fill(0, matches.length, undefined);
 
-  entries(cursorMatchInstances).forEach(([_, matches]) => {
-    const firstMatch = first(matches);
-    const secondMatch = last(matches) ?? firstMatch;
+  _.entries(cursorMatchInstances).forEach(([_cursorKey, matches]) => {
+    const firstMatch = _.first(matches);
+    const secondMatch = _.last(matches) ?? firstMatch;
 
     const isReversed =
       (firstMatch.groups['selectionDirection'] ?? firstMatch[2] ?? '') === '<' ? true : false;
@@ -61,7 +61,7 @@ function textNotationToTextAndSelection(content: string): [string, model.ModelEd
     const anchor = isReversed ? end : start;
     const active = isReversed ? start : end;
 
-    const cursorNumber = toInteger(firstMatch.groups['cursorNumber'] ?? firstMatch[3] ?? '0');
+    const cursorNumber = _.toInteger(firstMatch.groups['cursorNumber'] ?? firstMatch[3] ?? '0');
 
     selections[cursorNumber] = new model.ModelEditSelection(anchor, active, start, end, isReversed);
   });
@@ -108,14 +108,14 @@ export function textNotationFromTextAndSelections(
     }
   });
 
-  cursorSymbols = orderBy(cursorSymbols, (c) => c[0]);
+  cursorSymbols = _.orderBy(cursorSymbols, (c) => c[0]);
 
   // basically split up the text into chunks separated by where they'd have had cursor symbols, and append cursor symbols after each chunk, before joining back together
   // this way we can insert the cursor symbols in the right place without having to worry about the cumulative offsets created by appending the cursor symbols
   const textSegments = cursorSymbols
     .reduce(
       (acc, [offset, symbol], index) => {
-        const lastSection = last(acc)[1];
+        const lastSection = _.last(acc)[1];
         const sections = acc.slice(0, -1);
 
         const lastSectionOffset =
@@ -139,8 +139,8 @@ export function textNotationFromTextAndSelections(
   return prettyPrint ? textNotation.replace(/•/g, '\n') : textNotation;
 }
 
-textNotationFromDoc.pretty = partialRight(textNotationFromDoc, true);
-textNotationFromTextAndSelections.pretty = partialRight(textNotationFromTextAndSelections, true);
+textNotationFromDoc.pretty = _.partialRight(textNotationFromDoc, true);
+textNotationFromTextAndSelections.pretty = _.partialRight(textNotationFromTextAndSelections, true);
 
 /**
  * Utility function to get the text from a document.

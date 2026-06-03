@@ -8,22 +8,22 @@ import * as replMenu from './nrepl/repl-menu';
 import * as replSessionsMenu from './repl-sessions-menu';
 import * as drams from './nrepl/drams';
 import * as util from './utilities';
-import { NotebookKernel, NotebookProvider } from './NotebookProvider';
-import status from './status';
-import connector from './connector';
-import CalvaCompletionItemProvider from './providers/completion';
-import JarContentProvider from './providers/content';
-import HoverProvider from './providers/hover';
+import * as notebookProvider from './NotebookProvider';
+import * as status from './status';
+import * as connector from './connector';
+import * as completion from './providers/completion';
+import * as content from './providers/content';
+import * as hover from './providers/hover';
 import * as definition from './providers/definition';
-import { CalvaSignatureHelpProvider } from './providers/signature';
-import testRunner from './testRunner';
-import annotations from './providers/annotations';
-import eval from './evaluate';
+import * as signature from './providers/signature';
+import * as testRunner from './testRunner';
+import * as annotations from './providers/annotations';
+import * as evaluate from './evaluate';
 import * as refresh from './refresh';
 import * as greetings from './greet';
-import Analytics from './analytics';
-import * as open from 'open';
-import statusbar from './statusbar';
+import * as analyticsModule from './analytics';
+import open = require('open');
+import * as statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './repl-window/repl-window-doc';
@@ -32,21 +32,15 @@ import * as replHistory from './repl-window/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
-import {
-  setStateValue,
-  initializeCljs,
-  clearReplOutputView,
-  showReplOutputWebviewPanel,
-} from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
 import * as joyride from './joyride';
 import * as api from './api/index';
 import * as depsClj from './nrepl/deps-clj';
-import { refreshJackInDependencyVersions } from './nrepl/jack-in-dependency-versions';
+import * as jackInDependencyVersions from './nrepl/jack-in-dependency-versions';
 import * as clojureDocs from './clojuredocs';
-import { capitalize } from './utilities';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
@@ -71,13 +65,16 @@ function setKeybindingsEnabledContext() {
 }
 
 function initializeState() {
-  setStateValue('connected', false);
-  setStateValue('connecting', false);
+  cljsLib.setStateValue('connected', false);
+  cljsLib.setStateValue('connecting', false);
   const outputChannel = vscode.window.createOutputChannel('Calva says', 'markdown');
-  setStateValue('outputChannel', outputChannel);
+  cljsLib.setStateValue('outputChannel', outputChannel);
   output.initOutputChannel(outputChannel);
-  setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
-  setStateValue(
+  cljsLib.setStateValue(
+    'connectionLogChannel',
+    vscode.window.createOutputChannel('Calva Connection Log')
+  );
+  cljsLib.setStateValue(
     'diagnosticCollection',
     vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
   );
@@ -89,7 +86,7 @@ async function activate(context: vscode.ExtensionContext) {
   // Store a reference to the vscode API in the cljs so it can call the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
-  initializeCljs(vscode, context);
+  cljsLib.initializeCljs(vscode, context);
 
   initializeState();
   state.setExtensionContext(context);
@@ -97,7 +94,7 @@ async function activate(context: vscode.ExtensionContext) {
   const isDramStart = await drams.dramStartConfigExists();
   void drams.refreshDramConfigs();
 
-  const inspectorDataProvider = eval.initInspectorDataProvider();
+  const inspectorDataProvider = evaluate.initInspectorDataProvider();
   const inspectorTreeView = vscode.window.createTreeView('calva.inspector', {
     treeDataProvider: inspectorDataProvider,
   });
@@ -134,7 +131,7 @@ async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(testController);
   testRunner.initialize(testController);
 
-  setStateValue('analytics', new Analytics(context));
+  cljsLib.setStateValue('analytics', new analyticsModule.Analytics(context));
   void state.analytics().logGA4Pageview('/start');
 
   model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -189,7 +186,7 @@ async function activate(context: vscode.ExtensionContext) {
   }
 
   void depsClj.downloadDepsClj(context.extensionPath).finally(() => {
-    void refreshJackInDependencyVersions();
+    void jackInDependencyVersions.refreshJackInDependencyVersions();
   });
 
   if (cljKondoExtension) {
@@ -237,7 +234,7 @@ async function activate(context: vscode.ExtensionContext) {
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
-    clearReplOutputView: clearReplOutputView,
+    clearReplOutputView: cljsLib.clearReplOutputView,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
@@ -252,27 +249,27 @@ async function activate(context: vscode.ExtensionContext) {
     copyHtmlAsHiccup: converters.copyHtmlAsHiccup,
     copyAnnotationHoverText: annotations.copyHoverTextCommand,
     copyJackInCommandToClipboard: jackIn.copyJackInCommandToClipboard,
-    copyLastResults: eval.copyLastResultCommand,
-    'debug.instrument': eval.instrumentTopLevelForm,
+    copyLastResults: evaluate.copyLastResultCommand,
+    'debug.instrument': evaluate.instrumentTopLevelForm,
     'diagnostics.toggleNreplLoggingEnabled': nreplLogging.toggleEnabled,
     disconnect: jackIn.calvaDisconnect,
-    evaluateCurrentTopLevelForm: eval.evaluateTopLevelForm,
-    evaluateEnclosingForm: eval.evaluateEnclosingForm,
-    evaluateReplWindowForm: eval.evaluateReplWindowForm,
-    evaluateSelection: eval.evaluateCurrentForm,
-    evaluateSelectionAsComment: eval.evaluateSelectionAsComment,
-    evaluateSelectionReplace: eval.evaluateSelectionReplace,
-    evaluateSelectionToSelectionEnd: eval.evaluateToCursor,
-    evaluateStartOfFileToCursor: eval.evaluateStartOfFileToCursor,
-    evaluateToCursor: eval.evaluateToCursor,
-    evaluateTopLevelFormAsComment: eval.evaluateTopLevelFormAsComment,
-    evaluateTopLevelFormToCursor: eval.evaluateTopLevelFormToCursor,
-    evaluateUser: eval.evaluateUser,
-    interruptAllEvaluations: eval.interruptAllEvaluations,
+    evaluateCurrentTopLevelForm: evaluate.evaluateTopLevelForm,
+    evaluateEnclosingForm: evaluate.evaluateEnclosingForm,
+    evaluateReplWindowForm: evaluate.evaluateReplWindowForm,
+    evaluateSelection: evaluate.evaluateCurrentForm,
+    evaluateSelectionAsComment: evaluate.evaluateSelectionAsComment,
+    evaluateSelectionReplace: evaluate.evaluateSelectionReplace,
+    evaluateSelectionToSelectionEnd: evaluate.evaluateToCursor,
+    evaluateStartOfFileToCursor: evaluate.evaluateStartOfFileToCursor,
+    evaluateToCursor: evaluate.evaluateToCursor,
+    evaluateTopLevelFormAsComment: evaluate.evaluateTopLevelFormAsComment,
+    evaluateTopLevelFormToCursor: evaluate.evaluateTopLevelFormToCursor,
+    evaluateUser: evaluate.evaluateUser,
+    interruptAllEvaluations: evaluate.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
     jackOut: jackIn.jackOutCommand,
     reJackIn: jackIn.reJackInCommand,
-    loadFile: eval.loadFileCommand,
+    loadFile: evaluate.loadFileCommand,
     openCalvaDocs: async () => {
       await context.globalState.update(VIEWED_CALVA_DOCS, true);
       return open(CALVA_DOCS_URL).catch((e) => {
@@ -288,7 +285,7 @@ async function activate(context: vscode.ExtensionContext) {
     printTextToRichCommentCommand: clojureDocs.printTextToRichCommentCommand,
     refresh: refresh.refresh,
     refreshAll: refresh.refreshAll,
-    requireREPLUtilities: eval.requireREPLUtilitiesCommand,
+    requireREPLUtilities: evaluate.requireREPLUtilitiesCommand,
     rereadUserConfigEdn: config.updateCalvaConfigFromUserConfigEdn,
     rerunTests: () => testRunner.rerunTestsCommand(testController),
     runAllTests: () => testRunner.runAllTestsCommand(testController),
@@ -308,7 +305,7 @@ async function activate(context: vscode.ExtensionContext) {
     showOutputWindow: outputWindow.revealReplWindowDoc, // backwards compatibility
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
-    showReplOutputView: showReplOutputWebviewPanel,
+    showReplOutputView: cljsLib.showReplOutputWebviewPanel,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
@@ -344,7 +341,7 @@ async function activate(context: vscode.ExtensionContext) {
     },
     toggleCLJCSession: connector.toggleCLJCSession,
     selectCljcTarget: connector.selectCljcTarget,
-    toggleEvaluationSendCodeToOutputWindow: eval.toggleEvaluationSendCodeToOutputWindow,
+    toggleEvaluationSendCodeToOutputWindow: evaluate.toggleEvaluationSendCodeToOutputWindow,
     toggleKeybindingsEnabled: () => {
       const keybindingsEnabled = vscode.workspace
         .getConfiguration()
@@ -357,7 +354,7 @@ async function activate(context: vscode.ExtensionContext) {
           vscode.ConfigurationTarget.Global
         );
     },
-    togglePrettyPrint: eval.togglePrettyPrint,
+    togglePrettyPrint: evaluate.togglePrettyPrint,
     activateCalva: () => {
       return new Promise((resolve, _reject) => {
         resolve(true);
@@ -406,12 +403,12 @@ async function activate(context: vscode.ExtensionContext) {
 
   // PROVIDERS
   context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider())
+    vscode.workspace.registerTextDocumentContentProvider('jar', new content.JarContentProvider())
   );
 
   const languageProviders = {
     completionItemProvider: {
-      provider: new CalvaCompletionItemProvider(clientProvider),
+      provider: new completion.CalvaCompletionItemProvider(clientProvider),
     },
     definitionProvider: [
       {
@@ -422,17 +419,17 @@ async function activate(context: vscode.ExtensionContext) {
       },
     ],
     hoverProvider: {
-      provider: new HoverProvider(clientProvider),
+      provider: new hover.HoverProvider(clientProvider),
     },
     signatureHelpProvider: {
-      provider: new CalvaSignatureHelpProvider(),
+      provider: new signature.CalvaSignatureHelpProvider(),
       registerArgs: [' '],
     },
   };
 
   function registerLangProvider([service, providers]) {
     providers = Array.isArray(providers) ? providers : [providers];
-    const register = `register${capitalize(service)}`;
+    const register = `register${util.capitalize(service)}`;
 
     providers.forEach(({ provider, registerArgs = [] }) => {
       context.subscriptions.push(
@@ -506,7 +503,7 @@ async function activate(context: vscode.ExtensionContext) {
 
         if (evalOnSave) {
           if (!outputWindow.isReplWindowDoc(document)) {
-            await eval.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
+            await evaluate.loadDocument(document, config.getConfig().prettyPrintingOptions, false);
             void output.replWindowAppendPrompt();
           }
         }
@@ -551,7 +548,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   function registerOnDidEventHandler(scope) {
     return ([eventName, callback]) => {
-      const event = `onDid${capitalize(eventName)}`;
+      const event = `onDid${util.capitalize(eventName)}`;
       context.subscriptions.push(vscode[scope][event](callback));
     };
   }
@@ -576,11 +573,15 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(factory);
   }
   context.subscriptions.push(
-    vscode.workspace.registerNotebookSerializer('calva-clojure-notebook', new NotebookProvider(), {
-      transientOutputs: true,
-    })
+    vscode.workspace.registerNotebookSerializer(
+      'calva-clojure-notebook',
+      new notebookProvider.NotebookProvider(),
+      {
+        transientOutputs: true,
+      }
+    )
   );
-  context.subscriptions.push(new NotebookKernel());
+  context.subscriptions.push(new notebookProvider.NotebookKernel());
 
   void vscode.commands.executeCommand('setContext', 'calva:activated', true);
 

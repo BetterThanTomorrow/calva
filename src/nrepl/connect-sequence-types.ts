@@ -8,6 +8,7 @@ enum ProjectTypes {
   'nbb' = 'nbb',
   'basilisp' = 'basilisp',
   'let-go' = 'let-go',
+  'glojure' = 'glojure',
   'joyride' = 'joyride',
   'scittle' = 'scittle',
   'squint' = 'squint',
@@ -88,6 +89,8 @@ interface ReplConnectSequence {
   replSessionFilePatterns?: SessionFilePatternsConfig;
   fallbackPort?: number;
   selectedPortBehaviour?: SelectedPortBehaviour;
+  webSocketPort?: number | boolean;
+  webSocketHost?: string;
 }
 
 export {

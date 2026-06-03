@@ -1,13 +1,13 @@
 import * as state from '../../out/cljs-lib/cljs-lib';
-import { ClientProvider } from './provider';
+import type * as provider from './provider';
 
 const STATE_KEY = 'LSP_CLIENT_PROVIDER';
 
-export const registerGlobally = (provider: ClientProvider) => {
+export const registerGlobally = (provider: provider.ClientProvider) => {
   state.setStateValue(STATE_KEY, provider);
 };
 
-export const getClientProvider = (): ClientProvider => {
+export const getClientProvider = (): provider.ClientProvider => {
   const provider = state.getStateValue(STATE_KEY);
   if (!provider) {
     throw new Error('Failed to get LSP ClientProvider from global state');

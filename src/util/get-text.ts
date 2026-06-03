@@ -3,8 +3,8 @@ import * as select from '../select';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
-import { EditableDocument } from '../cursor-doc/model';
-import { getPareditConfig } from '../paredit/extension';
+import type * as model from '../cursor-doc/model';
+import * as pareditExtension from '../paredit/extension';
 
 export type SelectionAndText = [vscode.Selection | undefined, string];
 
@@ -35,7 +35,7 @@ export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position):
   const cursorDoc = docMirror.getDocument(doc);
   const cursorPos = doc.offsetAt(pos);
   const cursor = cursorDoc.getTokenCursor(cursorPos);
-  const pareditConfig = getPareditConfig();
+  const pareditConfig = pareditExtension.getPareditConfig();
   if (paredit.isInPairsList(cursor, pareditConfig)) {
     const range = paredit.currentSexpsRange(cursorDoc, cursor, cursorPos, true, pareditConfig);
     const selection = select.selectionFromOffsetRange(doc, range);
@@ -65,14 +65,19 @@ export function currentEnclosingFormText(
   return [undefined, ''];
 }
 
-export function _currentFunction(doc: vscode.TextDocument, topLevel = false): SelectionAndText {
+export function _currentFunction(
+  doc: vscode.TextDocument,
+  topLevel = false,
+  pos?: vscode.Position
+): SelectionAndText {
   if (doc) {
     const cursorDoc = docMirror.getDocument(doc);
-    const tokenCursor = cursorDoc.getTokenCursor();
+    const offset = pos !== undefined ? doc.offsetAt(pos) : undefined;
+    const tokenCursor =
+      offset !== undefined ? cursorDoc.getTokenCursor(offset) : cursorDoc.getTokenCursor();
     if (topLevel) {
-      tokenCursor.set(
-        cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(cursorDoc.selections[0].active)[1] - 1)
-      );
+      const activeOffset = offset ?? cursorDoc.selections[0].active;
+      tokenCursor.set(cursorDoc.getTokenCursor(tokenCursor.rangeForDefun(activeOffset)[1] - 1));
     }
     const [start, end] = tokenCursor.getFunctionSexpRange();
     if (start && end) {
@@ -85,17 +90,20 @@ export function _currentFunction(doc: vscode.TextDocument, topLevel = false): Se
   return [undefined, ''];
 }
 
-export function currentFunction(doc: vscode.TextDocument): SelectionAndText {
-  return _currentFunction(doc, false);
+export function currentFunction(doc: vscode.TextDocument, pos?: vscode.Position): SelectionAndText {
+  return _currentFunction(doc, false, pos);
 }
 
-export function currentTopLevelFunction(doc: vscode.TextDocument): SelectionAndText {
-  return _currentFunction(doc, true);
+export function currentTopLevelFunction(
+  doc: vscode.TextDocument,
+  pos?: vscode.Position
+): SelectionAndText {
+  return _currentFunction(doc, true, pos);
 }
 
 function selectionAndText(
   doc: vscode.TextDocument,
-  textGetter: (doc: EditableDocument, active: number) => cursorTextGetter.RangeAndText,
+  textGetter: (doc: model.EditableDocument, active: number) => cursorTextGetter.RangeAndText,
   pos: vscode.Position
 ): SelectionAndText {
   if (doc) {
@@ -145,7 +153,7 @@ export function startOFileToCursor(
 
 function fromFn(
   doc: vscode.TextDocument,
-  cursorDocFn: (doc: EditableDocument, offset?: number) => [number, number]
+  cursorDocFn: (doc: model.EditableDocument, offset?: number) => [number, number]
 ): SelectionAndText {
   if (doc) {
     const cursorDoc = docMirror.getDocument(doc);

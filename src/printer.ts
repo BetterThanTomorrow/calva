@@ -1,5 +1,5 @@
-import { getConfig } from './config';
-import { assertIsDefined } from './utilities';
+import * as config from './config';
+import * as utilities from './utilities';
 import * as calvaLib from '../out/cljs-lib/cljs-lib';
 
 export type PrintFnOptions = {
@@ -110,7 +110,7 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
 }
 
 export function prettyPrintingOptions(): PrettyPrintingOptions | undefined {
-  return getConfig().prettyPrintingOptions;
+  return config.getConfig().prettyPrintingOptions;
 }
 
 export const zprintDependencies = {
@@ -119,7 +119,7 @@ export const zprintDependencies = {
 
 export function getServerSidePrinterDependencies() {
   const options = prettyPrintingOptions();
-  assertIsDefined(options, 'Expected prettyPrintingOptions to be defined!');
+  utilities.assertIsDefined(options, 'Expected prettyPrintingOptions to be defined!');
 
   if (options.printEngine === 'zprint') {
     return zprintDependencies;

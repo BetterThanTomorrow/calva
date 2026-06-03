@@ -1,8 +1,8 @@
-import { expect } from 'expect';
+import * as expectLib from 'expect';
 import * as minimatchLib from 'minimatch';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as globs from '../../../../src/nrepl/globs';
-import type { NReplSession } from '../../../../src/nrepl';
+import type * as nrepl from '../../../../src/nrepl';
 
 /**
  * Pure glob matching logic extracted for testing.
@@ -53,8 +53,8 @@ function findSessionKeyByGlob(
 }
 
 describe('glob-based session routing', () => {
-  const createSession = (clientKey: string): NReplSession =>
-    ({ client: { clientKey } } as unknown as NReplSession);
+  const createSession = (clientKey: string): nrepl.NReplSession =>
+    ({ client: { clientKey } } as unknown as nrepl.NReplSession);
 
   afterEach(() => {
     sessionRegistry._testUtility_registeredSessions.clear();
@@ -80,8 +80,8 @@ describe('glob-based session routing', () => {
         },
       ];
 
-      expect(findSessionKeyByGlob('src/app/core.clj', sessions)).toBe('clj');
-      expect(findSessionKeyByGlob('test/app_test.clj', sessions)).toBe('clj');
+      expectLib.expect(findSessionKeyByGlob('src/app/core.clj', sessions)).toBe('clj');
+      expectLib.expect(findSessionKeyByGlob('test/app_test.clj', sessions)).toBe('clj');
     });
 
     it('routes .cljs files to secondary session', () => {
@@ -102,7 +102,7 @@ describe('glob-based session routing', () => {
         },
       ];
 
-      expect(findSessionKeyByGlob('src/app/ui.cljs', sessions)).toBe('cljs');
+      expectLib.expect(findSessionKeyByGlob('src/app/ui.cljs', sessions)).toBe('cljs');
     });
 
     it('prefers always-claim over is-fallback-for', () => {
@@ -123,8 +123,8 @@ describe('glob-based session routing', () => {
         },
       ];
 
-      expect(findSessionKeyByGlob('src/special/core.clj', sessions)).toBe('special');
-      expect(findSessionKeyByGlob('src/other/core.clj', sessions)).toBe('clj');
+      expectLib.expect(findSessionKeyByGlob('src/special/core.clj', sessions)).toBe('special');
+      expectLib.expect(findSessionKeyByGlob('src/other/core.clj', sessions)).toBe('clj');
     });
   });
 
@@ -169,10 +169,14 @@ describe('glob-based session routing', () => {
       // Combined sessions as would appear in registry
       const allSessions = [...sessionsA, ...sessionsB];
 
-      expect(findSessionKeyByGlob('app/src/core.clj', allSessions)).toBe('app-clj');
-      expect(findSessionKeyByGlob('app/src/ui.cljs', allSessions)).toBe('app-cljs');
-      expect(findSessionKeyByGlob('admin/src/dashboard.clj', allSessions)).toBe('admin-clj');
-      expect(findSessionKeyByGlob('admin/src/views.cljs', allSessions)).toBe('admin-cljs');
+      expectLib.expect(findSessionKeyByGlob('app/src/core.clj', allSessions)).toBe('app-clj');
+      expectLib.expect(findSessionKeyByGlob('app/src/ui.cljs', allSessions)).toBe('app-cljs');
+      expectLib
+        .expect(findSessionKeyByGlob('admin/src/dashboard.clj', allSessions))
+        .toBe('admin-clj');
+      expectLib
+        .expect(findSessionKeyByGlob('admin/src/views.cljs', allSessions))
+        .toBe('admin-cljs');
     });
 
     it('uses specificity to resolve overlapping globs from different connections', () => {
@@ -194,8 +198,10 @@ describe('glob-based session routing', () => {
       ];
 
       // More specific pattern wins
-      expect(findSessionKeyByGlob('src/app/special/handler.clj', sessions)).toBe('specific-clj');
-      expect(findSessionKeyByGlob('src/other/handler.clj', sessions)).toBe('generic-clj');
+      expectLib
+        .expect(findSessionKeyByGlob('src/app/special/handler.clj', sessions))
+        .toBe('specific-clj');
+      expectLib.expect(findSessionKeyByGlob('src/other/handler.clj', sessions)).toBe('generic-clj');
     });
 
     it('respects tier priority across connections', () => {
@@ -217,9 +223,9 @@ describe('glob-based session routing', () => {
       ];
 
       // always-claim beats is-fallback-for even if less specific
-      expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('claim-clj');
+      expectLib.expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('claim-clj');
       // Fallback handles non-matching paths
-      expect(findSessionKeyByGlob('test/core.clj', sessions)).toBe('fallback-clj');
+      expectLib.expect(findSessionKeyByGlob('test/core.clj', sessions)).toBe('fallback-clj');
     });
 
     it('uses registration order as tiebreaker for equal scores', () => {
@@ -241,7 +247,7 @@ describe('glob-based session routing', () => {
       ];
 
       // First registered wins on tie
-      expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('first-clj');
+      expectLib.expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('first-clj');
     });
 
     it('returns undefined when no globs match', () => {
@@ -255,7 +261,7 @@ describe('glob-based session routing', () => {
         },
       ];
 
-      expect(findSessionKeyByGlob('lib/core.cljs', sessions)).toBeUndefined();
+      expectLib.expect(findSessionKeyByGlob('lib/core.cljs', sessions)).toBeUndefined();
     });
 
     it('handles empty glob specs gracefully', () => {
@@ -270,7 +276,7 @@ describe('glob-based session routing', () => {
         },
       ];
 
-      expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('has-globs');
+      expectLib.expect(findSessionKeyByGlob('src/core.clj', sessions)).toBe('has-globs');
     });
   });
 
@@ -287,8 +293,8 @@ describe('glob-based session routing', () => {
       });
 
       const metadata = sessionRegistry.getSessionMetadata('clj');
-      expect(metadata?.globs).toEqual(['**/*.clj']);
-      expect(metadata?.globSpecs).toEqual(globSpecs);
+      expectLib.expect(metadata?.globs).toEqual(['**/*.clj']);
+      expectLib.expect(metadata?.globSpecs).toEqual(globSpecs);
     });
 
     it('listSessions returns glob metadata for routing decisions', () => {
@@ -307,8 +313,8 @@ describe('glob-based session routing', () => {
       const sessions = sessionRegistry.listSessions();
       const sessionData = sessions.map((s) => ({ key: s.key, globSpecs: s.globSpecs }));
 
-      expect(findSessionKeyByGlob('src/core.clj', sessionData)).toBe('clj');
-      expect(findSessionKeyByGlob('src/ui.cljs', sessionData)).toBe('cljs');
+      expectLib.expect(findSessionKeyByGlob('src/core.clj', sessionData)).toBe('clj');
+      expectLib.expect(findSessionKeyByGlob('src/ui.cljs', sessionData)).toBe('cljs');
     });
   });
 });

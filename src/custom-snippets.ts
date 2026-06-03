@@ -3,11 +3,11 @@ import * as _ from 'lodash';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
-import { getConfig } from './config';
+import * as config from './config';
 import * as replSession from './nrepl/repl-session';
-import evaluate from './evaluate';
+import * as evaluate from './evaluate';
 import * as state from './state';
-import { getStateValue, interpolateVariables } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
 
 export type CustomREPLCommandSnippet = {
@@ -33,7 +33,7 @@ export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | S
 }
 
 async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetDefinition) {
-  if (!getStateValue('connected')) {
+  if (!cljsLib.getStateValue('connected')) {
     void vscode.window.showErrorMessage('Not connected to a REPL');
     return;
   }
@@ -90,16 +90,16 @@ async function evaluateCodeInContext(
 
 async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorRepl: string) {
   const configErrors: { name: string; keys: string[] }[] = [];
-  const globalSnippets = getConfig().customREPLCommandSnippetsGlobal;
-  const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace;
-  const workspaceFolderSnippets = getConfig().customREPLCommandSnippetsWorkspaceFolder;
+  const globalSnippets = config.getConfig().customREPLCommandSnippetsGlobal;
+  const workspaceSnippets = config.getConfig().customREPLCommandSnippetsWorkspace;
+  const workspaceFolderSnippets = config.getConfig().customREPLCommandSnippetsWorkspaceFolder;
   let snippets = [
     ...(workspaceFolderSnippets ? workspaceFolderSnippets : []),
     ...(workspaceSnippets ? workspaceSnippets : []),
     ...(globalSnippets ? globalSnippets : []),
   ];
   if (snippets.length < 1) {
-    snippets = getConfig().customREPLCommandSnippets;
+    snippets = config.getConfig().customREPLCommandSnippets;
   }
   const snippetsDict = {};
   const snippetsMenuItems: vscode.QuickPickItem[] = [];
@@ -199,7 +199,7 @@ export function makeContext(
 export async function evaluateSnippet(editor: vscode.TextEditor, code, context, options) {
   const ns = context.ns;
   const repl = context.repl;
-  const interpolatedCode = interpolateVariables(editor.document.languageId, code, context);
+  const interpolatedCode = cljsLib.interpolateVariables(editor.document.languageId, code, context);
   if (typeof interpolatedCode === 'string') {
     return await evaluate.evaluateInCurrentEditor(editor, interpolatedCode, repl, ns, options);
   } else {

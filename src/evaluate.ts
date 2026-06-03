@@ -1,28 +1,29 @@
 import * as vscode from 'vscode';
 import * as state from './state';
-import annotations from './providers/annotations';
+import * as annotations from './providers/annotations';
 import * as path from 'path';
 import * as util from './utilities';
-import { NReplSession, NReplEvaluation } from './nrepl';
-import statusbar from './statusbar';
-import { PrettyPrintingOptions } from './printer';
+import * as nrepl from './nrepl';
+import * as statusbar from './statusbar';
+import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
-import { formatAsLineComments } from './results-output/util';
-import { getStateValue, appendStackTraceToReplOutputWebview } from '../out/cljs-lib/cljs-lib';
-import { getConfig } from './config';
+import * as resultsOutputUtil from './results-output/util';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as getText from './util/get-text';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
-import { resultAsComment } from './util/string-result';
-import { highlight } from './highlight/src/extension';
+import * as stringResult from './util/string-result';
+import * as highlightExtension from './highlight/src/extension';
 import * as flareHandler from './flare-handler';
-import { normalizeEvaluateAsCommentArgs } from './evaluate-utils';
+import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
+import * as outputDestinations from './results-output/output-destinations';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -31,7 +32,7 @@ function initInspectorDataProvider() {
   return inspectorDataProvider;
 }
 
-async function getJavaVersion(session: NReplSession): Promise<number | null> {
+async function getJavaVersion(session: nrepl.NReplSession): Promise<number | null> {
   try {
     const result = await session.eval('(System/getProperty "java.version")', 'user').value;
     // Parse version like "21.0.1", "17.0.2", "1.8.0_292"
@@ -43,7 +44,7 @@ async function getJavaVersion(session: NReplSession): Promise<number | null> {
   }
 }
 
-async function checkJvmAttachSelfSupport(session: NReplSession): Promise<boolean> {
+async function checkJvmAttachSelfSupport(session: nrepl.NReplSession): Promise<boolean> {
   try {
     const result = await session.eval('(System/getProperty "jdk.attach.allowAttachSelf")', 'user')
       .value;
@@ -61,7 +62,7 @@ async function interruptAllEvaluations() {
     return;
   }
 
-  const firstSession = NReplSession.getInstances()?.[0];
+  const firstSession = nrepl.NReplSession.getInstances()?.[0];
   if (!firstSession?.supports('interrupt')) {
     void vscode.window.showInformationMessage(
       'The nREPL server does not support interruption of evaluations.'
@@ -81,14 +82,14 @@ async function interruptAllEvaluations() {
   }
 
   const msgs: string[] = [];
-  const nums = NReplEvaluation.interruptAll((msg) => {
+  const nums = nrepl.NReplEvaluation.interruptAll((msg) => {
     msgs.push(msg);
   });
   if (msgs.length) {
     output.appendLineOtherOut(msgs.join('\n'), { who: 'ui' });
   }
   try {
-    NReplSession.getInstances().forEach((session, _index) => {
+    nrepl.NReplSession.getInstances().forEach((session, _index) => {
       session.interruptAll();
     });
   } catch (error) {
@@ -111,12 +112,16 @@ async function addAsComment(
   commentStyle: string
 ) {
   const endOfLinePosition = editor.document.lineAt(codeSelection.end.line).range.end;
-  const commentText = resultAsComment(codeSelection.start.character, result, commentStyle);
+  const commentText = stringResult.resultAsComment(
+    codeSelection.start.character,
+    result,
+    commentStyle
+  );
   await editor.edit((editBuilder) => {
     editBuilder.insert(endOfLinePosition, commentText);
   });
   editor.selections = [selection];
-  highlight(editor);
+  highlightExtension.highlight(editor);
 }
 
 // TODO: Clean up this mess
@@ -125,12 +130,12 @@ async function evaluateCodeUpdatingUI(
   options,
   selection?: vscode.Selection
 ): Promise<string | null> {
-  const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
+  const pprintOptions = options.pprintOptions || calvaConfig.getConfig().prettyPrintingOptions;
   // passed options overwrite config options
   const evaluationSendCodeToOutputWindow =
     (options.evaluationSendCodeToOutputWindow === undefined ||
       options.evaluationSendCodeToOutputWindow === true) &&
-    getConfig().evaluationSendCodeToOutputWindow;
+    calvaConfig.getConfig().evaluationSendCodeToOutputWindow;
   const addToHistory =
     (options.addToHistory === undefined || options.addToHistory === true) &&
     (evaluationSendCodeToOutputWindow ||
@@ -141,7 +146,7 @@ async function evaluateCodeUpdatingUI(
   const line = options.line;
   const column = options.column;
   const filePath = options.filePath;
-  const session: NReplSession = options.session;
+  const session: nrepl.NReplSession = options.session;
   const sessionKey = sessionRegistry.resolveSessionKey(session);
   const ns = options.ns;
   let editor: vscode.TextEditor;
@@ -164,7 +169,7 @@ async function evaluateCodeUpdatingUI(
       await session.evaluateInNs(options.nsForm, replWindow.getNs());
     }
 
-    const context: NReplEvaluation = session.eval(code, ns, {
+    const context: nrepl.NReplEvaluation = session.eval(code, ns, {
       file: filePath,
       line: line + 1,
       column: column + 1,
@@ -187,7 +192,8 @@ async function evaluateCodeUpdatingUI(
       output.appendEvaluatedCode(code, {
         destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
         additionalDestinations:
-          shouldWriteVisibleEvaluatedCode && evalResultsDestination !== 'repl-window'
+          shouldWriteVisibleEvaluatedCode &&
+          !outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
             ? [evalResultsDestination]
             : [],
         sinkDestination: evalResultsDestination,
@@ -253,10 +259,17 @@ async function evaluateCodeUpdatingUI(
           const errMsg = err.join('\n');
           if (context.stacktrace) {
             replWindow.saveStacktrace(context.stacktrace);
-            replWindow.appendLine(formatAsLineComments(errMsg), (_, afterResultLocation) => {
-              replWindow.markLastStacktraceRange(afterResultLocation);
-            });
-            if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+            replWindow.appendLine(
+              resultsOutputUtil.formatAsLineComments(errMsg),
+              (_, afterResultLocation) => {
+                replWindow.markLastStacktraceRange(afterResultLocation);
+              }
+            );
+            if (
+              !outputDestinations
+                .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+                .includes('repl-window')
+            ) {
               output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
             }
           } else {
@@ -267,8 +280,8 @@ async function evaluateCodeUpdatingUI(
     } catch (e) {
       if (showErrorMessage) {
         const outputWindowError = err.length
-          ? formatAsLineComments(err.join('\n'))
-          : formatAsLineComments(e);
+          ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
+          : resultsOutputUtil.formatAsLineComments(e);
         replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
           if (selection) {
             const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
@@ -307,18 +320,26 @@ async function evaluateCodeUpdatingUI(
               console.error(`Failed fetching stacktrace: ${e.message}`);
             });
         });
-        if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+        if (
+          !outputDestinations
+            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+            .includes('repl-window')
+        ) {
           output.appendEvalErr(err.length ? err.join('\n') : e, {
             ns,
             replSessionType: sessionKey,
             who: 'ui',
           });
-          if (output.getDestinationConfiguration().evalOutput === 'output-view') {
+          if (
+            outputDestinations
+              .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+              .includes('output-view')
+          ) {
             session
               .stacktrace()
               .then((stacktrace) => {
                 if (stacktrace && stacktrace.stacktrace) {
-                  appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+                  cljsLib.appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
                 }
               })
               .catch((e) => {
@@ -341,7 +362,7 @@ async function evaluateSelection(document = {}, options) {
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =
     options.selectionFn;
 
-  if (getStateValue('connected')) {
+  if (cljsLib.getStateValue('connected')) {
     const editor = util.getActiveTextEditor();
     const selection = selectionFn(editor);
     const codeSelection: vscode.Selection = selection[0];
@@ -419,7 +440,7 @@ function evaluateSelectionReplace(document = {}, options = {}) {
       document,
       Object.assign({}, options, {
         replace: true,
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm,
       })
     ).catch(printWarningForError);
@@ -437,14 +458,14 @@ function validateCommentStyle(commentStyle: string) {
 }
 
 function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document = {}) {
-  const normalized = normalizeEvaluateAsCommentArgs(document, options);
+  const normalized = evaluateUtils.normalizeEvaluateAsCommentArgs(document, options);
   validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       normalized.document,
       Object.assign({}, normalized.options, {
         comment: true,
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm,
       })
     ).catch(printWarningForError);
@@ -454,14 +475,14 @@ function evaluateSelectionAsComment(options = { commentStyle: 'line' }, document
 }
 
 function evaluateTopLevelFormAsComment(options = { commentStyle: 'line' }, document = {}) {
-  const normalized = normalizeEvaluateAsCommentArgs(document, options);
+  const normalized = evaluateUtils.normalizeEvaluateAsCommentArgs(document, options);
   validateCommentStyle(normalized.options.commentStyle);
   if (util.getConnectedState()) {
     evaluateSelection(
       normalized.document,
       Object.assign({}, normalized.options, {
         comment: true,
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentTopLevelFormText,
       })
     ).catch(printWarningForError);
@@ -490,7 +511,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(
       document,
       Object.assign({}, options, {
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentTopLevelFormText,
       })
     ).catch(printWarningForError);
@@ -504,7 +525,7 @@ function evaluateReplWindowForm(document = {}, options = {}) {
     evaluateSelection(
       document,
       Object.assign({}, options, {
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentTopLevelFormText,
         evaluationSendCodeToOutputWindow: false,
         addToHistory: true,
@@ -520,7 +541,7 @@ function evaluateCurrentForm(document = {}, options = {}) {
     evaluateSelection(
       document,
       Object.assign({}, options, {
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm,
       })
     ).catch(printWarningForError);
@@ -534,7 +555,7 @@ function evaluateEnclosingForm(document = {}, options = {}) {
     evaluateSelection(
       document,
       Object.assign({}, options, {
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         selectionFn: _currentEnclosingFormText,
       })
     ).catch(printWarningForError);
@@ -552,7 +573,7 @@ function evaluateUsingTextAndSelectionGetter(
   evaluateSelection(
     document,
     Object.assign({}, options, {
-      pprintOptions: getConfig().prettyPrintingOptions,
+      pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
       selectionFn: (editor: vscode.TextEditor) => {
         const [selection, code] = getter(editor?.document, editor?.selections[0].active);
         return [selection, formatter(code)];
@@ -604,7 +625,7 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
-  pprintOptions: PrettyPrintingOptions,
+  pprintOptions: printerTypes.PrettyPrintingOptions,
   shouldResetPreview: boolean = false,
   silent: boolean = false,
   sessionKey?: string,
@@ -624,7 +645,12 @@ async function loadDocument(
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 
-  if (doc && doc.languageId == 'clojure' && fileType != 'edn' && getStateValue('connected')) {
+  if (
+    doc &&
+    doc.languageId == 'clojure' &&
+    fileType != 'edn' &&
+    cljsLib.getStateValue('connected')
+  ) {
     const docUri = replWindow.isReplWindowDoc(doc)
       ? await namespace.getUriForNamespace(session, ns)
       : doc.uri;
@@ -644,7 +670,7 @@ async function loadFileCommand(fileArg?: unknown) {
     }
     const result = await loadDocument(
       document,
-      getConfig().prettyPrintingOptions,
+      calvaConfig.getConfig().prettyPrintingOptions,
       true,
       silent,
       sessionKey,
@@ -684,7 +710,7 @@ async function loadFile(
   filePath: string,
   ns: string,
   nsForm: string,
-  pprintOptions: PrettyPrintingOptions,
+  pprintOptions: printerTypes.PrettyPrintingOptions,
   fileType: string,
   silent: boolean = false,
   targetSessionKey?: string,
@@ -731,7 +757,11 @@ async function loadFile(
         }
       }
     );
-    if (output.getDestinationConfiguration().evalOutput !== 'repl-window') {
+    if (
+      !outputDestinations
+        .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+        .includes('repl-window')
+    ) {
       output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who });
     }
     if (silent) {
@@ -756,7 +786,7 @@ async function loadFile(
   } finally {
     replWindow.setSession(session, ns);
     replSession.updateReplSessionType();
-    if (getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+    if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
         who,
       });
@@ -769,7 +799,7 @@ async function loadFile(
       );
       await customSnippets.evaluateSnippet(
         util.getActiveTextEditor(),
-        getConfig().autoEvaluateCode.onFileLoaded[fileType],
+        calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType],
         context,
         {}
       );
@@ -827,7 +857,7 @@ async function copyLastResultCommand() {
 async function togglePrettyPrint() {
   const config = vscode.workspace.getConfiguration('calva'),
     pprintConfigKey = 'prettyPrintingOptions',
-    pprintOptions = config.get<PrettyPrintingOptions>(pprintConfigKey);
+    pprintOptions = config.get<printerTypes.PrettyPrintingOptions>(pprintConfigKey);
   pprintOptions.enabled = !pprintOptions.enabled;
   if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn)) {
     pprintOptions.printEngine = 'pprint';
@@ -851,7 +881,7 @@ function instrumentTopLevelForm() {
     evaluateSelection(
       {},
       {
-        pprintOptions: getConfig().prettyPrintingOptions,
+        pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
         debug: true,
         selectionFn: _currentTopLevelFormText,
       }
@@ -923,7 +953,7 @@ async function evaluateInCurrentEditor(
   }
 }
 
-export default {
+export {
   interruptAllEvaluations,
   loadDocument,
   loadFileCommand,

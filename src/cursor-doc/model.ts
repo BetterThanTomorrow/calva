@@ -1,14 +1,20 @@
-import { Scanner, Token, ScannerState } from './clojure-lexer';
-import { LispTokenCursor } from './token-cursor';
-import { deepEqual as equal } from '../util/object';
-import { isNumber, isUndefined } from 'lodash';
-import { TextDocument, Selection, TextEditorEdit } from 'vscode';
+import * as clojureLexer from './clojure-lexer';
+import * as tokenCursor from './token-cursor';
+import * as objectUtil from '../util/object';
+import * as vscode from 'vscode';
 import _ = require('lodash');
 
-let scanner: Scanner;
+type Token = clojureLexer.Token;
+type ScannerState = clojureLexer.ScannerState;
+type TextDocument = vscode.TextDocument;
+type Selection = vscode.Selection;
+type TextEditorEdit = vscode.TextEditorEdit;
+type LispTokenCursor = tokenCursor.LispTokenCursor;
+
+let scanner: clojureLexer.Scanner;
 
 export function initScanner(maxLength: number) {
-  scanner = new Scanner(maxLength);
+  scanner = new clojureLexer.Scanner(maxLength);
 }
 
 /**
@@ -100,10 +106,10 @@ export class ModelEditSelection {
     end?: number,
     isReversed?: boolean
   ) {
-    if (isNumber(anchorOrSelection)) {
+    if (_.isNumber(anchorOrSelection)) {
       const anchor = anchorOrSelection;
       this._anchor = anchor;
-      if (activeOrDoc !== undefined && isNumber(activeOrDoc)) {
+      if (activeOrDoc !== undefined && _.isNumber(activeOrDoc)) {
         this._active = activeOrDoc;
       } else {
         this._active = anchor;
@@ -244,6 +250,7 @@ export type ModelEditOptions = {
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
+  editor?: unknown;
 };
 
 export interface EditableModel {
@@ -472,7 +479,10 @@ export class LineInputModel implements EditableModel {
         this.changedLines.add(nextIdx);
         this.lines[nextIdx].processLine(prevState);
         prevState = this.lines[nextIdx].endState;
-      } while (this.lines[++nextIdx] && !equal(this.lines[nextIdx].startState, prevState));
+      } while (
+        this.lines[++nextIdx] &&
+        !objectUtil.deepEqual(this.lines[nextIdx].startState, prevState)
+      );
     }
   }
 
@@ -765,11 +775,15 @@ export class LineInputModel implements EditableModel {
       for (let i = 0; i < line.tokens.length; i++) {
         const tk = line.tokens[i];
         if (previous ? tk.offset > col : tk.offset > col) {
-          return new LispTokenCursor(this, row, previous ? Math.max(0, lastIndex - 1) : lastIndex);
+          return new tokenCursor.LispTokenCursor(
+            this,
+            row,
+            previous ? Math.max(0, lastIndex - 1) : lastIndex
+          );
         }
         lastIndex = i;
       }
-      return new LispTokenCursor(this, row, line.tokens.length - 1);
+      return new tokenCursor.LispTokenCursor(this, row, line.tokens.length - 1);
     } else {
       throw new Error('Unable to get token cursor for LineInputModel!');
     }
@@ -824,7 +838,7 @@ export class StringDocument implements EditableDocument {
   selectionsStack: ModelEditSelection[][] = [];
 
   getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
-    if (isUndefined(offset)) {
+    if (_.isUndefined(offset)) {
       throw new Error('Expected a cursor for StringDocument!');
     }
 

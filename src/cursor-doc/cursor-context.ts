@@ -1,4 +1,4 @@
-import { EditableDocument } from './model';
+import type * as model from './model';
 
 export const allCursorContexts = [
   'calva:cursorInString',
@@ -16,7 +16,10 @@ export type CursorContext = typeof allCursorContexts[number];
  * Returns true if documentOffset is either at the first char of the token under the cursor, or
  * in the whitespace between the token and the first preceding EOL, otherwise false
  */
-export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selections[0].active) {
+export function isAtLineStartInclWS(
+  doc: model.EditableDocument,
+  offset = doc.selections[0].active
+) {
   const tokenCursor = doc.getTokenCursor(offset);
   let startOfLine = false;
   //  only at start if we're in ws, or at the 1st char of a non-ws sexp
@@ -34,7 +37,7 @@ export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selectio
  * Returns true if position is after the last char of the last lisp token on the line, including
  * any trailing whitespace or EOL, otherwise false
  */
-export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selections[0].active) {
+export function isAtLineEndInclWS(doc: model.EditableDocument, offset = doc.selections[0].active) {
   const tokenCursor = doc.getTokenCursor(offset);
   if (tokenCursor.getToken().type === 'eol') {
     return true;
@@ -58,7 +61,7 @@ export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selections
 }
 
 export function determineContexts(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   offset = doc.selections[0].active
 ): CursorContext[] {
   const tokenCursor = doc.getTokenCursor(offset);

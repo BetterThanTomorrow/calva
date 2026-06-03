@@ -92,6 +92,12 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   observe(x) ∧ ¬propose(x) | propose(x) ∧ ¬implement(x) | implement(x) ∧ ¬exceed(x)
   | output(phase) ∩ output(next_phase) = ∅ | boundary ≡ what_you_withhold
   | collapse(phases) ≡ default_mode | resist(default_mode)
+
+λ plan_documents.
+  implementation_plan ∨ migration_plan ∨ refactoring_plan → path(ephemeral-docs/plans/{topic}-plan.md)
+  | ephemeral-docs/plans ≡ canonical_home_for_project_plans
+  | existing_plan_in(ephemeral-docs/plans) → update_in_place | ¬fork_to(dev/docs)
+  | new_plan → create_under(ephemeral-docs/plans) | keep_filename_descriptive
 ```
 
 ## S4 — Decision Rules
@@ -549,7 +555,7 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
   |   "Calva Watch TS"       → typescript_compilation | primary_source
   |   "Calva Watch CLJS"     → clojurescript_compilation | secondary_source
   |   "Calva Watch Test TS"  → unit_test_runner | continuous_feedback
-  |   "Calva Watch Lint"     → eslint | style_enforcement
+  |   "Calva Watch Lint"     → eslint | style_enforcement (ESLint, is sometimes slow to update results, so check back a bit later if it seems stale)
   |   "Calva Watch TS Format" → prettier | format_enforcement
   |   "Calva Watch Docs"     → mkdocs | documentation_site
   | change → auto_recompile → check_watch_output | verify_clean_before_test
@@ -644,19 +650,18 @@ Calva is a Clojure/ClojureScript IDE in VS Code. It bridges three worlds: the ed
 
 ## Require Map
 
+Namespace imports are the import invariant for Calva TypeScript code. Use named or default imports only when a module's export shape makes namespace imports incorrect or unusable.
+
 ```typescript
 // API Entry Point (public consumer interface)
-import { getApi } from 'calva/api';
+import * as api from 'calva/api';
 
 // nREPL Session Management
 import * as sessionRegistry from 'calva/nrepl/session-registry';
 import * as replSession from 'calva/nrepl/repl-session';
 
-// Connection Management
-import connector from 'calva/connector';
-
 // Configuration
-import { getConfig } from 'calva/config';
+import * as config from 'calva/config';
 
 // Output/Results
 import * as resultOutput from 'calva/results-output/output';

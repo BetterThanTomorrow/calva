@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as docMirror from './doc-mirror/index';
-import { EditableDocument, ModelEdit } from './cursor-doc/model';
+import * as model from './cursor-doc/model';
 import * as select from './select';
 import * as printer from './printer';
 import * as paredit from './cursor-doc/paredit';
 import * as format from './calva-fmt/src/format';
-import { calculateCommentPrefixRemovalEnd, findCommentPrefixStart } from './comment-prefix';
+import * as commentPrefix from './comment-prefix';
+import { isTextEditor } from './util/editor-utils';
 
 type CandidatesMap = Map<number, number[]>;
 
@@ -97,7 +98,10 @@ function areAllNonEmptyTargetLinesCommented(
     nonEmptyLines.length > 0 &&
     nonEmptyLines.every((lineNum) => {
       const candidates = candidatesMap.get(lineNum) ?? [];
-      return findCommentPrefixStart(document.lineAt(lineNum).text, candidates) !== undefined;
+      return (
+        commentPrefix.findCommentPrefixStart(document.lineAt(lineNum).text, candidates) !==
+        undefined
+      );
     })
   );
 }
@@ -311,7 +315,7 @@ async function applyStructuralCommentsToSingleSelectionLines(
  * - `false` when the break can be skipped entirely.
  */
 function resolveStructuralBreakOffset(
-  mirrorDoc: EditableDocument,
+  mirrorDoc: model.EditableDocument,
   wouldBreakWhere: number,
   affectedLineSet: Set<number>,
   partialSelectionStartOffset?: number,
@@ -455,11 +459,14 @@ async function updateLineComments(
         const lineText = line.text;
 
         if (shouldUncomment) {
-          const removalStart = findCommentPrefixStart(lineText, candidatesMap.get(lineNum) ?? []);
+          const removalStart = commentPrefix.findCommentPrefixStart(
+            lineText,
+            candidatesMap.get(lineNum) ?? []
+          );
           if (removalStart === undefined) {
             continue;
           }
-          const removalEnd = calculateCommentPrefixRemovalEnd(lineText, removalStart);
+          const removalEnd = commentPrefix.calculateCommentPrefixRemovalEnd(lineText, removalStart);
           if (removalEnd === undefined) {
             continue;
           }
@@ -606,17 +613,30 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
   );
 }
 
+/**
+ * Replaces text in a Clojure document within the given range.
+ *
+ * @param editorOrDocument When a `TextEditor` is provided, uses `TextEditor.edit()`
+ *   with undo grouping, formatting, and selection restoration (the interactive editing path).
+ *   When a `TextDocument` is provided, uses `WorkspaceEdit` via `vscode.workspace.applyEdit()`,
+ *   which requires no visible editor and causes no UI side effects — suitable for
+ *   programmatic/API edits. Formatting is automatically skipped since it requires a visible editor.
+ * @param range The document range to replace.
+ * @param newText The replacement text.
+ * @param options Edit options forwarded to `DocumentModel.edit()`.
+ */
 export function replace(
-  editor: vscode.TextEditor,
+  editorOrDocument: vscode.TextEditor | vscode.TextDocument,
   range: vscode.Range,
   newText: string,
   options = {}
 ) {
-  const document = editor.document;
-  const mirrorDoc: EditableDocument = docMirror.getDocument(document);
+  const hasEditor = isTextEditor(editorOrDocument);
+  const document = hasEditor ? editorOrDocument.document : editorOrDocument;
+  const mirrorDoc: model.EditableDocument = docMirror.getDocument(document);
   return mirrorDoc.model.edit(
     [
-      new ModelEdit('changeRange', [
+      new model.ModelEdit('changeRange', [
         document.offsetAt(range.start),
         document.offsetAt(range.end),
         newText,
@@ -627,6 +647,9 @@ export function replace(
         undoStopBefore: true,
       },
       ...options,
+      // Without a TextEditor, formatting and selection restoration can't work,
+      // so force skipFormat to route through WorkspaceEdit.
+      ...(hasEditor ? { editor: editorOrDocument } : { skipFormat: true }),
     }
   );
 }

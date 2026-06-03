@@ -3,7 +3,7 @@ import * as fiddleFilesUtil from './util/fiddle-files';
 import * as state from './state';
 import * as config from './config';
 import * as nsUtil from './util/ns-form';
-import eval from './evaluate';
+import * as evaluate from './evaluate';
 import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as output from './results-output/output';
@@ -146,7 +146,7 @@ export async function evaluateFiddleForSourceFile() {
     output.appendLineOtherOut(`Evaluating fiddle: ${relativeFiddleFilePath}`);
     const session = replSession.getSession();
     const sessionKey = sessionRegistry.resolveSessionKey(session);
-    await eval.evaluateInOutputWindow(code, sessionKey, ns, {
+    await evaluate.evaluateInOutputWindow(code, sessionKey, ns, {
       nsForm,
     });
     await output.replWindowAppendPrompt();

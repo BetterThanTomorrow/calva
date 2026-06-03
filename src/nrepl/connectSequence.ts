@@ -4,7 +4,7 @@ import * as state from '../state';
 import * as utilities from '../utilities';
 import * as fileArg from '../util/resolve-file-arg';
 import * as config from '../config';
-import { ConnectType } from './connect-types';
+import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
 import * as projectRoot from '../project-root';
 import * as csTypes from './connect-sequence-types';
@@ -191,6 +191,14 @@ const letGoBuiltIns: csTypes.ReplConnectSequence[] = [
   },
 ];
 
+const glojureBuiltIns: csTypes.ReplConnectSequence[] = [
+  {
+    name: 'glojure',
+    projectType: csTypes.ProjectTypes['glojure'],
+    cljsType: csTypes.CljsTypes.none,
+  },
+];
+
 const epuppBuiltIns: csTypes.ReplConnectSequence[] = [
   {
     name: 'epupp',
@@ -213,6 +221,7 @@ const builtInSequences = {
   nbb: nbbBuiltIns,
   basilisp: basilispBuiltIns,
   'let-go': letGoBuiltIns,
+  glojure: glojureBuiltIns,
   joyride: joyrideBuiltIns,
   scittle: scittleBuiltIns,
   squint: squintBuiltIns,
@@ -397,13 +406,15 @@ function getDefaultCljsType(cljsType: string): csTypes.CljsTypeConfig {
 
 async function getUserSpecifiedSequence(
   sequences: csTypes.ReplConnectSequence[],
-  connectType: ConnectType,
+  connectType: connectTypes.ConnectType,
   disableAutoSelect: boolean
 ): Promise<csTypes.ReplConnectSequence | undefined> {
   const autoSelectedSequences = disableAutoSelect
     ? []
     : sequences.filter((s) =>
-        connectType === ConnectType.Connect ? s.autoSelectForConnect : s.autoSelectForJackIn
+        connectType === connectTypes.ConnectType.Connect
+          ? s.autoSelectForConnect
+          : s.autoSelectForJackIn
       );
   const candidatePaths = await projectRoot.findProjectRoots();
   const active_uri = vscode.window.activeTextEditor?.document.uri;
@@ -446,11 +457,11 @@ async function getUserSpecifiedSequence(
 
 async function askForConnectSequence(
   cljTypes: string[],
-  connectType: ConnectType,
+  connectType: connectTypes.ConnectType,
   disableAutoSelect: boolean
 ): Promise<csTypes.ReplConnectSequence> {
   const [saveAs, logLabel, menuTitleType] =
-    connectType === ConnectType.Connect
+    connectType === connectTypes.ConnectType.Connect
       ? ['connect-type', 'ConnectInterrupted', 'Connect']
       : ['jack-in-type', 'JackInInterrupted', 'Jack-in'];
   const sequences: csTypes.ReplConnectSequence[] = getConnectSequences(cljTypes);
@@ -464,7 +475,7 @@ async function askForConnectSequence(
 
   if (!projectConnectSequenceName) {
     const filteredSequences =
-      connectType === ConnectType.JackIn
+      connectType === connectTypes.ConnectType.JackIn
         ? sequences.filter((s) => {
             // Allow sequences that define their own jack-in command
             if (s.customJackInCommandLine) {
