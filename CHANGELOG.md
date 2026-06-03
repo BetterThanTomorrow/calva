@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: Negative number values in `def`s are not highlighted as numbers
+
 ## [2.0.589] - 2026-05-31
 
 - Fix: [debugging stops working](https://github.com/BetterThanTomorrow/calva/issues/3224)
