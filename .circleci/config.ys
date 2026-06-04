@@ -25,7 +25,6 @@
 job-names =::
 - checkout
 - build
-- test-grammar
 - prettier-check
 - eslint-check
 - test-cljslib

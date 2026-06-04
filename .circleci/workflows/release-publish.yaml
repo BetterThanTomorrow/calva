@@ -27,10 +27,6 @@ jobs:
     requires: [build]
     filters:: filters()
 
-- test-grammar:
-    requires: [build]
-    filters:: filters()
-
 - test-cljslib:
     requires: [build]
     filters:: filters()
@@ -55,7 +51,6 @@ jobs:
     requires:
     - prettier-check
     - eslint-check
-    - test-grammar
     - test-cljslib
     - test-e2e
     - test-smoke

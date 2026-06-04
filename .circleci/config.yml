@@ -13,7 +13,7 @@ jobs:
         path: ~/calva
     - restore_cache:
         name: Restore dependencies
-        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}
     - run:
         name: Install node_modules
         command: cp package.json /tmp && npm install && cp /tmp/package.json .
@@ -25,7 +25,7 @@ jobs:
         command: cp -r . /tmp/build
     - save_cache:
         name: Save dependencies
-        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}
         paths:
         - ./node_modules
     - persist_to_workspace:
@@ -113,7 +113,7 @@ jobs:
         command: cp -r out /tmp/build; cp package.json /tmp/build
     - save_cache:
         name: Save dependencies
-        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}
         paths:
         - ./node_modules
         - ~/.m2
@@ -125,31 +125,6 @@ jobs:
         - artifacts
         - build
         - env
-  test-grammar:
-    working_directory: ~/calva
-    environment:
-      DISPLAY: :99
-    docker:
-    - image: arcanemagus/atom-docker-ci
-    steps:
-    - attach_workspace:
-        at: /tmp
-    - run:
-        name: Restore build
-        command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Start display server for Atom
-        command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
-        background: true
-    - run:
-        name: Run package tests
-        command: cd src/calva-fmt/atom-language-clojure; ./run-grammar-tests.sh
-    - save_cache:
-        name: Save dependencies
-        key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
-        paths:
-        - ~/.atom/packages
-        - ./node_modules
   prettier-check:
     docker:
     - image: cimg/node:22.16.0
@@ -493,9 +468,6 @@ workflows:
     - prettier-check:
         requires:
         - checkout
-    - test-grammar:
-        requires:
-        - checkout
     - build:
         requires:
         - checkout
@@ -521,7 +493,6 @@ workflows:
         requires:
         - prettier-check
         - eslint-check
-        - test-grammar
         - test-cljslib
         - test-e2e
         - test-smoke
@@ -556,14 +527,6 @@ workflows:
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
     - eslint-check:
-        requires:
-        - build
-        filters:
-          branches:
-            ignore: /.*/
-          tags:
-            only: /^v\d+\.\d+\.\d+-?.*/
-    - test-grammar:
         requires:
         - build
         filters:
@@ -615,7 +578,6 @@ workflows:
         requires:
         - prettier-check
         - eslint-check
-        - test-grammar
         - test-cljslib
         - test-e2e
         - test-smoke
