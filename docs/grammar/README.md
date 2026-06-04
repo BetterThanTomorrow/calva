@@ -6,18 +6,10 @@ The grammar was originally derived from [atom/language-clojure](https://github.c
 
 ## Editing the grammar
 
+0. Add a failing test in `src/extension-test/unit/calva-fmt/clojure-grammar-test.ts`
 1. Edit `clojure.tmLanguage.json` (valid JSON; `firstLineMatch` uses `(?x)` extended mode like upstream Atom grammars).
-2. Run grammar unit tests:
-
-   ```sh
-   npm run unit-test
-   ```
-
-   With **Calva Watch Test TS** running (`npm run unit-test-watch`), saving `clojure.tmLanguage.json` re-runs the suite automatically.
-
-   The suite lives in `src/extension-test/unit/calva-fmt/clojure-grammar-test.ts` and tokenizes via `vscode-textmate` (same engine VS Code uses).
-
-3. Spot-check highlighting in VS Code on representative `.clj` / `.cljs` / `.cljc` files and the Calva REPL prompt if you touched `#prompt` or related rules.
+2. With **Calva Watch Test TS** running (as the default VS Code Build task does), saving `clojure.tmLanguage.json` re-runs the suite automatically.
+3. Spot-check highlighting in VS Code on representative `.clj` / `.cljs` / `.cljc` files (and the Calva REPL prompt if you touched `#prompt` or related rules).
 
 ## Tests
 
