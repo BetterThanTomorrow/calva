@@ -1,7 +1,10 @@
 {
-	"information_for_contributors": [
-		"This file is generated from ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson"
-	],
+    "information_for_contributors": [
+          "This is the Clojure TextMate grammar for Calva, hand-maintained in this repository.",
+          "It was originally derived from atom/language-clojure (https://github.com/atom/language-clojure).",
+          "Edit this file directly. See docs/grammar/README.md for the editing/testing workflow.",
+          "Grammar unit tests: npm run unit-test (src/extension-test/unit/calva-fmt/clojure-grammar-test.ts)."
+  ],
 	"name": "Clojure",
 	"scopeName": "source.clojure",
 	"patterns": [
