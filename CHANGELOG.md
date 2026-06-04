@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Internal: Ditching `atom-language-clojure` for Clojure TextMate grammar and using (`clojure.tmLanguage.json`) as the source of truth 
-  - Unit tests (and watcher) is now covering the grammar (utilizing `vscode-textmate`)
+- Unit tests (and watcher) are now covering the grammar (utilizing `vscode-textmate`)
 
 ## [2.0.590] - 2026-06-03
 
