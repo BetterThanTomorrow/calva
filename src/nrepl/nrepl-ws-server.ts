@@ -208,14 +208,18 @@ export async function startNReplWsServer(port: number, host?: string): Promise<N
 const activeServers = new Set<NReplWsServer>();
 
 function updateWsServerContext() {
-  // Dynamic require to avoid breaking unit tests (vscode module unavailable outside extension host)
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const vscode = require('vscode');
-  void vscode.commands.executeCommand(
-    'setContext',
-    'calva:webSocketServerRunning',
-    activeServers.size > 0
-  );
+  // Dynamic require; vscode is unavailable outside the extension host (e.g. unit tests)
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const vscode = require('vscode');
+    void vscode.commands.executeCommand(
+      'setContext',
+      'calva:webSocketServerRunning',
+      activeServers.size > 0
+    );
+  } catch {
+    /* ignore */
+  }
 }
 
 export function trackServer(
@@ -238,4 +242,11 @@ export function untrackServer(server: NReplWsServer): void {
 
 export function getActiveServers(): ReadonlySet<NReplWsServer> {
   return activeServers;
+}
+
+export async function stopAllActiveWsServers(): Promise<void> {
+  for (const server of [...activeServers]) {
+    untrackServer(server);
+    await server.stop();
+  }
 }

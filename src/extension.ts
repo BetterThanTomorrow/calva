@@ -4,6 +4,7 @@ import * as fmt from './calva-fmt/src/extension';
 import * as highlight from './highlight/src/extension';
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
+import * as nReplWsServer from './nrepl/nrepl-ws-server';
 import * as replMenu from './nrepl/repl-menu';
 import * as replSessionsMenu from './repl-sessions-menu';
 import * as drams from './nrepl/drams';
@@ -651,6 +652,7 @@ async function activate(context: vscode.ExtensionContext) {
 async function deactivate(): Promise<void> | undefined {
   // Use force=true during deactivation because VS Code is shutting down
   // and graceful shutdown callbacks may not fire in time
+  await nReplWsServer.stopAllActiveWsServers();
   await jackIn.calvaJackout({ force: true });
   paredit.deactivate();
   await lsp.getClientProvider().shutdown();

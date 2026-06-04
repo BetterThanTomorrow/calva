@@ -98,6 +98,7 @@ async function connectViaWebSocket(
   isJackIn = false
 ): Promise<ConnectResult> {
   let activeClient: nrepl.NReplClient | undefined;
+  let trackedWsServer: nReplWsServer.NReplWsServer | undefined;
   let preservedRenames: Partial<sessionRoleUtils.SessionRoleKeys> | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
   const projectRootPath = state.getProjectRootUri().fsPath;
@@ -160,6 +161,7 @@ async function connectViaWebSocket(
 
     const sessionKeyValues = Object.values(sessionRoleKeys).filter(Boolean) as string[];
     nReplWsServer.trackServer(server, connectSequence.name, projectRoot, sessionKeyValues);
+    trackedWsServer = server;
 
     // Track first connection to resolve the initial await
     let resolveFirstConnection: (() => void) | null = null;
@@ -394,6 +396,10 @@ async function connectViaWebSocket(
       return { connected: false };
     }
   } catch (e) {
+    if (trackedWsServer?.isListening()) {
+      nReplWsServer.untrackServer(trackedWsServer);
+      await trackedWsServer.stop();
+    }
     return cleanUpAfterError(e, {
       clientKey: activeClient?.clientKey,
       suffix: resolution.suffix,

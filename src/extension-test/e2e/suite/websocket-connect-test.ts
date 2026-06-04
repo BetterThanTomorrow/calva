@@ -6,6 +6,7 @@ import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as connector from '../../../connector';
+import * as nReplWsServer from '../../../nrepl/nrepl-ws-server';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as docMirror from '../../../doc-mirror';
@@ -13,6 +14,7 @@ import * as docMirror from '../../../doc-mirror';
 const WS_PORT_EVAL = 51340;
 const WS_PORT_LOAD = 51341;
 const WS_PORT_RENAME = 51342;
+const WS_PORT_SHUTDOWN = 51343;
 
 /**
  * Create a scittle webview via Joyride flare.
@@ -360,5 +362,56 @@ suite('WebSocket nREPL Connect suite', function () {
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, `[TIMING] Test 3 complete: ${elapsed()}`);
+  });
+
+  test('WebSocket port is released on extension shutdown path', async function () {
+    const t0 = Date.now();
+    const elapsed = () => `${Date.now() - t0}ms`;
+    testUtil.log(suite, 'WebSocket port released on shutdown path');
+
+    const projectDir = path.join(
+      testUtil.testDataDir,
+      '..',
+      'projects',
+      'scittle-replicant-tic-tac-toe'
+    );
+
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      name: 'scittle-ws-shutdown-test',
+      projectType: connectSequenceTypes.ProjectTypes['scittle'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      webSocketPort: WS_PORT_SHUTDOWN,
+      projectRootPath: [projectDir],
+    };
+
+    const connectPromise = connector.connect(connectSequence, true);
+
+    await testUtil.waitForCondition(
+      () => testUtil.canConnectToPort(WS_PORT_SHUTDOWN),
+      5_000,
+      20,
+      `WS server not listening on port ${WS_PORT_SHUTDOWN}`
+    );
+    assert.ok(
+      nReplWsServer.getActiveServers().size > 0,
+      'Expected tracked WebSocket server while waiting for browser'
+    );
+    testUtil.log(suite, `[TIMING] WS server listening: ${elapsed()}`);
+
+    // Same shutdown as extension deactivate() on window reload (#3237).
+    // Full Developer: Reload Window is not automatable in @vscode/test-electron.
+    await nReplWsServer.stopAllActiveWsServers();
+
+    await testUtil.waitForCondition(
+      async () => !(await testUtil.canConnectToPort(WS_PORT_SHUTDOWN)),
+      5_000,
+      20,
+      `Port ${WS_PORT_SHUTDOWN} still bound after stopAllActiveWsServers`
+    );
+    assert.strictEqual(nReplWsServer.getActiveServers().size, 0);
+
+    const result = await connectPromise;
+    assert.ok(!result.connected, 'Connect should end after server shutdown');
+    testUtil.log(suite, `[TIMING] Shutdown path complete: ${elapsed()}`);
   });
 });
