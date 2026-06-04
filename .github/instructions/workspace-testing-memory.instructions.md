@@ -19,7 +19,7 @@ Choose the appropriate layer based on scope: unit for logic, E2E for VS Code-dep
 
 **Use `get_task_output` with the test watcher task—never run tests separately.**
 
-The 'Calva Watch Test TS' task continuously runs the full unit test suite on every file change. When you see output like '1076 passing', that IS the current test status. There is no need to run tests via terminal commands or `runTests`—the watcher has already done it.
+The 'Calva Watch Test TS' task continuously runs the full unit test suite on every file change under `src/` and on saves to `clojure.tmLanguage.json`. When you see output like '1076 passing', that IS the current test status. There is no need to run tests via terminal commands or `runTests`—the watcher has already done it.
 
 **Why this matters:**
 - `runTests` may return '0/0' due to VS Code test discovery limitations
