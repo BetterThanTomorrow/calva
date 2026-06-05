@@ -74,6 +74,11 @@ export async function captureScreenshot(
 ): Promise<string> {
   let outputPath = path.join(screenshotsDir, suite, `${testName}.png`);
 
+  if (process.platform === 'linux' && !getExecutablePath('xrandr')) {
+    log(suite, 'Skipping screenshot because xrandr is not installed');
+    return null;
+  }
+
   try {
     const dir = path.dirname(outputPath);
     fs.mkdirSync(dir, { recursive: true });

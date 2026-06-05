@@ -10,7 +10,7 @@ Calva comes with a powerful expression-based debugger, inspired by [Cider](https
 ![Debugger demonstration: stepping through an instrumented function](images/debugger/stepping.gif "Debugger demonstration: stepping through an instrumented function")
 
 !!! note
-    The debugger currently does not support ClojureScript. Calva's debugger utilizes cider-nrepl for debugging. See [this Cider issue](https://github.com/clojure-emacs/cider/issues/1416) for more information.
+    JVM Clojure with debugger-capable `cider-nrepl` middleware is the known supported setup for Calva's full expression debugger. GUI source breakpoints are enabled when the active nREPL session advertises the required `init-debugger` and `debug-input` operations. Other dialects or servers may work when they advertise both operations; Calva does not enable GUI breakpoint instrumentation based on file extension alone.
 
 ## Features
 
@@ -60,6 +60,12 @@ You can insert a breakpoint manually into any code by placing a `#break` in fron
 
 !!! note
     Code will be executed up to and *including* the form after the breakpoint.
+
+### GUI Breakpoints in the Editor Gutter
+
+You can also add breakpoints by clicking the editor gutter. Calva uses the active nREPL session's advertised debugger operations to decide whether it can instrument them. If either `init-debugger` or `debug-input` is unavailable, the VS Code markers may remain visible, but Calva reports them as unverified and evaluates forms without breakpoint instrumentation. The notification names the missing operations. Connecting to an unsupported session by itself does not show a warning; feedback appears when you request breakpoint behavior.
+
+Adding a gutter breakpoint causes Calva to re-evaluate its containing top-level form to install the breakpoint. That evaluation can repeat side effects. Editing a breakpoint condition or removing a marker does not itself re-evaluate the form; evaluate the updated top-level form again to apply the condition or source change. Removing a marker does not undo code that has already run, and runtime breakpoint cleanup can depend on the debugger middleware version.
 
 ### Conditional Breakpoints
 

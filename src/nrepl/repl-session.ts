@@ -200,8 +200,8 @@ function resolveCljcWithinConnection(
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
  */
-function getRoutingInfo(): RoutingResult | undefined {
-  const doc = utilities.tryToGetDocument({});
+function getRoutingInfo(document?: vscode.TextDocument): RoutingResult | undefined {
+  const doc = utilities.tryToGetDocument(document ?? {});
 
   // 1. Pinned session takes priority
   const pinnedSession = sessionRouting.resolvePinnedSession();
@@ -260,12 +260,12 @@ function getRoutingInfo(): RoutingResult | undefined {
  * 4. CLJC session preference (fallback for unclaimed files)
  * 5. First available session (defensive fallback)
  */
-function getSessionKey(): string | undefined {
-  return getRoutingInfo()?.sessionKey;
+function getSessionKey(document?: vscode.TextDocument): string | undefined {
+  return getRoutingInfo(document)?.sessionKey;
 }
 
-function getSession(): nrepl.NReplSession {
-  const sessionKey = getSessionKey();
+function getSession(document?: vscode.TextDocument): nrepl.NReplSession {
+  const sessionKey = getSessionKey(document);
 
   // Try getting from registry first
   if (sessionKey) {
@@ -276,7 +276,7 @@ function getSession(): nrepl.NReplSession {
   }
 
   // Fallback for REPL window session
-  if (outputWindow.isReplWindowDoc(utilities.tryToGetDocument({}))) {
+  if (outputWindow.isReplWindowDoc(document ?? utilities.tryToGetDocument({}))) {
     return outputWindow.getSession();
   }
 
