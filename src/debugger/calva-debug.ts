@@ -12,6 +12,8 @@ import * as debugDecorations from './decorations';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
+import * as sessionRegistry from '../nrepl/session-registry';
+import * as sessionRouting from '../nrepl/session-routing';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
@@ -31,6 +33,7 @@ const REQUESTS = {
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
 const DEBUG_QUIT_VALUE = 'QUIT';
+const DEBUGGER_OPS = ['init-debugger', 'debug-input'];
 const DEBUG_ANALYTICS = {
   CATEGORY: 'Debugger',
   EVENT_ACTIONS: {
@@ -56,6 +59,7 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
+let warnedUnsupportedSessionKeys = new Set<string>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -577,7 +581,31 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
+function supportsDebuggerOps(session?: nrepl.NReplSession): boolean {
+  return Boolean(session && DEBUGGER_OPS.every((op) => session.supports(op)));
+}
+
+function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
+  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
+  return `The ${sessionKey} nREPL session does not support debugger operations. Breakpoint UI is still available in VS Code, but Calva will not instrument or evaluate breakpoint forms for this session. Start the REPL with cider-nrepl debugger middleware to use breakpoints.`;
+}
+
+function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
+  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
+  if (once && warnedUnsupportedSessionKeys.has(sessionKey)) {
+    return;
+  }
+  warnedUnsupportedSessionKeys.add(sessionKey);
+  void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
+}
+
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
+  if (!supportsDebuggerOps(cljSession)) {
+    warnUnsupportedDebugger(cljSession, true);
+    return;
+  }
+
+  warnedUnsupportedSessionKeys.delete(sessionRegistry.resolveSessionKey(cljSession));
   cljSession.initDebugger();
   debugDecorations.activate();
   void syncExistingSourceBreakpoints();
@@ -731,7 +759,8 @@ function injectBreakpoints(
 function instrumentCodeWithSourceBreakpoints(
   document: vscode.TextDocument,
   selection: vscode.Selection,
-  code: string
+  code: string,
+  session?: nrepl.NReplSession
 ): string {
   const breakpoints = vscode.debug.breakpoints
     .filter(isClojureSourceBreakpoint)
@@ -740,6 +769,11 @@ function instrumentCodeWithSourceBreakpoints(
         breakpoint.location.uri.toString() === document.uri.toString() &&
         selection.contains(breakpointTargetPosition(document, breakpoint))
     );
+
+  if (breakpoints.length > 0 && !supportsDebuggerOps(session)) {
+    warnUnsupportedDebugger(session, true);
+    return code;
+  }
 
   return breakpoints.length === 0
     ? code
@@ -759,13 +793,18 @@ async function evaluateTopLevelFormForBreakpoint(
     return;
   }
 
+  if (!supportsDebuggerOps(session)) {
+    warnUnsupportedDebugger(session, true);
+    return;
+  }
+
   const [selection, code] = getText.currentTopLevelFormText(document, position);
   if (!selection || code.length === 0) {
     return;
   }
 
   const [ns, nsForm] = namespace.getNamespace(document, selection.end);
-  const codeToEvaluate = instrumentCodeWithSourceBreakpoints(document, selection, code);
+  const codeToEvaluate = instrumentCodeWithSourceBreakpoints(document, selection, code, session);
 
   try {
     if (breakpointCodeEvaluator) {
@@ -809,6 +848,17 @@ async function syncExistingSourceBreakpoints(): Promise<void> {
   void syncSourceBreakpoints(breakpoints);
 }
 
+async function syncSourceBreakpointsForDocument(document?: vscode.TextDocument): Promise<void> {
+  if (!document) {
+    return;
+  }
+
+  const breakpoints = vscode.debug.breakpoints
+    .filter(isClojureSourceBreakpoint)
+    .filter((breakpoint) => breakpoint.location.uri.toString() === document.uri.toString());
+  void syncSourceBreakpoints(breakpoints);
+}
+
 async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
   const seenTopLevelForms = new Set<string>();
 
@@ -848,6 +898,17 @@ function registerSourceBreakpointInstrumentation(
   context.subscriptions.push(
     vscode.debug.onDidChangeBreakpoints((event) => {
       void syncChangedSourceBreakpoints(event);
+    }),
+    sessionRegistry.onDidChangeSessions((event) => {
+      if (event.type !== 'registered') {
+        void syncExistingSourceBreakpoints();
+      }
+    }),
+    sessionRouting.onDidChangeRouting(() => {
+      void syncExistingSourceBreakpoints();
+    }),
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      void syncSourceBreakpointsForDocument(editor?.document);
     })
   );
   void syncExistingSourceBreakpoints();
@@ -878,5 +939,7 @@ export {
   instrumentCodeWithSourceBreakpoints,
   onNreplMessage,
   registerSourceBreakpointInstrumentation,
+  supportsDebuggerOps,
+  warnUnsupportedDebugger,
   terminateDebugSession,
 };
