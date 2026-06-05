@@ -14,6 +14,8 @@ import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
+import * as getText from '../util/get-text';
+import * as namespace from '../namespace';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
@@ -47,6 +49,14 @@ type ExtractedStructure = {
   originalStrings: string[];
 };
 
+type BreakpointCodeEvaluator = (
+  code: string,
+  options: any,
+  selection?: vscode.Selection
+) => Promise<string | null>;
+
+let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
+
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
@@ -73,6 +83,67 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     response.body = {
       ...response.body,
       supportsRestartRequest: true,
+      supportsConditionalBreakpoints: true,
+      supportsBreakpointLocationsRequest: true,
+    };
+
+    this.sendResponse(response);
+  }
+
+  protected breakpointLocationsRequest(
+    response: debugProtocol.DebugProtocol.BreakpointLocationsResponse,
+    args: debugProtocol.DebugProtocol.BreakpointLocationsArguments,
+    request?: debugProtocol.DebugProtocol.Request
+  ): void {
+    void this.resolveBreakpointLocations(response, args);
+  }
+
+  private async resolveBreakpointLocations(
+    response: debugProtocol.DebugProtocol.BreakpointLocationsResponse,
+    args: debugProtocol.DebugProtocol.BreakpointLocationsArguments
+  ): Promise<void> {
+    if (!args.source.path) {
+      response.body = { breakpoints: [] };
+      this.sendResponse(response);
+      return;
+    }
+
+    const document = await vscode.workspace.openTextDocument(
+      this.convertClientPathToDebugger(args.source.path)
+    );
+    const startLine = this.convertClientLineToDebugger(args.line);
+    const startColumn = args.column ? this.convertClientColumnToDebugger(args.column) : 0;
+    const endLine = args.endLine ? this.convertClientLineToDebugger(args.endLine) : startLine;
+    const endColumn = args.endColumn
+      ? this.convertClientColumnToDebugger(args.endColumn)
+      : document.lineAt(endLine).range.end.character;
+
+    response.body = {
+      breakpoints: breakpointLocationsForRange(
+        document,
+        new vscode.Range(startLine, startColumn, endLine, endColumn)
+      ).map((location) => ({
+        line: this.convertDebuggerLineToClient(location.range.start.line),
+        column: this.convertDebuggerColumnToClient(location.range.start.character),
+        endLine: this.convertDebuggerLineToClient(location.range.end.line),
+        endColumn: this.convertDebuggerColumnToClient(location.range.end.character),
+      })),
+    };
+
+    this.sendResponse(response);
+  }
+
+  protected setBreakPointsRequest(
+    response: debugProtocol.DebugProtocol.SetBreakpointsResponse,
+    args: debugProtocol.DebugProtocol.SetBreakpointsArguments,
+    request?: debugProtocol.DebugProtocol.Request
+  ): void {
+    response.body = {
+      breakpoints: (args.breakpoints ?? []).map((breakpoint) => ({
+        verified: true,
+        line: breakpoint.line,
+        column: breakpoint.column,
+      })),
     };
 
     this.sendResponse(response);
@@ -509,6 +580,268 @@ function convertOneBasedToZeroBased(n: number): number {
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
   cljSession.initDebugger();
   debugDecorations.activate();
+  void syncExistingSourceBreakpoints();
+}
+
+function isClojureSourceBreakpoint(
+  breakpoint: vscode.Breakpoint
+): breakpoint is vscode.SourceBreakpoint {
+  return (
+    breakpoint instanceof vscode.SourceBreakpoint &&
+    breakpoint.location.uri.scheme === 'file' &&
+    breakpoint.location.uri.path.match(/\.(clj|cljc|cljd|cljr|cljx|clojure)$/) !== null
+  );
+}
+
+function breakpointForm(breakpoint: vscode.SourceBreakpoint): string {
+  return breakpoint.condition ? `#break ^{:break/when ${breakpoint.condition}} ` : '#break ';
+}
+
+function breakpointLocationsForRange(
+  document: vscode.TextDocument,
+  range: vscode.Range
+): vscode.Location[] {
+  const startOffset = document.offsetAt(range.start);
+  const endOffset = document.offsetAt(range.end);
+
+  return listFormOffsetsForRange(document, startOffset, endOffset).map(
+    (offset) =>
+      new vscode.Location(
+        document.uri,
+        new vscode.Range(document.positionAt(offset), formEndPosition(document, offset))
+      )
+  );
+}
+
+function formEndPosition(document: vscode.TextDocument, formStartOffset: number): vscode.Position {
+  const tokenCursor = docMirror.getDocument(document).getTokenCursor(formStartOffset);
+  const [, formEnd] = tokenCursor.rangeForCurrentForm(formStartOffset);
+  return document.positionAt(formEnd);
+}
+
+function listFormOffsetsForRange(
+  document: vscode.TextDocument,
+  startOffset: number,
+  endOffset: number
+): number[] {
+  const mirrorDocument = docMirror.getDocument(document);
+  const offsets: number[] = [];
+  const seen = new Set<number>();
+
+  for (let offset = startOffset; offset <= endOffset; offset++) {
+    const tokenCursor = mirrorDocument.getTokenCursor(offset);
+    const token = tokenCursor.getToken();
+    if (tokenCursor.offsetStart !== offset || token.type !== 'open' || !token.raw.endsWith('(')) {
+      continue;
+    }
+
+    const [formStart] = tokenCursor.rangeForCurrentForm(offset);
+    if (formStart < startOffset || formStart > endOffset || seen.has(formStart)) {
+      continue;
+    }
+
+    seen.add(formStart);
+    offsets.push(formStart);
+  }
+
+  return offsets;
+}
+
+function lineBreakpointTargetOffset(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): number {
+  const line = document.lineAt(position.line);
+  const lineStartOffset = document.offsetAt(line.range.start);
+  const lineEndOffset = document.offsetAt(line.range.end);
+  const listFormOffsets = listFormOffsetsForRange(document, lineStartOffset, lineEndOffset);
+
+  if (listFormOffsets.length > 0) {
+    return listFormOffsets[listFormOffsets.length - 1];
+  }
+
+  return document.offsetAt(
+    new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex)
+  );
+}
+
+function positionedBreakpointTargetOffset(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): number {
+  const offset = document.offsetAt(position);
+  const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+
+  if (tokenCursor.offsetStart === offset && tokenCursor.getToken().type === 'open') {
+    return offset;
+  }
+
+  if (tokenCursor.backwardFunction()) {
+    return tokenCursor.offsetStart;
+  }
+
+  const [formStart] = tokenCursor.rangeForCurrentForm(offset);
+  return formStart;
+}
+
+function breakpointTargetOffset(
+  document: vscode.TextDocument,
+  breakpoint: vscode.SourceBreakpoint
+): number {
+  const position = breakpoint.location.range.start;
+  const line = document.lineAt(position.line);
+
+  return position.character <= line.firstNonWhitespaceCharacterIndex
+    ? lineBreakpointTargetOffset(document, position)
+    : positionedBreakpointTargetOffset(document, position);
+}
+
+function breakpointTargetPosition(
+  document: vscode.TextDocument,
+  breakpoint: vscode.SourceBreakpoint
+): vscode.Position {
+  return document.positionAt(breakpointTargetOffset(document, breakpoint));
+}
+
+function injectBreakpoints(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string,
+  breakpoints: vscode.SourceBreakpoint[]
+): string {
+  const selectionStartOffset = document.offsetAt(selection.start);
+
+  return breakpoints
+    .sort((a, b) => breakpointTargetOffset(document, b) - breakpointTargetOffset(document, a))
+    .reduce((instrumentedCode, breakpoint) => {
+      const relativeOffset = breakpointTargetOffset(document, breakpoint) - selectionStartOffset;
+
+      if (relativeOffset < 0 || relativeOffset > instrumentedCode.length) {
+        return instrumentedCode;
+      }
+
+      return (
+        instrumentedCode.slice(0, relativeOffset) +
+        breakpointForm(breakpoint) +
+        instrumentedCode.slice(relativeOffset)
+      );
+    }, code);
+}
+
+async function evaluateTopLevelFormForBreakpoint(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): Promise<void> {
+  if (!util.getConnectedState()) {
+    return;
+  }
+
+  const session = replSession.getSession();
+  if (!session) {
+    return;
+  }
+
+  const [selection, code] = getText.currentTopLevelFormText(document, position);
+  if (!selection || code.length === 0) {
+    return;
+  }
+
+  const breakpoints = vscode.debug.breakpoints
+    .filter(isClojureSourceBreakpoint)
+    .filter(
+      (breakpoint) =>
+        breakpoint.location.uri.toString() === document.uri.toString() &&
+        selection.contains(breakpointTargetPosition(document, breakpoint))
+    );
+
+  const [ns, nsForm] = namespace.getNamespace(document, selection.end);
+  const codeToEvaluate =
+    breakpoints.length === 0 ? code : injectBreakpoints(document, selection, code, breakpoints);
+
+  try {
+    if (breakpointCodeEvaluator) {
+      await breakpointCodeEvaluator(
+        codeToEvaluate,
+        {
+          filePath: document.fileName,
+          line: selection.start.line,
+          column: selection.start.character,
+          ns,
+          nsForm,
+          session,
+          pprintOptions: { enabled: false },
+        },
+        selection
+      );
+    } else {
+      await session.evaluateInNs(nsForm, ns);
+      await session.eval(codeToEvaluate, ns, {
+        file: document.fileName,
+        line: selection.start.line + 1,
+        column: selection.start.character + 1,
+        pprintOptions: { enabled: false } as any,
+      }).value;
+    }
+    debugDecorations.triggerUpdateAndRenderDecorations();
+  } catch (e) {
+    void vscode.window.showWarningMessage(`Failed instrumenting breakpoint: ${e.message ?? e}`);
+  }
+}
+
+async function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): Promise<void> {
+  const changedBreakpoints = [...event.added, ...event.removed, ...event.changed].filter(
+    isClojureSourceBreakpoint
+  );
+  void syncSourceBreakpoints(changedBreakpoints);
+}
+
+async function syncExistingSourceBreakpoints(): Promise<void> {
+  const breakpoints = vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
+  void syncSourceBreakpoints(breakpoints);
+}
+
+async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
+  const seenTopLevelForms = new Set<string>();
+
+  for (const breakpoint of breakpoints) {
+    const document = await vscode.workspace.openTextDocument(breakpoint.location.uri);
+    if (document.languageId !== 'clojure') {
+      continue;
+    }
+
+    const targetPosition = breakpointTargetPosition(document, breakpoint);
+    const [selection] = getText.currentTopLevelFormText(document, targetPosition);
+    if (!selection) {
+      continue;
+    }
+
+    const key = [
+      document.uri.toString(),
+      selection.start.line,
+      selection.start.character,
+      selection.end.line,
+      selection.end.character,
+    ].join(':');
+    if (seenTopLevelForms.has(key)) {
+      continue;
+    }
+    seenTopLevelForms.add(key);
+
+    await evaluateTopLevelFormForBreakpoint(document, targetPosition);
+  }
+}
+
+function registerSourceBreakpointInstrumentation(
+  context: vscode.ExtensionContext,
+  evaluator?: BreakpointCodeEvaluator
+): void {
+  breakpointCodeEvaluator = evaluator;
+  context.subscriptions.push(
+    vscode.debug.onDidChangeBreakpoints((event) => {
+      void syncChangedSourceBreakpoints(event);
+    })
+  );
+  void syncExistingSourceBreakpoints();
 }
 
 function terminateDebugSession(): void {
@@ -534,5 +867,6 @@ export {
   handleNeedDebugInput,
   initializeDebugger,
   onNreplMessage,
+  registerSourceBreakpointInstrumentation,
   terminateDebugSession,
 };
