@@ -2,7 +2,7 @@ import type * as globs from './globs';
 import type * as nrepl from './index';
 import * as clientRegistry from './client-registry';
 import * as sessionNameSuffix from './session-name-suffix';
-import * as vscode from 'vscode';
+import type { Disposable } from 'vscode';
 
 export interface SessionMetadata {
   key: string;
@@ -24,12 +24,14 @@ const sessionChangeListeners = new Set<(event: SessionChangeEvent) => void>();
 
 export function onDidChangeSessions(
   listener: (event: SessionChangeEvent) => void
-): vscode.Disposable {
+): Disposable {
   sessionChangeListeners.add(listener);
 
-  return new vscode.Disposable(() => {
-    sessionChangeListeners.delete(listener);
-  });
+  return {
+    dispose() {
+      sessionChangeListeners.delete(listener);
+    },
+  };
 }
 
 function fireSessionChange(event: SessionChangeEvent): void {
