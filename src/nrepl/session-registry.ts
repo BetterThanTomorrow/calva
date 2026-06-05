@@ -22,9 +22,7 @@ export type SessionChangeEvent =
 
 const sessionChangeListeners = new Set<(event: SessionChangeEvent) => void>();
 
-export function onDidChangeSessions(
-  listener: (event: SessionChangeEvent) => void
-): Disposable {
+export function onDidChangeSessions(listener: (event: SessionChangeEvent) => void): Disposable {
   sessionChangeListeners.add(listener);
 
   return {
