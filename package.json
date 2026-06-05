@@ -82,6 +82,11 @@
         "runtime": "node"
       }
     ],
+    "breakpoints": [
+      {
+        "language": "clojure"
+      }
+    ],
     "languages": [
       {
         "id": "clojure",
