@@ -24,6 +24,7 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
+import * as debug from './debugger/calva-debug';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -388,6 +389,8 @@ async function evaluateSelection(document = {}, options) {
     if (code.length > 0) {
       if (options.debug) {
         code = '#dbg\n' + code;
+      } else {
+        code = debug.instrumentCodeWithSourceBreakpoints(doc, codeSelection, code);
       }
       annotations.decorateSelection(
         '',

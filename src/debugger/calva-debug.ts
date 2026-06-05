@@ -728,6 +728,24 @@ function injectBreakpoints(
     }, code);
 }
 
+function instrumentCodeWithSourceBreakpoints(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string
+): string {
+  const breakpoints = vscode.debug.breakpoints
+    .filter(isClojureSourceBreakpoint)
+    .filter(
+      (breakpoint) =>
+        breakpoint.location.uri.toString() === document.uri.toString() &&
+        selection.contains(breakpointTargetPosition(document, breakpoint))
+    );
+
+  return breakpoints.length === 0
+    ? code
+    : injectBreakpoints(document, selection, code, breakpoints);
+}
+
 async function evaluateTopLevelFormForBreakpoint(
   document: vscode.TextDocument,
   position: vscode.Position
@@ -746,17 +764,8 @@ async function evaluateTopLevelFormForBreakpoint(
     return;
   }
 
-  const breakpoints = vscode.debug.breakpoints
-    .filter(isClojureSourceBreakpoint)
-    .filter(
-      (breakpoint) =>
-        breakpoint.location.uri.toString() === document.uri.toString() &&
-        selection.contains(breakpointTargetPosition(document, breakpoint))
-    );
-
   const [ns, nsForm] = namespace.getNamespace(document, selection.end);
-  const codeToEvaluate =
-    breakpoints.length === 0 ? code : injectBreakpoints(document, selection, code, breakpoints);
+  const codeToEvaluate = instrumentCodeWithSourceBreakpoints(document, selection, code);
 
   try {
     if (breakpointCodeEvaluator) {
@@ -866,6 +875,7 @@ export {
   CalvaDebugAdapterDescriptorFactory,
   handleNeedDebugInput,
   initializeDebugger,
+  instrumentCodeWithSourceBreakpoints,
   onNreplMessage,
   registerSourceBreakpointInstrumentation,
   terminateDebugSession,
