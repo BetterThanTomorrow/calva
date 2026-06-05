@@ -955,6 +955,7 @@ async function evaluateInCurrentEditor(
 
 export {
   interruptAllEvaluations,
+  evaluateCodeUpdatingUI,
   loadDocument,
   loadFileCommand,
   loadFile,

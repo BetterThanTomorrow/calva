@@ -573,6 +573,7 @@ async function activate(context: vscode.ExtensionContext) {
   if ('dispose' in factory) {
     context.subscriptions.push(factory);
   }
+  debug.registerSourceBreakpointInstrumentation(context, evaluate.evaluateCodeUpdatingUI);
   context.subscriptions.push(
     vscode.workspace.registerNotebookSerializer(
       'calva-clojure-notebook',
