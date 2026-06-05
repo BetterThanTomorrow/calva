@@ -388,9 +388,13 @@ async function evaluateSelection(document = {}, options) {
 
     if (code.length > 0) {
       if (options.debug) {
+        if (!debug.supportsDebuggerOps(session)) {
+          debug.warnUnsupportedDebugger(session);
+          return;
+        }
         code = '#dbg\n' + code;
       } else {
-        code = debug.instrumentCodeWithSourceBreakpoints(doc, codeSelection, code);
+        code = debug.instrumentCodeWithSourceBreakpoints(doc, codeSelection, code, session);
       }
       annotations.decorateSelection(
         '',
