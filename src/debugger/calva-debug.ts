@@ -59,7 +59,7 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
-let warnedUnsupportedSessionKeys = new Set<string>();
+const warnedUnsupportedSessionKeys = new Set<string>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -836,19 +836,19 @@ async function evaluateTopLevelFormForBreakpoint(
   }
 }
 
-async function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): Promise<void> {
+function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
   const changedBreakpoints = [...event.added, ...event.removed, ...event.changed].filter(
     isClojureSourceBreakpoint
   );
   void syncSourceBreakpoints(changedBreakpoints);
 }
 
-async function syncExistingSourceBreakpoints(): Promise<void> {
+function syncExistingSourceBreakpoints(): void {
   const breakpoints = vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
   void syncSourceBreakpoints(breakpoints);
 }
 
-async function syncSourceBreakpointsForDocument(document?: vscode.TextDocument): Promise<void> {
+function syncSourceBreakpointsForDocument(document?: vscode.TextDocument): void {
   if (!document) {
     return;
   }
