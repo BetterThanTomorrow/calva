@@ -13,7 +13,6 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as sessionRegistry from '../nrepl/session-registry';
-import * as sessionRouting from '../nrepl/session-routing';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
@@ -608,7 +607,6 @@ function initializeDebugger(cljSession: nrepl.NReplSession): void {
   warnedUnsupportedSessionKeys.delete(sessionRegistry.resolveSessionKey(cljSession));
   cljSession.initDebugger();
   debugDecorations.activate();
-  void syncExistingSourceBreakpoints();
 }
 
 function isClojureSourceBreakpoint(
@@ -837,26 +835,8 @@ async function evaluateTopLevelFormForBreakpoint(
 }
 
 function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
-  const changedBreakpoints = [...event.added, ...event.removed, ...event.changed].filter(
-    isClojureSourceBreakpoint
-  );
+  const changedBreakpoints = event.added.filter(isClojureSourceBreakpoint);
   void syncSourceBreakpoints(changedBreakpoints);
-}
-
-function syncExistingSourceBreakpoints(): void {
-  const breakpoints = vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
-  void syncSourceBreakpoints(breakpoints);
-}
-
-function syncSourceBreakpointsForDocument(document?: vscode.TextDocument): void {
-  if (!document) {
-    return;
-  }
-
-  const breakpoints = vscode.debug.breakpoints
-    .filter(isClojureSourceBreakpoint)
-    .filter((breakpoint) => breakpoint.location.uri.toString() === document.uri.toString());
-  void syncSourceBreakpoints(breakpoints);
 }
 
 async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
@@ -898,20 +878,8 @@ function registerSourceBreakpointInstrumentation(
   context.subscriptions.push(
     vscode.debug.onDidChangeBreakpoints((event) => {
       void syncChangedSourceBreakpoints(event);
-    }),
-    sessionRegistry.onDidChangeSessions((event) => {
-      if (event.type !== 'registered') {
-        void syncExistingSourceBreakpoints();
-      }
-    }),
-    sessionRouting.onDidChangeRouting(() => {
-      void syncExistingSourceBreakpoints();
-    }),
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      void syncSourceBreakpointsForDocument(editor?.document);
     })
   );
-  void syncExistingSourceBreakpoints();
 }
 
 function terminateDebugSession(): void {
