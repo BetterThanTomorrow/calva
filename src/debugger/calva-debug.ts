@@ -17,6 +17,11 @@ import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
+import { addedBreakpointsToSync } from './source-breakpoint-sync';
+import {
+  supportsDebuggerOps,
+  unsupportedDebuggerMessage as formatUnsupportedDebuggerMessage,
+} from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
@@ -32,7 +37,6 @@ const REQUESTS = {
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
 const DEBUG_QUIT_VALUE = 'QUIT';
-const DEBUGGER_OPS = ['init-debugger', 'debug-input'];
 const DEBUG_ANALYTICS = {
   CATEGORY: 'Debugger',
   EVENT_ACTIONS: {
@@ -580,13 +584,9 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
-function supportsDebuggerOps(session?: nrepl.NReplSession): boolean {
-  return Boolean(session && DEBUGGER_OPS.every((op) => session.supports(op)));
-}
-
 function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
   const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
-  return `The ${sessionKey} nREPL session does not support debugger operations. Breakpoint UI is still available in VS Code, but Calva will not instrument or evaluate breakpoint forms for this session. Start the REPL with cider-nrepl debugger middleware to use breakpoints.`;
+  return formatUnsupportedDebuggerMessage(sessionKey);
 }
 
 function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
@@ -835,7 +835,7 @@ async function evaluateTopLevelFormForBreakpoint(
 }
 
 function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
-  const changedBreakpoints = event.added.filter(isClojureSourceBreakpoint);
+  const changedBreakpoints = addedBreakpointsToSync(event, isClojureSourceBreakpoint);
   void syncSourceBreakpoints(changedBreakpoints);
 }
 

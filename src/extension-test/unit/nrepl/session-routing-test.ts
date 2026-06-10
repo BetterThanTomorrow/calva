@@ -37,6 +37,36 @@ describe('session routing preferences', () => {
   });
 });
 
+describe('session routing change events', () => {
+  beforeEach(() => {
+    sessionRegistry._testUtility_registeredSessions.clear();
+    sessionRegistry.setClojureDocsSessionKey(null);
+    sessionRouting.resetRouting();
+  });
+
+  it('notifies listeners when routing is pinned or reset to auto', () => {
+    const events: string[] = [];
+    const disposable = sessionRouting.onDidChangeRouting(() => events.push('changed'));
+
+    sessionRegistry.registerSession('alpha', createSession('clj'), {});
+    sessionRouting.pinSession('alpha');
+    sessionRouting.enableAutoRouting();
+    disposable.dispose();
+
+    expectLib.expect(events).toEqual(['changed', 'changed']);
+  });
+
+  it('does not notify disposed listeners', () => {
+    const events: string[] = [];
+    const disposable = sessionRouting.onDidChangeRouting(() => events.push('changed'));
+
+    disposable.dispose();
+    sessionRouting.pinSession('alpha');
+
+    expectLib.expect(events).toEqual([]);
+  });
+});
+
 describe('multi-client session routing', () => {
   beforeEach(() => {
     sessionRegistry._testUtility_registeredSessions.clear();
