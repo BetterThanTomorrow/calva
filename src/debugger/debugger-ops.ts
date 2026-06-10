@@ -29,11 +29,11 @@ export function formatUnsupportedRuntimeBreakpointMessage(): string {
 }
 
 export function isClojureFamilySourcePath(path: string): boolean {
-  const extension = path.match(/\.([^.\/]+)$/)?.[1];
+  const extension = path.match(/\.([^./]+)$/)?.[1];
   return Boolean(extension && CLOJURE_FAMILY_SOURCE_EXTENSIONS.includes(extension));
 }
 
 export function isUnsupportedBreakpointRuntimeSourcePath(path: string): boolean {
-  const extension = path.match(/\.([^.\/]+)$/)?.[1];
+  const extension = path.match(/\.([^./]+)$/)?.[1];
   return Boolean(extension && UNSUPPORTED_BREAKPOINT_SOURCE_EXTENSIONS.includes(extension));
 }
