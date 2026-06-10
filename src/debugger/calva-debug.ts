@@ -19,8 +19,11 @@ import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
 import { addedBreakpointsToSync } from './source-breakpoint-sync';
 import {
+  isClojureFamilySourcePath,
+  isUnsupportedBreakpointRuntimeSourcePath,
   supportsDebuggerOps,
-  unsupportedDebuggerMessage as formatUnsupportedDebuggerMessage,
+  formatUnsupportedDebuggerMessage,
+  UNSUPPORTED_RUNTIME_BREAKPOINT_MESSAGE,
 } from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
@@ -63,6 +66,7 @@ type BreakpointCodeEvaluator = (
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
 const warnedUnsupportedSessionKeys = new Set<string>();
+const warnedUnsupportedBreakpointMessages = new Set<string>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -589,18 +593,45 @@ function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
   return formatUnsupportedDebuggerMessage(sessionKey);
 }
 
-function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
-  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
-  if (once && warnedUnsupportedSessionKeys.has(sessionKey)) {
+function warnUnsupportedBreakpoint(message: string, key: string, once = false): void {
+  if (once && warnedUnsupportedBreakpointMessages.has(key)) {
     return;
   }
+  warnedUnsupportedBreakpointMessages.add(key);
+  void vscode.window.showWarningMessage(message);
+}
+
+function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
+  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
   warnedUnsupportedSessionKeys.add(sessionKey);
-  void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
+  warnUnsupportedBreakpoint(
+    unsupportedDebuggerMessage(session),
+    `debugger-ops:${sessionKey}`,
+    once
+  );
+}
+
+function warnUnsupportedRuntimeBreakpoint(once = false): void {
+  warnUnsupportedBreakpoint(UNSUPPORTED_RUNTIME_BREAKPOINT_MESSAGE, 'unsupported-runtime', once);
 }
 
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
+  const existingBreakpoints = existingClojureSourceBreakpoints();
+  const existingUnsupportedRuntimeBreakpoints = existingBreakpoints.filter((breakpoint) =>
+    isUnsupportedBreakpointRuntimeSourcePath(breakpoint.location.uri.path)
+  );
+  const existingDebuggerCandidateBreakpoints = existingBreakpoints.filter(
+    (breakpoint) => !isUnsupportedBreakpointRuntimeSourcePath(breakpoint.location.uri.path)
+  );
+
+  if (existingUnsupportedRuntimeBreakpoints.length > 0) {
+    warnUnsupportedRuntimeBreakpoint();
+  }
+
   if (!supportsDebuggerOps(cljSession)) {
-    warnUnsupportedDebugger(cljSession, true);
+    if (existingDebuggerCandidateBreakpoints.length > 0 || existingBreakpoints.length === 0) {
+      warnUnsupportedDebugger(cljSession, existingBreakpoints.length === 0);
+    }
     return;
   }
 
@@ -615,8 +646,12 @@ function isClojureSourceBreakpoint(
   return (
     breakpoint instanceof vscode.SourceBreakpoint &&
     breakpoint.location.uri.scheme === 'file' &&
-    breakpoint.location.uri.path.match(/\.(clj|cljc|cljd|cljr|cljx|clojure)$/) !== null
+    isClojureFamilySourcePath(breakpoint.location.uri.path)
   );
+}
+
+function existingClojureSourceBreakpoints(): vscode.SourceBreakpoint[] {
+  return vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
 }
 
 function breakpointForm(breakpoint: vscode.SourceBreakpoint): string {
@@ -768,6 +803,11 @@ function instrumentCodeWithSourceBreakpoints(
         selection.contains(breakpointTargetPosition(document, breakpoint))
     );
 
+  if (breakpoints.length > 0 && isUnsupportedBreakpointRuntimeSourcePath(document.uri.path)) {
+    warnUnsupportedRuntimeBreakpoint(true);
+    return code;
+  }
+
   if (breakpoints.length > 0 && !supportsDebuggerOps(session)) {
     warnUnsupportedDebugger(session, true);
     return code;
@@ -786,13 +826,18 @@ async function evaluateTopLevelFormForBreakpoint(
     return;
   }
 
+  if (isUnsupportedBreakpointRuntimeSourcePath(document.uri.path)) {
+    warnUnsupportedRuntimeBreakpoint();
+    return;
+  }
+
   const session = replSession.getSession();
   if (!session) {
     return;
   }
 
   if (!supportsDebuggerOps(session)) {
-    warnUnsupportedDebugger(session, true);
+    warnUnsupportedDebugger(session);
     return;
   }
 
