@@ -149,7 +149,7 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           };
         },
       },
-      progressOnInitialization: false,
+      progressOnInitialization: true,
       initializationOptions: {
         'dependency-scheme': 'jar',
         'auto-add-ns-to-new-files?': true,
