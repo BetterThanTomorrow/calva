@@ -6,7 +6,7 @@
  */
 
 export interface RuntimeInfo {
-  clientId: number;
+  runtimeId: number;
   description: string;
   buildId: string;
   host: string;
@@ -56,7 +56,7 @@ export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo
   const sinceDescription = formatSinceDescription(sinceDate);
 
   return {
-    clientId: apiInfo['client-id'],
+    runtimeId: apiInfo['client-id'],
     description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
     buildId: apiInfo['build-id'],
     host: apiInfo.host,
@@ -67,8 +67,8 @@ export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo
 }
 
 export type MessageAction =
-  | { type: 'runtime-disconnected'; clientId: number }
-  | { type: 'runtime-connected'; clientId: number; runtimeInfo: RuntimeInfo }
+  | { type: 'runtime-disconnected'; runtimeId: number }
+  | { type: 'runtime-connected'; runtimeId: number; runtimeInfo: RuntimeInfo }
   | { type: 'no-action' };
 
 export interface NotifyMessageData {
@@ -90,19 +90,19 @@ export function decideMessageAction(
     return { type: 'no-action' };
   }
 
-  const clientId = data['client-id'];
+  const runtimeId = data['client-id'];
   const eventOp = data['event-op'];
 
-  if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
-    return { type: 'runtime-disconnected', clientId };
+  if (eventOp === 'client-disconnect' && runtimeId === currentRuntimeId) {
+    return { type: 'runtime-disconnected', runtimeId };
   }
 
   if (eventOp === 'client-connect' && !currentRuntimeId) {
     const clientInfo = data['client-info'];
     if (clientInfo) {
       const runtimeInfo = normalizeRuntimeInfo(clientInfo);
-      runtimeInfo.clientId = clientId; // Notification infos lack client id
-      return { type: 'runtime-connected', clientId, runtimeInfo };
+      runtimeInfo.runtimeId = runtimeId; // Notification infos lack client id
+      return { type: 'runtime-connected', runtimeId, runtimeInfo };
     }
   }
 

@@ -17,7 +17,7 @@ describe('shadow-cljs-runtime-core', () => {
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
 
-      expectLib.expect(result.clientId).toBe(42);
+      expectLib.expect(result.runtimeId).toBe(42);
       expectLib.expect(result.buildId).toBe(':app');
       expectLib.expect(result.host).toBe('localhost');
       expectLib.expect(result.workerId).toBe(1);
@@ -93,7 +93,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, 42);
 
-      expectLib.expect(result).toEqual({ type: 'runtime-disconnected', clientId: 42 });
+      expectLib.expect(result).toEqual({ type: 'runtime-disconnected', runtimeId: 42 });
     });
 
     it('returns no-action when a different runtime disconnects', () => {
@@ -126,9 +126,9 @@ describe('shadow-cljs-runtime-core', () => {
 
       expectLib.expect(result.type).toBe('runtime-connected');
       if (result.type === 'runtime-connected') {
-        expectLib.expect(result.clientId).toBe(42);
+        expectLib.expect(result.runtimeId).toBe(42);
         expectLib.expect(result.runtimeInfo.description).toBe('New Browser');
-        expectLib.expect(result.runtimeInfo.clientId).toBe(42); // Should be set from outer client-id
+        expectLib.expect(result.runtimeInfo.runtimeId).toBe(42); // Should be set from outer client-id
       }
     });
 

@@ -336,15 +336,7 @@ export const listRuntimes = async (sessionKey?: string): Promise<ShadowRuntimeIn
     return [];
   }
   const runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
-  return (runtimes || []).map((r) => ({
-    runtimeId: r.clientId,
-    description: r.description,
-    buildId: r.buildId,
-    host: r.host,
-    workerId: r.workerId,
-    sinceInst: r.sinceInst,
-    sinceDescription: r.sinceDescription,
-  }));
+  return runtimes || [];
 };
 
 //// OUTPUT ////

@@ -146,7 +146,7 @@ describe(`${suiteName} suite`, () => {
     const clientKey = 'test-client-runtimes';
     const mockRuntimes = [
       {
-        clientId: 42,
+        runtimeId: 42,
         description: 'Mock Browser Tab',
         buildId: 'app',
         host: 'localhost',
