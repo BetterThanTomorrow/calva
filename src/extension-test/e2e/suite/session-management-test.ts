@@ -141,61 +141,6 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(uiMeta.currentlyConnectedRuntimeId, 42);
   });
 
-  it('queries active runtimes through listRuntimes()', async () => {
-    const clientKey = 'test-client-runtimes';
-    const mockRuntimes = [
-      {
-        runtimeId: 42,
-        description: 'Mock Browser Tab',
-        buildId: 'app',
-        host: 'localhost',
-        workerId: 1,
-        sinceInst: 12345678,
-        sinceDescription: 'some time',
-      },
-    ];
-
-    // Mock the getShadowRuntimesForClient in shadow-cljs-runtime
-    const originalGetShadowRuntimesForClient = shadowCljsRuntime.getShadowRuntimesForClient;
-    (shadowCljsRuntime as any).getShadowRuntimesForClient = (key: string) => {
-      assert.strictEqual(key, clientKey);
-      return Promise.resolve(mockRuntimes);
-    };
-
-    const stubClient = {
-      clientKey,
-    } as unknown as nrepl.NReplClient;
-
-    clientRegistry.registerClient(stubClient, {
-      connectSequenceName: 'Test Connection Runtimes',
-      connectionState: {
-        cljsTypeName: 'shadow-cljs',
-      },
-    });
-
-    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
-      connectionOwnerId: clientKey,
-      isSecondary: true,
-    });
-
-    try {
-      const runtimes = await replApi.listRuntimes(uiSessionKey);
-      assert.deepStrictEqual(runtimes, [
-        {
-          runtimeId: 42,
-          description: 'Mock Browser Tab',
-          buildId: 'app',
-          host: 'localhost',
-          workerId: 1,
-          sinceInst: 12345678,
-          sinceDescription: 'some time',
-        },
-      ]);
-    } finally {
-      (shadowCljsRuntime as any).getShadowRuntimesForClient = originalGetShadowRuntimesForClient;
-    }
-  });
-
   it('queries active builds and nested runtimes through listSessions()', async () => {
     const clientKey = 'test-client-builds';
     const mockActiveBuilds = ['app', 'node'];

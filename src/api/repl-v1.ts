@@ -383,23 +383,6 @@ export interface ShadowRuntimeInfo {
   sinceDescription: string;
 }
 
-export const listRuntimes = async (sessionKey?: string): Promise<ShadowRuntimeInfo[]> => {
-  const key = sessionKey || replSession.getSessionKey();
-  if (!key) {
-    return [];
-  }
-  const clientKey = sessionRegistry.getClientKeyForSession(key);
-  if (!clientKey) {
-    return [];
-  }
-  const connState = clientRegistry.getConnectionState(clientKey);
-  if (!connState || connState.cljsTypeName !== 'shadow-cljs') {
-    return [];
-  }
-  const runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
-  return runtimes || [];
-};
-
 export interface ShadowBuildInfo {
   buildId: string;
   isActive: boolean;

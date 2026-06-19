@@ -93,7 +93,7 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
     * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
     * `isActive` (`boolean`): Whether the build is currently active/compiled.
     * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
-    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects (with the same shape as returned by `repl.listRuntimes()`).
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects.
 
 === "Joyride"
 
