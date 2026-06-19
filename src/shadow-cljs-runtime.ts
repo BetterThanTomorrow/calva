@@ -8,6 +8,20 @@ import * as output from './results-output/output';
 import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 
+/**
+ * Tracks the last time Calva evaluated code on each runtime ID.
+ * Key: runtimeId, Value: milliseconds since epoch (Date.now())
+ */
+const runtimeLastActivity = new Map<number, number>();
+
+export function recordRuntimeActivity(runtimeId: number): void {
+  runtimeLastActivity.set(runtimeId, Date.now());
+}
+
+export function getRuntimeLastActivity(runtimeId: number): number | undefined {
+  return runtimeLastActivity.get(runtimeId);
+}
+
 interface RuntimeQuickPickItem extends vscode.QuickPickItem {
   runtimeInfo: shadowRuntimeCore.RuntimeInfo;
 }

@@ -226,6 +226,84 @@ describe(`${suiteName} suite`, () => {
     }
   });
 
+  it('includes lastActivity on runtimes and sorts by most recent first', async () => {
+    const clientKey = 'test-client-activity';
+    const mockRuntimes = [
+      {
+        runtimeId: 100,
+        description: 'Older Runtime',
+        buildId: 'app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 101,
+        description: 'Newer Runtime',
+        buildId: 'app',
+        host: 'localhost',
+        workerId: 2,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    // Record activity for runtime 101 first, then 100
+    // This makes 100 more recent than 101
+    shadowCljsRuntime.recordRuntimeActivity(101);
+    // Small delay to ensure different timestamps
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    shadowCljsRuntime.recordRuntimeActivity(100);
+
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (_key: string) => {
+      return Promise.resolve({
+        activeBuilds: ['app'],
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Activity',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        availableBuilds: ['app'],
+        cljsBuild: 'app',
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+    });
+
+    try {
+      const sessions = await replApi.listSessionsAndRuntimes();
+      assert.strictEqual(sessions.length, 1);
+      const appBuild = sessions[0].builds?.find((b) => b.buildId === 'app');
+      assert.ok(appBuild);
+      assert.strictEqual(appBuild.runtimes.length, 2);
+
+      // Runtime 100 was stamped more recently, so it should be first
+      assert.strictEqual(appBuild.runtimes[0].runtimeId, 100);
+      assert.strictEqual(appBuild.runtimes[1].runtimeId, 101);
+
+      // Both should have lastActivity timestamps
+      assert.ok(typeof appBuild.runtimes[0].lastActivity === 'number');
+      assert.ok(typeof appBuild.runtimes[1].lastActivity === 'number');
+
+      // Runtime 100 should have a more recent lastActivity
+      assert.ok(appBuild.runtimes[0].lastActivity >= appBuild.runtimes[1].lastActivity);
+    } finally {
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
+  });
+
   it('getShadowRuntimesForClient uses correct query code depending on cljsBuild state', async () => {
     const clientKey = 'test-client-fallback';
     let evaluatedCode = '';

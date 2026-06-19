@@ -24,6 +24,7 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
+import * as shadowCljsRuntime from './shadow-cljs-runtime';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -183,6 +184,12 @@ async function evaluateCodeUpdatingUI(
     sessionRegistry.updateSessionActivity(sessionKey);
     whoTracking.recordEvaluation(sessionKey, 'ui');
     whoTracking.setCurrentWho(session.sessionId, 'ui');
+
+    // Track runtime activity for the effective runtime
+    const uiRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+    if (uiRuntimeId !== undefined) {
+      shadowCljsRuntime.recordRuntimeActivity(uiRuntimeId);
+    }
 
     try {
       const evalResultsDestination = output.getDestinationConfiguration().evalResults;
@@ -656,6 +663,10 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
+    const loadFileRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+    if (loadFileRuntimeId !== undefined) {
+      shadowCljsRuntime.recordRuntimeActivity(loadFileRuntimeId);
+    }
     return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey, who);
   }
 }

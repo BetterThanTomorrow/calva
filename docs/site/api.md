@@ -112,7 +112,7 @@ Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered 
     * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
     * `isActive` (`boolean`): Whether the build is currently active/compiled.
     * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
-    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects:
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects, sorted by most recent evaluation activity first:
         * `runtimeId` (`number`): The unique ID of the runtime.
         * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
         * `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
@@ -120,6 +120,7 @@ Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered 
         * `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
         * `sinceInst` (`number`): Unix timestamp for when the runtime connected.
         * `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
+        * `lastActivity` (`number`, optional): Unix timestamp for the last time Calva evaluated code on this runtime. Absent if no evaluation has been performed on this runtime during this session.
 
 === "Joyride"
 

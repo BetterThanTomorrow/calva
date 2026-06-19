@@ -133,6 +133,13 @@ export const evaluate = async (
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
   whoTracking.setCurrentWho(session.sessionId, resolvedWho);
 
+  // Track runtime activity for the effective runtime
+  const effectiveRuntimeId =
+    targetRuntimeId ?? shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+  if (effectiveRuntimeId !== undefined) {
+    shadowCljsRuntime.recordRuntimeActivity(effectiveRuntimeId);
+  }
+
   resultOutput.appendEvaluatedCode(code, {
     destination: resultOutput.getDestinationConfiguration().evalResults,
     ...evalOptions,
@@ -362,10 +369,16 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
         builds = Array.from(buildKeyMap.entries()).map(([norm, originalKey]) => {
           const isActive = normalizedActiveBuilds.includes(norm);
           const isCurrentlyConnected = norm === currentConnectedBuildNorm;
-          const buildRuntimes = (runtimes || []).filter((r) => {
-            const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
-            return rNorm === norm;
-          });
+          const buildRuntimes = (runtimes || [])
+            .filter((r) => {
+              const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
+              return rNorm === norm;
+            })
+            .map((r) => ({
+              ...r,
+              lastActivity: shadowCljsRuntime.getRuntimeLastActivity(r.runtimeId),
+            }))
+            .sort((a, b) => (b.lastActivity ?? 0) - (a.lastActivity ?? 0));
 
           return {
             buildId: originalKey,
@@ -406,6 +419,7 @@ export interface ShadowRuntimeInfo {
   workerId: number;
   sinceInst: number;
   sinceDescription: string;
+  lastActivity?: number;
 }
 
 export interface ShadowBuildInfo {
