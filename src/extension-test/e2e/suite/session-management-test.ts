@@ -126,7 +126,6 @@ describe(`${suiteName} suite`, () => {
     sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
       connectionOwnerId: clientKey,
       isSecondary: true,
-      projectRoot: 'file:///ui',
       globs: ['apps/ui/**'],
     });
 
@@ -197,7 +196,7 @@ describe(`${suiteName} suite`, () => {
     }
   });
 
-  it('queries active builds and nested runtimes through listBuilds()', async () => {
+  it('queries active builds and nested runtimes through listSessions()', async () => {
     const clientKey = 'test-client-builds';
     const mockActiveBuilds = ['app', 'node'];
     const mockRuntimes = [
@@ -241,6 +240,8 @@ describe(`${suiteName} suite`, () => {
         cljsTypeName: 'shadow-cljs',
         availableBuilds: ['app', 'node', 'inactive-build'],
         cljsBuild: 'app',
+        shadowCljsActiveBuilds: mockActiveBuilds,
+        shadowCljsRuntimes: mockRuntimes,
       },
     });
 
@@ -250,7 +251,12 @@ describe(`${suiteName} suite`, () => {
     });
 
     try {
-      const builds = await replApi.listBuilds(uiSessionKey);
+      const sessions = replApi.listSessions();
+      assert.strictEqual(sessions.length, 1);
+      const cljsSession = sessions[0];
+      assert.ok(cljsSession.builds);
+
+      const builds = cljsSession.builds;
       assert.strictEqual(builds.length, 3);
 
       const appBuild = builds.find((b) => b.buildId === 'app');

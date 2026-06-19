@@ -344,7 +344,7 @@ export async function clearReplWindowDoc() {
 
   let success = false;
   let attempts = 0;
-  while (!success && attempts < 10) {
+  while (!success && attempts < 50) {
     attempts++;
     const edit = new vscode.WorkspaceEdit();
     const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));

@@ -89,85 +89,34 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 * `availableBuilds` (`string[]`, optional): List of all builds defined for this connection.
 * `currentlyConnectedCljsBuild` (`string`, optional): The currently connected ClojureScript build name (e.g. `":app"`).
 * `currentlyConnectedRuntimeId` (`number`, optional): The currently connected shadow-cljs runtime ID, if any.
+* `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
+    * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
+    * `isActive` (`boolean`): Whether the build is currently active/compiled.
+    * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects (with the same shape as returned by `repl.listRuntimes()`).
 
 === "Joyride"
 
   ```clojure
-  (def sessions (calva/repl.listSessions))
-  (println "Session keys:" (map :replSessionKey sessions))
-  ```
-
-=== "ClojureScript"
-
-  ```clojure
-  (def list-sessions (get-in [:repl :listSessions] calvaApi))
-  (def session-keys (map :replSessionKey (list-sessions)))
+  (let [sessions (calva/repl.listSessions)]
+    (doseq [s sessions]
+      (println "Session key:" (:replSessionKey s))
+      (doseq [b (:builds s)]
+        (println "  Build:" (:buildId b) "Active?" (:isActive b))
+        (doseq [r (:runtimes b)]
+          (println "    Runtime:" (:runtimeId r) (:description r))))))
   ```
 
 === "JavaScript"
 
   ```javascript
   const sessions = calva.repl.listSessions();
-  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
-  ```
-
-### `repl.listRuntimes()`
-
-Use `repl.listRuntimes(sessionKey?: string)` to asynchronously query active JavaScript runtimes connected to the ClojureScript session. This is currently supported for `shadow-cljs` connections.
-
-It returns a Promise resolving to a collection/array of runtime metadata objects with the following shape:
-
-* `runtimeId` (`number`): The unique ID of the runtime.
-* `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
-* `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
-* `host` (`string`): The hostname/IP of the runtime connection.
-* `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
-* `sinceInst` (`number`): Unix timestamp for when the runtime connected.
-* `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
-
-=== "Joyride"
-
-  ```clojure
-  (let [runtimes (await (calva/repl.listRuntimes))]
-    (doseq [r runtimes]
-      (println "Active runtime:" (:runtimeId r) "-" (:description r))))
-  ```
-
-=== "JavaScript"
-
-  ```javascript
-  const runtimes = await calva.repl.listRuntimes();
-  console.log("Found runtimes:", runtimes.map(r => r.runtimeId));
-  ```
-
-### `repl.listBuilds()`
-
-Use `repl.listBuilds(sessionKey?: string)` to asynchronously query all ClojureScript builds and their connected JavaScript runtimes. This is currently supported for `shadow-cljs` connections.
-
-It returns a Promise resolving to a collection/array of build metadata objects with the following shape:
-
-* `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
-* `isActive` (`boolean`): Whether the build is currently active/compiled.
-* `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
-* `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects (with the same shape as returned by `repl.listRuntimes()`).
-
-=== "Joyride"
-
-  ```clojure
-  (let [builds (await (calva/repl.listBuilds))]
-    (doseq [b builds]
-      (println "Build:" (:buildId b) "Active?" (:isActive b))
-      (doseq [r (:runtimes b)]
-        (println "  - Runtime:" (:runtimeId r) (:description r)))))
-  ```
-
-=== "JavaScript"
-
-  ```javascript
-  const builds = await calva.repl.listBuilds();
-  for (const b of builds) {
-    console.log(`Build ${b.buildId} is active: ${b.isActive}`);
-    console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+  const cljsSession = sessions.find(s => s.replType === 'cljs');
+  if (cljsSession && cljsSession.builds) {
+    for (const b of cljsSession.builds) {
+      console.log(`Build ${b.buildId} is active: ${b.isActive}`);
+      console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+    }
   }
   ```
 
