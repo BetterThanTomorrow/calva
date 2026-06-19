@@ -387,7 +387,7 @@ describe(`${suiteName} suite`, () => {
         await testUtil.waitForCondition(async () => {
           const replWindowDoc = await outputWindow.openReplWindowDoc();
           lastReplText = docMirror.getDocument(replWindowDoc).document.getText();
-          return lastReplText.includes(code);
+          return lastReplText.includes(code) && lastReplText.includes(evaluationResult);
         });
 
         const evaluatedCodeEvents = events.filter(
@@ -411,6 +411,7 @@ describe(`${suiteName} suite`, () => {
           1,
           `Expected visible evaluated code once when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
         );
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     } finally {
       subscription.dispose();
@@ -501,14 +502,17 @@ describe(`${suiteName} suite`, () => {
         assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
         assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
 
-        if (sendCodeToOutputWindow) {
-          await testUtil.waitForCondition(
-            async () => (await getReplWindowText()).includes(code),
-            4000,
-            20,
-            'Timed out waiting for manual REPL-window echo'
-          );
-        }
+        await testUtil.waitForCondition(
+          async () => {
+            const txt = await getReplWindowText();
+            return (
+              txt.includes(evaluationResult) && (!sendCodeToOutputWindow || txt.includes(code))
+            );
+          },
+          4000,
+          20,
+          'Timed out waiting for manual REPL-window output'
+        );
 
         const replText = await getReplWindowText();
         const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
@@ -518,6 +522,7 @@ describe(`${suiteName} suite`, () => {
           sendCodeToOutputWindow ? 1 : 0,
           `Unexpected REPL-window echo count when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
         );
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     } finally {
       subscription.dispose();

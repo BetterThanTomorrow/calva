@@ -332,6 +332,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
 }
 
 export async function clearReplWindowDoc() {
+  resultsBuffer = [];
   const docUri = getDocUri();
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
