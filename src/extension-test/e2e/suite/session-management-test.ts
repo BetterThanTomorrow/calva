@@ -141,7 +141,7 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(uiMeta.currentlyConnectedRuntimeId, 42);
   });
 
-  it('queries active builds and nested runtimes through listSessions()', async () => {
+  it('queries active builds and nested runtimes through listSessionsAndRuntimes()', async () => {
     const clientKey = 'test-client-builds';
     const mockActiveBuilds = ['app', 'node'];
     const mockRuntimes = [
@@ -185,8 +185,6 @@ describe(`${suiteName} suite`, () => {
         cljsTypeName: 'shadow-cljs',
         availableBuilds: ['app', 'node', 'inactive-build'],
         cljsBuild: 'app',
-        shadowCljsActiveBuilds: mockActiveBuilds,
-        shadowCljsRuntimes: mockRuntimes,
       },
     });
 
@@ -196,7 +194,7 @@ describe(`${suiteName} suite`, () => {
     });
 
     try {
-      const sessions = replApi.listSessions();
+      const sessions = await replApi.listSessionsAndRuntimes();
       assert.strictEqual(sessions.length, 1);
       const cljsSession = sessions[0];
       assert.ok(cljsSession.builds);

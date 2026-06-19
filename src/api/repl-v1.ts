@@ -35,6 +35,9 @@ export interface ReplSessionInfo {
   availableBuilds?: string[];
   currentlyConnectedCljsBuild?: string;
   currentlyConnectedRuntimeId?: number;
+}
+
+export interface ReplSessionAndRuntimesInfo extends ReplSessionInfo {
   builds?: ShadowBuildInfo[];
 }
 
@@ -292,7 +295,30 @@ export const currentSessionKey = () => {
 
 export const listSessions = (): ReplSessionInfo[] => {
   const currentSessionKey = replSession.getSessionKey();
-  const sessionInfoList: ReplSessionInfo[] = [];
+  return sessionRegistry.listSessions().map((session) => {
+    const clientKey = session.connectionOwnerId;
+    const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+    return {
+      replSessionKey: session.key,
+      projectRoot: session.projectRoot
+        ? vscode.workspace.asRelativePath(session.projectRoot)
+        : undefined,
+      lastActivity: session.lastActivity,
+      globs: session.globs,
+      currentRoutedTarget: session.key === currentSessionKey,
+      replType: session.isSecondary ? 'cljs' : 'clj',
+      hasBuilds: connState ? !!connState.hasBuilds : false,
+      supportsRuntimes: connState ? connState.cljsTypeName === 'shadow-cljs' : false,
+      availableBuilds: connState?.availableBuilds,
+      currentlyConnectedCljsBuild: connState?.cljsBuild || undefined,
+      currentlyConnectedRuntimeId: connState?.shadowCljsRuntimeId,
+    };
+  });
+};
+
+export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesInfo[]> => {
+  const currentSessionKey = replSession.getSessionKey();
+  const sessionInfoList: ReplSessionAndRuntimesInfo[] = [];
 
   for (const session of sessionRegistry.listSessions()) {
     const clientKey = session.connectionOwnerId;
@@ -302,54 +328,53 @@ export const listSessions = (): ReplSessionInfo[] => {
     let builds: ShadowBuildInfo[] | undefined;
 
     if (supportsRuntimes && clientKey && connState) {
-      // Trigger a background refresh to keep the cache updated
-      void shadowCljsRuntime.refreshShadowBuildsAndRuntimes(clientKey);
+      const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+      if (allBuildsData) {
+        const { activeBuilds, runtimes } = allBuildsData;
 
-      const activeBuilds = connState.shadowCljsActiveBuilds || [];
-      const runtimes = connState.shadowCljsRuntimes || [];
-
-      const buildKeyMap = new Map<string, string>();
-      const addKey = (k: string) => {
-        const norm = k.startsWith(':') ? k.substring(1) : k;
-        if (!buildKeyMap.has(norm)) {
-          buildKeyMap.set(norm, k);
-        }
-      };
-
-      activeBuilds.forEach(addKey);
-      runtimes.forEach((r) => addKey(r.buildId));
-      if (connState.availableBuilds) {
-        connState.availableBuilds.forEach(addKey);
-      }
-      if (connState.cljsBuild) {
-        addKey(connState.cljsBuild);
-      }
-
-      const currentConnectedBuildNorm = connState.cljsBuild
-        ? connState.cljsBuild.startsWith(':')
-          ? connState.cljsBuild.substring(1)
-          : connState.cljsBuild
-        : undefined;
-
-      const normalizedActiveBuilds = activeBuilds.map((b) =>
-        b.startsWith(':') ? b.substring(1) : b
-      );
-
-      builds = Array.from(buildKeyMap.entries()).map(([norm, originalKey]) => {
-        const isActive = normalizedActiveBuilds.includes(norm);
-        const isCurrentlyConnected = norm === currentConnectedBuildNorm;
-        const buildRuntimes = (runtimes || []).filter((r) => {
-          const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
-          return rNorm === norm;
-        });
-
-        return {
-          buildId: originalKey,
-          isActive,
-          isCurrentlyConnected,
-          runtimes: buildRuntimes,
+        const buildKeyMap = new Map<string, string>();
+        const addKey = (k: string) => {
+          const norm = k.startsWith(':') ? k.substring(1) : k;
+          if (!buildKeyMap.has(norm)) {
+            buildKeyMap.set(norm, k);
+          }
         };
-      });
+
+        activeBuilds.forEach(addKey);
+        runtimes.forEach((r) => addKey(r.buildId));
+        if (connState.availableBuilds) {
+          connState.availableBuilds.forEach(addKey);
+        }
+        if (connState.cljsBuild) {
+          addKey(connState.cljsBuild);
+        }
+
+        const currentConnectedBuildNorm = connState.cljsBuild
+          ? connState.cljsBuild.startsWith(':')
+            ? connState.cljsBuild.substring(1)
+            : connState.cljsBuild
+          : undefined;
+
+        const normalizedActiveBuilds = activeBuilds.map((b) =>
+          b.startsWith(':') ? b.substring(1) : b
+        );
+
+        builds = Array.from(buildKeyMap.entries()).map(([norm, originalKey]) => {
+          const isActive = normalizedActiveBuilds.includes(norm);
+          const isCurrentlyConnected = norm === currentConnectedBuildNorm;
+          const buildRuntimes = (runtimes || []).filter((r) => {
+            const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
+            return rNorm === norm;
+          });
+
+          return {
+            buildId: originalKey,
+            isActive,
+            isCurrentlyConnected,
+            runtimes: buildRuntimes,
+          };
+        });
+      }
     }
 
     sessionInfoList.push({

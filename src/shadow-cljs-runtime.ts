@@ -330,23 +330,6 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 }
 
 /**
- * Refresh cached shadow-cljs builds and runtimes information.
- */
-export async function refreshShadowBuildsAndRuntimes(clientKey: string): Promise<void> {
-  try {
-    const allBuildsData = await getShadowRuntimesAllBuilds(clientKey);
-    if (allBuildsData) {
-      clientRegistry.setConnectionState(clientKey, {
-        shadowCljsActiveBuilds: allBuildsData.activeBuilds,
-        shadowCljsRuntimes: allBuildsData.runtimes,
-      });
-    }
-  } catch (error) {
-    output.appendLineOtherErr(`Error refreshing shadow builds and runtimes: ${error}`);
-  }
-}
-
-/**
  * Detect and store the initially connected runtime after CLJS REPL setup.
  * This handles the case where shadow-cljs automatically connects to a runtime.
  *
@@ -396,7 +379,6 @@ export async function detectInitialRuntime(clientKey?: string): Promise<void> {
     output.appendLineOtherOut(
       `Connected shadow-cljs runtime: ${runtimeId}, ${runtime.description}, host: ${runtime.host}`
     );
-    void refreshShadowBuildsAndRuntimes(effectiveClientKey);
   } catch (error) {
     output.appendLineOtherOut(`Note: Could not detect initial shadow-cljs runtime: ${error}`);
   }
@@ -486,9 +468,6 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
           break;
         }
         // 'no-action' - do nothing
-      }
-      if (action.type !== 'no-action') {
-        void refreshShadowBuildsAndRuntimes(clientKey);
       }
     }
   } catch (error) {

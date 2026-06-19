@@ -89,16 +89,42 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 * `availableBuilds` (`string[]`, optional): List of all builds defined for this connection.
 * `currentlyConnectedCljsBuild` (`string`, optional): The currently connected ClojureScript build name (e.g. `":app"`).
 * `currentlyConnectedRuntimeId` (`number`, optional): The currently connected shadow-cljs runtime ID, if any.
-* `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
-    * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
-    * `isActive` (`boolean`): Whether the build is currently active/compiled.
-    * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
-    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects.
 
 === "Joyride"
 
   ```clojure
-  (let [sessions (calva/repl.listSessions)]
+  (def sessions (calva/repl.listSessions))
+  (println "Session keys:" (map :replSessionKey sessions))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const sessions = calva.repl.listSessions();
+  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
+  ```
+
+### `repl.listSessionsAndRuntimes()`
+
+Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered Calva REPL session, including secondary or custom session roles, and query all builds and connected runtimes. It returns a Promise resolving to a collection/array of metadata objects with the same shape as `repl.listSessions()`, but including an additional nested `builds` property:
+
+* `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
+    * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
+    * `isActive` (`boolean`): Whether the build is currently active/compiled.
+    * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects:
+        * `runtimeId` (`number`): The unique ID of the runtime.
+        * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
+        * `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
+        * `host` (`string`): The hostname/IP of the runtime connection.
+        * `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
+        * `sinceInst` (`number`): Unix timestamp for when the runtime connected.
+        * `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
+
+=== "Joyride"
+
+  ```clojure
+  (let [sessions (await (calva/repl.listSessionsAndRuntimes))]
     (doseq [s sessions]
       (println "Session key:" (:replSessionKey s))
       (doseq [b (:builds s)]
@@ -110,7 +136,7 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 === "JavaScript"
 
   ```javascript
-  const sessions = calva.repl.listSessions();
+  const sessions = await calva.repl.listSessionsAndRuntimes();
   const cljsSession = sessions.find(s => s.replType === 'cljs');
   if (cljsSession && cljsSession.builds) {
     for (const b of cljsSession.builds) {

@@ -18,8 +18,6 @@ export interface ConnectionState {
   connectSequence?: connectSequence.ReplConnectSequence;
   shadowCljsRuntimeId?: number;
   shadowCljsRuntimeInfo?: any;
-  shadowCljsActiveBuilds?: string[];
-  shadowCljsRuntimes?: any[];
   /** Base session names before any suffix was applied */
   baseSessionNames?: sessionRoleUtils.SessionRoleKeys;
   /** The suffix applied to this connection, if any */
