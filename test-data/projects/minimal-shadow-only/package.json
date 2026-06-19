@@ -2,6 +2,6 @@
   "dependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "shadow-cljs": "^2.19.9"
+    "shadow-cljs": "^3.4.11"
   }
 }
