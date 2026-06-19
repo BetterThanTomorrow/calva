@@ -197,6 +197,86 @@ describe(`${suiteName} suite`, () => {
     }
   });
 
+  it('queries active builds and nested runtimes through listBuilds()', async () => {
+    const clientKey = 'test-client-builds';
+    const mockActiveBuilds = ['app', 'node'];
+    const mockRuntimes = [
+      {
+        runtimeId: 42,
+        description: 'Mock Browser Tab',
+        buildId: 'app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 43,
+        description: 'Mock Node Process',
+        buildId: 'node',
+        host: 'localhost',
+        workerId: 0,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    // Mock getShadowRuntimesAllBuilds in shadow-cljs-runtime
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (key: string) => {
+      assert.strictEqual(key, clientKey);
+      return Promise.resolve({
+        activeBuilds: mockActiveBuilds,
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Builds',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        availableBuilds: ['app', 'node', 'inactive-build'],
+        cljsBuild: 'app',
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+    });
+
+    try {
+      const builds = await replApi.listBuilds(uiSessionKey);
+      assert.strictEqual(builds.length, 3);
+
+      const appBuild = builds.find((b) => b.buildId === 'app');
+      assert.ok(appBuild);
+      assert.strictEqual(appBuild.isActive, true);
+      assert.strictEqual(appBuild.isCurrentlyConnected, true);
+      assert.strictEqual(appBuild.runtimes.length, 1);
+      assert.strictEqual(appBuild.runtimes[0].runtimeId, 42);
+
+      const nodeBuild = builds.find((b) => b.buildId === 'node');
+      assert.ok(nodeBuild);
+      assert.strictEqual(nodeBuild.isActive, true);
+      assert.strictEqual(nodeBuild.isCurrentlyConnected, false);
+      assert.strictEqual(nodeBuild.runtimes.length, 1);
+      assert.strictEqual(nodeBuild.runtimes[0].runtimeId, 43);
+
+      const inactiveBuild = builds.find((b) => b.buildId === 'inactive-build');
+      assert.ok(inactiveBuild);
+      assert.strictEqual(inactiveBuild.isActive, false);
+      assert.strictEqual(inactiveBuild.isCurrentlyConnected, false);
+      assert.strictEqual(inactiveBuild.runtimes.length, 0);
+    } finally {
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
+  });
+
   it('getShadowRuntimesForClient uses correct query code depending on cljsBuild state', async () => {
     const clientKey = 'test-client-fallback';
     let evaluatedCode = '';
@@ -337,6 +417,11 @@ describe(`${suiteName} suite`, () => {
       for (const sendCodeToOutputWindow of [false, true]) {
         events.length = 0;
         await outputWindow.clearReplWindowDoc();
+        await testUtil.waitForCondition(async () => {
+          const replWindowDoc = await outputWindow.openReplWindowDoc();
+          const txt = docMirror.getDocument(replWindowDoc).document.getText();
+          return txt.trim() === '';
+        });
         await config.update(
           'evaluationSendCodeToOutputWindow',
           sendCodeToOutputWindow,
@@ -425,6 +510,11 @@ describe(`${suiteName} suite`, () => {
       for (const sendCodeToOutputWindow of [false, true]) {
         events.length = 0;
         await outputWindow.clearReplWindowDoc();
+        await testUtil.waitForCondition(async () => {
+          const replWindowDoc = await outputWindow.openReplWindowDoc();
+          const txt = docMirror.getDocument(replWindowDoc).document.getText();
+          return txt.trim() === '';
+        });
         await config.update(
           'evaluationSendCodeToOutputWindow',
           sendCodeToOutputWindow,

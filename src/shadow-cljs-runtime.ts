@@ -115,6 +115,48 @@ export async function getShadowRuntimesForClient(
 }
 
 /**
+ * Get active builds and connected runtimes across all builds for a client connection.
+ */
+export async function getShadowRuntimesAllBuilds(
+  clientKey: string
+): Promise<{ activeBuilds: string[]; runtimes: shadowRuntimeCore.RuntimeInfo[] } | null> {
+  try {
+    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
+    if (!cljSession) {
+      output.appendLineOtherErr('No Clojure session available for runtime detection');
+      return null;
+    }
+
+    const queryCode = `(let [active (shadow.cljs.devtools.api/active-builds)]
+      {:active-builds (vec (map str active))
+       :runtimes (vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) active))})`;
+
+    const result = await cljSession.eval(queryCode, 'user').value;
+
+    if (!result || result === 'nil') {
+      return { activeBuilds: [], runtimes: [] };
+    }
+
+    try {
+      const parsed: any = cljsLib.parseEdnWithInst(result);
+      const activeBuilds: string[] = parsed['active-builds'] || [];
+      const apiRuntimes: shadowRuntimeCore.ShadowApiRuntimeInfo[] = parsed['runtimes'] || [];
+      return {
+        activeBuilds,
+        runtimes: apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo),
+      };
+    } catch (parseError) {
+      output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
+      output.appendLineOtherOut(`Raw result: ${result}`);
+      return null;
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error querying shadow-cljs runtimes: ${error}`);
+    return null;
+  }
+}
+
+/**
  * Get available shadow-cljs runtimes for the current build
  */
 export async function getShadowRuntimes(): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {

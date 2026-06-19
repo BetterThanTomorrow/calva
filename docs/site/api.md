@@ -140,6 +140,38 @@ It returns a Promise resolving to a collection/array of runtime metadata objects
   console.log("Found runtimes:", runtimes.map(r => r.runtimeId));
   ```
 
+### `repl.listBuilds()`
+
+Use `repl.listBuilds(sessionKey?: string)` to asynchronously query all ClojureScript builds and their connected JavaScript runtimes. This is currently supported for `shadow-cljs` connections.
+
+It returns a Promise resolving to a collection/array of build metadata objects with the following shape:
+
+* `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
+* `isActive` (`boolean`): Whether the build is currently active/compiled.
+* `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
+* `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects (with the same shape as returned by `repl.listRuntimes()`).
+
+=== "Joyride"
+
+  ```clojure
+  (let [builds (await (calva/repl.listBuilds))]
+    (doseq [b builds]
+      (println "Build:" (:buildId b) "Active?" (:isActive b))
+      (doseq [r (:runtimes b)]
+        (println "  - Runtime:" (:runtimeId r) (:description r)))))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const builds = await calva.repl.listBuilds();
+  for (const b of builds) {
+    console.log(`Build ${b.buildId} is active: ${b.isActive}`);
+    console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+  }
+  ```
+
+
 ### `repl.evaluate()`
 
 The primary evaluation function. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation. It also tracks which other callers have evaluated since each caller's last evaluation.

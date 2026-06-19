@@ -339,6 +339,76 @@ export const listRuntimes = async (sessionKey?: string): Promise<ShadowRuntimeIn
   return runtimes || [];
 };
 
+export interface ShadowBuildInfo {
+  buildId: string;
+  isActive: boolean;
+  isCurrentlyConnected: boolean;
+  runtimes: ShadowRuntimeInfo[];
+}
+
+export const listBuilds = async (sessionKey?: string): Promise<ShadowBuildInfo[]> => {
+  const key = sessionKey || replSession.getSessionKey();
+  if (!key) {
+    return [];
+  }
+  const clientKey = sessionRegistry.getClientKeyForSession(key);
+  if (!clientKey) {
+    return [];
+  }
+  const connState = clientRegistry.getConnectionState(clientKey);
+  if (!connState || connState.cljsTypeName !== 'shadow-cljs') {
+    return [];
+  }
+
+  const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+  if (!allBuildsData) {
+    return [];
+  }
+
+  const { activeBuilds, runtimes } = allBuildsData;
+
+  const buildKeyMap = new Map<string, string>();
+  const addKey = (k: string) => {
+    const norm = k.startsWith(':') ? k.substring(1) : k;
+    if (!buildKeyMap.has(norm)) {
+      buildKeyMap.set(norm, k);
+    }
+  };
+
+  activeBuilds.forEach(addKey);
+  runtimes.forEach((r) => addKey(r.buildId));
+  if (connState.availableBuilds) {
+    connState.availableBuilds.forEach(addKey);
+  }
+  if (connState.cljsBuild) {
+    addKey(connState.cljsBuild);
+  }
+
+  const currentConnectedBuildNorm = connState.cljsBuild
+    ? connState.cljsBuild.startsWith(':')
+      ? connState.cljsBuild.substring(1)
+      : connState.cljsBuild
+    : undefined;
+
+  const normalizedActiveBuilds = activeBuilds.map((b) => (b.startsWith(':') ? b.substring(1) : b));
+
+  return Array.from(buildKeyMap.entries()).map(([norm, originalKey]) => {
+    const isActive = normalizedActiveBuilds.includes(norm);
+    const isCurrentlyConnected = norm === currentConnectedBuildNorm;
+    const buildRuntimes = (runtimes || []).filter((r) => {
+      const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
+      return rNorm === norm;
+    });
+
+    return {
+      buildId: originalKey,
+      isActive,
+      isCurrentlyConnected,
+      runtimes: buildRuntimes,
+    };
+  });
+};
+
 //// OUTPUT ////
 
 export type OutputCategory =
