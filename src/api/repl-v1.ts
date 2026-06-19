@@ -313,7 +313,7 @@ export const listSessions = (): ReplSessionInfo[] => {
 };
 
 export interface ShadowRuntimeInfo {
-  clientId: number;
+  runtimeId: number;
   description: string;
   buildId: string;
   host: string;
@@ -336,7 +336,15 @@ export const listRuntimes = async (sessionKey?: string): Promise<ShadowRuntimeIn
     return [];
   }
   const runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
-  return runtimes || [];
+  return (runtimes || []).map((r) => ({
+    runtimeId: r.clientId,
+    description: r.description,
+    buildId: r.buildId,
+    host: r.host,
+    workerId: r.workerId,
+    sinceInst: r.sinceInst,
+    sinceDescription: r.sinceDescription,
+  }));
 };
 
 //// OUTPUT ////

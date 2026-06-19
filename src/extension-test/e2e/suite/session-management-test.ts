@@ -181,7 +181,17 @@ describe(`${suiteName} suite`, () => {
 
     try {
       const runtimes = await replApi.listRuntimes(uiSessionKey);
-      assert.deepStrictEqual(runtimes, mockRuntimes);
+      assert.deepStrictEqual(runtimes, [
+        {
+          runtimeId: 42,
+          description: 'Mock Browser Tab',
+          buildId: 'app',
+          host: 'localhost',
+          workerId: 1,
+          sinceInst: 12345678,
+          sinceDescription: 'some time',
+        },
+      ]);
     } finally {
       (shadowCljsRuntime as any).getShadowRuntimesForClient = originalGetShadowRuntimesForClient;
     }

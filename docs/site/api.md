@@ -117,7 +117,7 @@ Use `repl.listRuntimes(sessionKey?: string)` to asynchronously query active Java
 
 It returns a Promise resolving to a collection/array of runtime metadata objects with the following shape:
 
-* `clientId` (`number`): The unique ID of the runtime.
+* `runtimeId` (`number`): The unique ID of the runtime.
 * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
 * `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
 * `host` (`string`): The hostname/IP of the runtime connection.
@@ -130,14 +130,14 @@ It returns a Promise resolving to a collection/array of runtime metadata objects
   ```clojure
   (let [runtimes (await (calva/repl.listRuntimes))]
     (doseq [r runtimes]
-      (println "Active runtime:" (:clientId r) "-" (:description r))))
+      (println "Active runtime:" (:runtimeId r) "-" (:description r))))
   ```
 
 === "JavaScript"
 
   ```javascript
   const runtimes = await calva.repl.listRuntimes();
-  console.log("Found runtimes:", runtimes.map(r => r.clientId));
+  console.log("Found runtimes:", runtimes.map(r => r.runtimeId));
   ```
 
 ### `repl.evaluate()`
