@@ -83,6 +83,12 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 * `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
+* `replType` (`'clj' | 'cljs'`, required): Describes whether this is a Clojure or ClojureScript session.
+* `hasBuilds` (`boolean`, required): Tells if the session has ClojureScript builds available.
+* `supportsRuntimes` (`boolean`, required): Tells if the session supports JS runtimes targeting (currently true for shadow-cljs).
+* `availableBuilds` (`string[]`, optional): List of all builds defined for this connection.
+* `currentlyConnectedCljsBuild` (`string`, optional): The currently connected ClojureScript build name (e.g. `":app"`).
+* `currentlyConnectedRuntimeId` (`number`, optional): The currently connected shadow-cljs runtime ID, if any.
 
 === "Joyride"
 
@@ -105,6 +111,35 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
   const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
   ```
 
+### `repl.listRuntimes()`
+
+Use `repl.listRuntimes(sessionKey?: string)` to asynchronously query active JavaScript runtimes connected to the ClojureScript session. This is currently supported for `shadow-cljs` connections.
+
+It returns a Promise resolving to a collection/array of runtime metadata objects with the following shape:
+
+* `clientId` (`number`): The unique ID of the runtime.
+* `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
+* `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
+* `host` (`string`): The hostname/IP of the runtime connection.
+* `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
+* `sinceInst` (`number`): Unix timestamp for when the runtime connected.
+* `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
+
+=== "Joyride"
+
+  ```clojure
+  (let [runtimes (await (calva/repl.listRuntimes))]
+    (doseq [r runtimes]
+      (println "Active runtime:" (:clientId r) "-" (:description r))))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const runtimes = await calva.repl.listRuntimes();
+  console.log("Found runtimes:", runtimes.map(r => r.clientId));
+  ```
+
 ### `repl.evaluate()`
 
 The primary evaluation function. When multiple agents or tools evaluate code through the API, `evaluate()` lets each identify itself so that REPL output shows who triggered each evaluation. It also tracks which other callers have evaluated since each caller's last evaluation.
@@ -122,6 +157,7 @@ export async function evaluate(
     nReplOptions?: Record<string, unknown>;
     who?: string;
     description?: string;
+    targetRuntimeId?: number;
   }
 ): Promise<Result>;
 ```
@@ -148,6 +184,7 @@ type Result = {
 * `ns` — The namespace to evaluate in. Defaults to `"user"`.
 * `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
 * `nReplOptions` — Additional nREPL evaluation options.
+* `targetRuntimeId` — (shadow-cljs only) Optional JS runtime ID to target for the evaluation. Allows evaluating statelessly on a specific browser tab or node worker without changing the active editor/status bar runtime target.
 * `who` — A freeform string identifying who is evaluating. Defaults to `"api"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
 * `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
 

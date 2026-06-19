@@ -76,7 +76,7 @@ function getCurrentBuild() {
  * Get available shadow-cljs runtimes for a specific client connection.
  * Use this when the clientKey is known (e.g., during initial connection setup).
  */
-async function getShadowRuntimesForClient(
+export async function getShadowRuntimesForClient(
   clientKey: string
 ): Promise<shadowRuntimeCore.RuntimeInfo[] | null> {
   try {
@@ -87,12 +87,9 @@ async function getShadowRuntimesForClient(
     }
 
     const currentBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
-    if (!currentBuild) {
-      output.appendLineOtherErr('No shadow-cljs build currently connected');
-      return null;
-    }
-
-    const getRuntimesCode = `(shadow.cljs.devtools.api/repl-runtimes ${currentBuild})`;
+    const getRuntimesCode = currentBuild
+      ? `(shadow.cljs.devtools.api/repl-runtimes ${currentBuild})`
+      : `(vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) (shadow.cljs.devtools.api/active-builds)))`;
 
     const result = await cljSession.eval(getRuntimesCode, 'user').value;
 

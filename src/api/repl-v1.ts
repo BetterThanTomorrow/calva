@@ -8,6 +8,8 @@ import * as sessionRegistry from '../nrepl/session-registry';
 import * as whoTracking from './who-tracking';
 import * as outputDestinations from '../results-output/output-destinations';
 import * as logUtil from './log-util';
+import * as clientRegistry from '../nrepl/client-registry';
+import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 
 type Result = {
   result: string;
@@ -27,6 +29,12 @@ export interface ReplSessionInfo {
   lastActivity?: number;
   globs?: string[];
   currentRoutedTarget?: boolean;
+  replType: 'clj' | 'cljs';
+  hasBuilds: boolean;
+  supportsRuntimes: boolean;
+  availableBuilds?: string[];
+  currentlyConnectedCljsBuild?: string;
+  currentlyConnectedRuntimeId?: number;
 }
 
 export const evaluate = async (
@@ -41,6 +49,7 @@ export const evaluate = async (
     nReplOptions?: Record<string, unknown>;
     who?: string;
     description?: string;
+    targetRuntimeId?: number;
   }
 ): Promise<Result> => {
   const {
@@ -50,6 +59,7 @@ export const evaluate = async (
     nReplOptions = {},
     who: rawWho,
     description,
+    targetRuntimeId,
   } = options || {};
 
   const resolvedWho = rawWho || 'api';
@@ -102,12 +112,18 @@ export const evaluate = async (
     }
   };
 
-  const evaluation = session.eval(code, ns, {
+  const evaluationOptions: any = {
     stdout,
     stderr,
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplOptions,
-  });
+  };
+
+  if (targetRuntimeId !== undefined) {
+    evaluationOptions['runtime-id'] = targetRuntimeId;
+  }
+
+  const evaluation = session.eval(code, ns, evaluationOptions);
 
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
@@ -275,15 +291,52 @@ export const currentSessionKey = () => {
 
 export const listSessions = (): ReplSessionInfo[] => {
   const currentSessionKey = replSession.getSessionKey();
-  return sessionRegistry.listSessions().map((session) => ({
-    replSessionKey: session.key,
-    projectRoot: session.projectRoot
-      ? vscode.workspace.asRelativePath(session.projectRoot)
-      : undefined,
-    lastActivity: session.lastActivity,
-    globs: session.globs,
-    currentRoutedTarget: session.key === currentSessionKey,
-  }));
+  return sessionRegistry.listSessions().map((session) => {
+    const clientKey = session.connectionOwnerId;
+    const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+    return {
+      replSessionKey: session.key,
+      projectRoot: session.projectRoot
+        ? vscode.workspace.asRelativePath(session.projectRoot)
+        : undefined,
+      lastActivity: session.lastActivity,
+      globs: session.globs,
+      currentRoutedTarget: session.key === currentSessionKey,
+      replType: session.isSecondary ? 'cljs' : 'clj',
+      hasBuilds: connState ? !!connState.hasBuilds : false,
+      supportsRuntimes: connState ? connState.cljsTypeName === 'shadow-cljs' : false,
+      availableBuilds: connState?.availableBuilds,
+      currentlyConnectedCljsBuild: connState?.cljsBuild || undefined,
+      currentlyConnectedRuntimeId: connState?.shadowCljsRuntimeId,
+    };
+  });
+};
+
+export interface ShadowRuntimeInfo {
+  clientId: number;
+  description: string;
+  buildId: string;
+  host: string;
+  workerId: number;
+  sinceInst: number;
+  sinceDescription: string;
+}
+
+export const listRuntimes = async (sessionKey?: string): Promise<ShadowRuntimeInfo[]> => {
+  const key = sessionKey || replSession.getSessionKey();
+  if (!key) {
+    return [];
+  }
+  const clientKey = sessionRegistry.getClientKeyForSession(key);
+  if (!clientKey) {
+    return [];
+  }
+  const connState = clientRegistry.getConnectionState(clientKey);
+  if (!connState || connState.cljsTypeName !== 'shadow-cljs') {
+    return [];
+  }
+  const runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
+  return runtimes || [];
 };
 
 //// OUTPUT ////

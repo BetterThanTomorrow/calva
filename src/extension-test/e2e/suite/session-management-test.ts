@@ -15,6 +15,7 @@ import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as globs from '../../../nrepl/globs';
 import * as docMirror from '../../../doc-mirror';
+import * as shadowCljsRuntime from '../../../shadow-cljs-runtime';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -103,6 +104,174 @@ describe(`${suiteName} suite`, () => {
     assert.deepStrictEqual(keys, [serverSessionKey, uiSessionKey]);
     const serverMeta = sessions.find((s) => s.replSessionKey === serverSessionKey);
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
+  });
+
+  it('exposes registered sessions with enriched metadata through the public API', () => {
+    const clientKey = 'test-client-enriched';
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Enriched',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: ['app', 'node'],
+        cljsBuild: 'app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+      projectRoot: 'file:///ui',
+      globs: ['apps/ui/**'],
+    });
+
+    const sessions = replApi.listSessions();
+    assert.strictEqual(sessions.length, 1);
+    const uiMeta = sessions.find((s) => s.replSessionKey === uiSessionKey);
+    assert.ok(uiMeta);
+    assert.strictEqual(uiMeta.replType, 'cljs');
+    assert.strictEqual(uiMeta.hasBuilds, true);
+    assert.strictEqual(uiMeta.supportsRuntimes, true);
+    assert.deepStrictEqual(uiMeta.availableBuilds, ['app', 'node']);
+    assert.strictEqual(uiMeta.currentlyConnectedCljsBuild, 'app');
+    assert.strictEqual(uiMeta.currentlyConnectedRuntimeId, 42);
+  });
+
+  it('queries active runtimes through listRuntimes()', async () => {
+    const clientKey = 'test-client-runtimes';
+    const mockRuntimes = [
+      {
+        clientId: 42,
+        description: 'Mock Browser Tab',
+        buildId: 'app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+    ];
+
+    // Mock the getShadowRuntimesForClient in shadow-cljs-runtime
+    const originalGetShadowRuntimesForClient = shadowCljsRuntime.getShadowRuntimesForClient;
+    (shadowCljsRuntime as any).getShadowRuntimesForClient = (key: string) => {
+      assert.strictEqual(key, clientKey);
+      return Promise.resolve(mockRuntimes);
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Runtimes',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+    });
+
+    try {
+      const runtimes = await replApi.listRuntimes(uiSessionKey);
+      assert.deepStrictEqual(runtimes, mockRuntimes);
+    } finally {
+      (shadowCljsRuntime as any).getShadowRuntimesForClient = originalGetShadowRuntimesForClient;
+    }
+  });
+
+  it('getShadowRuntimesForClient uses correct query code depending on cljsBuild state', async () => {
+    const clientKey = 'test-client-fallback';
+    let evaluatedCode = '';
+
+    const mockPrimarySession = {
+      replType: 'clj',
+      sessionId: 'primary-session-id',
+      eval: (code: string, ns: string) => {
+        evaluatedCode = code;
+        return {
+          value: Promise.resolve('[]'),
+          ns,
+          outPut: '',
+          errorOutput: '',
+        };
+      },
+    } as unknown as nrepl.NReplSession;
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Fallback',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+      },
+    });
+
+    sessionRegistry.registerSession('session-management/primary-session', mockPrimarySession, {
+      connectionOwnerId: clientKey,
+      isSecondary: false,
+    });
+
+    // 1. Without cljsBuild, it should query active-builds
+    let runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
+    assert.deepStrictEqual(runtimes, []);
+    assert.ok(evaluatedCode.includes('active-builds'));
+
+    // 2. With cljsBuild set, it should query that build specifically
+    clientRegistry.setConnectionState(clientKey, { cljsBuild: 'app' });
+    runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
+    assert.deepStrictEqual(runtimes, []);
+    assert.strictEqual(evaluatedCode, '(shadow.cljs.devtools.api/repl-runtimes app)');
+
+    // Cleanup
+    sessionRegistry.unregisterSession('session-management/primary-session');
+  });
+
+  it('passes targetRuntimeId as runtime-id in evaluate nREPL options', async () => {
+    const sessionKey = 'session-management/target-runtime-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    let passedOpts: any = null;
+
+    const mockSession = {
+      replType: 'cljs',
+      sessionId: 'target-runtime-session-id',
+      eval: (_code: string, _ns: string, opts: any) => {
+        passedOpts = opts;
+        return {
+          value: Promise.resolve(evaluationResult),
+          ns: 'user',
+          outPut: '',
+          errorOutput: '',
+        };
+      },
+      stacktrace: () => Promise.resolve(undefined),
+    } as unknown as nrepl.NReplSession;
+
+    sessionRegistry.registerSession(sessionKey, mockSession, {
+      globs: ['**/*.cljs'],
+    });
+
+    try {
+      await replApi.evaluate(code, {
+        sessionKey,
+        targetRuntimeId: 42,
+      });
+
+      assert.ok(passedOpts);
+      assert.strictEqual(passedOpts['runtime-id'], 42);
+    } finally {
+      sessionRegistry.unregisterSession(sessionKey);
+    }
   });
 
   it('returns workspace-relative project root paths through the API', () => {
