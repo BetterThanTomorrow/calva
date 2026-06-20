@@ -400,6 +400,7 @@ export async function detectInitialRuntime(clientKey?: string): Promise<void> {
 
 export type { shadowRuntimeCore as ShadowRuntimeTypes };
 export type { RuntimeQuickPickItem };
+export { canonicalBuildId } from './shadow-cljs-runtime-core';
 
 export function updateRuntimeState(
   runtimeId: number,

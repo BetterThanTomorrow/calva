@@ -410,7 +410,10 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
         const addKey = (k: string) => {
           const norm = k.startsWith(':') ? k.substring(1) : k;
           if (!buildKeyMap.has(norm)) {
-            buildKeyMap.set(norm, k);
+            const canonical = shadowCljsRuntime.canonicalBuildId(k);
+            if (canonical) {
+              buildKeyMap.set(norm, canonical);
+            }
           }
         };
 

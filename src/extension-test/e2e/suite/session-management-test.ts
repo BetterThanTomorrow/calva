@@ -117,8 +117,8 @@ describe(`${suiteName} suite`, () => {
       connectionState: {
         cljsTypeName: 'shadow-cljs',
         hasBuilds: true,
-        availableBuilds: ['app', 'node'],
-        cljsBuild: 'app',
+        availableBuilds: [':app', ':node'],
+        cljsBuild: ':app',
         shadowCljsRuntimeId: 42,
       },
     });
@@ -136,19 +136,19 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(uiMeta.replType, 'cljs');
     assert.strictEqual(uiMeta.hasBuilds, true);
     assert.strictEqual(uiMeta.supportsRuntimes, true);
-    assert.deepStrictEqual(uiMeta.availableBuilds, ['app', 'node']);
-    assert.strictEqual(uiMeta.currentlyConnectedCljsBuild, 'app');
+    assert.deepStrictEqual(uiMeta.availableBuilds, [':app', ':node']);
+    assert.strictEqual(uiMeta.currentlyConnectedCljsBuild, ':app');
     assert.strictEqual(uiMeta.currentlyConnectedRuntimeId, 42);
   });
 
   it('queries active builds and nested runtimes through listSessionsAndRuntimes()', async () => {
     const clientKey = 'test-client-builds';
-    const mockActiveBuilds = ['app', 'node'];
+    const mockActiveBuilds = [':app', ':node'];
     const mockRuntimes = [
       {
         runtimeId: 42,
         description: 'Mock Browser Tab',
-        buildId: 'app',
+        buildId: ':app',
         host: 'localhost',
         workerId: 1,
         sinceInst: 12345678,
@@ -157,7 +157,7 @@ describe(`${suiteName} suite`, () => {
       {
         runtimeId: 43,
         description: 'Mock Node Process',
-        buildId: 'node',
+        buildId: ':node',
         host: 'localhost',
         workerId: 0,
         sinceInst: 12345688,
@@ -202,21 +202,21 @@ describe(`${suiteName} suite`, () => {
       const builds = cljsSession.builds;
       assert.strictEqual(builds.length, 3);
 
-      const appBuild = builds.find((b) => b.buildId === 'app');
+      const appBuild = builds.find((b) => b.buildId === ':app');
       assert.ok(appBuild);
       assert.strictEqual(appBuild.isActive, true);
       assert.strictEqual(appBuild.isCurrentlyConnected, true);
       assert.strictEqual(appBuild.runtimes.length, 1);
       assert.strictEqual(appBuild.runtimes[0].runtimeId, 42);
 
-      const nodeBuild = builds.find((b) => b.buildId === 'node');
+      const nodeBuild = builds.find((b) => b.buildId === ':node');
       assert.ok(nodeBuild);
       assert.strictEqual(nodeBuild.isActive, true);
       assert.strictEqual(nodeBuild.isCurrentlyConnected, false);
       assert.strictEqual(nodeBuild.runtimes.length, 1);
       assert.strictEqual(nodeBuild.runtimes[0].runtimeId, 43);
 
-      const inactiveBuild = builds.find((b) => b.buildId === 'inactive-build');
+      const inactiveBuild = builds.find((b) => b.buildId === ':inactive-build');
       assert.ok(inactiveBuild);
       assert.strictEqual(inactiveBuild.isActive, false);
       assert.strictEqual(inactiveBuild.isCurrentlyConnected, false);
@@ -232,7 +232,7 @@ describe(`${suiteName} suite`, () => {
       {
         runtimeId: 100,
         description: 'Older Runtime',
-        buildId: 'app',
+        buildId: ':app',
         host: 'localhost',
         workerId: 1,
         sinceInst: 12345678,
@@ -241,7 +241,7 @@ describe(`${suiteName} suite`, () => {
       {
         runtimeId: 101,
         description: 'Newer Runtime',
-        buildId: 'app',
+        buildId: ':app',
         host: 'localhost',
         workerId: 2,
         sinceInst: 12345688,
@@ -259,7 +259,7 @@ describe(`${suiteName} suite`, () => {
     const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
     (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (_key: string) => {
       return Promise.resolve({
-        activeBuilds: ['app'],
+        activeBuilds: [':app'],
         runtimes: mockRuntimes,
       });
     };
@@ -285,7 +285,7 @@ describe(`${suiteName} suite`, () => {
     try {
       const sessions = await replApi.listSessionsAndRuntimes();
       assert.strictEqual(sessions.length, 1);
-      const appBuild = sessions[0].builds?.find((b) => b.buildId === 'app');
+      const appBuild = sessions[0].builds?.find((b) => b.buildId === ':app');
       assert.ok(appBuild);
       assert.strictEqual(appBuild.runtimes.length, 2);
 
@@ -885,8 +885,8 @@ describe(`${suiteName} suite`, () => {
       connectionState: {
         cljsTypeName: 'shadow-cljs',
         hasBuilds: true,
-        availableBuilds: ['app'],
-        cljsBuild: 'app',
+        availableBuilds: [':app'],
+        cljsBuild: ':app',
         shadowCljsRuntimeId: 42,
       },
     });
@@ -910,7 +910,7 @@ describe(`${suiteName} suite`, () => {
         who,
       });
 
-      assert.strictEqual(res.shadowBuild, 'app');
+      assert.strictEqual(res.shadowBuild, ':app');
       assert.strictEqual(res.shadowRuntimeId, 42);
 
       const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
@@ -918,14 +918,14 @@ describe(`${suiteName} suite`, () => {
       assert.strictEqual(evaluatedCodeEvents[0].who, who);
       assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
       assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
-      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, 'app');
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, ':app');
       assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, 42);
 
       const evaluationResultsEvents = events.filter(
         (message) => message.category === 'evaluationResults'
       );
       assert.strictEqual(evaluationResultsEvents.length, 1);
-      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, 'app');
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, ':app');
       assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, 42);
     } finally {
       subscription.dispose();
@@ -1008,12 +1008,12 @@ describe(`${suiteName} suite`, () => {
     const who = 'e2e-test-target-runtime-build';
     const events: replApi.OutputMessage[] = [];
 
-    const mockActiveBuilds = ['app', 'node'];
+    const mockActiveBuilds = [':app', ':node'];
     const mockRuntimes = [
       {
         runtimeId: 42,
         description: 'Mock Browser Tab',
-        buildId: 'app',
+        buildId: ':app',
         host: 'localhost',
         workerId: 1,
         sinceInst: 12345678,
@@ -1022,7 +1022,7 @@ describe(`${suiteName} suite`, () => {
       {
         runtimeId: 43,
         description: 'Mock Node Process',
-        buildId: 'node',
+        buildId: ':node',
         host: 'localhost',
         workerId: 0,
         sinceInst: 12345688,
@@ -1048,8 +1048,8 @@ describe(`${suiteName} suite`, () => {
       connectionState: {
         cljsTypeName: 'shadow-cljs',
         hasBuilds: true,
-        availableBuilds: ['app', 'node'],
-        cljsBuild: 'app',
+        availableBuilds: [':app', ':node'],
+        cljsBuild: ':app',
         shadowCljsRuntimeId: 42,
       },
     });
@@ -1074,19 +1074,19 @@ describe(`${suiteName} suite`, () => {
         targetRuntimeId: 43,
       });
 
-      assert.strictEqual(res.shadowBuild, 'node');
+      assert.strictEqual(res.shadowBuild, ':node');
       assert.strictEqual(res.shadowRuntimeId, 43);
 
       const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
       assert.strictEqual(evaluatedCodeEvents.length, 1);
-      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, 'node');
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, ':node');
       assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, 43);
 
       const evaluationResultsEvents = events.filter(
         (message) => message.category === 'evaluationResults'
       );
       assert.strictEqual(evaluationResultsEvents.length, 1);
-      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, 'node');
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, ':node');
       assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, 43);
     } finally {
       subscription.dispose();

@@ -177,4 +177,24 @@ describe('shadow-cljs-runtime-core', () => {
       expectLib.expect(result).not.toBe('Unknown time');
     });
   });
+
+  describe('canonicalBuildId', () => {
+    it('retains colons for user-defined builds', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('app')).toBe(':app');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':app')).toBe(':app');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('node')).toBe(':node');
+    });
+
+    it('keeps built-in targets colon-free', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('node-repl')).toBe('node-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':node-repl')).toBe('node-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('browser-repl')).toBe('browser-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':browser-repl')).toBe('browser-repl');
+    });
+
+    it('returns undefined for nil values', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(undefined)).toBeUndefined();
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(null)).toBeUndefined();
+    });
+  });
 });

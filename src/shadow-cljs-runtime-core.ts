@@ -5,6 +5,8 @@
  * This module is VS Code-free and operates solely on data structures.
  */
 
+import { buildRequiresWatcher } from './connector-cljs-builds';
+
 export interface RuntimeInfo {
   runtimeId: number;
   description: string;
@@ -50,15 +52,27 @@ export function formatSinceDescription(since: Date | undefined): string {
   });
 }
 
+export function canonicalBuildId(build: string | null | undefined): string | undefined {
+  if (!build) {
+    return undefined;
+  }
+  if (!buildRequiresWatcher(build)) {
+    return build.startsWith(':') ? build.substring(1) : build;
+  }
+  return build.startsWith(':') ? build : `:${build}`;
+}
+
 export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo {
   const sinceDate = apiInfo.since;
   const sinceInst = sinceDate ? sinceDate.getTime() : 0;
   const sinceDescription = formatSinceDescription(sinceDate);
 
+  const buildId = canonicalBuildId(apiInfo['build-id']) || '';
+
   return {
     runtimeId: apiInfo['client-id'],
     description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
-    buildId: apiInfo['build-id'],
+    buildId,
     host: apiInfo.host,
     workerId: apiInfo['worker-id'],
     sinceInst,
