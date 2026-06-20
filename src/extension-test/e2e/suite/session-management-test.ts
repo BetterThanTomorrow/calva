@@ -999,4 +999,100 @@ describe(`${suiteName} suite`, () => {
       clientRegistry.unregisterClient(clientKey);
     }
   });
+
+  it('resolves correct shadowBuild for a specific targetRuntimeId', async () => {
+    const clientKey = 'test-client-target-runtime-build';
+    const sessionKey = 'session-management/target-runtime-build-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'e2e-test-target-runtime-build';
+    const events: replApi.OutputMessage[] = [];
+
+    const mockActiveBuilds = ['app', 'node'];
+    const mockRuntimes = [
+      {
+        runtimeId: 42,
+        description: 'Mock Browser Tab',
+        buildId: 'app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 43,
+        description: 'Mock Node Process',
+        buildId: 'node',
+        host: 'localhost',
+        workerId: 0,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (key: string) => {
+      assert.strictEqual(key, clientKey);
+      return Promise.resolve({
+        activeBuilds: mockActiveBuilds,
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Target Runtime Build',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: ['app', 'node'],
+        cljsBuild: 'app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(
+      sessionKey,
+      createEvaluatingSession(evaluationResult, clientKey),
+      {
+        connectionOwnerId: clientKey,
+        isSecondary: true,
+        globs: ['**/*.cljs'],
+      }
+    );
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      const res = await replApi.evaluate(code, {
+        sessionKey,
+        ns: 'user',
+        who,
+        targetRuntimeId: 43,
+      });
+
+      assert.strictEqual(res.shadowBuild, 'node');
+      assert.strictEqual(res.shadowRuntimeId, 43);
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, 'node');
+      assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, 43);
+
+      const evaluationResultsEvents = events.filter(
+        (message) => message.category === 'evaluationResults'
+      );
+      assert.strictEqual(evaluationResultsEvents.length, 1);
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, 'node');
+      assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, 43);
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      clientRegistry.unregisterClient(clientKey);
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
+  });
 });

@@ -96,7 +96,7 @@ export const evaluate = async (
   const sessionSupportsRuntimes =
     isShadow &&
     (session?.replType === 'cljs' || sessionRegistry.isSessionSecondary(effectiveSessionKey));
-  const shadowBuild =
+  let shadowBuild =
     sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
   const shadowRuntimeId =
     sessionSupportsRuntimes && connState
@@ -104,6 +104,16 @@ export const evaluate = async (
         ? targetRuntimeId
         : connState.shadowCljsRuntimeId
       : undefined;
+
+  if (sessionSupportsRuntimes && clientKey && targetRuntimeId !== undefined) {
+    const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+    if (allBuildsData?.runtimes) {
+      const targetRuntime = allBuildsData.runtimes.find((r) => r.runtimeId === targetRuntimeId);
+      if (targetRuntime) {
+        shadowBuild = targetRuntime.buildId;
+      }
+    }
+  }
 
   const evalOptions: resultOutput.AppendClojureOptions = {
     ns,
