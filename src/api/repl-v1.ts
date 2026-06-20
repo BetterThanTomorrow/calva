@@ -21,6 +21,8 @@ type Result = {
   otherWhosSinceLast?: string[];
   error?: string;
   stacktrace?: any;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
 export interface ReplSessionInfo {
@@ -175,6 +177,8 @@ export const evaluate = async (
       sessionKey: effectiveSessionKey,
       who: resolvedWho,
       otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
+      shadowBuild,
+      shadowRuntimeId,
     };
     resultOutput.appendClojureEval(evaluationResult, evalOptions);
   } catch (evalError) {
@@ -194,6 +198,8 @@ export const evaluate = async (
         otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
         error: `${evalError}`,
         stacktrace,
+        shadowBuild,
+        shadowRuntimeId,
       };
       resultOutput.appendClojureEval('nil', evalOptions);
     }
@@ -303,6 +309,8 @@ export const evaluateCode = async (
       output: evaluation.outPut,
       errorOutput: evaluation.errorOutput,
       sessionKey: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     };
 
     // Always display results in Calva destination
@@ -327,6 +335,8 @@ export const evaluateCode = async (
         sessionKey: effectiveSessionKey,
         error: `${evalError}`,
         stacktrace,
+        shadowBuild,
+        shadowRuntimeId,
       };
 
       resultOutput.appendClojureEval('nil', {

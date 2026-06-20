@@ -183,6 +183,8 @@ type Result = {
   otherWhosSinceLast?: string[];  // Other who values that evaluated since this who's last evaluation
   error?: string;            // Error message, if any
   stacktrace?: any;          // Raw nrepl stacktrace object, if error
+  shadowBuild?: string;      // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number;  // (shadow-cljs only) Connected runtime ID, if applicable
 };
 ```
 
@@ -375,9 +377,11 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
-  who?: string;            // Present when the output was triggered by an identified who
-  ns?: string;             // The namespace the output is associated with, when applicable
-  replSessionKey?: string; // The REPL session key (e.g. "clj", "cljs"), when applicable
+  who?: string;             // Present when the output was triggered by an identified who
+  ns?: string;              // The namespace the output is associated with, when applicable
+  replSessionKey?: string;  // The REPL session key (e.g. "clj", "cljs"), when applicable
+  shadowBuild?: string;     // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number; // (shadow-cljs only) Connected runtime ID, if applicable
 }
 ```
 

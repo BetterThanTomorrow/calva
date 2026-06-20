@@ -904,11 +904,14 @@ describe(`${suiteName} suite`, () => {
     const subscription = replApi.onOutputLogged((message) => events.push(message));
 
     try {
-      await replApi.evaluate(code, {
+      const res = await replApi.evaluate(code, {
         sessionKey,
         ns: 'user',
         who,
       });
+
+      assert.strictEqual(res.shadowBuild, 'app');
+      assert.strictEqual(res.shadowRuntimeId, 42);
 
       const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
       assert.strictEqual(evaluatedCodeEvents.length, 1);
@@ -967,11 +970,14 @@ describe(`${suiteName} suite`, () => {
     const subscription = replApi.onOutputLogged((message) => events.push(message));
 
     try {
-      await replApi.evaluate(code, {
+      const res = await replApi.evaluate(code, {
         sessionKey,
         ns: 'user',
         who,
       });
+
+      assert.strictEqual(res.shadowBuild, undefined);
+      assert.strictEqual(res.shadowRuntimeId, undefined);
 
       const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
       assert.strictEqual(evaluatedCodeEvents.length, 1);
