@@ -12,6 +12,7 @@ export interface ConnectionState {
   cljsBuild: string | null;
   cljsTypeName: string | null;
   hasBuilds: boolean;
+  availableBuilds?: string[];
   sessionRoleKeys?: sessionRoleUtils.SessionRoleKeys;
   sessionGlobMap?: sessionRoleUtils.SessionGlobMap;
   connectSequence?: connectSequence.ReplConnectSequence;

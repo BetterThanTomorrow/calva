@@ -20,6 +20,8 @@ export interface SubscriberOutputMessage {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 }
 
 type Listener = (msg: SubscriberOutputMessage) => void;
@@ -63,6 +65,8 @@ type AppendOptions = {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
 export type AppendClojureOptions = {
@@ -71,6 +75,8 @@ export type AppendClojureOptions = {
   outputCategory?: OutputCategory;
   who?: string;
   description?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
 export type AppendEvaluatedCodeOptions = {
@@ -82,6 +88,8 @@ export type AppendEvaluatedCodeOptions = {
   ns?: string;
   replSessionType?: string;
   who?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
 const lightTheme = {
@@ -316,16 +324,20 @@ const lastInfoLineData = new Map<string, AppendClojureOptions>([
 ]);
 
 function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
-  const { ns, replSessionType, who } = options;
+  const { ns, replSessionType, who, shadowBuild, shadowRuntimeId } = options;
   if (ns) {
-    lastInfoLineData.set(destination, { ns, replSessionType, who });
+    lastInfoLineData.set(destination, { ns, replSessionType, who, shadowBuild, shadowRuntimeId });
   }
 }
 
 function nsInfoLine(destination: string, options: AppendClojureOptions) {
   const last = lastInfoLineData.get(destination) ?? {};
-  const key = `${options.who || ''}:${options.replSessionType}:${options.ns}`;
-  const lastKey = `${last.who || ''}:${last.replSessionType}:${last.ns}`;
+  const key = `${options.who || ''} ${options.replSessionType} ${options.shadowBuild || ''} ${
+    options.shadowRuntimeId ?? ''
+  } ${options.ns}`;
+  const lastKey = `${last.who || ''} ${last.replSessionType} ${last.shadowBuild || ''} ${
+    last.shadowRuntimeId ?? ''
+  } ${last.ns}`;
   if (!options.ns || key === lastKey) {
     return '\n';
   }
@@ -333,13 +345,23 @@ function nsInfoLine(destination: string, options: AppendClojureOptions) {
     options.who && options.who !== 'ui'
       ? themedChalk().evalSeparatorWho(' ' + options.who + ' ')
       : '';
+  let sessionTypeStr = options.replSessionType || '';
+  if (options.shadowBuild) {
+    sessionTypeStr += ` ${options.shadowBuild}`;
+  }
+  if (options.shadowRuntimeId !== undefined) {
+    sessionTypeStr += ` ${options.shadowRuntimeId}`;
+  }
   return `\n;${whoBadge}${themedChalk().evalSeparatorSessionType(
-    ' ' + options.replSessionType + ' '
+    ' ' + sessionTypeStr + ' '
   )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`;
 }
 
 function emitClojureMessage(
-  options: Pick<AppendClojureOptions, 'ns' | 'replSessionType' | 'who'> & {
+  options: Pick<
+    AppendClojureOptions,
+    'ns' | 'replSessionType' | 'who' | 'shadowBuild' | 'shadowRuntimeId'
+  > & {
     outputCategory: OutputCategory;
   },
   message: string,
@@ -352,6 +374,8 @@ function emitClojureMessage(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -471,6 +495,8 @@ export function appendEvaluatedCode(
     who: metadataOptions.who,
     ns: metadataOptions.ns,
     replSessionKey: metadataOptions.replSessionType,
+    shadowBuild: metadataOptions.shadowBuild,
+    shadowRuntimeId: metadataOptions.shadowRuntimeId,
     visibleOutputCategory,
     emit: (message) => {
       try {
@@ -530,6 +556,8 @@ export function appendClojureEval(
       who: options.who,
       ns: options.ns,
       replSessionType: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   }
   destinations.forEach((destination, index) => {
@@ -624,6 +652,8 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionKey,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -656,6 +686,8 @@ export function appendEvalOut(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -673,6 +705,8 @@ export function appendEvalOut(
         who: options.who,
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -707,6 +741,8 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -718,6 +754,8 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -733,6 +771,8 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     };
     writeAppend(evalErrOptions, nsInfoLine(destination, options));
     const isLast = index === destinations.length - 1;
@@ -767,6 +807,8 @@ export function appendOtherOut(
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -784,6 +826,8 @@ export function appendOtherOut(
         who: options.who ?? 'ui',
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -817,6 +861,8 @@ export function appendOtherErr(
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -834,6 +880,8 @@ export function appendOtherErr(
         who: options.who ?? 'ui',
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -909,6 +957,10 @@ export function appendLineEvalOut(
       category: 'evalOut',
       text: util.stripAnsi(message),
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -920,7 +972,15 @@ export function appendLineEvalOut(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'evalOut', who: options.who },
+      {
+        destination,
+        outputCategory: 'evalOut',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -951,6 +1011,10 @@ export function appendLineEvalErr(
       category: 'evalErr',
       text: util.stripAnsi(message),
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -962,7 +1026,15 @@ export function appendLineEvalErr(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'evalErr', who: options.who },
+      {
+        destination,
+        outputCategory: 'evalErr',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -993,6 +1065,10 @@ export function appendLineOtherOut(
       category: 'otherOut',
       text: util.stripAnsi(message),
       who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -1004,7 +1080,15 @@ export function appendLineOtherOut(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+      {
+        destination,
+        outputCategory: 'otherOut',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -1035,6 +1119,10 @@ export function appendLineOtherErr(
       category: 'otherErr',
       text: util.stripAnsi(message),
       who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -1046,7 +1134,15 @@ export function appendLineOtherErr(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+      {
+        destination,
+        outputCategory: 'otherErr',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );

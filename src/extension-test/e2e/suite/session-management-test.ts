@@ -15,6 +15,7 @@ import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as globs from '../../../nrepl/globs';
 import * as docMirror from '../../../doc-mirror';
+import * as shadowCljsRuntime from '../../../shadow-cljs-runtime';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -105,6 +106,291 @@ describe(`${suiteName} suite`, () => {
     assert.deepStrictEqual(serverMeta.globs, ['apps/server/**']);
   });
 
+  it('exposes registered sessions with enriched metadata through the public API', () => {
+    const clientKey = 'test-client-enriched';
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Enriched',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: [':app', ':node'],
+        cljsBuild: ':app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+      globs: ['apps/ui/**'],
+    });
+
+    const sessions = replApi.listSessions();
+    assert.strictEqual(sessions.length, 1);
+    const uiMeta = sessions.find((s) => s.replSessionKey === uiSessionKey);
+    assert.ok(uiMeta);
+    assert.strictEqual(uiMeta.replType, 'cljs');
+    assert.strictEqual(uiMeta.hasBuilds, true);
+    assert.strictEqual(uiMeta.supportsRuntimes, true);
+    assert.deepStrictEqual(uiMeta.availableBuilds, [':app', ':node']);
+    assert.strictEqual(uiMeta.currentlyConnectedCljsBuild, ':app');
+    assert.strictEqual(uiMeta.currentlyConnectedRuntimeId, 42);
+  });
+
+  it('queries active builds and nested runtimes through listSessionsAndRuntimes()', async () => {
+    const clientKey = 'test-client-builds';
+    const mockActiveBuilds = [':app', ':node'];
+    const mockRuntimes = [
+      {
+        runtimeId: 42,
+        description: 'Mock Browser Tab',
+        buildId: ':app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 43,
+        description: 'Mock Node Process',
+        buildId: ':node',
+        host: 'localhost',
+        workerId: 0,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    // Mock getShadowRuntimesAllBuilds in shadow-cljs-runtime
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (key: string) => {
+      assert.strictEqual(key, clientKey);
+      return Promise.resolve({
+        activeBuilds: mockActiveBuilds,
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Builds',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        availableBuilds: ['app', 'node', 'inactive-build'],
+        cljsBuild: 'app',
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+    });
+
+    try {
+      const sessions = await replApi.listSessionsAndRuntimes();
+      assert.strictEqual(sessions.length, 1);
+      const cljsSession = sessions[0];
+      assert.ok(cljsSession.builds);
+
+      const builds = cljsSession.builds;
+      assert.strictEqual(builds.length, 3);
+
+      const appBuild = builds.find((b) => b.buildId === ':app');
+      assert.ok(appBuild);
+      assert.strictEqual(appBuild.isActive, true);
+      assert.strictEqual(appBuild.isCurrentlyConnected, true);
+      assert.strictEqual(appBuild.runtimes.length, 1);
+      assert.strictEqual(appBuild.runtimes[0].runtimeId, 42);
+
+      const nodeBuild = builds.find((b) => b.buildId === ':node');
+      assert.ok(nodeBuild);
+      assert.strictEqual(nodeBuild.isActive, true);
+      assert.strictEqual(nodeBuild.isCurrentlyConnected, false);
+      assert.strictEqual(nodeBuild.runtimes.length, 1);
+      assert.strictEqual(nodeBuild.runtimes[0].runtimeId, 43);
+
+      const inactiveBuild = builds.find((b) => b.buildId === ':inactive-build');
+      assert.ok(inactiveBuild);
+      assert.strictEqual(inactiveBuild.isActive, false);
+      assert.strictEqual(inactiveBuild.isCurrentlyConnected, false);
+      assert.strictEqual(inactiveBuild.runtimes.length, 0);
+    } finally {
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
+  });
+
+  it('includes lastActivity on runtimes and sorts by most recent first', async () => {
+    const clientKey = 'test-client-activity';
+    const mockRuntimes = [
+      {
+        runtimeId: 100,
+        description: 'Older Runtime',
+        buildId: ':app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 101,
+        description: 'Newer Runtime',
+        buildId: ':app',
+        host: 'localhost',
+        workerId: 2,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    // Record activity for runtime 101 first, then 100
+    // This makes 100 more recent than 101
+    shadowCljsRuntime.recordRuntimeActivity(101);
+    // Small delay to ensure different timestamps
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    shadowCljsRuntime.recordRuntimeActivity(100);
+
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (_key: string) => {
+      return Promise.resolve({
+        activeBuilds: [':app'],
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Activity',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        availableBuilds: ['app'],
+        cljsBuild: 'app',
+      },
+    });
+
+    sessionRegistry.registerSession(uiSessionKey, createSession('cljs', clientKey), {
+      connectionOwnerId: clientKey,
+      isSecondary: true,
+    });
+
+    try {
+      const sessions = await replApi.listSessionsAndRuntimes();
+      assert.strictEqual(sessions.length, 1);
+      const appBuild = sessions[0].builds?.find((b) => b.buildId === ':app');
+      assert.ok(appBuild);
+      assert.strictEqual(appBuild.runtimes.length, 2);
+
+      // Runtime 100 was stamped more recently, so it should be first
+      assert.strictEqual(appBuild.runtimes[0].runtimeId, 100);
+      assert.strictEqual(appBuild.runtimes[1].runtimeId, 101);
+
+      // Both should have lastActivity timestamps
+      assert.ok(typeof appBuild.runtimes[0].lastActivity === 'number');
+      assert.ok(typeof appBuild.runtimes[1].lastActivity === 'number');
+
+      // Runtime 100 should have a more recent lastActivity
+      assert.ok(appBuild.runtimes[0].lastActivity >= appBuild.runtimes[1].lastActivity);
+    } finally {
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
+  });
+
+  it('getShadowRuntimesForClient uses correct query code depending on cljsBuild state', async () => {
+    const clientKey = 'test-client-fallback';
+    let evaluatedCode = '';
+
+    const mockPrimarySession = {
+      replType: 'clj',
+      sessionId: 'primary-session-id',
+      eval: (code: string, ns: string) => {
+        evaluatedCode = code;
+        return {
+          value: Promise.resolve('[]'),
+          ns,
+          outPut: '',
+          errorOutput: '',
+        };
+      },
+    } as unknown as nrepl.NReplSession;
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Fallback',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+      },
+    });
+
+    sessionRegistry.registerSession('session-management/primary-session', mockPrimarySession, {
+      connectionOwnerId: clientKey,
+      isSecondary: false,
+    });
+
+    // 1. Without cljsBuild, it should query active-builds
+    let runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
+    assert.deepStrictEqual(runtimes, []);
+    assert.ok(evaluatedCode.includes('active-builds'));
+
+    // 2. With cljsBuild set, it should query that build specifically
+    clientRegistry.setConnectionState(clientKey, { cljsBuild: 'app' });
+    runtimes = await shadowCljsRuntime.getShadowRuntimesForClient(clientKey);
+    assert.deepStrictEqual(runtimes, []);
+    assert.strictEqual(evaluatedCode, '(shadow.cljs.devtools.api/repl-runtimes app)');
+
+    // Cleanup
+    sessionRegistry.unregisterSession('session-management/primary-session');
+  });
+
+  it('passes targetRuntimeId as runtime-id in evaluate nREPL options', async () => {
+    const sessionKey = 'session-management/target-runtime-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    let passedOpts: any = null;
+
+    const mockSession = {
+      replType: 'cljs',
+      sessionId: 'target-runtime-session-id',
+      eval: (_code: string, _ns: string, opts: any) => {
+        passedOpts = opts;
+        return {
+          value: Promise.resolve(evaluationResult),
+          ns: 'user',
+          outPut: '',
+          errorOutput: '',
+        };
+      },
+      stacktrace: () => Promise.resolve(undefined),
+    } as unknown as nrepl.NReplSession;
+
+    sessionRegistry.registerSession(sessionKey, mockSession, {
+      globs: ['**/*.cljs'],
+    });
+
+    try {
+      await replApi.evaluate(code, {
+        sessionKey,
+        targetRuntimeId: 42,
+      });
+
+      assert.ok(passedOpts);
+      assert.strictEqual(passedOpts['runtime-id'], 42);
+    } finally {
+      sessionRegistry.unregisterSession(sessionKey);
+    }
+  });
+
   it('returns workspace-relative project root paths through the API', () => {
     const absoluteProjectRoot = path.join(testUtil.testDataDir, 'projects', 'deps.edn');
     sessionRegistry.registerSession(serverSessionKey, createSession('clj'), {
@@ -158,6 +444,11 @@ describe(`${suiteName} suite`, () => {
       for (const sendCodeToOutputWindow of [false, true]) {
         events.length = 0;
         await outputWindow.clearReplWindowDoc();
+        await testUtil.waitForCondition(async () => {
+          const replWindowDoc = await outputWindow.openReplWindowDoc();
+          const txt = docMirror.getDocument(replWindowDoc).document.getText();
+          return txt.trim() === '';
+        });
         await config.update(
           'evaluationSendCodeToOutputWindow',
           sendCodeToOutputWindow,
@@ -174,7 +465,7 @@ describe(`${suiteName} suite`, () => {
         await testUtil.waitForCondition(async () => {
           const replWindowDoc = await outputWindow.openReplWindowDoc();
           lastReplText = docMirror.getDocument(replWindowDoc).document.getText();
-          return lastReplText.includes(code);
+          return lastReplText.includes(code) && lastReplText.includes(evaluationResult);
         });
 
         const evaluatedCodeEvents = events.filter(
@@ -198,6 +489,7 @@ describe(`${suiteName} suite`, () => {
           1,
           `Expected visible evaluated code once when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
         );
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     } finally {
       subscription.dispose();
@@ -246,6 +538,11 @@ describe(`${suiteName} suite`, () => {
       for (const sendCodeToOutputWindow of [false, true]) {
         events.length = 0;
         await outputWindow.clearReplWindowDoc();
+        await testUtil.waitForCondition(async () => {
+          const replWindowDoc = await outputWindow.openReplWindowDoc();
+          const txt = docMirror.getDocument(replWindowDoc).document.getText();
+          return txt.trim() === '';
+        });
         await config.update(
           'evaluationSendCodeToOutputWindow',
           sendCodeToOutputWindow,
@@ -283,14 +580,17 @@ describe(`${suiteName} suite`, () => {
         assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
         assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
 
-        if (sendCodeToOutputWindow) {
-          await testUtil.waitForCondition(
-            async () => (await getReplWindowText()).includes(code),
-            4000,
-            20,
-            'Timed out waiting for manual REPL-window echo'
-          );
-        }
+        await testUtil.waitForCondition(
+          async () => {
+            const txt = await getReplWindowText();
+            return (
+              txt.includes(evaluationResult) && (!sendCodeToOutputWindow || txt.includes(code))
+            );
+          },
+          4000,
+          20,
+          'Timed out waiting for manual REPL-window output'
+        );
 
         const replText = await getReplWindowText();
         const codeOccurrences = (replText.match(/\(inc 1\)/g) || []).length;
@@ -300,6 +600,7 @@ describe(`${suiteName} suite`, () => {
           sendCodeToOutputWindow ? 1 : 0,
           `Unexpected REPL-window echo count when evaluationSendCodeToOutputWindow=${sendCodeToOutputWindow}`
         );
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     } finally {
       subscription.dispose();
@@ -565,5 +866,233 @@ describe(`${suiteName} suite`, () => {
 
     const resolved = replSession.getSession();
     assert.strictEqual(resolved, cljSession);
+  });
+
+  it('includes shadowBuild and shadowRuntimeId in OutputMessage log events', async () => {
+    const clientKey = 'test-client-output-metadata';
+    const sessionKey = 'session-management/shadow-metadata-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'e2e-test-metadata';
+    const events: replApi.OutputMessage[] = [];
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Metadata',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: [':app'],
+        cljsBuild: ':app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(
+      sessionKey,
+      createEvaluatingSession(evaluationResult, clientKey),
+      {
+        connectionOwnerId: clientKey,
+        isSecondary: true,
+        globs: ['**/*.cljs'],
+      }
+    );
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      const res = await replApi.evaluate(code, {
+        sessionKey,
+        ns: 'user',
+        who,
+      });
+
+      assert.strictEqual(res.shadowBuild, ':app');
+      assert.strictEqual(res.shadowRuntimeId, 42);
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].who, who);
+      assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
+      assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, ':app');
+      assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, 42);
+
+      const evaluationResultsEvents = events.filter(
+        (message) => message.category === 'evaluationResults'
+      );
+      assert.strictEqual(evaluationResultsEvents.length, 1);
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, ':app');
+      assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, 42);
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      clientRegistry.unregisterClient(clientKey);
+    }
+  });
+
+  it('excludes shadowBuild and shadowRuntimeId in OutputMessage log events for CLJ sessions', async () => {
+    const clientKey = 'test-client-clj-metadata';
+    const sessionKey = 'session-management/clj-metadata-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'e2e-test-clj-metadata';
+    const events: replApi.OutputMessage[] = [];
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection CLJ Metadata',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: ['app'],
+        cljsBuild: 'app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(
+      sessionKey,
+      createEvaluatingSession(evaluationResult, clientKey),
+      {
+        connectionOwnerId: clientKey,
+        isSecondary: false,
+        globs: ['**/*.clj'],
+      }
+    );
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      const res = await replApi.evaluate(code, {
+        sessionKey,
+        ns: 'user',
+        who,
+      });
+
+      assert.strictEqual(res.shadowBuild, undefined);
+      assert.strictEqual(res.shadowRuntimeId, undefined);
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].who, who);
+      assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
+      assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, undefined);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, undefined);
+
+      const evaluationResultsEvents = events.filter(
+        (message) => message.category === 'evaluationResults'
+      );
+      assert.strictEqual(evaluationResultsEvents.length, 1);
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, undefined);
+      assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, undefined);
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      clientRegistry.unregisterClient(clientKey);
+    }
+  });
+
+  it('resolves correct shadowBuild for a specific targetRuntimeId', async () => {
+    const clientKey = 'test-client-target-runtime-build';
+    const sessionKey = 'session-management/target-runtime-build-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'e2e-test-target-runtime-build';
+    const events: replApi.OutputMessage[] = [];
+
+    const mockActiveBuilds = [':app', ':node'];
+    const mockRuntimes = [
+      {
+        runtimeId: 42,
+        description: 'Mock Browser Tab',
+        buildId: ':app',
+        host: 'localhost',
+        workerId: 1,
+        sinceInst: 12345678,
+        sinceDescription: 'some time',
+      },
+      {
+        runtimeId: 43,
+        description: 'Mock Node Process',
+        buildId: ':node',
+        host: 'localhost',
+        workerId: 0,
+        sinceInst: 12345688,
+        sinceDescription: 'some other time',
+      },
+    ];
+
+    const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
+    (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = (key: string) => {
+      assert.strictEqual(key, clientKey);
+      return Promise.resolve({
+        activeBuilds: mockActiveBuilds,
+        runtimes: mockRuntimes,
+      });
+    };
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Target Runtime Build',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: [':app', ':node'],
+        cljsBuild: ':app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(
+      sessionKey,
+      createEvaluatingSession(evaluationResult, clientKey),
+      {
+        connectionOwnerId: clientKey,
+        isSecondary: true,
+        globs: ['**/*.cljs'],
+      }
+    );
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      const res = await replApi.evaluate(code, {
+        sessionKey,
+        ns: 'user',
+        who,
+        targetRuntimeId: 43,
+      });
+
+      assert.strictEqual(res.shadowBuild, ':node');
+      assert.strictEqual(res.shadowRuntimeId, 43);
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, ':node');
+      assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, 43);
+
+      const evaluationResultsEvents = events.filter(
+        (message) => message.category === 'evaluationResults'
+      );
+      assert.strictEqual(evaluationResultsEvents.length, 1);
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, ':node');
+      assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, 43);
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      clientRegistry.unregisterClient(clientKey);
+      (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
+    }
   });
 });

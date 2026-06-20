@@ -4,10 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Support targeting shadow-cljs runtimes via the repl API](https://github.com/BetterThanTomorrow/calva/issues/3244)
+
 ## [2.0.591] - 2026-06-04
 
 - Fix: [WebSocket nREPL servers not stopped on VS Code window reload](https://github.com/BetterThanTomorrow/calva/issues/3237)
-- Internal: Ditching `atom-language-clojure` for Clojure TextMate grammar and using (`clojure.tmLanguage.json`) as the source of truth 
+- Internal: Ditching `atom-language-clojure` for Clojure TextMate grammar and using (`clojure.tmLanguage.json`) as the source of truth
   - Unit tests (and watcher) are now covering the grammar (utilizing `vscode-textmate`)
 
 ## [2.0.590] - 2026-06-03

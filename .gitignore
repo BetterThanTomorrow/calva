@@ -85,7 +85,7 @@ report.*
 #Calva
 output.calva-repl
 **/.calva/repl.calva-repl
-
+**/.calva/mcp-server/port
 
 # MkDocs
 /site/
@@ -108,4 +108,5 @@ ephemeral-docs/
 
 **/.cljs_node_repl/
 .venv-docs/
+
 
