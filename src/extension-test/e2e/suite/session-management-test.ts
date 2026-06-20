@@ -930,4 +930,67 @@ describe(`${suiteName} suite`, () => {
       clientRegistry.unregisterClient(clientKey);
     }
   });
+
+  it('excludes shadowBuild and shadowRuntimeId in OutputMessage log events for CLJ sessions', async () => {
+    const clientKey = 'test-client-clj-metadata';
+    const sessionKey = 'session-management/clj-metadata-evaluate';
+    const code = '(inc 1)';
+    const evaluationResult = '2';
+    const who = 'e2e-test-clj-metadata';
+    const events: replApi.OutputMessage[] = [];
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection CLJ Metadata',
+      connectionState: {
+        cljsTypeName: 'shadow-cljs',
+        hasBuilds: true,
+        availableBuilds: ['app'],
+        cljsBuild: 'app',
+        shadowCljsRuntimeId: 42,
+      },
+    });
+
+    sessionRegistry.registerSession(
+      sessionKey,
+      createEvaluatingSession(evaluationResult, clientKey),
+      {
+        connectionOwnerId: clientKey,
+        isSecondary: false,
+        globs: ['**/*.clj'],
+      }
+    );
+
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      await replApi.evaluate(code, {
+        sessionKey,
+        ns: 'user',
+        who,
+      });
+
+      const evaluatedCodeEvents = events.filter((message) => message.category === 'evaluatedCode');
+      assert.strictEqual(evaluatedCodeEvents.length, 1);
+      assert.strictEqual(evaluatedCodeEvents[0].who, who);
+      assert.strictEqual(evaluatedCodeEvents[0].ns, 'user');
+      assert.strictEqual(evaluatedCodeEvents[0].replSessionKey, sessionKey);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowBuild, undefined);
+      assert.strictEqual(evaluatedCodeEvents[0].shadowRuntimeId, undefined);
+
+      const evaluationResultsEvents = events.filter(
+        (message) => message.category === 'evaluationResults'
+      );
+      assert.strictEqual(evaluationResultsEvents.length, 1);
+      assert.strictEqual(evaluationResultsEvents[0].shadowBuild, undefined);
+      assert.strictEqual(evaluationResultsEvents[0].shadowRuntimeId, undefined);
+    } finally {
+      subscription.dispose();
+      sessionRegistry.unregisterSession(sessionKey);
+      clientRegistry.unregisterClient(clientKey);
+    }
+  });
 });

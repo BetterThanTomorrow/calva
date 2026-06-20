@@ -91,9 +91,13 @@ export const evaluate = async (
   const clientKey = session?.client?.clientKey;
   const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
   const isShadow = connState?.cljsTypeName === 'shadow-cljs';
-  const shadowBuild = isShadow && connState ? connState.cljsBuild || undefined : undefined;
+  const sessionSupportsRuntimes =
+    isShadow &&
+    (session?.replType === 'cljs' || sessionRegistry.isSessionSecondary(effectiveSessionKey));
+  const shadowBuild =
+    sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
   const shadowRuntimeId =
-    isShadow && connState
+    sessionSupportsRuntimes && connState
       ? targetRuntimeId !== undefined
         ? targetRuntimeId
         : connState.shadowCljsRuntimeId
@@ -229,8 +233,13 @@ export const evaluateCode = async (
   const clientKey = session?.client?.clientKey;
   const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
   const isShadow = connState?.cljsTypeName === 'shadow-cljs';
-  const shadowBuild = isShadow && connState ? connState.cljsBuild || undefined : undefined;
-  const shadowRuntimeId = isShadow && connState ? connState.shadowCljsRuntimeId : undefined;
+  const sessionSupportsRuntimes =
+    isShadow &&
+    (session?.replType === 'cljs' || sessionRegistry.isSessionSecondary(effectiveSessionKey));
+  const shadowBuild =
+    sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
+  const shadowRuntimeId =
+    sessionSupportsRuntimes && connState ? connState.shadowCljsRuntimeId : undefined;
 
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
@@ -340,6 +349,8 @@ export const listSessions = (): ReplSessionInfo[] => {
   return sessionRegistry.listSessions().map((session) => {
     const clientKey = session.connectionOwnerId;
     const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+    const isCljs = session.isSecondary || false;
+    const supportsRuntimes = isCljs && connState ? connState.cljsTypeName === 'shadow-cljs' : false;
     return {
       replSessionKey: session.key,
       projectRoot: session.projectRoot
@@ -348,12 +359,12 @@ export const listSessions = (): ReplSessionInfo[] => {
       lastActivity: session.lastActivity,
       globs: session.globs,
       currentRoutedTarget: session.key === currentSessionKey,
-      replType: session.isSecondary ? 'cljs' : 'clj',
-      hasBuilds: connState ? !!connState.hasBuilds : false,
-      supportsRuntimes: connState ? connState.cljsTypeName === 'shadow-cljs' : false,
-      availableBuilds: connState?.availableBuilds,
-      currentlyConnectedCljsBuild: connState?.cljsBuild || undefined,
-      currentlyConnectedRuntimeId: connState?.shadowCljsRuntimeId,
+      replType: isCljs ? 'cljs' : 'clj',
+      hasBuilds: isCljs && connState ? !!connState.hasBuilds : false,
+      supportsRuntimes,
+      availableBuilds: isCljs ? connState?.availableBuilds : undefined,
+      currentlyConnectedCljsBuild: isCljs ? connState?.cljsBuild || undefined : undefined,
+      currentlyConnectedRuntimeId: isCljs ? connState?.shadowCljsRuntimeId : undefined,
     };
   });
 };
@@ -365,7 +376,8 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
   for (const session of sessionRegistry.listSessions()) {
     const clientKey = session.connectionOwnerId;
     const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
-    const supportsRuntimes = connState ? connState.cljsTypeName === 'shadow-cljs' : false;
+    const isCljs = session.isSecondary || false;
+    const supportsRuntimes = isCljs && connState ? connState.cljsTypeName === 'shadow-cljs' : false;
 
     let builds: ShadowBuildInfo[] | undefined;
 
@@ -433,12 +445,12 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
       lastActivity: session.lastActivity,
       globs: session.globs,
       currentRoutedTarget: session.key === currentSessionKey,
-      replType: session.isSecondary ? 'cljs' : 'clj',
-      hasBuilds: connState ? !!connState.hasBuilds : false,
+      replType: isCljs ? 'cljs' : 'clj',
+      hasBuilds: isCljs && connState ? !!connState.hasBuilds : false,
       supportsRuntimes,
-      availableBuilds: connState?.availableBuilds,
-      currentlyConnectedCljsBuild: connState?.cljsBuild || undefined,
-      currentlyConnectedRuntimeId: connState?.shadowCljsRuntimeId,
+      availableBuilds: isCljs ? connState?.availableBuilds : undefined,
+      currentlyConnectedCljsBuild: isCljs ? connState?.cljsBuild || undefined : undefined,
+      currentlyConnectedRuntimeId: isCljs ? connState?.shadowCljsRuntimeId : undefined,
       builds,
     });
   }

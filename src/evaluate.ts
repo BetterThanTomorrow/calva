@@ -35,6 +35,9 @@ function initInspectorDataProvider() {
 }
 
 function getShadowInfo(session: any) {
+  if (session?.replType !== 'cljs' && !session?.isSecondary) {
+    return {};
+  }
   const clientKey = session?.client?.clientKey;
   const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
   if (connState?.cljsTypeName === 'shadow-cljs') {
