@@ -332,12 +332,12 @@ function saveLastInfoLineData(destination: string, options: AppendClojureOptions
 
 function nsInfoLine(destination: string, options: AppendClojureOptions) {
   const last = lastInfoLineData.get(destination) ?? {};
-  const key = `${options.who || ''}:${options.replSessionType}:${options.shadowBuild || ''}:${
+  const key = `${options.who || ''} ${options.replSessionType} ${options.shadowBuild || ''} ${
     options.shadowRuntimeId ?? ''
-  }:${options.ns}`;
-  const lastKey = `${last.who || ''}:${last.replSessionType}:${last.shadowBuild || ''}:${
+  } ${options.ns}`;
+  const lastKey = `${last.who || ''} ${last.replSessionType} ${last.shadowBuild || ''} ${
     last.shadowRuntimeId ?? ''
-  }:${last.ns}`;
+  } ${last.ns}`;
   if (!options.ns || key === lastKey) {
     return '\n';
   }
@@ -347,10 +347,10 @@ function nsInfoLine(destination: string, options: AppendClojureOptions) {
       : '';
   let sessionTypeStr = options.replSessionType || '';
   if (options.shadowBuild) {
-    sessionTypeStr += `:${options.shadowBuild}`;
+    sessionTypeStr += ` ${options.shadowBuild}`;
   }
   if (options.shadowRuntimeId !== undefined) {
-    sessionTypeStr += `:${options.shadowRuntimeId}`;
+    sessionTypeStr += ` ${options.shadowRuntimeId}`;
   }
   return `\n;${whoBadge}${themedChalk().evalSeparatorSessionType(
     ' ' + sessionTypeStr + ' '
