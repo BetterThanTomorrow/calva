@@ -88,10 +88,23 @@ export const evaluate = async (
   const effectiveSessionKey =
     sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
 
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  const isShadow = connState?.cljsTypeName === 'shadow-cljs';
+  const shadowBuild = isShadow && connState ? connState.cljsBuild || undefined : undefined;
+  const shadowRuntimeId =
+    isShadow && connState
+      ? targetRuntimeId !== undefined
+        ? targetRuntimeId
+        : connState.shadowCljsRuntimeId
+      : undefined;
+
   const evalOptions: resultOutput.AppendClojureOptions = {
     ns,
     replSessionType: effectiveSessionKey,
     who: resolvedWho,
+    shadowBuild,
+    shadowRuntimeId,
   };
 
   if (description) {
@@ -99,6 +112,8 @@ export const evaluate = async (
       who: resolvedWho,
       ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     });
   }
 
@@ -210,9 +225,21 @@ export const evaluateCode = async (
   }
   const effectiveSessionKey =
     sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
+
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  const isShadow = connState?.cljsTypeName === 'shadow-cljs';
+  const shadowBuild = isShadow && connState ? connState.cljsBuild || undefined : undefined;
+  const shadowRuntimeId = isShadow && connState ? connState.shadowCljsRuntimeId : undefined;
+
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
-    resultOutput.appendEvalOut(m);
+    resultOutput.appendEvalOut(m, {
+      ns,
+      replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
+    });
 
     if (output?.stdout) {
       output.stdout(m);
@@ -223,6 +250,8 @@ export const evaluateCode = async (
     resultOutput.appendEvalErr(m, {
       ns: ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     });
 
     if (output?.stderr) {
@@ -250,6 +279,8 @@ export const evaluateCode = async (
         ns,
         replSessionType: effectiveSessionKey,
         outputCategory: 'evaluatedCode',
+        shadowBuild,
+        shadowRuntimeId,
       });
     }
   }
@@ -269,6 +300,8 @@ export const evaluateCode = async (
     resultOutput.appendClojureEval(evaluationResult, {
       ns: evaluation.ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     });
   } catch (evalError) {
     let stacktrace;
@@ -290,6 +323,8 @@ export const evaluateCode = async (
       resultOutput.appendClojureEval('nil', {
         ns: evaluation.ns,
         replSessionType: effectiveSessionKey,
+        shadowBuild,
+        shadowRuntimeId,
       });
     }
   }
@@ -445,6 +480,8 @@ export interface OutputMessage {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -464,6 +501,8 @@ export function log(message: OutputMessage): void {
     who: message.who,
     ns: message.ns,
     replSessionKey: message.replSessionKey,
+    shadowBuild: message.shadowBuild,
+    shadowRuntimeId: message.shadowRuntimeId,
   });
 }
 
@@ -477,6 +516,8 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
         who: m.who,
         ns: m.ns,
         replSessionKey: m.replSessionKey,
+        shadowBuild: m.shadowBuild,
+        shadowRuntimeId: m.shadowRuntimeId,
       });
     } catch (error) {
       console.log('API onOutputLogged callback failed', error.message);

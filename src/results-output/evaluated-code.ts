@@ -13,6 +13,8 @@ export type EvaluatedCodeMessage = {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
 export type VisibleEvaluatedCodeWrite = {
@@ -27,6 +29,8 @@ export function routeEvaluatedCode(options: {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
   visibleOutputCategory?: EvaluatedCodeOutputCategory;
   emit: (message: EvaluatedCodeMessage) => void;
   writeVisible: (write: VisibleEvaluatedCodeWrite) => void;
@@ -37,6 +41,8 @@ export function routeEvaluatedCode(options: {
     who,
     ns,
     replSessionKey,
+    shadowBuild,
+    shadowRuntimeId,
     visibleOutputCategory = 'evalResults',
     emit,
     writeVisible,
@@ -48,6 +54,8 @@ export function routeEvaluatedCode(options: {
     who,
     ns,
     replSessionKey,
+    shadowBuild,
+    shadowRuntimeId,
   });
 
   writeVisible({
