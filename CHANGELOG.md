@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.592] - 2026-06-21
+
 - [Support targeting shadow-cljs runtimes via the repl API](https://github.com/BetterThanTomorrow/calva/issues/3244)
   - Also tag output from shadow-cljs evaluations with build and runtime IDs
 
