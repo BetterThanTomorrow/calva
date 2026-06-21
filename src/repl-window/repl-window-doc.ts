@@ -332,6 +332,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
 }
 
 export async function clearReplWindowDoc() {
+  resultsBuffer = [];
   const docUri = getDocUri();
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
@@ -341,11 +342,23 @@ export async function clearReplWindowDoc() {
     await util.writeTextToFile(docUri, '');
     doc = await vscode.workspace.openTextDocument(docUri);
   }
-  const edit = new vscode.WorkspaceEdit();
-  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
-  edit.replace(docUri, fullRange, '');
-  await vscode.workspace.applyEdit(edit);
-  await doc.save();
+
+  let success = false;
+  let attempts = 0;
+  while (!success && attempts < 50) {
+    attempts++;
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
+    edit.replace(docUri, fullRange, '');
+    success = await vscode.workspace.applyEdit(edit);
+    if (success) {
+      await doc.save();
+    } else {
+      // Re-load the document to obtain the latest version/state
+      doc = await vscode.workspace.openTextDocument(docUri);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
 }
 
 export async function initReplWindowDoc(): Promise<vscode.TextDocument> {

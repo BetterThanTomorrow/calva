@@ -17,7 +17,7 @@ describe('shadow-cljs-runtime-core', () => {
 
       const result = shadowRuntimeCore.normalizeRuntimeInfo(apiInfo);
 
-      expectLib.expect(result.clientId).toBe(42);
+      expectLib.expect(result.runtimeId).toBe(42);
       expectLib.expect(result.buildId).toBe(':app');
       expectLib.expect(result.host).toBe('localhost');
       expectLib.expect(result.workerId).toBe(1);
@@ -93,7 +93,7 @@ describe('shadow-cljs-runtime-core', () => {
       };
       const result = shadowRuntimeCore.decideMessageAction(data, 42);
 
-      expectLib.expect(result).toEqual({ type: 'runtime-disconnected', clientId: 42 });
+      expectLib.expect(result).toEqual({ type: 'runtime-disconnected', runtimeId: 42 });
     });
 
     it('returns no-action when a different runtime disconnects', () => {
@@ -126,9 +126,9 @@ describe('shadow-cljs-runtime-core', () => {
 
       expectLib.expect(result.type).toBe('runtime-connected');
       if (result.type === 'runtime-connected') {
-        expectLib.expect(result.clientId).toBe(42);
+        expectLib.expect(result.runtimeId).toBe(42);
         expectLib.expect(result.runtimeInfo.description).toBe('New Browser');
-        expectLib.expect(result.runtimeInfo.clientId).toBe(42); // Should be set from outer client-id
+        expectLib.expect(result.runtimeInfo.runtimeId).toBe(42); // Should be set from outer client-id
       }
     });
 
@@ -175,6 +175,26 @@ describe('shadow-cljs-runtime-core', () => {
       // Just verify it produces some non-empty string (locale-dependent)
       expectLib.expect(result.length).toBeGreaterThan(0);
       expectLib.expect(result).not.toBe('Unknown time');
+    });
+  });
+
+  describe('canonicalBuildId', () => {
+    it('retains colons for user-defined builds', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('app')).toBe(':app');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':app')).toBe(':app');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('node')).toBe(':node');
+    });
+
+    it('keeps built-in targets colon-free', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('node-repl')).toBe('node-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':node-repl')).toBe('node-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId('browser-repl')).toBe('browser-repl');
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(':browser-repl')).toBe('browser-repl');
+    });
+
+    it('returns undefined for nil values', () => {
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(undefined)).toBeUndefined();
+      expectLib.expect(shadowRuntimeCore.canonicalBuildId(null)).toBeUndefined();
     });
   });
 });

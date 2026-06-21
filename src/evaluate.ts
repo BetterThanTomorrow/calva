@@ -24,12 +24,29 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
+import * as shadowCljsRuntime from './shadow-cljs-runtime';
+import * as clientRegistry from './nrepl/client-registry';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
 function initInspectorDataProvider() {
   inspectorDataProvider = new inspector.InspectorDataProvider();
   return inspectorDataProvider;
+}
+
+function getShadowInfo(session: any) {
+  if (session?.replType !== 'cljs' && !session?.isSecondary) {
+    return {};
+  }
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  if (connState?.cljsTypeName === 'shadow-cljs') {
+    return {
+      shadowBuild: connState.cljsBuild || undefined,
+      shadowRuntimeId: connState.shadowCljsRuntimeId,
+    };
+  }
+  return {};
 }
 
 async function getJavaVersion(session: nrepl.NReplSession): Promise<number | null> {
@@ -169,12 +186,14 @@ async function evaluateCodeUpdatingUI(
       await session.evaluateInNs(options.nsForm, replWindow.getNs());
     }
 
+    const shadowInfo = getShadowInfo(session);
+
     const context: nrepl.NReplEvaluation = session.eval(code, ns, {
       file: filePath,
       line: line + 1,
       column: column + 1,
       stdout: (m) => {
-        output.appendEvalOut(m, { ns, replSessionType: sessionKey, who: 'ui' });
+        output.appendEvalOut(m, { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo });
       },
       stderr: (m) => err.push(m),
       pprintOptions: pprintOptions,
@@ -183,6 +202,12 @@ async function evaluateCodeUpdatingUI(
     sessionRegistry.updateSessionActivity(sessionKey);
     whoTracking.recordEvaluation(sessionKey, 'ui');
     whoTracking.setCurrentWho(session.sessionId, 'ui');
+
+    // Track runtime activity for the effective runtime
+    const uiRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+    if (uiRuntimeId !== undefined) {
+      shadowCljsRuntime.recordRuntimeActivity(uiRuntimeId);
+    }
 
     try {
       const evalResultsDestination = output.getDestinationConfiguration().evalResults;
@@ -202,6 +227,7 @@ async function evaluateCodeUpdatingUI(
         replSessionType: sessionKey,
         visibleOutputCategory: 'evaluatedCode',
         who: 'ui',
+        ...shadowInfo,
       });
 
       let value = await context.value;
@@ -215,7 +241,7 @@ async function evaluateCodeUpdatingUI(
         inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
         output.appendClojureEval(
           value,
-          { ns, replSessionType: sessionKey, who: 'ui' },
+          { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
           async () => {
             if (editor && replWindow.isReplWindowDoc(editor.document)) {
               replWindow.maybePrintResultsInOtherDestinationMessage();
@@ -270,10 +296,20 @@ async function evaluateCodeUpdatingUI(
                 .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
                 .includes('repl-window')
             ) {
-              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
+              output.appendEvalErr(errMsg, {
+                ns,
+                replSessionType: sessionKey,
+                who: 'ui',
+                ...shadowInfo,
+              });
             }
           } else {
-            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
+            output.appendEvalErr(errMsg, {
+              ns,
+              replSessionType: sessionKey,
+              who: 'ui',
+              ...shadowInfo,
+            });
           }
         }
       }
@@ -329,6 +365,7 @@ async function evaluateCodeUpdatingUI(
             ns,
             replSessionType: sessionKey,
             who: 'ui',
+            ...shadowInfo,
           });
           if (
             outputDestinations
@@ -656,6 +693,10 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
+    const loadFileRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+    if (loadFileRuntimeId !== undefined) {
+      shadowCljsRuntime.recordRuntimeActivity(loadFileRuntimeId);
+    }
     return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey, who);
   }
 }
@@ -722,8 +763,9 @@ async function loadFile(
     ? sessionRegistry.getSession(targetSessionKey)
     : replSession.getSession();
   const sessionKey = sessionRegistry.resolveSessionKey(session, targetSessionKey);
+  const shadowInfo = getShadowInfo(session);
 
-  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who });
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who, ...shadowInfo });
   whoTracking.recordEvaluation(sessionKey, who);
   whoTracking.setCurrentWho(session.sessionId, who);
 
@@ -731,9 +773,9 @@ async function loadFile(
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who }),
+    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who, ...shadowInfo }),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who });
+      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who, ...shadowInfo });
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -742,9 +784,9 @@ async function loadFile(
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who });
+      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who, ...shadowInfo });
     } else {
-      output.appendLineEvalOut('No results from file evaluation.', { who });
+      output.appendLineEvalOut('No results from file evaluation.', { who, ...shadowInfo });
     }
     return value;
   } catch (e) {
@@ -762,7 +804,10 @@ async function loadFile(
         .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
         .includes('repl-window')
     ) {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who });
+      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, {
+        who,
+        ...shadowInfo,
+      });
     }
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
@@ -789,6 +834,7 @@ async function loadFile(
     if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
       output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
         who,
+        ...shadowInfo,
       });
       const context = customSnippets.makeContext(
         vscode.window.activeTextEditor,

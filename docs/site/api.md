@@ -83,6 +83,12 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 * `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
+* `replType` (`'clj' | 'cljs'`, required): Describes whether this is a Clojure or ClojureScript session.
+* `hasBuilds` (`boolean`, required): Tells if the session has ClojureScript builds available.
+* `supportsRuntimes` (`boolean`, required): Tells if the session supports JS runtimes targeting (currently true for shadow-cljs).
+* `availableBuilds` (`string[]`, optional): List of all builds defined for this connection.
+* `currentlyConnectedCljsBuild` (`string`, optional): The currently connected ClojureScript build name (e.g. `":app"`).
+* `currentlyConnectedRuntimeId` (`number`, optional): The currently connected shadow-cljs runtime ID, if any.
 
 === "Joyride"
 
@@ -91,19 +97,56 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
   (println "Session keys:" (map :replSessionKey sessions))
   ```
 
-=== "ClojureScript"
-
-  ```clojure
-  (def list-sessions (get-in [:repl :listSessions] calvaApi))
-  (def session-keys (map :replSessionKey (list-sessions)))
-  ```
-
 === "JavaScript"
 
   ```javascript
   const sessions = calva.repl.listSessions();
   const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
   ```
+
+### `repl.listSessionsAndRuntimes()`
+
+Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered Calva REPL session, including secondary or custom session roles, and query all builds and connected runtimes. It returns a Promise resolving to a collection/array of metadata objects with the same shape as `repl.listSessions()`, but including an additional nested `builds` property:
+
+* `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
+    * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
+    * `isActive` (`boolean`): Whether the build is currently active/compiled.
+    * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects, sorted by most recent evaluation activity first:
+        * `runtimeId` (`number`): The unique ID of the runtime.
+        * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
+        * `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
+        * `host` (`string`): The hostname/IP of the runtime connection.
+        * `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
+        * `sinceInst` (`number`): Unix timestamp for when the runtime connected.
+        * `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
+        * `lastActivity` (`number`, optional): Unix timestamp for the last time Calva evaluated code on this runtime. Absent if no evaluation has been performed on this runtime during this session.
+
+=== "Joyride"
+
+  ```clojure
+  (let [sessions (await (calva/repl.listSessionsAndRuntimes))]
+    (doseq [s sessions]
+      (println "Session key:" (:replSessionKey s))
+      (doseq [b (:builds s)]
+        (println "  Build:" (:buildId b) "Active?" (:isActive b))
+        (doseq [r (:runtimes b)]
+          (println "    Runtime:" (:runtimeId r) (:description r))))))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const sessions = await calva.repl.listSessionsAndRuntimes();
+  const cljsSession = sessions.find(s => s.replType === 'cljs');
+  if (cljsSession && cljsSession.builds) {
+    for (const b of cljsSession.builds) {
+      console.log(`Build ${b.buildId} is active: ${b.isActive}`);
+      console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+    }
+  }
+  ```
+
 
 ### `repl.evaluate()`
 
@@ -122,6 +165,7 @@ export async function evaluate(
     nReplOptions?: Record<string, unknown>;
     who?: string;
     description?: string;
+    targetRuntimeId?: number;
   }
 ): Promise<Result>;
 ```
@@ -139,6 +183,8 @@ type Result = {
   otherWhosSinceLast?: string[];  // Other who values that evaluated since this who's last evaluation
   error?: string;            // Error message, if any
   stacktrace?: any;          // Raw nrepl stacktrace object, if error
+  shadowBuild?: string;      // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number;  // (shadow-cljs only) Connected runtime ID, if applicable
 };
 ```
 
@@ -148,6 +194,7 @@ type Result = {
 * `ns` — The namespace to evaluate in. Defaults to `"user"`.
 * `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
 * `nReplOptions` — Additional nREPL evaluation options.
+* `targetRuntimeId` — (shadow-cljs only) Optional JS runtime ID to target for the evaluation. Allows evaluating statelessly on a specific browser tab or node worker without changing the active editor/status bar runtime target.
 * `who` — A freeform string identifying who is evaluating. Defaults to `"api"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
 * `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
 
@@ -330,9 +377,11 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
-  who?: string;            // Present when the output was triggered by an identified who
-  ns?: string;             // The namespace the output is associated with, when applicable
-  replSessionKey?: string; // The REPL session key (e.g. "clj", "cljs"), when applicable
+  who?: string;             // Present when the output was triggered by an identified who
+  ns?: string;              // The namespace the output is associated with, when applicable
+  replSessionKey?: string;  // The REPL session key (e.g. "clj", "cljs"), when applicable
+  shadowBuild?: string;     // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number; // (shadow-cljs only) Connected runtime ID, if applicable
 }
 ```
 

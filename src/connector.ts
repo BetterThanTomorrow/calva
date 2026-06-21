@@ -1031,9 +1031,11 @@ function createCljsReplConnector(
   const connector: CljsReplConnector = {
     name: cljsTypeName,
     connect: async (session, name, checkFn) => {
+      const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
       // Store hasBuilds in per-connection state
       clientRegistry.setConnectionState(clientKey, {
         hasBuilds: cljsType.buildsRequired,
+        availableBuilds: allBuilds,
       });
       let initCode = cljsType.connectCode;
       let build: string = null;
@@ -1046,11 +1048,10 @@ function createCljsReplConnector(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
           const availableBuilds = startedBuilds
             ? [
                 ...startedBuilds,
-                ...allBuilds.filter((b) => ['node-repl', 'browser-repl'].includes(b)),
+                ...(allBuilds || []).filter((b) => ['node-repl', 'browser-repl'].includes(b)),
               ]
             : allBuilds;
           const buildItem = await util.quickPickSingle({
@@ -1160,9 +1161,13 @@ function createCljsReplConnector(
       if (!hasStarted) {
         if (startCode.includes('%BUILDS')) {
           let builds: string[];
-          const allBuilds = (
-            await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri)
-          ).filter((build) => !['browser-repl', 'node-repl'].includes(build));
+          const rawBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
+          clientRegistry.setConnectionState(clientKey, {
+            availableBuilds: rawBuilds,
+          });
+          const allBuilds = (rawBuilds || []).filter(
+            (build) => !['browser-repl', 'node-repl'].includes(build)
+          );
 
           // Helper to normalize build keys for comparison
           const normalizeBuildKey = (build: string) =>
@@ -1241,6 +1246,10 @@ function createCljsReplConnector(
           }
         } else {
           output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
+          const rawBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
+          clientRegistry.setConnectionState(clientKey, {
+            availableBuilds: rawBuilds,
+          });
           return evalConnectCode(
             session,
             startCode,
