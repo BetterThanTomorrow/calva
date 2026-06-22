@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add: [Add clojure-lsp startup progress in status bar](https://github.com/BetterThanTomorrow/calva/issues/1303)
+
 ## [2.0.592] - 2026-06-21
 
 - [Support targeting shadow-cljs runtimes via the repl API](https://github.com/BetterThanTomorrow/calva/issues/3244)
