@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Download produces a corrupted binary on NodeJS ≥24.16.0](https://github.com/BetterThanTomorrow/calva/issues/3248)
+
 ## [2.0.593] - 2026-06-22
 
 - Add: [Add clojure-lsp startup progress in status bar](https://github.com/BetterThanTomorrow/calva/issues/1303)
