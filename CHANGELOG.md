@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.594] - 2026-07-14
+
 - Fix: [Download produces a corrupted binary on NodeJS ≥24.16.0](https://github.com/BetterThanTomorrow/calva/issues/3248)
 
 ## [2.0.593] - 2026-06-22
