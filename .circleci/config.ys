@@ -62,7 +62,7 @@ workflows-map =::
 # Note: The 2 different coding styles used for 'jobs' and 'workflows' is just
 # an example of different ways to express code in YAMLScript.
 
-version: 2
+version: 2.1
 
 # Generate 'jobs' section:
 jobs::
