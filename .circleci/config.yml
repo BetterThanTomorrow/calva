@@ -1,6 +1,6 @@
 # DO NOT EDIT - This file was generated from 'config.ys'.
 
-version: 2
+version: 2.1
 jobs:
   checkout:
     docker:
