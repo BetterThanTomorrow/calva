@@ -1,7 +1,10 @@
-:root {
-    --md-primary-fg-color: rgb(219, 149, 80);
-    --md-accent-fg-color: rgb(144, 180, 254);
-    /* --md-admonition-bg-color: var(--md-accent-fg-color); */
+:root > * {
+    --calva-amber: #db9550;
+    --calva-blue: #90b4fe;
+    --calva-cream: #fffaf4;
+    --calva-ink: #131722;
+    --md-primary-fg-color: var(--calva-amber);
+    --md-accent-fg-color: var(--calva-blue);
 }
 
 .md-typeset .admonition, .md-typeset details,
