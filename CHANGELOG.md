@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Add: Let the Calva User Guide follow the system light/dark preference,
+  with a manual theme toggle and a Calva-branded dark palette.
+
 ## [2.0.594] - 2026-07-14
 
 - Fix: [Download produces a corrupted binary on NodeJS ≥24.16.0](https://github.com/BetterThanTomorrow/calva/issues/3248)
