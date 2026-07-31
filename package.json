@@ -61,7 +61,8 @@
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
-    "onDebugResolve:type"
+    "workspaceContains:**/bb.edn",
+    "onDebugResolve:clojure"
   ],
   "main": "./out/extension",
   "capabilities": {
