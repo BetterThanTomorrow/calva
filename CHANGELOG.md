@@ -5,6 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Inspector icons: missing `nil` icon and low-contrast `bool` icon in dark themes](https://github.com/BetterThanTomorrow/calva/issues/3259)
+- Add: Let the Calva User Guide follow the system light/dark preference,
+  with a manual theme toggle and a Calva-branded dark palette.
 
 ## [2.0.594] - 2026-07-14
 
