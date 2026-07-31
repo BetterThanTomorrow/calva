@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Inspector icons: missing `nil` icon and low-contrast `bool` icon in dark themes](https://github.com/BetterThanTomorrow/calva/issues/3259)
+
 ## [2.0.594] - 2026-07-14
 
 - Fix: [Download produces a corrupted binary on NodeJS ≥24.16.0](https://github.com/BetterThanTomorrow/calva/issues/3248)
