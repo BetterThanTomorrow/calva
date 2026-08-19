@@ -1,0 +1,1 @@
+{"mcpServers": {"joyride":{"command":"node","args":["${env:HOME}/.config/joyride/joyride-mcp-server.js",".joyride/mcp-server/port","127.0.0.1"]},"backseat-driver": {"command":"node","args":["${env:HOME}/.config/calva/backseat-driver/calva-mcp-server.js",".calva/mcp-server/port","127.0.0.1"]}}}
