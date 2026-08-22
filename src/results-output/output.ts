@@ -149,6 +149,23 @@ export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   otherOutput: 'repl-window',
 };
 
+let outputPTY: OutputTerminal | undefined;
+let outputTerminal: vscode.Terminal | undefined;
+
+function forgetOutputTerminal(pty?: OutputTerminal) {
+  if (pty !== undefined && outputPTY !== pty) {
+    return;
+  }
+  outputPTY = undefined;
+  outputTerminal = undefined;
+}
+
+function isOutputTerminalLive() {
+  return Boolean(
+    outputTerminal && !outputTerminal.exitStatus && vscode.window.terminals.includes(outputTerminal)
+  );
+}
+
 class OutputTerminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
@@ -182,23 +199,29 @@ Please consider sponsoring Calva: https://calva.io/sponsors ♥️
     this.writeEmitter.fire(message.replace(/\r?\n/g, '\r\n'));
   }
   close(): void {
-    outputPTY = undefined;
-    outputTerminal = undefined;
-    // TODO: Decide if we should just recreate the terminal like this
-    // getOutputPTY();
-    // It would still be emptied, so the win isn't that big.
+    forgetOutputTerminal(this);
   }
 }
 
-let outputPTY: OutputTerminal;
-let outputTerminal: vscode.Terminal;
-
 function getOutputPTY() {
+  if (outputPTY && !isOutputTerminalLive()) {
+    forgetOutputTerminal(outputPTY);
+  }
   if (!outputPTY) {
     outputPTY = new OutputTerminal();
     outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
   }
   return outputPTY;
+}
+
+export function registerOutputTerminalLifecycle(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.window.onDidCloseTerminal((term) => {
+      if (term === outputTerminal) {
+        forgetOutputTerminal();
+      }
+    })
+  );
 }
 
 let outputChannel: vscode.OutputChannel;
@@ -211,10 +234,8 @@ export function showOutputChannel(preserveFocus = true) {
 }
 
 export function showOutputTerminal(preserveFocus = true) {
-  if (!outputTerminal) {
-    getOutputPTY();
-  }
-  outputTerminal.show(preserveFocus);
+  getOutputPTY();
+  outputTerminal?.show(preserveFocus);
 }
 
 export function showResultOutputDestination(preserveFocus = true) {

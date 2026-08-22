@@ -7,6 +7,7 @@ Changes to Calva.
 - Add: Let the Calva User Guide follow the system light/dark preference,
   with a manual theme toggle and a Calva-branded dark palette.
 - Bump deps-clj to v1.12.5.1664
+- Fix: More stable way to recreate the Calva Output terminal after the tab is closed. Mitigation for [Output terminal stops outputting in Cursor](https://github.com/BetterThanTomorrow/calva/issues/3267)
 
 ## [2.0.594] - 2026-07-14
 
