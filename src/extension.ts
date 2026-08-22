@@ -90,6 +90,7 @@ async function activate(context: vscode.ExtensionContext) {
   cljsLib.initializeCljs(vscode, context);
 
   initializeState();
+  output.registerOutputTerminalLifecycle(context);
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
   const isDramStart = await drams.dramStartConfigExists();
