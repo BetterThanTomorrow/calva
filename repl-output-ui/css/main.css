@@ -2,6 +2,25 @@
    padding-bottom: 5px;
 }
 
+.output-greeting {
+   padding: 4px 0 20px;
+}
+
+.output-greeting a {
+   color: var(--vscode-textLink-foreground);
+}
+
+.output-greeting pre {
+   white-space: pre-wrap;
+}
+
+.output-greeting img.calva-logo {
+   display: block;
+   width: 120px;
+   height: auto;
+   margin-top: 8px;
+}
+
 .evaluated-code-container {
    border: solid;
    margin-top: 30px;

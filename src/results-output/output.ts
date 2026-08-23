@@ -9,7 +9,6 @@ import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
-import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
 import * as evaluatedCode from './evaluated-code';
 import { isWebviewOutputDestination } from './output-destinations';
 
@@ -185,11 +184,7 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
         ' Calva: Show/Open the Calva Output Terminal '
       )}.
 
-See also the Calva Inspector: https://calva.io/inspector
-
-${jackInVersions.formatEffectiveVersionsReport()}
-
-${jackInVersions.formatLatestVersionsReport()}
+See Calva Output Destinations: https://calva.io/ouput
 
 Please consider sponsoring Calva: https://calva.io/sponsors ♥️
 

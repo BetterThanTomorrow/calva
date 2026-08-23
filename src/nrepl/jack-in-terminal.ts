@@ -3,6 +3,7 @@ import * as child from 'child_process';
 import * as kill from 'tree-kill';
 import * as output from '../results-output/output';
 import * as jackInPortDetection from './jack-in-port-detection';
+import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
 
 const portDetectionLogLimit = 240;
 
@@ -48,7 +49,12 @@ export class JackInPTY implements vscode.Pseudoterminal {
   open(initialDimensions: vscode.TerminalDimensions | undefined): void {
     this.isOpen = true;
     this.writeEmitter.fire(
-      'This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.\r\n\r\nPlease consider sponsoring Calva: https://calva.io/sponsors ♥️\r\n\r\n'
+      `This is a pseudo terminal, only used for hosting the Jack-in REPL process. It takes no input.\r\nPressing ctrl+c with this terminal focused, killing this terminal, or closing/reloading the VS Code window will all stop/kill the Jack-in REPL process.
+
+\r${jackInVersions.formatEffectiveVersionsReport().replace(/\r?\n/g, '\r\n')}
+\r${jackInVersions.formatLatestVersionsReport().replace(/\r?\n/g, '\r\n')}
+
+\rPlease consider sponsoring Calva: https://calva.io/sponsors ♥️\r\n\r\n`
     );
     // Flush any pending writes that happened before open()
     this.pendingWrites.forEach((msg) => this.writeEmitter.fire(msg));
