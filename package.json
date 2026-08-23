@@ -216,7 +216,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
@@ -264,7 +264,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
@@ -312,14 +312,14 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
-              "evalResults": "terminal",
-              "evalOutput": "terminal",
-              "otherOutput": "terminal"
+              "evalResults": ["terminal", "output-sidebar"],
+              "evalOutput": ["terminal", "output-sidebar"],
+              "otherOutput": ["terminal", "output-sidebar"]
             }
           },
           "calva.fiddleFilePaths": {
