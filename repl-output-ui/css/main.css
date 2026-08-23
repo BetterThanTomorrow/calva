@@ -2,6 +2,11 @@
    padding-bottom: 5px;
 }
 
+pre[data-output-element-type="stdout"] {
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+}
+
 .output-greeting {
    padding: 4px 0 20px;
 }
@@ -12,6 +17,7 @@
 
 .output-greeting pre {
    white-space: pre-wrap;
+   overflow-wrap: anywhere;
 }
 
 .output-greeting img.calva-logo {
