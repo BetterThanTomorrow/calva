@@ -246,6 +246,26 @@ suite('WebSocket nREPL Connect suite', function () {
       'Timed out waiting for sessions'
     );
 
+    // Wait for initial scripts (game.cljs, ui.cljs) to finish loading in Scittle
+    const session = sessionRegistry.getSession(sessionRegistry.listSessions()[0].key);
+    assert.ok(session, 'Should get session');
+    await testUtil.waitForCondition(
+      async () => {
+        try {
+          const r = await session.eval(
+            "(try (boolean (find-ns 'replicant-tictactoe.game)) (catch :default _ false))",
+            'user'
+          ).value;
+          return r === 'true';
+        } catch {
+          return false;
+        }
+      },
+      5_000,
+      20,
+      'Timed out waiting for initial scittle namespaces to load'
+    );
+
     // Load the core.cljs file
     await vscode.commands.executeCommand('calva.loadFile', { path: coreFile });
     testUtil.log(suite, 'Load file command executed');
