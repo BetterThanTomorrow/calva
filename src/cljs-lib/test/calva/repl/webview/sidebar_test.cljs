@@ -45,9 +45,8 @@
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly destinations)
                   sut/output-sidebar-webview-view (atom nil)]
-      (let [provider (sut/create-repl-output-sidebar-provider)
-            resolve-webview-view (.-resolveWebviewView provider)]
-        (resolve-webview-view webview-view nil nil)
+      (let [provider (sut/create-repl-output-sidebar-provider)]
+        (.resolveWebviewView ^js provider webview-view nil nil)
         (is (= webview-view @sut/output-sidebar-webview-view))
         (is (re-find #"REPL Output" (.. ^js webview-view -webview -html)))
         (testing "should register a configuration-change callback"
@@ -142,9 +141,9 @@
                   core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
                   core/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-      (let [resolve-webview-view (.-resolveWebviewView (sut/create-repl-output-sidebar-provider))]
-        (resolve-webview-view webview-view nil nil)
-        (resolve-webview-view webview-view nil nil)
+      (let [provider (sut/create-repl-output-sidebar-provider)]
+        (.resolveWebviewView ^js provider webview-view nil nil)
+        (.resolveWebviewView ^js provider webview-view nil nil)
         (is (= output-log @sut/output-sidebar-log))
         (is (= 2 (count (spy/calls set-webview-html!-spy))))
         (is (= 2 (count (spy/calls set-code-theme!-spy))))
