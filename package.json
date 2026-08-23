@@ -1808,6 +1808,12 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "calva.toggleReplOutputWordWrap",
+        "title": "Toggle REPL Output Word Wrap",
+        "category": "Calva",
+        "icon": "$(word-wrap)"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3746,9 +3752,14 @@
       ],
       "view/title": [
         {
-          "command": "calva.clearReplOutputSidebar",
+          "command": "calva.toggleReplOutputWordWrap",
           "when": "view == calva.output-sidebar",
           "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@2"
         },
         {
           "command": "calva.pasteAsInspectorItem",
