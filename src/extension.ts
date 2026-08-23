@@ -89,6 +89,7 @@ async function activate(context: vscode.ExtensionContext) {
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
+  cljsLib.initReplOutputWordWrap();
 
   initializeState();
   output.registerOutputTerminalLifecycle(context);
@@ -240,6 +241,7 @@ async function activate(context: vscode.ExtensionContext) {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplOutputView: cljsLib.clearReplOutputView,
     clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
+    toggleReplOutputWordWrap: cljsLib.toggleReplOutputWordWrap,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {

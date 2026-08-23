@@ -104,6 +104,7 @@
         #js {:resolveWebviewView
              (fn [^js webview-view _context _token]
                (reset! output-sidebar-webview-view webview-view)
+               (core/register-webview! webview-view)
                (set! (.. webview-view -webview -options)
                      #js {:enableScripts true
                           :enableCommandUris #js ["calva.showReplOutputSidebar"]
@@ -111,7 +112,9 @@
                (apply-sidebar-help-or-output-log! webview-view)
                (add-context-subscription!
                 (.. webview-view
-                    (onDidDispose (fn [] (reset! output-sidebar-webview-view nil)))))
+                    (onDidDispose (fn []
+                                    (reset! output-sidebar-webview-view nil)
+                                    (core/unregister-webview! webview-view)))))
                (add-context-subscription!
                 (.. webview-view
                     (onDidChangeVisibility

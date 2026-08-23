@@ -16,6 +16,10 @@ The output views are two, performant, custom web views which can be configured a
 
 Run **Calva: Show/Open the REPL output view** for the editor tab or **Calva: Show/Open the REPL output sidebar** for the sidebar.
 
+## Wrap Evaluated Code and Results
+
+The evaluated code and results are wrapped according to the setting for the editors, `editor.wordWrap`. There is a command for toggling the wrap in the output views: **Calva: Toggle REPL Output Word Wrap**. This command toggles the wrap setting in both views. The toggling is not persisted. The sidebar view has a button for issuing the command.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Ouput View** and **Calva: Clear Ouput Sidebar** to clear the respective view. The sidebar view also has a title  clear button.

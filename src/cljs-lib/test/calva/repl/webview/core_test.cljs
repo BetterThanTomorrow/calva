@@ -27,6 +27,50 @@
         (is (= "world" (:hello message-arg)))
         (is (string? (:id message-arg)))))))
 
+(defn vscode-with-editor-word-wrap-setting
+  [setting]
+  #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})
+
+(deftest webview-registration-test
+  (testing "registers and unregisters webviews"
+    (let [webview-a #js {}
+          webview-b #js {}]
+      (with-redefs [sut/registered-webviews (atom #{})]
+        (sut/register-webview! webview-a)
+        (sut/register-webview! webview-b)
+        (is (= #{webview-a webview-b} @sut/registered-webviews))
+        (sut/unregister-webview! webview-a)
+        (is (= #{webview-b} @sut/registered-webviews))))))
+
+(deftest word-wrap-test
+  (testing "uses the editor wordWrap setting when there is no override"
+    (with-redefs [sut/word-wrap-override (atom nil)
+                  sut/get-editor-word-wrap-setting (constantly true)]
+      (is (true? (sut/word-wrap?)))))
+  (testing "uses override when present"
+    (with-redefs [sut/word-wrap-override (atom false)
+                  sut/get-editor-word-wrap-setting (constantly true)]
+      (is (false? (sut/word-wrap?))))))
+
+(deftest get-editor-word-wrap-setting-test
+  (testing "returns false when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (false? (sut/get-editor-word-wrap-setting)))))
+  (testing "returns false when editor.wordWrap is off"
+    (with-redefs [util/vscode (atom (vscode-with-editor-word-wrap-setting "off"))]
+      (is (false? (sut/get-editor-word-wrap-setting)))))
+  (testing "returns true when editor.wordWrap is not off"
+    (with-redefs [util/vscode (atom (vscode-with-editor-word-wrap-setting "on"))]
+      (is (true? (sut/get-editor-word-wrap-setting))))))
+
+(deftest word-wrap-context-test
+  (testing "sets the output word wrap context"
+    (let [execute-command-spy (spy/spy)
+          vscode (clj->js {:commands {:executeCommand (test-util/wrap-spy execute-command-spy)}})]
+      (with-redefs [util/vscode (atom vscode)]
+        (sut/set-word-wrap-context! true)
+        (is (spy/called-once-with? execute-command-spy "setContext" "calva:outputWordWrap" true))))))
+
 (deftest get-webview-html-test
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
@@ -54,7 +98,21 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
-                                        :greeting-html "GREETING-MARKER"})))))
+                                        :greeting-html "GREETING-MARKER"}))))
+  (testing "Given word-wrap is enabled, should add the word-wrap body class"
+    (is (re-find #"<body class=\"word-wrap\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :word-wrap? true}))))
+  (testing "Given word-wrap is disabled, should not add the word-wrap body class"
+    (is (re-find #"<body>"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :word-wrap? false})))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -97,6 +155,7 @@
                     sut/get-css-path (test-util/wrap-spy get-css-path-spy)
                     greeting/logo-webview-uri (constantly "some-logo-href")
                     greeting/html-for-view (constantly "some-greeting")
+                    sut/word-wrap? (constantly true)
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -110,7 +169,8 @@
                                                                    :css-href "some-css-href"
                                                                    :csp-source "some-csp-source"
                                                                    :code-theme nil
-                                                                   :greeting-html "some-greeting"})))
+                                                                   :greeting-html "some-greeting"
+                                                                   :word-wrap? true})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -187,12 +247,16 @@
           stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
+          register-webview!-spy (spy/spy)
           post-message-to-webview-spy (spy/spy)
           context {:some "context"}]
       (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
+                    sut/register-webview! (test-util/wrap-spy register-webview!-spy)
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/initialize-webview-panel context stub-webview-panel)
+        (testing "should register the webview panel"
+          (is (spy/called-once-with? register-webview!-spy stub-webview-panel)))
         (testing "should call onDidDispose with expected args"
           (let [calls (spy/calls on-did-dispose-spy)]
             (is (match? [(list fn?)] calls))))

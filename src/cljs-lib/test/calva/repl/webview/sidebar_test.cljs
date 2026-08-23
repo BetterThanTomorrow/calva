@@ -32,6 +32,8 @@
   (let [on-did-dispose-spy (spy/stub "dispose-subscription")
         on-did-change-visibility-spy (spy/stub "visibility-subscription")
         on-did-change-configuration-spy (spy/stub "configuration-subscription")
+        register-webview!-spy (spy/spy)
+        unregister-webview!-spy (spy/spy)
         webview-view #js {:webview #js {:cspSource "csp-source"}
                           :visible false
                           :onDidDispose (test-util/wrap-spy on-did-dispose-spy)
@@ -44,10 +46,13 @@
     (with-redefs [util/vscode (atom vscode-stub)
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly destinations)
-                  sut/output-sidebar-webview-view (atom nil)]
+                  sut/output-sidebar-webview-view (atom nil)
+                  core/register-webview! (test-util/wrap-spy register-webview!-spy)
+                  core/unregister-webview! (test-util/wrap-spy unregister-webview!-spy)]
       (let [provider (sut/create-repl-output-sidebar-provider)]
         (.resolveWebviewView ^js provider webview-view nil nil)
         (is (= webview-view @sut/output-sidebar-webview-view))
+        (is (spy/called-once-with? register-webview!-spy webview-view))
         (is (re-find #"REPL Output" (.. ^js webview-view -webview -html)))
         (testing "should register a configuration-change callback"
           (let [calls (spy/calls on-did-change-configuration-spy)]
@@ -58,7 +63,8 @@
             (is (= 1 (count calls)))
             (is (fn? (type (first (first calls)))))))
         ((ffirst (spy/calls on-did-dispose-spy)))
-        (is (nil? @sut/output-sidebar-webview-view))))))
+        (is (nil? @sut/output-sidebar-webview-view))
+        (is (spy/called-once-with? unregister-webview!-spy webview-view))))))
 
 (deftest show-repl-output-sidebar-test
   (let [show-spy (spy/spy)

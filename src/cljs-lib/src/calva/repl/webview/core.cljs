@@ -5,6 +5,34 @@
    [clojure.string :as str]))
 
 (defonce output-view-webview-panel (atom nil))
+(defonce registered-webviews (atom #{}))
+(defonce word-wrap-override (atom nil))
+
+(defn register-webview!
+  [^js webview]
+  (swap! registered-webviews conj webview))
+
+(defn unregister-webview!
+  [^js webview]
+  (swap! registered-webviews disj webview))
+
+(defn get-editor-word-wrap-setting
+  []
+  (if-let [vscode @util/vscode]
+    (let [setting (.. ^js vscode -workspace (getConfiguration "editor") (get "wordWrap"))]
+      (not= "off" setting))
+    false))
+
+(defn word-wrap?
+  []
+  (if (some? @word-wrap-override)
+    @word-wrap-override
+    (get-editor-word-wrap-setting)))
+
+(defn set-word-wrap-context!
+  [wrap?]
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -commands (executeCommand "setContext" "calva:outputWordWrap" (boolean wrap?)))))
 
 (defn dispose-repl-output-webview-panel
   [webview-panel-atom]
@@ -17,6 +45,42 @@
         (postMessage (pr-str (merge
                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
                               message))))))
+
+(defn post-word-wrap!
+  [^js webview-panel wrap?]
+  (when webview-panel
+    (post-message-to-webview webview-panel {:command/name "set-word-wrap"
+                                            :word-wrap (boolean wrap?)})))
+
+(defn post-word-wrap-to-all-views!
+  [wrap?]
+  (run! #(post-word-wrap! % wrap?) @registered-webviews))
+
+(defn ^:export toggle-word-wrap
+  []
+  (let [new-wrap? (not (word-wrap?))]
+    (reset! word-wrap-override new-wrap?)
+    (set-word-wrap-context! new-wrap?)
+    (post-word-wrap-to-all-views! new-wrap?)))
+
+(defn create-word-wrap-change-listener
+  []
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -workspace
+        (onDidChangeConfiguration
+         (fn [^js event]
+           (when (.affectsConfiguration event "editor.wordWrap")
+             (reset! word-wrap-override nil)
+             (let [wrap? (word-wrap?)]
+               (set-word-wrap-context! wrap?)
+               (post-word-wrap-to-all-views! wrap?))))))))
+
+(defn ^:export init-word-wrap!
+  []
+  (set-word-wrap-context! (word-wrap?))
+  (when-let [vscode-context @util/vscode-context]
+    (when-let [listener (create-word-wrap-change-listener)]
+      (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def highlight-js-code-theme-stylesheet-data
   [["dark" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"]
@@ -60,7 +124,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap?]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -96,7 +160,7 @@
     />
 
   </head>
-  <body>
+  <body" (when word-wrap? " class=\"word-wrap\"") ">
     <div id=\"output\" class=\"output-element-container\">" greeting-html "</div>
 
     <script src=\"" js-source "\"></script>
@@ -131,7 +195,8 @@
                                                 :css-href css-href
                                                 :csp-source csp-source
                                                 :code-theme (code-theme-from-context context)
-                                                :greeting-html greeting-html})]
+                                                :greeting-html greeting-html
+                                                :word-wrap? (word-wrap?)})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -184,10 +249,15 @@
 
 (defn add-listeners!
   [^js webview-panel]
-  (.. webview-panel (onDidDispose (fn [] (dispose-repl-output-webview-panel output-view-webview-panel)))))
+  (.. webview-panel
+      (onDidDispose
+       (fn []
+         (dispose-repl-output-webview-panel output-view-webview-panel)
+         (unregister-webview! webview-panel)))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]
+  (register-webview! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})

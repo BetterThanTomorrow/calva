@@ -7,6 +7,13 @@ pre[data-output-element-type="stdout"] {
    overflow-wrap: anywhere;
 }
 
+body.word-wrap code.hljs {
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+   padding-left: calc(1em + 1.5ch);
+   text-indent: -1.5ch;
+}
+
 .output-greeting {
    padding: 4px 0 20px;
 }
