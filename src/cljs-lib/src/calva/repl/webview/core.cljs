@@ -78,7 +78,7 @@
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
                               " csp-source ";
                     script-src " (when is-debug " 'unsafe-eval' ") csp-source ";
-                    " (when is-debug "connect-src ws://localhost:9630/api/remote-relay;") "
+                    " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
                     form-action 'none';\">
 
