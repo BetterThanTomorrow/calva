@@ -179,7 +179,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -196,7 +197,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -225,7 +227,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -242,7 +245,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -271,7 +275,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -288,7 +293,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -1796,6 +1802,12 @@
         "category": "Calva"
       },
       {
+        "command": "calva.clearReplOutputSidebar",
+        "title": "Clear REPL Output Sidebar",
+        "category": "Calva",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -2421,6 +2433,11 @@
         "category": "Calva",
         "command": "calva.showReplOutputView",
         "title": "Show/Open the REPL output view"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showReplOutputSidebar",
+        "title": "Show/Open the REPL output sidebar"
       },
       {
         "category": "Calva",
@@ -3220,6 +3237,12 @@
         "when": "calva:keybindingsEnabled"
       },
       {
+        "command": "calva.showReplOutputSidebar",
+        "key": "ctrl+alt+o b",
+        "args": false,
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
         "args": false,
@@ -3723,6 +3746,11 @@
       ],
       "view/title": [
         {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@1"
+        },
+        {
           "command": "calva.pasteAsInspectorItem",
           "when": "view == calva.inspector",
           "group": "navigation@1"
@@ -3770,6 +3798,12 @@
         }
       ],
       "calva": [
+        {
+          "id": "calva.output-sidebar",
+          "name": "REPL Output",
+          "type": "webview",
+          "icon": "assets/images/calva-symbol-white.svg"
+        },
         {
           "id": "calva.inspector",
           "name": "Inspector",

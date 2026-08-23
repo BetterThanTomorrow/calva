@@ -198,15 +198,28 @@
     (initialize-webview-panel context webview-panel)
     (reset! output-view-webview-panel webview-panel)))
 
+(defn ensure-output-view-panel
+  []
+  (if-let [webview-panel @output-view-webview-panel]
+    webview-panel
+    (let [context {:env/is-debug (:is-debug util/env)
+                   :vscode/vscode @util/vscode
+                   :vscode/context @util/vscode-context}
+          webview-panel (create-repl-output-webview-panel context)
+          active-color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
+      (reset! output-view-webview-panel webview-panel)
+      (set-code-theme! context {:color-theme-kind active-color-theme-kind
+                                :webview-panel webview-panel})
+      webview-panel)))
+
 (defn ^:export show-repl-output-webview-panel
   [preserve-focus?]
   (let [context {:env/is-debug (:is-debug util/env)
                  :vscode/vscode @util/vscode
                  :vscode/context @util/vscode-context}
-        ^js webview-panel (or @output-view-webview-panel
-                              (reset! output-view-webview-panel (create-repl-output-webview-panel context)))
+        webview-panel (ensure-output-view-panel)
         active-color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)]
-    (.. webview-panel (reveal nil preserve-focus?))
+    (.. ^js webview-panel (reveal nil preserve-focus?))
     (set-code-theme! context {:color-theme-kind active-color-theme-kind
                               :webview-panel webview-panel})))
 
@@ -224,7 +237,7 @@
   (let [output-category (.-outputCategory options)
         command-name (get output-category->command-name output-category)]
     (if command-name
-      (post-message-to-webview @output-view-webview-panel {:command/name command-name
+      (post-message-to-webview (ensure-output-view-panel) {:command/name command-name
                                                            :output message})
       (util/log-to-console
        :error
@@ -253,8 +266,10 @@
   [^js stacktrace]
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
-    (post-message-to-webview @output-view-webview-panel {:command/name "show-stdout"
+    (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
                                                          :output stacktrace-message})))
 
-(defn ^:export clear-output-view []
-  (post-message-to-webview @output-view-webview-panel {:command/name "clear-output-view"}))
+(defn ^:export clear-output-view
+  []
+  (when-let [webview-panel @output-view-webview-panel]
+    (post-message-to-webview webview-panel {:command/name "clear-output-view"})))

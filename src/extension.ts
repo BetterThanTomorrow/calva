@@ -49,6 +49,7 @@ import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as shadowRuntime from './shadow-cljs-runtime';
+import * as outputSidebar from './results-output/output-sidebar';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -105,6 +106,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   // Initialize flare webview provider for sidebar
   flareHandler.registerFlareWebviewProvider(context);
+  outputSidebar.registerReplOutputSidebarProvider(context);
 
   overrides.activate();
 
@@ -237,6 +239,7 @@ async function activate(context: vscode.ExtensionContext) {
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplOutputView: cljsLib.clearReplOutputView,
+    clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
@@ -308,6 +311,7 @@ async function activate(context: vscode.ExtensionContext) {
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showReplOutputView: cljsLib.showReplOutputWebviewPanel,
+    showReplOutputSidebar: cljsLib.showReplOutputSidebar,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
