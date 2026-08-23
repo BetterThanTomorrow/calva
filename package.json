@@ -3765,7 +3765,7 @@
         {
           "id": "projectTree",
           "name": "Project tree",
-          "icon": "assets/images/clj.svg",
+          "icon": "assets/images/calva-symbol-white.svg",
           "contextualTitle": "Project tree"
         }
       ],
