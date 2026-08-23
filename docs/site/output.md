@@ -13,12 +13,13 @@ Calva categorizes output into three types.
 | `evalOutput` | `stdout` and `stderr` produced by an evaluation |
 | `otherOutput` | Other REPL output, such as Calva messages and redirected server output |
 
-Each category can be relayed to one or more of four **Output Destinations**:
+Each category can be relayed to one or more of five **Output Destinations**:
 
 | Destination |     |
 | ------------| --- |
 | `"terminal"` | The _Calva Output_ (pseudo) Terminal. This is the default destination. |
 | `"output-view"` | The [output view](output-view.md) (a read-only view that is much more performant than the REPL  |Window).
+| `"output-sidebar"` | The REPL Output view in the Calva sidebar. |
 | `"repl-window"` | The [REPL Window](repl-window.md) (an editor-based read/write output view). |
 | `"output-channel"` | The _Calva Says_ Output Channel. |
 
@@ -34,13 +35,13 @@ The default configuration is to relay all categories to the Calva output termina
 }
 ```
 
-You can send a category to multiple destinations by using an array:
+You can send a category to multiple destinations by using an array. (The command for showing/revealing the output destination, will reveal the first one in the array.). E.g. to have all evaluation results go to the terminal, the sidebar view, and the REPL Window, and all other output to the terminal and sidebar:
 
 ```json
 "calva.outputDestinations": {
-  "evalResults": ["terminal", "repl-window"],
-  "evalOutput": "terminal",
-  "otherOutput": "terminal"
+  "evalResults": ["terminal", "output-sidebar", "repl-window"],
+  "evalOutput": ["terminal", "output-sidebar"],
+  "otherOutput": ["terminal", "output-sidebar"]
 }
 ```
 
@@ -76,17 +77,17 @@ You can also use nested arrays for path segments, which are joined with the plat
 
 The table below lists the features of the different output destinations.
 
-| Feature | REPL Window | Output View | Output Channel | Terminal |
-| :------ | :---------: | :---------: | :------------: | :------: |
-| Can be placed in VS Code Panel views (sidebars and bottom panel) | ❌ | ❌ | ✅ | ✅ |
+| Feature | REPL Window | Output View | Output Sidebar | Output Channel | Terminal |
+| :------ | :---------: | :---------: | :-----------: | :------------: | :------: |
+| Can be placed in VS Code Panel views (sidebars and bottom panel) | ❌ | ❌ | ✅ | ✅ | ✅ |
 | Can be placed in VS Code Editors area | ✅ | ✅ | ❌ | ✅ |
 | Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
 | Paredit navigation and selection | ✅ | ❌ * | ❌ | ❌ |
-| Button to copy specific output | ❌ | ✅ | ❌ | ❌ |
+| Button to copy specific output | ❌ | ✅ | ✅ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
 | Syntax highlighting matches editor | ✅ | ❌ * | ❌ | ❌ |
 | Supports input | ✅ | ❌ | ❌ | ❌ * |
-| TUI applications (progress bars, cursor positioning) | ❌ | ❌ | ❌ | ✅ |
+| ANSI Escape sequences (TUI things) | ❌ | ❌ | ❌ | ✅ |
 | Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
 | Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
 | Command for clearing output | ❌ | ✅ | ✅ | ✅ |
@@ -101,7 +102,10 @@ These are the commands and their default keyboard shortcuts for revealing output
 * **Calva: Show/Open the Calva says Output Channel**, without focusing it - `ctrl+alt+o c`
 * **Calva: Show/Open the Calva Output Terminal**, without focusing it - `ctrl+alt+o t`
 * **Calva: Show/Open REPL Window**, also focuses it - `ctrl+alt+o r`
-* **Calva: Show/Open the REPL output view**, without focusing it - `ctrl+alt+o w`
+* **Calva: Show/Open the REPL output view**, without focusing it - `ctrl+alt+o v`
+* **Calva: Show/Open the REPL output sidebar**, without focusing it - `ctrl+alt+o b`
+* **Calva: Clear REPL Output View** - no default shortcut
+* **Calva: Clear REPL Output Sidebar** - no default shortcut
 
 !!! Note "Focusing the output destination"
     The commands for opening the result destination all take a boolean argument for whether they should preserve focus or not. You can register keybindings that behave differently than the default ones. E.g.:

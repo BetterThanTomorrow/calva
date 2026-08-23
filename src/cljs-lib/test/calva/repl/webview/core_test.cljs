@@ -2,7 +2,7 @@
   (:require
    [calva.repl.webview.core :as sut]
    [cljs.reader :as reader]
-   [cljs.test :refer-macros [deftest testing is run-tests]]
+   [cljs.test :refer-macros [deftest testing is]]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -228,7 +228,9 @@
           vscode-context-stub "stub-vscode-context"
           expected-context {:env/is-debug false
                             :vscode/vscode vscode-stub
-                            :vscode/context vscode-context-stub}]
+                            :vscode/context vscode-context-stub}
+          expected-theme-args {:color-theme-kind color-theme-kind
+                               :webview-panel webview-panel-stub}]
       (with-redefs [util/env {:is-debug false}
                     util/vscode (atom vscode-stub)
                     util/vscode-context (atom vscode-context-stub)
@@ -242,9 +244,11 @@
           (is (= webview-panel-stub @sut/output-view-webview-panel)))
         (testing "Should call reveal on webview panel with expected args"
           (is (spy/called-once-with? reveal-spy nil true)))
-        (testing "Should call set-code-theme! with expected args"
-          (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
-                                                                           :webview-panel webview-panel-stub}))))))
+        (testing "Should call set-code-theme! when creating and revealing the webview panel"
+          (let [calls (spy/calls set-code-theme!-spy)]
+            (is (= 2 (count calls)))
+            (is (every? #(= expected-context (first %)) calls))
+            (is (every? #(= expected-theme-args (second %)) calls)))))))
   (testing "When the webview panel already exists,"
     (let [reveal-spy (spy/spy)
           set-code-theme!-spy (spy/spy)
@@ -255,7 +259,9 @@
           vscode-context-stub "stub-vscode-context"
           expected-context {:env/is-debug false
                             :vscode/vscode vscode-stub
-                            :vscode/context vscode-context-stub}]
+                            :vscode/context vscode-context-stub}
+          expected-theme-args {:color-theme-kind color-theme-kind
+                               :webview-panel webview-panel-stub}]
       (with-redefs [util/env {:is-debug false}
                     util/vscode (atom vscode-stub)
                     util/vscode-context (atom vscode-context-stub)
@@ -268,8 +274,7 @@
         (testing "and false is passed for preserve-focus? arg, should call reveal on webview panel with expected args"
           (is (spy/called-once-with? reveal-spy nil false)))
         (testing "should call set-code-theme! with expected args"
-          (is (spy/called-once-with? set-code-theme!-spy expected-context {:color-theme-kind color-theme-kind
-                                                                           :webview-panel webview-panel-stub})))))))
+          (is (spy/called-once-with? set-code-theme!-spy expected-context expected-theme-args)))))))
 
 (deftest append-test
   (testing "Given options and a message,"
@@ -285,6 +290,28 @@
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
                                       :output message})))))
+    (testing "when the webview panel does not exist, should create it before posting"
+      (let [options (clj->js {:outputCategory "evalOut"})
+            create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
+            set-code-theme!-spy (spy/spy)
+            post-message-to-webview-spy (spy/spy)
+            vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
+        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+                      util/vscode (atom vscode-stub)
+                      util/vscode-context (atom "vscode-context")
+                      sut/output-view-webview-panel (atom nil)
+                      sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                      sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
+                      sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+          (sut/append options "some-message")
+          (is (spy/called-once-with? create-repl-output-webview-panel-spy
+                                     {:env/is-debug (:is-debug util/env)
+                                      :vscode/vscode vscode-stub
+                                      :vscode/context "vscode-context"}))
+          (is (spy/called-once-with? post-message-to-webview-spy
+                                     "created-webview-panel"
+                                     {:command/name "show-stdout"
+                                      :output "some-message"})))))
     (testing "when command does not exist for output category,"
       (let [options (clj->js {:outputCategory "nonexistent-category"})
             message "some-message"
@@ -295,13 +322,11 @@
                       sut/output-view-webview-panel (atom "webview-panel-stub")
                       util/log-to-console (test-util/wrap-spy log-to-console-spy)]
           (sut/append options message)
-          (testing "should not call post-message-to-webview"
-            (is (spy/not-called? post-message-to-webview-spy)))
-          (testing "should log expected error"
-            (is (spy/called-once-with?
-                 log-to-console-spy
-                 :error
-                 "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\""))))))))
+          (is (spy/not-called? post-message-to-webview-spy))
+          (is (spy/called-once-with?
+               log-to-console-spy
+               :error
+               "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\"")))))))
 
 (deftest stacktrace->message-test
   (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
@@ -378,22 +403,55 @@
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                     sut/output-view-webview-panel (atom "webview-panel-stub")]
         (sut/append-stacktrace js-stacktrace)
-        (testing "should call stacktrace->message with clj stacktrace"
-          (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace)))
-        (testing "should call post-message-to-webview with expected args"
-          (is (spy/called-once-with? post-message-to-webview-spy
-                                     "webview-panel-stub"
-                                     {:command/name "show-stdout"
-                                      :output "some-message"})))))))
+        (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace))
+        (is (spy/called-once-with? post-message-to-webview-spy
+                                   "webview-panel-stub"
+                                   {:command/name "show-stdout"
+                                    :output "some-message"})))))
+  (testing "when the webview panel does not exist, should create it before posting"
+    (let [create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
+          set-code-theme!-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
+      (with-redefs [util/vscode (atom vscode-stub)
+                    util/vscode-context (atom "vscode-context")
+                    sut/output-view-webview-panel (atom nil)
+                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/append-stacktrace (clj->js []))
+        (is (spy/called-once-with? create-repl-output-webview-panel-spy
+                                   {:env/is-debug (:is-debug util/env)
+                                    :vscode/vscode vscode-stub
+                                    :vscode/context "vscode-context"}))
+        (is (spy/called-once-with? post-message-to-webview-spy
+                                   "created-webview-panel"
+                                   {:command/name "show-stdout"
+                                    :output ""}))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"
-    (let [post-message-to-webview-spy (spy/spy)]
+    (let [post-message-to-webview-spy (spy/spy)
+          output-view-webview-panel (atom "webview-panel-stub")]
       (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                    sut/output-view-webview-panel (atom "webview-panel-stub")]
+                    sut/output-view-webview-panel output-view-webview-panel]
         (sut/clear-output-view)
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
-                                   {:command/name "clear-output-view"}))))))
+                                   {:command/name "clear-output-view"})))))
+  (testing "when the webview panel does not exist, should not create, show, or post"
+    (let [create-repl-output-webview-panel-spy (spy/spy)
+          show-repl-output-webview-panel-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          output-view-webview-panel (atom nil)]
+      (with-redefs [sut/output-view-webview-panel output-view-webview-panel
+                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                    sut/show-repl-output-webview-panel (test-util/wrap-spy show-repl-output-webview-panel-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/clear-output-view)
+        (is (nil? @output-view-webview-panel))
+        (is (spy/not-called? create-repl-output-webview-panel-spy))
+        (is (spy/not-called? show-repl-output-webview-panel-spy))
+        (is (spy/not-called? post-message-to-webview-spy))))))
 
 #_(run-tests)

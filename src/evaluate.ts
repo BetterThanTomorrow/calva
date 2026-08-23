@@ -367,16 +367,18 @@ async function evaluateCodeUpdatingUI(
             who: 'ui',
             ...shadowInfo,
           });
-          if (
-            outputDestinations
-              .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-              .includes('output-view')
-          ) {
+          const webviewDestinations = outputDestinations
+            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+            .filter(outputDestinations.isWebviewOutputDestination);
+          if (webviewDestinations.length) {
             session
               .stacktrace()
               .then((stacktrace) => {
                 if (stacktrace && stacktrace.stacktrace) {
-                  cljsLib.appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+                  output.appendStackTraceToWebviewDestinations(
+                    webviewDestinations,
+                    stacktrace.stacktrace
+                  );
                 }
               })
               .catch((e) => {

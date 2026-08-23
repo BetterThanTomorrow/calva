@@ -16,9 +16,18 @@ describe('output destinations', () => {
         'output-channel',
         'terminal',
         'output-view',
+        'output-sidebar',
       ];
       for (const dest of destinations) {
         expectLib.expect(outputDestinations.normalizeDestinations(dest)).toStrictEqual([dest]);
+      }
+    });
+
+    it('identifies webview destinations', () => {
+      expectLib.expect(outputDestinations.isWebviewOutputDestination('output-view')).toBe(true);
+      expectLib.expect(outputDestinations.isWebviewOutputDestination('output-sidebar')).toBe(true);
+      for (const destination of ['terminal', 'repl-window', 'output-channel', './log.txt']) {
+        expectLib.expect(outputDestinations.isWebviewOutputDestination(destination)).toBe(false);
       }
     });
 

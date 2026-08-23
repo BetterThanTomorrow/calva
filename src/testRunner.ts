@@ -9,7 +9,6 @@ import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
-import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as outputDestinations from './results-output/output-destinations';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
@@ -237,12 +236,14 @@ async function reportTests(
               // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
               // This is just a quick fix to avoid refactoring for now.
               output.appendLineOtherOut(message.replace(/; /gi, ''));
-              if (
-                outputDestinations
-                  .normalizeDestinations(otherOutputDestination)
-                  .includes('output-view')
-              ) {
-                cljsLib.appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
+              const webviewDestinations = outputDestinations
+                .normalizeDestinations(otherOutputDestination)
+                .filter(outputDestinations.isWebviewOutputDestination);
+              if (webviewDestinations.length) {
+                output.appendStackTraceToWebviewDestinations(
+                  webviewDestinations,
+                  stacktrace.stacktrace
+                );
               }
             }
           } else if (message) {

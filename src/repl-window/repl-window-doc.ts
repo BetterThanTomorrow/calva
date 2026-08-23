@@ -250,6 +250,7 @@ export function maybePrintResultsInOtherDestinationMessage(): void {
     'output-channel': 'Output Channel',
     terminal: 'Output Terminal',
     'output-view': 'Output View',
+    'output-sidebar': 'Output Sidebar',
   };
   const destinationName =
     destinations.map((d) => destinationNames[d] || d).join(' and ') || 'unknown';
