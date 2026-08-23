@@ -13,7 +13,7 @@ async function main() {
     // The path to the extension test runner script
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, 'suite', 'index');
-    const testWorkspace = path.resolve(__dirname, '../../../test-data');
+    const testWorkspace = path.resolve(__dirname, '../../../test-fixtures');
     const testFilters = process.argv.slice(2).filter((arg) => arg.trim().length > 0);
 
     // Detect potentially incorrect usage patterns

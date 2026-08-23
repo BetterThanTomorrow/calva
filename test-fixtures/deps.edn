@@ -1,0 +1,7 @@
+{:deps {org.clojure/clojure {:mvn/version "1.12.0"}}
+ :paths ["integration-test"]
+ :aliases
+ {:test-data
+  {:extra-deps
+   {projects/cljs-only {:local/root "projects/cljs-only"}
+    projects/scittle-replicant-tic-tac-toe {:local/root "projects/scittle-replicant-tic-tac-toe"}}}}}
