@@ -36,7 +36,7 @@
       ;; It should be in the style-src and script-src directives in the content security policy
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
-      (is (= 1 (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result))))))
+      (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
@@ -46,7 +46,7 @@
       ;; It should be in the style-src and script-src directives in the content security policy
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
-      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result))))))
+      (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given no code theme, should keep all highlight.js theme links disabled"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
