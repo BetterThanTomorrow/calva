@@ -6,6 +6,7 @@ import * as vscode_lsp from 'vscode-languageclient/node';
 import * as project_utils from '../project-root';
 import * as state from '../state';
 import * as api from './api';
+import * as auto_start from './auto-start';
 import * as lsp_client from './client';
 import * as commands from './commands';
 import * as config from './config';
@@ -30,9 +31,8 @@ const shutdownFallbackClientIfNeeded = async (clients: defs.LspClientStore) => {
     .map((root) => root.uri);
 
   const contains_external_files = !!vscode.workspace.textDocuments.find((doc) => {
-    const clojure_file = doc.languageId === 'clojure' && doc.uri.scheme !== 'untitled';
     const external = vscode.workspace.getWorkspaceFolder(doc.uri);
-    return clojure_file && external;
+    return auto_start.isClojureDocument(doc) && external;
   });
 
   if (non_project_folders.length === 0 && !contains_external_files) {
@@ -203,13 +203,26 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
     if (!folder) {
       return;
     }
-    return provisionClient(folder.uri);
 
-    // TODO: Rather provision fallback client if not a valid clojure project:
-    // if (folder && (await project_utils.isValidClojureProject(folder.uri))) {
-    //   return provisionClient(folder.uri);
-    // }
-    // return provisionFallbackClient();
+    const roots = await project_utils.findProjectRootsWithReasons({
+      include_lsp_directories: true,
+      include_workspace_folders: false,
+    });
+    const holds_clojure = auto_start.isClojureWorkspaceFolder({
+      folder_path: folder.uri.fsPath,
+      project_root_paths: roots.map((root) => root.uri.fsPath),
+      open_clojure_document_paths: vscode.workspace.textDocuments
+        .filter(auto_start.isClojureDocument)
+        .map((doc) => doc.uri.fsPath),
+    });
+    if (!holds_clojure) {
+      console.log(
+        `Skipping clojure-lsp auto-start in ${folder.uri.path}: no Clojure project or open Clojure files`
+      );
+      return;
+    }
+
+    return provisionClient(folder.uri);
   };
 
   return {
@@ -275,8 +288,19 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
 
         // Provision new LSP clients when clojure files are opened and for all already opened clojure files.
         vscode.workspace.onDidOpenTextDocument((document) => {
-          if (config.getAutoStartBehaviour() === config.AutoStartBehaviour.FileOpened) {
-            void provisionClientForOpenedDocument(document).catch((err) => console.error(err));
+          switch (config.getAutoStartBehaviour()) {
+            case config.AutoStartBehaviour.FileOpened: {
+              return void provisionClientForOpenedDocument(document).catch((err) =>
+                console.error(err)
+              );
+            }
+            case config.AutoStartBehaviour.FirstWorkspace: {
+              const folder = vscode.workspace.workspaceFolders?.[0];
+              if (folder && auto_start.isClojureDocument(document)) {
+                void provisionClient(folder.uri).catch((err) => console.error(err));
+              }
+              return;
+            }
           }
         }),
 
