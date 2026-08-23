@@ -1,0 +1,6 @@
+(ns hello)
+
+(comment
+  (js/console.log "hello")
+  (.println System/out "hello")
+  :rcf)

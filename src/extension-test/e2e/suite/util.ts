@@ -18,7 +18,7 @@ import * as connector from '../../../connector';
 export const testDataDir = path.join(
   __dirname,
   ...['..', '..', '..', '..'],
-  'test-data',
+  'test-fixtures',
   'integration-test'
 );
 

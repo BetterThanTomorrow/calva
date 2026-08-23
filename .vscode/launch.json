@@ -213,7 +213,7 @@
         "DEBUG": "no-debug-universal-analytics"
       },
       "args": [
-        "${workspaceRoot}/test-data",
+        "${workspaceRoot}/test-fixtures",
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/out/extension-test/e2e/suite"
