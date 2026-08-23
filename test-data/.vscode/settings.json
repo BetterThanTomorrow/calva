@@ -153,5 +153,22 @@
   ],
   "calva.highlight.ignoredTopLevelFormStyle": {
     "textDecoration": "none; text-shadow: 2px 2px 5px rgba(255, 215, 0, 0.75)"
+  },
+  "calva.outputDestinations": {
+    "evalResults": [
+      "terminal",
+      "output-sidebar",
+      "output-view"
+    ],
+    "evalOutput": [
+      "terminal",
+      "output-sidebar",
+      "output-view"
+    ],
+    "otherOutput": [
+      "terminal",
+      "output-sidebar",
+      "output-view"
+    ]
   }
 }
