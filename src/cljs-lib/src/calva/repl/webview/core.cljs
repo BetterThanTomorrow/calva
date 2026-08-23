@@ -17,10 +17,49 @@
                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
                               message))))))
 
+(def highlight-js-code-theme-stylesheet-data
+  [["dark" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"]
+   ["light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"]
+   ["high-contrast" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css"]
+   ["high-contrast-light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css"]])
+
+(defn highlight-js-code-theme-stylesheet-link
+  [code-theme [theme href]]
+  (str "    <link
+      rel=\"stylesheet\"
+      href=\"" href "\"
+      data-code-theme=\"" theme "\""
+       (when (not= code-theme theme)
+         "
+      disabled")
+       "
+    />"))
+
+(defn highlight-js-code-theme-stylesheet-links
+  [code-theme]
+  (str/join "\n" (map #(highlight-js-code-theme-stylesheet-link code-theme %)
+                       highlight-js-code-theme-stylesheet-data)))
+
+(defn code-theme-for-kind
+  [color-theme-kind-enum color-theme-kind]
+  (condp = color-theme-kind
+    (.. color-theme-kind-enum -Dark) "dark"
+    (.. color-theme-kind-enum -Light) "light"
+    (.. color-theme-kind-enum -HighContrast) "high-contrast"
+    (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
+    nil))
+
+(defn code-theme-from-context
+  [{:keys [vscode/vscode]}]
+  (when vscode
+    (code-theme-for-kind (.-ColorThemeKind vscode)
+                         (.. vscode -window -activeColorTheme -kind))))
+
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
+
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -48,30 +87,7 @@
     <link rel=\"stylesheet\" href=\"" css-href "\" />
 
     <!-- Should these stylesheets and scripts be saved and referenced locally so that if users are offline the webview still functions as expected? -->
-    <link
-      rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css\"
-      data-code-theme=\"dark\"
-      disabled
-    />
-    <link
-      rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css\"
-      data-code-theme=\"light\"
-      disabled
-    />
-    <link
-      rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css\"
-      data-code-theme=\"high-contrast\"
-      disabled
-    />
-    <link
-      rel=\"stylesheet\"
-      href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css\"
-      data-code-theme=\"high-contrast-light\"
-      disabled
-    />
+" (highlight-js-code-theme-stylesheet-links code-theme) "
 
     <link
       rel=\"stylesheet\"
@@ -107,7 +123,10 @@
         css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
-        webview-html (get-webview-html context {:js-source js-source :css-href css-href :csp-source csp-source})]
+        webview-html (get-webview-html context {:js-source js-source
+                                                :css-href css-href
+                                                :csp-source csp-source
+                                                :code-theme (code-theme-from-context context)})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -115,12 +134,7 @@
    on the given color theme kind."
   [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
   (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
-        code-theme (condp = color-theme-kind
-                     (.. color-theme-kind-enum -Dark)  "dark"
-                     (.. color-theme-kind-enum -Light) "light"
-                     (.. color-theme-kind-enum -HighContrast) "high-contrast"
-                     (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
-                     nil)]
+        code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)]
     (if code-theme
       (post-message-to-webview webview-panel {:command/name "set-code-theme"
                                               :code-theme code-theme})

@@ -46,7 +46,25 @@
       ;; It should be in the style-src and script-src directives in the content security policy
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
-      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result)))))))
+      (is (zero? (count (re-seq #"connect-src ws://localhost:9630/api/remote-relay" result))))))
+  (testing "Given no code theme, should keep all highlight.js theme links disabled"
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"})]
+      (is (= 4 (count (re-seq #"disabled" result))))))
+  (testing "Given a dark code theme, should enable the dark highlight.js theme link"
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"
+                                                              :code-theme "dark"})]
+      (is (= 3 (count (re-seq #"disabled" result))))
+      (is (= 2 (count (re-seq #"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" result))))))
+  (testing "Given a light code theme, should enable the light highlight.js theme link"
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"
+                                                              :code-theme "light"})]
+      (is (= 3 (count (re-seq #"disabled" result)))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -98,7 +116,8 @@
         (testing "should call get-webview-html with expected args"
           (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
                                                                    :css-href "some-css-href"
-                                                                   :csp-source "some-csp-source"})))
+                                                                   :csp-source "some-csp-source"
+                                                                   :code-theme nil})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
