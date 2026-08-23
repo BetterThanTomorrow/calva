@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.webview.greeting :as greeting]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -41,7 +42,7 @@
                        highlight-js-code-theme-stylesheet-data)))
 
 (defn code-theme-for-kind
-  [color-theme-kind-enum color-theme-kind]
+  [^js color-theme-kind-enum color-theme-kind]
   (condp = color-theme-kind
     (.. color-theme-kind-enum -Dark) "dark"
     (.. color-theme-kind-enum -Light) "light"
@@ -50,7 +51,7 @@
     nil))
 
 (defn code-theme-from-context
-  [{:keys [vscode/vscode]}]
+  [{:keys [^js vscode/vscode]}]
   (when vscode
     (code-theme-for-kind (.-ColorThemeKind vscode)
                          (.. vscode -window -activeColorTheme -kind))))
@@ -59,7 +60,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -70,7 +71,7 @@
 
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
-                    img-src data:;
+                    img-src data: " csp-source ";
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
@@ -96,7 +97,7 @@
 
   </head>
   <body>
-    <div id=\"output\" class=\"output-element-container\"></div>
+    <div id=\"output\" class=\"output-element-container\">" greeting-html "</div>
 
     <script src=\"" js-source "\"></script>
   </body>
@@ -118,15 +119,19 @@
 
 (defn set-webview-html!
   [context
-   {:keys [^js webview-panel]}]
+   {:keys [^js webview-panel view-kind]
+    :or {view-kind :output-view}}]
   (let [js-source (get-js-source context {:webview-panel webview-panel})
         css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
+        logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
+        greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
                                                 :css-href css-href
                                                 :csp-source csp-source
-                                                :code-theme (code-theme-from-context context)})]
+                                                :code-theme (code-theme-from-context context)
+                                                :greeting-html greeting-html})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -197,6 +202,7 @@
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
                            #js {:enableScripts true
+                                :enableCommandUris #js ["calva.showReplOutputView"]
                                 ;; If performance or memory consumption becomes a problem, we can use the setState
                                 ;; and getState to manually retain the context of the webview when it's hidden.
                                 ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence

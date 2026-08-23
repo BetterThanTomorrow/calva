@@ -1,6 +1,7 @@
 (ns calva.repl.webview.core-test
   (:require
    [calva.repl.webview.core :as sut]
+   [calva.repl.webview.greeting :as greeting]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
    [matcher-combinators.test]
@@ -33,8 +34,8 @@
                                                              :csp-source "csp-source"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
-      ;; It should be in the style-src and script-src directives in the content security policy
-      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (= 3 (count (re-seq #"csp-source" result))))
+      (is (re-find #"img-src data: csp-source" result))
       (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
@@ -43,28 +44,17 @@
                                                               :csp-source "csp-source"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
-      ;; It should be in the style-src and script-src directives in the content security policy
-      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (= 3 (count (re-seq #"csp-source" result))))
+      (is (re-find #"img-src data: csp-source" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
-  (testing "Given no code theme, should keep all highlight.js theme links disabled"
-    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
-                                                              :csp-source "csp-source"})]
-      (is (= 4 (count (re-seq #"disabled" result))))))
-  (testing "Given a dark code theme, should enable the dark highlight.js theme link"
-    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
-                                                              :csp-source "csp-source"
-                                                              :code-theme "dark"})]
-      (is (= 3 (count (re-seq #"disabled" result))))
-      (is (= 2 (count (re-seq #"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" result))))))
-  (testing "Given a light code theme, should enable the light highlight.js theme link"
-    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
-                                                              :csp-source "csp-source"
-                                                              :code-theme "light"})]
-      (is (= 3 (count (re-seq #"disabled" result)))))))
+  (testing "Given greeting html, should include it in the output div"
+    (is (re-find #"GREETING-MARKER"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :greeting-html "GREETING-MARKER"})))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -105,19 +95,22 @@
           get-webview-html-spy (spy/stub "some-html")]
       (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
                     sut/get-css-path (test-util/wrap-spy get-css-path-spy)
+                    greeting/logo-webview-uri (constantly "some-logo-href")
+                    greeting/html-for-view (constantly "some-greeting")
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
           (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
         (testing "should call get-css-path with expected args"
           (is (spy/called-once-with? get-css-path-spy context)))
-        (testing "should call asWebviewUri with expected args"
+        (testing "should call asWebviewUri once for the CSS"
           (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
         (testing "should call get-webview-html with expected args"
           (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
                                                                    :css-href "some-css-href"
                                                                    :csp-source "some-csp-source"
-                                                                   :code-theme nil})))
+                                                                   :code-theme nil
+                                                                   :greeting-html "some-greeting"})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -210,7 +203,7 @@
 
 (deftest create-repl-output-webview-panel-test
   (testing "Given a context,"
-    (let [on-did-dispose-spy (spy/spy)
+    (let [on-did-dispose-spy (spy/stub "dispose-subscription")
           stub-webview-panel (clj->js {:onDidDispose (test-util/wrap-spy on-did-dispose-spy)})
           create-webview-panel-spy (spy/stub stub-webview-panel)
           context {:vscode/vscode (clj->js {:window {:createWebviewPanel
@@ -223,13 +216,16 @@
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
-          (testing "should call createWebviewPanel with expacted args"
+          (testing "should call createWebviewPanel with expected args"
             (let [calls (spy/calls create-webview-panel-spy)]
               (is (= 1 (count calls)))
               (is (= '[("calva.output-view"
                         "REPL Output"
                         {:preserveFocus true, :viewColumn 1}
-                        {:enableScripts true, :retainContextWhenHidden true, :enableFindWidget true})]
+                        {:enableScripts true
+                         :enableCommandUris ["calva.showReplOutputView"]
+                         :retainContextWhenHidden true
+                         :enableFindWidget true})]
                      (js->clj calls :keywordize-keys true)))))
           (testing "should call initialize-webview-panel with expected args"
             (is (spy/called-once-with? initialize-webview-panel-spy context stub-webview-panel)))

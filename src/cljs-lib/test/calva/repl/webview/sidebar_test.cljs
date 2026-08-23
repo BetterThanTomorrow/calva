@@ -25,6 +25,7 @@
         (is (re-find #"REPL Output" html))
         (is (re-find #"terminal" html))
         (is (re-find #"https://calva.io/output" html))
+        (is (re-find #"The current output destination configuration is" html))
         (is (re-find #"default-src 'none'; style-src csp-source" html))))))
 
 (deftest resolve-webview-view-test
@@ -148,5 +149,7 @@
         (is (= 2 (count (spy/calls set-webview-html!-spy))))
         (is (= 2 (count (spy/calls set-code-theme!-spy))))
         (is (= 4 (count (spy/calls post-message-to-webview-spy))))
+        (is (= :output-sidebar
+               (-> (spy/calls set-webview-html!-spy) first second :view-kind)))
         (is (= ["first" "second" "first" "second"]
                (map #(-> % second :output) (spy/calls post-message-to-webview-spy))))))))

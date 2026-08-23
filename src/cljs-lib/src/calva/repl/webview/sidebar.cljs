@@ -1,6 +1,7 @@
 (ns calva.repl.webview.sidebar
   (:require
    [calva.repl.webview.core :as core]
+   [calva.repl.webview.greeting :as greeting]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
@@ -23,8 +24,7 @@
 
 (defn get-sidebar-help-html
   [csp-source]
-  (let [destinations (current-output-destinations)
-        setting-json (js/JSON.stringify destinations nil 2)]
+  (let [destinations (current-output-destinations)]
     (str "<!DOCTYPE html>"
          "<html lang=\"en\"><head>"
          "<meta charset=\"UTF-8\">"
@@ -39,9 +39,7 @@
          "<h1>REPL Output</h1>"
          "<p>REPL results, evaluated code, and other output can be sent to this view with the "
          "<code>output-sidebar</code> <strong>Output destination</strong>.</p>"
-         "<p>The current ouput destination configuration is: .</p>"
-         "<pre>" setting-json "</pre>"
-         "<p>See <a href=\"https://calva.io/output\">https://calva.io/output</a> for details.</p>"
+         (greeting/destinations-config-html destinations)
          "</body></html>")))
 
 (defn set-sidebar-help!
@@ -59,7 +57,8 @@
 (defn show-sidebar-output-log!
   [^js webview-view]
   (reset! output-sidebar-showing-output-log? true)
-  (core/set-webview-html! (sidebar-context) {:webview-panel webview-view})
+  (core/set-webview-html! (sidebar-context) {:webview-panel webview-view
+                                             :view-kind :output-sidebar})
   (core/set-code-theme! (sidebar-context)
                         {:color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)
                          :webview-panel webview-view}))
@@ -107,6 +106,7 @@
                (reset! output-sidebar-webview-view webview-view)
                (set! (.. webview-view -webview -options)
                      #js {:enableScripts true
+                          :enableCommandUris #js ["calva.showReplOutputSidebar"]
                           :localResourceRoots #js [(.. ^js @util/vscode-context -extensionUri)]})
                (apply-sidebar-help-or-output-log! webview-view)
                (add-context-subscription!
