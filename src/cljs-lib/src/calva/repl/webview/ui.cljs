@@ -192,8 +192,6 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
-(declare dispatch!)
-
 (defn exec-effect!
   [^js output-dom-element [fx-type & args]]
   (case fx-type
