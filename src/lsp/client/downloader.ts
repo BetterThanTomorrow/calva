@@ -1,4 +1,3 @@
-import * as extractZip from 'extract-zip';
 import * as followRedirects from 'follow-redirects';
 import * as util from '../../utilities';
 import * as config from '../../config';
@@ -10,9 +9,16 @@ import {
   getClojureLspPath,
   getVersionFilePath,
   readVersionFile,
+  unzipFile,
 } from './downloader-paths';
 
-export { getArtifactDownloadName, getClojureLspPath, getVersionFilePath, readVersionFile };
+export {
+  getArtifactDownloadName,
+  getClojureLspPath,
+  getVersionFilePath,
+  readVersionFile,
+  unzipFile,
+};
 
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 const LOCK_STALE_MS = 2 * 60 * 1000; // 2 minutes
@@ -88,11 +94,6 @@ function writeVersionFile(baseDir: string, version: string): void {
   } catch (e) {
     console.log('Could not write clojure-lsp version file.', e.message);
   }
-}
-
-async function unzipFile(zipFilePath: string, targetDir: string): Promise<void> {
-  console.log('Unzipping file');
-  return extractZip(zipFilePath, { dir: targetDir });
 }
 
 async function downloadClojureLsp(storageDir: string, version: string): Promise<string> {

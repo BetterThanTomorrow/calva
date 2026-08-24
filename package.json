@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.594",
+  "version": "2.0.595",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -179,7 +179,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -196,7 +197,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -214,7 +216,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
@@ -225,7 +227,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -242,7 +245,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -260,7 +264,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
@@ -271,7 +275,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -288,7 +293,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -306,14 +312,14 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
-              "evalResults": "terminal",
-              "evalOutput": "terminal",
-              "otherOutput": "terminal"
+              "evalResults": ["terminal", "output-sidebar"],
+              "evalOutput": ["terminal", "output-sidebar"],
+              "otherOutput": ["terminal", "output-sidebar"]
             }
           },
           "calva.fiddleFilePaths": {
@@ -578,7 +584,7 @@
           },
           "calva.jackInDependencyVersions": {
             "type": "object",
-            "description": "By default Calva Jack-in will inject the latest `nrepl`, etcetera versions when starting the repl. Override this default behaviour by declaring which versions to use here.",
+            "description": "Calva Jack-in will use hardcoded versions of `nrepl`, etcetera versions when starting the repl. Override these default behaviour by declaring which versions to use here. Calva will report the active (used) versions and latest available versions in the “Calva says” output channel.",
             "additionalProperties": false,
             "properties": {
               "nrepl": {
@@ -1796,6 +1802,18 @@
         "category": "Calva"
       },
       {
+        "command": "calva.clearReplOutputSidebar",
+        "title": "Clear REPL Output Sidebar",
+        "category": "Calva",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "calva.toggleReplOutputWordWrap",
+        "title": "Toggle REPL Output Word Wrap",
+        "category": "Calva",
+        "icon": "$(word-wrap)"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -2421,6 +2439,11 @@
         "category": "Calva",
         "command": "calva.showReplOutputView",
         "title": "Show/Open the REPL output view"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showReplOutputSidebar",
+        "title": "Show/Open the REPL output sidebar"
       },
       {
         "category": "Calva",
@@ -3220,6 +3243,12 @@
         "when": "calva:keybindingsEnabled"
       },
       {
+        "command": "calva.showReplOutputSidebar",
+        "key": "ctrl+alt+o b",
+        "args": false,
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
         "args": false,
@@ -3723,6 +3752,16 @@
       ],
       "view/title": [
         {
+          "command": "calva.toggleReplOutputWordWrap",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@2"
+        },
+        {
           "command": "calva.pasteAsInspectorItem",
           "when": "view == calva.inspector",
           "group": "navigation@1"
@@ -3770,6 +3809,12 @@
         }
       ],
       "calva": [
+        {
+          "id": "calva.output-sidebar",
+          "name": "REPL Output",
+          "type": "webview",
+          "icon": "assets/images/calva-symbol-white.svg"
+        },
         {
           "id": "calva.inspector",
           "name": "Inspector",
@@ -3847,14 +3892,11 @@
     "ansi-regex": "^5.0.1",
     "axios": "^1.4.0",
     "chalk": "^4.1.2",
-    "extract-zip": "^2.0.1",
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
     "get-port": "^5.1.1",
     "highlight.js": "^11.11.1",
     "highlightjs-copy": "^1.0.6",
-    "immutable": "3.8.3",
-    "immutable-cursor": "2.0.1",
     "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
@@ -3882,7 +3924,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
-    "@vscode/test-electron": "^2.5.2",
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
     "chai": "^4.2.0",
     "eslint": "^8.8.0",

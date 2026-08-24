@@ -1,6 +1,8 @@
 (ns calva.repl.webview.ui
   (:require
+   [calva.repl.webview.app-db :as app-db]
    [cljs.reader :as reader]
+   [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
    ["highlightjs-copy" :as CopyButtonPlugin]
    ["highlight.js/lib/core" :as hljs]
@@ -66,7 +68,7 @@
 
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
-  [^js dom-element {:keys [output]}]
+  [^js dom-element output]
   (let [div (js/document.createElement "div")
         span (js/document.createElement "span")
         span-text-node (js/document.createTextNode "Evaluated code")
@@ -81,7 +83,7 @@
     (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
-  [^js dom-element {:keys [output]}]
+  [^js dom-element output]
   (let [{:keys [code-element container-element]} (clojure-code-element output)]
     (.. dom-element (appendChild container-element))
     (.. hljs (highlightElement code-element))
@@ -89,27 +91,65 @@
 
 (defn create-and-append-stdout-element
   "Creates a new stdout element and appends it to the given DOM element."
-  [dom-element text-node]
+  [dom-element text-node category]
   (let [pre-element (js/document.createElement "pre")]
     (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" "stdout"))
+    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
     (.. dom-element (appendChild pre-element))
     (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
 
 (defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
    in which case it appends the content to that element instead."
-  [^js dom-element {:keys [output]}]
-  (let [text-node (js/document.createTextNode (strip-ansi output))]
+  [^js dom-element output category]
+  (let [category (or category "evalOut")
+        text-node (js/document.createTextNode (strip-ansi output))]
     (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= "stdout" (.. last-output-element -dataset -outputElementType))
+      (if (= category (.. last-output-element -dataset -outputElementType))
         (do
           (.. last-output-element (appendChild text-node))
           (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node))
-      (create-and-append-stdout-element dom-element text-node))))
+        (create-and-append-stdout-element dom-element text-node category))
+      (create-and-append-stdout-element dom-element text-node category))))
 
-(defn ^:export clear-output-view
+(defn session-str
+  [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
+  (let [parts (cond-> []
+                repl-session-key (conj (str repl-session-key))
+                shadow-build (conj (str shadow-build))
+                (some? shadow-runtime-id) (conj (str shadow-runtime-id)))]
+    (str/join " " parts)))
+
+(defn create-ns-info-element
+  [{:meta/keys [who ns] :as meta-data}]
+  (let [container (js/document.createElement "div")
+        sess (session-str meta-data)]
+    (.. container -classList (add "ns-info-container"))
+    (.. container (setAttribute "data-output-element-type" "ns-info"))
+    (when (and who (not= who "ui"))
+      (let [who-badge (js/document.createElement "span")]
+        (.. who-badge -classList (add "ns-info-badge" "ns-info-who"))
+        (.. who-badge (appendChild (js/document.createTextNode who)))
+        (.. container (appendChild who-badge))))
+    (when (seq sess)
+      (let [sess-badge (js/document.createElement "span")]
+        (.. sess-badge -classList (add "ns-info-badge" "ns-info-session"))
+        (.. sess-badge (appendChild (js/document.createTextNode sess)))
+        (.. container (appendChild sess-badge))))
+    (when ns
+      (let [ns-badge (js/document.createElement "span")]
+        (.. ns-badge -classList (add "ns-info-badge" "ns-info-ns"))
+        (.. ns-badge (appendChild (js/document.createTextNode ns)))
+        (.. container (appendChild ns-badge))))
+    container))
+
+(defn append-ns-info
+  [^js dom-element meta-data]
+  (let [ns-info-el (create-ns-info-element meta-data)]
+    (.. dom-element (appendChild ns-info-el))
+    (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
+
+(defn clear-output-dom
   [^js output-dom-element]
   (set! (.-innerHTML output-dom-element) ""))
 
@@ -128,7 +168,7 @@
                    (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
 
 (defn set-code-theme!
-  [{:keys [code-theme]}]
+  [code-theme]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
     (.. code-theme-link-nodes (forEach (fn [^js node]
                                          (let [current-code-theme (.. node -dataset -codeTheme)]
@@ -138,23 +178,55 @@
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
+(defn set-word-wrap!
+  [word-wrap]
+  (let [body js/document.body]
+    (if word-wrap
+      (.. body -classList (add "word-wrap"))
+      (.. body -classList (remove "word-wrap")))))
+
 (defn scroll-to
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(defn exec-effect!
+  [^js output-dom-element [fx-type & args]]
+  (case fx-type
+    :fx/append-ns-info (append-ns-info output-dom-element (first args))
+    :fx/append-result (append-eval-result output-dom-element (first args))
+    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
+    :fx/clear-dom (clear-output-dom output-dom-element)
+    :fx/set-code-theme (set-code-theme! (first args))
+    :fx/set-word-wrap (set-word-wrap! (first args))
+    :fx/scroll-to (scroll-to (first args))))
+
+(defn dispatch!
+  [action]
+  (let [current-db @app-db/!app-db
+        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)]
+    (when (and db (not= db current-db))
+      (reset! app-db/!app-db db))
+    (run! #(exec-effect! output-dom-element %) fxs)
+    (run! dispatch! dxs)))
+
+(defn ^:export clear-output-view
+  []
+  (dispatch! [:msg/clear-output-view]))
+
 (defn handle-message
-  [^js output-dom-element ^js message]
+  [^js message]
   (ensure-dom-content-loaded
    (fn []
      (let [message-data (reader/read-string (.-data message))
            command-name (:command/name message-data)]
        (case command-name
-         "show-result" (append-eval-result output-dom-element message-data)
-         "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
-         "show-stdout" (append-stdout output-dom-element message-data)
-         "clear-output-view" (clear-output-view output-dom-element)
-         "set-code-theme" (set-code-theme! message-data)
-         "scroll-to" (scroll-to message-data))))))
+         "clear-output-view" (dispatch! [:msg/clear-output-view])
+         "set-code-theme"    (dispatch! [:msg/set-code-theme message-data])
+         "set-word-wrap"     (dispatch! [:msg/set-word-wrap message-data])
+         "scroll-to"         (dispatch! [:msg/scroll-to message-data])
+         ("show-result" "show-evaluated-code" "show-stdout")
+         (dispatch! [:msg/output message-data]))))))
 
 (defn handle-output-appended
   [^js _event]
@@ -162,7 +234,7 @@
 
 (defn add-event-listeners
   [^js output-dom-element]
-  (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
+  (.. js/window (addEventListener "message" handle-message))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []

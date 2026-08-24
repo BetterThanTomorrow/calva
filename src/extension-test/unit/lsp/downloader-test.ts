@@ -2,11 +2,13 @@ import * as expectLib from 'expect';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
+import JSZip = require('jszip');
 import {
   getArtifactDownloadName,
   getClojureLspPath,
   getVersionFilePath,
   readVersionFile,
+  unzipFile,
 } from '../../../lsp/client/downloader-paths';
 
 describe('downloader', () => {
@@ -155,6 +157,44 @@ describe('downloader', () => {
       const stat = await fs.promises.stat(lockPath);
       // Production code considers lock stale when mtime >= 2 minutes old
       expectLib.expect(Date.now() - stat.mtimeMs).toBeGreaterThanOrEqual(2 * 60 * 1000);
+    });
+  });
+
+  describe('unzipFile', () => {
+    it('extracts files and subdirectories from zip archive', async () => {
+      const zip = new JSZip();
+      zip.file('clojure-lsp', 'binary-content');
+      zip.file('subdir/nested.txt', 'nested-content');
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+      const zipPath = path.join(tmpDir, 'test.zip');
+      fs.writeFileSync(zipPath, new Uint8Array(zipBuffer));
+
+      const extractDir = path.join(tmpDir, 'extracted');
+      await unzipFile(zipPath, extractDir);
+
+      expectLib
+        .expect(fs.readFileSync(path.join(extractDir, 'clojure-lsp'), 'utf8'))
+        .toBe('binary-content');
+      expectLib
+        .expect(fs.readFileSync(path.join(extractDir, 'subdir', 'nested.txt'), 'utf8'))
+        .toBe('nested-content');
+    });
+
+    it('rejects zip entries targeting outside the destination directory', async () => {
+      const zip = new JSZip();
+      zip.file('../escaped.txt', 'malicious-content');
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+      const zipPath = path.join(tmpDir, 'malicious.zip');
+      fs.writeFileSync(zipPath, new Uint8Array(zipBuffer));
+
+      const extractDir = path.join(tmpDir, 'extracted');
+      let failed = false;
+      try {
+        await unzipFile(zipPath, extractDir);
+      } catch (e) {
+        failed = true;
+      }
+      expectLib.expect(failed).toBe(true);
     });
   });
 });

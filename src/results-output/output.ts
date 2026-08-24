@@ -9,8 +9,8 @@ import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
-import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
 import * as evaluatedCode from './evaluated-code';
+import { isWebviewOutputDestination } from './output-destinations';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -149,6 +149,23 @@ export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   otherOutput: 'repl-window',
 };
 
+let outputPTY: OutputTerminal | undefined;
+let outputTerminal: vscode.Terminal | undefined;
+
+function forgetOutputTerminal(pty?: OutputTerminal) {
+  if (pty !== undefined && outputPTY !== pty) {
+    return;
+  }
+  outputPTY = undefined;
+  outputTerminal = undefined;
+}
+
+function isOutputTerminalLive() {
+  return Boolean(
+    outputTerminal && !outputTerminal.exitStatus && vscode.window.terminals.includes(outputTerminal)
+  );
+}
+
 class OutputTerminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
@@ -167,11 +184,7 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
         ' Calva: Show/Open the Calva Output Terminal '
       )}.
 
-See also the Calva Inspector: https://calva.io/inspector
-
-${jackInVersions.formatEffectiveVersionsReport()}
-
-${jackInVersions.formatLatestVersionsReport()}
+See Calva Output Destinations: https://calva.io/ouput
 
 Please consider sponsoring Calva: https://calva.io/sponsors ♥️
 
@@ -182,23 +195,29 @@ Please consider sponsoring Calva: https://calva.io/sponsors ♥️
     this.writeEmitter.fire(message.replace(/\r?\n/g, '\r\n'));
   }
   close(): void {
-    outputPTY = undefined;
-    outputTerminal = undefined;
-    // TODO: Decide if we should just recreate the terminal like this
-    // getOutputPTY();
-    // It would still be emptied, so the win isn't that big.
+    forgetOutputTerminal(this);
   }
 }
 
-let outputPTY: OutputTerminal;
-let outputTerminal: vscode.Terminal;
-
 function getOutputPTY() {
+  if (outputPTY && !isOutputTerminalLive()) {
+    forgetOutputTerminal(outputPTY);
+  }
   if (!outputPTY) {
     outputPTY = new OutputTerminal();
     outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
   }
   return outputPTY;
+}
+
+export function registerOutputTerminalLifecycle(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.window.onDidCloseTerminal((term) => {
+      if (term === outputTerminal) {
+        forgetOutputTerminal();
+      }
+    })
+  );
 }
 
 let outputChannel: vscode.OutputChannel;
@@ -211,10 +230,8 @@ export function showOutputChannel(preserveFocus = true) {
 }
 
 export function showOutputTerminal(preserveFocus = true) {
-  if (!outputTerminal) {
-    getOutputPTY();
-  }
-  outputTerminal.show(preserveFocus);
+  getOutputPTY();
+  outputTerminal?.show(preserveFocus);
 }
 
 export function showResultOutputDestination(preserveFocus = true) {
@@ -223,9 +240,13 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (!first) {
     return;
   }
-  if (isFilePathDestination(first)) {
+  return revealResultDestination(first, preserveFocus);
+}
+
+function revealResultDestination(destination: string, preserveFocus: boolean) {
+  if (isFilePathDestination(destination)) {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const resolvedPath = resolveOutputFilePath(first, workspaceRoot);
+    const resolvedPath = resolveOutputFilePath(destination, workspaceRoot);
     if (resolvedPath) {
       return vscode.window.showTextDocument(vscode.Uri.file(resolvedPath), {
         preserveFocus,
@@ -234,16 +255,41 @@ export function showResultOutputDestination(preserveFocus = true) {
     }
     return;
   }
-  if (first === 'output-channel') {
-    return showOutputChannel(preserveFocus);
+  const revealers: Record<string, (preserveFocus: boolean) => unknown> = {
+    'output-channel': showOutputChannel,
+    terminal: showOutputTerminal,
+    'output-view': cljsLib.showReplOutputWebviewPanel,
+    'output-sidebar': cljsLib.showReplOutputSidebar,
+  };
+  const revealer = revealers[destination];
+  return revealer ? revealer(preserveFocus) : outputWindow.revealReplWindowDoc(preserveFocus);
+}
+
+function writeToWebview(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  if (options.destination === 'output-sidebar') {
+    cljsLib.appendToReplOutputSidebar(options, message);
+  } else {
+    cljsLib.appendToReplOutputWebview(options, message);
   }
-  if (first === 'terminal') {
-    return showOutputTerminal(preserveFocus);
+  if (after) {
+    after(undefined, undefined);
   }
-  if (first === 'output-view') {
-    return cljsLib.showReplOutputWebviewPanel(preserveFocus);
+}
+
+function writeStackTraceToWebview(destination: string, stacktrace: any[]) {
+  if (destination === 'output-sidebar') {
+    cljsLib.appendStackTraceToReplOutputSidebar(stacktrace);
+  } else {
+    cljsLib.appendStackTraceToReplOutputWebview(stacktrace);
   }
-  return outputWindow.revealReplWindowDoc(preserveFocus);
+}
+
+export function appendStackTraceToWebviewDestinations(destinations: string[], stacktrace: any[]) {
+  for (const destination of destinations) {
+    if (isWebviewOutputDestination(destination)) {
+      writeStackTraceToWebview(destination, stacktrace);
+    }
+  }
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
@@ -297,6 +343,7 @@ const didLastOutputTerminateLine = new Map<string, boolean>([
   ['output-channel', true],
   ['terminal', true],
   ['output-view', true],
+  ['output-sidebar', true],
 ]);
 
 let havePrintedLegacyReplWindowOutputMessage = false;
@@ -321,6 +368,7 @@ const lastInfoLineData = new Map<string, AppendClojureOptions>([
   ['output-channel', {}],
   ['terminal', {}],
   ['output-view', {}],
+  ['output-sidebar', {}],
 ]);
 
 function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
@@ -421,11 +469,8 @@ function writeClojure(
     if (after) {
       after(undefined, undefined);
     }
-  } else if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, message);
-    if (after) {
-      after(undefined, undefined);
-    }
+  } else if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, message, after);
   }
 }
 
@@ -459,7 +504,7 @@ export function appendEvaluatedCode(
     additionalDestinations = [],
     sinkDestination = destination,
     writeVisible = true,
-    visibleOutputCategory = 'evalResults',
+    visibleOutputCategory = 'evaluatedCode',
     ...metadataOptions
   } = options;
   const normalizedDestination = normalizeDestinations(destination);
@@ -639,8 +684,8 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
     }
     return;
   }
-  if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, message);
+  if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, message);
   }
 }
 
@@ -913,8 +958,8 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
     writeAppend(options, message + '\r\n', after);
     return;
   }
-  if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, '\n\n' + message);
+  if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, '\n\n' + message);
   }
 }
 
@@ -1189,13 +1234,14 @@ function printStackTrace(stacktrace: any[]) {
       writeToFileDestination(destination, '\n' + formatStacktrace(stacktrace) + '\n');
       continue;
     }
+    if (isWebviewOutputDestination(destination)) {
+      writeStackTraceToWebview(destination, stacktrace);
+      continue;
+    }
     switch (destination) {
       case 'repl-window':
         outputWindow.printLastStacktrace();
         void replWindowAppendPrompt();
-        break;
-      case 'output-view':
-        cljsLib.appendStackTraceToReplOutputWebview(stacktrace);
         break;
       case 'output-channel':
         outputChannel.appendLine('');

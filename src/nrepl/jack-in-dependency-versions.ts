@@ -258,7 +258,7 @@ export function formatLatestVersionsReport(indent = ''): string {
 
 export function formatEffectiveVersionsReport(indent = ''): string {
   const detail = getJackInVersionsDetail();
-  const lines = [`${indent}Effective nREPL dependency versions:`];
+  const lines = [`${indent}Effective nREPL Jack-in dependency versions:`];
   for (const dep of JACK_IN_DEPENDENCY_KEYS) {
     const source = detail.sources[dep];
     const sourceLabel = source === 'configured' ? 'configured in settings' : 'Calva defaults';

@@ -49,6 +49,7 @@ import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as shadowRuntime from './shadow-cljs-runtime';
+import * as outputSidebar from './results-output/output-sidebar';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -88,8 +89,10 @@ async function activate(context: vscode.ExtensionContext) {
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
+  cljsLib.initReplOutputWordWrap();
 
   initializeState();
+  output.registerOutputTerminalLifecycle(context);
   state.setExtensionContext(context);
   state.initDepsEdnJackInExecutable();
   const isDramStart = await drams.dramStartConfigExists();
@@ -104,6 +107,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   // Initialize flare webview provider for sidebar
   flareHandler.registerFlareWebviewProvider(context);
+  outputSidebar.registerReplOutputSidebarProvider(context);
 
   overrides.activate();
 
@@ -236,6 +240,8 @@ async function activate(context: vscode.ExtensionContext) {
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplOutputView: cljsLib.clearReplOutputView,
+    clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
+    toggleReplOutputWordWrap: cljsLib.toggleReplOutputWordWrap,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
@@ -307,6 +313,7 @@ async function activate(context: vscode.ExtensionContext) {
     showOutputChannel: output.showOutputChannel,
     showOutputTerminal: output.showOutputTerminal,
     showReplOutputView: cljsLib.showReplOutputWebviewPanel,
+    showReplOutputSidebar: cljsLib.showReplOutputSidebar,
     showResultOutputDestination: output.showResultOutputDestination,
     showPreviousReplHistoryEntry: replHistory.showPreviousReplHistoryEntry,
     startJoyrideReplAndConnect: async () => {
