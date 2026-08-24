@@ -29,7 +29,7 @@ describe('routeEvaluatedCode', () => {
       {
         code: '(inc 1)',
         didLastTerminateLine: true,
-        outputCategory: 'evalResults',
+        outputCategory: 'evaluatedCode',
       },
     ]);
   });
