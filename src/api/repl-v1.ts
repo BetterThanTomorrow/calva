@@ -10,6 +10,7 @@ import * as outputDestinations from '../results-output/output-destinations';
 import * as logUtil from './log-util';
 import * as clientRegistry from '../nrepl/client-registry';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
+import * as sessionEvents from '../nrepl/session-events';
 
 type Result = {
   result: string;
@@ -559,4 +560,14 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
     }
   });
   return new vscode.Disposable(unsubscribe);
+}
+
+export type SessionsChangedEventType = sessionEvents.SessionsChangedEventType;
+export type SessionsChangedEvent = sessionEvents.SessionsChangedEvent;
+
+export function onSessionsChanged(
+  listener: (event: SessionsChangedEvent) => void
+): vscode.Disposable {
+  const disposable = sessionEvents.onSessionsChanged(listener);
+  return new vscode.Disposable(() => disposable.dispose());
 }
