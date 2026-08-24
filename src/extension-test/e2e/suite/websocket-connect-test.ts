@@ -22,34 +22,29 @@ const WS_PORT_SHUTDOWN = 51343;
  */
 function flareCode(port: number): string {
   return `
-(require '["vscode" :as vscode])
 (require '[joyride.flare :as flare])
-(let [root (when-let [folders (.-workspaceFolders vscode/workspace)]
-             (.-uri (aget folders 0)))]
-  (defn project-path [p]
-    (str "projects/scittle-replicant-tic-tac-toe/" p))
-  (flare/flare!+
-    (cond-> {:html [:html
-                    [:head
-                     [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " ${port} ";\\n                     var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
-                     [:script {:src (project-path "resources/scittle/dist/scittle.js")
-                               :type "application/javascript"}]
-                     [:script {:src (project-path "resources/scittle/dist/scittle.nrepl.js")
-                               :type "application/javascript"}]
-                     [:script {:src (project-path "resources/scittle/dist/scittle.replicant.js")
-                               :type "application/javascript"}]
-                     [:script {:type "application/x-scittle"
-                               :src (project-path "resources/scittle/replicant_tictactoe/ui.cljs")}]
-                     [:script {:type "application/x-scittle"
-                               :src (project-path "resources/scittle/replicant_tictactoe/game.cljs")}]
-                     [:script {:type "application/x-scittle"
-                               :src (project-path "resources/scittle/replicant_tictactoe/core.cljs")}]]
-                    [:body
-                     [:div#app]]]
-             :key :ws-test-${port}
-             :title "WS Integration Test"}
-      root (assoc :webview-options {:enableScripts true
-                                    :localResourceRoots [root]}))))
+(defn project-path [p]
+  (str "projects/scittle-replicant-tic-tac-toe/" p))
+(flare/flare!+
+  {:html [:html
+          [:head
+           [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " ${port} ";\\n                     var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
+           [:script {:src (project-path "resources/scittle/dist/scittle.js")
+                     :type "application/javascript"}]
+           [:script {:src (project-path "resources/scittle/dist/scittle.nrepl.js")
+                     :type "application/javascript"}]
+           [:script {:src (project-path "resources/scittle/dist/scittle.replicant.js")
+                     :type "application/javascript"}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/ui.cljs")}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/game.cljs")}]
+           [:script {:type "application/x-scittle"
+                     :src (project-path "resources/scittle/replicant_tictactoe/core.cljs")}]]
+          [:body
+           [:div#app]]]
+   :key :ws-test-${port}
+   :title "WS Integration Test"})
 `;
 }
 
