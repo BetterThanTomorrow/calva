@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import JSZip = require('jszip');
 
 const versionFileName = 'clojure-lsp-version';
 
@@ -46,5 +47,26 @@ export async function readVersionFile(baseDir: string) {
     return await fs.promises.readFile(filePath, 'utf8');
   } catch (e) {
     console.error('Could not read clojure-lsp version file.', e.message);
+  }
+}
+
+export async function unzipFile(zipFilePath: string, targetDir: string): Promise<void> {
+  console.log('Unzipping file');
+  const zipData = await fs.promises.readFile(zipFilePath);
+  const zip = await JSZip.loadAsync(new Uint8Array(zipData));
+  const resolvedTargetDir = path.resolve(targetDir);
+
+  for (const [filename, file] of Object.entries(zip.files)) {
+    const destPath = path.resolve(targetDir, filename);
+    if (!destPath.startsWith(resolvedTargetDir + path.sep) && destPath !== resolvedTargetDir) {
+      throw new Error(`Refusing to extract entry outside target directory: ${filename}`);
+    }
+    if (file.dir) {
+      await fs.promises.mkdir(destPath, { recursive: true });
+    } else {
+      await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+      const content = await file.async('nodebuffer');
+      await fs.promises.writeFile(destPath, new Uint8Array(content));
+    }
   }
 }
