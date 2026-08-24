@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Terrible performance with large-ish numbers of cursors and
+  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268) by batching
+  active-indent decorations and removing duplicate guide ranges.
 - Add: Let the Calva User Guide follow the system light/dark preference,
   with a manual theme toggle and a Calva-branded dark palette.
 - Bump deps-clj to v1.12.5.1664

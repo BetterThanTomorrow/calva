@@ -493,7 +493,16 @@ function decorateGuide(
 }
 
 function decorateActiveGuides() {
-  const activeGuides = [];
+  // Keep each guide only once. With many cursors in the same list, the old
+  // implementation appended the same guide for every cursor and sent the
+  // growing decoration array to VS Code after every cursor.
+  const activeGuides = new Map<
+    number,
+    {
+      starts: Set<string>;
+      decorations: Map<string, { range: vscode.Range }>;
+    }
+  >();
   activeEditor = utilities.tryToGetActiveTextEditor();
   if (!activeEditor) {
     return;
@@ -525,8 +534,23 @@ function decorateActiveGuides() {
         const colorIndex = placedGuidesColor.get(position_str(startPos));
         if (colorIndex !== undefined) {
           if (guideRange.contains(selection)) {
-            decorateGuide(doc, startPos, endPos, activeGuides);
-            activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+            const guidesForColor = activeGuides.get(colorIndex) ?? {
+              starts: new Set<string>(),
+              decorations: new Map<string, { range: vscode.Range }>(),
+            };
+            if (!activeGuides.has(colorIndex)) {
+              activeGuides.set(colorIndex, guidesForColor);
+            }
+            const startKey = position_str(startPos);
+            if (!guidesForColor.starts.has(startKey)) {
+              guidesForColor.starts.add(startKey);
+              const guideDecorations: { range: vscode.Range }[] = [];
+              if (decorateGuide(doc, startPos, endPos, guideDecorations) > 0) {
+                guideDecorations.forEach((decoration) => {
+                  guidesForColor.decorations.set(position_str(decoration.range.start), decoration);
+                });
+              }
+            }
           }
           break;
         }
@@ -534,6 +558,9 @@ function decorateActiveGuides() {
         break;
       }
     }
+  });
+  activeGuides.forEach(({ decorations }, colorIndex) => {
+    activeEditor.setDecorations(activeGuidesTypes[colorIndex], [...decorations.values()]);
   });
 }
 
