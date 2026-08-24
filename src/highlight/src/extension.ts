@@ -493,9 +493,7 @@ function decorateGuide(
 }
 
 function decorateActiveGuides() {
-  // Keep each guide only once. With many cursors in the same list, the old
-  // implementation appended the same guide for every cursor and sent the
-  // growing decoration array to VS Code after every cursor.
+  // Deduplicate shared guides and batch decoration updates across cursors.
   const activeGuides = new Map<
     number,
     {
