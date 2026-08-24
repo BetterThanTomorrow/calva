@@ -43,7 +43,7 @@ export function routeEvaluatedCode(options: {
     replSessionKey,
     shadowBuild,
     shadowRuntimeId,
-    visibleOutputCategory = 'evalResults',
+    visibleOutputCategory = 'evaluatedCode',
     emit,
     writeVisible,
   } = options;

@@ -2,9 +2,22 @@
    padding-bottom: 5px;
 }
 
-pre[data-output-element-type="stdout"] {
+pre[data-output-element-type="stdout"],
+pre[data-output-element-type="evalOut"],
+pre[data-output-element-type="otherOut"],
+pre[data-output-element-type="evalErr"],
+pre[data-output-element-type="otherErr"] {
    white-space: pre-wrap;
    overflow-wrap: anywhere;
+}
+
+pre[data-output-element-type="otherOut"] {
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+pre[data-output-element-type="evalErr"],
+pre[data-output-element-type="otherErr"] {
+   color: var(--vscode-errorForeground, #f48771);
 }
 
 body.word-wrap code.hljs {
@@ -48,4 +61,46 @@ body.word-wrap code.hljs {
    margin-top: -10px;
    margin-left: 10px;
    background-color: var(--vscode-editor-background);
+}
+
+.ns-info-container {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   margin-top: 14px;
+   margin-bottom: 2px;
+   font-family: var(--vscode-editor-font-family, monospace);
+   font-size: var(--vscode-editor-font-size, 12px);
+   line-height: 1.2;
+}
+
+.ns-info-prefix {
+   color: var(--vscode-editorLineNumber-foreground, #858585);
+   margin-right: 2px;
+   font-weight: bold;
+}
+
+.ns-info-badge {
+   padding: 1px 6px;
+   border-radius: 2px;
+   font-size: 0.9em;
+   white-space: nowrap;
+   border: 1px solid var(--vscode-contrastBorder, transparent);
+}
+
+.ns-info-who {
+   background-color: #00bcd4;
+   color: #000000;
+   font-weight: 500;
+}
+
+.ns-info-session {
+   background-color: var(--vscode-badge-background, #4d4d4d);
+   color: var(--vscode-badge-foreground, #ffffff);
+}
+
+.ns-info-ns {
+   background-color: var(--vscode-editor-foreground, #cccccc);
+   color: var(--vscode-editor-background, #1e1e1e);
+   font-weight: 500;
 }

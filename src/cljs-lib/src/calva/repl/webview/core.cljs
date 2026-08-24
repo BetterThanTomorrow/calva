@@ -322,13 +322,45 @@
    "otherErr" "show-stdout"
    "clojure" "show-result"})
 
+(defn options->meta
+  [^js options]
+  (when options
+    (let [who (or (and (map? options) (or (:meta/who options) (:who options)))
+                  (and (some? options) (.-who options)))
+          ns (or (and (map? options) (or (:meta/ns options) (:ns options)))
+                 (and (some? options) (.-ns options)))
+          repl-session-key (or (and (map? options) (or (:meta/repl-session-key options)
+                                                       (:meta/repl-session-type options)
+                                                       (:replSessionKey options)
+                                                       (:replSessionType options)
+                                                       (:repl-session-key options)
+                                                       (:repl-session-type options)))
+                               (and (some? options) (or (.-replSessionKey options) (.-replSessionType options))))
+          shadow-build (or (and (map? options) (or (:meta/shadow-build options)
+                                                   (:shadowBuild options)
+                                                   (:shadow-build options)))
+                           (and (some? options) (.-shadowBuild options)))
+          shadow-runtime-id (or (and (map? options) (or (:meta/shadow-runtime-id options)
+                                                        (:shadowRuntimeId options)
+                                                        (:shadow-runtime-id options)))
+                                (and (some? options) (.-shadowRuntimeId options)))]
+      (cond-> {}
+        who (assoc :meta/who who)
+        ns (assoc :meta/ns ns)
+        repl-session-key (assoc :meta/repl-session-key repl-session-key)
+        shadow-build (assoc :meta/shadow-build shadow-build)
+        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
+
 (defn ^:export append
   [^js options message]
-  (let [output-category (.-outputCategory options)
-        command-name (get output-category->command-name output-category)]
+  (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        command-name (get output-category->command-name output-category)
+        meta-data (options->meta options)]
     (if command-name
-      (post-message-to-webview (ensure-output-view-panel) {:command/name command-name
-                                                           :output message})
+      (post-message-to-webview (ensure-output-view-panel) (cond-> {:command/name command-name
+                                                                   :output-category output-category
+                                                                   :output message}
+                                                            (seq meta-data) (assoc :meta meta-data)))
       (util/log-to-console
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
@@ -357,6 +389,7 @@
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
     (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
+                                                         :output-category "evalErr"
                                                          :output stacktrace-message})))
 
 (defn ^:export clear-output-view

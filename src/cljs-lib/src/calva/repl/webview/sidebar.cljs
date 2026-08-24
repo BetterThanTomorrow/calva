@@ -140,11 +140,14 @@
 
 (defn ^:export append
   [^js options message]
-  (let [output-category (.-outputCategory options)
-        command-name (get core/output-category->command-name output-category)]
+  (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        command-name (get core/output-category->command-name output-category)
+        meta-data (core/options->meta options)]
     (if command-name
-      (add-output-sidebar-message! {:command/name command-name
-                                    :output message})
+      (add-output-sidebar-message! (cond-> {:command/name command-name
+                                            :output-category output-category
+                                            :output message}
+                                     (seq meta-data) (assoc :meta meta-data)))
       (util/log-to-console
        :error
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
@@ -153,6 +156,7 @@
   [^js stacktrace]
   (add-output-sidebar-message!
    {:command/name "show-stdout"
+    :output-category "evalErr"
     :output (core/stacktrace->message (js->clj stacktrace :keywordize-keys true))}))
 
 (defn ^:export clear-output-sidebar

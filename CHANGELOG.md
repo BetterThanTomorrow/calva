@@ -8,6 +8,7 @@ Changes to Calva.
   - Update default output destinations to all be `["terminal", "output-sidebar"]` (from `"terminal"`)
 - Output views (both variants): wrap **evalOutput** at view width, avoiding horizontal scroll of the view.
 - Output views (both variants): Add wrap toggle command for evaluated code and results
+- Fix: [The Output view isn't displaying evaluation meta](https://github.com/BetterThanTomorrow/calva/issues/3270)
 - Fix: [Terrible performance with large-ish numbers of cursors and
   paredit](https://github.com/BetterThanTomorrow/calva/issues/3268)
 - Fix: More stable way to recreate the Calva Output terminal after the tab is closed. Mitigation for [Output terminal stops outputting in Cursor](https://github.com/BetterThanTomorrow/calva/issues/3267)

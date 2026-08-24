@@ -504,7 +504,7 @@ export function appendEvaluatedCode(
     additionalDestinations = [],
     sinkDestination = destination,
     writeVisible = true,
-    visibleOutputCategory = 'evalResults',
+    visibleOutputCategory = 'evaluatedCode',
     ...metadataOptions
   } = options;
   const normalizedDestination = normalizeDestinations(destination);
