@@ -123,13 +123,9 @@
 (defn create-ns-info-element
   [{:meta/keys [who ns] :as meta-data}]
   (let [container (js/document.createElement "div")
-        prefix (js/document.createElement "span")
         sess (session-str meta-data)]
     (.. container -classList (add "ns-info-container"))
     (.. container (setAttribute "data-output-element-type" "ns-info"))
-    (.. prefix -classList (add "ns-info-prefix"))
-    (.. prefix (appendChild (js/document.createTextNode ";")))
-    (.. container (appendChild prefix))
     (when (and who (not= who "ui"))
       (let [who-badge (js/document.createElement "span")]
         (.. who-badge -classList (add "ns-info-badge" "ns-info-who"))
