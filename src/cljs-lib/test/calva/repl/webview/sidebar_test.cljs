@@ -97,9 +97,9 @@
         (sut/append options "some-output")
         (is (= [{:command/name "show-stdout"
                  :output "some-output"
-                 :meta {:who "repl"
-                        :ns "user"
-                        :repl-session-key "clj"}}]
+                 :meta {:meta/who "repl"
+                        :meta/ns "user"
+                        :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
 
 (deftest append-stacktrace-test
