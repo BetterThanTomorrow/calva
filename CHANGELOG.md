@@ -5,8 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Terrible performance with large-ish numbers of cursors and
-  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268) by batching
-  active-indent decorations and removing duplicate guide ranges.
+  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268)
 - Add: [REPL output sidebar destination (Output view, but for sidebar placement)](https://github.com/BetterThanTomorrow/calva/issues/2813)
   - Update default output destinations to all be `["terminal", "output-sidebar"]` (from `"terminal"`)
 - Output views (both variants): wrap **evalOutput** at view width, avoiding horizontal scroll of the view.
