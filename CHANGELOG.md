@@ -6,6 +6,7 @@ Changes to Calva.
 
 - Fix: [Inconsistency in how the Output views follow editor font size](https://github.com/BetterThanTomorrow/calva/issues/3276)
 - Add settings: `calva.outputViews.fontSizeScale`, and `calva.outputViews.wordWrap`
+- [Add API for subscribing to REPL session updates (connect/disconnect, etc)](https://github.com/BetterThanTomorrow/calva/issues/3274)
 
 ## [2.0.595] - 2026-08-24
 
