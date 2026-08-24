@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.595",
+  "version": "2.0.596",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -216,7 +216,10 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
@@ -264,7 +267,10 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
@@ -312,14 +318,26 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
-              "evalResults": ["terminal", "output-sidebar"],
-              "evalOutput": ["terminal", "output-sidebar"],
-              "otherOutput": ["terminal", "output-sidebar"]
+              "evalResults": [
+                "terminal",
+                "output-sidebar"
+              ],
+              "evalOutput": [
+                "terminal",
+                "output-sidebar"
+              ],
+              "otherOutput": [
+                "terminal",
+                "output-sidebar"
+              ]
             }
           },
           "calva.fiddleFilePaths": {
