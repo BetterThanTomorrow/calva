@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [cljs.reader :as reader]
+   [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
    ["highlightjs-copy" :as CopyButtonPlugin]
    ["highlight.js/lib/core" :as hljs]
@@ -8,6 +9,8 @@
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
+
+(defonce last-context (atom nil))
 
 (defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
@@ -109,8 +112,54 @@
         (create-and-append-stdout-element dom-element text-node))
       (create-and-append-stdout-element dom-element text-node))))
 
+(defn session-str
+  [{:keys [repl-session-key shadow-build shadow-runtime-id]}]
+  (let [parts (cond-> []
+                repl-session-key (conj (str repl-session-key))
+                shadow-build (conj (str shadow-build))
+                (some? shadow-runtime-id) (conj (str shadow-runtime-id)))]
+    (str/join " " parts)))
+
+(defn create-ns-info-element
+  [{:keys [who ns] :as meta-data}]
+  (let [container (js/document.createElement "div")
+        prefix (js/document.createElement "span")
+        sess (session-str meta-data)]
+    (.. container -classList (add "ns-info-container"))
+    (.. container (setAttribute "data-output-element-type" "ns-info"))
+    (.. prefix -classList (add "ns-info-prefix"))
+    (.. prefix (appendChild (js/document.createTextNode ";")))
+    (.. container (appendChild prefix))
+    (when (and who (not= who "ui"))
+      (let [who-badge (js/document.createElement "span")]
+        (.. who-badge -classList (add "ns-info-badge" "ns-info-who"))
+        (.. who-badge (appendChild (js/document.createTextNode who)))
+        (.. container (appendChild who-badge))))
+    (when (seq sess)
+      (let [sess-badge (js/document.createElement "span")]
+        (.. sess-badge -classList (add "ns-info-badge" "ns-info-session"))
+        (.. sess-badge (appendChild (js/document.createTextNode sess)))
+        (.. container (appendChild sess-badge))))
+    (when ns
+      (let [ns-badge (js/document.createElement "span")]
+        (.. ns-badge -classList (add "ns-info-badge" "ns-info-ns"))
+        (.. ns-badge (appendChild (js/document.createTextNode ns)))
+        (.. container (appendChild ns-badge))))
+    container))
+
+(defn maybe-append-ns-info
+  [^js dom-element {:keys [meta]}]
+  (when-let [ns (:ns meta)]
+    (let [context-key [(:who meta) (:repl-session-key meta) (:shadow-build meta) (:shadow-runtime-id meta) ns]]
+      (when (not= context-key @last-context)
+        (reset! last-context context-key)
+        (let [ns-info-el (create-ns-info-element meta)]
+          (.. dom-element (appendChild ns-info-el))
+          (.. dom-element (dispatchEvent (output-appended-event ns-info-el))))))))
+
 (defn ^:export clear-output-view
   [^js output-dom-element]
+  (reset! last-context nil)
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons
@@ -156,9 +205,15 @@
      (let [message-data (reader/read-string (.-data message))
            command-name (:command/name message-data)]
        (case command-name
-         "show-result" (append-eval-result output-dom-element message-data)
-         "show-evaluated-code" (append-evaluated-code output-dom-element message-data)
-         "show-stdout" (append-stdout output-dom-element message-data)
+         "show-result" (do
+                         (maybe-append-ns-info output-dom-element message-data)
+                         (append-eval-result output-dom-element message-data))
+         "show-evaluated-code" (do
+                                 (maybe-append-ns-info output-dom-element message-data)
+                                 (append-evaluated-code output-dom-element message-data))
+         "show-stdout" (do
+                         (maybe-append-ns-info output-dom-element message-data)
+                         (append-stdout output-dom-element message-data))
          "clear-output-view" (clear-output-view output-dom-element)
          "set-code-theme" (set-code-theme! message-data)
          "set-word-wrap" (set-word-wrap! message-data)

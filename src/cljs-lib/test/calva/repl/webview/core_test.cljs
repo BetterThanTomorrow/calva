@@ -355,6 +355,40 @@
         (testing "should call set-code-theme! with expected args"
           (is (spy/called-once-with? set-code-theme!-spy expected-context expected-theme-args)))))))
 
+(deftest options->meta-test
+  (testing "Given nil options, should return nil"
+    (is (nil? (sut/options->meta nil))))
+  (testing "Given a map of options with only :who, should return a map with only :who"
+    (is (= {:who "repl"}
+           (sut/options->meta {:who "repl"}))))
+  (testing "Given a map of options with all supported keys, should return the expected map"
+    (is (= {:who "repl"
+            :ns "user"
+            :repl-session-key "clj"
+            :shadow-build "app"
+            :shadow-runtime-id 1}
+           (sut/options->meta {:who "repl"
+                               :ns "user"
+                               :replSessionKey "clj"
+                               :shadowBuild "app"
+                               :shadowRuntimeId 1}))))
+  (testing "Given a JS object with all supported keys, should return the expected map"
+    (is (= {:who "repl"
+            :ns "user"
+            :repl-session-key "clj"
+            :shadow-build "app"
+            :shadow-runtime-id 1}
+           (sut/options->meta (clj->js {:who "repl"
+                                        :ns "user"
+                                        :replSessionKey "clj"
+                                        :shadowBuild "app"
+                                        :shadowRuntimeId 1})))))
+  (testing "Given options with no recognized keys, should return an empty map"
+    (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
+  (testing "Given options with shadow-runtime-id 0, should include it"
+    (is (= {:shadow-runtime-id 0}
+           (sut/options->meta {:shadowRuntimeId 0})))))
+
 (deftest append-test
   (testing "Given options and a message,"
     (testing "when command exists for output category, should call post-message-to-webview with expected args"
@@ -369,6 +403,24 @@
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
                                       :output message})))))
+    (testing "when options carry metadata, should include :meta in the posted message"
+      (let [options (clj->js {:outputCategory "evalOut"
+                              :who "repl"
+                              :ns "user"
+                              :replSessionKey "clj"})
+            message "some-message"
+            post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+                      sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      sut/output-view-webview-panel (atom "webview-panel-stub")]
+          (sut/append options message)
+          (is (spy/called-once-with? post-message-to-webview-spy
+                                     "webview-panel-stub"
+                                     {:command/name "show-stdout"
+                                      :output message
+                                      :meta {:who "repl"
+                                             :ns "user"
+                                             :repl-session-key "clj"}})))))
     (testing "when the webview panel does not exist, should create it before posting"
       (let [options (clj->js {:outputCategory "evalOut"})
             create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
