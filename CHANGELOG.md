@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.595] - 2026-08-24
+
 - Add: [REPL output sidebar destination (Output view, but for sidebar placement)](https://github.com/BetterThanTomorrow/calva/issues/2813)
   - Update default output destinations to all be `["terminal", "output-sidebar"]` (from `"terminal"`)
 - Output views (both variants): wrap **evalOutput** at view width, avoiding horizontal scroll of the view.
