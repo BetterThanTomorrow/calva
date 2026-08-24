@@ -2,6 +2,38 @@
    padding-bottom: 5px;
 }
 
+pre[data-output-element-type="stdout"] {
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+}
+
+body.word-wrap code.hljs {
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+   padding-left: calc(1em + 1.5ch);
+   text-indent: -1.5ch;
+}
+
+.output-greeting {
+   padding: 4px 0 20px;
+}
+
+.output-greeting a {
+   color: var(--vscode-textLink-foreground);
+}
+
+.output-greeting pre {
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+}
+
+.output-greeting img.calva-logo {
+   display: block;
+   width: 120px;
+   height: auto;
+   margin-top: 8px;
+}
+
 .evaluated-code-container {
    border: solid;
    margin-top: 30px;

@@ -1,6 +1,7 @@
 (ns fiddles.output-destinations
-  (:require [calva.util :as util]
-            [calva.repl.webview.core :as output-view]))
+  (:require [calva.repl.webview.core :as output-view]
+            [calva.repl.webview.greeting :as greeting]
+            [calva.util :as util]))
 
 (comment
   (do
@@ -8,6 +9,14 @@
     (def api (-> vsc .-extensions (.getExtension "betterthantomorrow.calva") .-exports))
     (def output-mod (js/require (str (.-extensionPath @util/vscode-context)
                                      "/out/results-output/output"))))
+
+  (greeting/greeting-html {:view-kind :output-view
+                           :logo-href "https://example.test/logo.svg"
+                           :destinations "{\"evalResults\": \"terminal\"}"
+                           :effective-items [{:key "nrepl" :value "1.0 (Calva defaults)"}]
+                           :latest-items [{:key "nrepl" :value "1.1"}]})
+
+  (greeting/html-for-view :output-view "https://example.test/logo.svg")
 
   (js->clj (.get (.getConfiguration (.-workspace vsc) "calva") "outputDestinations")
            :keywordize-keys true)

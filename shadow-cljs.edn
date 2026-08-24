@@ -29,7 +29,14 @@
                              :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
                              :appendToReplOutputWebview calva.repl.webview.core/append
                              :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
-                             :clearReplOutputView calva.repl.webview.core/clear-output-view}
+                             :clearReplOutputView calva.repl.webview.core/clear-output-view
+                             :toggleReplOutputWordWrap calva.repl.webview.core/toggle-word-wrap
+                             :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
+                             :createReplOutputSidebarProvider calva.repl.webview.sidebar/create-repl-output-sidebar-provider
+                             :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
+                             :appendToReplOutputSidebar calva.repl.webview.sidebar/append
+                             :appendStackTraceToReplOutputSidebar calva.repl.webview.sidebar/append-stacktrace
+                             :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
@@ -42,4 +49,4 @@
                  :output-dir "repl-output-ui/js"
                  :modules {:main {:init-fn calva.repl.webview.ui/main}}
                  :devtools {:loader-mode :eval
-                            :devtools-url "http://localhost:9630"}}}}
+                            :use-document-host false}}}}

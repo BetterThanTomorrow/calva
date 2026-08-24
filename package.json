@@ -179,7 +179,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -196,7 +197,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -214,7 +216,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
@@ -225,7 +227,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -242,7 +245,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -260,7 +264,7 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
@@ -271,7 +275,8 @@
                       "repl-window",
                       "output-channel",
                       "terminal",
-                      "output-view"
+                      "output-view",
+                      "output-sidebar"
                     ]
                   },
                   {
@@ -288,7 +293,8 @@
                             "repl-window",
                             "output-channel",
                             "terminal",
-                            "output-view"
+                            "output-view",
+                            "output-sidebar"
                           ]
                         },
                         {
@@ -306,14 +312,14 @@
                     }
                   }
                 ],
-                "default": "terminal",
+                "default": ["terminal", "output-sidebar"],
                 "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
-              "evalResults": "terminal",
-              "evalOutput": "terminal",
-              "otherOutput": "terminal"
+              "evalResults": ["terminal", "output-sidebar"],
+              "evalOutput": ["terminal", "output-sidebar"],
+              "otherOutput": ["terminal", "output-sidebar"]
             }
           },
           "calva.fiddleFilePaths": {
@@ -1796,6 +1802,18 @@
         "category": "Calva"
       },
       {
+        "command": "calva.clearReplOutputSidebar",
+        "title": "Clear REPL Output Sidebar",
+        "category": "Calva",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "calva.toggleReplOutputWordWrap",
+        "title": "Toggle REPL Output Word Wrap",
+        "category": "Calva",
+        "icon": "$(word-wrap)"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -2421,6 +2439,11 @@
         "category": "Calva",
         "command": "calva.showReplOutputView",
         "title": "Show/Open the REPL output view"
+      },
+      {
+        "category": "Calva",
+        "command": "calva.showReplOutputSidebar",
+        "title": "Show/Open the REPL output sidebar"
       },
       {
         "category": "Calva",
@@ -3220,6 +3243,12 @@
         "when": "calva:keybindingsEnabled"
       },
       {
+        "command": "calva.showReplOutputSidebar",
+        "key": "ctrl+alt+o b",
+        "args": false,
+        "when": "calva:keybindingsEnabled"
+      },
+      {
         "command": "calva.showFileForOutputWindowNS",
         "key": "ctrl+alt+o r",
         "args": false,
@@ -3723,6 +3752,16 @@
       ],
       "view/title": [
         {
+          "command": "calva.toggleReplOutputWordWrap",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@2"
+        },
+        {
           "command": "calva.pasteAsInspectorItem",
           "when": "view == calva.inspector",
           "group": "navigation@1"
@@ -3770,6 +3809,12 @@
         }
       ],
       "calva": [
+        {
+          "id": "calva.output-sidebar",
+          "name": "REPL Output",
+          "type": "webview",
+          "icon": "assets/images/calva-symbol-white.svg"
+        },
         {
           "id": "calva.inspector",
           "name": "Inspector",
@@ -3882,7 +3927,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
-    "@vscode/test-electron": "^2.5.2",
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
     "chai": "^4.2.0",
     "eslint": "^8.8.0",

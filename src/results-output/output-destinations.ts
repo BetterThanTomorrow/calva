@@ -5,7 +5,16 @@
 
 import * as path from 'path';
 
-export type OutputDestination = 'repl-window' | 'output-channel' | 'terminal' | 'output-view';
+export type OutputDestination =
+  | 'repl-window'
+  | 'output-channel'
+  | 'terminal'
+  | 'output-view'
+  | 'output-sidebar';
+
+export function isWebviewOutputDestination(destination: string): boolean {
+  return destination === 'output-view' || destination === 'output-sidebar';
+}
 
 /**
  * A destination value as it appears in user configuration.
