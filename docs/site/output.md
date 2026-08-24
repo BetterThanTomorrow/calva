@@ -25,28 +25,21 @@ Each category can be relayed to one or more of five **Output Destinations**:
 
 The `calva.outputDestinations` setting is an object which maps each output category to a destination (or an array of destinations for simultaneous output).
 
-The default configuration is to relay all categories to the Calva output terminal:
+You can send a category to multiple destinations by using an array. The command for showing/revealing the current output destination will reveal the first one in the array. E.g. to have all evaluation results go to the terminal, the sidebar view, and the REPL Window, and all other output to the terminal and sidebar, plus make the terminal targeted by the reveal command:
 
 ```json
 "calva.outputDestinations": {
-  "evalResults": "terminal",
-  "evalOutput": "terminal",
-  "otherOutput": "terminal"
-The default configuration relays all categories to both the Calva Output terminal and the REPL Output sidebar. The first destination is used by the command that shows or reveals the output destination.
-
-```json
-"calva.outputDestinations": {
-  "evalResults": ["terminal", "output-sidebar"],
+  "evalResults": ["terminal", "output-sidebar", "repl-window"],
   "evalOutput": ["terminal", "output-sidebar"],
   "otherOutput": ["terminal", "output-sidebar"]
 }
 ```
 
-You can send a category to multiple destinations by using an array. (The command for showing/revealing the output destination, will reveal the first one in the array.). E.g. to have all evaluation results go to the terminal, the sidebar view, and the REPL Window, and all other output to the terminal and sidebar:
+The default configuration relays all categories to both the Calva Output terminal and the REPL Output sidebar, with the terminal being the primary destination.
 
 ```json
 "calva.outputDestinations": {
-  "evalResults": ["terminal", "output-sidebar", "repl-window"],
+  "evalResults": ["terminal", "output-sidebar"],
   "evalOutput": ["terminal", "output-sidebar"],
   "otherOutput": ["terminal", "output-sidebar"]
 }
