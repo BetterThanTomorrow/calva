@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2331,23 +2367,23 @@
 <div class="highlight"><pre><span></span><code><span class="c1">// Place your key bindings in this file to override the defaults</span>
 <span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;escape&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-calva.clearInlineResults&quot;</span>
+<span class="w">    </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"escape"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-calva.clearInlineResults"</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+escape&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.clearInlineResults&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorTextFocus &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; !hasOtherSuggestions &amp;&amp; !suggestWidgetVisible &amp;&amp; editorLangId == &#39;clojure&#39;&quot;</span>
+<span class="w">    </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shift+escape"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.clearInlineResults"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editorTextFocus &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; !hasOtherSuggestions &amp;&amp; !suggestWidgetVisible &amp;&amp; editorLangId == 'clojure'"</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
 <p>If you run into issues, refer to the commands in the default Keyboard Shortcuts JSON file.</p>
 <h4 id="remap-vims-insert-mode">Remap Vim's Insert Mode<a class="headerlink" href="#remap-vims-insert-mode" title="Permanent link">#</a></h4>
 <p>Remap vim's insert mode keybinding to go into command mode by adding the following to your user settings:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;vim.insertModeKeyBindings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"vim.insertModeKeyBindings"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;before&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;k&quot;</span><span class="p">],</span>
-<span class="w">        </span><span class="nt">&quot;after&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&lt;esc&gt;&quot;</span><span class="p">]</span>
+<span class="w">        </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"j"</span><span class="p">,</span><span class="w"> </span><span class="s2">"k"</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"&lt;esc&gt;"</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -2356,19 +2392,19 @@
 <p>Calva's Paredit binds <code>backspace</code> with a <code>when</code> clause that can intercept the key even when the Vim search input is active. This causes backspace to edit the file instead of deleting characters in the search box.</p>
 <p>To fix this, add <code>&amp;&amp; vim.mode == 'Insert'</code> to the <code>when</code> clause of Calva's backspace binding in your <code>keybindings.json</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backspace&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.backwardSexp&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap == &#39;strict&#39; &amp;&amp; vim.mode == &#39;Insert&#39;&quot;</span>
+<span class="w">  </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"backspace"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.backwardSexp"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; !editorHasMultipleSelections &amp;&amp; !editorReadOnly &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap == 'strict' &amp;&amp; vim.mode == 'Insert'"</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="vim-fireplace-ish-keybindings">Vim Fireplace-ish keybindings<a class="headerlink" href="#vim-fireplace-ish-keybindings" title="Permanent link">#</a></h3>
 <p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
-<div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;
-nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;
-nmap cpr :call VSCodeNotify(&#39;calva.loadFile&#39;)&lt;CR&gt;
-nmap cpR :call VSCodeNotify(&#39;calva.loadNamespace&#39;)&lt;CR&gt;
-nmap cpp :call VSCodeNotify(&#39;calva.evaluateSelection&#39;)&lt;CR&gt;
-nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&gt;
+<div class="highlight"><pre><span></span><code>nmap cqp :call VSCodeNotify('calva.jackIn')&lt;CR&gt;
+nmap cqq :call VSCodeNotify('calva.disconnect')&lt;CR&gt;
+nmap cpr :call VSCodeNotify('calva.loadFile')&lt;CR&gt;
+nmap cpR :call VSCodeNotify('calva.loadNamespace')&lt;CR&gt;
+nmap cpp :call VSCodeNotify('calva.evaluateSelection')&lt;CR&gt;
+nmap cqc :call VSCodeNotify('calva.evalCurrentFormInREPLWindow')&lt;CR&gt;
 </code></pre></div>
 <p>Unfortunately these key combinations will not work in the normal VIM extension as <code>c</code> is an <a href="https://github.com/VSCodeVim/Vim/issues/4464">operator key</a> and cannot be remapped. <strong>This is a call for someone to share their VIM re-mappings</strong>.</p>
 

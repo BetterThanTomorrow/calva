@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A read-only webview for REPL output.">
+        <meta name="description" content="Read-only webviews for REPL output.">
       
       
       
@@ -24,11 +24,14 @@
     
     
       
-        <title>The Output View - Calva User Guide</title>
+        <title>The Output Views - Calva User Guide</title>
       
     
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -73,9 +76,9 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="The Output View - Calva User Guide" >
+        <meta  property="og:title"  content="The Output Views - Calva User Guide" >
       
-        <meta  property="og:description"  content="A read-only webview for REPL output." >
+        <meta  property="og:description"  content="Read-only webviews for REPL output." >
       
         <meta  property="og:image"  content="https://calva.io/assets/images/social/output-view.png" >
       
@@ -89,9 +92,9 @@
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="The Output View - Calva User Guide" >
+        <meta  name="twitter:title"  content="The Output Views - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="A read-only webview for REPL output." >
+        <meta  name="twitter:description"  content="Read-only webviews for REPL output." >
       
         <meta  name="twitter:image"  content="https://calva.io/assets/images/social/output-view.png" >
       
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -109,7 +119,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#show-the-output-view" class="md-skip">
+        <a href="#show-the-output-views" class="md-skip">
           Skip to content
         </a>
       
@@ -144,12 +154,38 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              The Output View
+              The Output Views
             
           </span>
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -705,7 +741,7 @@
           
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -716,7 +752,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -736,18 +772,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#show-the-output-view" class="md-nav__link">
+  <a href="#show-the-output-views" class="md-nav__link">
     <span class="md-ellipsis">
-      Show the Output View
+      Show the Output Views
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#clear-the-output-view" class="md-nav__link">
+  <a href="#wrap-evaluated-code-and-results" class="md-nav__link">
     <span class="md-ellipsis">
-      Clear the Output View
+      Wrap Evaluated Code and Results
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clear-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clear Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#searchfind" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search/Find
     </span>
   </a>
   
@@ -772,9 +826,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-is-it-read-only" class="md-nav__link">
+  <a href="#its-readonly" class="md-nav__link">
     <span class="md-ellipsis">
-      Why is it read-only?
+      It's readonly
     </span>
   </a>
   
@@ -2189,18 +2243,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#show-the-output-view" class="md-nav__link">
+  <a href="#show-the-output-views" class="md-nav__link">
     <span class="md-ellipsis">
-      Show the Output View
+      Show the Output Views
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#clear-the-output-view" class="md-nav__link">
+  <a href="#wrap-evaluated-code-and-results" class="md-nav__link">
     <span class="md-ellipsis">
-      Clear the Output View
+      Wrap Evaluated Code and Results
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clear-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clear Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#searchfind" class="md-nav__link">
+    <span class="md-ellipsis">
+      Search/Find
     </span>
   </a>
   
@@ -2225,9 +2297,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-is-it-read-only" class="md-nav__link">
+  <a href="#its-readonly" class="md-nav__link">
     <span class="md-ellipsis">
-      Why is it read-only?
+      It's readonly
     </span>
   </a>
   
@@ -2251,19 +2323,28 @@
   
 
 
-  <h1>The Output View</h1>
+  <h1>The Output Views</h1>
 
-<p>The output view is a read-only view for REPL output. It's more performant than <a href="../repl-window/">the editor-based REPL window</a>. To see a feature comparison of all output destinations, see <a href="../output/#output-destinations-feature-comparison">Output Destinations Feature Comparison</a>.</p>
+<p>The <code>output-view</code> editor tab and <code>output-sidebar</code> sidebar are separate destinations that share the same read-only webview page. They are more performant than <a href="../repl-window/">the editor-based REPL window</a>. To see a feature comparison of all output destinations, see <a href="../output/#output-destinations-feature-comparison">Output Destinations Feature Comparison</a>.</p>
+<p>The output views are two, performant, custom web views which can be configured as <a href="../output/">Output Destinationsn</a>. They largely share features (and implementation), the main difference being their placement in the VS Code UI.</p>
+<ul>
+<li><code>output-view</code> is an editor tab, which can be placed anywhere an editor can be placed.</li>
+<li><code>output-sidebar</code> is a sidebar/panel view, which can be placed in the sidebars, or in the Panel view container.</li>
+</ul>
 <p><img alt="The output view, post jack-in" src="../images/output-view/post-jack-in.png" /></p>
-<h2 id="show-the-output-view">Show the Output View<a class="headerlink" href="#show-the-output-view" title="Permanent link">#</a></h2>
-<p>Run the Calva command "Show/Open the REPL Output View."</p>
-<h2 id="clear-the-output-view">Clear the Output View<a class="headerlink" href="#clear-the-output-view" title="Permanent link">#</a></h2>
-<p>Run the Calva command "Clear REPL Output View."</p>
+<h2 id="show-the-output-views">Show the Output Views<a class="headerlink" href="#show-the-output-views" title="Permanent link">#</a></h2>
+<p>Run <strong>Calva: Show/Open the REPL output view</strong> for the editor tab or <strong>Calva: Show/Open the REPL output sidebar</strong> for the sidebar.</p>
+<h2 id="wrap-evaluated-code-and-results">Wrap Evaluated Code and Results<a class="headerlink" href="#wrap-evaluated-code-and-results" title="Permanent link">#</a></h2>
+<p>The evaluated code and results are wrapped according to the setting for the editors, <code>editor.wordWrap</code>. There is a command for toggling the wrap in the output views: <strong>Calva: Toggle REPL Output Word Wrap</strong>. This command toggles the wrap setting in both views. The toggling is not persisted. The sidebar view has a button for issuing the command.</p>
+<h2 id="clear-output">Clear Output<a class="headerlink" href="#clear-output" title="Permanent link">#</a></h2>
+<p>Use the commands <strong>Calva: Clear Ouput View</strong> and <strong>Calva: Clear Ouput Sidebar</strong> to clear the respective view. The sidebar view also has a title  clear button.</p>
+<h2 id="searchfind">Search/Find<a class="headerlink" href="#searchfind" title="Permanent link">#</a></h2>
+<p>The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the editor tab. Because (<a href="https://github.com/microsoft/vscode/issues/173643">vscode#173643</a>).</p>
 <h2 id="copy-code-snippets">Copy Code Snippets<a class="headerlink" href="#copy-code-snippets" title="Permanent link">#</a></h2>
-<p>To copy code in the output view, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.</p>
+<p>To copy code in the output views, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.</p>
 <p><img alt="Copy button appearing and being clicked, then changing to Copied" src="../images/output-view/copy-button.gif" /></p>
 <h2 id="theming">Theming<a class="headerlink" href="#theming" title="Permanent link">#</a></h2>
-<p>The output view uses <a href="https://highlightjs.org/">highlight.js</a> for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code <a href="https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind">ColorThemeKind</a>:</p>
+<p><a href="https://highlightjs.org/">highlight.js</a> is used for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code <a href="https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind">ColorThemeKind</a>:</p>
 <table>
 <thead>
 <tr>
@@ -2291,16 +2372,15 @@
 </tbody>
 </table>
 <p><img alt="The output view code highlight theme changes as the VS Code theme changes" src="../images/output-view/theme-changing.gif" /></p>
-<h2 id="why-is-it-read-only">Why is it read-only?<a class="headerlink" href="#why-is-it-read-only" title="Permanent link">#</a></h2>
-<p>Calva actually had a read+write webview for REPL output in the past, but trying to emulate a terminal REPL that allowed input in a webview was a pain to maintain. Removing the input features and making the view just about <em>seeing the output</em> makes development maintenance much simpler.</p>
-<p>You may be used to typing "into the REPL," meaning typing into a terminal REPL or the <a href="../repl-window/">the editor-based REPL window</a>, but it's really not necessary or even really a great workflow. With Clojure and Calva, we can evaluate code directly from code files. This is the preferred method for some Clojurians. Using <code>comment</code> forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.</p>
+<h2 id="its-readonly">It's readonly<a class="headerlink" href="#its-readonly" title="Permanent link">#</a></h2>
+<p>You may be used to typing "into the REPL," meaning typing into a terminal REPL or the <a href="../repl-window/">the editor-based REPL window</a>. But with Clojure and Calva, we can evaluate code directly from code files. Using <code>comment</code> forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.</p>
 <div class="admonition tip">
 <p class="admonition-title">Quickly create Rich Comments with a Calva command</p>
 <p>Use the Calva command "Add Rich Comment," which will add a <code>comment</code> form right below the form your cursor is currently at. Memorize the keyboard shortcut for this, and you can very easily create Rich Comments near the code you're working on to try out code in the REPL before adding it to your actual code.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Don't like adding scratch code to code files?</p>
-<p>If you prefer not to leave scratch code in your code files or prefer not to have to remove it later, then create a separate scratch code file. This file can be your own personal scratch file, which you can commit, giving you a versioned history of all your scratch work, which may come in handy later. You may also want to use <a href="../fiddle-files/">fiddle files</a>.</p>
+<p>If you prefer not to leave scratch code in your code files or prefer not to have to remove it later, then create a separate scratch code file. This file can be your own personal scratch file, which you can commit, giving you a versioned history of all your scratch work, which may come in handy later. Calva has rich support for this, via the <a href="../fiddle-files/">Fiddle files</a> feature.</p>
 </div>
 
 

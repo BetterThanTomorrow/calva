@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -696,7 +732,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2773,7 +2809,7 @@
 <h3 id="breakpoints-in-web-server-handler-functions">Breakpoints in web server handler functions<a class="headerlink" href="#breakpoints-in-web-server-handler-functions" title="Permanent link">#</a></h3>
 <p>When debugging handler functions for Ring, Pedestal, or similar web frameworks, breakpoints may not be hit even after instrumenting the function. This is typically because the route table holds a reference to the original (uninstrumented) version of the function.</p>
 <p><strong>For Ring:</strong> Use a var-quoted handler (<code>#'handler</code>) when starting the server so that it always resolves the current version of the function:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">run-jetty</span><span class="w"> </span><span class="o">#</span><span class="ss">&#39;handler</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="mi">3000</span><span class="w"> </span><span class="ss">:join?</span><span class="w"> </span><span class="nv">false</span><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">run-jetty</span><span class="w"> </span><span class="o">#</span><span class="ss">'handler</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="mi">3000</span><span class="w"> </span><span class="ss">:join?</span><span class="w"> </span><span class="nv">false</span><span class="p">})</span>
 </code></pre></div>
 <p><strong>For Pedestal:</strong> Routes may need to be re-evaluated after instrumenting a handler. If your routes are defined with <code>defroutes</code>, evaluate the <code>defroutes</code> form again after instrumenting the handler function, then call the endpoint.</p>
 <p>Also note these limitations when debugging web handlers:</p>
@@ -2784,7 +2820,7 @@
 <h3 id="no-reader-function-for-tag-error">"No reader function for tag" error<a class="headerlink" href="#no-reader-function-for-tag-error" title="Permanent link">#</a></h3>
 <p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper dependencies loaded in your REPL. You can run the command "Copy Jack-in Command Line to Clipboard" to see what command would be run if you jacked in.</p>
 <p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command line for a deps.edn project:</p>
-<div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span><span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
+<div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">'{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.25.8"}}}'</span><span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">"[cider.nrepl/cider-middleware]"</span>
 </code></pre></div>
 <h2 id="passing-options-to-the-repl-jvm">Passing options to the REPL JVM<a class="headerlink" href="#passing-options-to-the-repl-jvm" title="Permanent link">#</a></h2>
 <p>There are times when Clojure debugging tools are not enough or not right for the job.
@@ -2805,14 +2841,14 @@ We configure slf4j-simple logging level via a Java system property (<code>-D</co
 <p>NOTE: You can of course pass other env variables here.</p>
 <p>.vscode/settings.json</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;calva.jackInEnv&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;JAVA_TOOL_OPTIONS&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${env:JAVA_TOOL_OPTIONS} -Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7896&quot;</span>
+<span class="w">    </span><span class="nt">"calva.jackInEnv"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"JAVA_TOOL_OPTIONS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"${env:JAVA_TOOL_OPTIONS} -Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7896"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Once you saved the file, the next time you <code>Jack in</code> the project, this variable is read by the JVM and the configuration is applied accordingly.</p>
 <p>You should see something like the message below in the Calva jack-in terminal:</p>
-<div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.26.0&quot;}}}&#39;</span><span class="w"> </span>-A:debug<span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
+<div class="highlight"><pre><span></span><code>clojure<span class="w"> </span>-Sdeps<span class="w"> </span><span class="s1">'{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.26.0"}}}'</span><span class="w"> </span>-A:debug<span class="w"> </span>-m<span class="w"> </span>nrepl.cmdline<span class="w"> </span>--middleware<span class="w"> </span><span class="s2">"[cider.nrepl/cider-middleware]"</span>
 Picked<span class="w"> </span>up<span class="w"> </span>JAVA_TOOL_OPTIONS:<span class="w">  </span>-Dorg.slf4j.simpleLogger.defaultLogLevel<span class="o">=</span>TRACE<span class="w"> </span>-Xdebug<span class="w"> </span>-Xrunjdwp:transport<span class="o">=</span>dt_socket,server<span class="o">=</span>y,suspend<span class="o">=</span>n,address<span class="o">=</span><span class="m">7896</span>
 Listening<span class="w"> </span><span class="k">for</span><span class="w"> </span>transport<span class="w"> </span>dt_socket<span class="w"> </span>at<span class="w"> </span>address:<span class="w"> </span><span class="m">7896</span>
 nREPL<span class="w"> </span>server<span class="w"> </span>started<span class="w"> </span>on<span class="w"> </span>port<span class="w"> </span><span class="m">46691</span><span class="w"> </span>on<span class="w"> </span>host<span class="w"> </span>localhost<span class="w"> </span>-<span class="w"> </span>nrepl://localhost:46691

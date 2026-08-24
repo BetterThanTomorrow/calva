@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2209,116 +2245,116 @@
 <span class="w">    </span><span class="c1">// kill word backward on most Linux UIs is ctrl+backspace, forward is ctrl+delete</span>
 <span class="w">    </span><span class="c1">// so remap those bindings from killListBackward and killListForward.</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+backspace&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.killSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+backspace"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.killSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+backspace&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.killSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInWhitespaceAfterComment &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+backspace"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.killSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInWhitespaceAfterComment &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+delete&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.killSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+delete"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.killSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+delete&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.killSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+delete"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.killSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+backspace&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.killListBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+backspace"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.killListBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+delete&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.killListForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+delete"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.killListForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 
 <span class="w">    </span><span class="c1">// selecting to beginning of line is Shift+Home, end of line is Shift+End</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+home&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.selectOpenList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+home"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.selectOpenList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+home&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.selectOpenList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shift+home"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.selectOpenList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+end&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.selectCloseList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+end"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.selectCloseList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+end&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.selectCloseList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shift+end"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.selectCloseList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+t&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.transpose&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+t"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.transpose"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 
 
 <span class="w">    </span><span class="c1">// in Gnome, Control+Alt+T brings up a new terminal window</span>
 
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+alt+t&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.transpose&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+alt+t"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.transpose"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 
 
 <span class="w">    </span><span class="c1">// in Gnome, ctrl+shift+alt+right, ctrl+shift+alt+left moves the workspace</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+alt+right&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.barfSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+alt+right"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.barfSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+l&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.barfSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+l"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.barfSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+alt+left&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.slurpSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+alt+left"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.slurpSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.slurpSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+h"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.slurpSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 
 <span class="w">    </span><span class="c1">// home and end keys go to beginning and end of the current list, ctrl+home and ctrl+end go to beginning and end of file</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;home&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.openList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"home"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.openList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+home&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.openList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+home"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.openList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;end&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.closeList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"end"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.closeList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; !calva:cursorInComment &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+end&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.closeList&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+end"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.closeList"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == 'clojure' &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">}</span>
 
 <span class="p">]</span>
@@ -2331,45 +2367,45 @@ keys to use the keypad, but that requires a 101 key keyboard.  You may wish to c
 <li>
 <p>ctrl+alt+up is already bound to move workspace up
 <div class="highlight"><pre><span></span><code>      {
-        &quot;command&quot;: &quot;paredit.backwardDownSexp&quot;,
-        &quot;key&quot;: &quot;ctrl+alt+up&quot;,
-        &quot;when&quot;: &quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/&quot;
+        "command": "paredit.backwardDownSexp",
+        "key": "ctrl+alt+up",
+        "when": "calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/"
       },
 </code></pre></div></p>
 </li>
 <li>
 <p>ctrl+alt+down is already bound to move workspace down
 <div class="highlight"><pre><span></span><code>      {
-        &quot;command&quot;: &quot;paredit.forwardUpSexp&quot;,
-        &quot;key&quot;: &quot;ctrl+alt+down&quot;,
-        &quot;when&quot;: &quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/&quot;
+        "command": "paredit.forwardUpSexp",
+        "key": "ctrl+alt+down",
+        "when": "calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/"
       },
 </code></pre></div></p>
 </li>
 <li>
 <p>ctrl+shift+alt+up is already bound to move to workspace up
 <div class="highlight"><pre><span></span><code>      {
-        &quot;command&quot;: &quot;paredit.selectBackwardDownSexp&quot;,
-        &quot;key&quot;: &quot;ctrl+shift+alt+up&quot;,
-        &quot;when&quot;: &quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/&quot;
+        "command": "paredit.selectBackwardDownSexp",
+        "key": "ctrl+shift+alt+up",
+        "when": "calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/"
       },
 </code></pre></div></p>
 </li>
 <li>
 <p>ctrl+shift+alt+down is already bound to move to workspace down
 <div class="highlight"><pre><span></span><code>      {
-        &quot;command&quot;: &quot;paredit.selectForwardUpSexp&quot;,
-        &quot;key&quot;: &quot;ctrl+shift+alt+down&quot;,
-        &quot;when&quot;: &quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/&quot;
+        "command": "paredit.selectForwardUpSexp",
+        "key": "ctrl+shift+alt+down",
+        "when": "calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/"
       },
 </code></pre></div></p>
 </li>
 <li>
 <p>ctrl+shift+alt+u - this is already bound to unicode input mode 
 <div class="highlight"><pre><span></span><code>      {
-        &quot;command&quot;: &quot;paredit.dragSexprBackwardUp&quot;,
-        &quot;key&quot;: &quot;ctrl+shift+alt+u&quot;,
-        &quot;when&quot;: &quot;calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/&quot;
+        "command": "paredit.dragSexprBackwardUp",
+        "key": "ctrl+shift+alt+u",
+        "when": "calva:keybindingsEnabled &amp;&amp; editorLangId == clojure &amp;&amp; editorTextFocus &amp;&amp; paredit:keyMap =~ /original|strict/"
       },
 </code></pre></div></p>
 </li>

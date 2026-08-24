@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2209,24 +2245,24 @@
 <p>Add <code>com.clojure-goes-fast/clj-java-decompiler</code> as a dependency to the project.</p>
 <h2 id="the-custom-snippets">The custom snippets<a class="headerlink" href="#the-custom-snippets" title="Permanent link">#</a></h2>
 <p>You can add some Calva custom commands configuration to be able to decompile or disassemble any Clojure code in your editor with a keyboard shortcut. Here's an example configuration:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.customREPLCommandSnippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Decompile current top level form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clj-java-decompiler.core :refer [decompile]]) (spit \&quot;decompiled-$top-level-defined-symbol.java\&quot; (with-out-str (decompile $top-level-form)))&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Decompile current top level form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[clj-java-decompiler.core :refer [decompile]]) (spit \"decompiled-$top-level-defined-symbol.java\" (with-out-str (decompile $top-level-form)))"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Decompile current form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clj-java-decompiler.core :refer [decompile]]) (spit \&quot;decompiled.java\&quot; (with-out-str (decompile $current-form)))&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Decompile current form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[clj-java-decompiler.core :refer [decompile]]) (spit \"decompiled.java\" (with-out-str (decompile $current-form)))"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Disassemble current top level form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;b&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clj-java-decompiler.core :refer [disassemble]]) (spit \&quot;bytecode-$top-level-defined-symbol.class\&quot; (with-out-str (disassemble $top-level-form)))&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Disassemble current top level form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[clj-java-decompiler.core :refer [disassemble]]) (spit \"bytecode-$top-level-defined-symbol.class\" (with-out-str (disassemble $top-level-form)))"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Disassemble current current form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clj-java-decompiler.core :refer [disassemble]]) (spit \&quot;bytecode.class\&quot; (with-out-str (disassemble $current-form)))&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Disassemble current current form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[clj-java-decompiler.core :refer [disassemble]]) (spit \"bytecode.class\" (with-out-str (disassemble $current-form)))"</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
 </code></pre></div>

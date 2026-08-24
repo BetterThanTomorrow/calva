@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -696,7 +732,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2457,81 +2493,81 @@
 <p>The commands have no default keyboard shortcuts, you use the Command Palette to execute them, or you bind your own shortcuts. Here are some examples:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// calva.convertHtml2Hiccup</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="c1">// With args, `&quot;toUntitled&quot;: true` is necessary for keyboard shortcuts</span>
+<span class="w">        </span><span class="c1">// With args, `"toUntitled": true` is necessary for keyboard shortcuts</span>
 <span class="w">        </span><span class="c1">// without it, the command just returns the result to the caller</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c ctrl+h&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;toUntitled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">}}</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c ctrl+h"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.convertHtml2Hiccup"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"toUntitled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"options"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"mapify-style?"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">}}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Only for completeness, providing the HTML is only useful from e.g. Joyride </span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+h&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;html&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;foo style=&#39;a: b&#39; bar=&#39;baz&#39;&gt;gaz&lt;foo&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;toUntitled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c shift+h"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.convertHtml2Hiccup"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"html"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;foo style='a: b' bar='baz'&gt;gaz&lt;foo&gt;"</span><span class="p">,</span><span class="w"> </span><span class="nt">"toUntitled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
 <span class="w">        </span><span class="c1">// And writes the results to an Untitled document</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c h&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c h"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.convertHtml2Hiccup"</span><span class="p">,</span>
 <span class="w">    </span><span class="p">},</span>
 
 <span class="w">    </span><span class="c1">// calva.pasteHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h ctrl+v&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+h ctrl+v"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.pasteHtmlAsHiccup"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"mapify-style?"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"kebab-attrs?"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h v&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.pasteHtmlAsHiccup&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+h v"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.pasteHtmlAsHiccup"</span>
 <span class="w">    </span><span class="p">},</span>
 
 <span class="w">    </span><span class="c1">// calva.copyHtmlAsHiccup</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Override the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h ctrl+c&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.copyHtmlAsHiccup&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;mapify-style?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kebab-attrs?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+h ctrl+c"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.copyHtmlAsHiccup"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"mapify-style?"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="nt">"kebab-attrs?"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="c1">// Without args, the command uses the `calva.html2HiccupOptions` configuration</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+h c&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.copyHtmlAsHiccup&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+h c"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.copyHtmlAsHiccup"</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>The default/args-less bindings are placed last <a href="https://github.com/microsoft/vscode/issues/176890">because reasons</a>.</p>
 <h2 id="using-from-joyride-or-some-other-vs-code-extension">Using from Joyride (or some other VS Code extension)<a class="headerlink" href="#using-from-joyride-or-some-other-vs-code-extension" title="Permanent link">#</a></h2>
 <p>As with any VS Code command using these from Joyride is a matter of calling <code>executeCommand</code>.</p>
 <h4 id="calvapastehtmlashiccup-and-calvapastehtmlashiccup"><code>calva.pasteHtmlAsHiccup</code> and <code>calva.pasteHtmlAsHiccup</code><a class="headerlink" href="#calvapastehtmlashiccup-and-calvapastehtmlashiccup" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.pasteHtmlAsHiccup&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.pasteHtmlAsHiccup"</span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
 
-<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.copyHtmlAsHiccup&quot;</span>
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.copyHtmlAsHiccup"</span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
 </code></pre></div>
 <h4 id="calvaconverthtml2hiccup"><code>calva.convertHtml2Hiccup</code><a class="headerlink" href="#calvaconverthtml2hiccup" title="Permanent link">#</a></h4>
 <p>Without options the command behaves just like selecting the command from the command palette. If there is a selection it will be converted, otherwise the whole file. The result will be opened in a new Untitled document.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.convertHtml2Hiccup"</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>
 </code></pre></div>
 <p>Called with arguments it will by default return an object with a <code>.-result</code> member which is a string with the Hiccup.</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
-<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;foo class=&#39;clz1 clz2&gt;bar&lt;/foo&gt;&quot;</span><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.convertHtml2Hiccup"</span><span class="w"> </span>
+<span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">"&lt;foo class='clz1 clz2&gt;bar&lt;/foo&gt;"</span><span class="p">})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">%</span><span class="p">))))</span>
 
-<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
+<span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.convertHtml2Hiccup"</span><span class="w"> </span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:options</span><span class="w"> </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">false</span><span class="p">}})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nb">println </span><span class="p">(</span><span class="nf">.-result</span><span class="w"> </span><span class="nv">%</span><span class="p">))))</span>
 </code></pre></div>
 <p>To make it put the text in a new Untitled document instead, provide the argument option <code>:toUntitled true</code></p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.convertHtml2Hiccup&quot;</span><span class="w"> </span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nb">-&gt; </span><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.convertHtml2Hiccup"</span><span class="w"> </span>
 <span class="w">                                    </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:toUntitled</span><span class="w"> </span><span class="nv">true</span>
-<span class="w">                                         </span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;foo class=&#39;clz1 clz2&gt;bar&lt;/foo&gt;&quot;</span>
+<span class="w">                                         </span><span class="ss">:html</span><span class="w"> </span><span class="s">"&lt;foo class='clz1 clz2&gt;bar&lt;/foo&gt;"</span>
 <span class="w">                                         </span><span class="ss">:options</span><span class="w"> </span><span class="o">#</span><span class="nv">js</span><span class="w"> </span><span class="p">{</span><span class="ss">:mapify-style?</span><span class="w"> </span><span class="nv">true</span>
 <span class="w">                                                       </span><span class="ss">:kebab-attrs?</span><span class="w"> </span><span class="nv">true</span><span class="p">}})</span>
 <span class="w">    </span><span class="p">(</span><span class="nf">.then</span><span class="w"> </span><span class="nv">...</span><span class="p">))</span>

@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -859,7 +895,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2447,29 +2483,29 @@
 </ul>
 <p>Here are some example keybindings for using the different comment styles with the <strong>Evaluate Top Level Form (defun) to Comment</strong> command:</p>
 <div class="highlight"><pre><span></span><code>{
-  &quot;key&quot;: &quot;ctrl+alt+c ctrl+space&quot;,
-  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
-  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
-  &quot;args&quot;: {
-    &quot;commentStyle&quot;: &quot;line&quot;
+  "key": "ctrl+alt+c ctrl+space",
+  "command": "calva.evaluateTopLevelFormAsComment",
+  "when": "editorTextFocus &amp;&amp; editorLangId == 'clojure'",
+  "args": {
+    "commentStyle": "line"
   }
 },
 {
-  &quot;key&quot;: &quot;ctrl+alt+c ctrl+i&quot;,
-  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
-  // &quot;command&quot;: &quot;calva.evaluateSelectionAsComment&quot;,
-  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
-  &quot;args&quot;: {
-    &quot;commentStyle&quot;: &quot;ignore&quot;
+  "key": "ctrl+alt+c ctrl+i",
+  "command": "calva.evaluateTopLevelFormAsComment",
+  // "command": "calva.evaluateSelectionAsComment",
+  "when": "editorTextFocus &amp;&amp; editorLangId == 'clojure'",
+  "args": {
+    "commentStyle": "ignore"
   }
 },
 {
-  &quot;key&quot;: &quot;ctrl+alt+c ctrl+r&quot;,
-  &quot;command&quot;: &quot;calva.evaluateTopLevelFormAsComment&quot;,
-  // &quot;command&quot;: &quot;calva.evaluateSelectionAsComment&quot;,
-  &quot;when&quot;: &quot;editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39;&quot;,
-  &quot;args&quot;: {
-    &quot;commentStyle&quot;: &quot;rcf&quot;
+  "key": "ctrl+alt+c ctrl+r",
+  "command": "calva.evaluateTopLevelFormAsComment",
+  // "command": "calva.evaluateSelectionAsComment",
+  "when": "editorTextFocus &amp;&amp; editorLangId == 'clojure'",
+  "args": {
+    "commentStyle": "rcf"
   }
 },
 </code></pre></div>
@@ -2507,7 +2543,7 @@
 <h3 id="evaluate-enclosing-form">Evaluate Enclosing Form<a class="headerlink" href="#evaluate-enclosing-form" title="Permanent link">#</a></h3>
 <p>The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is <code>ctrl+shift+enter</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo</span><span class="w"> </span><span class="ss">:bar</span><span class="p">]</span>
-<span class="w">  </span><span class="p">(</span><span class="nb">when </span><span class="nv">false</span><span class="w"> </span><span class="p">(</span><span class="nf">str|</span><span class="w"> </span><span class="nv">foo</span><span class="p">)))</span><span class="w"> </span><span class="c1">; =&gt; &quot;:bar&quot;</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">when </span><span class="nv">false</span><span class="w"> </span><span class="p">(</span><span class="nf">str|</span><span class="w"> </span><span class="nv">foo</span><span class="p">)))</span><span class="w"> </span><span class="c1">; =&gt; ":bar"</span>
 </code></pre></div>
 <h3 id="evaluate-to-cursor">Evaluate to Cursor<a class="headerlink" href="#evaluate-to-cursor" title="Permanent link">#</a></h3>
 <p>There are several commands for evaluating a piece of code, closing brackets. It's good, especially in threads, but can also come in handy in other situations, for instance when you want to evaluate something that depends on bindings, such as in a <code>let</code> form.</p>
@@ -2548,9 +2584,9 @@
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
 <span class="w"> </span><span class="p">(</span><span class="nf">do</span>
 <span class="w">   </span><span class="p">(</span><span class="k">def </span><span class="nv">colt-express</span>
-<span class="w">     </span><span class="p">{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;Colt Express&quot;</span>
-<span class="w">      </span><span class="ss">:categories</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;Family&quot;</span>
-<span class="w">                   </span><span class="s">&quot;Strategy&quot;</span><span class="p">]</span>
+<span class="w">     </span><span class="p">{</span><span class="ss">:name</span><span class="w"> </span><span class="s">"Colt Express"</span>
+<span class="w">      </span><span class="ss">:categories</span><span class="w"> </span><span class="p">[</span><span class="s">"Family"</span>
+<span class="w">                   </span><span class="s">"Strategy"</span><span class="p">]</span>
 <span class="w">      </span><span class="ss">:play-time</span><span class="w"> </span><span class="mi">40</span>
 <span class="w">      </span><span class="ss">:ratings</span><span class="w"> </span><span class="p">{</span><span class="ss">:pez</span><span class="w"> </span><span class="mf">5.0</span>
 <span class="w">                </span><span class="ss">:kat</span><span class="w"> </span><span class="mf">5.0</span>
@@ -2563,7 +2599,7 @@
 <span class="w">     </span><span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">apply + </span><span class="nv">coll</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">count </span><span class="nv">coll</span><span class="p">)))</span>
 
 <span class="w">   </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo-express</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt; </span><span class="nv">colt-express</span>
-<span class="w">                         </span><span class="p">(</span><span class="nb">assoc </span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;Foo Express&quot;</span><span class="p">)</span>
+<span class="w">                         </span><span class="p">(</span><span class="nb">assoc </span><span class="ss">:name</span><span class="w"> </span><span class="s">"Foo Express"</span><span class="p">)</span>
 <span class="w">                         </span><span class="p">(</span><span class="nf">assoc-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ratings</span><span class="w"> </span><span class="ss">:lyr</span><span class="p">]</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span>
 <span class="w">                         </span><span class="p">(</span><span class="nf">update-in</span><span class="w"> </span><span class="p">[</span><span class="ss">:ratings</span><span class="w"> </span><span class="ss">:vig</span><span class="p">]</span><span class="w"> </span><span class="nv">inc</span><span class="p">))]</span>
 <span class="w">     </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="nv">foo-express</span><span class="w">   </span><span class="c1">; 2</span>

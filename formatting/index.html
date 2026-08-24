@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -892,7 +928,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2514,13 +2550,13 @@
 <h3 id="2-format-current-form-and-trim-space-between-forms">2. Format Current Form and trim space between forms<a class="headerlink" href="#2-format-current-form-and-trim-space-between-forms" title="Permanent link">#</a></h3>
 <p>This formats the text, and trims consecutive, non-indent, whitespace on a line to just one space. Something like:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w">    </span><span class="ss">:b</span><span class="p">]</span>
-<span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w">     </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span>
-<span class="s">&quot;a&quot;</span><span class="w">    </span><span class="nv">a</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">str </span><span class="s">"foo"</span><span class="w">     </span><span class="s">"bar"</span><span class="w"> </span><span class="s">"baz"</span>
+<span class="s">"a"</span><span class="w">    </span><span class="nv">a</span><span class="p">))</span>
 </code></pre></div>
 <p>Becomes:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">a</span><span class="w"> </span><span class="ss">:b</span><span class="p">]</span>
-<span class="w">  </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;foo&quot;</span><span class="w"> </span><span class="s">&quot;bar&quot;</span><span class="w"> </span><span class="s">&quot;baz&quot;</span>
-<span class="w">       </span><span class="s">&quot;a&quot;</span><span class="w"> </span><span class="nv">a</span><span class="p">))</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">str </span><span class="s">"foo"</span><span class="w"> </span><span class="s">"bar"</span><span class="w"> </span><span class="s">"baz"</span>
+<span class="w">       </span><span class="s">"a"</span><span class="w"> </span><span class="nv">a</span><span class="p">))</span>
 </code></pre></div>
 <p>Basically, it behaves like if <code>:remove-multiple-non-indenting-spaces? true</code> was added to the <code>cljfmt</code> config. Which, in fact, is what happens. Calva merges that onto your cljfmt config when this command is used.</p>
 <h3 id="3-replace-current-form-or-selection-with-pretty-printed-form">3. Replace Current Form (or Selection) with Pretty Printed Form<a class="headerlink" href="#3-replace-current-form-or-selection-with-pretty-printed-form" title="Permanent link">#</a></h3>
@@ -2534,13 +2570,13 @@
 <p>The default options for the command are to not sort maps and to not insert commas between map entries. However, the command takes a map as an argument, expecting this map to be a <a href="https://github.com/kkinnear/zprint/blob/main/doc/reference.md">zprint configuration</a> map. You can provide the argument map via keyboard shortcuts. In VS Code settings, you use JSON, but it will be converted to EDN before handed to zprint.</p>
 <p>Say you want to have maps sorted by their keys, and generally use community standard formating + justify maps and bindings. This keyboard shortcut does that.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+p enter&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.prettyPrintReplaceCurrentForm&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;style&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;community&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;justified&quot;</span><span class="p">],</span>
-<span class="w">            </span><span class="nt">&quot;map&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;comma?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;sort?&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+p enter"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.prettyPrintReplaceCurrentForm"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"style"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"community"</span><span class="p">,</span><span class="w"> </span><span class="s2">"justified"</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">"map"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"comma?"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"sort?"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
@@ -2592,7 +2628,7 @@
 <span class="w"> </span><span class="ss">:remove-consecutive-blank-lines?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:insert-missing-whitespace?</span><span class="w"> </span><span class="nv">false</span>
 <span class="w"> </span><span class="ss">:indent-line-comments?</span><span class="w"> </span><span class="nv">true</span>
-<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="nv">re</span><span class="w"> </span><span class="s">&quot;^\w&quot;</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
+<span class="w"> </span><span class="ss">:indents</span><span class="w"> </span><span class="p">{</span><span class="o">#</span><span class="nv">re</span><span class="w"> </span><span class="s">"^\w"</span><span class="w"> </span><span class="p">[[</span><span class="ss">:inner</span><span class="w"> </span><span class="mi">0</span><span class="p">]]}</span>
 <span class="w"> </span><span class="ss">:test-code</span>
 <span class="w"> </span><span class="p">(</span><span class="nb">concat </span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 <span class="w">         </span><span class="p">(</span><span class="nb">map </span><span class="o">#</span><span class="p">(</span><span class="nb">inc </span><span class="p">(</span><span class="nb">* </span><span class="nv">%</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>

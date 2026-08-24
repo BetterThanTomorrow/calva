@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -698,7 +734,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2478,11 +2514,11 @@
 <p>When you want to stay unspecific with the pattern targeting, you can signal that a particular session is fallback using the object form for <code>replSessionFilePatterns</code>. Specifying that some patterns are <code>is-fallback-for</code> gives other repl sessions the chance to handle the evaluation with their <code>always-claim</code> patterns. The built-in <strong>Babashka</strong> project type uses patterns like so:</p>
 <div class="highlight"><pre><span></span><code>{
     ...
-    &quot;replSessionNames&quot;: { &quot;primary&quot;: &quot;bb&quot; },
-    &quot;replSessionFilePatterns&quot;: {
-        &quot;primary&quot;: {
-            &quot;always-claim&quot;: [&quot;*.bb&quot;, &quot;bb.edn&quot;],
-            &quot;is-fallback-for&quot;: [&quot;**/*.clj&quot;, &quot;**/*.bb&quot;, &quot;**/bb.edn&quot;]
+    "replSessionNames": { "primary": "bb" },
+    "replSessionFilePatterns": {
+        "primary": {
+            "always-claim": ["*.bb", "bb.edn"],
+            "is-fallback-for": ["**/*.clj", "**/*.bb", "**/bb.edn"]
         }
     }
     ...
@@ -2548,11 +2584,11 @@
 <h3 id="example-custom-jack-in-command-lines">Example Custom Jack-in Command lines<a class="headerlink" href="#example-custom-jack-in-command-lines" title="Permanent link">#</a></h3>
 <h4 id="start-a-babashka-repl-via-wsl">Start a Babashka REPL via WSL<a class="headerlink" href="#start-a-babashka-repl-via-wsl" title="Permanent link">#</a></h4>
 <p>Calva has a built-in jack-in sequence for starting a Babashka REPL and connect to it. It works as long as the <code>bb</code> process is on the same host as VS Code/Calva is running. So if you want it to run in WSL, but VS Code is running on your computer you need to start <code>bb</code> slightly differently. These settings in your VS Code settings file will give you a jack-in option that works for this:</p>
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">"calva.replConnectSequences"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bashbabka (WSL)&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bash -c &#39;bb --nrepl-server JACK-IN-NREPL-PORT&#39;&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bashbabka (WSL)"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"custom"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"customJackInCommandLine"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bash -c 'bb --nrepl-server JACK-IN-NREPL-PORT'"</span><span class="p">,</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">  </span><span class="p">],</span>
 </code></pre></div>
@@ -2561,7 +2597,7 @@
 <p>This script doesn't actually start a REPL, it's provided more for giving you an idea about what it could look like, and as a starting point for your real scripts:</p>
 <div class="highlight"><pre><span></span><code><span class="o">#</span><span class="nv">!/usr/bin/env</span><span class="w"> </span><span class="nv">bb</span>
 
-<span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
+<span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
 
 <span class="p">(</span><span class="kd">defn </span><span class="nv">parse-args</span><span class="w"> </span><span class="p">[</span><span class="nv">args</span><span class="p">]</span>
 <span class="w">  </span><span class="p">(</span><span class="k">loop </span><span class="p">[</span><span class="nv">args</span><span class="w"> </span><span class="nv">args</span>
@@ -2570,28 +2606,28 @@
 <span class="w">      </span><span class="nv">parsed</span>
 <span class="w">      </span><span class="p">(</span><span class="k">let </span><span class="p">[[</span><span class="nv">flag</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="nv">rest-args</span><span class="p">]</span><span class="w"> </span><span class="nv">args</span><span class="p">]</span>
 <span class="w">        </span><span class="p">(</span><span class="nf">case</span><span class="w"> </span><span class="nv">flag</span>
-<span class="w">          </span><span class="s">&quot;--aliases&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
-<span class="w">          </span><span class="s">&quot;--cider-nrepl-version&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
-<span class="w">          </span><span class="p">(</span><span class="k">do </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Unknown parameter:&quot;</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">System/exit</span><span class="w"> </span><span class="mi">1</span><span class="p">)))))))</span>
+<span class="w">          </span><span class="s">"--aliases"</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
+<span class="w">          </span><span class="s">"--cider-nrepl-version"</span><span class="w"> </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="nv">rest-args</span><span class="w"> </span><span class="p">(</span><span class="nb">assoc </span><span class="nv">parsed</span><span class="w"> </span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">value</span><span class="p">))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">do </span><span class="p">(</span><span class="nb">println </span><span class="s">"Unknown parameter:"</span><span class="w"> </span><span class="nv">flag</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">System/exit</span><span class="w"> </span><span class="mi">1</span><span class="p">)))))))</span>
 
 <span class="p">(</span><span class="kd">defn </span><span class="nv">process-args</span><span class="w"> </span><span class="p">[</span><span class="nv">args</span><span class="p">]</span>
-<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">aliases</span><span class="w"> </span><span class="p">(</span><span class="nf">str/split</span><span class="w"> </span><span class="p">(</span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span><span class="w"> </span><span class="o">#</span><span class="s">&quot;,&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">aliases</span><span class="w"> </span><span class="p">(</span><span class="nf">str/split</span><span class="w"> </span><span class="p">(</span><span class="ss">:aliases</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span><span class="w"> </span><span class="o">#</span><span class="s">","</span><span class="p">)</span>
 <span class="w">        </span><span class="nv">cider-nrepl-version</span><span class="w"> </span><span class="p">(</span><span class="ss">:cider-nrepl-version</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
-<span class="w">        </span><span class="nv">project-root-path</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getenv</span><span class="w"> </span><span class="s">&quot;JACK_IN_PROJECT_ROOT_PATH&quot;</span><span class="p">)]</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;Aliases:&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="nv">project-root-path</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getenv</span><span class="w"> </span><span class="s">"JACK_IN_PROJECT_ROOT_PATH"</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">"Aliases:"</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">doseq </span><span class="p">[</span><span class="nv">alias</span><span class="w"> </span><span class="nv">aliases</span><span class="p">]</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">println </span><span class="nv">alias</span><span class="p">))</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;CIDER nREPL version:&quot;</span><span class="w"> </span><span class="nv">cider-nrepl-version</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">&quot;JACK_IN_PROJECT_ROOT_PATH:&quot;</span><span class="w"> </span><span class="nv">project-root-path</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">"CIDER nREPL version:"</span><span class="w"> </span><span class="nv">cider-nrepl-version</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">println </span><span class="s">"JACK_IN_PROJECT_ROOT_PATH:"</span><span class="w"> </span><span class="nv">project-root-path</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="k">def </span><span class="nv">parsed-args</span><span class="w"> </span><span class="p">(</span><span class="nf">parse-args</span><span class="w"> </span><span class="nv">*command-line-args*</span><span class="p">))</span>
 
-<span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">= </span><span class="nv">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">&quot;babashka.file&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">when </span><span class="p">(</span><span class="nb">= </span><span class="nv">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">"babashka.file"</span><span class="p">))</span>
 <span class="w">  </span><span class="p">(</span><span class="nf">process-args</span><span class="w"> </span><span class="nv">parsed-args</span><span class="p">))</span>
 </code></pre></div>
 <p>It's written in Babashka to encourage you to write your shell scripts in a civilized language. 😀 See the article <a href="https://blog.agical.se/en/posts/changing-my-mind--converting-a-script-from-bash-to-babashka/">Changing my mind: Converting a script from bash to Babashka</a> for a small success-story about this mindset. See also <a href="https://github.com/pesterhazy/bash2bb">bash2bb</a>.</p>
 <p>The script reads <code>JACK-IN-CLJS-LAUNCH-BUILDS</code> and <code>JACK-IN-CIDER-NREPL-VERSION</code> from the command line, and <code>JACK_IN_PROJECT_ROOT_PATH</code> from the environment. It could be configured for use in a custom connect sequence like this:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;customJackInCommandLine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION&quot;</span><span class="p">,</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"customJackInCommandLine"</span><span class="p">:</span><span class="w"> </span><span class="s2">"../../custom-jack-in.bb --aliases JACK-IN-CLJS-LAUNCH-BUILDS --cider-nrepl-version JACK-IN-CIDER-NREPL-VERSION"</span><span class="p">,</span>
 </code></pre></div>
 <p>Note how in this case the REPL is started two directories ”down” from the workspace root where the script resides.</p>
 <h2 id="example-sequences">Example Sequences<a class="headerlink" href="#example-sequences" title="Permanent link">#</a></h2>
@@ -2599,58 +2635,58 @@
 <h3 id="minimal-menus-with-full-stack-shadow-cljs-repls">Minimal menus with full stack shadow-cljs REPLs<a class="headerlink" href="#minimal-menus-with-full-stack-shadow-cljs-repls" title="Permanent link">#</a></h3>
 <p>Minimize the amount of selecting from the Jack-in/Connect menu when working with a full-stack shadow-cljs + deps/lein project:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;backend + frontend&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shadow-cljs&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shadow-cljs&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;cljsLaunchBuilds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">          </span><span class="s2">&quot;:app&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="s2">&quot;:test&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"backend + frontend"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shadow-cljs"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shadow-cljs"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"menuSelections"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"cljsLaunchBuilds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="s2">":app"</span><span class="p">,</span>
+<span class="w">          </span><span class="s2">":test"</span><span class="p">,</span>
 <span class="w">        </span><span class="p">],</span>
-<span class="w">        </span><span class="nt">&quot;cljsDefaultBuild&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;:app&quot;</span>
+<span class="w">        </span><span class="nt">"cljsDefaultBuild"</span><span class="p">:</span><span class="w"> </span><span class="s2">":app"</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 </code></pre></div>
 <p>See <a href="https://blog.agical.se/en/posts/shadow-cljs-clojure-cljurescript-calva-nrepl-basics/">shadow-cljs + Clojure with Calva: The basics</a> for how Calva and nREPL work with ClojureScript.</p>
 <h3 id="polylith">Polylith<a class="headerlink" href="#polylith" title="Permanent link">#</a></h3>
 <p>This is the connect sequences used in the <a href="https://github.com/furkan3ayraktar/clojure-polylith-realworld-example-app">Polylith Real World App</a>. The <code>(start)</code> sequence lets you jack-in to the project, and starts the Real World App without any prompts. The <code>(connect)</code> sequence can be used if you prefer to start the REPL manually, and want to connect without prompts.</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.replConnectSequences"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;afterPrimaryReplConnectedCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[dev.server] :reload) (in-ns &#39;dev.server) (start! 6003)&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polylith RealWorld Server REPL (start)&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;autoSelectForJackIn&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectRootPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">],</span>
-<span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;cljAliases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">]</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"afterPrimaryReplConnectedCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[dev.server] :reload) (in-ns 'dev.server) (start! 6003)"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Polylith RealWorld Server REPL (start)"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"autoSelectForJackIn"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectRootPath"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"."</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"menuSelections"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"cljAliases"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"test"</span><span class="p">]</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polylith RealWorld Server REPL (connect)&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;autoSelectForConnect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectRootPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;.&quot;</span><span class="p">],</span>
-<span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Polylith RealWorld Server REPL (connect)"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"autoSelectForConnect"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectRootPath"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"."</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;calva.autoConnectRepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"calva.autoConnectRepl"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 </code></pre></div>
 <p>The <code>calva.autoConnectRepl</code>, when set to <code>true</code>, makes Calva, at project open, look for the nRepl port file and automatically connect the repl if the file exists. Therefore, you can leave the app running when you close the project in VS Code, and Calva will reconnect when you open the project again. (Alternatively, maybe you just need to reload the VS Code window and not lose the REPL state.)</p>
 <h3 id="minimal-menus-with-full-stack-depsedn-and-figwheel-main-repls">Minimal menus with full stack deps.edn and Figwheel Main REPLs<a class="headerlink" href="#minimal-menus-with-full-stack-depsedn-and-figwheel-main-repls" title="Permanent link">#</a></h3>
 <p>Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="nt">"calva.replConnectSequences"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Example Sequence&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Clojure-CLI&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;afterPrimaryReplConnectedCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(go)&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;startCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (require &#39;[cljs-test.main :refer :all])(start-nrepl+fig))&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;isReadyToStartRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Prompt will show&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;connectCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (use &#39;cljs-test.main) (cljs-repl))&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;To quit, type: :cljs/quit&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;printThisLineRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\\[Figwheel\\] Starting Server at.*&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Example Sequence"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Clojure-CLI"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"afterPrimaryReplConnectedCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(go)"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"startCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(do (require '[cljs-test.main :refer :all])(start-nrepl+fig))"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"isReadyToStartRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Prompt will show"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"connectCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(do (use 'cljs-test.main) (cljs-repl))"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"isConnectedRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"To quit, type: :cljs/quit"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"printThisLineRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"\\[Figwheel\\] Starting Server at.*"</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">]</span>
@@ -2659,30 +2695,30 @@
 <h3 id="juxt-edge">JUXT Edge<a class="headerlink" href="#juxt-edge" title="Permanent link">#</a></h3>
 <p>Here is an example from the <a href="https://juxt.pro/blog/posts/edge.html">JUXT Edge</a> project template. It adds two sequences, one for when only the Clojure REPL should be launched and one for when the customized Edge cljs repl should also be connected. The <strong>Edge backend + frontend</strong> sequence specifies that the web app should be opened by Calva, making cljs repl connection more stable, and also adds <code>menuSelections</code> to skip the <strong>launch aliases</strong> prompt.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="nt">"calva.replConnectSequences"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Edge backend only&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Edge backend only"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Edge backend + frontend&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;startCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (require &#39;dev-extras) (dev-extras/go) (println \&quot;Edge Figwheel Main started\&quot;) ((resolve &#39;dev-extras/cljs-repl)))&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;isReadyToStartRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Edge Figwheel Main started&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;openUrlRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Website listening on: (?&lt;url&gt;\\S+)&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;printThisLineRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\\[Edge\\]&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;shouldOpenUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;connectCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(do (require &#39;dev-extras) ((resolve &#39;dev-extras/cljs-repl)))&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;To quit, type: :cljs/quit&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;buildsRequired&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Edge backend + frontend"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"dependsOn"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Figwheel Main"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"startCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(do (require 'dev-extras) (dev-extras/go) (println \"Edge Figwheel Main started\") ((resolve 'dev-extras/cljs-repl)))"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"isReadyToStartRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Edge Figwheel Main started"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"openUrlRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Website listening on: (?&lt;url&gt;\\S+)"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"printThisLineRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"\\[Edge\\]"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"shouldOpenUrl"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"connectCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(do (require 'dev-extras) ((resolve 'dev-extras/cljs-repl)))"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"isConnectedRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"To quit, type: :cljs/quit"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"buildsRequired"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;cljAliases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                    </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span>
-<span class="w">                    </span><span class="s2">&quot;build&quot;</span><span class="p">,</span>
-<span class="w">                    </span><span class="s2">&quot;dev/build&quot;</span>
+<span class="w">            </span><span class="nt">"menuSelections"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"cljAliases"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                    </span><span class="s2">"dev"</span><span class="p">,</span>
+<span class="w">                    </span><span class="s2">"build"</span><span class="p">,</span>
+<span class="w">                    </span><span class="s2">"dev/build"</span>
 <span class="w">                </span><span class="p">],</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">        </span><span class="p">}</span>
@@ -2692,14 +2728,14 @@
 <h3 id="plain-depsedn">Plain deps.edn<a class="headerlink" href="#plain-depsedn" title="Permanent link">#</a></h3>
 <p>A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="nt">"calva.replConnectSequences"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Do not promote to cljs&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;projectType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;cljsType&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                </span><span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;connectCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\&quot;Don&#39;t promote me bro!\&quot;&quot;</span><span class="p">,</span>
-<span class="w">                </span><span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Don&#39;t promote me bro!&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Do not promote to cljs"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">"dependsOn"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Figwheel Main"</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"connectCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"\"Don't promote me bro!\""</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">"isConnectedRegExp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Don't promote me bro!"</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">]</span>

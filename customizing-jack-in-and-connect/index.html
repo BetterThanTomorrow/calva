@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2477,16 +2513,16 @@
 <p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
 <p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.jackIn&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+j&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.jackIn"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"disableAutoSelect"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c shift+j"</span><span class="p">,</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>A Joyride command for starting a <code>deps.edn</code> REPL for a project in the root of the workspace.</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span>
-<span class="w"> </span><span class="s">&quot;calva.jackIn&quot;</span>
-<span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:connectSequence</span><span class="w"> </span><span class="p">{</span><span class="ss">:projectType</span><span class="w"> </span><span class="s">&quot;deps.edn&quot;</span>
-<span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;.&quot;</span><span class="p">]}}))</span>
+<span class="w"> </span><span class="s">"calva.jackIn"</span>
+<span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:connectSequence</span><span class="w"> </span><span class="p">{</span><span class="ss">:projectType</span><span class="w"> </span><span class="s">"deps.edn"</span>
+<span class="w">                             </span><span class="ss">:projectRootPath</span><span class="w"> </span><span class="p">[</span><span class="s">"."</span><span class="p">]}}))</span>
 </code></pre></div>
 <p>It will prompt for any aliases it finds in the <code>deps.edn</code> file.</p>
 <h2 id="customizing-connect">Customizing Connect<a class="headerlink" href="#customizing-connect" title="Permanent link">#</a></h2>
@@ -2506,13 +2542,13 @@
 <p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
 <p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.connect&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;disableAutoSelect&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c shift+c&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.connect"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"disableAutoSelect"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c shift+c"</span><span class="p">,</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
 <p>A Joyride command for connecting to a REPL on port 55555, without being asked for project type:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">&quot;calva.connect&quot;</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">&quot;55555&quot;</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">&quot;Generic&quot;</span><span class="p">}))</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.connect"</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">"55555"</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">"Generic"</span><span class="p">}))</span>
 </code></pre></div>
 <h2 id="auto-evaluate-code-on-connect">Auto-evaluate Code on Connect<a class="headerlink" href="#auto-evaluate-code-on-connect" title="Permanent link">#</a></h2>
 <p>You can have Calva evaluate code whenever a REPL has been connected via the <code>calva.autoEvaluateCode.onConnect</code> setting. It has two entries <code>clj</code> and <code>cljs</code>:</p>
@@ -2576,10 +2612,10 @@
 <div class="admonition note">
 <p class="admonition-title">Java 1.8 compatible versions</p>
 <p>The default dependency versions are not compatible with Java 1.8. If your project needs that version of Java you can use these settings in your Workspace <code>.vscode/settings.json</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.jackInDependencyVersions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;nrepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;cider-nrepl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.28.5&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;cider/piggieback&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.5.3&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"calva.jackInDependencyVersions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"nrepl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"cider-nrepl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.28.5"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"cider/piggieback"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.5.3"</span>
 <span class="p">}</span>
 </code></pre></div>
 </div>

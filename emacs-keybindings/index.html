@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2131,164 +2167,164 @@
 <p>Some keybindings to make it easier for Emacs users
 <div class="highlight"><pre><span></span><code><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+b&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.backwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+b"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.backwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+left&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.backwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+left"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.backwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+cmd+]&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-workbench.action.nextEditor&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shift+cmd+]"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-workbench.action.nextEditor"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+]&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.barfSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+]"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.barfSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+right&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.barfSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+right"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.barfSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+[&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.barfSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+["</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.barfSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+left&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.barfSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+left"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.barfSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+f&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.forwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+f"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.forwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+right&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.forwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+right"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.forwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+f&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-workbench.action.toggleFullScreen&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+f"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-workbench.action.toggleFullScreen"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+backspace&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.killSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+backspace"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.killSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shift+cmd+k&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-editor.action.deleteLines&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;textInputFocus &amp;&amp; !editorReadonly&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shift+cmd+k"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-editor.action.deleteLines"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"textInputFocus &amp;&amp; !editorReadonly"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.slurpSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.slurpSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.slurpSexpForward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+right"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.slurpSexpForward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+9&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.slurpSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+9"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.slurpSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+left&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.slurpSexpBackward&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+left"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.slurpSexpBackward"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+c ctrl+c&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.evaluateCurrentTopLevelForm&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+c ctrl+c"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.evaluateCurrentTopLevelForm"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c space&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-calva.evaluateCurrentTopLevelForm&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c space"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-calva.evaluateCurrentTopLevelForm"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+x ctrl+e&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.evalCurrentTopLevelFormInREPLWindow&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+x ctrl+e"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.evalCurrentTopLevelFormInREPLWindow"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+c ctrl+alt+space&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-calva.evalCurrentTopLevelFormInREPLWindow&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c ctrl+alt+space"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-calva.evalCurrentTopLevelFormInREPLWindow"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+x ctrl+s&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;workbench.action.files.save&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+x ctrl+s"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"workbench.action.files.save"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+s&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-workbench.action.files.save&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cmd+s"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-workbench.action.files.save"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+s&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.spliceSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cmd+s"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.spliceSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+alt+s&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.spliceSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+s"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.spliceSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+k&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.cutForwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+k"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.cutForwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+x right&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.cutForwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+x right"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.cutForwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+backspace&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;paredit.cutBackwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+backspace"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"paredit.cutBackwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+shift+x left&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-paredit.cutBackwardSexp&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+shift+x left"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-paredit.cutBackwardSexp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva:activated &amp;&amp; calva:pareditValid &amp;&amp; paredit:keyMap =~ /original|strict/"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+1&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-workbench.action.openEditorAtIndex1&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+1"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-workbench.action.openEditorAtIndex1"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+1&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editor.action.quickFix&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorHasCodeActionsProvider &amp;&amp; editorTextFocus &amp;&amp; !editorReadonly&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+1"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editor.action.quickFix"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editorHasCodeActionsProvider &amp;&amp; editorTextFocus &amp;&amp; !editorReadonly"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+.&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-editor.action.quickFix&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorHasCodeActionsProvider &amp;&amp; editorTextFocus &amp;&amp; !editorReadonly&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cmd+."</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-editor.action.quickFix"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editorHasCodeActionsProvider &amp;&amp; editorTextFocus &amp;&amp; !editorReadonly"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cmd+.&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editor.action.revealDefinition&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorHasDefinitionProvider &amp;&amp; editorTextFocus &amp;&amp; !isInEmbeddedEditor&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cmd+."</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editor.action.revealDefinition"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editorHasDefinitionProvider &amp;&amp; editorTextFocus &amp;&amp; !isInEmbeddedEditor"</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;f12&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;-editor.action.revealDefinition&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;editorHasDefinitionProvider &amp;&amp; editorTextFocus &amp;&amp; !isInEmbeddedEditor&quot;</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f12"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-editor.action.revealDefinition"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"when"</span><span class="p">:</span><span class="w"> </span><span class="s2">"editorHasDefinitionProvider &amp;&amp; editorTextFocus &amp;&amp; !isInEmbeddedEditor"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div></p>

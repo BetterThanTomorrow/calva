@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -698,7 +734,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2326,67 +2362,67 @@
 <p>The interpolation special characters (<code>|</code>, <code>{</code>, and <code>}</code>) in replacement strings need to be escaped with a backslash.</p>
 <p>Examples:</p>
 <div class="highlight"><pre><span></span><code>// Stringify, then replace spaces
-&quot;${selection|pr-str|replace|\\s+|_}&quot;    // &quot;hello world&quot; -&gt; &quot;\&quot;hello_world\&quot;&quot;
+"${selection|pr-str|replace|\\s+|_}"    // "hello world" -&gt; "\"hello_world\""
 
 // Replace spaces with underscores
-&quot;${selection|replace|\\s+|_}&quot;           // &quot;hello world&quot; -&gt; &quot;hello_world&quot;
+"${selection|replace|\\s+|_}"           // "hello world" -&gt; "hello_world"
 
 // Multiple replacements
-&quot;${selection|replace|hello|HELLO|replace|\\s+|_}&quot;  // &quot;hello world&quot; -&gt; &quot;HELLO_world&quot;
+"${selection|replace|hello|HELLO|replace|\\s+|_}"  // "hello world" -&gt; "HELLO_world"
 
 // Some characters need to be escaped if used in the replacement arg
-&quot;${selection|replace|\\s+|\\|}&quot;         // &quot;hello world&quot; -&gt; &quot;hello|world&quot;
-&quot;${selection|replace|\\s+|\\{}&quot;         // &quot;hello world&quot; -&gt; &quot;hello{world&quot;
-&quot;${selection|replace|\\(|\\{}&quot;          // &quot;(foo)&quot; -&gt; &quot;{foo)&quot;
+"${selection|replace|\\s+|\\|}"         // "hello world" -&gt; "hello|world"
+"${selection|replace|\\s+|\\{}"         // "hello world" -&gt; "hello{world"
+"${selection|replace|\\(|\\{}"          // "(foo)" -&gt; "{foo)"
 
 // Replace with capture groups
-&quot;${selection|replace|(hello) (world)|$2 $1}&quot;  // &quot;hello world&quot; -&gt; &quot;world hello&quot;
+"${selection|replace|(hello) (world)|$2 $1}"  // "hello world" -&gt; "world hello"
 </code></pre></div>
 <h2 id="user-and-workspace-settings">User and Workspace Settings<a class="headerlink" href="#user-and-workspace-settings" title="Permanent link">#</a></h2>
 <p>Settings from your User (global) level and the workspace are concatenated. Except for the <code>key</code> field, are merged.</p>
 <p>With these <strong>User</strong> settings:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.customREPLCommandSnippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span><span class="err">s</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Call Current Form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;($current-form)&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Call Current Form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"c"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"($current-form)"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Call Current Top Level Form&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;t&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;($top-level-form)&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Call Current Top Level Form"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"t"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"($top-level-form)"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CLJ Test Top Level Defined Symbol&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(clojure.test/test-var #&#39;$top-level-defined-symbol)&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CLJ Test Top Level Defined Symbol"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clj"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(clojure.test/test-var #'$top-level-defined-symbol)"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CLJS Test Top Level Defined Symbol&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cljs&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(cljs.test/test-var #&#39;$top-level-defined-symbol)&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tab&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CLJS Test Top Level Defined Symbol"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cljs"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(cljs.test/test-var #'$top-level-defined-symbol)"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tab"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qol: Add Snitch dependency&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs &#39;{org.clojars.abhinav/snitch {:mvn/version \&quot;0.1.16\&quot;}})&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"qol: Add Snitch dependency"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clj"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[clojure.repl.deps :refer [add-libs]])\n\n\n(add-libs '{org.clojars.abhinav/snitch {:mvn/version \"0.1.16\"}})"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qol: Evaluate as Snitch defn* &quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"qol: Evaluate as Snitch defn* "</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clj"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[snitch.core :refer [defn* defmethod* *fn *let]])\n${top-level-form|replace|^\\(defn-?|(defn*}"</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
 </code></pre></div>
 <p>And these <strong>Workspace</strong> settings:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.customREPLCommandSnippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Remount CLJS App&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cljs&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.app&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(start)&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Remount CLJS App"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"r"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cljs"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ns"</span><span class="p">:</span><span class="w"> </span><span class="s2">"example.app"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(start)"</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">],</span>
 </code></pre></div>
@@ -2408,11 +2444,11 @@
 </ol>
 <p>Here's an example shortcut entry for the <strong>4th</strong> option:</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ctrl+cmd+u alt+enter&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;calva.runCustomREPLCommand&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;$current-form&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+cmd+u alt+enter"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.runCustomREPLCommand"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"ns"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$current-form"</span><span class="p">,</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
 </code></pre></div>
@@ -2422,12 +2458,12 @@
 This is mostly useful for tooling authors that want to integrate with calva.
 Be careful with these, since they will be executed anytime Calva displays a tooltip. So they should be fast and probably not have any side effects.</p>
 <p>The hover snippets accept the same inputs as the Custom REPL Commands, except for the hotkey:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLHoverSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.customREPLHoverSnippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;eval text on hover&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;repl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ns&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example.app&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(str \&quot;$hover-text\&quot;)&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eval text on hover"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"repl"</span><span class="p">:</span><span class="w"> </span><span class="s2">"clj"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ns"</span><span class="p">:</span><span class="w"> </span><span class="s2">"example.app"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(str \"$hover-text\")"</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">]</span>
 </code></pre></div>
@@ -2445,14 +2481,14 @@ There are now also <code>hover-</code> versions of most substitutions. Those cur
 <h2 id="snippets-inside-deps">Snippets Inside Deps<a class="headerlink" href="#snippets-inside-deps" title="Permanent link">#</a></h2>
 <p>A new experimental feature lets library authors ship snippets inside their jar files. These accept the same options as above but should be placed in "resources/calva.exports/config.edn" inside the jar.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="ss">:customREPLCommandSnippets</span>
-<span class="w"> </span><span class="p">[{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;edn test&quot;</span>
-<span class="w">   </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;a&quot;</span>
+<span class="w"> </span><span class="p">[{</span><span class="ss">:name</span><span class="w"> </span><span class="s">"edn test"</span>
+<span class="w">   </span><span class="ss">:key</span><span class="w"> </span><span class="s">"a"</span>
 <span class="w">   </span><span class="ss">:snippet</span><span class="w"> </span><span class="p">(</span><span class="nf">$current-form</span><span class="p">)}]</span>
 <span class="w"> </span><span class="ss">:customREPLHoverSnippets</span>
-<span class="w"> </span><span class="p">[{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;edn hover&quot;</span>
-<span class="w">   </span><span class="ss">:snippet</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;$hover-tex&quot;</span><span class="p">)}</span>
-<span class="w">  </span><span class="p">{</span><span class="ss">:name</span><span class="w"> </span><span class="s">&quot;edn hover show val&quot;</span>
-<span class="w">   </span><span class="ss">:snippet</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;### EDN show val\n```clojure\n&quot;</span><span class="w"> </span><span class="p">(</span><span class="nb">pr-str </span><span class="p">(</span><span class="nb">eval </span><span class="p">(</span><span class="nb">symbol </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;$ns&quot;</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="w"> </span><span class="s">&quot;$hover-top-level-defined-symbol&quot;</span><span class="p">))))</span><span class="w"> </span><span class="s">&quot;\n```&quot;</span><span class="p">)}]}</span>
+<span class="w"> </span><span class="p">[{</span><span class="ss">:name</span><span class="w"> </span><span class="s">"edn hover"</span>
+<span class="w">   </span><span class="ss">:snippet</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">"$hover-tex"</span><span class="p">)}</span>
+<span class="w">  </span><span class="p">{</span><span class="ss">:name</span><span class="w"> </span><span class="s">"edn hover show val"</span>
+<span class="w">   </span><span class="ss">:snippet</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">"### EDN show val\n```clojure\n"</span><span class="w"> </span><span class="p">(</span><span class="nb">pr-str </span><span class="p">(</span><span class="nb">eval </span><span class="p">(</span><span class="nb">symbol </span><span class="p">(</span><span class="nb">str </span><span class="s">"$ns"</span><span class="w"> </span><span class="s">"/"</span><span class="w"> </span><span class="s">"$hover-top-level-defined-symbol"</span><span class="p">))))</span><span class="w"> </span><span class="s">"\n```"</span><span class="p">)}]}</span>
 </code></pre></div>
 
 

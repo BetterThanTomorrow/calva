@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -698,7 +734,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2401,10 +2437,10 @@
 </div>
 <h3 id="example-configurations">Example Configurations<a class="headerlink" href="#example-configurations" title="Permanent link">#</a></h3>
 <h4 id="single-parallel-directory-structure">Single Parallel Directory Structure<a class="headerlink" href="#single-parallel-directory-structure" title="Permanent link">#</a></h4>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"calva.fiddleFilePaths"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddles&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddles"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -2415,10 +2451,10 @@
 </ul>
 <h4 id="single-dedicated-fiddle-file">Single Dedicated Fiddle File<a class="headerlink" href="#single-dedicated-fiddle-file" title="Permanent link">#</a></h4>
 <p>If you generally work with one <strong>Fiddle</strong> file at a time, you can configure a mapping to a <strong>Dedicated Fiddle</strong> file. E.g.:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"calva.fiddleFilePaths"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddle.clj&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddle.clj"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -2434,26 +2470,26 @@
 </div>
 <h4 id="multiple-mappings">Multiple Mappings<a class="headerlink" href="#multiple-mappings" title="Permanent link">#</a></h4>
 <p>The configuration is an array so that you can configure different mappings for different <strong>Source</strong> directories. Given several mappings with overlapping <strong>Source</strong>, the longest mapping will win. Given several mappings with the <em>same</em> <strong>Source</strong>, the first one will win, <em>unless</em> one of them is a <em>dedicated</em> <strong>Fiddle</strong>, in which case that one will win.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;calva.fiddleFilePaths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="nt">"calva.fiddleFilePaths"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddles&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddles"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddle.clj&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddle.clj"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddle.cljs&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddle.cljs"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;fiddle.bb&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"fiddle.bb"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;b&quot;</span><span class="p">],</span>
-<span class="w">    </span><span class="nt">&quot;fiddle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;env&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;b-fiddles&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"src"</span><span class="p">,</span><span class="w"> </span><span class="s2">"b"</span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"fiddle"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"env"</span><span class="p">,</span><span class="w"> </span><span class="s2">"dev"</span><span class="p">,</span><span class="w"> </span><span class="s2">"b-fiddles"</span><span class="p">]</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -2473,7 +2509,7 @@
 <p>For some fiddle files you will get a lot of linter warnings, because clj-kondo doesn't know about fiddle files, and they are often not on the classpath. You might find yourself wanting to silence some linters for some fiddle files. E.g. like this:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">main.core</span>
 <span class="w">  </span><span class="p">{</span><span class="ss">:clj-kondo/config</span>
-<span class="w">   </span><span class="o">&#39;</span><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:unresolved-symbol</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:off</span><span class="p">}}}})</span>
+<span class="w">   </span><span class="o">'</span><span class="p">{</span><span class="ss">:linters</span><span class="w"> </span><span class="p">{</span><span class="ss">:unresolved-symbol</span><span class="w"> </span><span class="p">{</span><span class="ss">:level</span><span class="w"> </span><span class="ss">:off</span><span class="p">}}}})</span>
 </code></pre></div>
 <p>See <a href="https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md">clj-kondo Configuration</a> for more on what options you have for this.</p>
 </div>

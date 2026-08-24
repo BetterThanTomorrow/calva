@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -694,7 +730,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2307,24 +2343,24 @@
 </div>
 <div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
 <span class="p">{</span><span class="ss">:reveal-nrepl-middleware</span>
-<span class="w">    </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">}}</span>
-<span class="w">     </span><span class="ss">:main-opts</span><span class="w">  </span><span class="p">[</span><span class="s">&quot;-m&quot;</span><span class="w"> </span><span class="s">&quot;nrepl.cmdline&quot;</span>
-<span class="w">                  </span><span class="s">&quot;--middleware&quot;</span><span class="w"> </span><span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+<span class="w">    </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">"&lt;version&gt;"</span><span class="p">}}</span>
+<span class="w">     </span><span class="ss">:main-opts</span><span class="w">  </span><span class="p">[</span><span class="s">"-m"</span><span class="w"> </span><span class="s">"nrepl.cmdline"</span>
+<span class="w">                  </span><span class="s">"--middleware"</span><span class="w"> </span><span class="s">"[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"</span><span class="p">]}}</span>
 </code></pre></div>
 <p>And then jack-in choosing the deps.edn option and then pick the <code>:reveal-nrepl-middleware</code> alias.</p>
 <h3 id="dependencies-only">Dependencies only<a class="headerlink" href="#dependencies-only" title="Permanent link">#</a></h3>
 <p>If you don't want to use the nrepl-middleware you can configure just the dependency and then start Reveal yourself.</p>
 <p>The alias:</p>
 <div class="highlight"><pre><span></span><code><span class="ss">:reveal-dep-only</span>
-<span class="w">  </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">}}}</span>
+<span class="w">  </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">"&lt;version&gt;"</span><span class="p">}}}</span>
 </code></pre></div>
 <p>A custom REPL command for starting Reveal in your project:</p>
-<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">"calva.customREPLCommandSnippets"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="err">...</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Start Reveal Tapper&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;snippet&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(require &#39;[vlaaad.reveal :as reveal])(add-tap (reveal/ui))&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sr&quot;</span>
+<span class="w">            </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Start Reveal Tapper"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"snippet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"(require '[vlaaad.reveal :as reveal])(add-tap (reveal/ui))"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sr"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="err">...</span>
 <span class="w">    </span><span class="p">]</span>
@@ -2332,7 +2368,7 @@
 <p>See <a href="../custom-commands/">Custom REPL Command</a> for how to configure more commands, and bind shortcuts to them, to make Reveal integration nice for you.</p>
 <h2 id="when-using-leiningen">When using Leiningen<a class="headerlink" href="#when-using-leiningen" title="Permanent link">#</a></h2>
 <p>In your <code>project.clj</code>, add a profile named "reveal":</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:profiles</span><span class="w"> </span><span class="p">{</span><span class="ss">:reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">]]</span>
+<div class="highlight"><pre><span></span><code><span class="ss">:profiles</span><span class="w"> </span><span class="p">{</span><span class="ss">:reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="s">"&lt;version&gt;"</span><span class="p">]]</span>
 <span class="w">                    </span><span class="ss">:repl-options</span><span class="w"> </span><span class="p">{</span><span class="ss">:nrepl-middleware</span><span class="w"> </span><span class="p">[</span><span class="nv">vlaaad.reveal.nrepl/middleware</span><span class="p">]}}}</span>
 </code></pre></div>
 <p>Now when you jack-in using Calva, you enable this profile and Reveal will be
@@ -2342,14 +2378,14 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
 <p>If you find the font to small you can add a <code>:jvm-opts</code> key to make it a little bigger:</p>
 <div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
 <span class="p">{</span><span class="ss">:reveal</span>
-<span class="w">    </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">&quot;&lt;version&gt;&quot;</span><span class="p">}}</span>
-<span class="w">     </span><span class="ss">:jvm-opts</span><span class="w">   </span><span class="p">[</span><span class="s">&quot;-Dvlaaad.reveal.prefs={:font-size,17}&quot;</span><span class="p">]</span>
-<span class="w">     </span><span class="ss">:main-opts</span><span class="w">  </span><span class="p">[</span><span class="s">&quot;-m&quot;</span><span class="w"> </span><span class="s">&quot;nrepl.cmdline&quot;</span>
-<span class="w">                  </span><span class="s">&quot;--middleware&quot;</span><span class="w"> </span><span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+<span class="w">    </span><span class="p">{</span><span class="ss">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="nv">vlaaad/reveal</span><span class="w"> </span><span class="p">{</span><span class="ss">:mvn/version</span><span class="w"> </span><span class="s">"&lt;version&gt;"</span><span class="p">}}</span>
+<span class="w">     </span><span class="ss">:jvm-opts</span><span class="w">   </span><span class="p">[</span><span class="s">"-Dvlaaad.reveal.prefs={:font-size,17}"</span><span class="p">]</span>
+<span class="w">     </span><span class="ss">:main-opts</span><span class="w">  </span><span class="p">[</span><span class="s">"-m"</span><span class="w"> </span><span class="s">"nrepl.cmdline"</span>
+<span class="w">                  </span><span class="s">"--middleware"</span><span class="w"> </span><span class="s">"[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"</span><span class="p">]}}</span>
 </code></pre></div>
 <h2 id="using-java-11">Using Java &gt; 11?<a class="headerlink" href="#using-java-11" title="Permanent link">#</a></h2>
 <p>Reveal needs some reflective access to internal classes that has since Java 11 been restricted. You can relax this and get things working via JVM options. Tuck this into your reveal alias:</p>
-<div class="highlight"><pre><span></span><code>:jvm-opts [&quot;--add-opens&quot; &quot;javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED&quot;]
+<div class="highlight"><pre><span></span><code>:jvm-opts ["--add-opens" "javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED"]
 </code></pre></div>
 <p>(If you are using the font size tips, just add the options into the <code>:jvm-opts</code> vector.)</p>
 <p>See <a href="https://github.com/vlaaad/reveal/issues/1">https://github.com/vlaaad/reveal/issues/1</a> for some more context around this issue.</p>

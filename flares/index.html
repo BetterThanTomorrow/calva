@@ -30,6 +30,9 @@
     
       <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
       
 
 
@@ -100,7 +103,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -150,6 +160,32 @@
         </div>
       </div>
     </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
     
     
       <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
@@ -698,7 +734,7 @@
         
   
   <span class="md-ellipsis">
-    The Output View
+    The Output Views
   </span>
   
 
@@ -2331,9 +2367,9 @@ Calva inspects all REPL evaluation for flares, so you can use them in the REPL t
 Flares can be used with any type of REPL, including: Clojure, ClojureScript, Babashka, Joyride.</p>
 <h2 id="try-flares-in-the-repl">Try Flares in the REPL<a class="headerlink" href="#try-flares-in-the-repl" title="Permanent link">#</a></h2>
 <p>Try this example by copying it to your Calva REPL:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Flares!&lt;/h1&gt;&quot;</span>,
-<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Greeting&quot;</span>
-<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">'flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">"&lt;h1&gt;Hello, Flares!&lt;/h1&gt;"</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">"Greeting"</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">"example"</span><span class="p">})</span>
 </code></pre></div>
 <p>A WebView panel opens up showing the rendered HTML content.</p>
 <p>Flares are <a href="https://clojure.org/reference/reader#tagged_literals">tagged literals</a> consisting of a tag indicating the desired action, and a map containing the request details.
@@ -2344,9 +2380,9 @@ Clojure prints tagged literals as <code>#tag{...}</code>, so when you create the
 <li><strong>Request</strong>: <code>{:html "..."}</code> - HTML content to display</li>
 </ul>
 <p>To show a webpage, pass a <code>:url</code> instead of <code>:html</code> in the request:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:url</span><span class="w"> </span><span class="s">&quot;https://calva.io/&quot;</span>,
-<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Calva homepage&quot;</span>
-<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">'flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:url</span><span class="w"> </span><span class="s">"https://calva.io/"</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">"Calva homepage"</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">"example"</span><span class="p">})</span>
 </code></pre></div>
 <p>The <code>:key</code> parameter is optional and can be used to reuse the same WebView panel.
 If omitted, a new WebView panel will be created per request.</p>
@@ -2354,31 +2390,31 @@ If omitted, a new WebView panel will be created per request.</p>
 <p>By default, flares open in a separate WebView panel alongside your code.
 You can also display flares in the Calva sidebar using the <code>:sidebar-panel?</code> option:</p>
 <div class="highlight"><pre><span></span><code><span class="c1">;; Display in a separate panel (default)</span>
-<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Panel!&lt;/h1&gt;&quot;</span>,
-<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Panel Display&quot;</span><span class="p">})</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">'flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">"&lt;h1&gt;Hello, Panel!&lt;/h1&gt;"</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">"Panel Display"</span><span class="p">})</span>
 
 <span class="c1">;; Display in the Calva sidebar</span>
-<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">&quot;&lt;h1&gt;Hello, Sidebar!&lt;/h1&gt;&quot;</span>,
-<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;Sidebar Display&quot;</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">'flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="s">"&lt;h1&gt;Hello, Sidebar!&lt;/h1&gt;"</span>,
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">"Sidebar Display"</span>
 <span class="w">                             </span><span class="ss">:sidebar-panel?</span><span class="w"> </span><span class="nv">true</span><span class="p">})</span>
 </code></pre></div>
 <p>The sidebar Flare view is located in the Calva activity bar section.</p>
 <h2 id="try-a-more-interesting-example">Try a more interesting example<a class="headerlink" href="#try-a-more-interesting-example" title="Permanent link">#</a></h2>
 <p>Let's create an SVG containing circles of varying radii and colors:</p>
-<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">&#39;</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="nv">clojure.string</span><span class="w"> </span><span class="ss">:as</span><span class="w"> </span><span class="nv">str</span><span class="p">])</span>
 <span class="p">(</span><span class="kd">defn </span><span class="nv">svg</span><span class="w"> </span><span class="p">[]</span>
 <span class="w">  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">circles</span><span class="w"> </span><span class="p">(</span><span class="nb">for </span><span class="p">[</span><span class="nv">i</span><span class="w"> </span><span class="p">(</span><span class="nb">range </span><span class="mi">10</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="mi">10</span><span class="p">)]</span>
 <span class="w">                  </span><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">hue</span><span class="w"> </span><span class="p">(</span><span class="nb">* </span><span class="p">(</span><span class="nb">/ </span><span class="nv">i</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="mi">360</span><span class="p">)</span><span class="w"> </span><span class="c1">; Map radius to hue (0-360)</span>
-<span class="w">                        </span><span class="nv">color</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;hsl(&quot;</span><span class="w"> </span><span class="nv">hue</span><span class="w"> </span><span class="s">&quot;, 100%, 50%)&quot;</span><span class="p">)]</span>
-<span class="w">                    </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;&lt;circle r=&#39;&quot;</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="s">&quot;&#39; stroke=&#39;&quot;</span><span class="w"> </span><span class="nv">color</span><span class="w"> </span><span class="s">&quot;&#39;/&gt;&quot;</span><span class="p">)))]</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">str </span><span class="s">&quot;&lt;svg height=&#39;200&#39; width=&#39;200&#39;&gt;&quot;</span>
-<span class="w">         </span><span class="s">&quot;&lt;g transform=&#39;translate(100,100)&#39; fill=&#39;none&#39;&gt;&quot;</span>
+<span class="w">                        </span><span class="nv">color</span><span class="w"> </span><span class="p">(</span><span class="nb">str </span><span class="s">"hsl("</span><span class="w"> </span><span class="nv">hue</span><span class="w"> </span><span class="s">", 100%, 50%)"</span><span class="p">)]</span>
+<span class="w">                    </span><span class="p">(</span><span class="nb">str </span><span class="s">"&lt;circle r='"</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="s">"' stroke='"</span><span class="w"> </span><span class="nv">color</span><span class="w"> </span><span class="s">"'/&gt;"</span><span class="p">)))]</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">str </span><span class="s">"&lt;svg height='200' width='200'&gt;"</span>
+<span class="w">         </span><span class="s">"&lt;g transform='translate(100,100)' fill='none'&gt;"</span>
 <span class="w">         </span><span class="p">(</span><span class="nf">str/join</span><span class="w"> </span><span class="nv">circles</span><span class="p">)</span>
-<span class="w">         </span><span class="s">&quot;&lt;/g&gt;&quot;</span>
-<span class="w">         </span><span class="s">&quot;&lt;/svg&gt;&quot;</span><span class="p">)))</span>
-<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">&#39;flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="p">(</span><span class="nf">svg</span><span class="p">)</span>
-<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">&quot;SVG Circles&quot;</span>
-<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">&quot;example&quot;</span><span class="p">})</span>
+<span class="w">         </span><span class="s">"&lt;/g&gt;"</span>
+<span class="w">         </span><span class="s">"&lt;/svg&gt;"</span><span class="p">)))</span>
+<span class="p">(</span><span class="nf">tagged-literal</span><span class="w"> </span><span class="ss">'flare/html</span><span class="w"> </span><span class="p">{</span><span class="ss">:html</span><span class="w"> </span><span class="p">(</span><span class="nf">svg</span><span class="p">)</span>
+<span class="w">                             </span><span class="ss">:title</span><span class="w"> </span><span class="s">"SVG Circles"</span>
+<span class="w">                             </span><span class="ss">:key</span><span class="w"> </span><span class="s">"example"</span><span class="p">})</span>
 </code></pre></div>
 <p>Copy this code into your Calva REPL and evaluate it to see the SVG image.
 The WebView panel will display the SVG content.</p>
