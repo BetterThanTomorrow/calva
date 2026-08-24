@@ -68,7 +68,7 @@
 
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
-  [^js dom-element {:keys [output]}]
+  [^js dom-element output]
   (let [div (js/document.createElement "div")
         span (js/document.createElement "span")
         span-text-node (js/document.createTextNode "Evaluated code")
@@ -83,7 +83,7 @@
     (.. dom-element (dispatchEvent (output-appended-event div)))))
 
 (defn append-eval-result
-  [^js dom-element {:keys [output]}]
+  [^js dom-element output]
   (let [{:keys [code-element container-element]} (clojure-code-element output)]
     (.. dom-element (appendChild container-element))
     (.. hljs (highlightElement code-element))
@@ -101,7 +101,7 @@
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
    in which case it appends the content to that element instead."
-  [^js dom-element {:keys [output]}]
+  [^js dom-element output]
   (let [text-node (js/document.createTextNode (strip-ansi output))]
     (if-let [last-output-element (.. dom-element -lastElementChild)]
       (if (= "stdout" (.. last-output-element -dataset -outputElementType))
@@ -146,23 +146,14 @@
         (.. container (appendChild ns-badge))))
     container))
 
-(defn maybe-append-ns-info
-  [^js dom-element !app-db {:output/keys [last-context]} {:keys [meta]}]
-  (when-let [ns (or (:meta/ns meta) (:ns meta))]
-    (let [who (or (:meta/who meta) (:who meta))
-          repl-session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
-          shadow-build (or (:meta/shadow-build meta) (:shadow-build meta))
-          shadow-runtime-id (or (:meta/shadow-runtime-id meta) (:shadow-runtime-id meta))
-          context-key [who repl-session-key shadow-build shadow-runtime-id ns]]
-      (when (not= context-key last-context)
-        (swap! !app-db app-db/set-last-context context-key)
-        (let [ns-info-el (create-ns-info-element meta)]
-          (.. dom-element (appendChild ns-info-el))
-          (.. dom-element (dispatchEvent (output-appended-event ns-info-el))))))))
+(defn append-ns-info
+  [^js dom-element meta-data]
+  (let [ns-info-el (create-ns-info-element meta-data)]
+    (.. dom-element (appendChild ns-info-el))
+    (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
 
-(defn ^:export clear-output-view
-  [^js output-dom-element !app-db]
-  (swap! !app-db app-db/clear-last-context)
+(defn clear-output-dom
+  [^js output-dom-element]
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons
@@ -180,7 +171,7 @@
                    (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
 
 (defn set-code-theme!
-  [{:keys [code-theme]}]
+  [code-theme]
   (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
     (.. code-theme-link-nodes (forEach (fn [^js node]
                                          (let [current-code-theme (.. node -dataset -codeTheme)]
@@ -191,7 +182,7 @@
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
 (defn set-word-wrap!
-  [{:keys [word-wrap]}]
+  [word-wrap]
   (let [body js/document.body]
     (if word-wrap
       (.. body -classList (add "word-wrap"))
@@ -201,39 +192,58 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(declare dispatch!)
+
+(defn exec-effect!
+  [^js output-dom-element [fx-type & args]]
+  (case fx-type
+    :fx/append-ns-info (append-ns-info output-dom-element (first args))
+    :fx/append-result (append-eval-result output-dom-element (first args))
+    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/append-stdout (append-stdout output-dom-element (first args))
+    :fx/clear-dom (clear-output-dom output-dom-element)
+    :fx/set-code-theme (set-code-theme! (first args))
+    :fx/set-word-wrap (set-word-wrap! (first args))
+    :fx/scroll-to (scroll-to (first args))))
+
+(defn dispatch!
+  [action]
+  (let [current-db @app-db/!app-db
+        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)]
+    (when (and db (not= db current-db))
+      (reset! app-db/!app-db db))
+    (run! #(exec-effect! output-dom-element %) fxs)
+    (run! dispatch! dxs)))
+
+(defn ^:export clear-output-view
+  []
+  (dispatch! [:msg/clear-output-view]))
+
 (defn handle-message
-  [^js output-dom-element !app-db ^js message]
+  [^js message]
   (ensure-dom-content-loaded
    (fn []
      (let [message-data (reader/read-string (.-data message))
-           command-name (:command/name message-data)
-           db @!app-db]
+           command-name (:command/name message-data)]
        (case command-name
-         "show-result" (do
-                         (maybe-append-ns-info output-dom-element !app-db db message-data)
-                         (append-eval-result output-dom-element message-data))
-         "show-evaluated-code" (do
-                                 (maybe-append-ns-info output-dom-element !app-db db message-data)
-                                 (append-evaluated-code output-dom-element message-data))
-         "show-stdout" (do
-                         (maybe-append-ns-info output-dom-element !app-db db message-data)
-                         (append-stdout output-dom-element message-data))
-         "clear-output-view" (clear-output-view output-dom-element !app-db)
-         "set-code-theme" (set-code-theme! message-data)
-         "set-word-wrap" (set-word-wrap! message-data)
-         "scroll-to" (scroll-to message-data))))))
+         "clear-output-view" (dispatch! [:msg/clear-output-view])
+         "set-code-theme"    (dispatch! [:msg/set-code-theme message-data])
+         "set-word-wrap"     (dispatch! [:msg/set-word-wrap message-data])
+         "scroll-to"         (dispatch! [:msg/scroll-to message-data])
+         ("show-result" "show-evaluated-code" "show-stdout")
+         (dispatch! [:msg/output message-data]))))))
 
 (defn handle-output-appended
   [^js _event]
   (throttled-scroll-to-bottom))
 
 (defn add-event-listeners
-  [^js output-dom-element !app-db]
-  (.. js/window (addEventListener "message" (partial handle-message output-dom-element !app-db)))
+  [^js output-dom-element]
+  (.. js/window (addEventListener "message" handle-message))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element app-db/!app-db)
+  (add-event-listeners output-dom-element)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
                                (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
