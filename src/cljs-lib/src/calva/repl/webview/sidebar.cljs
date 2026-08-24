@@ -24,13 +24,15 @@
 
 (defn get-sidebar-help-html
   [csp-source]
-  (let [destinations (current-output-destinations)]
+  (let [destinations (current-output-destinations)
+        style-nonce (str (random-uuid))]
     (str "<!DOCTYPE html>"
          "<html lang=\"en\"><head>"
          "<meta charset=\"UTF-8\">"
          "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src " csp-source "\">"
-         "<style>"
+         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src "
+         csp-source " 'nonce-" style-nonce "'\">"
+         "<style nonce=\"" style-nonce "\">"
          "body { color: var(--vscode-foreground); background: var(--vscode-editor-background); "
          "font-family: var(--vscode-font-family); padding: 16px; }"
          "h1 { font-size: 1.2em; } pre { white-space: pre-wrap; }"
