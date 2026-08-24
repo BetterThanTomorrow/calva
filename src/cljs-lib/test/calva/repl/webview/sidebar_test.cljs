@@ -81,7 +81,7 @@
                   sut/output-sidebar-log (atom [])
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/append options "some-output")
-      (is (= [{:command/name "show-stdout" :output "some-output"}]
+      (is (= [{:command/name "show-stdout" :output-category "evalOut" :output "some-output"}]
              @sut/output-sidebar-log))
       (is (spy/not-called? post-message-to-webview-spy))))
   (testing "when options carry metadata, should include :meta in the logged message"
@@ -96,6 +96,7 @@
                     core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/append options "some-output")
         (is (= [{:command/name "show-stdout"
+                 :output-category "evalOut"
                  :output "some-output"
                  :meta {:meta/who "repl"
                         :meta/ns "user"
@@ -111,11 +112,12 @@
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                   core/stacktrace->message (constantly "stacktrace")]
       (sut/append-stacktrace (clj->js []))
-      (is (= [{:command/name "show-stdout" :output "stacktrace"}]
+      (is (= [{:command/name "show-stdout" :output-category "evalErr" :output "stacktrace"}]
              @sut/output-sidebar-log))
       (is (spy/called-once-with? post-message-to-webview-spy
                                  webview-view
                                  {:command/name "show-stdout"
+                                  :output-category "evalErr"
                                   :output "stacktrace"})))))
 
 (deftest clear-output-sidebar-test

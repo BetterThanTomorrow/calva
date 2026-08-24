@@ -2,9 +2,22 @@
    padding-bottom: 5px;
 }
 
-pre[data-output-element-type="stdout"] {
+pre[data-output-element-type="stdout"],
+pre[data-output-element-type="evalOut"],
+pre[data-output-element-type="otherOut"],
+pre[data-output-element-type="evalErr"],
+pre[data-output-element-type="otherErr"] {
    white-space: pre-wrap;
    overflow-wrap: anywhere;
+}
+
+pre[data-output-element-type="otherOut"] {
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+pre[data-output-element-type="evalErr"],
+pre[data-output-element-type="otherErr"] {
+   color: var(--vscode-errorForeground, #f48771);
 }
 
 body.word-wrap code.hljs {

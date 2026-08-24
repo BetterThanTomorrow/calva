@@ -31,6 +31,16 @@
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
       (is (= [[:fx/append-result "42"]] (:uf/fxs result)))))
 
+  (testing ":msg/output show-stdout with an output-category"
+    (let [payload {:command/name "show-stdout" :output "text" :output-category "otherOut"}
+          result (sut/handle-action sut/initial-db [:msg/output payload])]
+      (is (= [[:fx/append-stdout "text" "otherOut"]] (:uf/fxs result)))))
+
+  (testing ":msg/output show-stdout without an output-category defaults to evalOut"
+    (let [payload {:command/name "show-stdout" :output "text"}
+          result (sut/handle-action sut/initial-db [:msg/output payload])]
+      (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
+
   (testing ":msg/set-code-theme"
     (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"}])]
       (is (= sut/initial-db (:uf/db result)))

@@ -358,6 +358,7 @@
         meta-data (options->meta options)]
     (if command-name
       (post-message-to-webview (ensure-output-view-panel) (cond-> {:command/name command-name
+                                                                   :output-category output-category
                                                                    :output message}
                                                             (seq meta-data) (assoc :meta meta-data)))
       (util/log-to-console
@@ -388,6 +389,7 @@
   (let [stacktrace (js->clj stacktrace :keywordize-keys true)
         stacktrace-message (stacktrace->message stacktrace)]
     (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
+                                                         :output-category "evalErr"
                                                          :output stacktrace-message})))
 
 (defn ^:export clear-output-view

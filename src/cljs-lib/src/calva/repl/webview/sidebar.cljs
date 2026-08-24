@@ -145,6 +145,7 @@
         meta-data (core/options->meta options)]
     (if command-name
       (add-output-sidebar-message! (cond-> {:command/name command-name
+                                            :output-category output-category
                                             :output message}
                                      (seq meta-data) (assoc :meta meta-data)))
       (util/log-to-console
@@ -155,6 +156,7 @@
   [^js stacktrace]
   (add-output-sidebar-message!
    {:command/name "show-stdout"
+    :output-category "evalErr"
     :output (core/stacktrace->message (js->clj stacktrace :keywordize-keys true))}))
 
 (defn ^:export clear-output-sidebar

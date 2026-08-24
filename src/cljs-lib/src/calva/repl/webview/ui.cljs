@@ -91,25 +91,26 @@
 
 (defn create-and-append-stdout-element
   "Creates a new stdout element and appends it to the given DOM element."
-  [dom-element text-node]
+  [dom-element text-node category]
   (let [pre-element (js/document.createElement "pre")]
     (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" "stdout"))
+    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
     (.. dom-element (appendChild pre-element))
     (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
 
 (defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element,
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
    in which case it appends the content to that element instead."
-  [^js dom-element output]
-  (let [text-node (js/document.createTextNode (strip-ansi output))]
+  [^js dom-element output category]
+  (let [category (or category "evalOut")
+        text-node (js/document.createTextNode (strip-ansi output))]
     (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= "stdout" (.. last-output-element -dataset -outputElementType))
+      (if (= category (.. last-output-element -dataset -outputElementType))
         (do
           (.. last-output-element (appendChild text-node))
           (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node))
-      (create-and-append-stdout-element dom-element text-node))))
+        (create-and-append-stdout-element dom-element text-node category))
+      (create-and-append-stdout-element dom-element text-node category))))
 
 (defn session-str
   [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
@@ -198,7 +199,7 @@
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
     :fx/append-result (append-eval-result output-dom-element (first args))
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
-    :fx/append-stdout (append-stdout output-dom-element (first args))
+    :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))

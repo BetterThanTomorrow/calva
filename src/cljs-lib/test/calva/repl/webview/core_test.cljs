@@ -402,6 +402,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
+                                      :output-category "evalOut"
                                       :output message})))))
     (testing "when options carry metadata, should include :meta in the posted message"
       (let [options (clj->js {:outputCategory "evalOut"
@@ -417,6 +418,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
+                                      :output-category "evalOut"
                                       :output message
                                       :meta {:meta/who "repl"
                                              :meta/ns "user"
@@ -442,6 +444,7 @@
           (is (spy/called-once-with? post-message-to-webview-spy
                                      "created-webview-panel"
                                      {:command/name "show-stdout"
+                                      :output-category "evalOut"
                                       :output "some-message"})))))
     (testing "when command does not exist for output category,"
       (let [options (clj->js {:outputCategory "nonexistent-category"})
@@ -538,6 +541,7 @@
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
                                    {:command/name "show-stdout"
+                                    :output-category "evalErr"
                                     :output "some-message"})))))
   (testing "when the webview panel does not exist, should create it before posting"
     (let [create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
@@ -558,6 +562,7 @@
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "created-webview-panel"
                                    {:command/name "show-stdout"
+                                    :output-category "evalErr"
                                     :output ""}))))))
 
 (deftest clear-output-view-test

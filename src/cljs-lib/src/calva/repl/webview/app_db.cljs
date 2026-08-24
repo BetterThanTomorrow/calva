@@ -13,7 +13,7 @@
      :uf/fxs [[:fx/clear-dom]]}
 
     :msg/output
-    (let [{:keys [command/name output meta]} payload
+    (let [{:keys [command/name output meta output-category]} payload
           {:meta/keys [ns who repl-session-key shadow-build shadow-runtime-id]} meta
           ns (or ns (:ns meta))
           who (or who (:who meta))
@@ -28,7 +28,7 @@
                  context-changed? (conj [:fx/append-ns-info meta])
                  (= name "show-result") (conj [:fx/append-result output])
                  (= name "show-evaluated-code") (conj [:fx/append-evaluated-code output])
-                 (= name "show-stdout") (conj [:fx/append-stdout output]))})
+                 (= name "show-stdout") (conj [:fx/append-stdout output (or output-category "evalOut")]))})
 
     :msg/set-code-theme
     {:uf/db db
