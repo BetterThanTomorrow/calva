@@ -270,16 +270,22 @@ suite('WebSocket nREPL Connect suite', function () {
     await vscode.commands.executeCommand('calva.loadFile', { path: coreFile });
     testUtil.log(suite, 'Load file command executed');
 
-    // Verify eval result appears in repl output
+    // Verify namespace var was defined in Scittle session after loadFile
     await testUtil.waitForCondition(
       async () => {
-        const replWindowDoc = await outputWindow.openReplWindowDoc();
-        const text = docMirror.getDocument(replWindowDoc).document.getText();
-        return text.includes('nil');
+        try {
+          const r = await session.eval(
+            "(try (boolean (resolve 'replicant-tictactoe.core/start-new-game)) (catch :default _ false))",
+            'user'
+          ).value;
+          return r === 'true';
+        } catch {
+          return false;
+        }
       },
-      2_000,
+      5_000,
       20,
-      'Timed out waiting for load-file result in REPL window'
+      'Timed out waiting for loaded file to define start-new-game in session'
     );
 
     testUtil.log(suite, `[TIMING] Test 2 complete: ${elapsed()}`);
