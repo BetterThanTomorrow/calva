@@ -138,6 +138,13 @@
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
+(defn set-word-wrap!
+  [{:keys [word-wrap]}]
+  (let [body js/document.body]
+    (if word-wrap
+      (.. body -classList (add "word-wrap"))
+      (.. body -classList (remove "word-wrap")))))
+
 (defn scroll-to
   [{:keys [x y]}]
   (js/scrollTo x y))
@@ -154,6 +161,7 @@
          "show-stdout" (append-stdout output-dom-element message-data)
          "clear-output-view" (clear-output-view output-dom-element)
          "set-code-theme" (set-code-theme! message-data)
+         "set-word-wrap" (set-word-wrap! message-data)
          "scroll-to" (scroll-to message-data))))))
 
 (defn handle-output-appended
