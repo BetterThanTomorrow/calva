@@ -32,6 +32,13 @@ The default configuration is to relay all categories to the Calva output termina
   "evalResults": "terminal",
   "evalOutput": "terminal",
   "otherOutput": "terminal"
+The default configuration relays all categories to both the Calva Output terminal and the REPL Output sidebar. The first destination is used by the command that shows or reveals the output destination.
+
+```json
+"calva.outputDestinations": {
+  "evalResults": ["terminal", "output-sidebar"],
+  "evalOutput": ["terminal", "output-sidebar"],
+  "otherOutput": ["terminal", "output-sidebar"]
 }
 ```
 
