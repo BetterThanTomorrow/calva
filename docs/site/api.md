@@ -147,6 +147,72 @@ Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered 
   }
   ```
 
+### `repl.onSessionsChanged()`
+
+Subscribe to real-time REPL session, connection, and runtime lifecycle changes. Calva fires notifications immediately whenever a connection is established or closed, sessions are registered, unregistered, or renamed, or Shadow-cljs runtimes connect or disconnect.
+
+Returns a `vscode.Disposable` that you should dispose when you no longer need updates. (Push it onto `context.subscriptions` for automatic cleanup).
+
+Event payloads are intentionally lightweight notifications. To inspect full project roots, globs, available builds, or runtime trees, query [`repl.listSessionsAndRuntimes()`](#repllistsessionsandruntimes) when receiving an event.
+
+TypeScript signature:
+
+```typescript
+export function onSessionsChanged(
+  listener: (event: SessionsChangedEvent) => void
+): vscode.Disposable;
+
+export type SessionsChangedEventType =
+  | 'session-added'
+  | 'session-removed'
+  | 'session-renamed'
+  | 'runtime-connected'
+  | 'runtime-disconnected'
+  | 'connection-added'
+  | 'connection-removed';
+
+export interface SessionsChangedEvent {
+  type: SessionsChangedEventType;
+  clientKey?: string;
+  sessionKey?: string;
+  previousSessionKey?: string; // Present only on 'session-renamed'
+  runtime?: ShadowRuntimeInfo; // Present on 'runtime-connected' / 'runtime-disconnected'
+}
+```
+
+#### Event Types
+
+* `'connection-added'` / `'connection-removed'` — An nREPL client connected or disconnected (`clientKey` provided).
+* `'session-added'` / `'session-removed'` — A session was registered or unregistered (`sessionKey` and `clientKey` provided).
+* `'session-renamed'` — A session was renamed (`sessionKey` is the new key, `previousSessionKey` is the old key).
+* `'runtime-connected'` / `'runtime-disconnected'` — A Shadow-cljs runtime connected or disconnected (`runtime` provides the [`ShadowRuntimeInfo`](#repllistsessionsandruntimes) object).
+
+#### Examples
+
+=== "Joyride"
+
+    ```clojure
+    (def sub
+      (calva/repl.onSessionsChanged
+       (fn [e]
+         (println "Session event:" (.-type e) (.-sessionKey e)))))
+
+    ;; When done:
+    ;; (.dispose sub)
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const disposable = calva.repl.onSessionsChanged((event) => {
+      console.log(`Session change: ${event.type}`, event);
+      if (event.type === 'runtime-connected') {
+        console.log(`New runtime connected on ${event.sessionKey}:`, event.runtime?.description);
+      }
+    });
+
+    // context.subscriptions.push(disposable);
+    ```
 
 ### `repl.evaluate()`
 
