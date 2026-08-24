@@ -3892,7 +3892,6 @@
     "ansi-regex": "^5.0.1",
     "axios": "^1.4.0",
     "chalk": "^4.1.2",
-    "extract-zip": "^2.0.1",
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
     "get-port": "^5.1.1",

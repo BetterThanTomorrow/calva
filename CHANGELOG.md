@@ -4,17 +4,18 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Terrible performance with large-ish numbers of cursors and
-  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268)
 - Add: [REPL output sidebar destination (Output view, but for sidebar placement)](https://github.com/BetterThanTomorrow/calva/issues/2813)
   - Update default output destinations to all be `["terminal", "output-sidebar"]` (from `"terminal"`)
 - Output views (both variants): wrap **evalOutput** at view width, avoiding horizontal scroll of the view.
 - Output views (both variants): Add wrap toggle command for evaluated code and results
-- Add: Let the Calva User Guide follow the system light/dark preference,
-  with a manual theme toggle and a Calva-branded dark palette.
+- Fix: [Terrible performance with large-ish numbers of cursors and
+  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268)
 - Fix: More stable way to recreate the Calva Output terminal after the tab is closed. Mitigation for [Output terminal stops outputting in Cursor](https://github.com/BetterThanTomorrow/calva/issues/3267)
 - Bump deps-clj to v1.12.5.1664
+- Doc site: Let the Calva User Guide follow the system light/dark preference,
+  with a manual theme toggle and a Calva-branded dark palette.
 - Fix: [Documentation bug: incorrect settings description for Jack-in dependency versions](https://github.com/BetterThanTomorrow/calva/issues/3266)
+- Internal: Replace dependency on **extract-zip** for **jszip** (`npm audit` clean for now)
 
 ## [2.0.594] - 2026-07-14
 
