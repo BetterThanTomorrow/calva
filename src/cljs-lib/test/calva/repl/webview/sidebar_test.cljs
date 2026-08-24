@@ -83,7 +83,24 @@
       (sut/append options "some-output")
       (is (= [{:command/name "show-stdout" :output "some-output"}]
              @sut/output-sidebar-log))
-      (is (spy/not-called? post-message-to-webview-spy)))))
+      (is (spy/not-called? post-message-to-webview-spy))))
+  (testing "when options carry metadata, should include :meta in the logged message"
+    (let [post-message-to-webview-spy (spy/spy)
+          options (clj->js {:outputCategory "evalOut"
+                            :who "repl"
+                            :ns "user"
+                            :replSessionKey "clj"})]
+      (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
+                    sut/output-sidebar-webview-view (atom nil)
+                    sut/output-sidebar-log (atom [])
+                    core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/append options "some-output")
+        (is (= [{:command/name "show-stdout"
+                 :output "some-output"
+                 :meta {:who "repl"
+                        :ns "user"
+                        :repl-session-key "clj"}}]
+               @sut/output-sidebar-log))))))
 
 (deftest append-stacktrace-test
   (let [post-message-to-webview-spy (spy/spy)
