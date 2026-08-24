@@ -325,22 +325,31 @@
 (defn options->meta
   [^js options]
   (when options
-    (let [who (or (and (map? options) (:who options))
+    (let [who (or (and (map? options) (or (:meta/who options) (:who options)))
                   (and (some? options) (.-who options)))
-          ns (or (and (map? options) (:ns options))
+          ns (or (and (map? options) (or (:meta/ns options) (:ns options)))
                  (and (some? options) (.-ns options)))
-          repl-session-key (or (and (map? options) (or (:replSessionKey options) (:replSessionType options) (:repl-session-key options) (:repl-session-type options)))
+          repl-session-key (or (and (map? options) (or (:meta/repl-session-key options)
+                                                       (:meta/repl-session-type options)
+                                                       (:replSessionKey options)
+                                                       (:replSessionType options)
+                                                       (:repl-session-key options)
+                                                       (:repl-session-type options)))
                                (and (some? options) (or (.-replSessionKey options) (.-replSessionType options))))
-          shadow-build (or (and (map? options) (or (:shadowBuild options) (:shadow-build options)))
+          shadow-build (or (and (map? options) (or (:meta/shadow-build options)
+                                                   (:shadowBuild options)
+                                                   (:shadow-build options)))
                            (and (some? options) (.-shadowBuild options)))
-          shadow-runtime-id (or (and (map? options) (or (:shadowRuntimeId options) (:shadow-runtime-id options)))
+          shadow-runtime-id (or (and (map? options) (or (:meta/shadow-runtime-id options)
+                                                        (:shadowRuntimeId options)
+                                                        (:shadow-runtime-id options)))
                                 (and (some? options) (.-shadowRuntimeId options)))]
       (cond-> {}
-        who (assoc :who who)
-        ns (assoc :ns ns)
-        repl-session-key (assoc :repl-session-key repl-session-key)
-        shadow-build (assoc :shadow-build shadow-build)
-        (some? shadow-runtime-id) (assoc :shadow-runtime-id shadow-runtime-id)))))
+        who (assoc :meta/who who)
+        ns (assoc :meta/ns ns)
+        repl-session-key (assoc :meta/repl-session-key repl-session-key)
+        shadow-build (assoc :meta/shadow-build shadow-build)
+        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
 
 (defn ^:export append
   [^js options message]

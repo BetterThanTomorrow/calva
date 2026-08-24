@@ -358,26 +358,26 @@
 (deftest options->meta-test
   (testing "Given nil options, should return nil"
     (is (nil? (sut/options->meta nil))))
-  (testing "Given a map of options with only :who, should return a map with only :who"
-    (is (= {:who "repl"}
+  (testing "Given a map of options with only :who, should return a map with only :meta/who"
+    (is (= {:meta/who "repl"}
            (sut/options->meta {:who "repl"}))))
   (testing "Given a map of options with all supported keys, should return the expected map"
-    (is (= {:who "repl"
-            :ns "user"
-            :repl-session-key "clj"
-            :shadow-build "app"
-            :shadow-runtime-id 1}
+    (is (= {:meta/who "repl"
+            :meta/ns "user"
+            :meta/repl-session-key "clj"
+            :meta/shadow-build "app"
+            :meta/shadow-runtime-id 1}
            (sut/options->meta {:who "repl"
                                :ns "user"
                                :replSessionKey "clj"
                                :shadowBuild "app"
                                :shadowRuntimeId 1}))))
   (testing "Given a JS object with all supported keys, should return the expected map"
-    (is (= {:who "repl"
-            :ns "user"
-            :repl-session-key "clj"
-            :shadow-build "app"
-            :shadow-runtime-id 1}
+    (is (= {:meta/who "repl"
+            :meta/ns "user"
+            :meta/repl-session-key "clj"
+            :meta/shadow-build "app"
+            :meta/shadow-runtime-id 1}
            (sut/options->meta (clj->js {:who "repl"
                                         :ns "user"
                                         :replSessionKey "clj"
@@ -386,7 +386,7 @@
   (testing "Given options with no recognized keys, should return an empty map"
     (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
   (testing "Given options with shadow-runtime-id 0, should include it"
-    (is (= {:shadow-runtime-id 0}
+    (is (= {:meta/shadow-runtime-id 0}
            (sut/options->meta {:shadowRuntimeId 0})))))
 
 (deftest append-test
@@ -418,9 +418,9 @@
                                      "webview-panel-stub"
                                      {:command/name "show-stdout"
                                       :output message
-                                      :meta {:who "repl"
-                                             :ns "user"
-                                             :repl-session-key "clj"}})))))
+                                      :meta {:meta/who "repl"
+                                             :meta/ns "user"
+                                             :meta/repl-session-key "clj"}})))))
     (testing "when the webview panel does not exist, should create it before posting"
       (let [options (clj->js {:outputCategory "evalOut"})
             create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")

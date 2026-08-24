@@ -1,5 +1,6 @@
 (ns calva.repl.webview.ui
   (:require
+   [calva.repl.webview.app-db :as app-db]
    [cljs.reader :as reader]
    [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
@@ -9,8 +10,6 @@
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
-
-(defonce last-context (atom nil))
 
 (defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
@@ -113,7 +112,7 @@
       (create-and-append-stdout-element dom-element text-node))))
 
 (defn session-str
-  [{:keys [repl-session-key shadow-build shadow-runtime-id]}]
+  [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
   (let [parts (cond-> []
                 repl-session-key (conj (str repl-session-key))
                 shadow-build (conj (str shadow-build))
@@ -121,7 +120,7 @@
     (str/join " " parts)))
 
 (defn create-ns-info-element
-  [{:keys [who ns] :as meta-data}]
+  [{:meta/keys [who ns] :as meta-data}]
   (let [container (js/document.createElement "div")
         prefix (js/document.createElement "span")
         sess (session-str meta-data)]
@@ -148,18 +147,22 @@
     container))
 
 (defn maybe-append-ns-info
-  [^js dom-element {:keys [meta]}]
-  (when-let [ns (:ns meta)]
-    (let [context-key [(:who meta) (:repl-session-key meta) (:shadow-build meta) (:shadow-runtime-id meta) ns]]
-      (when (not= context-key @last-context)
-        (reset! last-context context-key)
+  [^js dom-element !app-db {:output/keys [last-context]} {:keys [meta]}]
+  (when-let [ns (or (:meta/ns meta) (:ns meta))]
+    (let [who (or (:meta/who meta) (:who meta))
+          repl-session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
+          shadow-build (or (:meta/shadow-build meta) (:shadow-build meta))
+          shadow-runtime-id (or (:meta/shadow-runtime-id meta) (:shadow-runtime-id meta))
+          context-key [who repl-session-key shadow-build shadow-runtime-id ns]]
+      (when (not= context-key last-context)
+        (swap! !app-db app-db/set-last-context context-key)
         (let [ns-info-el (create-ns-info-element meta)]
           (.. dom-element (appendChild ns-info-el))
           (.. dom-element (dispatchEvent (output-appended-event ns-info-el))))))))
 
 (defn ^:export clear-output-view
-  [^js output-dom-element]
-  (reset! last-context nil)
+  [^js output-dom-element !app-db]
+  (swap! !app-db app-db/clear-last-context)
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons
@@ -199,22 +202,23 @@
   (js/scrollTo x y))
 
 (defn handle-message
-  [^js output-dom-element ^js message]
+  [^js output-dom-element !app-db ^js message]
   (ensure-dom-content-loaded
    (fn []
      (let [message-data (reader/read-string (.-data message))
-           command-name (:command/name message-data)]
+           command-name (:command/name message-data)
+           db @!app-db]
        (case command-name
          "show-result" (do
-                         (maybe-append-ns-info output-dom-element message-data)
+                         (maybe-append-ns-info output-dom-element !app-db db message-data)
                          (append-eval-result output-dom-element message-data))
          "show-evaluated-code" (do
-                                 (maybe-append-ns-info output-dom-element message-data)
+                                 (maybe-append-ns-info output-dom-element !app-db db message-data)
                                  (append-evaluated-code output-dom-element message-data))
          "show-stdout" (do
-                         (maybe-append-ns-info output-dom-element message-data)
+                         (maybe-append-ns-info output-dom-element !app-db db message-data)
                          (append-stdout output-dom-element message-data))
-         "clear-output-view" (clear-output-view output-dom-element)
+         "clear-output-view" (clear-output-view output-dom-element !app-db)
          "set-code-theme" (set-code-theme! message-data)
          "set-word-wrap" (set-word-wrap! message-data)
          "scroll-to" (scroll-to message-data))))))
@@ -224,12 +228,12 @@
   (throttled-scroll-to-bottom))
 
 (defn add-event-listeners
-  [^js output-dom-element]
-  (.. js/window (addEventListener "message" (partial handle-message output-dom-element)))
+  [^js output-dom-element !app-db]
+  (.. js/window (addEventListener "message" (partial handle-message output-dom-element !app-db)))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element)
+  (add-event-listeners output-dom-element app-db/!app-db)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
                                (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
