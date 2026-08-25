@@ -2,9 +2,12 @@
    --calva-output-font-scale: 1;
 }
 
-body,
-pre,
-code {
+pre[data-output-element-type],
+.evaluated-code-container pre,
+.evaluated-code-container code,
+.output-element-container > pre,
+.output-element-container > pre > code,
+.ns-info-container {
    font-family: var(--vscode-editor-font-family, monospace);
    font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
 }
@@ -80,8 +83,6 @@ body.word-wrap code.hljs {
    gap: 4px;
    margin-top: 14px;
    margin-bottom: 2px;
-   font-family: var(--vscode-editor-font-family, monospace);
-   font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
    line-height: 1.2;
 }
 
