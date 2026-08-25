@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.596",
+  "version": "2.0.597",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -342,7 +342,7 @@
           },
           "calva.outputViews.fontSizeScale": {
             "type": "number",
-            "default": 1.0,
+            "default": 1,
             "minimum": 0.5,
             "maximum": 1.5,
             "description": "Scale factor for the Output views font size relative to the editor font size. Accepts values between 0.5 and 1.5."
