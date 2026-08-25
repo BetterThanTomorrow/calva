@@ -781,6 +781,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#font-size-and-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Font Size and Scaling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wrap-evaluated-code-and-results" class="md-nav__link">
     <span class="md-ellipsis">
       Wrap Evaluated Code and Results
@@ -2252,6 +2261,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#font-size-and-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Font Size and Scaling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wrap-evaluated-code-and-results" class="md-nav__link">
     <span class="md-ellipsis">
       Wrap Evaluated Code and Results
@@ -2326,7 +2344,7 @@
   <h1>The Output Views</h1>
 
 <p>The <code>output-view</code> editor tab and <code>output-sidebar</code> sidebar are separate destinations that share the same read-only webview page. They are more performant than <a href="../repl-window/">the editor-based REPL window</a>. To see a feature comparison of all output destinations, see <a href="../output/#output-destinations-feature-comparison">Output Destinations Feature Comparison</a>.</p>
-<p>The output views are two, performant, custom web views which can be configured as <a href="../output/">Output Destinationsn</a>. They largely share features (and implementation), the main difference being their placement in the VS Code UI.</p>
+<p>The output views are two, performant, custom web views which can be configured as <a href="../output/">Output Destinations</a>. They largely share features (and implementation), the main difference being their placement in the VS Code UI.</p>
 <ul>
 <li><code>output-view</code> is an editor tab, which can be placed anywhere an editor can be placed.</li>
 <li><code>output-sidebar</code> is a sidebar/panel view, which can be placed in the sidebars, or in the Panel view container.</li>
@@ -2334,10 +2352,26 @@
 <p><img alt="The output view, post jack-in" src="../images/output-view/post-jack-in.png" /></p>
 <h2 id="show-the-output-views">Show the Output Views<a class="headerlink" href="#show-the-output-views" title="Permanent link">#</a></h2>
 <p>Run <strong>Calva: Show/Open the REPL output view</strong> for the editor tab or <strong>Calva: Show/Open the REPL output sidebar</strong> for the sidebar.</p>
+<h2 id="font-size-and-scaling">Font Size and Scaling<a class="headerlink" href="#font-size-and-scaling" title="Permanent link">#</a></h2>
+<p>The output views follow the editor font family (<code>editor.fontFamily</code>) and editor font size (<code>editor.fontSize</code>).</p>
+<p>You can adjust the scale of the font size in the output views relative to the editor font size using the setting <code>calva.outputViews.fontSizeScale</code> (default <code>1.0</code>, range <code>0.5</code> to <code>1.5</code>).</p>
+<p>You can also adjust the font size in-session, across both views using commands:</p>
+<ul>
+<li><strong>Calva: Increase Output View Font Size</strong></li>
+<li><strong>Calva: Decrease Output View Font Size</strong></li>
+<li><strong>Calva: Reset Output View Font Size</strong></li>
+</ul>
+<p>The sidebar view has <strong>Zoom Out</strong> and <strong>Zoom In</strong> title bar buttons for quick adjustments.</p>
 <h2 id="wrap-evaluated-code-and-results">Wrap Evaluated Code and Results<a class="headerlink" href="#wrap-evaluated-code-and-results" title="Permanent link">#</a></h2>
-<p>The evaluated code and results are wrapped according to the setting for the editors, <code>editor.wordWrap</code>. There is a command for toggling the wrap in the output views: <strong>Calva: Toggle REPL Output Word Wrap</strong>. This command toggles the wrap setting in both views. The toggling is not persisted. The sidebar view has a button for issuing the command.</p>
+<p>Word wrapping for evaluated code and results in the output views can be configured via the <code>calva.outputViews.wordWrap</code> setting. It accepts:</p>
+<ul>
+<li><code>"follow-editor"</code> (default) – follows VS Code's <code>editor.wordWrap</code> setting.</li>
+<li><code>"on"</code> – always wraps output in the output views.</li>
+<li><code>"off"</code> – disables word wrapping in the output views.</li>
+</ul>
+<p>There is also a command for toggling word wrap in-session across both views: <strong>Calva: Toggle REPL Output Word Wrap</strong>. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.</p>
 <h2 id="clear-output">Clear Output<a class="headerlink" href="#clear-output" title="Permanent link">#</a></h2>
-<p>Use the commands <strong>Calva: Clear Ouput View</strong> and <strong>Calva: Clear Ouput Sidebar</strong> to clear the respective view. The sidebar view also has a title  clear button.</p>
+<p>Use the commands <strong>Calva: Clear Output View</strong> and <strong>Calva: Clear Output Sidebar</strong> to clear the respective view. The sidebar view also has a title clear button.</p>
 <h2 id="searchfind">Search/Find<a class="headerlink" href="#searchfind" title="Permanent link">#</a></h2>
 <p>The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the editor tab. Because (<a href="https://github.com/microsoft/vscode/issues/173643">vscode#173643</a>).</p>
 <h2 id="copy-code-snippets">Copy Code Snippets<a class="headerlink" href="#copy-code-snippets" title="Permanent link">#</a></h2>
