@@ -12,7 +12,7 @@
   (let [base (or base-font-scale 1.0)
         adj (or font-size-adjustment 0.0)
         scale (+ base adj)]
-    (-> (max 0.2 (min 3.0 scale))
+    (-> (max 0.5 (min 1.5 scale))
         (* 100)
         js/Math.round
         (/ 100))))
