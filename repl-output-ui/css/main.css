@@ -1,3 +1,14 @@
+:root {
+   --calva-output-font-scale: 1;
+}
+
+body,
+pre,
+code {
+   font-family: var(--vscode-editor-font-family, monospace);
+   font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
+}
+
 .output-element-container {
    padding-bottom: 5px;
 }
@@ -70,7 +81,7 @@ body.word-wrap code.hljs {
    margin-top: 14px;
    margin-bottom: 2px;
    font-family: var(--vscode-editor-font-family, monospace);
-   font-size: var(--vscode-editor-font-size, 12px);
+   font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
    line-height: 1.2;
 }
 

@@ -112,7 +112,20 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
-                                        :word-wrap? false})))))
+                                        :word-wrap? false}))))
+  (testing "Given a font-scale, should set the font scale css variable on the html element"
+    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :font-scale 1.25}))))
+  (testing "Given no font-scale, should default the font scale css variable to 1"
+    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"})))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -156,6 +169,7 @@
                     greeting/logo-webview-uri (constantly "some-logo-href")
                     greeting/html-for-view (constantly "some-greeting")
                     sut/word-wrap? (constantly true)
+                    sut/get-output-views-font-scale-setting (constantly 1.5)
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -170,7 +184,8 @@
                                                                    :csp-source "some-csp-source"
                                                                    :code-theme nil
                                                                    :greeting-html "some-greeting"
-                                                                   :word-wrap? true})))
+                                                                   :word-wrap? true
+                                                                   :font-scale 1.5})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -591,3 +606,63 @@
         (is (spy/not-called? post-message-to-webview-spy))))))
 
 #_(run-tests)
+
+(defn vscode-with-font-scale-setting
+  [setting]
+  #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})
+
+(deftest get-output-views-font-scale-setting-test
+  (testing "returns 1.0 when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns the configured setting when it is a number"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting 1.5))]
+      (is (= 1.5 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns 1.0 when the configured setting is not a number"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting nil))]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting))))))
+
+(deftest increase-font-size-test
+  (testing "posts an adjust-font-size message with a positive delta to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}
+          webview-b #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/increase-font-size)
+        (let [calls (spy/calls post-message-to-webview-spy)]
+          (is (= 2 (count calls)))
+          (is (every? #(= {:command/name "adjust-font-size" :delta 0.1} (second %)) calls)))))))
+
+(deftest decrease-font-size-test
+  (testing "posts an adjust-font-size message with a negative delta to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/decrease-font-size)
+        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "adjust-font-size" :delta -0.1}))))))
+
+(deftest reset-font-size-test
+  (testing "posts a reset-font-size message to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/reset-font-size)
+        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "reset-font-size"}))))))
+
+(deftest init-font-size-scale!-test
+  (testing "registers a configuration change listener as a subscription"
+    (let [push-spy (spy/spy)
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [util/vscode-context (atom vscode-context-stub)
+                    sut/create-font-scale-change-listener (constantly "some-listener")]
+        (sut/init-font-size-scale!)
+        (is (spy/called-once-with? push-spy "some-listener")))))
+  (testing "does nothing when there is no vscode-context"
+    (let [push-spy (spy/spy)]
+      (with-redefs [util/vscode-context (atom nil)
+                    sut/create-font-scale-change-listener (test-util/wrap-spy push-spy)]
+        (sut/init-font-size-scale!)
+        (is (spy/not-called? push-spy))))))
