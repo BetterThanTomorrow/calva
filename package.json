@@ -1839,14 +1839,16 @@
         "icon": "$(word-wrap)"
       },
       {
-        "command": "calva.increaseOutputViewFontSize",
-        "title": "Increase Output View Font Size",
-        "category": "Calva"
-      },
-      {
         "command": "calva.decreaseOutputViewFontSize",
         "title": "Decrease Output View Font Size",
-        "category": "Calva"
+        "category": "Calva",
+        "icon": "$(zoom-out)"
+      },
+      {
+        "command": "calva.increaseOutputViewFontSize",
+        "title": "Increase Output View Font Size",
+        "category": "Calva",
+        "icon": "$(zoom-in)"
       },
       {
         "command": "calva.resetOutputViewFontSize",
@@ -3792,14 +3794,24 @@
       ],
       "view/title": [
         {
-          "command": "calva.toggleReplOutputWordWrap",
+          "command": "calva.decreaseOutputViewFontSize",
           "when": "view == calva.output-sidebar",
           "group": "navigation@1"
         },
         {
-          "command": "calva.clearReplOutputSidebar",
+          "command": "calva.increaseOutputViewFontSize",
           "when": "view == calva.output-sidebar",
           "group": "navigation@2"
+        },
+        {
+          "command": "calva.toggleReplOutputWordWrap",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@3"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@4"
         },
         {
           "command": "calva.pasteAsInspectorItem",
