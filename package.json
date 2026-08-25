@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.595",
+  "version": "2.0.596",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -216,7 +216,10 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for evaluation results. (Clojure data returned from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "evalOutput": {
@@ -264,7 +267,10 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for evaluation output (stdout/stderr from an evaluation). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               },
               "otherOutput": {
@@ -312,15 +318,44 @@
                     }
                   }
                 ],
-                "default": ["terminal", "output-sidebar"],
+                "default": [
+                  "terminal",
+                  "output-sidebar"
+                ],
                 "markdownDescription": "Destination(s) for other output (Calva messages, out-of-band stdout/stderr, etcetera). Use an array to send to multiple destinations. You can also use a file path (absolute or relative to the project root) to append output to a file."
               }
             },
             "default": {
-              "evalResults": ["terminal", "output-sidebar"],
-              "evalOutput": ["terminal", "output-sidebar"],
-              "otherOutput": ["terminal", "output-sidebar"]
+              "evalResults": [
+                "terminal",
+                "output-sidebar"
+              ],
+              "evalOutput": [
+                "terminal",
+                "output-sidebar"
+              ],
+              "otherOutput": [
+                "terminal",
+                "output-sidebar"
+              ]
             }
+          },
+          "calva.outputViews.fontSizeScale": {
+            "type": "number",
+            "default": 1.0,
+            "minimum": 0.5,
+            "maximum": 1.5,
+            "description": "Scale factor for the Output views font size relative to the editor font size. Accepts values between 0.5 and 1.5."
+          },
+          "calva.outputViews.wordWrap": {
+            "type": "string",
+            "enum": [
+              "follow-editor",
+              "on",
+              "off"
+            ],
+            "default": "follow-editor",
+            "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
           "calva.fiddleFilePaths": {
             "type": "array",
@@ -1812,6 +1847,23 @@
         "title": "Toggle REPL Output Word Wrap",
         "category": "Calva",
         "icon": "$(word-wrap)"
+      },
+      {
+        "command": "calva.decreaseOutputViewFontSize",
+        "title": "Decrease Output View Font Size",
+        "category": "Calva",
+        "icon": "$(zoom-out)"
+      },
+      {
+        "command": "calva.increaseOutputViewFontSize",
+        "title": "Increase Output View Font Size",
+        "category": "Calva",
+        "icon": "$(zoom-in)"
+      },
+      {
+        "command": "calva.resetOutputViewFontSize",
+        "title": "Reset Output View Font Size",
+        "category": "Calva"
       },
       {
         "command": "calva.interruptAllEvaluations",
@@ -3752,14 +3804,24 @@
       ],
       "view/title": [
         {
-          "command": "calva.toggleReplOutputWordWrap",
+          "command": "calva.decreaseOutputViewFontSize",
           "when": "view == calva.output-sidebar",
           "group": "navigation@1"
         },
         {
-          "command": "calva.clearReplOutputSidebar",
+          "command": "calva.increaseOutputViewFontSize",
           "when": "view == calva.output-sidebar",
           "group": "navigation@2"
+        },
+        {
+          "command": "calva.toggleReplOutputWordWrap",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@3"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@4"
         },
         {
           "command": "calva.pasteAsInspectorItem",

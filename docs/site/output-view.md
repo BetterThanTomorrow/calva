@@ -5,7 +5,7 @@ description: Read-only webviews for REPL output.
 
 The `output-view` editor tab and `output-sidebar` sidebar are separate destinations that share the same read-only webview page. They are more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
 
-The output views are two, performant, custom web views which can be configured as [Output Destinationsn](output.md). They largely share features (and implementation), the main difference being their placement in the VS Code UI.
+The output views are two, performant, custom web views which can be configured as [Output Destinations](output.md). They largely share features (and implementation), the main difference being their placement in the VS Code UI.
 
 * `output-view` is an editor tab, which can be placed anywhere an editor can be placed.
 * `output-sidebar` is a sidebar/panel view, which can be placed in the sidebars, or in the Panel view container.
@@ -16,13 +16,33 @@ The output views are two, performant, custom web views which can be configured a
 
 Run **Calva: Show/Open the REPL output view** for the editor tab or **Calva: Show/Open the REPL output sidebar** for the sidebar.
 
+## Font Size and Scaling
+
+The output views follow the editor font family (`editor.fontFamily`) and editor font size (`editor.fontSize`).
+
+You can adjust the scale of the font size in the output views relative to the editor font size using the setting `calva.outputViews.fontSizeScale` (default `1.0`, range `0.5` to `1.5`).
+
+You can also adjust the font size in-session, across both views using commands:
+
+* **Calva: Increase Output View Font Size**
+* **Calva: Decrease Output View Font Size**
+* **Calva: Reset Output View Font Size**
+
+The sidebar view has **Zoom Out** and **Zoom In** title bar buttons for quick adjustments.
+
 ## Wrap Evaluated Code and Results
 
-The evaluated code and results are wrapped according to the setting for the editors, `editor.wordWrap`. There is a command for toggling the wrap in the output views: **Calva: Toggle REPL Output Word Wrap**. This command toggles the wrap setting in both views. The toggling is not persisted. The sidebar view has a button for issuing the command.
+Word wrapping for evaluated code and results in the output views can be configured via the `calva.outputViews.wordWrap` setting. It accepts:
+
+* `"follow-editor"` (default) – follows VS Code's `editor.wordWrap` setting.
+* `"on"` – always wraps output in the output views.
+* `"off"` – disables word wrapping in the output views.
+
+There is also a command for toggling word wrap in-session across both views: **Calva: Toggle REPL Output Word Wrap**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
 
 ## Clear Output
 
-Use the commands **Calva: Clear Ouput View** and **Calva: Clear Ouput Sidebar** to clear the respective view. The sidebar view also has a title  clear button.
+Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.
 
 ## Search/Find
 

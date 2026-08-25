@@ -185,6 +185,10 @@
       (.. body -classList (add "word-wrap"))
       (.. body -classList (remove "word-wrap")))))
 
+(defn set-font-scale!
+  [scale]
+  (.. js/document -documentElement -style (setProperty "--calva-output-font-scale" (str scale))))
+
 (defn scroll-to
   [{:keys [x y]}]
   (js/scrollTo x y))
@@ -199,6 +203,7 @@
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
+    :fx/set-font-scale (set-font-scale! (first args))
     :fx/scroll-to (scroll-to (first args))))
 
 (defn dispatch!
@@ -221,10 +226,13 @@
      (let [message-data (reader/read-string (.-data message))
            command-name (:command/name message-data)]
        (case command-name
-         "clear-output-view" (dispatch! [:msg/clear-output-view])
-         "set-code-theme"    (dispatch! [:msg/set-code-theme message-data])
-         "set-word-wrap"     (dispatch! [:msg/set-word-wrap message-data])
-         "scroll-to"         (dispatch! [:msg/scroll-to message-data])
+         "clear-output-view"    (dispatch! [:msg/clear-output-view])
+         "set-code-theme"       (dispatch! [:msg/set-code-theme message-data])
+         "set-word-wrap"        (dispatch! [:msg/set-word-wrap message-data])
+         "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
+         "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
+         "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
+         "scroll-to"            (dispatch! [:msg/scroll-to message-data])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 
