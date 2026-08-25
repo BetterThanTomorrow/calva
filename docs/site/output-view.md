@@ -32,7 +32,13 @@ The sidebar view has **Zoom Out** and **Zoom In** title bar buttons for quick ad
 
 ## Wrap Evaluated Code and Results
 
-The evaluated code and results are wrapped according to the setting for the editors, `editor.wordWrap`. There is a command for toggling the wrap in the output views: **Calva: Toggle REPL Output Word Wrap**. This command toggles the wrap setting in both views. The toggling is not persisted. The sidebar view has a button for issuing the command.
+Word wrapping for evaluated code and results in the output views can be configured via the `calva.outputViews.wordWrap` setting. It accepts:
+
+* `"follow-editor"` (default) – follows VS Code's `editor.wordWrap` setting.
+* `"on"` – always wraps output in the output views.
+* `"off"` – disables word wrapping in the output views.
+
+There is also a command for toggling word wrap in-session across both views: **Calva: Toggle REPL Output Word Wrap**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
 
 ## Clear Output
 
