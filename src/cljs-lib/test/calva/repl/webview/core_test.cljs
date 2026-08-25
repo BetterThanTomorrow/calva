@@ -42,14 +42,37 @@
         (sut/unregister-webview! webview-a)
         (is (= #{webview-b} @sut/registered-webviews))))))
 
-(deftest word-wrap-test
-  (testing "uses the editor wordWrap setting when there is no override"
-    (with-redefs [sut/word-wrap-override (atom nil)
+(defn vscode-with-output-views-word-wrap-setting
+  [setting]
+  #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})
+
+(deftest get-output-views-word-wrap-setting-test
+  (testing "returns true when setting is \"on\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "on"))]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "returns false when setting is \"off\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "off"))]
+      (is (false? (sut/get-output-views-word-wrap-setting)))))
+  (testing "follows the editor word wrap setting when setting is \"follow-editor\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "follow-editor"))
                   sut/get-editor-word-wrap-setting (constantly true)]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "follows the editor word wrap setting when the setting is not present"
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting nil))
+                  sut/get-editor-word-wrap-setting (constantly true)]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "returns false when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (false? (sut/get-output-views-word-wrap-setting))))))
+
+(deftest word-wrap-test
+  (testing "uses get-output-views-word-wrap-setting when there is no override"
+    (with-redefs [sut/word-wrap-override (atom nil)
+                  sut/get-output-views-word-wrap-setting (constantly true)]
       (is (true? (sut/word-wrap?)))))
   (testing "uses override when present"
     (with-redefs [sut/word-wrap-override (atom false)
-                  sut/get-editor-word-wrap-setting (constantly true)]
+                  sut/get-output-views-word-wrap-setting (constantly true)]
       (is (false? (sut/word-wrap?))))))
 
 (deftest get-editor-word-wrap-setting-test
@@ -112,7 +135,20 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
-                                        :word-wrap? false})))))
+                                        :word-wrap? false}))))
+  (testing "Given a font-scale, should set the font scale css variable on the html element"
+    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :font-scale 1.25}))))
+  (testing "Given no font-scale, should default the font scale css variable to 1"
+    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"})))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -156,6 +192,7 @@
                     greeting/logo-webview-uri (constantly "some-logo-href")
                     greeting/html-for-view (constantly "some-greeting")
                     sut/word-wrap? (constantly true)
+                    sut/get-output-views-font-scale-setting (constantly 1.5)
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -170,7 +207,8 @@
                                                                    :csp-source "some-csp-source"
                                                                    :code-theme nil
                                                                    :greeting-html "some-greeting"
-                                                                   :word-wrap? true})))
+                                                                   :word-wrap? true
+                                                                   :font-scale 1.5})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -591,3 +629,66 @@
         (is (spy/not-called? post-message-to-webview-spy))))))
 
 #_(run-tests)
+
+(defn vscode-with-font-scale-setting
+  [setting]
+  #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})
+
+(deftest get-output-views-font-scale-setting-test
+  (testing "returns 1.0 when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns the configured setting when it is a valid number"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting 1.5))]
+      (is (= 1.5 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns 1.0 when the configured setting is nil"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting nil))]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns 1.0 when the configured setting is NaN"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting js/NaN))]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting))))))
+
+(deftest increase-font-size-test
+  (testing "posts an adjust-font-size message with a positive delta to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}
+          webview-b #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/increase-font-size)
+        (let [calls (spy/calls post-message-to-webview-spy)]
+          (is (= 2 (count calls)))
+          (is (every? #(= {:command/name "adjust-font-size" :delta 0.1} (second %)) calls)))))))
+
+(deftest decrease-font-size-test
+  (testing "posts an adjust-font-size message with a negative delta to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/decrease-font-size)
+        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "adjust-font-size" :delta -0.1}))))))
+
+(deftest reset-font-size-test
+  (testing "posts a reset-font-size message to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/reset-font-size)
+        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "reset-font-size"}))))))
+
+(deftest init-font-size-scale!-test
+  (testing "registers a configuration change listener as a subscription"
+    (let [push-spy (spy/spy)
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [util/vscode-context (atom vscode-context-stub)
+                    sut/create-font-scale-change-listener (constantly "some-listener")]
+        (sut/init-font-size-scale!)
+        (is (spy/called-once-with? push-spy "some-listener")))))
+  (testing "does nothing when there is no vscode-context"
+    (let [push-spy (spy/spy)]
+      (with-redefs [util/vscode-context (atom nil)
+                    sut/create-font-scale-change-listener (test-util/wrap-spy push-spy)]
+        (sut/init-font-size-scale!)
+        (is (spy/not-called? push-spy))))))

@@ -23,11 +23,22 @@
       (not= "off" setting))
     false))
 
+(defn get-output-views-word-wrap-setting
+  []
+  (if-let [vscode @util/vscode]
+    (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.wordWrap"))]
+      (case setting
+        "on" true
+        "off" false
+        "follow-editor" (get-editor-word-wrap-setting)
+        (get-editor-word-wrap-setting)))
+    false))
+
 (defn word-wrap?
   []
   (if (some? @word-wrap-override)
     @word-wrap-override
-    (get-editor-word-wrap-setting)))
+    (get-output-views-word-wrap-setting)))
 
 (defn set-word-wrap-context!
   [wrap?]
@@ -69,7 +80,8 @@
     (.. ^js vscode -workspace
         (onDidChangeConfiguration
          (fn [^js event]
-           (when (.affectsConfiguration event "editor.wordWrap")
+           (when (or (.affectsConfiguration event "editor.wordWrap")
+                     (.affectsConfiguration event "calva.outputViews.wordWrap"))
              (reset! word-wrap-override nil)
              (let [wrap? (word-wrap?)]
                (set-word-wrap-context! wrap?)
@@ -80,6 +92,46 @@
   (set-word-wrap-context! (word-wrap?))
   (when-let [vscode-context @util/vscode-context]
     (when-let [listener (create-word-wrap-change-listener)]
+      (.. ^js vscode-context -subscriptions (push listener)))))
+
+(defn get-output-views-font-scale-setting
+  []
+  (if-let [vscode @util/vscode]
+    (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.fontSizeScale"))]
+      (if (and (number? setting) (js/isFinite setting)) setting 1.0))
+    1.0))
+
+(defn post-font-scale-to-all-views!
+  [msg]
+  (run! #(post-message-to-webview % msg) @registered-webviews))
+
+(defn ^:export increase-font-size
+  []
+  (post-font-scale-to-all-views! {:command/name "adjust-font-size" :delta 0.1}))
+
+(defn ^:export decrease-font-size
+  []
+  (post-font-scale-to-all-views! {:command/name "adjust-font-size" :delta -0.1}))
+
+(defn ^:export reset-font-size
+  []
+  (post-font-scale-to-all-views! {:command/name "reset-font-size"}))
+
+(defn create-font-scale-change-listener
+  []
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -workspace
+        (onDidChangeConfiguration
+         (fn [^js event]
+           (when (.affectsConfiguration event "calva.outputViews.fontSizeScale")
+             (post-font-scale-to-all-views!
+              {:command/name "set-base-font-scale"
+               :scale (get-output-views-font-scale-setting)})))))))
+
+(defn ^:export init-font-size-scale!
+  []
+  (when-let [vscode-context @util/vscode-context]
+    (when-let [listener (create-font-scale-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def highlight-js-code-theme-stylesheet-data
@@ -124,10 +176,10 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap?]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale]}]
   (str "
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
   <head>
     <meta charset=\"UTF-8\" />
 
@@ -196,7 +248,8 @@
                                                 :csp-source csp-source
                                                 :code-theme (code-theme-from-context context)
                                                 :greeting-html greeting-html
-                                                :word-wrap? (word-wrap?)})]
+                                                :word-wrap? (word-wrap?)
+                                                :font-scale (get-output-views-font-scale-setting)})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
