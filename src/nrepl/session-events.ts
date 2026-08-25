@@ -1,30 +1,10 @@
-export type SessionsChangedEventType =
-  | 'session-added'
-  | 'session-removed'
-  | 'session-renamed'
-  | 'runtime-connected'
-  | 'runtime-disconnected'
-  | 'connection-added'
-  | 'connection-removed';
+import type {
+  SessionsChangedEvent,
+  SessionsChangedEventType,
+  ShadowRuntimeInfo,
+} from '../api/repl-v1';
 
-export interface ShadowRuntimeInfo {
-  runtimeId: number;
-  description: string;
-  buildId: string;
-  host: string;
-  workerId: number;
-  sinceInst: number;
-  sinceDescription: string;
-  lastActivity?: number;
-}
-
-export interface SessionsChangedEvent {
-  type: SessionsChangedEventType;
-  clientKey?: string;
-  sessionKey?: string;
-  previousSessionKey?: string;
-  runtime?: ShadowRuntimeInfo;
-}
+export type { SessionsChangedEvent, SessionsChangedEventType, ShadowRuntimeInfo };
 
 export interface Disposable {
   dispose(): void;

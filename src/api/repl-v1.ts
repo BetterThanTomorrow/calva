@@ -562,8 +562,22 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
   return new vscode.Disposable(unsubscribe);
 }
 
-export type SessionsChangedEventType = sessionEvents.SessionsChangedEventType;
-export type SessionsChangedEvent = sessionEvents.SessionsChangedEvent;
+export type SessionsChangedEventType =
+  | 'session-added'
+  | 'session-removed'
+  | 'session-renamed'
+  | 'runtime-connected'
+  | 'runtime-disconnected'
+  | 'connection-added'
+  | 'connection-removed';
+
+export interface SessionsChangedEvent {
+  type: SessionsChangedEventType;
+  clientKey?: string;
+  sessionKey?: string;
+  previousSessionKey?: string;
+  runtime?: ShadowRuntimeInfo;
+}
 
 export function onSessionsChanged(
   listener: (event: SessionsChangedEvent) => void
