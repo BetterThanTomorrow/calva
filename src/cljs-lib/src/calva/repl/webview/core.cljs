@@ -86,7 +86,7 @@
   []
   (if-let [vscode @util/vscode]
     (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.fontSizeScale"))]
-      (if (number? setting) setting 1.0))
+      (if (and (number? setting) (js/isFinite setting)) setting 1.0))
     1.0))
 
 (defn post-font-scale-to-all-views!

@@ -615,11 +615,14 @@
   (testing "returns 1.0 when VS Code is not available"
     (with-redefs [util/vscode (atom nil)]
       (is (= 1.0 (sut/get-output-views-font-scale-setting)))))
-  (testing "returns the configured setting when it is a number"
+  (testing "returns the configured setting when it is a valid number"
     (with-redefs [util/vscode (atom (vscode-with-font-scale-setting 1.5))]
       (is (= 1.5 (sut/get-output-views-font-scale-setting)))))
-  (testing "returns 1.0 when the configured setting is not a number"
+  (testing "returns 1.0 when the configured setting is nil"
     (with-redefs [util/vscode (atom (vscode-with-font-scale-setting nil))]
+      (is (= 1.0 (sut/get-output-views-font-scale-setting)))))
+  (testing "returns 1.0 when the configured setting is NaN"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting js/NaN))]
       (is (= 1.0 (sut/get-output-views-font-scale-setting))))))
 
 (deftest increase-font-size-test
