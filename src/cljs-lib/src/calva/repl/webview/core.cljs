@@ -23,11 +23,22 @@
       (not= "off" setting))
     false))
 
+(defn get-output-views-word-wrap-setting
+  []
+  (if-let [vscode @util/vscode]
+    (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.wordWrap"))]
+      (case setting
+        "on" true
+        "off" false
+        "follow-editor" (get-editor-word-wrap-setting)
+        (get-editor-word-wrap-setting)))
+    false))
+
 (defn word-wrap?
   []
   (if (some? @word-wrap-override)
     @word-wrap-override
-    (get-editor-word-wrap-setting)))
+    (get-output-views-word-wrap-setting)))
 
 (defn set-word-wrap-context!
   [wrap?]
@@ -69,7 +80,8 @@
     (.. ^js vscode -workspace
         (onDidChangeConfiguration
          (fn [^js event]
-           (when (.affectsConfiguration event "editor.wordWrap")
+           (when (or (.affectsConfiguration event "editor.wordWrap")
+                     (.affectsConfiguration event "calva.outputViews.wordWrap"))
              (reset! word-wrap-override nil)
              (let [wrap? (word-wrap?)]
                (set-word-wrap-context! wrap?)

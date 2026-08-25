@@ -42,14 +42,37 @@
         (sut/unregister-webview! webview-a)
         (is (= #{webview-b} @sut/registered-webviews))))))
 
-(deftest word-wrap-test
-  (testing "uses the editor wordWrap setting when there is no override"
-    (with-redefs [sut/word-wrap-override (atom nil)
+(defn vscode-with-output-views-word-wrap-setting
+  [setting]
+  #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})
+
+(deftest get-output-views-word-wrap-setting-test
+  (testing "returns true when setting is \"on\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "on"))]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "returns false when setting is \"off\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "off"))]
+      (is (false? (sut/get-output-views-word-wrap-setting)))))
+  (testing "follows the editor word wrap setting when setting is \"follow-editor\""
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting "follow-editor"))
                   sut/get-editor-word-wrap-setting (constantly true)]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "follows the editor word wrap setting when the setting is not present"
+    (with-redefs [util/vscode (atom (vscode-with-output-views-word-wrap-setting nil))
+                  sut/get-editor-word-wrap-setting (constantly true)]
+      (is (true? (sut/get-output-views-word-wrap-setting)))))
+  (testing "returns false when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (false? (sut/get-output-views-word-wrap-setting))))))
+
+(deftest word-wrap-test
+  (testing "uses get-output-views-word-wrap-setting when there is no override"
+    (with-redefs [sut/word-wrap-override (atom nil)
+                  sut/get-output-views-word-wrap-setting (constantly true)]
       (is (true? (sut/word-wrap?)))))
   (testing "uses override when present"
     (with-redefs [sut/word-wrap-override (atom false)
-                  sut/get-editor-word-wrap-setting (constantly true)]
+                  sut/get-output-views-word-wrap-setting (constantly true)]
       (is (false? (sut/word-wrap?))))))
 
 (deftest get-editor-word-wrap-setting-test

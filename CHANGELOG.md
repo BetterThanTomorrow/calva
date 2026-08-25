@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Fix: [Inconsistency in how the Output views follow editor font size](https://github.com/BetterThanTomorrow/calva/issues/3276)
+- Add settings: `calva.outputViews.fontSizeScale`, and `calva.outputViews.wordWrap`
 
 ## [2.0.595] - 2026-08-24
 

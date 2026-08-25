@@ -347,6 +347,16 @@
             "maximum": 1.5,
             "description": "Scale factor for the Output views font size relative to the editor font size. Accepts values between 0.5 and 1.5."
           },
+          "calva.outputViews.wordWrap": {
+            "type": "string",
+            "enum": [
+              "follow-editor",
+              "on",
+              "off"
+            ],
+            "default": "follow-editor",
+            "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
+          },
           "calva.fiddleFilePaths": {
             "type": "array",
             "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",
