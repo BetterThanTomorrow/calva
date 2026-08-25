@@ -7,6 +7,7 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
 import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
+import * as sessionEvents from './nrepl/session-events';
 
 /**
  * Tracks the last time Calva evaluated code on each runtime ID.
@@ -277,7 +278,8 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
  */
 export async function switchToRuntime(
   runtimeInfo: shadowRuntimeCore.RuntimeInfo,
-  clientKey?: string
+  clientKey?: string,
+  options?: { isNewConnection?: boolean }
 ): Promise<boolean> {
   try {
     let cljSession;
@@ -304,7 +306,7 @@ export async function switchToRuntime(
 
     await cljSession.eval(selectRuntimeCode, 'user').value;
 
-    updateRuntimeState(runtimeId, runtimeInfo, clientKey);
+    updateRuntimeState(runtimeId, runtimeInfo, clientKey, options);
 
     // Update status bar to show the new runtime
     status.update();
@@ -382,7 +384,7 @@ export async function detectInitialRuntime(clientKey?: string): Promise<void> {
     const runtime = runtimes[0];
     const runtimeId = runtime.runtimeId;
 
-    updateRuntimeState(runtimeId, runtime, effectiveClientKey);
+    updateRuntimeState(runtimeId, runtime, effectiveClientKey, { isNewConnection: true });
 
     status.update();
     if (runtimes.length > 1) {
@@ -405,41 +407,74 @@ export { canonicalBuildId } from './shadow-cljs-runtime-core';
 export function updateRuntimeState(
   runtimeId: number,
   runtimeInfo: shadowRuntimeCore.RuntimeInfo,
-  clientKey?: string
+  clientKey?: string,
+  options?: { isNewConnection?: boolean }
 ): void {
-  if (clientKey) {
-    clientRegistry.setConnectionState(clientKey, {
+  const effectiveClientKey = clientKey ?? getConnectionContextForCurrentSession()?.clientKey;
+  if (effectiveClientKey) {
+    clientRegistry.setConnectionState(effectiveClientKey, {
       shadowCljsRuntimeId: runtimeId,
       shadowCljsRuntimeInfo: runtimeInfo,
     });
-  } else {
-    const ctx = getConnectionContextForCurrentSession();
-    if (ctx) {
-      clientRegistry.setConnectionState(ctx.clientKey, {
-        shadowCljsRuntimeId: runtimeId,
-        shadowCljsRuntimeInfo: runtimeInfo,
-      });
-    }
   }
   status.update();
+
+  if (options?.isNewConnection) {
+    const sessionKey = effectiveClientKey
+      ? sessionRegistry.getSecondarySessionKeyForClient(effectiveClientKey) ??
+        sessionRegistry.getPrimarySessionKeyForClient(effectiveClientKey)
+      : replSession.getReplSessionTypeFromState();
+
+    const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
+      ...runtimeInfo,
+      lastActivity: getRuntimeLastActivity(runtimeId),
+    };
+
+    sessionEvents.fireSessionsChanged({
+      type: 'runtime-connected',
+      clientKey: effectiveClientKey,
+      sessionKey,
+      runtime: runtimeWithActivity,
+    });
+  }
 }
 
 export function clearRuntimeState(clientKey?: string): void {
-  if (clientKey) {
-    clientRegistry.setConnectionState(clientKey, {
+  const effectiveClientKey = clientKey ?? getConnectionContextForCurrentSession()?.clientKey;
+  const previousRuntimeInfo = effectiveClientKey
+    ? clientRegistry.getConnectionState(effectiveClientKey)?.shadowCljsRuntimeInfo
+    : undefined;
+  const previousRuntimeId = effectiveClientKey
+    ? clientRegistry.getConnectionState(effectiveClientKey)?.shadowCljsRuntimeId
+    : undefined;
+
+  if (effectiveClientKey) {
+    clientRegistry.setConnectionState(effectiveClientKey, {
       shadowCljsRuntimeId: undefined,
       shadowCljsRuntimeInfo: undefined,
     });
-  } else {
-    const ctx = getConnectionContextForCurrentSession();
-    if (ctx) {
-      clientRegistry.setConnectionState(ctx.clientKey, {
-        shadowCljsRuntimeId: undefined,
-        shadowCljsRuntimeInfo: undefined,
-      });
-    }
   }
   status.update();
+
+  const sessionKey = effectiveClientKey
+    ? sessionRegistry.getSecondarySessionKeyForClient(effectiveClientKey) ??
+      sessionRegistry.getPrimarySessionKeyForClient(effectiveClientKey)
+    : replSession.getReplSessionTypeFromState();
+
+  const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo | undefined =
+    previousRuntimeInfo && previousRuntimeId !== undefined
+      ? {
+          ...previousRuntimeInfo,
+          lastActivity: getRuntimeLastActivity(previousRuntimeId),
+        }
+      : undefined;
+
+  sessionEvents.fireSessionsChanged({
+    type: 'runtime-disconnected',
+    clientKey: effectiveClientKey,
+    sessionKey,
+    runtime: runtimeWithActivity,
+  });
 }
 
 /**
@@ -470,7 +505,9 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
           break;
         }
         case 'runtime-connected': {
-          const success = await switchToRuntime(action.runtimeInfo, clientKey);
+          const success = await switchToRuntime(action.runtimeInfo, clientKey, {
+            isNewConnection: true,
+          });
           if (success) {
             output.appendLineOtherOut(
               `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
