@@ -1,9 +1,21 @@
 (ns calva.repl.webview.app-db)
 
 (def initial-db
-  {:output/last-context nil})
+  {:output/last-context nil
+   :output/base-font-scale 1.0
+   :output/font-size-adjustment 0.0})
 
 (defonce !app-db (atom initial-db))
+
+(defn compute-effective-scale
+  [{:output/keys [base-font-scale font-size-adjustment]}]
+  (let [base (or base-font-scale 1.0)
+        adj (or font-size-adjustment 0.0)
+        scale (+ base adj)]
+    (-> (max 0.2 (min 3.0 scale))
+        (* 100)
+        js/Math.round
+        (/ 100))))
 
 (defn handle-action
   [db [action-type payload]]
@@ -37,6 +49,27 @@
     :msg/set-word-wrap
     {:uf/db db
      :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]]}
+
+    :msg/set-base-font-scale
+    (let [new-db (assoc db :output/base-font-scale (:scale payload 1.0))
+          effective-scale (compute-effective-scale new-db)]
+      {:uf/db new-db
+       :uf/fxs [[:fx/set-font-scale effective-scale]]})
+
+    :msg/adjust-font-size
+    (let [delta (:delta payload 0.1)
+          current-adj (or (:output/font-size-adjustment db) 0.0)
+          new-adj (+ current-adj delta)
+          new-db (assoc db :output/font-size-adjustment new-adj)
+          effective-scale (compute-effective-scale new-db)]
+      {:uf/db new-db
+       :uf/fxs [[:fx/set-font-scale effective-scale]]})
+
+    :msg/reset-font-size
+    (let [new-db (assoc db :output/font-size-adjustment 0.0)
+          effective-scale (compute-effective-scale new-db)]
+      {:uf/db new-db
+       :uf/fxs [[:fx/set-font-scale effective-scale]]})
 
     :msg/scroll-to
     {:uf/db db

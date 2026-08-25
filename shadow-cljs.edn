@@ -32,6 +32,10 @@
                              :clearReplOutputView calva.repl.webview.core/clear-output-view
                              :toggleReplOutputWordWrap calva.repl.webview.core/toggle-word-wrap
                              :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
+                             :increaseOutputViewFontSize calva.repl.webview.core/increase-font-size
+                             :decreaseOutputViewFontSize calva.repl.webview.core/decrease-font-size
+                             :resetOutputViewFontSize calva.repl.webview.core/reset-font-size
+                             :initReplOutputFontSizeScale calva.repl.webview.core/init-font-size-scale!
                              :createReplOutputSidebarProvider calva.repl.webview.sidebar/create-repl-output-sidebar-provider
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
