@@ -63,11 +63,11 @@
   (testing "defaults missing keys to 1.0 and 0.0"
     (is (= 1.0 (sut/compute-effective-scale {}))))
 
-  (testing "clamps to a minimum of 0.2"
-    (is (= 0.2 (sut/compute-effective-scale {:output/base-font-scale 0.1 :output/font-size-adjustment -1.0}))))
+  (testing "clamps to a minimum of 0.5"
+    (is (= 0.5 (sut/compute-effective-scale {:output/base-font-scale 0.4 :output/font-size-adjustment -0.5}))))
 
-  (testing "clamps to a maximum of 3.0"
-    (is (= 3.0 (sut/compute-effective-scale {:output/base-font-scale 2.5 :output/font-size-adjustment 1.0}))))
+  (testing "clamps to a maximum of 1.5"
+    (is (= 1.5 (sut/compute-effective-scale {:output/base-font-scale 1.4 :output/font-size-adjustment 0.5}))))
 
   (testing "rounds to two decimal places"
     (is (= 1.23 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.234})))))
