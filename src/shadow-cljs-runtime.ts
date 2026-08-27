@@ -490,9 +490,16 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
             sessionRegistry.getPrimarySessionKeyForClient(clientKey)
           : replSession.getReplSessionTypeFromState();
 
-        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = lifecycle.runtimeInfo
+        const currentRuntimeInfo =
+          currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
+            ? getSelectedRuntimeInfo(clientKey)
+            : undefined;
+
+        const baseRuntimeInfo = lifecycle.runtimeInfo ?? currentRuntimeInfo;
+
+        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = baseRuntimeInfo
           ? {
-              ...lifecycle.runtimeInfo,
+              ...baseRuntimeInfo,
               lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
             }
           : {
