@@ -163,6 +163,84 @@ describe('shadow-cljs-runtime-core', () => {
     });
   });
 
+  describe('decideLifecycleEvent', () => {
+    it('returns no-action for non-notify messages', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = { op: 'other' };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('no-action');
+    });
+
+    it('returns no-action for notify without client-id', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = { op: 'notify' };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('no-action');
+    });
+
+    it('returns runtime-connected for client-connect with client-info', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = {
+        op: 'notify',
+        'client-id': 99,
+        'event-op': 'client-connect',
+        'client-info': {
+          'client-id': 99,
+          'build-id': ':app',
+          host: 'localhost',
+          'worker-id': 1,
+          type: 'runtime',
+          lang: 'cljs',
+          desc: 'Second Client',
+        },
+      };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('runtime-connected');
+      if (result.type === 'runtime-connected') {
+        expectLib.expect(result.runtimeId).toBe(99);
+        expectLib.expect(result.runtimeInfo.description).toBe('Second Client');
+      }
+    });
+
+    it('returns runtime-disconnected for client-disconnect', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = {
+        op: 'notify',
+        'client-id': 99,
+        'event-op': 'client-disconnect',
+      };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('runtime-disconnected');
+      if (result.type === 'runtime-disconnected') {
+        expectLib.expect(result.runtimeId).toBe(99);
+      }
+    });
+
+    it('returns runtime-disconnected with client-info if present', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = {
+        op: 'notify',
+        'client-id': 99,
+        'event-op': 'client-disconnect',
+        'client-info': {
+          'client-id': 99,
+          'build-id': ':app',
+          host: 'localhost',
+          'worker-id': 1,
+          type: 'runtime',
+          lang: 'cljs',
+          desc: 'Closing Client',
+        },
+      };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('runtime-disconnected');
+      if (result.type === 'runtime-disconnected') {
+        expectLib.expect(result.runtimeId).toBe(99);
+        expectLib.expect(result.runtimeInfo?.description).toBe('Closing Client');
+      }
+    });
+  });
+
   describe('formatSinceDescription', () => {
     it('returns "Unknown time" for undefined', () => {
       expectLib.expect(shadowRuntimeCore.formatSinceDescription(undefined)).toBe('Unknown time');
