@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [[api] Shadow client list changes do not notify `repl.onSessionsChanged`](https://github.com/BetterThanTomorrow/calva/issues/3279)
+- Fix: [api: Shadow client list changes do not notify `repl.onSessionsChanged`](https://github.com/BetterThanTomorrow/calva/issues/3279)
 
 ## [2.0.596] - 2026-08-25
 
