@@ -464,8 +464,40 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
     if (msgData.data) {
       const data = cljsLib.parseEdn(msgData.data);
       const currentRuntimeId = getSelectedRuntimeId(clientKey);
+      const currentRuntimeInfo =
+        currentRuntimeId !== undefined ? getSelectedRuntimeInfo(clientKey) : undefined;
 
-      // 1. Fire lifecycle event for any connecting or disconnecting Shadow client
+      // 1. Decide editor runtime targeting (auto-reconnect on reload / do not silently retarget)
+      const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
+
+      switch (action.type) {
+        case 'runtime-disconnected': {
+          const info = currentRuntimeInfo || {
+            description: 'No description',
+          };
+          clearRuntimeState(clientKey);
+          output.appendLineOtherOut(
+            `shadow-cljs runtime disconnected: ${action.runtimeId} ${info.description}`
+          );
+          break;
+        }
+        case 'runtime-connected': {
+          const success = await switchToRuntime(action.runtimeInfo, clientKey);
+          if (success) {
+            output.appendLineOtherOut(
+              `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
+            );
+          } else {
+            output.appendLineOtherErr(
+              `Failed to connect shadow-cljs runtime: ${action.runtimeId}, ${action.runtimeInfo.description}`
+            );
+          }
+          break;
+        }
+        // 'no-action' - do nothing
+      }
+
+      // 2. Fire lifecycle event for any connecting or disconnecting Shadow client
       const lifecycle = shadowRuntimeCore.decideLifecycleEvent(data);
       if (lifecycle.type === 'runtime-connected') {
         const sessionKey = clientKey
@@ -490,12 +522,11 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
             sessionRegistry.getPrimarySessionKeyForClient(clientKey)
           : replSession.getReplSessionTypeFromState();
 
-        const currentRuntimeInfo =
-          currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
-            ? getSelectedRuntimeInfo(clientKey)
-            : undefined;
-
-        const baseRuntimeInfo = lifecycle.runtimeInfo ?? currentRuntimeInfo;
+        const baseRuntimeInfo =
+          lifecycle.runtimeInfo ??
+          (currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
+            ? currentRuntimeInfo
+            : undefined);
 
         const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = baseRuntimeInfo
           ? {
@@ -519,36 +550,6 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
           sessionKey,
           runtime: runtimeWithActivity,
         });
-      }
-
-      // 2. Decide editor runtime targeting (auto-reconnect on reload / do not silently retarget)
-      const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
-
-      switch (action.type) {
-        case 'runtime-disconnected': {
-          const currentRuntimeInfo = getSelectedRuntimeInfo(clientKey) || {
-            description: 'No description',
-          };
-          clearRuntimeState(clientKey);
-          output.appendLineOtherOut(
-            `shadow-cljs runtime disconnected: ${action.runtimeId} ${currentRuntimeInfo.description}`
-          );
-          break;
-        }
-        case 'runtime-connected': {
-          const success = await switchToRuntime(action.runtimeInfo, clientKey);
-          if (success) {
-            output.appendLineOtherOut(
-              `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
-            );
-          } else {
-            output.appendLineOtherErr(
-              `Failed to connect shadow-cljs runtime: ${action.runtimeId}, ${action.runtimeInfo.description}`
-            );
-          }
-          break;
-        }
-        // 'no-action' - do nothing
       }
     }
   } catch (error) {

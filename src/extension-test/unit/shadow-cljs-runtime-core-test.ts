@@ -178,6 +178,29 @@ describe('shadow-cljs-runtime-core', () => {
       expectLib.expect(result.type).toBe('no-action');
     });
 
+    it('handles client-id: 0 as a valid client ID', () => {
+      const data: shadowRuntimeCore.NotifyMessageData = {
+        op: 'notify',
+        'client-id': 0,
+        'event-op': 'client-connect',
+        'client-info': {
+          'client-id': 0,
+          'build-id': ':app',
+          host: 'localhost',
+          'worker-id': 0,
+          type: 'runtime',
+          lang: 'cljs',
+          desc: 'Zero Client',
+        },
+      };
+      const result = shadowRuntimeCore.decideLifecycleEvent(data);
+
+      expectLib.expect(result.type).toBe('runtime-connected');
+      if (result.type === 'runtime-connected') {
+        expectLib.expect(result.runtimeId).toBe(0);
+      }
+    });
+
     it('returns runtime-connected for client-connect with client-info', () => {
       const data: shadowRuntimeCore.NotifyMessageData = {
         op: 'notify',
