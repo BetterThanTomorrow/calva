@@ -3067,7 +3067,7 @@
 <li><code>builds</code> (<code>ShadowBuildInfo[]</code>, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:<ul>
 <li><code>buildId</code> (<code>string</code>): The name of the build (e.g. <code>":app"</code>, <code>":test"</code>).</li>
 <li><code>isActive</code> (<code>boolean</code>): Whether the build is currently active/compiled.</li>
-<li><code>isCurrentlyConnected</code> (<code>boolean</code>): Whether Calva's REPL session is currently connected to this build.</li>
+<li><code>isCurrentlyConnected</code> (<code>boolean</code>): Whether this build is Calva's currently selected CLJS REPL target in the editor (Note: This is a misnomer. It describes Calva's active editor target, not whether a Shadow client process is connected).</li>
 <li><code>runtimes</code> (<code>ShadowRuntimeInfo[]</code>): An array of connected runtime metadata objects, sorted by most recent evaluation activity first:<ul>
 <li><code>runtimeId</code> (<code>number</code>): The unique ID of the runtime.</li>
 <li><code>description</code> (<code>string</code>): Description of the runtime (e.g. Browser User-Agent, Node.js process info).</li>
