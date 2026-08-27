@@ -1,8 +1,9 @@
 import * as expectLib from 'expect';
-import type * as nrepl from '../../../nrepl';
-import * as sessionEvents from '../../../nrepl/session-events';
-import * as clientRegistry from '../../../nrepl/client-registry';
-import * as sessionRegistry from '../../../nrepl/session-registry';
+import type * as nrepl from '../../nrepl';
+import * as sessionEvents from '../../nrepl/session-events';
+import * as clientRegistry from '../../nrepl/client-registry';
+import * as sessionRegistry from '../../nrepl/session-registry';
+import * as shadowRuntimeCore from '../../shadow-cljs-runtime-core';
 
 const expect = expectLib.default;
 
@@ -113,5 +114,69 @@ describe('session-events and onSessionsChanged', () => {
       previousSessionKey: 'clj',
       clientKey: 'client-1',
     });
+  });
+
+  it('handles shadow runtime lifecycle events for client connect and disconnect', () => {
+    const connectData: shadowRuntimeCore.NotifyMessageData = {
+      op: 'notify',
+      'client-id': 2,
+      'event-op': 'client-connect',
+      'client-info': {
+        'client-id': 2,
+        'build-id': ':app',
+        host: 'localhost',
+        'worker-id': 1,
+        type: 'runtime',
+        lang: 'cljs',
+        desc: 'Second Browser',
+      },
+    };
+
+    const lifecycleConnect = shadowRuntimeCore.decideLifecycleEvent(connectData);
+    expect(lifecycleConnect.type).toBe('runtime-connected');
+    if (lifecycleConnect.type === 'runtime-connected') {
+      sessionEvents.fireSessionsChanged({
+        type: 'runtime-connected',
+        clientKey: 'client-1',
+        sessionKey: 'cljs',
+        runtime: {
+          ...lifecycleConnect.runtimeInfo,
+        },
+      });
+    }
+
+    expect(receivedEvents.length).toBe(1);
+    expect(receivedEvents[0].type).toBe('runtime-connected');
+    expect(receivedEvents[0].runtime?.runtimeId).toBe(2);
+    expect(receivedEvents[0].runtime?.description).toBe('Second Browser');
+
+    const disconnectData: shadowRuntimeCore.NotifyMessageData = {
+      op: 'notify',
+      'client-id': 2,
+      'event-op': 'client-disconnect',
+    };
+
+    const lifecycleDisconnect = shadowRuntimeCore.decideLifecycleEvent(disconnectData);
+    expect(lifecycleDisconnect.type).toBe('runtime-disconnected');
+    if (lifecycleDisconnect.type === 'runtime-disconnected') {
+      sessionEvents.fireSessionsChanged({
+        type: 'runtime-disconnected',
+        clientKey: 'client-1',
+        sessionKey: 'cljs',
+        runtime: {
+          runtimeId: lifecycleDisconnect.runtimeId,
+          description: 'No description',
+          buildId: '',
+          host: '',
+          workerId: 0,
+          sinceInst: 0,
+          sinceDescription: '',
+        },
+      });
+    }
+
+    expect(receivedEvents.length).toBe(2);
+    expect(receivedEvents[1].type).toBe('runtime-disconnected');
+    expect(receivedEvents[1].runtime?.runtimeId).toBe(2);
   });
 });

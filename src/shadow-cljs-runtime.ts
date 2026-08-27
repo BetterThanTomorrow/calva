@@ -441,13 +441,6 @@ export function updateRuntimeState(
 
 export function clearRuntimeState(clientKey?: string): void {
   const effectiveClientKey = clientKey ?? getConnectionContextForCurrentSession()?.clientKey;
-  const previousRuntimeInfo = effectiveClientKey
-    ? clientRegistry.getConnectionState(effectiveClientKey)?.shadowCljsRuntimeInfo
-    : undefined;
-  const previousRuntimeId = effectiveClientKey
-    ? clientRegistry.getConnectionState(effectiveClientKey)?.shadowCljsRuntimeId
-    : undefined;
-
   if (effectiveClientKey) {
     clientRegistry.setConnectionState(effectiveClientKey, {
       shadowCljsRuntimeId: undefined,
@@ -455,26 +448,6 @@ export function clearRuntimeState(clientKey?: string): void {
     });
   }
   status.update();
-
-  const sessionKey = effectiveClientKey
-    ? sessionRegistry.getSecondarySessionKeyForClient(effectiveClientKey) ??
-      sessionRegistry.getPrimarySessionKeyForClient(effectiveClientKey)
-    : replSession.getReplSessionTypeFromState();
-
-  const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo | undefined =
-    previousRuntimeInfo && previousRuntimeId !== undefined
-      ? {
-          ...previousRuntimeInfo,
-          lastActivity: getRuntimeLastActivity(previousRuntimeId),
-        }
-      : undefined;
-
-  sessionEvents.fireSessionsChanged({
-    type: 'runtime-disconnected',
-    clientKey: effectiveClientKey,
-    sessionKey,
-    runtime: runtimeWithActivity,
-  });
 }
 
 /**
@@ -491,23 +464,25 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
     if (msgData.data) {
       const data = cljsLib.parseEdn(msgData.data);
       const currentRuntimeId = getSelectedRuntimeId(clientKey);
+      const currentRuntimeInfo =
+        currentRuntimeId !== undefined ? getSelectedRuntimeInfo(clientKey) : undefined;
+
+      // 1. Decide editor runtime targeting (auto-reconnect on reload / do not silently retarget)
       const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
 
       switch (action.type) {
         case 'runtime-disconnected': {
-          const currentRuntimeInfo = getSelectedRuntimeInfo(clientKey) || {
+          const info = currentRuntimeInfo || {
             description: 'No description',
           };
           clearRuntimeState(clientKey);
           output.appendLineOtherOut(
-            `shadow-cljs runtime disconnected: ${action.runtimeId} ${currentRuntimeInfo.description}`
+            `shadow-cljs runtime disconnected: ${action.runtimeId} ${info.description}`
           );
           break;
         }
         case 'runtime-connected': {
-          const success = await switchToRuntime(action.runtimeInfo, clientKey, {
-            isNewConnection: true,
-          });
+          const success = await switchToRuntime(action.runtimeInfo, clientKey);
           if (success) {
             output.appendLineOtherOut(
               `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
@@ -520,6 +495,61 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
           break;
         }
         // 'no-action' - do nothing
+      }
+
+      // 2. Fire lifecycle event for any connecting or disconnecting Shadow client
+      const lifecycle = shadowRuntimeCore.decideLifecycleEvent(data);
+      if (lifecycle.type === 'runtime-connected') {
+        const sessionKey = clientKey
+          ? sessionRegistry.getSecondarySessionKeyForClient(clientKey) ??
+            sessionRegistry.getPrimarySessionKeyForClient(clientKey)
+          : replSession.getReplSessionTypeFromState();
+
+        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
+          ...lifecycle.runtimeInfo,
+          lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
+        };
+
+        sessionEvents.fireSessionsChanged({
+          type: 'runtime-connected',
+          clientKey,
+          sessionKey,
+          runtime: runtimeWithActivity,
+        });
+      } else if (lifecycle.type === 'runtime-disconnected') {
+        const sessionKey = clientKey
+          ? sessionRegistry.getSecondarySessionKeyForClient(clientKey) ??
+            sessionRegistry.getPrimarySessionKeyForClient(clientKey)
+          : replSession.getReplSessionTypeFromState();
+
+        const baseRuntimeInfo =
+          lifecycle.runtimeInfo ??
+          (currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
+            ? currentRuntimeInfo
+            : undefined);
+
+        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = baseRuntimeInfo
+          ? {
+              ...baseRuntimeInfo,
+              lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
+            }
+          : {
+              runtimeId: lifecycle.runtimeId,
+              description: 'No description',
+              buildId: '',
+              host: '',
+              workerId: 0,
+              sinceInst: 0,
+              sinceDescription: '',
+              lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
+            };
+
+        sessionEvents.fireSessionsChanged({
+          type: 'runtime-disconnected',
+          clientKey,
+          sessionKey,
+          runtime: runtimeWithActivity,
+        });
       }
     }
   } catch (error) {

@@ -111,7 +111,7 @@ Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered 
 * `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
     * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
     * `isActive` (`boolean`): Whether the build is currently active/compiled.
-    * `isCurrentlyConnected` (`boolean`): Whether Calva's REPL session is currently connected to this build.
+    * `isCurrentlyConnected` (`boolean`): Whether this build is Calva's currently selected CLJS REPL target in the editor (Note: This is a misnomer. It describes Calva's active editor target, not whether a Shadow client process is connected).
     * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects, sorted by most recent evaluation activity first:
         * `runtimeId` (`number`): The unique ID of the runtime.
         * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).

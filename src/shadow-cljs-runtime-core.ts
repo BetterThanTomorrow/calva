@@ -85,11 +85,47 @@ export type MessageAction =
   | { type: 'runtime-connected'; runtimeId: number; runtimeInfo: RuntimeInfo }
   | { type: 'no-action' };
 
+export type LifecycleEventAction =
+  | { type: 'runtime-connected'; runtimeId: number; runtimeInfo: RuntimeInfo }
+  | { type: 'runtime-disconnected'; runtimeId: number; runtimeInfo?: RuntimeInfo }
+  | { type: 'no-action' };
+
 export interface NotifyMessageData {
   op: string;
   'client-id'?: number;
   'event-op'?: string;
   'client-info'?: ShadowApiRuntimeInfo;
+}
+
+/**
+ * Pure decision function for deciding lifecycle notifications from shadow-remote messages.
+ * Fires for all connecting and disconnecting Shadow clients, regardless of editor target.
+ */
+export function decideLifecycleEvent(data: NotifyMessageData): LifecycleEventAction {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
+    return { type: 'no-action' };
+  }
+
+  const runtimeId = data['client-id'];
+  const eventOp = data['event-op'];
+
+  if (eventOp === 'client-connect' && data['client-info']) {
+    const runtimeInfo = normalizeRuntimeInfo(data['client-info']);
+    runtimeInfo.runtimeId = runtimeId;
+    return { type: 'runtime-connected', runtimeId, runtimeInfo };
+  }
+
+  if (eventOp === 'client-disconnect') {
+    const clientInfo = data['client-info'];
+    let runtimeInfo: RuntimeInfo | undefined;
+    if (clientInfo) {
+      runtimeInfo = normalizeRuntimeInfo(clientInfo);
+      runtimeInfo.runtimeId = runtimeId;
+    }
+    return { type: 'runtime-disconnected', runtimeId, runtimeInfo };
+  }
+
+  return { type: 'no-action' };
 }
 
 /**
@@ -100,7 +136,7 @@ export function decideMessageAction(
   data: NotifyMessageData,
   currentRuntimeId: number | undefined
 ): MessageAction {
-  if (data.op !== 'notify' || !data['client-id']) {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
     return { type: 'no-action' };
   }
 
