@@ -102,7 +102,7 @@ export interface NotifyMessageData {
  * Fires for all connecting and disconnecting Shadow clients, regardless of editor target.
  */
 export function decideLifecycleEvent(data: NotifyMessageData): LifecycleEventAction {
-  if (data.op !== 'notify' || !data['client-id']) {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
     return { type: 'no-action' };
   }
 
@@ -136,7 +136,7 @@ export function decideMessageAction(
   data: NotifyMessageData,
   currentRuntimeId: number | undefined
 ): MessageAction {
-  if (data.op !== 'notify' || !data['client-id']) {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
     return { type: 'no-action' };
   }
 
