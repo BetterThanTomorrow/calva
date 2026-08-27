@@ -582,6 +582,30 @@ export interface SessionsChangedEvent {
 export function onSessionsChanged(
   listener: (event: SessionsChangedEvent) => void
 ): vscode.Disposable {
-  const disposable = sessionEvents.onSessionsChanged(listener);
+  const disposable = sessionEvents.onSessionsChanged((event) => {
+    try {
+      const publicEvent: SessionsChangedEvent = {
+        type: event.type,
+        clientKey: event.clientKey,
+        sessionKey: event.sessionKey,
+        previousSessionKey: event.previousSessionKey,
+        runtime: event.runtime
+          ? {
+              runtimeId: event.runtime.runtimeId,
+              description: event.runtime.description,
+              buildId: event.runtime.buildId,
+              host: event.runtime.host,
+              workerId: event.runtime.workerId,
+              sinceInst: event.runtime.sinceInst,
+              sinceDescription: event.runtime.sinceDescription,
+              lastActivity: event.runtime.lastActivity,
+            }
+          : undefined,
+      };
+      listener(publicEvent);
+    } catch (error) {
+      console.log('API onSessionsChanged callback failed', (error as Error).message);
+    }
+  });
   return new vscode.Disposable(() => disposable.dispose());
 }
