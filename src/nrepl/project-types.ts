@@ -68,7 +68,16 @@ export function nreplPortFileLocalPath(
   connectSequence: connectSequences.ReplConnectSequence
 ): string {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootLocal();
+  let projectRoot = state.getProjectRootLocal();
+  if (connectSequence?.projectRootPath?.length > 0) {
+    const resolved = utilities.resolveFileArgToUri(
+      connectSequence.projectRootPath,
+      vscode.workspace.workspaceFolders
+    );
+    if (resolved) {
+      projectRoot = resolved.fsPath;
+    }
+  }
   if (projectRoot) {
     try {
       return path.resolve(projectRoot, relativePath);
@@ -83,7 +92,16 @@ export function nreplPortFileUri(
   connectSequence: connectSequences.ReplConnectSequence
 ): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  const projectRoot = state.getProjectRootUri();
+  let projectRoot = state.getProjectRootUri();
+  if (connectSequence?.projectRootPath?.length > 0) {
+    const resolved = utilities.resolveFileArgToUri(
+      connectSequence.projectRootPath,
+      vscode.workspace.workspaceFolders
+    );
+    if (resolved) {
+      projectRoot = resolved;
+    }
+  }
   if (projectRoot) {
     try {
       return vscode.Uri.joinPath(projectRoot, relativePath);
@@ -1091,7 +1109,7 @@ function gradleCommandLine(
 }
 
 /** Given the name of a project in project types, find that project. */
-export function getProjectTypeForName(name: string) {
+export function getProjectTypeForName(name: string): ProjectType | undefined {
   for (const id in projectTypes) {
     if (projectTypes[id].name == name) {
       return projectTypes[id];
@@ -1099,8 +1117,25 @@ export function getProjectTypeForName(name: string) {
   }
 }
 
-export async function detectProjectTypes(): Promise<string[]> {
+export async function detectProjectCandidates(): Promise<string[]> {
   const rootUri = state.getProjectRootUri();
+  const projectCandidates: string[] = [];
+  for (const clj in projectTypes) {
+    for (const projectFileName of projectTypes[clj].useWhenExists) {
+      try {
+        const uri = vscode.Uri.joinPath(rootUri, projectFileName);
+        await vscode.workspace.fs.readFile(uri);
+        projectCandidates.push(clj);
+        break;
+      } catch {
+        // this just means the file doesn't exist
+      }
+    }
+  }
+  return projectCandidates;
+}
+
+export async function detectProjectTypes(): Promise<string[]> {
   const cljProjTypes = [
     'clj-projectless',
     'cljs-only',
@@ -1115,19 +1150,7 @@ export async function detectProjectTypes(): Promise<string[]> {
     'custom',
     'generic',
   ];
-  const projectCandidates = [];
-  for (const clj in projectTypes) {
-    for (const projectFileName of projectTypes[clj].useWhenExists) {
-      try {
-        const uri = vscode.Uri.joinPath(rootUri, projectFileName);
-        await vscode.workspace.fs.readFile(uri);
-        projectCandidates.push(clj);
-        break;
-      } catch {
-        // this just means the file doesn't exist
-      }
-    }
-  }
+  const projectCandidates = await detectProjectCandidates();
   return [...projectCandidates, ...cljProjTypes];
 }
 
