@@ -17,7 +17,34 @@ suite('Auto-connect suite', () => {
 
   const bbMiniDir = path.join(testUtil.testDataDir, 'bb-mini');
   const bbPortFile = path.join(bbMiniDir, '.nrepl-port');
+  const bbMini2Dir = path.join(testUtil.testDataDir, 'bb-mini2');
+  const bbPortFile2 = path.join(bbMini2Dir, '.nrepl-port');
   const workspaceRoot = testUtil.testDataDir;
+
+  async function stopBbProcess(): Promise<void> {
+    if (bbProcess && !bbProcess.killed) {
+      bbProcess.kill();
+      await testUtil.waitForCondition(
+        () => bbProcess === undefined || bbProcess.killed || bbProcess.exitCode !== null,
+        5000,
+        50,
+        'Timed out waiting for bbProcess to exit'
+      );
+      bbProcess = undefined;
+    }
+  }
+
+  function cleanPortFiles(): void {
+    for (const file of [bbPortFile, bbPortFile2]) {
+      if (fs.existsSync(file)) {
+        try {
+          fs.unlinkSync(file);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
 
   mocha.before(() => {
     testUtil.showMessage(suiteName, 'suite starting!');
@@ -27,16 +54,8 @@ suite('Auto-connect suite', () => {
   });
 
   mocha.after(async () => {
-    if (bbProcess && !bbProcess.killed) {
-      bbProcess.kill();
-    }
-    if (fs.existsSync(bbPortFile)) {
-      try {
-        fs.unlinkSync(bbPortFile);
-      } catch {
-        // ignore
-      }
-    }
+    await stopBbProcess();
+    cleanPortFiles();
     const config = vscode.workspace.getConfiguration('calva');
     await config.update(
       'autoConnectRepl',
@@ -57,17 +76,8 @@ suite('Auto-connect suite', () => {
   });
 
   mocha.afterEach(async () => {
-    if (bbProcess && !bbProcess.killed) {
-      bbProcess.kill();
-      bbProcess = undefined;
-    }
-    if (fs.existsSync(bbPortFile)) {
-      try {
-        fs.unlinkSync(bbPortFile);
-      } catch {
-        // ignore
-      }
-    }
+    await stopBbProcess();
+    cleanPortFiles();
     await connector.disconnect({ disconnectAll: true });
   });
 
@@ -190,5 +200,54 @@ suite('Auto-connect suite', () => {
     assert.ok(primarySession, 'Primary session should exist');
     const evalResult = await primarySession.eval('(+ 20 22)', 'user').value;
     assert.strictEqual(evalResult, '42', 'Evaluation in auto-connected REPL should succeed');
+  });
+
+  test('multiple autoSelectForConnect sequences: shouldAutoConnect checks the auto-selected sequence', async () => {
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'First AutoConnect Seq',
+          projectType: 'babashka',
+          autoSelectForConnect: true,
+          projectRootPath: ['integration-test', 'bb-mini'],
+          nReplPortFile: ['.nrepl-port'],
+          cljsType: 'none',
+        },
+        {
+          name: 'Second AutoConnect Seq',
+          projectType: 'babashka',
+          autoSelectForConnect: true,
+          projectRootPath: ['integration-test', 'bb-mini2'],
+          nReplPortFile: ['.nrepl-port'],
+          cljsType: 'none',
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    // Case (a): first sequence has port file -> shouldAutoConnect is true
+    fs.writeFileSync(bbPortFile, '16688');
+    let shouldAuto = await connector.shouldAutoConnect();
+    assert.strictEqual(
+      shouldAuto,
+      true,
+      'shouldAutoConnect should be true when the first autoSelect sequence has port file'
+    );
+
+    // Case (b): first sequence port file missing, but second sequence has port file
+    // The first auto-selected sequence (when no editor is open) is the candidate to connect.
+    // Since its port file is missing, shouldAutoConnect is false (does not falsely connect to wrong sequence)
+    fs.unlinkSync(bbPortFile);
+    fs.writeFileSync(bbPortFile2, '16689');
+
+    shouldAuto = await connector.shouldAutoConnect();
+    assert.strictEqual(
+      shouldAuto,
+      false,
+      'shouldAutoConnect should be false when the targeted first sequence has no port file'
+    );
   });
 });
