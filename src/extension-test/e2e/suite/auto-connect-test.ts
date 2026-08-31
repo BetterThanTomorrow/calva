@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import * as connector from '../../../connector';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
-import * as evaluate from '../../../evaluate';
 import * as testUtil from './util';
 
 suite('Auto-connect suite', () => {
@@ -96,7 +95,7 @@ suite('Auto-connect suite', () => {
     );
   });
 
-  test('shouldAutoConnect ignores port files of unapplicable project types (issue #3278)', async () => {
+  test('shouldAutoConnect ignores port files of inapplicable project types (issue #3278)', async () => {
     const config = vscode.workspace.getConfiguration('calva');
     await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
 
