@@ -18,6 +18,18 @@ describe('customREPLCommandSnippets resolution (#3283)', () => {
     expectLib.expect(entry.repl).toBe('clj');
   });
 
+  it('preserves empty string ns and repl without overwriting with editor defaults', () => {
+    const emptyNsSnippet: catalog.CustomREPLCommandSnippet = {
+      name: 'Empty NS',
+      snippet: '(foo)',
+      ns: '',
+      repl: '',
+    };
+    const entry = catalog.withEditorDefaults(emptyNsSnippet, editorNS, editorRepl);
+    expectLib.expect(entry.ns).toBe('');
+    expectLib.expect(entry.repl).toBe('');
+  });
+
   it('menu and key paths resolve to the same catalog entry (including ns)', () => {
     const { snippetsDict, snippetsMenuItems } = catalog.buildSnippetCatalog(
       [resetSnippet],
