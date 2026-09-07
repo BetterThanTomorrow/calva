@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - Bump deps-clj to v1.12.6.1673
+- Fix: [ns not working in customREPLCommandSnippet](https://github.com/BetterThanTomorrow/calva/issues/3283)
 
 
 ## [2.0.597] - 2026-08-27

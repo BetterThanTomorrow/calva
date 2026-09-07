@@ -18,13 +18,13 @@ export type SnippetQuickPickItem = {
 /** Fill editor defaults for missing ns/repl without dropping configured fields. */
 export function withEditorDefaults(
   snippet: CustomREPLCommandSnippet,
-  editorNS: string,
-  editorRepl: string
+  editorNS?: string,
+  editorRepl?: string
 ): CustomREPLCommandSnippet {
   return {
     ...snippet,
-    ns: snippet.ns ? snippet.ns : editorNS,
-    repl: snippet.repl ? snippet.repl : editorRepl,
+    ns: snippet.ns ?? editorNS,
+    repl: snippet.repl ?? editorRepl,
   };
 }
 
@@ -34,8 +34,8 @@ export function withEditorDefaults(
  */
 export function buildSnippetCatalog(
   snippets: CustomREPLCommandSnippet[],
-  editorNS: string,
-  editorRepl: string
+  editorNS?: string,
+  editorRepl?: string
 ): {
   snippetsDict: Record<string, CustomREPLCommandSnippet>;
   snippetsMenuItems: SnippetQuickPickItem[];
@@ -45,8 +45,9 @@ export function buildSnippetCatalog(
   const snippetsDict: Record<string, CustomREPLCommandSnippet> = {};
   const snippetsMenuItems: SnippetQuickPickItem[] = [];
 
+  const requiredKeys: (keyof CustomREPLCommandSnippet)[] = ['name', 'snippet'];
   snippets.forEach((c: CustomREPLCommandSnippet) => {
-    const undefs = ['name', 'snippet'].filter((k) => !c[k]);
+    const undefs = requiredKeys.filter((k) => !c[k]);
     if (undefs.length > 0) {
       configErrors.push({ name: c.name, keys: undefs });
     }

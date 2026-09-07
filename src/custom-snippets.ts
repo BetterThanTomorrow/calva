@@ -51,9 +51,9 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
       ? replSession.getReplSessionTypeFromState()
       : 'clj';
   const snippetDefinition: SnippetDefinition =
-    typeof codeOrKeyOrSnippet !== 'string' && codeOrKeyOrSnippet !== undefined
-      ? codeOrKeyOrSnippet
-      : await getSnippetDefinition(codeOrKeyOrSnippet as string, editorNS, editorRepl);
+    typeof codeOrKeyOrSnippet === 'string' || typeof codeOrKeyOrSnippet === 'undefined'
+      ? await getSnippetDefinition(codeOrKeyOrSnippet, editorNS, editorRepl)
+      : codeOrKeyOrSnippet;
 
   if (!snippetDefinition) {
     return;
@@ -97,9 +97,9 @@ async function evaluateCodeInContext(
 }
 
 async function getSnippetDefinition(
-  codeOrKey: string,
-  editorNS: string,
-  editorRepl: string
+  codeOrKey?: string,
+  editorNS?: string,
+  editorRepl?: string
 ): Promise<SnippetDefinition | undefined> {
   const globalSnippets = config.getConfig().customREPLCommandSnippetsGlobal;
   const workspaceSnippets = config.getConfig().customREPLCommandSnippetsWorkspace;
