@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as _ from 'lodash';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
@@ -9,19 +8,24 @@ import * as evaluate from './evaluate';
 import * as state from './state';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as output from './results-output/output';
+import {
+  buildSnippetCatalog,
+  resolveCustomSnippetDefinition,
+  type CustomREPLCommandSnippet,
+  type SnippetQuickPickItem,
+} from './custom-snippets-catalog';
 
-export type CustomREPLCommandSnippet = {
-  name: string;
-  key?: string;
-  snippet: string;
-  repl?: string;
-  ns?: string;
-};
+export type { CustomREPLCommandSnippet } from './custom-snippets-catalog';
+export {
+  buildSnippetCatalog,
+  resolveCustomSnippetDefinition,
+  withEditorDefaults,
+} from './custom-snippets-catalog';
 
 type SnippetDefinition = {
   snippet: string;
-  ns: string;
-  repl: string;
+  ns?: string;
+  repl?: string;
   evaluationSendCodeToOutputWindow?: boolean;
 };
 
@@ -50,6 +54,10 @@ async function evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet?: string | SnippetD
     typeof codeOrKeyOrSnippet !== 'string' && codeOrKeyOrSnippet !== undefined
       ? codeOrKeyOrSnippet
       : await getSnippetDefinition(codeOrKeyOrSnippet as string, editorNS, editorRepl);
+
+  if (!snippetDefinition) {
+    return;
+  }
 
   snippetDefinition.repl = snippetDefinition.repl ?? editorRepl;
   snippetDefinition.ns =
@@ -88,8 +96,11 @@ async function evaluateCodeInContext(
   return result;
 }
 
-async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorRepl: string) {
-  const configErrors: { name: string; keys: string[] }[] = [];
+async function getSnippetDefinition(
+  codeOrKey: string,
+  editorNS: string,
+  editorRepl: string
+): Promise<SnippetDefinition | undefined> {
   const globalSnippets = config.getConfig().customREPLCommandSnippetsGlobal;
   const workspaceSnippets = config.getConfig().customREPLCommandSnippetsWorkspace;
   const workspaceFolderSnippets = config.getConfig().customREPLCommandSnippetsWorkspaceFolder;
@@ -101,30 +112,12 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
   if (snippets.length < 1) {
     snippets = config.getConfig().customREPLCommandSnippets;
   }
-  const snippetsDict = {};
-  const snippetsMenuItems: vscode.QuickPickItem[] = [];
-  snippets.forEach((c: CustomREPLCommandSnippet) => {
-    const undefs = ['name', 'snippet'].filter((k) => {
-      return !c[k];
-    });
-    if (undefs.length > 0) {
-      configErrors.push({ name: c.name, keys: undefs });
-    }
-    const entry = { ...c };
-    entry.ns = entry.ns ? entry.ns : editorNS;
-    entry.repl = entry.repl ? entry.repl : editorRepl;
-    const item = {
-      label: `${entry.key ? entry.key + ': ' : ''}${entry.name}`,
-      detail: `${entry.snippet}`,
-      description: `${entry.repl}`,
-      repl: `${entry.repl}`,
-      snippet: entry.snippet,
-    };
-    snippetsMenuItems.push(item);
-    if (!snippetsDict[entry.key]) {
-      snippetsDict[entry.key] = entry;
-    }
-  });
+
+  const { snippetsDict, snippetsMenuItems, configErrors } = buildSnippetCatalog(
+    snippets,
+    editorNS,
+    editorRepl
+  );
 
   if (configErrors.length > 0) {
     void vscode.window.showErrorMessage(
@@ -135,25 +128,24 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     return;
   }
 
-  let pick: any;
+  let menuSnippetDefinition: CustomREPLCommandSnippet | undefined;
   if (codeOrKey === undefined) {
-    // Called without args, show snippets menu
     if (snippetsMenuItems.length > 0) {
       try {
-        const pickResult = await util.quickPickSingle({
+        const pickResult = (await util.quickPickSingle({
           values: snippetsMenuItems,
           placeHolder: 'Choose a command to run at the REPL',
           saveAs: 'runCustomREPLCommand',
-        });
+        })) as SnippetQuickPickItem | undefined;
         if (pickResult === undefined || pickResult.label.length < 1) {
           return;
         }
-        pick = pickResult;
+        menuSnippetDefinition = pickResult.snippetDefinition;
       } catch (e) {
         console.error(e);
       }
     }
-    if (pick === undefined) {
+    if (menuSnippetDefinition === undefined) {
       output.appendLineOtherOut(
         'No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.'
       );
@@ -161,12 +153,11 @@ async function getSnippetDefinition(codeOrKey: string, editorNS: string, editorR
     }
   }
 
-  if (pick === undefined) {
-    // still no pick, but codeOrKey might be one
-    pick = snippetsDict[codeOrKey];
-  }
-
-  return pick ?? { snippet: codeOrKey };
+  return resolveCustomSnippetDefinition({
+    codeOrKey,
+    snippetsDict,
+    menuSnippetDefinition,
+  });
 }
 
 export function makeContext(
