@@ -10,7 +10,7 @@
                  :destination-key "output-view"
                  :command-title "Calva: Show/Open the REPL output view"}
    :output-sidebar {:heading "This is the Calva REPL Output sidebar."
-                    :destination-key "ouput-sidebar"
+                    :destination-key "output-sidebar"
                     :command-title "Calva: Show/Open the REPL output sidebar"}})
 
 (defn escape-html
@@ -92,7 +92,7 @@
   (let [{:keys [heading destination-key command-title]} (get view-copy view-kind)]
     (str
      "<div class=\"output-greeting\">"
-     "<p>" heading " It is read-only. Evaluation results, stdout/stderr, and other REPL messages appear here), if <code>" destination-key "</code> is configured as an "
+     "<p>" heading " It is read-only. Evaluation results, stdout/stderr, and other REPL messages appear here, if <code>" destination-key "</code> is configured as an "
      "<a href='https://calva.io/output'>output destination</a>.</p>"
      "<p>To reveal this view, use the command "
      "<strong>" (escape-html command-title) "</strong>.</p>"

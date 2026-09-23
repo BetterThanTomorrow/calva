@@ -1564,7 +1564,24 @@ async function standaloneConnect(
 }
 
 async function nReplPortFileExists() {
-  const sequences = connectSequences.getConnectSequences(projectTypes.getAllProjectTypes());
+  const customSequences = connectSequences.getCustomConnectSequences();
+  const autoSelectedCustom = customSequences.find((s) => s.autoSelectForConnect);
+  if (autoSelectedCustom) {
+    try {
+      const portFile = projectTypes.nreplPortFileUri(autoSelectedCustom);
+      await vscode.workspace.fs.stat(portFile);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const candidateTypes = await projectTypes.detectProjectCandidates();
+  if (candidateTypes.length === 0) {
+    return false;
+  }
+
+  const sequences = connectSequences.getConnectSequences(candidateTypes);
   const portFiles = sequences.map((sequence) => projectTypes.nreplPortFileUri(sequence));
   let fileExists = false;
   await Promise.all(
@@ -1846,7 +1863,7 @@ export async function connectCommand(options?: {
   });
 }
 
-export async function shouldAutoConnect() {
+export async function shouldAutoConnect(): Promise<boolean> {
   return config.getConfig().autoConnectRepl && nReplPortFileExists();
 }
 

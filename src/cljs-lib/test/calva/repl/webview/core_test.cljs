@@ -115,8 +115,8 @@
       (is (re-find #"img-src data: csp-source" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
-  (testing "Given greeting html, should include it in the output div"
-    (is (re-find #"GREETING-MARKER"
+  (testing "Given greeting html, should render it before, not inside, the output div"
+    (is (re-find #"GREETING-MARKER\s*<div id=\"output\" class=\"output-element-container\"></div>"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
