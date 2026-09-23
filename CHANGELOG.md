@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [autoConnectRepl tried to connect even if no .nrepl-port present](https://github.com/BetterThanTomorrow/calva/issues/3278)
+
 ## [2.0.598] - 2026-09-07
 
 - Bump deps-clj to v1.12.6.1673
