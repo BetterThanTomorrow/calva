@@ -213,7 +213,8 @@
 
   </head>
   <body" (when word-wrap? " class=\"word-wrap\"") ">
-    <div id=\"output\" class=\"output-element-container\">" greeting-html "</div>
+    " greeting-html "
+    <div id=\"output\" class=\"output-element-container\"></div>
 
     <script src=\"" js-source "\"></script>
   </body>
