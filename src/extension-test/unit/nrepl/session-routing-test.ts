@@ -56,6 +56,16 @@ describe('session routing change events', () => {
     expectLib.expect(events).toEqual(['changed', 'changed']);
   });
 
+  it('notifies listeners when a routed evaluation target changes outside pinning', () => {
+    const events: string[] = [];
+    const disposable = sessionRouting.onDidChangeRouting(() => events.push('changed'));
+
+    sessionRouting.notifyRoutingChanged();
+    disposable.dispose();
+
+    expectLib.expect(events).toEqual(['changed']);
+  });
+
   it('does not notify disposed listeners', () => {
     const events: string[] = [];
     const disposable = sessionRouting.onDidChangeRouting(() => events.push('changed'));

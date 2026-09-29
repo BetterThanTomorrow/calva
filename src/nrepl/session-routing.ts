@@ -16,7 +16,7 @@ export function onDidChangeRouting(listener: () => void): { dispose(): void } {
   };
 }
 
-function fireRoutingChange(): void {
+export function notifyRoutingChanged(): void {
   routingChangeListeners.forEach((listener) => listener());
 }
 
@@ -70,13 +70,13 @@ export function pinSession(sessionKey: string | undefined): void {
 
   cljsLib.setStateValue(PINNED_SESSION_STATE_KEY, sessionKey);
   setRoutingMode('pinned');
-  fireRoutingChange();
+  notifyRoutingChanged();
 }
 
 export function enableAutoRouting(): void {
   clearStateKey(PINNED_SESSION_STATE_KEY);
   setRoutingMode('auto');
-  fireRoutingChange();
+  notifyRoutingChanged();
 }
 
 export function isPinned(): boolean {

@@ -13,6 +13,9 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as sessionRegistry from '../nrepl/session-registry';
+import * as sessionEvents from '../nrepl/session-events';
+import * as sessionRouting from '../nrepl/session-routing';
+import { reconcileDebuggerSession } from './session-lifecycle';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
@@ -64,8 +67,8 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
-const warnedUnsupportedSessionKeys = new Set<string>();
 const warnedUnsupportedBreakpointMessages = new Set<string>();
+const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -602,7 +605,6 @@ function warnUnsupportedBreakpoint(message: string, key: string, once = false): 
 
 function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
   const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
-  warnedUnsupportedSessionKeys.add(sessionKey);
   warnUnsupportedBreakpoint(
     unsupportedDebuggerMessage(session),
     `debugger-ops:${sessionKey}`,
@@ -611,15 +613,14 @@ function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): vo
 }
 
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
-  const existingBreakpoints = existingClojureSourceBreakpoints();
-
   if (!supportsDebuggerOps(cljSession)) {
-    warnUnsupportedDebugger(cljSession, existingBreakpoints.length === 0);
     return;
   }
 
-  warnedUnsupportedSessionKeys.delete(sessionRegistry.resolveSessionKey(cljSession));
-  cljSession.initDebugger();
+  if (!initializedDebuggerSessions.has(cljSession)) {
+    initializedDebuggerSessions.add(cljSession);
+    cljSession.initDebugger();
+  }
   debugDecorations.activate();
 }
 
@@ -803,13 +804,15 @@ async function evaluateTopLevelFormForBreakpoint(
     return;
   }
 
-  const session = replSession.getSession();
+  const session = replSession.getSession(document);
   if (!session) {
     return;
   }
 
   if (!supportsDebuggerOps(session)) {
     warnUnsupportedDebugger(session);
+  } else {
+    initializeDebugger(session);
   }
 
   const [selection, code] = getText.currentTopLevelFormText(document, position);
@@ -860,10 +863,6 @@ async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Pr
 
   for (const breakpoint of breakpoints) {
     const document = await vscode.workspace.openTextDocument(breakpoint.location.uri);
-    if (document.languageId !== 'clojure') {
-      continue;
-    }
-
     const targetPosition = breakpointTargetPosition(document, breakpoint);
     const [selection] = getText.currentTopLevelFormText(document, targetPosition);
     if (!selection) {
@@ -891,6 +890,36 @@ function registerSourceBreakpointInstrumentation(
   evaluator?: BreakpointCodeEvaluator
 ): void {
   breakpointCodeEvaluator = evaluator;
+  let activeDebuggerSession: nrepl.NReplSession | undefined;
+  const reconcileActiveSession = () => {
+    activeDebuggerSession = reconcileDebuggerSession(
+      activeDebuggerSession,
+      replSession.getSession(),
+      {
+        isSupported: supportsDebuggerOps,
+        initialize: initializeDebugger,
+        synchronizeBreakpoints: () => {
+          void syncSourceBreakpoints(existingClojureSourceBreakpoints());
+        },
+      }
+    );
+  };
+  context.subscriptions.push(
+    sessionEvents.onSessionsChanged((event) => {
+      if (
+        event.type === 'session-added' ||
+        event.type === 'session-removed' ||
+        event.type === 'connection-added' ||
+        event.type === 'connection-removed' ||
+        event.type === 'session-renamed'
+      ) {
+        reconcileActiveSession();
+      }
+    }),
+    sessionRouting.onDidChangeRouting(reconcileActiveSession),
+    vscode.window.onDidChangeActiveTextEditor(reconcileActiveSession)
+  );
+  reconcileActiveSession();
   context.subscriptions.push(
     vscode.debug.onDidChangeBreakpoints((event) => {
       void syncChangedSourceBreakpoints(event);
