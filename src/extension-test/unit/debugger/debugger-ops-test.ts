@@ -21,6 +21,7 @@ describe('debugger ops', () => {
     expectLib.expect(supportsDebuggerOps(createSession(['init-debugger']))).toBe(false);
     expectLib.expect(supportsDebuggerOps(createSession(['debug-input']))).toBe(false);
     expectLib.expect(supportsDebuggerOps(undefined)).toBe(false);
+    expectLib.expect(supportsDebuggerOps({ replType: 'clj' } as nrepl.NReplSession)).toBe(false);
   });
 
   it('does not require the optional debug decoration operation', () => {
@@ -42,6 +43,9 @@ describe('debugger ops', () => {
     expectLib
       .expect(formatUnsupportedDebuggerMessage('partial', createSession(['init-debugger'])))
       .toContain('(debug-input)');
+    expectLib
+      .expect(formatUnsupportedDebuggerMessage('legacy', { replType: 'clj' } as nrepl.NReplSession))
+      .toContain('(init-debugger, debug-input)');
   });
 
   it('recognizes Clojure-family source paths including ClojureScript', () => {

@@ -10,15 +10,23 @@ export const CLOJURE_FAMILY_SOURCE_EXTENSIONS = [
   'cljx',
   'clojure',
 ];
+
+function sessionSupportsOperation(
+  session: nrepl.NReplSession | undefined,
+  operation: string
+): boolean {
+  return Boolean(session && typeof session.supports === 'function' && session.supports(operation));
+}
+
 export function supportsDebuggerOps(session?: nrepl.NReplSession): boolean {
-  return Boolean(session && DEBUGGER_OPS.every((op) => session.supports(op)));
+  return DEBUGGER_OPS.every((op) => sessionSupportsOperation(session, op));
 }
 
 export function formatUnsupportedDebuggerMessage(
   sessionKey = 'current',
   session?: nrepl.NReplSession
 ): string {
-  const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op));
+  const missingOps = DEBUGGER_OPS.filter((op) => !sessionSupportsOperation(session, op));
   return `The ${sessionKey} nREPL session does not report support for debugger operations (${missingOps.join(
     ', '
   )}). Calva will evaluate requested forms without breakpoint instrumentation for this session.`;
