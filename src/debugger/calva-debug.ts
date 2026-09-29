@@ -22,6 +22,7 @@ import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
 import { addedBreakpointsToSync } from './source-breakpoint-sync';
 import {
+  DEBUGGER_OPS,
   isClojureFamilySourcePath,
   instrumentSourceCodeWhenSupported,
   supportsDebuggerOps,
@@ -67,7 +68,8 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
-const warnedUnsupportedBreakpointMessages = new Set<string>();
+let lastWarnedUnsupportedSession: nrepl.NReplSession | undefined;
+let lastWarnedMissingDebuggerOps: string | undefined;
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
@@ -595,25 +597,25 @@ function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
   return formatUnsupportedDebuggerMessage(sessionKey, session);
 }
 
-function warnUnsupportedBreakpoint(message: string, key: string, once = false): void {
-  if (once && warnedUnsupportedBreakpointMessages.has(key)) {
+function warnUnsupportedDebugger(session?: nrepl.NReplSession): void {
+  const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op)).join(',');
+  if (
+    lastWarnedUnsupportedSession === session &&
+    lastWarnedMissingDebuggerOps === missingOps
+  ) {
     return;
   }
-  warnedUnsupportedBreakpointMessages.add(key);
-  void vscode.window.showWarningMessage(message);
-}
-
-function warnUnsupportedDebugger(session?: nrepl.NReplSession, once = false): void {
-  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
-  warnUnsupportedBreakpoint(
-    unsupportedDebuggerMessage(session),
-    `debugger-ops:${sessionKey}`,
-    once
-  );
+  lastWarnedUnsupportedSession = session;
+  lastWarnedMissingDebuggerOps = missingOps;
+  void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
 }
 
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
   if (!supportsDebuggerOps(cljSession)) {
+    if (lastWarnedUnsupportedSession === cljSession) {
+      lastWarnedUnsupportedSession = undefined;
+      lastWarnedMissingDebuggerOps = undefined;
+    }
     return;
   }
 
@@ -788,7 +790,7 @@ function instrumentCodeWithSourceBreakpoints(
     );
 
   if (breakpoints.length > 0 && !supportsDebuggerOps(session)) {
-    warnUnsupportedDebugger(session, true);
+    warnUnsupportedDebugger(session);
   }
 
   return instrumentSourceCodeWhenSupported(code, session, breakpoints.length > 0, (source) =>
