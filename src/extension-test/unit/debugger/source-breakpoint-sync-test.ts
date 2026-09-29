@@ -1,5 +1,8 @@
 import * as expectLib from 'expect';
-import { addedBreakpointsToSync } from '../../../../src/debugger/source-breakpoint-sync';
+import {
+  addedBreakpointsToSync,
+  uniqueByKey,
+} from '../../../../src/debugger/source-breakpoint-sync';
 
 describe('source breakpoint sync', () => {
   it('syncs only newly added breakpoints', () => {
@@ -33,5 +36,15 @@ describe('source breakpoint sync', () => {
     );
 
     expectLib.expect(breakpoints).toEqual([clojureBreakpoint]);
+  });
+
+  it('deduplicates breakpoints that resolve to the same top-level form', () => {
+    const first = { form: 'a', breakpoint: 1 };
+    const duplicate = { form: 'a', breakpoint: 2 };
+    const otherForm = { form: 'b', breakpoint: 3 };
+
+    expectLib
+      .expect(uniqueByKey([first, duplicate, otherForm], (item) => item.form))
+      .toEqual([first, otherForm]);
   });
 });

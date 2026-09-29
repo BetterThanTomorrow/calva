@@ -20,7 +20,8 @@ import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
-import { addedBreakpointsToSync } from './source-breakpoint-sync';
+import { addedBreakpointsToSync, uniqueByKey } from './source-breakpoint-sync';
+import { UnsupportedWarningState } from './unsupported-warning-state';
 import { insertBreakpointForms, isBreakpointSupported } from './breakpoint-encoding';
 import {
   DEBUGGER_OPS,
@@ -69,8 +70,7 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
-let lastWarnedUnsupportedSession: nrepl.NReplSession | undefined;
-let lastWarnedMissingDebuggerOps: string | undefined;
+const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
@@ -614,20 +614,15 @@ function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
 
 function warnUnsupportedDebugger(session?: nrepl.NReplSession): void {
   const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op)).join(',');
-  if (lastWarnedUnsupportedSession === session && lastWarnedMissingDebuggerOps === missingOps) {
+  if (!unsupportedWarningState.shouldWarn(session, missingOps)) {
     return;
   }
-  lastWarnedUnsupportedSession = session;
-  lastWarnedMissingDebuggerOps = missingOps;
   void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
 }
 
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
+  unsupportedWarningState.clear(cljSession);
   if (!supportsDebuggerOps(cljSession)) {
-    if (lastWarnedUnsupportedSession === cljSession) {
-      lastWarnedUnsupportedSession = undefined;
-      lastWarnedMissingDebuggerOps = undefined;
-    }
     return;
   }
 
@@ -729,6 +724,11 @@ function positionedBreakpointTargetOffset(
 
   if (tokenCursor.offsetStart === offset && tokenCursor.getToken().type === 'open') {
     return offset;
+  }
+
+  const enclosingList = tokenCursor.rangeForList(1);
+  if (enclosingList && enclosingList[0] !== undefined) {
+    return enclosingList[0];
   }
 
   if (tokenCursor.backwardFunction()) {
@@ -860,8 +860,7 @@ function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): voi
 }
 
 async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
-  const seenTopLevelForms = new Set<string>();
-
+  const targets: { document: vscode.TextDocument; position: vscode.Position; key: string }[] = [];
   for (const breakpoint of breakpoints) {
     const document = await vscode.workspace.openTextDocument(breakpoint.location.uri);
     const targetPosition = breakpointTargetPosition(document, breakpoint);
@@ -877,12 +876,11 @@ async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Pr
       selection.end.line,
       selection.end.character,
     ].join(':');
-    if (seenTopLevelForms.has(key)) {
-      continue;
-    }
-    seenTopLevelForms.add(key);
+    targets.push({ document, position: targetPosition, key });
+  }
 
-    await evaluateTopLevelFormForBreakpoint(document, targetPosition);
+  for (const target of uniqueByKey(targets, (item) => item.key)) {
+    await evaluateTopLevelFormForBreakpoint(target.document, target.position);
   }
 }
 
@@ -951,6 +949,8 @@ export {
   handleNeedDebugInput,
   initializeDebugger,
   instrumentCodeWithSourceBreakpoints,
+  breakpointTargetPosition,
+  breakpointLocationsForRange,
   onNreplMessage,
   registerSourceBreakpointInstrumentation,
   supportsDebuggerOps,
