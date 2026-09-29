@@ -21,6 +21,7 @@ import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
 import { addedBreakpointsToSync } from './source-breakpoint-sync';
+import { insertBreakpointForms, isBreakpointSupported } from './breakpoint-encoding';
 import {
   DEBUGGER_OPS,
   isClojureFamilySourcePath,
@@ -153,9 +154,23 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.SetBreakpointsArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
+    const session = replSession.getSession();
+    const supported = isBreakpointSupported(
+      Boolean(args.source.path && isClojureFamilySourcePath(args.source.path)),
+      supportsDebuggerOps(session)
+    );
     response.body = {
       breakpoints: (args.breakpoints ?? []).map((breakpoint) => ({
-        verified: true,
+        verified: supported,
+        ...(supported
+          ? {}
+          : {
+              message: !args.source.path
+                ? 'Breakpoint source path is unavailable.'
+                : !isClojureFamilySourcePath(args.source.path)
+                ? 'Calva GUI breakpoints require a Clojure-family source file.'
+                : unsupportedDebuggerMessage(session),
+            }),
         line: breakpoint.line,
         column: breakpoint.column,
       })),
@@ -599,10 +614,7 @@ function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
 
 function warnUnsupportedDebugger(session?: nrepl.NReplSession): void {
   const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op)).join(',');
-  if (
-    lastWarnedUnsupportedSession === session &&
-    lastWarnedMissingDebuggerOps === missingOps
-  ) {
+  if (lastWarnedUnsupportedSession === session && lastWarnedMissingDebuggerOps === missingOps) {
     return;
   }
   lastWarnedUnsupportedSession = session;
@@ -638,10 +650,6 @@ function isClojureSourceBreakpoint(
 
 function existingClojureSourceBreakpoints(): vscode.SourceBreakpoint[] {
   return vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
-}
-
-function breakpointForm(breakpoint: vscode.SourceBreakpoint): string {
-  return breakpoint.condition ? `#break ^{:break/when ${breakpoint.condition}} ` : '#break ';
 }
 
 function breakpointLocationsForRange(
@@ -757,22 +765,13 @@ function injectBreakpoints(
   breakpoints: vscode.SourceBreakpoint[]
 ): string {
   const selectionStartOffset = document.offsetAt(selection.start);
-
-  return breakpoints
-    .sort((a, b) => breakpointTargetOffset(document, b) - breakpointTargetOffset(document, a))
-    .reduce((instrumentedCode, breakpoint) => {
-      const relativeOffset = breakpointTargetOffset(document, breakpoint) - selectionStartOffset;
-
-      if (relativeOffset < 0 || relativeOffset > instrumentedCode.length) {
-        return instrumentedCode;
-      }
-
-      return (
-        instrumentedCode.slice(0, relativeOffset) +
-        breakpointForm(breakpoint) +
-        instrumentedCode.slice(relativeOffset)
-      );
-    }, code);
+  return insertBreakpointForms(
+    code,
+    breakpoints.map((breakpoint) => ({
+      offset: breakpointTargetOffset(document, breakpoint) - selectionStartOffset,
+      condition: breakpoint.condition,
+    }))
+  );
 }
 
 function instrumentCodeWithSourceBreakpoints(
