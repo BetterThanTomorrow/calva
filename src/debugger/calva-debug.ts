@@ -81,6 +81,7 @@ let sourceBreakpointStepTargets:
   | undefined;
 const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
+const debuggerQuitRequests = new WeakMap<nrepl.NReplSession, Promise<void>>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -471,11 +472,20 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     const session = replSession.getSession();
 
     if (session) {
-      // `:quit` ends the middleware's current debug loop. A later breakpoint
-      // evaluation must start a fresh loop with `init-debugger`.
-      initializedDebuggerSessions.delete(session);
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':quit', id, key);
+      // `:quit` ends the middleware's current debug loop. Wait for it to
+      // finish before allowing the next breakpoint evaluation to initialize
+      // a replacement loop.
+      const quitRequest = session
+        .sendDebugInput(':quit', id, key)
+        .then(() => {
+          initializedDebuggerSessions.delete(session);
+        })
+        .catch((error) => {
+          console.error('Calva debugger: failed to quit debugger session', error);
+          initializedDebuggerSessions.delete(session);
+        });
+      debuggerQuitRequests.set(session, quitRequest);
     }
 
     sourceBreakpointStepTargets = undefined;
@@ -980,6 +990,14 @@ async function evaluateTopLevelFormForBreakpoint(
   const session = replSession.getSession(document);
   if (!session) {
     return;
+  }
+
+  const pendingQuit = debuggerQuitRequests.get(session);
+  if (pendingQuit) {
+    await pendingQuit;
+    if (debuggerQuitRequests.get(session) === pendingQuit) {
+      debuggerQuitRequests.delete(session);
+    }
   }
 
   if (!supportsDebuggerOps(session)) {
