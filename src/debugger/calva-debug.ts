@@ -22,7 +22,13 @@ import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
 import { addedBreakpointsToSync, uniqueByKey } from './source-breakpoint-sync';
 import { UnsupportedWarningState } from './unsupported-warning-state';
-import { insertBreakpointForms, isBreakpointSupported } from './breakpoint-encoding';
+import {
+  insertBreakpointForms,
+  insertDebugScopes,
+  isBreakpointSupported,
+  offsetAfterDebugScopes,
+  type DebugScopeInsertion,
+} from './breakpoint-encoding';
 import {
   DEBUGGER_OPS,
   isClojureFamilySourcePath,
@@ -70,6 +76,9 @@ type BreakpointCodeEvaluator = (
 ) => Promise<string | null>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
+let sourceBreakpointStepTargets:
+  | { file: string; formStart: number; endOffset: number }[]
+  | undefined;
 const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
 
@@ -580,7 +589,31 @@ function handleNeedDebugInput(response: any): void {
     cljsLib.setStateValue(DEBUG_RESPONSE_KEY, response);
 
     if (!vscode.debug.activeDebugSession) {
-      void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+      if (sourceBreakpointStepTargets?.length) {
+        void shouldExposeSourceBreakpointStop(response).then((isTargetStop) => {
+          if (isTargetStop) {
+            sourceBreakpointStepTargets = undefined;
+            void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+          } else {
+            // Let the nREPL response handler consume this need-debug-input
+            // message before reusing its id for the next step request.
+            setTimeout(() => {
+              const session = replSession.getSession();
+              if (session) {
+                void session.sendDebugInput(':next', response.id, response.key).catch((error) => {
+                  console.error('Calva debugger: failed auto-stepping to GUI breakpoint', error);
+                });
+              }
+            }, 0);
+          }
+        });
+      } else {
+        void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+      }
+    } else {
+      // An already-open expression-debugger session owns the next stop; the
+      // initial auto-step applies only while establishing a GUI breakpoint.
+      sourceBreakpointStepTargets = undefined;
     }
   } else {
     const session = replSession.getSession();
@@ -588,6 +621,48 @@ function handleNeedDebugInput(response: any): void {
     void vscode.window.showInformationMessage(
       'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
     );
+  }
+}
+
+async function shouldExposeSourceBreakpointStop(response: any): Promise<boolean> {
+  const targets = sourceBreakpointStepTargets;
+  if (!targets?.length || typeof response.file !== 'string') {
+    return true;
+  }
+
+  try {
+    const uri =
+      response.file.startsWith('jar:') || response.file.startsWith('file:')
+        ? vscode.Uri.parse(response.file)
+        : vscode.Uri.file(response.file);
+    const document = await vscode.workspace.openTextDocument(uri);
+    const line = convertOneBasedToZeroBased(response.line);
+    const column = convertOneBasedToZeroBased(response.column);
+    const responseOffset = document.offsetAt(new vscode.Position(line, column));
+    const cursor = docMirror.getDocument(document).getTokenCursor(responseOffset);
+    const responseFormRange = cursor.rangeForDefun(responseOffset);
+    const sameInstrumentedForm = targets.some(
+      (target) =>
+        vscode.Uri.file(target.file).toString() === uri.toString() &&
+        responseFormRange?.[0] === target.formStart
+    );
+    if (!sameInstrumentedForm) {
+      return true;
+    }
+    debugUtil.moveTokenCursorToBreakpoint(cursor, response);
+    return targets.some(
+      (target) =>
+        vscode.Uri.file(target.file).toString() === uri.toString() &&
+        target.endOffset === cursor.offsetStart
+    );
+  } catch (error) {
+    console.error(
+      'Calva debugger: could not map an auto-step location to the GUI breakpoint',
+      error
+    );
+    // If source mapping fails, expose the stop so the debugger does not hide a
+    // legitimate pause indefinitely.
+    return true;
   }
 }
 
@@ -758,6 +833,68 @@ function breakpointTargetPosition(
   return document.positionAt(breakpointTargetOffset(document, breakpoint));
 }
 
+/**
+ * Return the body expression range for a simple, single-expression defn/defn-
+ * containing the breakpoint. Prefixing the body expression with #dbg leaves
+ * the read form's shape intact, so cider-nrepl coordinates still map to source.
+ */
+function functionBodyRangeForBreakpoint(
+  document: vscode.TextDocument,
+  targetOffset: number
+): [number, number] | undefined {
+  const tokenCursor = docMirror.getDocument(document).getTokenCursor(targetOffset);
+  const defunRange = tokenCursor.rangeForDefun(targetOffset);
+  if (!defunRange) {
+    return undefined;
+  }
+
+  const [formStart, formEnd] = defunRange;
+  const formHead = document
+    .getText(new vscode.Range(document.positionAt(formStart), document.positionAt(formEnd)))
+    .trimStart()
+    .match(/^\(\s*(defn-?)\b/);
+  if (!formHead) {
+    return undefined;
+  }
+
+  const cursor = docMirror.getDocument(document).getTokenCursor(formStart);
+  cursor.next();
+  cursor.forwardWhitespace();
+  cursor.forwardSexp(); // defn / defn-
+  cursor.forwardWhitespace();
+  cursor.forwardSexp(); // function name
+  cursor.forwardWhitespace();
+
+  // A docstring or attribute map may appear between the name and arg vector.
+  if (cursor.getToken().raw.startsWith('"') || cursor.getToken().type === 'lit') {
+    cursor.forwardSexp();
+    cursor.forwardWhitespace();
+  }
+  if (cursor.getToken().raw === '{') {
+    cursor.forwardSexp();
+    cursor.forwardWhitespace();
+  }
+
+  // This first implementation intentionally handles the common single-arity,
+  // single-body-expression shape. Other function forms keep their existing
+  // #break-only behavior.
+  if (cursor.getToken().raw !== '[') {
+    return undefined;
+  }
+  cursor.forwardSexp(); // argument vector
+  cursor.forwardWhitespace();
+  const bodyStart = cursor.offsetStart;
+  const bodyEnd = formEnd - 1; // the defn's closing parenthesis
+  if (!cursor.forwardSexp()) {
+    return undefined;
+  }
+  cursor.forwardWhitespace();
+  if (cursor.getToken().type !== 'close') {
+    return undefined;
+  }
+  return bodyStart <= targetOffset && targetOffset < bodyEnd ? [bodyStart, bodyEnd] : undefined;
+}
+
 function injectBreakpoints(
   document: vscode.TextDocument,
   selection: vscode.Selection,
@@ -765,12 +902,42 @@ function injectBreakpoints(
   breakpoints: vscode.SourceBreakpoint[]
 ): string {
   const selectionStartOffset = document.offsetAt(selection.start);
-  return insertBreakpointForms(
-    code,
-    breakpoints.map((breakpoint) => ({
-      offset: breakpointTargetOffset(document, breakpoint) - selectionStartOffset,
-      condition: breakpoint.condition,
+  const absoluteTargets = breakpoints.map((breakpoint) =>
+    breakpointTargetOffset(document, breakpoint)
+  );
+  const scopeRanges = absoluteTargets
+    .map((offset) => functionBodyRangeForBreakpoint(document, offset))
+    .filter((range): range is [number, number] => range !== undefined);
+  const uniqueScopes = [...new Map(scopeRanges.map((range) => [range.join(':'), range])).values()];
+  const scopes: DebugScopeInsertion[] = uniqueScopes
+    .map(([start, end]) => ({
+      start: start - selectionStartOffset,
+      end: end - selectionStartOffset,
     }))
+    .filter((scope) => scope.start >= 0 && scope.end <= code.length);
+
+  // Remember the actual target forms. The adapter uses these locations to
+  // auto-step through the synthetic #dbg stops until the gutter breakpoint is
+  // reached, then presents that stop to VS Code.
+  sourceBreakpointStepTargets = absoluteTargets.flatMap((targetOffset) => {
+    const cursor = docMirror.getDocument(document).getTokenCursor(targetOffset);
+    const targetRange = cursor.rangeForCurrentForm(targetOffset);
+    const formRange = cursor.rangeForDefun(targetOffset);
+    return targetRange && formRange
+      ? [{ file: document.fileName, formStart: formRange[0], endOffset: targetRange[1] }]
+      : [];
+  });
+
+  const wrappedCode = insertDebugScopes(code, scopes);
+  return insertBreakpointForms(
+    wrappedCode,
+    breakpoints.map((breakpoint) => {
+      const originalOffset = breakpointTargetOffset(document, breakpoint) - selectionStartOffset;
+      return {
+        offset: offsetAfterDebugScopes(originalOffset, scopes),
+        condition: breakpoint.condition,
+      };
+    })
   );
 }
 
