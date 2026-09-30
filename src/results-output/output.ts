@@ -10,6 +10,7 @@ import * as printer from '../printer';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 import * as evaluatedCode from './evaluated-code';
+import * as imageData from './image-data';
 import { isWebviewOutputDestination } from './output-destinations';
 
 const customChalk = new chalk.Instance({ level: 3 });
@@ -297,6 +298,15 @@ export function getDestinationConfiguration(): OutputDestinationConfiguration {
   return raw || defaultDestinationConfiguration;
 }
 
+/**
+ * Webview destinations get the message as is. Text destinations get image data URLs as placeholders.
+ */
+function messageForDestination(destination: string, message: string) {
+  return isWebviewOutputDestination(destination)
+    ? message
+    : imageData.replaceImageDataUrls(message);
+}
+
 function asClojureLineComments(message: string) {
   return message.replace(/\n(?!$)/g, '\n; ');
 }
@@ -432,11 +442,12 @@ function emitClojureMessage(
 
 function writeClojure(
   options: AppendOptions & AppendClojureOptions,
-  message: string,
+  rawMessage: string,
   didLastTerminateLine: boolean,
   after?: AfterAppendCallback
 ) {
   const destination = options.destination;
+  const message = messageForDestination(destination, rawMessage);
   if (isFilePathDestination(destination)) {
     const printerOptions = { ...printer.prettyPrintingOptions(), 'color?': false };
     const prettyMessage = printer.prettyPrint(message, printerOptions)?.value || message;
@@ -654,8 +665,9 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
   });
 }
 
-function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+function writeAppend(options: AppendOptions, rawMessage: string, after?: AfterAppendCallback) {
   const destination = options.destination;
+  const message = messageForDestination(destination, rawMessage);
   const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
   didLastOutputTerminateLine.set(destination, util.stripAnsi(message).endsWith('\n'));
   if (isFilePathDestination(destination)) {
@@ -934,8 +946,9 @@ export function appendOtherErr(
   });
 }
 
-function writeAppendLine(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+function writeAppendLine(options: AppendOptions, rawMessage: string, after?: AfterAppendCallback) {
   const destination = options.destination;
+  const message = messageForDestination(destination, rawMessage);
   const didLastTerminateLine = didLastOutputTerminateLine.get(destination) ?? true;
   didLastOutputTerminateLine.set(destination, true);
   if (isFilePathDestination(destination)) {
