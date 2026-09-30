@@ -1022,7 +1022,7 @@ async function evaluateTopLevelFormForBreakpoint(
   }
 
   const pendingQuit = debuggerQuitRequests.get(session);
-  if (pendingQuit) {
+  if (pendingQuit !== undefined) {
     await pendingQuit;
     if (debuggerQuitRequests.get(session) === pendingQuit) {
       debuggerQuitRequests.delete(session);
