@@ -89,6 +89,8 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
   private _variableHandles = new debugAdapter.Handles<string>();
   private _variableStructures: { [id: string]: any } = {};
+  private holdStackFrameLocation = false;
+  private lastStackFrameLocation?: { name: string; path: string; line: number; column: number };
 
   public constructor() {
     super('calva-debug-logs.txt');
@@ -206,6 +208,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     const session = replSession.getSession();
 
     if (session) {
+      this.holdStackFrameLocation = false;
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':continue', id, key).then((response) => {
         this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
@@ -234,6 +237,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     const session = replSession.getSession();
 
     if (session) {
+      this.holdStackFrameLocation = true;
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':next', id, key).then((_) => {
         this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
@@ -342,11 +346,36 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     }
 
     const [line, column] = tokenCursor.rowCol;
+    const currentLocation = {
+      name: tokenCursor.getFunctionName(),
+      path: debugResponse.file,
+      line: line + 1,
+      column: column + 1,
+    };
+    if (!this.holdStackFrameLocation) {
+      this.lastStackFrameLocation = currentLocation;
+    }
+    const displayedLocation =
+      this.holdStackFrameLocation && this.lastStackFrameLocation
+        ? this.lastStackFrameLocation
+        : currentLocation;
 
-    // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
-    const source = new debugAdapter.Source(path.basename(debugResponse.file), debugResponse.file);
-    const name = tokenCursor.getFunctionName();
-    const stackFrames = [new debugAdapter.StackFrame(0, name, source, line + 1, column + 1)];
+    // Keep the displayed execution marker at the original breakpoint while
+    // stepping through Calva's synthetic #dbg stops. Continue releases it so
+    // the next real stop can establish a new location.
+    const source = new debugAdapter.Source(
+      path.basename(displayedLocation.path),
+      displayedLocation.path
+    );
+    const stackFrames = [
+      new debugAdapter.StackFrame(
+        0,
+        displayedLocation.name,
+        source,
+        displayedLocation.line,
+        displayedLocation.column
+      ),
+    ];
 
     response.body = {
       stackFrames,
