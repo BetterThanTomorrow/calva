@@ -471,9 +471,14 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     const session = replSession.getSession();
 
     if (session) {
+      // `:quit` ends the middleware's current debug loop. A later breakpoint
+      // evaluation must start a fresh loop with `init-debugger`.
+      initializedDebuggerSessions.delete(session);
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':quit', id, key);
     }
+
+    sourceBreakpointStepTargets = undefined;
 
     this.sendResponse(response);
   }
