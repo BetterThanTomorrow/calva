@@ -90,4 +90,30 @@ describe('image-data', () => {
       );
     });
   });
+
+  describe('messageForDestination', () => {
+    const message = `"${PNG_6_BYTES}"`;
+    const textDestinations = ['repl-window', 'output-channel', 'terminal', '/tmp/calva-output.txt'];
+    const webviewDestinations = ['output-view', 'output-sidebar'];
+
+    textDestinations.forEach((destination) => {
+      it(`gives ${destination} placeholders when images are enabled`, () => {
+        expect(imageData.messageForDestination(destination, message, true)).toBe(
+          '"<<image-1 png 6 B>>"'
+        );
+      });
+      it(`gives ${destination} the raw message when images are disabled`, () => {
+        expect(imageData.messageForDestination(destination, message, false)).toBe(message);
+      });
+    });
+
+    webviewDestinations.forEach((destination) => {
+      it(`gives ${destination} the raw message when images are enabled`, () => {
+        expect(imageData.messageForDestination(destination, message, true)).toBe(message);
+      });
+      it(`gives ${destination} the raw message when images are disabled`, () => {
+        expect(imageData.messageForDestination(destination, message, false)).toBe(message);
+      });
+    });
+  });
 });
