@@ -3,7 +3,7 @@
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
    [cljs.reader :as reader]
-   [cljs.test :refer-macros [deftest testing is]]
+   [cljs.test :refer-macros [async deftest testing is]]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -26,6 +26,30 @@
         (is (= 1 (count calls)))
         (is (= "world" (:hello message-arg)))
         (is (string? (:id message-arg)))))))
+
+(deftest handle-webview-message!-test
+  (testing "writes the copy-to-clipboard text to the clipboard, then posts clipboard-written with the same id"
+    (async done
+      (let [write-text-spy (spy/stub (js/Promise.resolve))
+            post-message-spy (spy/spy)
+            webview-panel-mock (clj->js {:webview {:postMessage (test-util/wrap-spy post-message-spy)}})]
+        (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (test-util/wrap-spy write-text-spy)}}}))]
+          (-> (sut/handle-webview-message! webview-panel-mock
+                                           (pr-str {:command/name "copy-to-clipboard"
+                                                    :id "copy-1"
+                                                    :text "data:image/png;base64,AAAA"}))
+              (.then (fn []
+                       (is (spy/called-once-with? write-text-spy "data:image/png;base64,AAAA"))
+                       (is (= {:command/name "clipboard-written" :id "copy-1"}
+                              (reader/read-string (ffirst (spy/calls post-message-spy)))))
+                       (done)))))))))
+
+(deftest handle-webview-message!-other-message-test
+  (testing "ignores other messages"
+    (let [write-text-spy (spy/spy)]
+      (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (test-util/wrap-spy write-text-spy)}}}))]
+        (is (nil? (sut/handle-webview-message! #js {} (pr-str {:command/name "something-else"}))))
+        (is (spy/not-called? write-text-spy))))))
 
 (defn vscode-with-editor-word-wrap-setting
   [setting]

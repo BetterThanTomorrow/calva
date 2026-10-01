@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.greeting :as greeting]
    [calva.util :as util]
+   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce output-view-webview-panel (atom nil))
@@ -57,6 +58,19 @@
         (postMessage (pr-str (merge
                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
                               message))))))
+
+(defn handle-webview-message!
+  "Writes the `copy-to-clipboard` text to the clipboard, then posts `clipboard-written` with the same id."
+  [^js webview-panel message]
+  (let [{:command/keys [name] :keys [id text]} (reader/read-string message)]
+    (when (= "copy-to-clipboard" name)
+      (-> (.. ^js @util/vscode -env -clipboard (writeText text))
+          (.then #(post-message-to-webview webview-panel {:command/name "clipboard-written"
+                                                          :id id}))))))
+
+(defn create-message-listener
+  [^js webview-panel]
+  (.. webview-panel -webview (onDidReceiveMessage #(handle-webview-message! webview-panel %))))
 
 (defn post-word-wrap!
   [^js webview-panel wrap?]
@@ -326,7 +340,8 @@
     :as context}
    {:keys [webview-panel]}]
   (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})
-                       (create-view-state-change-listener context {:webview-panel webview-panel})]]
+                       (create-view-state-change-listener context {:webview-panel webview-panel})
+                       (create-message-listener webview-panel)]]
     (run! (fn [subscription]
             (.. ^js vscode-context -subscriptions (push subscription)))
           subscriptions)))
