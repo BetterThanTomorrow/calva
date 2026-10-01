@@ -1,7 +1,8 @@
 (ns calva.repl.webview.images-test
   (:require
    [calva.repl.webview.images :as sut]
-   [cljs.test :refer-macros [deftest testing is]]))
+   [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as str]))
 
 (def png-base64 "iVBORw0KGgo=")
 (def png-data-url (str "data:image/png;base64," png-base64))
@@ -59,6 +60,12 @@
       (is (= "<<image-1 png 174 B>>\nnext line" text))
       (is (= (str "data:image/png;base64," line line line "AAAA") (:image/data-url (first images))))))
 
+  (testing "a full-width last line swallows a next line that starts like base64 (known heuristic limit)"
+    (let [line (apply str (repeat 76 "A"))
+          {:keys [text images]} (sut/extract-images (str "data:image/png;base64," line "\n" line "\ndone"))]
+      (is (= "<<image-1 png 117 B>>" text))
+      (is (str/ends-with? (:image/data-url (first images)) "AAAAdone"))))
+
   (testing "a line break after a line that is not a wrap width ends the image"
     (is (= "<<image-1 png 6 B>>\ndone" (:text (sut/extract-images "data:image/png;base64,iVBORw0K\ndone")))))
 
@@ -90,6 +97,26 @@
           started (js/Date.now)]
       (is (= {:text text :images []} (sut/extract-images text)))
       (is (< (- (js/Date.now) started) 1000)))))
+
+(deftest pending-start-test
+  (testing "text without a data URL has nothing pending"
+    (is (nil? (sut/pending-start "hello\n"))))
+
+  (testing "a data URL whose payload runs to the end is pending from its start"
+    (is (= 2 (sut/pending-start "x data:image/png;base64,AAAA")))
+    (is (= 0 (sut/pending-start "data:image/png;base64,AAA="))))
+
+  (testing "a data URL ended by padding, or by prose, has nothing pending"
+    (is (nil? (sut/pending-start "data:image/png;base64,AA==")))
+    (is (nil? (sut/pending-start (str png-data-url " done")))))
+
+  (testing "a full-width wrapped line ending in a line break is pending"
+    (is (= 0 (sut/pending-start (str "data:image/png;base64," (apply str (repeat 76 "A")) "\n")))))
+
+  (testing "a trailing beginning of a data URL header is pending"
+    (is (= 5 (sut/pending-start "text data:image/pn")))
+    (is (= 5 (sut/pending-start "text data:image/png;base64,")))
+    (is (= 4 (sut/pending-start "end d")))))
 
 (deftest label-and-placeholder-test
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]

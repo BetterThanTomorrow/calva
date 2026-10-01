@@ -22,6 +22,9 @@
     (and (= "\r" (get text i)) (= "\n" (get text (inc i)))) 2
     :else 0))
 
+;strike-the-root: when the last wrapped line is itself full width (64 or 76 characters) and the next
+;printed line starts with a letter or digit, that line is taken as more base64. A heuristic cannot
+;tell `done` from a short last base64 line; images_test pins this.
 (defn- wrap-break-length
   "Length of the line break at `i` when it wraps base64, otherwise 0. `width` is the wrap width set
    by the first wrapped line, if any."
@@ -70,6 +73,26 @@
                                                 :mime mime
                                                 :base64 (subs text payload-start end)}))))
         found))))
+
+(def ^:private partial-header-pattern
+  #"d(?:a(?:t(?:a(?::(?:i(?:m(?:a(?:g(?:e(?:/(?:[A-Za-z0-9.+-]+(?:;(?:b(?:a(?:s(?:e(?:6(?:4,?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?$")
+
+(defn- open-payload?
+  "True when more base64 or padding appended to `text` would still belong to the payload at
+   `payload-start`."
+  [text payload-start]
+  (some #(> (base64-payload-end (str text %) payload-start) (count text)) ["A" "="]))
+
+(defn pending-start
+  "Index in `text` where an image data URL starts that may continue in the next chunk of the same
+   stream, or nil. That is the last data URL when its payload is still open at the end of `text`,
+   or a trailing beginning of a data URL header."
+  [text]
+  (let [{:keys [start mime]} (peek (image-data-urls text))]
+    (if (and start (open-payload? text (+ start (count (str "data:" mime ";base64,")))))
+      start
+      (when-let [partial-header (re-find partial-header-pattern text)]
+        (- (count text) (count partial-header))))))
 
 (defn decoded-byte-count
   [base64]
