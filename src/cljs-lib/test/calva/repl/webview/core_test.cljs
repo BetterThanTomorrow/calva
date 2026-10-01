@@ -136,6 +136,20 @@
                                         :css-href "css-href"
                                         :csp-source "csp-source"
                                         :word-wrap? false}))))
+  (testing "Given render-images? is false, should mark the body with data-render-images=\"false\""
+    (is (re-find #"<body data-render-images=\"false\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :render-images? false}))))
+  (testing "Given render-images? is true, should leave the body unmarked"
+    (is (re-find #"<body>"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :render-images? true}))))
   (testing "Given a font-scale, should set the font scale css variable on the html element"
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
                  (sut/get-webview-html {:env/is-debug false}
@@ -193,6 +207,8 @@
                     greeting/html-for-view (constantly "some-greeting")
                     sut/word-wrap? (constantly true)
                     sut/get-output-views-font-scale-setting (constantly 1.5)
+                    sut/render-images? (constantly false)
+                    sut/ensure-render-images-listener! (constantly nil)
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -208,7 +224,8 @@
                                                                    :code-theme nil
                                                                    :greeting-html "some-greeting"
                                                                    :word-wrap? true
-                                                                   :font-scale 1.5})))
+                                                                   :font-scale 1.5
+                                                                   :render-images? false})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -677,6 +694,39 @@
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/reset-font-size)
         (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "reset-font-size"}))))))
+
+(deftest render-images?-test
+  (testing "returns true when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (true? (sut/render-images?)))))
+  (testing "returns true when the setting is not set"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting js/undefined))]
+      (is (true? (sut/render-images?)))))
+  (testing "returns false when the setting is false"
+    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting false))]
+      (is (false? (sut/render-images?))))))
+
+(deftest post-render-images-to-all-views!-test
+  (testing "posts a set-render-images message to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/post-render-images-to-all-views! false)
+        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "set-render-images"
+                                                                          :render-images? false}))))))
+
+(deftest ensure-render-images-listener!-test
+  (testing "registers one configuration change listener as a subscription, once"
+    (let [push-spy (spy/spy)
+          vscode-stub #js {:workspace #js {:onDidChangeConfiguration (constantly "some-listener")}}
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [sut/render-images-listener (atom nil)
+                    util/vscode (atom vscode-stub)
+                    util/vscode-context (atom vscode-context-stub)]
+        (sut/ensure-render-images-listener!)
+        (sut/ensure-render-images-listener!)
+        (is (spy/called-once-with? push-spy "some-listener"))))))
 
 (deftest init-font-size-scale!-test
   (testing "registers a configuration change listener as a subscription"

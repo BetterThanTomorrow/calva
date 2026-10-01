@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.images :as images]
    [cljs.reader :as reader]
    [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
@@ -112,6 +113,58 @@
         (create-and-append-stdout-element dom-element text-node category))
       (create-and-append-stdout-element dom-element text-node category))))
 
+(defn create-element
+  [tag class-name text]
+  (let [element (js/document.createElement tag)]
+    (.. element -classList (add class-name))
+    (when text
+      (.. element (appendChild (js/document.createTextNode text))))
+    element))
+
+(defn copy-data-url!
+  [^js button data-url]
+  (-> (js/navigator.clipboard.writeText data-url)
+      (.then (fn []
+               (set! (.-textContent button) "Copied")
+               (js/setTimeout #(set! (.-textContent button) "Copy data URL") 1500)))))
+
+(defn toggle-raw!
+  [^js button ^js raw-element]
+  (let [show? (.-hidden raw-element)]
+    (set! (.-hidden raw-element) (not show?))
+    (set! (.-textContent button) (if show? "Hide raw" "Show raw"))
+    (.. button (setAttribute "aria-expanded" (str show?)))))
+
+(defn create-image-element
+  [{:image/keys [data-url] :as image}]
+  (let [label (images/label image)
+        figure (create-element "figure" "output-image" nil)
+        toolbar (create-element "figcaption" "output-image-toolbar" nil)
+        copy-button (create-element "button" "output-image-button" "Copy data URL")
+        raw-button (create-element "button" "output-image-button" "Show raw")
+        img (create-element "img" "output-image-img" nil)
+        raw (create-element "pre" "output-image-raw" data-url)]
+    (set! (.-src img) data-url)
+    (set! (.-alt img) label)
+    (set! (.-hidden raw) true)
+    (.. raw-button (setAttribute "aria-expanded" "false"))
+    (.. copy-button (addEventListener "click" #(copy-data-url! copy-button data-url)))
+    (.. raw-button (addEventListener "click" #(toggle-raw! raw-button raw)))
+    (doseq [child [(create-element "span" "output-image-label" label) copy-button raw-button]]
+      (.. toolbar (appendChild child)))
+    (doseq [child [toolbar img raw]]
+      (.. figure (appendChild child)))
+    figure))
+
+(defn append-images
+  "Appends a block with one figure per image: the image, a copy control, and the raw data URL behind a toggle."
+  [^js dom-element images]
+  (let [container (create-element "div" "output-images" nil)]
+    (.. container (setAttribute "data-output-element-type" "images"))
+    (run! #(.. container (appendChild (create-image-element %))) images)
+    (.. dom-element (appendChild container))
+    (.. dom-element (dispatchEvent (output-appended-event container)))))
+
 (defn session-str
   [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
   (let [parts (cond-> []
@@ -200,6 +253,7 @@
     :fx/append-result (append-eval-result output-dom-element (first args))
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
+    :fx/append-images (append-images output-dom-element (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
@@ -233,6 +287,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "scroll-to"            (dispatch! [:msg/scroll-to message-data])
+         "set-render-images"    (dispatch! [:msg/set-render-images message-data])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 
@@ -246,6 +301,7 @@
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
+  (dispatch! [:msg/set-render-images {:render-images? (not= "false" (.. js/document -body -dataset -renderImages))}])
   (add-event-listeners output-dom-element)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []

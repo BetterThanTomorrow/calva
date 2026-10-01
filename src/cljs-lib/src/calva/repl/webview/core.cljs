@@ -7,6 +7,7 @@
 (defonce output-view-webview-panel (atom nil))
 (defonce registered-webviews (atom #{}))
 (defonce word-wrap-override (atom nil))
+(defonce render-images-listener (atom nil))
 
 (defn register-webview!
   [^js webview]
@@ -94,6 +95,34 @@
     (when-let [listener (create-word-wrap-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
+;; Placeholder name; slice (c) of #3287 settles the setting name.
+(def render-images-setting "outputViews.renderImages")
+
+(defn render-images?
+  []
+  (if-let [vscode @util/vscode]
+    (not= false (.. ^js vscode -workspace (getConfiguration "calva") (get render-images-setting)))
+    true))
+
+(defn post-render-images-to-all-views!
+  [render?]
+  (run! #(post-message-to-webview % {:command/name "set-render-images"
+                                     :render-images? (boolean render?)})
+        @registered-webviews))
+
+(defn ensure-render-images-listener!
+  []
+  (when-let [vscode @util/vscode]
+    (when-not @render-images-listener
+      (let [listener (.. ^js vscode -workspace
+                         (onDidChangeConfiguration
+                          (fn [^js event]
+                            (when (.affectsConfiguration event (str "calva." render-images-setting))
+                              (post-render-images-to-all-views! (render-images?))))))]
+        (reset! render-images-listener listener)
+        (when-let [vscode-context @util/vscode-context]
+          (.. ^js vscode-context -subscriptions (push listener)))))))
+
 (defn get-output-views-font-scale-setting
   []
   (if-let [vscode @util/vscode]
@@ -176,7 +205,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale render-images?]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -212,7 +241,7 @@
     />
 
   </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") ">
+  <body" (when word-wrap? " class=\"word-wrap\"") (when (false? render-images?) " data-render-images=\"false\"") ">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
 
@@ -250,7 +279,9 @@
                                                 :code-theme (code-theme-from-context context)
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)
-                                                :font-scale (get-output-views-font-scale-setting)})]
+                                                :font-scale (get-output-views-font-scale-setting)
+                                                :render-images? (render-images?)})]
+    (ensure-render-images-listener!)
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
