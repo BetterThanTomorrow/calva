@@ -1,9 +1,12 @@
-(ns calva.repl.webview.app-db)
+(ns calva.repl.webview.app-db
+  (:require
+   [calva.repl.webview.images :as images]))
 
 (def initial-db
   {:output/last-context nil
    :output/base-font-scale 1.0
-   :output/font-size-adjustment 0.0})
+   :output/font-size-adjustment 0.0
+   :output/render-images? true})
 
 (defonce !app-db (atom initial-db))
 
@@ -16,6 +19,16 @@
         (* 100)
         js/Math.round
         (/ 100))))
+
+(defn output-text-and-images
+  "Results and stdout get image data URLs swapped for placeholders, with the images returned
+   separately, when image rendering is on. Other output is returned as is."
+  [db command-name output]
+  (if (and (:output/render-images? db)
+           (string? output)
+           (#{"show-result" "show-stdout"} command-name))
+    (images/extract-images output)
+    {:text output :images []}))
 
 (defn handle-action
   [db [action-type payload]]
@@ -33,14 +46,19 @@
           shadow-build (or shadow-build (:shadow-build meta))
           shadow-runtime-id (or shadow-runtime-id (:shadow-runtime-id meta))
           context-key (when ns [who repl-session-key shadow-build shadow-runtime-id ns])
-          context-changed? (and context-key (not= context-key (:output/last-context db)))]
+          context-changed? (and context-key (not= context-key (:output/last-context db)))
+          {:keys [text images]} (output-text-and-images db name output)]
       {:uf/db  (cond-> db
                  context-changed? (assoc :output/last-context context-key))
        :uf/fxs (cond-> []
                  context-changed? (conj [:fx/append-ns-info meta])
-                 (= name "show-result") (conj [:fx/append-result output])
-                 (= name "show-evaluated-code") (conj [:fx/append-evaluated-code output])
-                 (= name "show-stdout") (conj [:fx/append-stdout output (or output-category "evalOut")]))})
+                 (= name "show-result") (conj [:fx/append-result text])
+                 (= name "show-evaluated-code") (conj [:fx/append-evaluated-code text])
+                 (= name "show-stdout") (conj [:fx/append-stdout text (or output-category "evalOut")])
+                 (seq images) (conj [:fx/append-images images]))})
+
+    :msg/set-render-images
+    {:uf/db (assoc db :output/render-images? (boolean (:render-images? payload)))}
 
     :msg/set-code-theme
     {:uf/db db

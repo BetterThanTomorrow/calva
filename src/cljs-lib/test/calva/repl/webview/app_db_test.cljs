@@ -56,6 +56,52 @@
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/scroll-to {:x 0 :y 100}]] (:uf/fxs result))))))
 
+(def png-data-url "data:image/png;base64,iVBORw0KGgo=")
+
+(def png-image {:image/n 1
+                :image/mime "image/png"
+                :image/subtype "png"
+                :image/size "8 B"
+                :image/data-url png-data-url})
+
+(deftest render-images-test
+  (testing "initial-db renders images"
+    (is (true? (:output/render-images? sut/initial-db))))
+
+  (testing "a result with an image gets a placeholder in the text and an append-images fx"
+    (let [payload {:command/name "show-result" :output (str "\"" png-data-url "\"")}
+          result (sut/handle-action sut/initial-db [:msg/output payload])]
+      (is (= [[:fx/append-result "\"<<image-1 png 8 B>>\""]
+              [:fx/append-images [png-image]]]
+             (:uf/fxs result)))))
+
+  (testing "stdout with an image gets a placeholder in the text and an append-images fx"
+    (let [payload {:command/name "show-stdout" :output (str png-data-url "\n") :output-category "evalOut"}
+          result (sut/handle-action sut/initial-db [:msg/output payload])]
+      (is (= [[:fx/append-stdout "<<image-1 png 8 B>>\n" "evalOut"]
+              [:fx/append-images [png-image]]]
+             (:uf/fxs result)))))
+
+  (testing "evaluated code is left raw"
+    (let [payload {:command/name "show-evaluated-code" :output (str "\"" png-data-url "\"")}
+          result (sut/handle-action sut/initial-db [:msg/output payload])]
+      (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"")]]
+             (:uf/fxs result)))))
+
+  (testing "with rendering off, output is left raw"
+    (let [db (assoc sut/initial-db :output/render-images? false)
+          payload {:command/name "show-result" :output (str "\"" png-data-url "\"")}
+          result (sut/handle-action db [:msg/output payload])]
+      (is (= [[:fx/append-result (str "\"" png-data-url "\"")]]
+             (:uf/fxs result)))))
+
+  (testing ":msg/set-render-images sets the flag"
+    (is (false? (get-in (sut/handle-action sut/initial-db [:msg/set-render-images {:render-images? false}])
+                        [:uf/db :output/render-images?])))
+    (is (true? (get-in (sut/handle-action (assoc sut/initial-db :output/render-images? false)
+                                          [:msg/set-render-images {:render-images? true}])
+                       [:uf/db :output/render-images?])))))
+
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
     (is (= 1.1 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.1}))))
