@@ -121,12 +121,22 @@
       (.. element (appendChild (js/document.createTextNode text))))
     element))
 
+(defonce vscode-api (when (exists? js/acquireVsCodeApi) (js/acquireVsCodeApi)))
+
 (defn copy-data-url!
+  "Asks the extension host to put `data-url` on the clipboard. `show-copied!` runs when it answers."
   [^js button data-url]
-  (-> (js/navigator.clipboard.writeText data-url)
-      (.then (fn []
-               (set! (.-textContent button) "Copied")
-               (js/setTimeout #(set! (.-textContent button) "Copy data URL") 1500)))))
+  (let [id (str (random-uuid))]
+    (set! (.. button -dataset -copyId) id)
+    (.postMessage ^js vscode-api (pr-str {:command/name "copy-to-clipboard"
+                                          :id id
+                                          :text data-url}))))
+
+(defn show-copied!
+  [{:keys [id]}]
+  (when-let [button (js/document.querySelector (str "[data-copy-id=\"" id "\"]"))]
+    (set! (.-textContent button) "Copied")
+    (js/setTimeout #(set! (.-textContent button) "Copy data URL") 1500)))
 
 (defn toggle-raw!
   [^js button ^js raw-element]
@@ -288,6 +298,7 @@
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "scroll-to"            (dispatch! [:msg/scroll-to message-data])
          "set-render-images"    (dispatch! [:msg/set-render-images message-data])
+         "clipboard-written"    (show-copied! message-data)
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

@@ -49,10 +49,35 @@
       (is (= [1 2] (map :image/n images)))
       (is (= ["png" "svg+xml"] (map :image/subtype images)))))
 
-  (testing "whitespace inside the base64 is removed from the data URL and trailing whitespace is kept"
-    (let [{:keys [text images]} (sut/extract-images "data:image/png;base64,iVBO\n Rw0KGgo=\n")]
-      (is (= "<<image-1 png 8 B>>\n" text))
-      (is (= png-data-url (:image/data-url (first images)))))))
+  (testing "trailing whitespace is kept after the placeholder"
+    (is (= "<<image-1 png 8 B>>\n" (:text (sut/extract-images (str png-data-url "\n"))))))
+
+  (testing "76-column wrapped base64 is one image, with the line breaks removed from the data URL"
+    (let [line (apply str (repeat 76 "A"))
+          {:keys [text images]} (sut/extract-images
+                                 (str "data:image/png;base64," line "\n" line "\r\n" line "\nAAAA\nnext line"))]
+      (is (= "<<image-1 png 174 B>>\nnext line" text))
+      (is (= (str "data:image/png;base64," line line line "AAAA") (:image/data-url (first images))))))
+
+  (testing "a line break after a line that is not a wrap width ends the image"
+    (is (= "<<image-1 png 6 B>>\ndone" (:text (sut/extract-images "data:image/png;base64,iVBORw0K\ndone")))))
+
+  (testing "two images on one line separated by prose"
+    (let [{:keys [text images]} (sut/extract-images
+                                 (str png-data-url " and data:image/gif;base64,AA=="))]
+      (is (= "<<image-1 png 8 B>> and <<image-2 gif 1 B>>" text))
+      (is (= [png-data-url "data:image/gif;base64,AA=="] (map :image/data-url images)))))
+
+  (testing "the image ends at the first space before prose"
+    (is (= "<<image-1 png 8 B>> is a tiny png" (:text (sut/extract-images (str png-data-url " is a tiny png"))))))
+
+  (testing "the image ends right after = padding"
+    (is (= "<<image-1 png 2 B>>AAAA" (:text (sut/extract-images "data:image/png;base64,AAA=AAAA"))))
+    (is (= "<<image-1 png 1 B>>more" (:text (sut/extract-images "data:image/png;base64,AA==more")))))
+
+  (testing "a data URL with no payload is left alone"
+    (is (= {:text "data:image/png;base64, AAAA" :images []}
+           (sut/extract-images "data:image/png;base64, AAAA")))))
 
 (deftest label-and-placeholder-test
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]

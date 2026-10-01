@@ -69,13 +69,47 @@ describe('image-data', () => {
         '"<<image-1 svg+xml 3 B>>"'
       );
     });
-    it('ignores whitespace inside the base64 for the size', () => {
-      expect(imageData.replaceImageDataUrls('"data:image/png;base64,AAAA\nAAAA"')).toBe(
-        '"<<image-1 png 6 B>>"'
+    it('reads 76-column wrapped base64 as one image', () => {
+      const line = 'A'.repeat(76);
+      const text = `data:image/png;base64,${line}\n${line}\r\n${line}\nAAAA\nnext line`;
+      expect(imageData.replaceImageDataUrls(text)).toBe('<<image-1 png 174 B>>\nnext line');
+    });
+    it('reads 64-column wrapped base64 as one image', () => {
+      const line = 'A'.repeat(64);
+      expect(imageData.replaceImageDataUrls(`data:image/png;base64,${line}\n${line}\nAA==`)).toBe(
+        '<<image-1 png 97 B>>'
+      );
+    });
+    it('ends the image at a line break after a line that is not a wrap width', () => {
+      expect(imageData.replaceImageDataUrls(`${PNG_6_BYTES}\ndone`)).toBe(
+        '<<image-1 png 6 B>>\ndone'
       );
     });
     it('keeps whitespace trailing the base64 after the placeholder', () => {
       expect(imageData.replaceImageDataUrls(`${PNG_6_BYTES}\n`)).toBe('<<image-1 png 6 B>>\n');
+    });
+    it('replaces two images on one line separated by prose', () => {
+      expect(imageData.replaceImageDataUrls(`${PNG_6_BYTES} and data:image/gif;base64,AA==`)).toBe(
+        '<<image-1 png 6 B>> and <<image-2 gif 1 B>>'
+      );
+    });
+    it('ends the image at the first space before prose', () => {
+      expect(imageData.replaceImageDataUrls(`${PNG_6_BYTES} is a tiny png`)).toBe(
+        '<<image-1 png 6 B>> is a tiny png'
+      );
+    });
+    it('ends the image right after = padding', () => {
+      expect(imageData.replaceImageDataUrls('data:image/png;base64,AAA=AAAA')).toBe(
+        '<<image-1 png 2 B>>AAAA'
+      );
+      expect(imageData.replaceImageDataUrls('data:image/png;base64,AA==more')).toBe(
+        '<<image-1 png 1 B>>more'
+      );
+    });
+    it('leaves a data URL with no payload untouched', () => {
+      expect(imageData.replaceImageDataUrls('data:image/png;base64, AAAA')).toBe(
+        'data:image/png;base64, AAAA'
+      );
     });
     it('leaves non-image data URLs untouched next to an image', () => {
       const text = `"data:application/pdf;base64,AAAA" "${PNG_6_BYTES}"`;
