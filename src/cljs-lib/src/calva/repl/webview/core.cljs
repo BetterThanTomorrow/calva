@@ -95,8 +95,7 @@
     (when-let [listener (create-word-wrap-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
-;; Placeholder name; slice (c) of #3287 settles the setting name.
-(def render-images-setting "outputViews.renderImages")
+(def render-images-setting "showOutputImages")
 
 (defn render-images?
   []
