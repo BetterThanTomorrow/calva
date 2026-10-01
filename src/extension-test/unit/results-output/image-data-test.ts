@@ -117,6 +117,17 @@ describe('image-data', () => {
         '"data:application/pdf;base64,AAAA" "<<image-1 png 6 B>>"'
       );
     });
+    it('leaves a bare data:image/ mention followed later by ;base64, untouched', () => {
+      const text = '"data:image/png" foo bar;base64,AAAA';
+      expect(imageData.replaceImageDataUrls(text)).toBe(text);
+    });
+    it('leaves 2 MB of URL-encoded SVG data URLs untouched, fast', () => {
+      const svg = `data:image/svg+xml,%3Csvg%3E${'%3Cpath/%3E'.repeat(90)}%3C/svg%3E`;
+      const text = `[:img {:src "${svg}"}]\n`.repeat(2000);
+      const started = Date.now();
+      expect(imageData.replaceImageDataUrls(text)).toBe(text);
+      expect(Date.now() - started).toBeLessThan(1000);
+    });
     it('reports the size of a larger image in kB', () => {
       const base64 = 'A'.repeat(16_000);
       expect(imageData.replaceImageDataUrls(`"data:image/png;base64,${base64}"`)).toBe(

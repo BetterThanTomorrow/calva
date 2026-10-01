@@ -79,6 +79,18 @@
     (is (= {:text "data:image/png;base64, AAAA" :images []}
            (sut/extract-images "data:image/png;base64, AAAA")))))
 
+(deftest image-subtype-test
+  (testing "a bare data:image/ mention followed later by ;base64, is left alone"
+    (let [text "\"data:image/png\" foo bar;base64,AAAA"]
+      (is (= {:text text :images []} (sut/extract-images text)))))
+
+  (testing "2 MB of URL-encoded SVG data URLs is left alone, fast"
+    (let [svg (str "data:image/svg+xml,%3Csvg%3E" (apply str (repeat 90 "%3Cpath/%3E")) "%3C/svg%3E")
+          text (apply str (repeat 2000 (str "[:img {:src \"" svg "\"}]\n")))
+          started (js/Date.now)]
+      (is (= {:text text :images []} (sut/extract-images text)))
+      (is (< (- (js/Date.now) started) 1000)))))
+
 (deftest label-and-placeholder-test
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]
     (is (= "image-2 jpeg 12 kB" (sut/label image)))

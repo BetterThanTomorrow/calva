@@ -1,12 +1,13 @@
 /**
  * Base64 image data URL detection for text output destinations.
- * Same pattern as Backseat Driver `reduce-images`, so both tools agree on what counts as an image.
+ * Starts from the Backseat Driver `reduce-images` pattern, with the image subtype restricted to
+ * MIME token characters so a match cannot run across prose to a later `;base64,`.
  * Free of VS Code dependencies.
  */
 
 import { isWebviewOutputDestination } from './output-destinations';
 
-const IMAGE_DATA_URL_RE = /data:(image\/[^;]+);base64,([A-Za-z0-9+/=\s]+)/g;
+const IMAGE_DATA_URL_RE = /data:(image\/[A-Za-z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)/g;
 const BASE64_CHAR_RE = /[A-Za-z0-9+/]/;
 const WRAP_WIDTHS = [64, 76];
 
@@ -65,7 +66,7 @@ export function base64PayloadEnd(text: string, start: number): number {
 }
 
 /**
- * Finds base64 image data URLs in `text`. The Backseat Driver pattern finds where each one
+ * Finds base64 image data URLs in `text`. `IMAGE_DATA_URL_RE` finds where each one
  * starts; `base64PayloadEnd` decides where it ends, and the search resumes there.
  */
 function findImageDataUrls(text: string): ImageDataUrl[] {

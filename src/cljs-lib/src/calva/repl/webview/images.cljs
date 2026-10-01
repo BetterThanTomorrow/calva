@@ -1,11 +1,13 @@
 (ns calva.repl.webview.images
   "Base64 image data URL detection for the output views.
-   Same pattern and placeholder as `src/results-output/image-data.ts` (text destinations) and
-   Backseat Driver `reduce-images`, so all of them agree on what counts as an image."
+   Same pattern and placeholder as `src/results-output/image-data.ts` (text destinations), so both
+   agree on what counts as an image. The pattern starts from Backseat Driver `reduce-images`, with
+   the image subtype restricted to MIME token characters so a match cannot run across prose to a
+   later `;base64,`."
   (:require
    [clojure.string :as str]))
 
-(def image-data-url-pattern "data:(image/[^;]+);base64,([A-Za-z0-9+/=\\s]+)")
+(def image-data-url-pattern "data:(image/[A-Za-z0-9.+-]+);base64,([A-Za-z0-9+/=\\s]+)")
 
 (def wrap-widths #{64 76})
 
