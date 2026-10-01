@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure {:mvn/version "1.12.4"}
         org.clojure/clojurescript {:mvn/version "1.12.134"}
-        rewrite-clj/rewrite-clj {:mvn/version "1.1.49"} ;; Temporary, while waiting for zprint to bump their deps
+        rewrite-clj/rewrite-clj {:mvn/version "1.3.59"} ;; Temporary, while waiting for zprint to bump their deps
         zprint/zprint {:mvn/version "1.2.9"
                        :exclusions [rewrite-clj/rewrite-clj]}
         dev.weavejester/cljfmt {:mvn/version "0.16.4"
