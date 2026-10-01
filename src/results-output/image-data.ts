@@ -4,6 +4,8 @@
  * Free of VS Code dependencies.
  */
 
+import { isWebviewOutputDestination } from './output-destinations';
+
 const IMAGE_DATA_URL_RE = /data:(image\/[^;]+);base64,([A-Za-z0-9+/=\s]+)/g;
 
 export function decodedByteCount(base64: string): number {
@@ -39,4 +41,18 @@ export function replaceImageDataUrls(text: string): string {
     const trailingWhitespace = base64.match(/\s*$/)[0];
     return `<<image-${n} ${subtype} ${size}>>${trailingWhitespace}`;
   });
+}
+
+/**
+ * Webview destinations get the message as is. Text destinations get image data URLs as
+ * placeholders when `imagesEnabled` is true, and the message as is otherwise.
+ */
+export function messageForDestination(
+  destination: string,
+  message: string,
+  imagesEnabled: boolean
+): string {
+  return imagesEnabled && !isWebviewOutputDestination(destination)
+    ? replaceImageDataUrls(message)
+    : message;
 }

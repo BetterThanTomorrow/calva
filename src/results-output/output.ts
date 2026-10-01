@@ -298,13 +298,11 @@ export function getDestinationConfiguration(): OutputDestinationConfiguration {
   return raw || defaultDestinationConfiguration;
 }
 
-/**
- * Webview destinations get the message as is. Text destinations get image data URLs as placeholders.
- */
+const IMAGES_SETTING = 'showOutputImages';
+
 function messageForDestination(destination: string, message: string) {
-  return isWebviewOutputDestination(destination)
-    ? message
-    : imageData.replaceImageDataUrls(message);
+  const imagesEnabled = vscode.workspace.getConfiguration('calva').get<boolean>(IMAGES_SETTING);
+  return imageData.messageForDestination(destination, message, imagesEnabled);
 }
 
 function asClojureLineComments(message: string) {
