@@ -44,6 +44,30 @@
                               (reader/read-string (ffirst (spy/calls post-message-spy)))))
                        (done)))))))))
 
+(deftest handle-webview-message!-clipboard-failure-test
+  (testing "logs a failed clipboard write and posts nothing"
+    (async done
+      (let [error (js/Error. "denied")
+            post-message-spy (spy/spy)
+            log-to-console-spy (spy/spy)
+            log-to-console util/log-to-console
+            webview-panel-mock (clj->js {:webview {:postMessage (test-util/wrap-spy post-message-spy)}})]
+        ;; The rejection is handled after `with-redefs` has restored its vars, so this one is set by hand
+        (set! util/log-to-console (test-util/wrap-spy log-to-console-spy))
+        (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (fn [_] (js/Promise.reject error))}}}))]
+          (-> (sut/handle-webview-message! webview-panel-mock
+                                           (pr-str {:command/name "copy-to-clipboard"
+                                                    :id "copy-1"
+                                                    :text "data:image/png;base64,AAAA"}))
+              (.then (fn []
+                       (set! util/log-to-console log-to-console)
+                       (is (spy/called-once-with? log-to-console-spy
+                                                  :error
+                                                  "Cannot copy data URL to the clipboard:"
+                                                  error))
+                       (is (spy/not-called? post-message-spy))
+                       (done)))))))))
+
 (deftest handle-webview-message!-other-message-test
   (testing "ignores other messages"
     (let [write-text-spy (spy/spy)]

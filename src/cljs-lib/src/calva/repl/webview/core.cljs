@@ -60,13 +60,15 @@
                               message))))))
 
 (defn handle-webview-message!
-  "Writes the `copy-to-clipboard` text to the clipboard, then posts `clipboard-written` with the same id."
+  "Writes the `copy-to-clipboard` text to the clipboard, then posts `clipboard-written` with the same id.
+   A failed write is logged to the console."
   [^js webview-panel message]
   (let [{:command/keys [name] :keys [id text]} (reader/read-string message)]
     (when (= "copy-to-clipboard" name)
       (-> (.. ^js @util/vscode -env -clipboard (writeText text))
           (.then #(post-message-to-webview webview-panel {:command/name "clipboard-written"
-                                                          :id id}))))))
+                                                          :id id}))
+          (.catch #(util/log-to-console :error "Cannot copy data URL to the clipboard:" %))))))
 
 (defn create-message-listener
   [^js webview-panel]

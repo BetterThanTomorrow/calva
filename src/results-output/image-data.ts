@@ -20,6 +20,9 @@ function lineBreakLength(text: string, i: number): number {
   return text[i] === '\r' && text[i + 1] === '\n' ? 2 : 0;
 }
 
+// strike-the-root: when the last wrapped line is itself full width (64 or 76 characters) and the
+// next printed line starts with a letter or digit, that line is taken as more base64. A heuristic
+// cannot tell `done` from a short last base64 line; image-data-test pins this.
 /**
  * Length of the line break at `i` when it wraps base64, otherwise 0. `width` is the wrap width
  * set by the first wrapped line, if any.

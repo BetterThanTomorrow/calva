@@ -102,6 +102,90 @@
                                           [:msg/set-render-images {:render-images? true}])
                        [:uf/db :output/render-images?])))))
 
+(defn- stdout
+  ([text] (stdout text "evalOut"))
+  ([text category] [:msg/output {:command/name "show-stdout" :output text :output-category category}]))
+
+(defn- run-actions
+  "Runs `actions` through `handle-action` from `db`. Returns the last db and all fxs in order."
+  [db actions]
+  (reduce (fn [{:keys [db fxs]} action]
+            (let [result (sut/handle-action db action)]
+              {:db (:uf/db result) :fxs (into fxs (:uf/fxs result))}))
+          {:db db :fxs []}
+          actions))
+
+(defn- chunks
+  [text n]
+  (let [size (js/Math.ceil (/ (count text) n))]
+    (map #(apply str %) (partition-all size text))))
+
+(def split-data-url (str "data:image/png;base64," (apply str (repeat 1600 "A")) "=="))
+
+(def split-image {:image/n 1
+                  :image/mime "image/png"
+                  :image/subtype "png"
+                  :image/size "1 kB"
+                  :image/data-url split-data-url})
+
+(deftest pending-stdout-test
+  (testing "a data URL split across two stdout chunks is one image"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        (map stdout (chunks (str "before " split-data-url "\nafter\n") 2)))]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "before " "evalOut"]
+              [:fx/append-stdout "<<image-1 png 1 kB>>\nafter\n" "evalOut"]
+              [:fx/append-images [split-image]]]
+             fxs))))
+
+  (testing "a data URL split across three stdout chunks is one image"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        (map stdout (chunks (str split-data-url "\n") 3)))]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "<<image-1 png 1 kB>>\n" "evalOut"]
+              [:fx/append-images [split-image]]]
+             fxs))))
+
+  (testing "a chunk that ends inside the data URL header is held back"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "look: data:image/pn")])]
+      (is (= {:text "data:image/pn" :category "evalOut"} (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "look: " "evalOut"]] fxs))))
+
+  (testing "a result flushes pending stdout before it"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout "data:image/png;base64,AAAA")
+                                         [:msg/output {:command/name "show-result" :output "nil"}]])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "<<image-1 png 3 B>>" "evalOut"]
+              [:fx/append-images [{:image/n 1
+                                   :image/mime "image/png"
+                                   :image/subtype "png"
+                                   :image/size "3 B"
+                                   :image/data-url "data:image/png;base64,AAAA"}]]
+              [:fx/append-result "nil"]]
+             fxs))))
+
+  (testing "stdout of another category flushes pending stdout before it"
+    (let [{:keys [fxs]} (run-actions sut/initial-db
+                                     [(stdout "x data:ima")
+                                      (stdout "boom\n" "evalErr")])]
+      (is (= [[:fx/append-stdout "x " "evalOut"]
+              [:fx/append-stdout "data:ima" "evalOut"]
+              [:fx/append-stdout "boom\n" "evalErr"]]
+             fxs))))
+
+  (testing "clearing the output view drops pending stdout"
+    (let [{:keys [db]} (run-actions sut/initial-db
+                                    [(stdout "data:image/png;base64,AAAA")
+                                     [:msg/clear-output-view]])]
+      (is (nil? (:output/pending-stdout db)))))
+
+  (testing "with rendering off, stdout is not held back"
+    (let [{:keys [db fxs]} (run-actions (assoc sut/initial-db :output/render-images? false)
+                                        [(stdout "data:image/png;base64,AAAA")])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "data:image/png;base64,AAAA" "evalOut"]] fxs)))))
+
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
     (is (= 1.1 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.1}))))

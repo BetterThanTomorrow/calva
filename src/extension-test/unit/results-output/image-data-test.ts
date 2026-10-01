@@ -80,6 +80,12 @@ describe('image-data', () => {
         '<<image-1 png 97 B>>'
       );
     });
+    it('swallows a next line that starts like base64 after a full-width last line (known heuristic limit)', () => {
+      const line = 'A'.repeat(76);
+      expect(imageData.replaceImageDataUrls(`data:image/png;base64,${line}\n${line}\ndone`)).toBe(
+        '<<image-1 png 117 B>>'
+      );
+    });
     it('ends the image at a line break after a line that is not a wrap width', () => {
       expect(imageData.replaceImageDataUrls(`${PNG_6_BYTES}\ndone`)).toBe(
         '<<image-1 png 6 B>>\ndone'
