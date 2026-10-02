@@ -81,7 +81,6 @@ let sourceBreakpointStepTargets:
   | undefined;
 const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
-const debuggerQuitRequests = new WeakMap<nrepl.NReplSession, Promise<void>>();
 
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -108,7 +107,6 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     // Build and return the capabilities of this debug adapter
     response.body = {
       ...response.body,
-      supportsRestartRequest: true,
       supportsConditionalBreakpoints: true,
       supportsBreakpointLocationsRequest: true,
     };
@@ -207,9 +205,15 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
     if (session) {
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':continue', id, key).then((response) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+      // Continue releases the VS Code debug UI while leaving cider-nrepl's
+      // debugger loop running. The next breakpoint hit starts a fresh DAP
+      // session from handleNeedDebugInput.
+      void session.sendDebugInput(':continue', id, key).catch((error) => {
+        console.error('Calva debugger: failed to continue execution', error);
       });
+      this.sendResponse(response);
+      this.sendEvent(new debugAdapter.TerminatedEvent());
+      return;
     } else {
       response.success = false;
     }
@@ -223,6 +227,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     request?: debugProtocol.DebugProtocol.Request
   ): void {
     response.success = false;
+    response.message = 'Restart is not available in Calva. Use Continue to resume execution.';
     this.sendResponse(response);
   }
 
@@ -250,17 +255,8 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.StepInArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':in', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('step', CalvaDebugSession.THREAD_ID));
-      });
-    } else {
-      response.success = false;
-    }
-
+    response.success = false;
+    response.message = 'Step In is not available in Calva. Use Step Over or Continue.';
     this.sendResponse(response);
   }
 
@@ -269,17 +265,8 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.StepOutArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':out', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('step', CalvaDebugSession.THREAD_ID));
-      });
-    } else {
-      response.success = false;
-    }
-
+    response.success = false;
+    response.message = 'Step Out is not available in Calva. Use Step Over or Continue.';
     this.sendResponse(response);
   }
 
@@ -477,27 +464,8 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.DisconnectArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      // `:quit` ends the middleware's current debug loop. Wait for it to
-      // finish before allowing the next breakpoint evaluation to initialize
-      // a replacement loop.
-      const quitRequest = session
-        .sendDebugInput(':quit', id, key)
-        .then(() => {
-          initializedDebuggerSessions.delete(session);
-        })
-        .catch((error) => {
-          console.error('Calva debugger: failed to quit debugger session', error);
-          initializedDebuggerSessions.delete(session);
-        });
-      debuggerQuitRequests.set(session, quitRequest);
-    }
-
-    sourceBreakpointStepTargets = undefined;
-
+    response.success = false;
+    response.message = 'Use Continue to resume execution and close the Calva debugger toolbar.';
     this.sendResponse(response);
   }
 
@@ -615,7 +583,6 @@ function handleNeedDebugInput(response: any): void {
       if (sourceBreakpointStepTargets?.length) {
         void shouldExposeSourceBreakpointStop(response).then((isTargetStop) => {
           if (isTargetStop) {
-            sourceBreakpointStepTargets = undefined;
             void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
           } else {
             // Let the nREPL response handler consume this need-debug-input
@@ -633,10 +600,6 @@ function handleNeedDebugInput(response: any): void {
       } else {
         void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
       }
-    } else {
-      // An already-open expression-debugger session owns the next stop; the
-      // initial auto-step applies only while establishing a GUI breakpoint.
-      sourceBreakpointStepTargets = undefined;
     }
   } else {
     const session = replSession.getSession();
@@ -998,14 +961,6 @@ async function evaluateTopLevelFormForBreakpoint(
   const session = replSession.getSession(document);
   if (!session) {
     return;
-  }
-
-  const pendingQuit = debuggerQuitRequests.get(session);
-  if (pendingQuit !== undefined) {
-    await pendingQuit;
-    if (debuggerQuitRequests.get(session) === pendingQuit) {
-      debuggerQuitRequests.delete(session);
-    }
   }
 
   if (!supportsDebuggerOps(session)) {
