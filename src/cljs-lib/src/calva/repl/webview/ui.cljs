@@ -121,59 +121,66 @@
       (.. element (appendChild (js/document.createTextNode text))))
     element))
 
-(defonce vscode-api (when (exists? js/acquireVsCodeApi) (js/acquireVsCodeApi)))
-
-(defn copy-data-url!
-  "Asks the extension host to put `data-url` on the clipboard. `show-copied!` runs when it answers."
-  [^js button data-url]
-  (let [id (str (random-uuid))]
-    (set! (.. button -dataset -copyId) id)
-    (.postMessage ^js vscode-api (pr-str {:command/name "copy-to-clipboard"
-                                          :id id
-                                          :text data-url}))))
-
-(defn show-copied!
-  [{:keys [id]}]
-  (when-let [button (js/document.querySelector (str "[data-copy-id=\"" id "\"]"))]
-    (set! (.-textContent button) "Copied")
-    (js/setTimeout #(set! (.-textContent button) "Copy data URL") 1500)))
-
-(defn toggle-raw!
-  [^js button ^js raw-element]
-  (let [show? (.-hidden raw-element)]
-    (set! (.-hidden raw-element) (not show?))
-    (set! (.-textContent button) (if show? "Hide raw" "Show raw"))
-    (.. button (setAttribute "aria-expanded" (str show?)))))
-
 (defn create-image-element
+  "A thumbnail: the full-resolution image, scaled down by CSS."
   [{:image/keys [data-url] :as image}]
   (let [label (images/label image)
-        figure (create-element "figure" "output-image" nil)
-        toolbar (create-element "figcaption" "output-image-toolbar" nil)
-        copy-button (create-element "button" "output-image-button" "Copy data URL")
-        raw-button (create-element "button" "output-image-button" "Show raw")
-        img (create-element "img" "output-image-img" nil)
-        raw (create-element "pre" "output-image-raw" data-url)]
+        img (create-element "img" "output-image" nil)]
     (set! (.-src img) data-url)
     (set! (.-alt img) label)
-    (set! (.-hidden raw) true)
-    (.. raw-button (setAttribute "aria-expanded" "false"))
-    (.. copy-button (addEventListener "click" #(copy-data-url! copy-button data-url)))
-    (.. raw-button (addEventListener "click" #(toggle-raw! raw-button raw)))
-    (doseq [child [(create-element "span" "output-image-label" label) copy-button raw-button]]
-      (.. toolbar (appendChild child)))
-    (doseq [child [toolbar img raw]]
-      (.. figure (appendChild child)))
-    figure))
+    (set! (.-title img) label)
+    img))
 
-(defn append-images
-  "Appends a block with one figure per image: the image, a copy control, and the raw data URL behind a toggle."
-  [^js dom-element images]
-  (let [container (create-element "div" "output-images" nil)]
-    (.. container (setAttribute "data-output-element-type" "images"))
-    (run! #(.. container (appendChild (create-image-element %))) images)
-    (.. dom-element (appendChild container))
-    (.. dom-element (dispatchEvent (output-appended-event container)))))
+(defn create-image-form-element
+  [image-form children]
+  (let [element (js/document.createElement "div")]
+    (.. element (setAttribute "data-image-form" image-form))
+    (run! #(.. element (appendChild %)) children)
+    element))
+
+(defn append-with-images!
+  "Appends an output entry that has images, in both forms: `text-element` (placeholders) with one
+   thumbnail per image below it, and `raw-element` (the original text). The body's
+   `data-image-display` attribute decides which form shows. Returns the entry element."
+  [^js dom-element text-element raw-element images]
+  (let [entry (create-element "div" "output-with-images" nil)
+        thumbnails (create-element "div" "output-images" nil)]
+    (run! #(.. thumbnails (appendChild (create-image-element %))) images)
+    (.. entry (setAttribute "data-output-element-type" "images"))
+    (.. entry (appendChild (create-image-form-element "images" [text-element thumbnails])))
+    (.. entry (appendChild (create-image-form-element "raw" [raw-element])))
+    (.. thumbnails -childNodes
+        (forEach (fn [^js img]
+                   (.. img (addEventListener "load"
+                                             #(.. dom-element (dispatchEvent (output-appended-event img)))
+                                             #js {:once true})))))
+    (.. dom-element (appendChild entry))
+    entry))
+
+(defn append-result-with-images
+  [^js dom-element {:keys [text raw images]}]
+  (let [result (clojure-code-element text)
+        raw-result (clojure-code-element raw)
+        entry (append-with-images! dom-element (:container-element result) (:container-element raw-result) images)]
+    (.. hljs (highlightElement (:code-element result)))
+    (.. hljs (highlightElement (:code-element raw-result)))
+    (.. dom-element (dispatchEvent (output-appended-event entry)))))
+
+(defn create-stdout-element
+  [text category]
+  (let [pre-element (js/document.createElement "pre")]
+    (.. pre-element (appendChild (js/document.createTextNode (strip-ansi text))))
+    (.. pre-element (setAttribute "data-output-element-type" category))
+    pre-element))
+
+(defn append-stdout-with-images
+  [^js dom-element {:keys [text raw images]} category]
+  (let [category (or category "evalOut")
+        entry (append-with-images! dom-element
+                                   (create-stdout-element text category)
+                                   (create-stdout-element raw category)
+                                   images)]
+    (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn session-str
   [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
@@ -248,6 +255,10 @@
       (.. body -classList (add "word-wrap"))
       (.. body -classList (remove "word-wrap")))))
 
+(defn set-image-display!
+  [image-display]
+  (.. js/document -body (setAttribute "data-image-display" image-display)))
+
 (defn set-font-scale!
   [scale]
   (.. js/document -documentElement -style (setProperty "--calva-output-font-scale" (str scale))))
@@ -263,10 +274,12 @@
     :fx/append-result (append-eval-result output-dom-element (first args))
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
-    :fx/append-images (append-images output-dom-element (first args))
+    :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
+    :fx/append-stdout-with-images (append-stdout-with-images output-dom-element (first args) (second args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
+    :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/scroll-to (scroll-to (first args))))
 
@@ -297,8 +310,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "scroll-to"            (dispatch! [:msg/scroll-to message-data])
-         "set-render-images"    (dispatch! [:msg/set-render-images message-data])
-         "clipboard-written"    (show-copied! message-data)
+         "set-image-display"    (dispatch! [:msg/set-image-display message-data])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 
@@ -312,7 +324,6 @@
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
 
 (defn ^:export main []
-  (dispatch! [:msg/set-render-images {:render-images? (not= "false" (.. js/document -body -dataset -renderImages))}])
   (add-event-listeners output-dom-element)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
