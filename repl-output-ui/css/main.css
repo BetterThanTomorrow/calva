@@ -130,9 +130,62 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
    margin: 4px 0 8px;
 }
 
+.output-image-thumbnail {
+   display: flex;
+   align-items: flex-start;
+   gap: 4px;
+   max-width: 100%;
+}
+
+.output-image-copy {
+   flex: none;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 22px;
+   height: 22px;
+   padding: 0;
+   border: none;
+   border-radius: 5px;
+   background: transparent;
+   color: var(--vscode-icon-foreground, #c5c5c5);
+   cursor: pointer;
+   opacity: 0;
+}
+
+.output-image-thumbnail:hover .output-image-copy,
+.output-image-copy:focus-visible,
+.output-image-copy[data-copied="true"] {
+   opacity: 1;
+}
+
+.output-image-copy:hover {
+   background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.output-image-copy:focus-visible {
+   outline: 1px solid var(--vscode-focusBorder, #007fd4);
+   outline-offset: -1px;
+}
+
+.output-image-copy-icon {
+   width: 16px;
+   height: 16px;
+   fill: currentColor;
+}
+
+.output-image-copy-icon-check,
+.output-image-copy[data-copied="true"] .output-image-copy-icon-copy {
+   display: none;
+}
+
+.output-image-copy[data-copied="true"] .output-image-copy-icon-check {
+   display: block;
+}
+
 .output-image {
    display: block;
-   max-width: 100%;
+   max-width: calc(100% - 26px);
    max-height: 400px;
    width: auto;
    height: auto;
