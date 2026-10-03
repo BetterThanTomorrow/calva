@@ -2,13 +2,12 @@
   (:require
    [calva.repl.webview.greeting :as greeting]
    [calva.util :as util]
-   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (defonce output-view-webview-panel (atom nil))
 (defonce registered-webviews (atom #{}))
 (defonce word-wrap-override (atom nil))
-(defonce render-images-listener (atom nil))
+(defonce image-display-override (atom nil))
 
 (defn register-webview!
   [^js webview]
@@ -59,21 +58,6 @@
                               {:id (str (random-uuid))} ;; Provide an id if one wasn't provided by the caller
                               message))))))
 
-(defn handle-webview-message!
-  "Writes the `copy-to-clipboard` text to the clipboard, then posts `clipboard-written` with the same id.
-   A failed write is logged to the console."
-  [^js webview-panel message]
-  (let [{:command/keys [name] :keys [id text]} (reader/read-string message)]
-    (when (= "copy-to-clipboard" name)
-      (-> (.. ^js @util/vscode -env -clipboard (writeText text))
-          (.then #(post-message-to-webview webview-panel {:command/name "clipboard-written"
-                                                          :id id}))
-          (.catch #(util/log-to-console :error "Cannot copy data URL to the clipboard:" %))))))
-
-(defn create-message-listener
-  [^js webview-panel]
-  (.. webview-panel -webview (onDidReceiveMessage #(handle-webview-message! webview-panel %))))
-
 (defn post-word-wrap!
   [^js webview-panel wrap?]
   (when webview-panel
@@ -111,32 +95,54 @@
     (when-let [listener (create-word-wrap-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
-(def render-images-setting "showOutputImages")
-
-(defn render-images?
+(defn get-image-display-setting
   []
   (if-let [vscode @util/vscode]
-    (not= false (.. ^js vscode -workspace (getConfiguration "calva") (get render-images-setting)))
-    true))
+    (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViewImageDisplay"))]
+      (if (= "raw" setting) "raw" "images"))
+    "images"))
 
-(defn post-render-images-to-all-views!
-  [render?]
-  (run! #(post-message-to-webview % {:command/name "set-render-images"
-                                     :render-images? (boolean render?)})
+(defn image-display
+  []
+  (or @image-display-override
+      (get-image-display-setting)))
+
+(defn set-image-display-context!
+  [display]
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -commands (executeCommand "setContext" "calva:outputViewImageDisplay" display))))
+
+(defn post-image-display-to-all-views!
+  [display]
+  (run! #(post-message-to-webview % {:command/name "set-image-display"
+                                     :image-display display})
         @registered-webviews))
 
-(defn ensure-render-images-listener!
+(defn ^:export toggle-image-display
+  []
+  (let [new-display (if (= "raw" (image-display)) "images" "raw")]
+    (reset! image-display-override new-display)
+    (set-image-display-context! new-display)
+    (post-image-display-to-all-views! new-display)))
+
+(defn create-image-display-change-listener
   []
   (when-let [vscode @util/vscode]
-    (when-not @render-images-listener
-      (let [listener (.. ^js vscode -workspace
-                         (onDidChangeConfiguration
-                          (fn [^js event]
-                            (when (.affectsConfiguration event (str "calva." render-images-setting))
-                              (post-render-images-to-all-views! (render-images?))))))]
-        (reset! render-images-listener listener)
-        (when-let [vscode-context @util/vscode-context]
-          (.. ^js vscode-context -subscriptions (push listener)))))))
+    (.. ^js vscode -workspace
+        (onDidChangeConfiguration
+         (fn [^js event]
+           (when (.affectsConfiguration event "calva.outputViewImageDisplay")
+             (reset! image-display-override nil)
+             (let [display (image-display)]
+               (set-image-display-context! display)
+               (post-image-display-to-all-views! display))))))))
+
+(defn ^:export init-image-display!
+  []
+  (set-image-display-context! (image-display))
+  (when-let [vscode-context @util/vscode-context]
+    (when-let [listener (create-image-display-change-listener)]
+      (.. ^js vscode-context -subscriptions (push listener)))))
 
 (defn get-output-views-font-scale-setting
   []
@@ -220,7 +226,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale render-images?]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -256,7 +262,7 @@
     />
 
   </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") (when (false? render-images?) " data-render-images=\"false\"") ">
+  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display "images") "\">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
 
@@ -295,8 +301,7 @@
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)
                                                 :font-scale (get-output-views-font-scale-setting)
-                                                :render-images? (render-images?)})]
-    (ensure-render-images-listener!)
+                                                :image-display (image-display)})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -342,8 +347,7 @@
     :as context}
    {:keys [webview-panel]}]
   (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})
-                       (create-view-state-change-listener context {:webview-panel webview-panel})
-                       (create-message-listener webview-panel)]]
+                       (create-view-state-change-listener context {:webview-panel webview-panel})]]
     (run! (fn [subscription]
             (.. ^js vscode-context -subscriptions (push subscription)))
           subscriptions)))

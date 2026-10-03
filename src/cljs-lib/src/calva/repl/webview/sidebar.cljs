@@ -112,7 +112,6 @@
                           :enableCommandUris #js ["calva.showReplOutputSidebar"]
                           :localResourceRoots #js [(.. ^js @util/vscode-context -extensionUri)]})
                (apply-sidebar-help-or-output-log! webview-view)
-               (add-context-subscription! (core/create-message-listener webview-view))
                (add-context-subscription!
                 (.. webview-view
                     (onDidDispose (fn []

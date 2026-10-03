@@ -34,9 +34,7 @@
         on-did-change-configuration-spy (spy/stub "configuration-subscription")
         register-webview!-spy (spy/spy)
         unregister-webview!-spy (spy/spy)
-        on-did-receive-message-spy (spy/stub "message-subscription")
-        webview-view #js {:webview #js {:cspSource "csp-source"
-                                        :onDidReceiveMessage (test-util/wrap-spy on-did-receive-message-spy)}
+        webview-view #js {:webview #js {:cspSource "csp-source"}
                           :visible false
                           :onDidDispose (test-util/wrap-spy on-did-dispose-spy)
                           :onDidChangeVisibility (test-util/wrap-spy on-did-change-visibility-spy)}
@@ -64,9 +62,6 @@
           (let [calls (spy/calls on-did-change-visibility-spy)]
             (is (= 1 (count calls)))
             (is (fn? (type (first (first calls)))))))
-        (testing "should register a webview message callback as a subscription"
-          (is (= 1 (count (spy/calls on-did-receive-message-spy))))
-          (is (some #{"message-subscription"} (.-subscriptions vscode-context-stub))))
         ((ffirst (spy/calls on-did-dispose-spy)))
         (is (nil? @sut/output-sidebar-webview-view))
         (is (spy/called-once-with? unregister-webview!-spy webview-view))))))
@@ -149,8 +144,7 @@
 
 (deftest resolve-output-log-test
   (let [on-did-change-configuration-spy (spy/stub "configuration-subscription")
-        webview-view #js {:webview #js {:cspSource "csp-source"
-                                        :onDidReceiveMessage (constantly "message-subscription")}
+        webview-view #js {:webview #js {:cspSource "csp-source"}
                           :visible true
                           :onDidDispose (constantly "dispose-subscription")
                           :onDidChangeVisibility (constantly "visibility-subscription")}
