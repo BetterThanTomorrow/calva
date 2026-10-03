@@ -121,15 +121,82 @@
       (.. element (appendChild (js/document.createTextNode text))))
     element))
 
+(defn data-url-blob
+  [data-url mime]
+  (let [binary (js/atob (subs data-url (inc (str/index-of data-url ","))))
+        bytes (js/Uint8Array. (count binary))]
+    (dotimes [i (count binary)]
+      (aset bytes i (.charCodeAt binary i)))
+    (js/Blob. #js [bytes] #js {:type mime})))
+
+(defn png-blob
+  "A promise of `img` drawn on a canvas, as a PNG blob."
+  [^js img]
+  (js/Promise.
+   (fn [resolve reject]
+     (let [canvas (js/document.createElement "canvas")]
+       (set! (.-width canvas) (if (pos? (.-naturalWidth img)) (.-naturalWidth img) (.-width img)))
+       (set! (.-height canvas) (if (pos? (.-naturalHeight img)) (.-naturalHeight img) (.-height img)))
+       (.. canvas (getContext "2d") (drawImage img 0 0 (.-width canvas) (.-height canvas)))
+       (.. canvas (toBlob #(if % (resolve %) (reject (js/Error. "The image cannot be drawn as PNG")))
+                          "image/png"))))))
+
+(defn show-copied!
+  [^js button]
+  (set! (.. button -dataset -copied) "true")
+  (js/setTimeout #(set! (.. button -dataset -copied) "false") 1500))
+
+(defn copy-image!
+  "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
+   needs the user activation."
+  [^js button ^js img {:image/keys [mime data-url]}]
+  (let [png (if (= "image/png" mime)
+              (js/Promise.resolve (data-url-blob data-url mime))
+              (png-blob img))]
+    (-> (.. js/navigator -clipboard (write #js [(js/ClipboardItem. #js {"image/png" png})]))
+        (.then #(show-copied! button))
+        (.catch #(js/console.error "Cannot copy the image to the clipboard:" %)))))
+
+(def svg-namespace "http://www.w3.org/2000/svg")
+
+(defn create-icon-element
+  "A 16x16 codicon-style icon from one SVG `path-data`."
+  [icon path-data]
+  (let [svg (js/document.createElementNS svg-namespace "svg")
+        path (js/document.createElementNS svg-namespace "path")]
+    (doseq [[k v] {"class" (str "output-image-copy-icon output-image-copy-icon-" icon)
+                   "viewBox" "0 0 16 16"
+                   "aria-hidden" "true"}]
+      (.. svg (setAttribute k v)))
+    (.. path (setAttribute "d" path-data))
+    (.. svg (appendChild path))
+    svg))
+
+(def copy-icon-path
+  "M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H5v10h8V7zM3 1L2 2v10l1 1V2h6.414l-1-1H3z")
+
+(def check-icon-path
+  "M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z")
+
 (defn create-image-element
-  "A thumbnail: the full-resolution image, scaled down by CSS."
+  "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button."
   [{:image/keys [data-url] :as image}]
   (let [label (images/label image)
-        img (create-element "img" "output-image" nil)]
+        thumbnail (create-element "div" "output-image-thumbnail" nil)
+        img (create-element "img" "output-image" nil)
+        button (create-element "button" "output-image-copy" nil)]
     (set! (.-src img) data-url)
     (set! (.-alt img) label)
     (set! (.-title img) label)
-    img))
+    (set! (.-type button) "button")
+    (set! (.-title button) "Copy image")
+    (.. button (setAttribute "aria-label" (str "Copy " label)))
+    (.. button (appendChild (create-icon-element "copy" copy-icon-path)))
+    (.. button (appendChild (create-icon-element "check" check-icon-path)))
+    (.. button (addEventListener "click" #(copy-image! button img image)))
+    (.. thumbnail (appendChild img))
+    (.. thumbnail (appendChild button))
+    thumbnail))
 
 (defn create-image-form-element
   [image-form children]
@@ -149,7 +216,7 @@
     (.. entry (setAttribute "data-output-element-type" "images"))
     (.. entry (appendChild (create-image-form-element "images" [text-element thumbnails])))
     (.. entry (appendChild (create-image-form-element "raw" [raw-element])))
-    (.. thumbnails -childNodes
+    (.. thumbnails (querySelectorAll "img")
         (forEach (fn [^js img]
                    (.. img (addEventListener "load"
                                              #(.. dom-element (dispatchEvent (output-appended-event img)))
