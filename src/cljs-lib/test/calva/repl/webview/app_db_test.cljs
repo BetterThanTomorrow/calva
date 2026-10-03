@@ -64,23 +64,37 @@
                 :image/size "8 B"
                 :image/data-url png-data-url})
 
-(deftest render-images-test
-  (testing "initial-db renders images"
-    (is (true? (:output/render-images? sut/initial-db))))
-
-  (testing "a result with an image gets a placeholder in the text and an append-images fx"
-    (let [payload {:command/name "show-result" :output (str "\"" png-data-url "\"")}
+(deftest images-test
+  (testing "a result with an image is appended with placeholder text, images and the raw text"
+    (let [output (str "\"" png-data-url "\"")
+          payload {:command/name "show-result" :output output}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-result "\"<<image-1 png 8 B>>\""]
-              [:fx/append-images [png-image]]]
+      (is (= [[:fx/append-result-with-images {:text "\"<<image-1 png 8 B>>\""
+                                              :images [png-image]
+                                              :raw output}]]
              (:uf/fxs result)))))
 
-  (testing "stdout with an image gets a placeholder in the text and an append-images fx"
-    (let [payload {:command/name "show-stdout" :output (str png-data-url "\n") :output-category "evalOut"}
+  (testing "stdout with an image is appended with placeholder text, images and the raw text"
+    (let [output (str png-data-url "\n")
+          payload {:command/name "show-stdout" :output output :output-category "evalOut"}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-stdout "<<image-1 png 8 B>>\n" "evalOut"]
-              [:fx/append-images [png-image]]]
+      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 8 B>>\n"
+                                              :images [png-image]
+                                              :raw output}
+               "evalOut"]]
              (:uf/fxs result)))))
+
+  (testing "two images on one line are two images, in order"
+    (let [jpeg-data-url "data:image/jpeg;base64,/9j/4AAQ"
+          output (str png-data-url " " jpeg-data-url)
+          result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result" :output output}])
+          [[_ {:keys [text images]}]] (:uf/fxs result)]
+      (is (= "<<image-1 png 8 B>> <<image-2 jpeg 6 B>>" text))
+      (is (= [png-data-url jpeg-data-url] (map :image/data-url images)))))
+
+  (testing "a result without images is appended as before"
+    (let [result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result" :output "42"}])]
+      (is (= [[:fx/append-result "42"]] (:uf/fxs result)))))
 
   (testing "evaluated code is left raw"
     (let [payload {:command/name "show-evaluated-code" :output (str "\"" png-data-url "\"")}
@@ -88,19 +102,11 @@
       (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"")]]
              (:uf/fxs result)))))
 
-  (testing "with rendering off, output is left raw"
-    (let [db (assoc sut/initial-db :output/render-images? false)
-          payload {:command/name "show-result" :output (str "\"" png-data-url "\"")}
-          result (sut/handle-action db [:msg/output payload])]
-      (is (= [[:fx/append-result (str "\"" png-data-url "\"")]]
-             (:uf/fxs result)))))
-
-  (testing ":msg/set-render-images sets the flag"
-    (is (false? (get-in (sut/handle-action sut/initial-db [:msg/set-render-images {:render-images? false}])
-                        [:uf/db :output/render-images?])))
-    (is (true? (get-in (sut/handle-action (assoc sut/initial-db :output/render-images? false)
-                                          [:msg/set-render-images {:render-images? true}])
-                       [:uf/db :output/render-images?])))))
+  (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"
+    (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
+                                                                            :image-display "raw"}])]
+      (is (= sut/initial-db (:uf/db result)))
+      (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
 
 (defn- stdout
   ([text] (stdout text "evalOut"))
@@ -134,16 +140,20 @@
                                         (map stdout (chunks (str "before " split-data-url "\nafter\n") 2)))]
       (is (nil? (:output/pending-stdout db)))
       (is (= [[:fx/append-stdout "before " "evalOut"]
-              [:fx/append-stdout "<<image-1 png 1 kB>>\nafter\n" "evalOut"]
-              [:fx/append-images [split-image]]]
+              [:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\nafter\n"
+                                              :images [split-image]
+                                              :raw (str split-data-url "\nafter\n")}
+               "evalOut"]]
              fxs))))
 
   (testing "a data URL split across three stdout chunks is one image"
     (let [{:keys [db fxs]} (run-actions sut/initial-db
                                         (map stdout (chunks (str split-data-url "\n") 3)))]
       (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "<<image-1 png 1 kB>>\n" "evalOut"]
-              [:fx/append-images [split-image]]]
+      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\n"
+                                              :images [split-image]
+                                              :raw (str split-data-url "\n")}
+               "evalOut"]]
              fxs))))
 
   (testing "a chunk that ends inside the data URL header is held back"
@@ -156,12 +166,14 @@
                                         [(stdout "data:image/png;base64,AAAA")
                                          [:msg/output {:command/name "show-result" :output "nil"}]])]
       (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "<<image-1 png 3 B>>" "evalOut"]
-              [:fx/append-images [{:image/n 1
-                                   :image/mime "image/png"
-                                   :image/subtype "png"
-                                   :image/size "3 B"
-                                   :image/data-url "data:image/png;base64,AAAA"}]]
+      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
+                                              :images [{:image/n 1
+                                                        :image/mime "image/png"
+                                                        :image/subtype "png"
+                                                        :image/size "3 B"
+                                                        :image/data-url "data:image/png;base64,AAAA"}]
+                                              :raw "data:image/png;base64,AAAA"}
+               "evalOut"]
               [:fx/append-result "nil"]]
              fxs))))
 
@@ -178,13 +190,7 @@
     (let [{:keys [db]} (run-actions sut/initial-db
                                     [(stdout "data:image/png;base64,AAAA")
                                      [:msg/clear-output-view]])]
-      (is (nil? (:output/pending-stdout db)))))
-
-  (testing "with rendering off, stdout is not held back"
-    (let [{:keys [db fxs]} (run-actions (assoc sut/initial-db :output/render-images? false)
-                                        [(stdout "data:image/png;base64,AAAA")])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "data:image/png;base64,AAAA" "evalOut"]] fxs)))))
+      (is (nil? (:output/pending-stdout db))))))
 
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"

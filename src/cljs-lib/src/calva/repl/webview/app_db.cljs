@@ -6,7 +6,6 @@
   {:output/last-context nil
    :output/base-font-scale 1.0
    :output/font-size-adjustment 0.0
-   :output/render-images? true
    :output/pending-stdout nil})
 
 (defonce !app-db (atom initial-db))
@@ -23,10 +22,9 @@
 
 (defn output-text-and-images
   "Results and stdout get image data URLs swapped for placeholders, with the images returned
-   separately, when image rendering is on. Other output is returned as is."
-  [db command-name output]
-  (if (and (:output/render-images? db)
-           (string? output)
+   separately. Other output is returned as is."
+  [command-name output]
+  (if (and (string? output)
            (#{"show-result" "show-stdout"} command-name))
     (images/extract-images output)
     {:text output :images []}))
@@ -45,7 +43,7 @@
   (let [joined (if (continues-pending? db "show-stdout" category)
                  (str (get-in db [:output/pending-stdout :text]) output)
                  output)
-        start (when (and (:output/render-images? db) (string? joined))
+        start (when (string? joined)
                 (images/pending-start joined))]
     (if start
       {:shown (subs joined 0 start)
@@ -54,25 +52,36 @@
        :pending nil})))
 
 (defn- stdout-fxs
-  [db output category]
-  (let [{:keys [text images]} (output-text-and-images db "show-stdout" output)]
-    (cond-> []
-      (seq text) (conj [:fx/append-stdout text category])
-      (seq images) (conj [:fx/append-images images]))))
+  "Stdout with images is appended as both forms: `:text` with placeholders plus `:images`, and the
+   original text as `:raw`."
+  [output category]
+  (let [{:keys [text images] :as extracted} (output-text-and-images "show-stdout" output)]
+    (cond
+      (seq images) [[:fx/append-stdout-with-images (assoc extracted :raw output) category]]
+      (seq text) [[:fx/append-stdout text category]]
+      :else [])))
+
+(defn- result-fxs
+  "A result with images is appended as both forms, like stdout."
+  [output]
+  (let [{:keys [images] :as extracted} (output-text-and-images "show-result" output)]
+    (if (seq images)
+      [[:fx/append-result-with-images (assoc extracted :raw output)]]
+      [[:fx/append-result output]])))
 
 (defn- message-update
   "The pending stdout and the append fxs for one output message."
   [db command-name output category]
-  (if (= "show-stdout" command-name)
-    (let [{:keys [shown pending]} (split-pending-stdout db output category)]
-      {:pending pending
-       :fxs (stdout-fxs db shown category)})
-    (let [{:keys [text images]} (output-text-and-images db command-name output)]
-      {:pending nil
-       :fxs (cond-> []
-              (= command-name "show-result") (conj [:fx/append-result text])
-              (= command-name "show-evaluated-code") (conj [:fx/append-evaluated-code text])
-              (seq images) (conj [:fx/append-images images]))})))
+  (case command-name
+    "show-stdout" (let [{:keys [shown pending]} (split-pending-stdout db output category)]
+                    {:pending pending
+                     :fxs (stdout-fxs shown category)})
+    "show-result" {:pending nil
+                   :fxs (result-fxs output)}
+    "show-evaluated-code" {:pending nil
+                           :fxs [[:fx/append-evaluated-code output]]}
+    {:pending nil
+     :fxs []}))
 
 (defn- meta-context-key
   [meta]
@@ -96,7 +105,7 @@
     {:uf/db  (cond-> (assoc db :output/pending-stdout pending)
                context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []
-               flushed (into (stdout-fxs db (:text flushed) (:category flushed)))
+               flushed (into (stdout-fxs (:text flushed) (:category flushed)))
                context-changed? (conj [:fx/append-ns-info meta])
                :always (into fxs))}))
 
@@ -110,8 +119,9 @@
     :msg/output
     (handle-output db payload)
 
-    :msg/set-render-images
-    {:uf/db (assoc db :output/render-images? (boolean (:render-images? payload)))}
+    :msg/set-image-display
+    {:uf/db db
+     :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
     :msg/set-code-theme
     {:uf/db db
