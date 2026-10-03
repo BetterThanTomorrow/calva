@@ -90,6 +90,7 @@ async function activate(context: vscode.ExtensionContext) {
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
   cljsLib.initReplOutputWordWrap();
+  cljsLib.initOutputViewImageDisplay();
   cljsLib.initReplOutputFontSizeScale();
 
   initializeState();
@@ -243,6 +244,7 @@ async function activate(context: vscode.ExtensionContext) {
     clearReplOutputView: cljsLib.clearReplOutputView,
     clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
     toggleReplOutputWordWrap: cljsLib.toggleReplOutputWordWrap,
+    toggleOutputViewImageDisplay: cljsLib.toggleOutputViewImageDisplay,
     increaseOutputViewFontSize: cljsLib.increaseOutputViewFontSize,
     decreaseOutputViewFontSize: cljsLib.decreaseOutputViewFontSize,
     resetOutputViewFontSize: cljsLib.resetOutputViewFontSize,

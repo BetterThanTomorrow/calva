@@ -357,10 +357,18 @@
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
-          "calva.showOutputImages": {
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Show base64 image data URLs in REPL output as images in the Output views, and as short placeholders (e.g. `<<image-1 png 12 kB>>`) in text output destinations. When disabled, the raw data URL text is printed."
+          "calva.outputViewImageDisplay": {
+            "type": "string",
+            "enum": [
+              "images",
+              "raw"
+            ],
+            "enumDescriptions": [
+              "Show each image as a placeholder (e.g. `<<image-1 png 12 kB>>`) with a thumbnail below it.",
+              "Show the raw image data text, as printed."
+            ],
+            "default": "images",
+            "markdownDescription": "How the Output views show base64 image data in REPL output. The output window, output file and terminal always show the raw text. **Calva: Toggle Output View Image Display** switches it for the session."
           },
           "calva.fiddleFilePaths": {
             "type": "array",
@@ -1852,6 +1860,12 @@
         "title": "Toggle REPL Output Word Wrap",
         "category": "Calva",
         "icon": "$(word-wrap)"
+      },
+      {
+        "command": "calva.toggleOutputViewImageDisplay",
+        "title": "Toggle Output View Image Display",
+        "category": "Calva",
+        "icon": "$(file-media)"
       },
       {
         "command": "calva.decreaseOutputViewFontSize",
@@ -3820,6 +3834,11 @@
         },
         {
           "command": "calva.toggleReplOutputWordWrap",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@3"
+        },
+        {
+          "command": "calva.toggleOutputViewImageDisplay",
           "when": "view == calva.output-sidebar",
           "group": "navigation@3"
         },

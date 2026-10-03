@@ -40,6 +40,19 @@ Word wrapping for evaluated code and results in the output views can be configur
 
 There is also a command for toggling word wrap in-session across both views: **Calva: Toggle REPL Output Word Wrap**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
 
+## Images
+
+When REPL output contains base64 image data URLs (e.g. `data:image/png;base64,...`), the output views show each image as a short placeholder, like `<<image-1 png 12 kB>>`, with the image as a thumbnail on its own line below the placeholder. Thumbnails are scaled down to fit the view width.
+
+How the output views show image data can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
+
+* `"images"` (default) – placeholders with thumbnails.
+* `"raw"` – the raw image data text, as printed.
+
+There is also a command for toggling image display in-session across both views: **Calva: Toggle Output View Image Display**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
+
+The output window, output file and terminal always show the raw text.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.

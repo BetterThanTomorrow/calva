@@ -32,6 +32,8 @@
                              :clearReplOutputView calva.repl.webview.core/clear-output-view
                              :toggleReplOutputWordWrap calva.repl.webview.core/toggle-word-wrap
                              :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
+                             :toggleOutputViewImageDisplay calva.repl.webview.core/toggle-image-display
+                             :initOutputViewImageDisplay calva.repl.webview.core/init-image-display!
                              :increaseOutputViewFontSize calva.repl.webview.core/increase-font-size
                              :decreaseOutputViewFontSize calva.repl.webview.core/decrease-font-size
                              :resetOutputViewFontSize calva.repl.webview.core/reset-font-size

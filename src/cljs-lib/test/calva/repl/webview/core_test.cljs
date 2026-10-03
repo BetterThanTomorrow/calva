@@ -3,7 +3,7 @@
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
    [cljs.reader :as reader]
-   [cljs.test :refer-macros [async deftest testing is]]
+   [cljs.test :refer-macros [deftest testing is]]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -26,54 +26,6 @@
         (is (= 1 (count calls)))
         (is (= "world" (:hello message-arg)))
         (is (string? (:id message-arg)))))))
-
-(deftest handle-webview-message!-test
-  (testing "writes the copy-to-clipboard text to the clipboard, then posts clipboard-written with the same id"
-    (async done
-      (let [write-text-spy (spy/stub (js/Promise.resolve))
-            post-message-spy (spy/spy)
-            webview-panel-mock (clj->js {:webview {:postMessage (test-util/wrap-spy post-message-spy)}})]
-        (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (test-util/wrap-spy write-text-spy)}}}))]
-          (-> (sut/handle-webview-message! webview-panel-mock
-                                           (pr-str {:command/name "copy-to-clipboard"
-                                                    :id "copy-1"
-                                                    :text "data:image/png;base64,AAAA"}))
-              (.then (fn []
-                       (is (spy/called-once-with? write-text-spy "data:image/png;base64,AAAA"))
-                       (is (= {:command/name "clipboard-written" :id "copy-1"}
-                              (reader/read-string (ffirst (spy/calls post-message-spy)))))
-                       (done)))))))))
-
-(deftest handle-webview-message!-clipboard-failure-test
-  (testing "logs a failed clipboard write and posts nothing"
-    (async done
-      (let [error (js/Error. "denied")
-            post-message-spy (spy/spy)
-            log-to-console-spy (spy/spy)
-            log-to-console util/log-to-console
-            webview-panel-mock (clj->js {:webview {:postMessage (test-util/wrap-spy post-message-spy)}})]
-        ;; The rejection is handled after `with-redefs` has restored its vars, so this one is set by hand
-        (set! util/log-to-console (test-util/wrap-spy log-to-console-spy))
-        (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (fn [_] (js/Promise.reject error))}}}))]
-          (-> (sut/handle-webview-message! webview-panel-mock
-                                           (pr-str {:command/name "copy-to-clipboard"
-                                                    :id "copy-1"
-                                                    :text "data:image/png;base64,AAAA"}))
-              (.then (fn []
-                       (set! util/log-to-console log-to-console)
-                       (is (spy/called-once-with? log-to-console-spy
-                                                  :error
-                                                  "Cannot copy data URL to the clipboard:"
-                                                  error))
-                       (is (spy/not-called? post-message-spy))
-                       (done)))))))))
-
-(deftest handle-webview-message!-other-message-test
-  (testing "ignores other messages"
-    (let [write-text-spy (spy/spy)]
-      (with-redefs [util/vscode (atom (clj->js {:env {:clipboard {:writeText (test-util/wrap-spy write-text-spy)}}}))]
-        (is (nil? (sut/handle-webview-message! #js {} (pr-str {:command/name "something-else"}))))
-        (is (spy/not-called? write-text-spy))))))
 
 (defn vscode-with-editor-word-wrap-setting
   [setting]
@@ -171,33 +123,40 @@
                                         :csp-source "csp-source"
                                         :greeting-html "GREETING-MARKER"}))))
   (testing "Given word-wrap is enabled, should add the word-wrap body class"
-    (is (re-find #"<body class=\"word-wrap\">"
+    (is (re-find #"<body class=\"word-wrap\" "
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
                                         :word-wrap? true}))))
   (testing "Given word-wrap is disabled, should not add the word-wrap body class"
-    (is (re-find #"<body>"
+    (is (re-find #"<body data-image-display="
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
                                         :word-wrap? false}))))
-  (testing "Given render-images? is false, should mark the body with data-render-images=\"false\""
-    (is (re-find #"<body data-render-images=\"false\">"
+  (testing "Given image-display \"raw\", should mark the body with data-image-display=\"raw\""
+    (is (re-find #"<body data-image-display=\"raw\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
-                                        :render-images? false}))))
-  (testing "Given render-images? is true, should leave the body unmarked"
-    (is (re-find #"<body>"
+                                        :image-display "raw"}))))
+  (testing "Given no image-display, should mark the body with data-image-display=\"images\""
+    (is (re-find #"<body data-image-display=\"images\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"}))))
+  (testing "Given word-wrap and image-display, should add both to the body"
+    (is (re-find #"<body class=\"word-wrap\" data-image-display=\"images\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
-                                        :render-images? true}))))
+                                        :word-wrap? true
+                                        :image-display "images"}))))
   (testing "Given a font-scale, should set the font scale css variable on the html element"
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
                  (sut/get-webview-html {:env/is-debug false}
@@ -255,8 +214,7 @@
                     greeting/html-for-view (constantly "some-greeting")
                     sut/word-wrap? (constantly true)
                     sut/get-output-views-font-scale-setting (constantly 1.5)
-                    sut/render-images? (constantly false)
-                    sut/ensure-render-images-listener! (constantly nil)
+                    sut/image-display (constantly "raw")
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -273,7 +231,7 @@
                                                                    :greeting-html "some-greeting"
                                                                    :word-wrap? true
                                                                    :font-scale 1.5
-                                                                   :render-images? false})))
+                                                                   :image-display "raw"})))
         (testing "should set webview html to result of call to get-webview-html"
           (is (= "some-html" (.. webview-panel -webview -html))))))))
 
@@ -743,37 +701,120 @@
         (sut/reset-font-size)
         (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "reset-font-size"}))))))
 
-(deftest render-images?-test
-  (testing "returns true when VS Code is not available"
+(defn vscode-with-calva-setting
+  [setting-name setting-value]
+  #js {:workspace #js {:getConfiguration (fn [_section]
+                                           #js {:get (fn [setting]
+                                                       (when (= setting-name setting)
+                                                         setting-value))})}})
+
+(deftest get-image-display-setting-test
+  (testing "returns \"images\" when VS Code is not available"
     (with-redefs [util/vscode (atom nil)]
-      (is (true? (sut/render-images?)))))
-  (testing "returns true when the setting is not set"
-    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting js/undefined))]
-      (is (true? (sut/render-images?)))))
-  (testing "returns false when the setting is false"
-    (with-redefs [util/vscode (atom (vscode-with-font-scale-setting false))]
-      (is (false? (sut/render-images?))))))
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images\" when the setting is not set"
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" js/undefined))]
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images\" when the setting is \"images\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images"))]
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"raw\" when the setting is \"raw\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "raw"))]
+      (is (= "raw" (sut/get-image-display-setting))))))
 
-(deftest post-render-images-to-all-views!-test
-  (testing "posts a set-render-images message to all registered webviews"
+(deftest image-display-test
+  (testing "uses the setting when there is no override"
+    (with-redefs [sut/image-display-override (atom nil)
+                  sut/get-image-display-setting (constantly "raw")]
+      (is (= "raw" (sut/image-display)))))
+  (testing "uses the override when present"
+    (with-redefs [sut/image-display-override (atom "images")
+                  sut/get-image-display-setting (constantly "raw")]
+      (is (= "images" (sut/image-display))))))
+
+(deftest set-image-display-context!-test
+  (testing "sets the output view image display context"
+    (let [execute-command-spy (spy/spy)
+          vscode (clj->js {:commands {:executeCommand (test-util/wrap-spy execute-command-spy)}})]
+      (with-redefs [util/vscode (atom vscode)]
+        (sut/set-image-display-context! "raw")
+        (is (spy/called-once-with? execute-command-spy "setContext" "calva:outputViewImageDisplay" "raw"))))))
+
+(deftest post-image-display-to-all-views!-test
+  (testing "posts a set-image-display message to all registered webviews"
     (let [post-message-to-webview-spy (spy/spy)
-          webview-a #js {}]
-      (with-redefs [sut/registered-webviews (atom #{webview-a})
+          webview-a #js {}
+          webview-b #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-        (sut/post-render-images-to-all-views! false)
-        (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "set-render-images"
-                                                                          :render-images? false}))))))
+        (sut/post-image-display-to-all-views! "raw")
+        (is (spy/called-with? post-message-to-webview-spy webview-a {:command/name "set-image-display"
+                                                                     :image-display "raw"}))
+        (is (spy/called-with? post-message-to-webview-spy webview-b {:command/name "set-image-display"
+                                                                     :image-display "raw"}))
+        (is (spy/called-n-times? post-message-to-webview-spy 2))))))
 
-(deftest ensure-render-images-listener!-test
-  (testing "registers one configuration change listener as a subscription, once"
+(deftest toggle-image-display-test
+  (testing "flips \"images\" to \"raw\" in the override, the context and all views"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/toggle-image-display)
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "flips \"raw\" back to \"images\""
+    (let [post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom "raw")
+                    sut/get-image-display-setting (constantly "images")
+                    sut/set-image-display-context! (constantly nil)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/toggle-image-display)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? post-spy "images"))))))
+
+(deftest create-image-display-change-listener-test
+  (let [captured-handler (atom nil)
+        vscode-stub #js {:workspace #js {:onDidChangeConfiguration (fn [handler]
+                                                                     (reset! captured-handler handler)
+                                                                     "some-listener")}}
+        event-for (fn [affected-section]
+                    #js {:affectsConfiguration #(= affected-section %)})]
+    (testing "clears the override and posts the setting when calva.outputViewImageDisplay changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [util/vscode (atom vscode-stub)
+                      sut/image-display-override (atom "raw")
+                      sut/get-image-display-setting (constantly "images")
+                      sut/set-image-display-context! (constantly nil)
+                      sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+          (is (= "some-listener" (sut/create-image-display-change-listener)))
+          (@captured-handler (event-for "calva.outputViewImageDisplay"))
+          (is (nil? @sut/image-display-override))
+          (is (spy/called-once-with? post-spy "images")))))
+    (testing "ignores other configuration changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [util/vscode (atom vscode-stub)
+                      sut/image-display-override (atom "raw")
+                      sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+          (sut/create-image-display-change-listener)
+          (@captured-handler (event-for "calva.outputViews.wordWrap"))
+          (is (= "raw" @sut/image-display-override))
+          (is (spy/not-called? post-spy)))))))
+
+(deftest init-image-display!-test
+  (testing "sets the context and registers the configuration change listener as a subscription"
     (let [push-spy (spy/spy)
-          vscode-stub #js {:workspace #js {:onDidChangeConfiguration (constantly "some-listener")}}
+          set-context-spy (spy/spy)
           vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
-      (with-redefs [sut/render-images-listener (atom nil)
-                    util/vscode (atom vscode-stub)
-                    util/vscode-context (atom vscode-context-stub)]
-        (sut/ensure-render-images-listener!)
-        (sut/ensure-render-images-listener!)
+      (with-redefs [util/vscode-context (atom vscode-context-stub)
+                    sut/image-display (constantly "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/create-image-display-change-listener (constantly "some-listener")]
+        (sut/init-image-display!)
+        (is (spy/called-once-with? set-context-spy "images"))
         (is (spy/called-once-with? push-spy "some-listener"))))))
 
 (deftest init-font-size-scale!-test
