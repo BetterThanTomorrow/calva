@@ -130,6 +130,10 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
    margin: 4px 0 8px;
 }
 
+[data-image-form="images"] > pre {
+   margin-block: 0;
+}
+
 .output-image-thumbnail {
    display: flex;
    align-items: flex-start;

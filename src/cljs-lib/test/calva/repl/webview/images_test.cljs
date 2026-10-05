@@ -122,3 +122,31 @@
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]
     (is (= "image-2 jpeg 12 kB" (sut/label image)))
     (is (= "<<image-2 jpeg 12 kB>>" (sut/placeholder image)))))
+
+(def png-image-1 {:image/n 1 :image/subtype "png" :image/size "8 B"})
+(def png-image-2 {:image/n 2 :image/subtype "png" :image/size "8 B"})
+
+(deftest segments-with-images-test
+  (testing "a nested map puts each image after the line that holds its placeholder"
+    (let [line1 (str "{:a {:i1 " (pr-str (sut/placeholder png-image-1)) "\n")
+          line2 (str "     :i2 " (pr-str (sut/placeholder png-image-2)) "}}")
+          text (str line1 line2)]
+      (is (= [{:text line1 :images [png-image-1]}
+              {:text line2 :images [png-image-2]}]
+             (sut/segments-with-images text [png-image-1 png-image-2])))))
+
+  (testing "two placeholders on one line keep both images after that line, in order"
+    (let [text (str (sut/placeholder png-image-1) " " (sut/placeholder png-image-2))]
+      (is (= [{:text text :images [png-image-1 png-image-2]}]
+             (sut/segments-with-images text [png-image-1 png-image-2])))))
+
+  (testing "lines after the last placeholder stay as a text-only tail"
+    (let [text (str "head\n" (sut/placeholder png-image-1) "\ntail\n")]
+      (is (= [{:text (str "head\n" (sut/placeholder png-image-1) "\n") :images [png-image-1]}
+              {:text "tail\n" :images []}]
+             (sut/segments-with-images text [png-image-1])))))
+
+  (testing "an image missing from the text is still appended at the end"
+    (is (= [{:text (sut/placeholder png-image-1) :images [png-image-1]}
+            {:text "" :images [png-image-2]}]
+           (sut/segments-with-images (sut/placeholder png-image-1) [png-image-1 png-image-2])))))

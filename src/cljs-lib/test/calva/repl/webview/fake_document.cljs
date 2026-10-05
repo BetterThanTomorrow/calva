@@ -21,9 +21,11 @@
          :children children
          :setAttribute (fn [k v] (aset attributes k v))
          :appendChild (fn [child] (.push children child) child)
-         :addEventListener (fn [& _])}))
+         :addEventListener (fn [& _])
+         :dispatchEvent (fn [_])}))
 
 (when-not (exists? js/document)
+  (set! js/globalThis.CustomEvent (fn [name opts] #js {:type name :detail (.-detail opts)}))
   (set! js/globalThis.document
         #js {:getElementById (fn [_])
              :createElement create-element
