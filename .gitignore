@@ -112,3 +112,4 @@ ephemeral-docs/
 
 
 **/.eca/config.json
+.tmp/
