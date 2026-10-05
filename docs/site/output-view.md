@@ -42,7 +42,7 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 ## Images
 
-When REPL output contains base64 image data URLs (e.g. `data:image/png;base64,...`), the output views show each image as a short placeholder, like `<<image-1 png 12 kB>>`, with the image as a thumbnail on its own line below the placeholder. Thumbnails are scaled down to fit the view width.
+When REPL output contains base64 image data URLs (e.g. `data:image/png;base64,...`), the output views show each image as a short placeholder, like `<<image-1 png 12 kB>>`, with the image as a thumbnail on its own line below the placeholder, starting at the left edge of the view. Thumbnails are scaled down to fit the view width. This is the same for evaluation results, stdout, and stderr.
 
 To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
 
