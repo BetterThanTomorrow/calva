@@ -124,6 +124,10 @@
                          (filter #(some #{".output-images"} (:selectors %)))
                          (map :declarations)
                          (apply merge))
+        image-rule (->> rules
+                        (filter #(some #{".output-image"} (:selectors %)))
+                        (map :declarations)
+                        (apply merge))
         inset (get body-rule "--calva-output-inset")]
     (testing "main.css owns the body inline padding as an inset variable"
       (is (some? inset))
@@ -131,4 +135,6 @@
     (testing "thumbnails cancel that inset and never use vw"
       (is (= "calc(-1 * var(--calva-output-inset))" (get images-rule "margin-inline")))
       (is (nil? (get images-rule "margin-inline-start")))
-      (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))))
+      (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))
+    (testing "the thumbnail img includes its border in max-width"
+      (is (= "border-box" (get image-rule "box-sizing"))))))
