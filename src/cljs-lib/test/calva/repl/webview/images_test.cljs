@@ -149,4 +149,8 @@
   (testing "an image missing from the text is still appended at the end"
     (is (= [{:text (sut/placeholder png-image-1) :images [png-image-1]}
             {:text "" :images [png-image-2]}]
-           (sut/segments-with-images (sut/placeholder png-image-1) [png-image-1 png-image-2])))))
+           (sut/segments-with-images (sut/placeholder png-image-1) [png-image-1 png-image-2]))))
+
+  (testing "U+2028 and U+2029 stay in the joined segment text"
+    (let [text (str "abc\u2028def\u2029ghi\n" (sut/placeholder png-image-1) "\n")]
+      (is (= text (apply str (map :text (sut/segments-with-images text [png-image-1]))))))))
