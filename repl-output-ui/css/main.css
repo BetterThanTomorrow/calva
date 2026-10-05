@@ -2,6 +2,11 @@
    --calva-output-font-scale: 1;
 }
 
+body {
+   --calva-output-inset: 20px;
+   padding-inline: var(--calva-output-inset);
+}
+
 pre[data-output-element-type],
 .evaluated-code-container pre,
 .evaluated-code-container code,
@@ -128,9 +133,7 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
    align-items: flex-start;
    gap: 8px;
    margin-block: 4px 8px;
-   margin-inline-start: calc(50% - 50vw);
-   width: 100vw;
-   max-width: 100vw;
+   margin-inline: calc(-1 * var(--calva-output-inset));
    box-sizing: border-box;
 }
 
