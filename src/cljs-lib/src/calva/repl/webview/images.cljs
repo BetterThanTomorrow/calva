@@ -164,7 +164,7 @@
    `{:text line-or-lines :images [...]}`: those images belong directly below that text.
    Images that never appear in `text` are a last segment with empty text."
   [text images]
-  (let [lines (re-seq #".*(?:\r\n|\n|\r)|.+$" (or text ""))
+  (let [lines (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" (or text ""))
         {:keys [buf out]} (reduce (fn [state line]
                                     (add-line-to-segments state line images))
                                   {:buf [] :out []}
