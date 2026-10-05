@@ -115,11 +115,20 @@
   (is (not (targets-img? ".output-image-thumbnail:hover .output-image-copy"))))
 
 (deftest output-images-start-at-view-left-edge-test
-  (let [images-rule (->> (parse-rules main-css)
+  (let [rules (parse-rules main-css)
+        body-rule (->> rules
+                       (filter #(some #{"body"} (:selectors %)))
+                       (map :declarations)
+                       (apply merge))
+        images-rule (->> rules
                          (filter #(some #{".output-images"} (:selectors %)))
                          (map :declarations)
-                         (apply merge))]
-    (testing "thumbnails break out of result-block inset to the view's left edge"
-      (is (= "calc(50% - 50vw)" (get images-rule "margin-inline-start")))
-      (is (= "100vw" (get images-rule "width")))
-      (is (= "100vw" (get images-rule "max-width"))))))
+                         (apply merge))
+        inset (get body-rule "--calva-output-inset")]
+    (testing "main.css owns the body inline padding as an inset variable"
+      (is (some? inset))
+      (is (= "var(--calva-output-inset)" (get body-rule "padding-inline"))))
+    (testing "thumbnails cancel that inset and never use vw"
+      (is (= "calc(-1 * var(--calva-output-inset))" (get images-rule "margin-inline")))
+      (is (nil? (get images-rule "margin-inline-start")))
+      (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))))
