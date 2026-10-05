@@ -196,6 +196,7 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
 
 .output-image {
    display: block;
+   box-sizing: border-box;
    max-width: calc(100% - 26px);
    max-height: 400px;
    width: auto;
