@@ -113,3 +113,13 @@
   (is (not (targets-img? ".output-greeting img.calva-logo")))
   (is (not (targets-img? ".output-image-copy")))
   (is (not (targets-img? ".output-image-thumbnail:hover .output-image-copy"))))
+
+(deftest output-images-start-at-view-left-edge-test
+  (let [images-rule (->> (parse-rules main-css)
+                         (filter #(some #{".output-images"} (:selectors %)))
+                         (map :declarations)
+                         (apply merge))]
+    (testing "thumbnails break out of result-block inset to the view's left edge"
+      (is (= "calc(50% - 50vw)" (get images-rule "margin-inline-start")))
+      (is (= "100vw" (get images-rule "width")))
+      (is (= "100vw" (get images-rule "max-width"))))))
