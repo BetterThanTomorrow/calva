@@ -67,6 +67,10 @@
     {:container-element pre-element
      :code-element code-element}))
 
+(defn highlight-code!
+  [^js code-element]
+  (.. hljs (highlightElement code-element)))
+
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
   [^js dom-element output]
@@ -205,32 +209,65 @@
     (run! #(.. element (appendChild %)) children)
     element))
 
+(defn- append-segments!
+  "Appends each text segment and the images that belong directly below it. Returns the img elements
+   so the caller can listen for load."
+  [^js parent segments create-text-el!]
+  (reduce
+   (fn [imgs {:keys [text images]}]
+     (when (seq text)
+       (.. parent (appendChild (create-text-el! text))))
+     (if (seq images)
+       (let [wrap (create-element "div" "output-images" nil)
+             thumbs (mapv create-image-element images)]
+         (run! #(.. wrap (appendChild %)) thumbs)
+         (.. parent (appendChild wrap))
+         (into imgs (keep (fn [^js thumb]
+                            (first (filter (fn [^js child]
+                                             (= "IMG" (.-tagName child)))
+                                           (.-children thumb))))
+                          thumbs)))
+       imgs))
+   []
+   segments))
+
+(defn- listen-for-image-load!
+  [^js dom-element img-elements]
+  (run! (fn [^js img]
+          (.. img (addEventListener "load"
+                                    #(.. dom-element (dispatchEvent (output-appended-event img)))
+                                    #js {:once true})))
+        img-elements))
+
 (defn append-with-images!
-  "Appends an output entry that has images, in both forms: `text-element` (placeholders) with one
-   thumbnail per image below it, and `raw-element` (the original text). The body's
+  "Appends an output entry that has images, in both forms: placeholder text split so each image
+   sits directly below its placeholder line, and `raw-element` (the original text). The body's
    `data-image-display` attribute decides which form shows. Returns the entry element."
-  [^js dom-element text-element raw-element images]
+  [^js dom-element {:keys [text images raw-element create-text-el!]}]
   (let [entry (create-element "div" "output-with-images" nil)
-        thumbnails (create-element "div" "output-images" nil)]
-    (run! #(.. thumbnails (appendChild (create-image-element %))) images)
+        images-form (js/document.createElement "div")]
+    (.. images-form (setAttribute "data-image-form" "images"))
+    (listen-for-image-load!
+     dom-element
+     (append-segments! images-form (images/segments-with-images text images) create-text-el!))
     (.. entry (setAttribute "data-output-element-type" "images"))
-    (.. entry (appendChild (create-image-form-element "images" [text-element thumbnails])))
+    (.. entry (appendChild images-form))
     (.. entry (appendChild (create-image-form-element "raw" [raw-element])))
-    (.. thumbnails (querySelectorAll "img")
-        (forEach (fn [^js img]
-                   (.. img (addEventListener "load"
-                                             #(.. dom-element (dispatchEvent (output-appended-event img)))
-                                             #js {:once true})))))
     (.. dom-element (appendChild entry))
     entry))
 
 (defn append-result-with-images
   [^js dom-element {:keys [text raw images]}]
-  (let [result (clojure-code-element text)
-        raw-result (clojure-code-element raw)
-        entry (append-with-images! dom-element (:container-element result) (:container-element raw-result) images)]
-    (.. hljs (highlightElement (:code-element result)))
-    (.. hljs (highlightElement (:code-element raw-result)))
+  (let [raw-result (clojure-code-element raw)
+        entry (append-with-images! dom-element
+                                   {:text text
+                                    :images images
+                                    :raw-element (:container-element raw-result)
+                                    :create-text-el! (fn [segment-text]
+                                                       (let [{:keys [container-element code-element]} (clojure-code-element segment-text)]
+                                                         (highlight-code! code-element)
+                                                         container-element))})]
+    (highlight-code! (:code-element raw-result))
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn create-stdout-element
@@ -244,9 +281,10 @@
   [^js dom-element {:keys [text raw images]} category]
   (let [category (or category "evalOut")
         entry (append-with-images! dom-element
-                                   (create-stdout-element text category)
-                                   (create-stdout-element raw category)
-                                   images)]
+                                   {:text text
+                                    :images images
+                                    :raw-element (create-stdout-element raw category)
+                                    :create-text-el! #(create-stdout-element % category)})]
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn session-str

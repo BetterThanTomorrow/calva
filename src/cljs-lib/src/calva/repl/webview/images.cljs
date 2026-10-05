@@ -139,3 +139,39 @@
                          ends found images)]
       {:text (apply str (concat pieces [(subs text (last ends))]))
        :images (vec images)})))
+
+(defn- images-on-line
+  [line images]
+  (->> images
+       (keep (fn [image]
+               (when-let [idx (str/index-of line (placeholder image))]
+                 [idx image])))
+       (sort-by first)
+       (mapv second)))
+
+(defn- add-line-to-segments
+  [{:keys [buf out]} line images]
+  (let [on-line (images-on-line line images)]
+    (if (seq on-line)
+      {:buf []
+       :out (conj out {:text (apply str (conj buf line))
+                       :images on-line})}
+      {:buf (conj buf line)
+       :out out})))
+
+(defn segments-with-images
+  "Splits `text` after each line that holds image placeholders. Each segment is
+   `{:text line-or-lines :images [...]}`: those images belong directly below that text.
+   Images that never appear in `text` are a last segment with empty text."
+  [text images]
+  (let [lines (re-seq #".*(?:\r\n|\n|\r)|.+$" (or text ""))
+        {:keys [buf out]} (reduce (fn [state line]
+                                    (add-line-to-segments state line images))
+                                  {:buf [] :out []}
+                                  lines)
+        segments (cond-> out
+                   (seq buf) (conj {:text (apply str buf) :images []}))
+        used (into #{} (mapcat :images segments))
+        leftover (into [] (remove used) images)]
+    (cond-> segments
+      (seq leftover) (conj {:text "" :images leftover}))))
