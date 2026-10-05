@@ -4,7 +4,7 @@
       "command": "node",
       "args": [
         "${env:HOME}/.config/joyride/joyride-mcp-server.js",
-        "/Users/pez/.config/vscode-mcp/port-files/joyride-ws-6ryov6.port",
+        "${env:HOME}/.config/vscode-mcp/port-files/joyride-ws-6ryov6.port",
         "127.0.0.1"
       ]
     },
