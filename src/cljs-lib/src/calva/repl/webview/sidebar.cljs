@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.image-host :as image-host]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
@@ -107,10 +108,9 @@
              (fn [^js webview-view _context _token]
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
+               (image-host/listen-for-webview-messages! webview-view)
                (set! (.. webview-view -webview -options)
-                     #js {:enableScripts true
-                          :enableCommandUris #js ["calva.showReplOutputSidebar"]
-                          :localResourceRoots #js [(.. ^js @util/vscode-context -extensionUri)]})
+                     (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
                (add-context-subscription!
                 (.. webview-view

@@ -102,7 +102,7 @@
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
       (is (= 3 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: csp-source" result))
+      (is (re-find #"img-src data: https: http: csp-source" result))
       (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
@@ -112,7 +112,7 @@
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
       (is (= 3 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: csp-source" result))
+      (is (re-find #"img-src data: https: http: csp-source" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given greeting html, should render it before, not inside, the output div"
@@ -143,8 +143,8 @@
                                         :css-href "css-href"
                                         :csp-source "csp-source"
                                         :image-display "raw"}))))
-  (testing "Given no image-display, should mark the body with data-image-display=\"images\""
-    (is (re-find #"<body data-image-display=\"images\">"
+  (testing "Given no image-display, should mark the body with data-image-display=\"images-including-remote-urls\""
+    (is (re-find #"<body data-image-display=\"images-including-remote-urls\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
@@ -337,7 +337,9 @@
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
           initialize-webview-panel-spy (spy/spy)]
-      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+      (with-redefs [util/vscode (atom nil)
+                    util/vscode-context (atom nil)
+                    sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
@@ -349,6 +351,7 @@
                         {:preserveFocus true, :viewColumn 1}
                         {:enableScripts true
                          :enableCommandUris ["calva.showReplOutputView"]
+                         :localResourceRoots []
                          :retainContextWhenHidden true
                          :enableFindWidget true})]
                      (js->clj calls :keywordize-keys true)))))
@@ -709,15 +712,18 @@
                                                          setting-value))})}})
 
 (deftest get-image-display-setting-test
-  (testing "returns \"images\" when VS Code is not available"
+  (testing "returns \"images-including-remote-urls\" when VS Code is not available"
     (with-redefs [util/vscode (atom nil)]
-      (is (= "images" (sut/get-image-display-setting)))))
-  (testing "returns \"images\" when the setting is not set"
+      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
+  (testing "returns \"images-including-remote-urls\" when the setting is not set"
     (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" js/undefined))]
-      (is (= "images" (sut/get-image-display-setting)))))
+      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
   (testing "returns \"images\" when the setting is \"images\""
     (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images"))]
       (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images-including-remote-urls\" when the setting is \"images-including-remote-urls\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images-including-remote-urls"))]
+      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
   (testing "returns \"raw\" when the setting is \"raw\""
     (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "raw"))]
       (is (= "raw" (sut/get-image-display-setting))))))
@@ -755,6 +761,17 @@
         (is (spy/called-n-times? post-message-to-webview-spy 2))))))
 
 (deftest toggle-image-display-test
+  (testing "cycles \"images-including-remote-urls\" to \"images\""
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/toggle-image-display)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images"))
+        (is (spy/called-once-with? post-spy "images")))))
   (testing "flips \"images\" to \"raw\" in the override, the context and all views"
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
@@ -766,15 +783,15 @@
         (is (= "raw" @sut/image-display-override))
         (is (spy/called-once-with? set-context-spy "raw"))
         (is (spy/called-once-with? post-spy "raw")))))
-  (testing "flips \"raw\" back to \"images\""
+  (testing "cycles \"raw\" to \"images-including-remote-urls\""
     (let [post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom "raw")
                     sut/get-image-display-setting (constantly "images")
                     sut/set-image-display-context! (constantly nil)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/toggle-image-display)
-        (is (= "images" @sut/image-display-override))
-        (is (spy/called-once-with? post-spy "images"))))))
+        (is (= "images-including-remote-urls" @sut/image-display-override))
+        (is (spy/called-once-with? post-spy "images-including-remote-urls"))))))
 
 (deftest create-image-display-change-listener-test
   (let [captured-handler (atom nil)

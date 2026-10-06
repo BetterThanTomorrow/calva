@@ -42,16 +42,19 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 ## Images
 
-When REPL output contains base64 image data URLs (e.g. `data:image/png;base64,...`), the output views show each image as a short placeholder, like `<<image-1 png 12 kB>>`, with the image as a thumbnail on its own line below the placeholder, starting at the left edge of the view. Thumbnails are scaled down to fit the view width. This is the same for evaluation results, stdout, and stderr.
+When REPL output is a whole image data URL, a whole image URL, or a whole image file path, the output views show the image as a thumbnail on its own line below the source line, starting at the left edge of the view. Thumbnails are scaled down to fit the view width. This is the same for evaluation results, stdout, and stderr.
+
+Base64 image data URLs (e.g. `data:image/png;base64,...`) are shown as a short placeholder, like `<<image-1 png 12 kB>>`, with the thumbnail below it. Image URLs (`http://` or `https://`) and file paths (including `file://`) keep the source text as printed, and the thumbnail appears only when the file exists or the URL loads. Known extensions: png, jpg, jpeg, gif, svg, webp.
 
 To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
 
-How the output views show image data can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
+How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
 
-* `"images"` (default) – placeholders with thumbnails.
-* `"raw"` – the raw image data text, as printed.
+* `"images-including-remote-urls"` (default) – data URLs, local files, and remote URLs.
+* `"images"` – data URLs and local files. Remote URLs stay as text, with no network request.
+* `"raw"` – the raw text, as printed.
 
-There is also a command for toggling image display in-session across both views: **Calva: Toggle Output View Image Display**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
+There is also a command for toggling image display in-session across both views: **Calva: Toggle Output View Image Display**. It cycles those three modes. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command; its icon and title show the current mode.
 
 The output window, output file and terminal always show the raw text.
 

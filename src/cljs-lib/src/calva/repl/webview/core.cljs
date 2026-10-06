@@ -1,6 +1,7 @@
 (ns calva.repl.webview.core
   (:require
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.image-host :as image-host]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -95,12 +96,20 @@
     (when-let [listener (create-word-wrap-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
+(def image-display-modes
+  ["images-including-remote-urls" "images" "raw"])
+
+(def default-image-display
+  "images-including-remote-urls")
+
 (defn get-image-display-setting
   []
   (if-let [vscode @util/vscode]
     (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViewImageDisplay"))]
-      (if (= "raw" setting) "raw" "images"))
-    "images"))
+      (if (some #{setting} image-display-modes)
+        setting
+        default-image-display))
+    default-image-display))
 
 (defn image-display
   []
@@ -118,9 +127,18 @@
                                      :image-display display})
         @registered-webviews))
 
+(defn next-image-display
+  [current]
+  (let [n (count image-display-modes)
+        idx (or (->> image-display-modes
+                     (keep-indexed (fn [i mode] (when (= mode current) i)))
+                     first)
+                -1)]
+    (nth image-display-modes (mod (inc idx) n))))
+
 (defn ^:export toggle-image-display
   []
-  (let [new-display (if (= "raw" (image-display)) "images" "raw")]
+  (let [new-display (next-image-display (image-display))]
     (reset! image-display-override new-display)
     (set-image-display-context! new-display)
     (post-image-display-to-all-views! new-display)))
@@ -237,7 +255,7 @@
 
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
-                    img-src data: " csp-source ";
+                    img-src data: https: http: " csp-source ";
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
@@ -262,7 +280,7 @@
     />
 
   </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display "images") "\">
+  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
 
@@ -363,6 +381,7 @@
 (defn initialize-webview-panel
   [context ^js webview-panel]
   (register-webview! webview-panel)
+  (image-host/listen-for-webview-messages! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -376,20 +395,10 @@
                            "REPL Output"
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
-                           #js {:enableScripts true
-                                :enableCommandUris #js ["calva.showReplOutputView"]
-                                ;; If performance or memory consumption becomes a problem, we can use the setState
-                                ;; and getState to manually retain the context of the webview when it's hidden.
-                                ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
-                                ;; See also: https://code.visualstudio.com/api/references/vscode-api#WebviewPanelOptions
-                                ;; "retainContextWhenHidden has a high memory overhead and should only be used if your
-                                ;; panel's context cannot be quickly saved and restored."
-                                ;; Content reloading using setState and getState and message passing between the webview
-                                ;; and the extension was attempted, but it proved to be troublesome, so it was removed.
-                                ;; If someone wants to attempt to add it again, here's the PR for the removal:
-                                ;; https://github.com/BetterThanTomorrow/calva/pull/2896
-                                :retainContextWhenHidden true
-                                :enableFindWidget true}))]
+                           (let [opts (image-host/webview-options "calva.showReplOutputView")]
+                             (set! (.-retainContextWhenHidden opts) true)
+                             (set! (.-enableFindWidget opts) true)
+                             opts)))]
     (initialize-webview-panel context webview-panel)
     (reset! output-view-webview-panel webview-panel)))
 
