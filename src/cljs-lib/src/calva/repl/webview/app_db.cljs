@@ -94,14 +94,18 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- handle-output
-  "Pending stdout that this message does not continue is appended first."
+  "Pending stdout that this message does not continue is appended first. A REPL
+   context change is a stream boundary: pending stdout is flushed as it is, then
+   this message is handled with no pending."
   [db {:keys [command/name output meta output-category]}]
   (let [context-key (meta-context-key meta)
         context-changed? (and context-key (not= context-key (:output/last-context db)))
         category (or output-category "evalOut")
-        flushed (when-not (continues-pending? db name category)
+        db-for-update (cond-> db
+                        context-changed? (assoc :output/pending-stdout nil))
+        flushed (when-not (continues-pending? db-for-update name category)
                   (:output/pending-stdout db))
-        {:keys [pending fxs]} (message-update db name output category)]
+        {:keys [pending fxs]} (message-update db-for-update name output category)]
     {:uf/db  (cond-> (assoc db :output/pending-stdout pending)
                context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []
