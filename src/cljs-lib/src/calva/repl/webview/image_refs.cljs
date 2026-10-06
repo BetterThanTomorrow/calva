@@ -1,8 +1,12 @@
 (ns calva.repl.webview.image-refs
   "Whole-line image URLs and file paths in output. A match is the whole line (whitespace trimmed),
    or the contents of a Clojure-printed string that is the whole line. Mentions inside a longer
-   line do not count. Data URLs stay in `calva.repl.webview.images`."
+   line do not count. Data URLs stay in `calva.repl.webview.images`.
+
+   Path rule: an absolute path (POSIX `/` or a Windows drive letter) and a `file:///` URI may
+   contain spaces; a relative path may not contain whitespace; `~` is not expanded."
   (:require
+   [cljs.reader :as reader]
    [clojure.string :as str]))
 
 (def image-subtypes
@@ -51,16 +55,26 @@
                 (url-subtype s))))
 
 (defn file-image-uri?
-  "True when `s` is a `file:///` URI (empty authority) whose path ends in an image extension."
+  "True when `s` is a `file:///` URI (empty authority) whose path ends in an image extension.
+   Spaces in the path are allowed."
   [s]
-  (boolean (and (re-matches #"^file:///\S+$" s)
+  (boolean (and (str/starts-with? s "file:///")
                 (url-subtype s))))
 
+(defn- absolute-file-path?
+  [s]
+  (boolean (or (str/starts-with? s "/")
+               (re-matches #"[A-Za-z]:[\\/].*" s))))
+
 (defn image-file-path?
+  "True when `s` is an image file path. Absolute paths (POSIX `/` or a Windows drive letter) may
+   contain spaces; a relative path may not contain whitespace. `~` is not expanded."
   [s]
   (boolean (and (pos? (count s))
                 (not (str/includes? s "://"))
-                (path-subtype s))))
+                (path-subtype s)
+                (or (absolute-file-path? s)
+                    (not (re-find #"\s" s))))))
 
 (defn unwrap-printed-string
   "Contents of a Clojure-printed string, or nil."
@@ -68,11 +82,10 @@
   (when (and (>= (count s) 2)
              (str/starts-with? s "\"")
              (str/ends-with? s "\""))
-    (-> (subs s 1 (dec (count s)))
-        (str/replace #"\\n" "\n")
-        (str/replace #"\\t" "\t")
-        (str/replace #"\\\"" "\"")
-        (str/replace #"\\\\" "\\"))))
+    (try
+      (let [v (reader/read-string s)]
+        (when (string? v) v))
+      (catch :default _ nil))))
 
 (defn- ref-kind
   [token]
@@ -107,12 +120,13 @@
 
 (defn image-refs
   "Whole-line image URL and path refs in `text`, as image maps with `:image/kind` `:remote` or
-   `:local`. Does not replace the source text."
+   `:local` and `:image/line-index` (0-based line in `text`). Does not replace the source text."
   [text]
   (if-not (string? text)
     []
     (->> (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" text)
-         (keep (fn [line]
-                 (when-let [image (image-ref (line-token line))]
-                   (assoc image :image/source (line-token line)))))
+         (map-indexed (fn [idx line]
+                        (when-let [image (image-ref (line-token line))]
+                          (assoc image :image/line-index idx))))
+         (keep identity)
          vec)))

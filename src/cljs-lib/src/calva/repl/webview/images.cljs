@@ -169,33 +169,42 @@
   (or (:image/source image) (placeholder image)))
 
 (defn- images-on-line
-  [line images]
-  (->> images
-       (keep (fn [image]
-               (when-let [idx (str/index-of line (source-of image))]
-                 [idx image])))
-       (sort-by first)
-       (mapv second)))
+  "Images that belong under this line: refs with matching `:image/line-index`, then data-URL
+   placeholders found by source text in the line (order by index within the line)."
+  [line-idx line images]
+  (let [by-line-index (->> images
+                           (filter #(= line-idx (:image/line-index %)))
+                           vec)
+        by-source (->> images
+                       (remove :image/line-index)
+                       (keep (fn [image]
+                               (when-let [idx (str/index-of line (source-of image))]
+                                 [idx image])))
+                       (sort-by first)
+                       (mapv second))]
+    (into by-line-index by-source)))
 
 (defn- add-line-to-segments
-  [{:keys [buf out]} line images]
-  (let [on-line (images-on-line line images)]
+  [{:keys [buf out line-idx]} line images]
+  (let [on-line (images-on-line line-idx line images)]
     (if (seq on-line)
       {:buf []
        :out (conj out {:text (apply str (conj buf line))
-                       :images on-line})}
+                       :images on-line})
+       :line-idx (inc line-idx)}
       {:buf (conj buf line)
-       :out out})))
+       :out out
+       :line-idx (inc line-idx)})))
 
 (defn segments-with-images
-  "Splits `text` after each line that holds image placeholders. Each segment is
+  "Splits `text` after each line that holds image placeholders or refs. Each segment is
    `{:text line-or-lines :images [...]}`: those images belong directly below that text.
    Images that never appear in `text` are a last segment with empty text."
   [text images]
   (let [lines (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" (or text ""))
         {:keys [buf out]} (reduce (fn [state line]
                                     (add-line-to-segments state line images))
-                                  {:buf [] :out []}
+                                  {:buf [] :out [] :line-idx 0}
                                   lines)
         segments (cond-> out
                    (seq buf) (conj {:text (apply str buf) :images []}))

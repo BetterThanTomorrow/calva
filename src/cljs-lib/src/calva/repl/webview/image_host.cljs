@@ -15,7 +15,7 @@
   "Roots that let the output webviews load any local image file, plus the extension itself."
   []
   (let [extension-uri (some-> @util/vscode-context .-extensionUri)
-        root (file-root-uri @util/vscode)]
+        root (file-root-uri ^js @util/vscode)]
     (to-array (remove nil? [extension-uri root]))))
 
 (defn webview-options
@@ -186,7 +186,7 @@
 (defn handle-webview-message!
   "Answers resolve-local-image and fetch-image-for-copy from a webview."
   [^js webview-host ^js message]
-  (let [command (or (.-command message) (.-command/name message))
+  (let [command (.-command message)
         id (.-id message)
         vscode @util/vscode
         post! (fn [payload]

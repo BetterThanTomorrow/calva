@@ -249,6 +249,15 @@
   (= "images-including-remote-urls"
      (some-> js/document .-body (.getAttribute "data-image-display"))))
 
+(defn- remove-thumbnail!
+  "Removes `thumb` and, when that empties the `.output-images` row, removes the row too."
+  [^js thumb]
+  (when-let [parent (.-parentNode thumb)]
+    (.removeChild parent thumb)
+    (when (zero? (.-childElementCount parent))
+      (when-let [grandparent (.-parentNode parent)]
+        (.removeChild grandparent parent)))))
+
 (defn- hide-until-load!
   [^js thumb ^js img]
   (set! (.. thumb -dataset -pending) "true")
@@ -258,11 +267,7 @@
                      #js {:once true})
   (.addEventListener img "error"
                      (fn []
-                       (when-let [parent (.-parentNode thumb)]
-                         (.removeChild parent thumb)
-                         (when (zero? (.-childElementCount parent))
-                           (when-let [grandparent (.-parentNode parent)]
-                             (.removeChild grandparent parent)))))
+                       (remove-thumbnail! thumb))
                      #js {:once true}))
 
 (defn- raw-display?
@@ -279,8 +284,7 @@
      (fn [{:keys [webview-uri]}]
        (if webview-uri
          (set! (.-src img) webview-uri)
-         (when-let [parent (.-parentNode thumbnail)]
-           (.removeChild parent thumbnail)))))
+         (remove-thumbnail! thumbnail))))
     (post-to-host! {:command "resolve-local-image" :id id :src src})))
 
 (defn- queue-pending-local!

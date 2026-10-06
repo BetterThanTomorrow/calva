@@ -1,6 +1,7 @@
 (ns calva.repl.webview.image-host-test
   (:require
    [calva.repl.webview.image-host :as sut]
+   [calva.util :as util]
    [cljs.test :refer-macros [deftest testing is async]]
    [clojure.string :as str]))
 
@@ -31,6 +32,28 @@
     (let [uri (sut/file-uri-for-ref (fake-vscode "") "file:///tmp/x.png")]
       (is (some? uri))
       (is (str/blank? (str (.-authority uri)))))))
+
+(deftest file-uri-for-ref-paths-test
+  (testing "POSIX absolute path"
+    (let [uri (sut/file-uri-for-ref (fake-vscode) "/tmp/x.png")]
+      (is (some? uri))
+      (is (str/blank? (str (.-authority uri))))))
+  (testing "Windows drive path"
+    (let [uri (sut/file-uri-for-ref (fake-vscode) "C:\\Users\\pez\\a.png")]
+      (is (some? uri))
+      (is (str/blank? (str (.-authority uri))))))
+  (testing "relative path joined to project root"
+    (let [root (fake-uri "")
+          vscode (fake-vscode)]
+      (with-redefs [util/get-project-root-uri (fn
+                                                ([] root)
+                                                ([_] root))]
+        (is (some? (sut/file-uri-for-ref vscode "charts/a.png"))))))
+  (testing "relative path with no project root gives nil"
+    (with-redefs [util/get-project-root-uri (fn
+                                              ([] nil)
+                                              ([_] nil))]
+      (is (nil? (sut/file-uri-for-ref (fake-vscode) "charts/a.png"))))))
 
 (deftest image-content-type-test
   (is (= "image/png" (sut/image-content-type "image/png")))
@@ -118,3 +141,58 @@
                                              :id "2"
                                              :url "file:///tmp/a.png"})
       (is (str/includes? (str @posted) "image-bytes-missing")))))
+
+(deftest fetch-image-for-copy-empty-response-test
+  (async done
+         (let [posted (atom nil)
+               host #js {:webview #js {:postMessage (fn [s] (reset! posted s))}}
+               orig js/fetch]
+           (sut/set-image-display-fn! (constantly "images-including-remote-urls"))
+           (set! js/fetch (fn [_url _opts]
+                            (js/Promise.resolve
+                             (mock-response {:ok false :status 404
+                                             :headers {"content-type" "image/png"}
+                                             :body-bytes []}))))
+           (reset! posted nil)
+           (sut/handle-webview-message! host #js {:command "fetch-image-for-copy"
+                                                  :id "3"
+                                                  :url "https://example.com/a.png"})
+           (js/setTimeout
+            (fn []
+              (set! js/fetch orig)
+              (is (str/includes? (str @posted) "image-bytes-missing"))
+              (done))
+            20))))
+
+(deftest resolve-local-image-message-test
+  (async done
+         (let [posted (atom nil)
+               host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
+                                       :postMessage (fn [s] (reset! posted s))}}
+               vscode (let [base (fake-vscode)]
+                        (set! (.-workspace base)
+                              #js {:fs #js {:stat (fn [uri]
+                                                    (if (= "" (str (.-authority uri)))
+                                                      (js/Promise.resolve #js {})
+                                                      (js/Promise.reject (js/Error. "missing"))))}})
+                        base)]
+           (with-redefs [util/vscode (atom vscode)]
+             (reset! posted nil)
+             (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                    :id "exist"
+                                                    :src "/tmp/x.png"})
+             (js/setTimeout
+              (fn []
+                (is (str/includes? (str @posted) "local-image-resolved"))
+                (reset! posted nil)
+                (set! (.. vscode -workspace -fs -stat)
+                      (fn [_] (js/Promise.reject (js/Error. "missing"))))
+                (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                       :id "missing"
+                                                       :src "/tmp/nope.png"})
+                (js/setTimeout
+                 (fn []
+                   (is (str/includes? (str @posted) "local-image-missing"))
+                   (done))
+                 20))
+              20)))))
