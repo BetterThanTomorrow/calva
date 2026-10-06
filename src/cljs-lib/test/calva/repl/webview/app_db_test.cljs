@@ -192,32 +192,51 @@
                                      [:msg/clear-output-view]])]
       (is (nil? (:output/pending-stdout db))))))
 
+(defn- run-two-eval-out
+  "Runs two evalOut stdout messages, first as context a then as context b."
+  [output-a output-b]
+  (let [meta-a {:meta/who "a" :meta/ns "a.ns" :meta/repl-session-key "clj"}
+        meta-b {:meta/who "b" :meta/ns "b.ns" :meta/repl-session-key "clj"}
+        {:keys [db fxs]} (run-actions sut/initial-db
+                                      [[:msg/output {:command/name "show-stdout"
+                                                     :output output-a
+                                                     :output-category "evalOut"
+                                                     :meta meta-a}]
+                                       [:msg/output {:command/name "show-stdout"
+                                                     :output output-b
+                                                     :output-category "evalOut"
+                                                     :meta meta-b}]])]
+    {:db db :fxs fxs :meta-a meta-a :meta-b meta-b}))
+
+(def ^:private flushed-aaaa-stdout-fx
+  [:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
+                                  :images [{:image/n 1
+                                            :image/mime "image/png"
+                                            :image/subtype "png"
+                                            :image/size "3 B"
+                                            :image/data-url "data:image/png;base64,AAAA"}]
+                                  :raw "data:image/png;base64,AAAA"}
+   "evalOut"])
+
 (deftest pending-stdout-context-test
   (testing "a context change flushes pending stdout and does not join the new context"
-    (let [meta-a {:meta/who "a" :meta/ns "a.ns" :meta/repl-session-key "clj"}
-          meta-b {:meta/who "b" :meta/ns "b.ns" :meta/repl-session-key "clj"}
-          {:keys [db fxs]} (run-actions sut/initial-db
-                                        [[:msg/output {:command/name "show-stdout"
-                                                       :output "data:image/png;base64,AAAA"
-                                                       :output-category "evalOut"
-                                                       :meta meta-a}]
-                                         [:msg/output {:command/name "show-stdout"
-                                                       :output "from-b\n"
-                                                       :output-category "evalOut"
-                                                       :meta meta-b}]])]
+    (let [{:keys [db fxs meta-a meta-b]} (run-two-eval-out "data:image/png;base64,AAAA" "from-b\n")]
       (is (nil? (:output/pending-stdout db)))
       (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
       (is (= [[:fx/append-ns-info meta-a]
-              [:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
-                                              :images [{:image/n 1
-                                                        :image/mime "image/png"
-                                                        :image/subtype "png"
-                                                        :image/size "3 B"
-                                                        :image/data-url "data:image/png;base64,AAAA"}]
-                                              :raw "data:image/png;base64,AAAA"}
-               "evalOut"]
+              flushed-aaaa-stdout-fx
               [:fx/append-ns-info meta-b]
               [:fx/append-stdout "from-b\n" "evalOut"]]
+             fxs))))
+
+  (testing "a context change leaves only the new context's pending tail"
+    (let [{:keys [db fxs meta-a meta-b]} (run-two-eval-out "data:image/png;base64,AAAA" "data:image/png;a=b;c=")]
+      (is (= {:text "data:image/png;a=b;c=" :category "evalOut"}
+             (:output/pending-stdout db)))
+      (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
+      (is (= [[:fx/append-ns-info meta-a]
+              flushed-aaaa-stdout-fx
+              [:fx/append-ns-info meta-b]]
              fxs)))))
 
 (deftest pending-stdout-mime-parameters-test
