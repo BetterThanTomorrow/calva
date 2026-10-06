@@ -98,6 +98,27 @@
       (is (= {:text text :images []} (sut/extract-images text)))
       (is (< (- (js/Date.now) started) 1000)))))
 
+(deftest image-mime-parameters-test
+  (testing "a data URL with charset is detected with a bare mime and a working data URL"
+    (let [url "data:image/svg+xml;charset=utf-8;base64,PHN2Zz4="
+          {:keys [text images]} (sut/extract-images url)
+          image (first images)]
+      (is (= "<<image-1 svg+xml 5 B>>" text))
+      (is (= "image/svg+xml" (:image/mime image)))
+      (is (= "svg+xml" (:image/subtype image)))
+      (is (= url (:image/data-url image)))))
+
+  (testing "several MIME parameters before base64 are accepted"
+    (let [url "data:image/png;foo=bar;baz=qux;base64,iVBORw0KGgo="
+          {:keys [text images]} (sut/extract-images url)]
+      (is (= "<<image-1 png 8 B>>" text))
+      (is (= "image/png" (:image/mime (first images))))
+      (is (= url (:image/data-url (first images))))))
+
+  (testing "prose with a semicolon then a later ;base64, does not span a match"
+    (let [text "\"data:image/png\" foo; bar;base64,AAAA"]
+      (is (= {:text text :images []} (sut/extract-images text))))))
+
 (deftest pending-start-test
   (testing "text without a data URL has nothing pending"
     (is (nil? (sut/pending-start "hello\n"))))
@@ -117,6 +138,15 @@
     (is (= 5 (sut/pending-start "text data:image/pn")))
     (is (= 5 (sut/pending-start "text data:image/png;base64,")))
     (is (= 4 (sut/pending-start "end d")))))
+
+(deftest pending-start-mime-parameters-test
+  (testing "a trailing parameterised header is pending"
+    (is (= 5 (sut/pending-start "text data:image/svg+xml;charset=utf-8;base64,")))
+    (is (= 0 (sut/pending-start "data:image/svg+xml;char")))
+    (is (= 2 (sut/pending-start "x data:image/png;foo=bar"))))
+
+  (testing "a parameterised header with an open payload is pending from its start"
+    (is (= 0 (sut/pending-start "data:image/svg+xml;charset=utf-8;base64,AAAA")))))
 
 (deftest label-and-placeholder-test
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]

@@ -1,11 +1,12 @@
 (ns calva.repl.webview.images
   "Base64 image data URL detection for the output views. The pattern starts from Backseat Driver
    `reduce-images`, with the image subtype restricted to MIME token characters so a match cannot
-   run across prose to a later `;base64,`."
+   run across prose to a later `;base64,`. Optional `;name=value` MIME parameters (token characters
+   only) may sit between the type and `;base64`."
   (:require
    [clojure.string :as str]))
 
-(def image-data-url-pattern "data:(image/[A-Za-z0-9.+-]+);base64,([A-Za-z0-9+/=\\s]+)")
+(def image-data-url-pattern "data:(image/[A-Za-z0-9.+-]+)(?:;[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]+)*;base64,([A-Za-z0-9+/=\\s]+)")
 
 (def wrap-widths #{64 76})
 
@@ -53,27 +54,36 @@
                   (recur (+ i break-length) (+ i break-length) line-length)
                   i))))))
 
+(defn- match-payload-start
+  "Index in the searched text where the base64 payload of `match` begins."
+  [match]
+  (let [full (aget match 0)
+        payload (or (aget match 2) "")]
+    (+ (.-index match) (- (count full) (count payload)))))
+
 (defn image-data-urls
-  "Base64 image data URLs in `text`, as `{:start :end :mime :base64}`. The pattern finds where each
-   one starts; `base64-payload-end` decides where it ends, and the search resumes there."
+  "Base64 image data URLs in `text`, as `{:start :end :mime :base64 :payload-start}`. The pattern
+   finds where each one starts; `base64-payload-end` decides where it ends, and the search resumes
+   there."
   [text]
   (let [re (js/RegExp. image-data-url-pattern "g")]
     (loop [found []]
       (if-let [match (.exec re text)]
         (let [mime (aget match 1)
               start (.-index match)
-              payload-start (+ start (count (str "data:" mime ";base64,")))
+              payload-start (match-payload-start match)
               end (base64-payload-end text payload-start)]
           (set! (.-lastIndex re) end)
           (recur (cond-> found
                    (> end payload-start) (conj {:start start
                                                 :end end
                                                 :mime mime
+                                                :payload-start payload-start
                                                 :base64 (subs text payload-start end)}))))
         found))))
 
 (def ^:private partial-header-pattern
-  #"d(?:a(?:t(?:a(?::(?:i(?:m(?:a(?:g(?:e(?:/(?:[A-Za-z0-9.+-]+(?:;(?:b(?:a(?:s(?:e(?:6(?:4,?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?)?$")
+  #"d(?:a(?:t(?:a(?::(?:i(?:m(?:a(?:g(?:e(?:/(?:[A-Za-z0-9.+-]*(?:;(?:[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]+;)*(?:b(?:a(?:s(?:e(?:6(?:4,?)?)?)?)?)?|[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]*|[A-Za-z0-9.+-]*))?)?)?)?)?)?)?)?)?)?)?)?$")
 
 (defn- open-payload?
   "True when more base64 or padding appended to `text` would still belong to the payload at
@@ -86,8 +96,8 @@
    stream, or nil. That is the last data URL when its payload is still open at the end of `text`,
    or a trailing beginning of a data URL header."
   [text]
-  (let [{:keys [start mime]} (peek (image-data-urls text))]
-    (if (and start (open-payload? text (+ start (count (str "data:" mime ";base64,")))))
+  (let [{:keys [start payload-start]} (peek (image-data-urls text))]
+    (if (and start (open-payload? text payload-start))
       start
       (when-let [partial-header (re-find partial-header-pattern text)]
         (- (count text) (count partial-header))))))
@@ -125,12 +135,12 @@
   (if-not (str/includes? text "data:image/")
     {:text text :images []}
     (let [found (image-data-urls text)
-          images (map-indexed (fn [i {:keys [mime base64]}]
+          images (map-indexed (fn [i {:keys [mime base64 start payload-start]}]
                                 {:image/n (inc i)
                                  :image/mime mime
                                  :image/subtype (subs mime (count "image/"))
                                  :image/size (format-byte-size (decoded-byte-count base64))
-                                 :image/data-url (str "data:" mime ";base64,"
+                                 :image/data-url (str (subs text start payload-start)
                                                       (str/replace base64 #"\s" ""))})
                               found)
           ends (cons 0 (map :end found))

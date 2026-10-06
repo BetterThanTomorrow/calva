@@ -220,6 +220,24 @@
               [:fx/append-stdout "from-b\n" "evalOut"]]
              fxs)))))
 
+(deftest pending-stdout-mime-parameters-test
+  (testing "a parameterised header split across stdout chunks is held back and joined"
+    (let [url "data:image/svg+xml;charset=utf-8;base64,PHN2Zz4="
+          {:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout "look: data:image/svg+xml;char")
+                                         (stdout "set=utf-8;base64,PHN2Zz4=\n")])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "look: " "evalOut"]
+              [:fx/append-stdout-with-images {:text "<<image-1 svg+xml 5 B>>\n"
+                                              :images [{:image/n 1
+                                                        :image/mime "image/svg+xml"
+                                                        :image/subtype "svg+xml"
+                                                        :image/size "5 B"
+                                                        :image/data-url url}]
+                                              :raw (str url "\n")}
+               "evalOut"]]
+             fxs)))))
+
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
     (is (= 1.1 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.1}))))
