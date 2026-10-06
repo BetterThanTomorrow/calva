@@ -99,9 +99,9 @@
     (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
                                                              :css-href "css-href"
                                                              :csp-source "csp-source"})]
-      (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 3 (count (re-seq #"csp-source" result))))
+      (is (= 2 (count (re-seq #"js-source" result))))
+      (is (= 2 (count (re-seq #"css-href" result))))
+      (is (= 1 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
@@ -109,9 +109,9 @@
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
                                                               :csp-source "csp-source"})]
-      (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 3 (count (re-seq #"csp-source" result))))
+      (is (= 2 (count (re-seq #"js-source" result))))
+      (is (= 2 (count (re-seq #"css-href" result))))
+      (is (= 1 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
@@ -170,6 +170,15 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"})))))
+
+(deftest get-webview-html-csp-exact-urls-test
+  (testing "script-src and style-src use the exact js and css URLs, not csp-source"
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"})]
+      (is (re-find #"script-src js-source" result))
+      (is (re-find #"style-src[\s\S]*css-href;" result))
+      (is (re-find #"img-src data: https: http: csp-source" result)))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"

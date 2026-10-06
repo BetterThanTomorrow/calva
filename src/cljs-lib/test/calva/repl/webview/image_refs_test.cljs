@@ -15,6 +15,10 @@
     (is (= :local (:image/kind (sut/image-ref "/tmp/cat.webp"))))
     (is (= :local (:image/kind (sut/image-ref "images/cat.gif"))))
     (is (nil? (sut/image-ref "images/notes.txt"))))
+  (testing "network file URIs and UNC paths are not image refs"
+    (is (nil? (sut/image-ref "file://server/share/x.png")))
+    (is (false? (sut/file-image-uri? "file://server/share/x.png")))
+    (is (true? (sut/file-image-uri? "file:///tmp/x.png"))))
   (testing "a mention in a longer token does not count"
     (is (nil? (sut/image-ref "look at cat.png now")))))
 

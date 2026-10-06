@@ -265,6 +265,36 @@
                              (.removeChild grandparent parent)))))
                      #js {:once true}))
 
+(defn- raw-display?
+  []
+  (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
+
+(defonce ^:private !pending-local-images (atom []))
+
+(defn- resolve-local-image!
+  [^js img ^js thumbnail src]
+  (let [id (host-request-id)]
+    (remember-host-request!
+     id
+     (fn [{:keys [webview-uri]}]
+       (if webview-uri
+         (set! (.-src img) webview-uri)
+         (when-let [parent (.-parentNode thumbnail)]
+           (.removeChild parent thumbnail)))))
+    (post-to-host! {:command "resolve-local-image" :id id :src src})))
+
+(defn- queue-pending-local!
+  [^js img ^js thumbnail src]
+  (swap! !pending-local-images conj {:img img :thumbnail thumbnail :src src}))
+
+(defn- flush-pending-local!
+  []
+  (let [pending @!pending-local-images]
+    (reset! !pending-local-images [])
+    (doseq [{:keys [img thumbnail src]} pending]
+      (when (and img (str/blank? (str (.-src img))))
+        (resolve-local-image! img thumbnail src)))))
+
 (defn create-image-element
   "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
    Local and remote images stay hidden until they load; a failure removes the thumbnail."
@@ -288,16 +318,11 @@
     (.. thumbnail (appendChild button))
     (cond
       data-url (set! (.-src img) data-url)
-      (= :local kind) (let [id (host-request-id)]
-                        (hide-until-load! thumbnail img)
-                        (remember-host-request!
-                         id
-                         (fn [{:keys [webview-uri]}]
-                           (if webview-uri
-                             (set! (.-src img) webview-uri)
-                             (when-let [parent (.-parentNode thumbnail)]
-                               (.removeChild parent thumbnail)))))
-                        (post-to-host! {:command "resolve-local-image" :id id :src src}))
+      (= :local kind) (do (hide-until-load! thumbnail img)
+                          (set! (.-calvaLocalSrc img) src)
+                          (if (raw-display?)
+                            (queue-pending-local! img thumbnail src)
+                            (resolve-local-image! img thumbnail src)))
       (= :remote kind) (do (set! (.-calvaRemoteSrc img) src)
                            (hide-until-load! thumbnail img)
                            (when (includes-remote-urls?)
@@ -306,10 +331,6 @@
     thumbnail))
 
 (declare create-image-form-element)
-
-(defn- raw-display?
-  []
-  (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
 
 (defn- ensure-raw-form!
   "Builds the raw form on `entry` once, when a builder is still attached."
@@ -496,10 +517,16 @@
                                (str/blank? (str (.-src img))))
                       (set! (.-src img) (.-calvaRemoteSrc img)))))))))
 
+(defn- apply-local-src!
+  [image-display]
+  (when-not (= "raw" image-display)
+    (flush-pending-local!)))
+
 (defn set-image-display!
   [image-display]
   (some-> js/document .-body (.setAttribute "data-image-display" image-display))
   (apply-remote-src! image-display)
+  (apply-local-src! image-display)
   (when (= "raw" image-display)
     (let [entries @!lazy-raw-entries]
       (reset! !lazy-raw-entries [])

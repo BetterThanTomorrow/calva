@@ -2,6 +2,7 @@
   "Extension-host helpers for output-view images: webview roots, local file URIs, and fetching
    remote bytes for Copy image."
   (:require
+   [calva.repl.webview.image-refs :as image-refs]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -27,27 +28,38 @@
 (defn- absolute-path?
   [s]
   (boolean (or (str/starts-with? s "/")
-               (re-matches #"[A-Za-z]:[\\/].*" s)
-               (str/starts-with? s "\\\\"))))
+               (re-matches #"[A-Za-z]:[\\/].*" s))))
+
+(defn- network-path?
+  "UNC (`\\\\server\\...`) or a double-slash host path (`//server/...`)."
+  [s]
+  (or (str/starts-with? s "\\\\")
+      (boolean (re-matches #"//[^/].*" s))))
+
+(defn- blank-authority?
+  [^js uri]
+  (str/blank? (str (.-authority uri))))
 
 (defn file-uri-for-ref
-  "A vscode file URI for a `file://` URI, an absolute path, or a path relative to the Calva project
-   root. Nil when there is no URI API or project root for a relative path."
+  "A vscode file URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
+   root. Nil for network paths, non-empty authority, missing URI API, or missing project root."
   [^js vscode src]
-  (when vscode
-    (cond
-      (str/starts-with? src "file:")
-      (.. ^js vscode -Uri (parse src))
+  (when (and vscode (not (network-path? src)))
+    (let [uri (cond
+                (str/starts-with? src "file:")
+                (.. ^js vscode -Uri (parse src))
 
-      (absolute-path? src)
-      (.. ^js vscode -Uri (file src))
+                (absolute-path? src)
+                (.. ^js vscode -Uri (file src))
 
-      :else
-      (when-let [project-root (util/get-project-root-uri)]
-        (reduce (fn [uri part]
-                  (.. ^js vscode -Uri (joinPath uri part)))
-                project-root
-                (remove str/blank? (str/split src #"[\\/]+")))))))
+                :else
+                (when-let [project-root (util/get-project-root-uri)]
+                  (reduce (fn [u part]
+                            (.. ^js vscode -Uri (joinPath u part)))
+                          project-root
+                          (remove str/blank? (str/split src #"[\\/]+")))))]
+      (when (and uri (blank-authority? uri))
+        uri))))
 
 (defn as-webview-image-uri
   "The webview URI for `file-uri`, or nil."
@@ -64,30 +76,112 @@
         (.catch (fn [_] nil)))
     (js/Promise.resolve nil)))
 
+(def max-image-bytes (* 20 1024 1024))
+
+(def fetch-timeout-ms 15000)
+
+(defonce !image-display-fn (atom nil))
+
+(defn set-image-display-fn!
+  "Registers how the host reads the current image display mode (avoids a core require cycle)."
+  [f]
+  (reset! !image-display-fn f))
+
+(defn- current-image-display
+  []
+  (when-let [f @!image-display-fn]
+    (f)))
+
+(defn image-content-type
+  "Bare `image/*` MIME from a Content-Type header, or nil."
+  [content-type]
+  (when (string? content-type)
+    (let [bare (-> content-type (str/split #";") first str/trim str/lower-case)]
+      (when (str/starts-with? bare "image/")
+        bare))))
+
+(defn- content-length-ok?
+  [^js response]
+  (let [raw (.get (.-headers response) "content-length")]
+    (if raw
+      (let [n (js/parseInt raw 10)]
+        (and (not (js/isNaN n))
+             (<= n max-image-bytes)))
+      true)))
+
+(defn- read-body-capped!
+  "Promise of a Uint8Array up to `max-image-bytes`, or nil when empty or too large."
+  [^js response]
+  (-> (.arrayBuffer response)
+      (.then (fn [buffer]
+               (let [bytes (js/Uint8Array. buffer)
+                     n (.-length bytes)]
+                 (cond
+                   (zero? n) nil
+                   (> n max-image-bytes) nil
+                   :else bytes))))
+      (.catch (fn [_] nil))))
+
 (defn bytes->base64
   [bytes]
   (.toString (js/Buffer.from bytes) "base64"))
 
 (defn fetch-image-bytes
-  "Promise of `{:mime :base64}` for `url`, or nil when the fetch fails or the body is empty."
+  "Promise of `{:mime :base64}` for `url`, or nil on redirect, bad type, size, timeout, or failure."
   [url]
-  (-> (js/fetch url)
-      (.then (fn [^js response]
-               (if (.-ok response)
-                 (-> (.arrayBuffer response)
-                     (.then (fn [buffer]
-                              {:response response
-                               :buffer buffer})))
-                 nil)))
-      (.then (fn [result]
-               (when result
-                 (let [{:keys [^js response buffer]} result
-                       bytes (js/Uint8Array. buffer)]
-                   (when (pos? (.-length bytes))
-                     {:mime (or (.get (.-headers response) "content-type")
-                                "application/octet-stream")
-                      :base64 (bytes->base64 bytes)})))))
-      (.catch (fn [_] nil))))
+  (let [controller (js/AbortController.)
+        timer (js/setTimeout #(.abort controller) fetch-timeout-ms)]
+    (-> (js/fetch url #js {:signal (.-signal controller)
+                           :redirect "manual"})
+        (.then (fn [^js response]
+                 (js/clearTimeout timer)
+                 (let [status (.-status response)]
+                   (cond
+                     (or (not (.-ok response))
+                         (<= 300 status 399))
+                     nil
+
+                     (not (content-length-ok? response))
+                     nil
+
+                     :else
+                     (when-let [mime (image-content-type (.get (.-headers response) "content-type"))]
+                       (-> (read-body-capped! response)
+                           (.then (fn [bytes]
+                                    (when bytes
+                                      {:mime mime
+                                       :base64 (bytes->base64 bytes)})))))))))
+        (.catch (fn [_]
+                  (js/clearTimeout timer)
+                  nil)))))
+
+(defn- allow-remote-copy?
+  []
+  (= "images-including-remote-urls" (current-image-display)))
+
+(defn- post-image-bytes!
+  [post! result]
+  (if result
+    (post! (merge {:command/name "image-bytes"} result))
+    (post! {:command/name "image-bytes-missing"})))
+
+(defn- resolve-local-image-message!
+  [^js webview-host post! ^js vscode src]
+  (let [file-uri (file-uri-for-ref vscode src)]
+    (-> (stat-file! vscode file-uri)
+        (.then (fn [uri]
+                 (if uri
+                   (post! {:command/name "local-image-resolved"
+                           :webview-uri (as-webview-image-uri (.-webview webview-host) uri)})
+                   (post! {:command/name "local-image-missing"})))))))
+
+(defn- fetch-image-for-copy-message!
+  [post! url]
+  (if (and (image-refs/http-image-url? url)
+           (allow-remote-copy?))
+    (-> (fetch-image-bytes url)
+        (.then #(post-image-bytes! post! %)))
+    (post! {:command/name "image-bytes-missing"})))
 
 (defn handle-webview-message!
   "Answers resolve-local-image and fetch-image-for-copy from a webview."
@@ -101,21 +195,10 @@
                       (postMessage (pr-str (merge {:id id} payload))))))]
     (case command
       "resolve-local-image"
-      (let [src (.-src message)
-            file-uri (file-uri-for-ref vscode src)]
-        (-> (stat-file! vscode file-uri)
-            (.then (fn [uri]
-                     (if uri
-                       (post! {:command/name "local-image-resolved"
-                               :webview-uri (as-webview-image-uri (.-webview webview-host) uri)})
-                       (post! {:command/name "local-image-missing"}))))))
+      (resolve-local-image-message! webview-host post! vscode (.-src message))
 
       "fetch-image-for-copy"
-      (-> (fetch-image-bytes (.-url message))
-          (.then (fn [result]
-                   (if result
-                     (post! (merge {:command/name "image-bytes"} result))
-                     (post! {:command/name "image-bytes-missing"})))))
+      (fetch-image-for-copy-message! post! (.-url message))
 
       nil)))
 

@@ -66,3 +66,26 @@
               (is (= 4 @highlights))))))
       (finally
         (some-> js/document .-body (.setAttribute "data-image-display" "images"))))))
+
+(deftest raw-mode-defers-local-resolve-test
+  (let [posts (atom [])]
+    (try
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))
+                    ui/highlight-code! (fn [_])]
+        (ui/set-image-display! "raw")
+        (let [host (js/document.createElement "div")
+              local {:image/kind :local
+                     :image/src "/tmp/cat.png"
+                     :image/source "/tmp/cat.png"
+                     :image/mime "image/png"
+                     :image/subtype "png"}]
+          (ui/append-result-with-images host {:text "/tmp/cat.png\n"
+                                              :raw "/tmp/cat.png\n"
+                                              :images [local]})
+          (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
+              "raw mode does not resolve local images")
+          (ui/set-image-display! "images")
+          (is (seq (filter #(= "resolve-local-image" (:command %)) @posts))
+              "leaving raw resolves pending local images")))
+      (finally
+        (some-> js/document .-body (.setAttribute "data-image-display" "images"))))))
