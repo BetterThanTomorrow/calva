@@ -6,8 +6,12 @@
    [clojure.string :as str]))
 
 (defn- fake-uri
-  [authority]
-  #js {:authority authority})
+  ([authority]
+   (fake-uri authority nil))
+  ([authority fs-path]
+   #js {:authority authority
+        :fsPath fs-path
+        :toString (fn [] (str "uri:" (or fs-path authority)))}))
 
 (defn- fake-vscode
   ([]
@@ -16,12 +20,12 @@
    (let [uri-api #js {:parse (fn [src]
                                (when (str/starts-with? src "file:////")
                                  (throw (js/Error. "path cannot begin with two slash characters")))
-                               (fake-uri authority-for-parse))
+                               (fake-uri authority-for-parse src))
                       :file (fn [src]
                               (if (or (str/starts-with? src "//")
                                       (str/starts-with? src "\\\\"))
-                                (fake-uri "server")
-                                (fake-uri "")))
+                                (fake-uri "server" src)
+                                (fake-uri "" src)))
                       :joinPath (fn [uri & _parts] uri)}]
      #js {:Uri uri-api})))
 
@@ -106,18 +110,34 @@
 
 (defn- mock-response
   [{:keys [ok status headers body-bytes chunks never-ends signal]}]
-  #js {:ok ok
-       :status status
-       :headers (headers-map headers)
-       :body (mock-body {:chunks (or chunks
-                                     (when body-bytes [body-bytes])
-                                     [])
+  (let [chunk-bytes (or chunks
+                        (when body-bytes [body-bytes])
+                        [])
+        body (mock-body {:chunks chunk-bytes
                          :never-ends never-ends
-                         :signal signal})})
+                         :signal signal})
+        array-buffer (fn []
+                       (if never-ends
+                         (js/Promise.
+                          (fn [_resolve reject]
+                            (let [fail! #(reject (js/Error. "aborted"))]
+                              (if (and signal (.-aborted signal))
+                                (fail!)
+                                (when signal
+                                  (.addEventListener signal "abort" fail! #js {:once true}))))))
+                         (let [flat (into [] (mapcat identity chunk-bytes))
+                               u8 (js/Uint8Array. (clj->js flat))]
+                           (js/Promise.resolve (.-buffer u8)))))]
+    #js {:ok ok
+         :status status
+         :headers (headers-map headers)
+         :body body
+         :arrayBuffer array-buffer}))
 
 (deftest fetch-image-bytes-refusals-test
   (async done
-         (let [calls (atom [])]
+         (let [calls (atom [])
+               prev-display @sut/!image-display-fn]
            (sut/set-image-display-fn! (constantly "images-including-remote-urls"))
            (letfn [(with-fetch [response f]
                      (let [orig js/fetch]
@@ -125,12 +145,7 @@
                                        (swap! calls conj {:url url :opts opts})
                                        (js/Promise.resolve response)))
                        (-> (f)
-                           (.then (fn [result]
-                                    (set! js/fetch orig)
-                                    result))
-                           (.catch (fn [e]
-                                     (set! js/fetch orig)
-                                     (throw e))))))]
+                           (.finally (fn [] (set! js/fetch orig))))))]
              (-> (js/Promise.resolve nil)
                  (.then (fn [_]
                           (with-fetch (mock-response {:ok false :status 302
@@ -159,17 +174,20 @@
                  (.then (fn [result]
                           (is (= "image/png" (:mime result)))
                           (is (string? (:base64 result)))
-                          (is (= "manual" (some-> @calls last :opts .-redirect)))
-                          (done)))
+                          (is (= "manual" (some-> @calls last :opts .-redirect)))))
                  (.catch (fn [e]
-                           (is false (str e))
-                           (done))))))))
+                           (is false (str e))))
+                 (.finally (fn []
+                             (sut/set-image-display-fn! prev-display)
+                             (done))))))))
 
 (deftest fetch-image-bytes-stream-cap-test
   (async done
          (reset! sut/!max-image-bytes 8)
-         (let [orig js/fetch]
+         (let [orig js/fetch
+               !signal (atom nil)]
            (set! js/fetch (fn [_url opts]
+                            (reset! !signal (.-signal opts))
                             (js/Promise.resolve
                              (mock-response {:ok true
                                              :status 200
@@ -177,22 +195,25 @@
                                              :chunks [[1 2 3 4] [5 6 7 8] [9]]
                                              :signal (.-signal opts)}))))
            (-> (sut/fetch-image-bytes "https://example.com/big.png")
+               (.finally (fn []
+                           (set! js/fetch orig)
+                           (reset! sut/!max-image-bytes nil)))
                (.then (fn [result]
-                        (set! js/fetch orig)
-                        (reset! sut/!max-image-bytes nil)
                         (is (nil? result) "body past cap with no Content-Length is refused")
+                        (is (true? (some-> ^js @!signal .-aborted))
+                            "fetch signal was aborted")
                         (done)))
                (.catch (fn [e]
-                         (set! js/fetch orig)
-                         (reset! sut/!max-image-bytes nil)
                          (is false (str e))
                          (done)))))))
 
 (deftest fetch-image-bytes-timeout-test
   (async done
          (reset! sut/!fetch-timeout-ms 40)
-         (let [orig js/fetch]
+         (let [orig js/fetch
+               !signal (atom nil)]
            (set! js/fetch (fn [_url opts]
+                            (reset! !signal (.-signal opts))
                             (js/Promise.resolve
                              (mock-response {:ok true
                                              :status 200
@@ -200,40 +221,46 @@
                                              :never-ends true
                                              :signal (.-signal opts)}))))
            (-> (sut/fetch-image-bytes "https://example.com/slow.png")
+               (.finally (fn []
+                           (set! js/fetch orig)
+                           (reset! sut/!fetch-timeout-ms nil)))
                (.then (fn [result]
-                        (set! js/fetch orig)
-                        (reset! sut/!fetch-timeout-ms nil)
                         (is (nil? result) "body that never finishes times out")
+                        (is (true? (some-> ^js @!signal .-aborted))
+                            "fetch signal was aborted")
                         (done)))
                (.catch (fn [e]
-                         (set! js/fetch orig)
-                         (reset! sut/!fetch-timeout-ms nil)
                          (is false (str e))
                          (done)))))))
 
 (deftest fetch-image-for-copy-mode-and-url-test
   (let [posted (atom nil)
-        host #js {:webview #js {:postMessage (fn [s] (reset! posted s))}}]
-    (testing "refuses when display mode is not images-including-remote-urls"
-      (sut/set-image-display-fn! (constantly "images"))
-      (reset! posted nil)
-      (sut/handle-webview-message! host #js {:command "fetch-image-for-copy"
-                                             :id "1"
-                                             :url "https://example.com/a.png"})
-      (is (str/includes? (str @posted) "image-bytes-missing")))
-    (testing "refuses a non-http image URL"
-      (sut/set-image-display-fn! (constantly "images-including-remote-urls"))
-      (reset! posted nil)
-      (sut/handle-webview-message! host #js {:command "fetch-image-for-copy"
-                                             :id "2"
-                                             :url "file:///tmp/a.png"})
-      (is (str/includes? (str @posted) "image-bytes-missing")))))
+        host #js {:webview #js {:postMessage (fn [s] (reset! posted s))}}
+        prev-display @sut/!image-display-fn]
+    (try
+      (testing "refuses when display mode is not images-including-remote-urls"
+        (sut/set-image-display-fn! (constantly "images"))
+        (reset! posted nil)
+        (sut/handle-webview-message! host #js {:command "fetch-image-for-copy"
+                                               :id "1"
+                                               :url "https://example.com/a.png"})
+        (is (str/includes? (str @posted) "image-bytes-missing")))
+      (testing "refuses a non-http image URL"
+        (sut/set-image-display-fn! (constantly "images-including-remote-urls"))
+        (reset! posted nil)
+        (sut/handle-webview-message! host #js {:command "fetch-image-for-copy"
+                                               :id "2"
+                                               :url "file:///tmp/a.png"})
+        (is (str/includes? (str @posted) "image-bytes-missing")))
+      (finally
+        (sut/set-image-display-fn! prev-display)))))
 
 (deftest fetch-image-for-copy-empty-response-test
   (async done
          (let [posted (atom nil)
                host #js {:webview #js {:postMessage (fn [s] (reset! posted s))}}
-               orig js/fetch]
+               orig js/fetch
+               prev-display @sut/!image-display-fn]
            (sut/set-image-display-fn! (constantly "images-including-remote-urls"))
            (set! js/fetch (fn [_url _opts]
                             (js/Promise.resolve
@@ -247,6 +274,7 @@
            (js/setTimeout
             (fn []
               (set! js/fetch orig)
+              (sut/set-image-display-fn! prev-display)
               (is (str/includes? (str @posted) "image-bytes-missing"))
               (done))
             20))))
@@ -301,3 +329,52 @@
                     "file://// fails closed and the handler still replies")
                 (done))
               20)))))
+
+(deftest resolve-local-image-rejects-non-image-paths-test
+  (async done
+         (let [posted (atom nil)
+               stat-calls (atom 0)
+               host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
+                                       :postMessage (fn [s] (reset! posted s))}}
+               vscode (let [base (fake-vscode)]
+                        (set! (.-workspace ^js base)
+                              #js {:fs #js {:stat (fn [_uri]
+                                                    (swap! stat-calls inc)
+                                                    (js/Promise.resolve #js {}))}})
+                        base)]
+           (with-redefs [util/vscode (atom vscode)]
+             (reset! posted nil)
+             (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                    :id "passwd"
+                                                    :src "/etc/passwd"})
+             (js/setTimeout
+              (fn []
+                (is (str/includes? (str @posted) "local-image-missing")
+                    "non-image path is refused")
+                (is (zero? @stat-calls)
+                    "stat is never called for a non-image path")
+                (done))
+              20)))))
+
+(deftest file-root-uris-test
+  (testing "POSIX root"
+    (reset! sut/!platform-override "darwin")
+    (try
+      (let [roots (sut/file-root-uris (fake-vscode))]
+        (is (= 1 (count roots)))
+        (is (= "/" (.-fsPath ^js (first roots)))))
+      (finally
+        (reset! sut/!platform-override nil))))
+  (testing "win32 roots for every existing drive"
+    (let [seen (atom [])]
+      (reset! sut/!platform-override "win32")
+      (try
+        (with-redefs [sut/drive-exists? (fn [root]
+                                          (swap! seen conj root)
+                                          (contains? #{"C:\\" "D:\\"} root))]
+          (let [roots (sut/file-root-uris (fake-vscode))
+                paths (mapv #(.-fsPath ^js %) roots)]
+            (is (= ["C:\\" "D:\\"] paths))
+            (is (= 26 (count @seen)) "every drive letter is checked")))
+        (finally
+          (reset! sut/!platform-override nil))))))
