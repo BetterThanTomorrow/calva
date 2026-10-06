@@ -367,7 +367,7 @@
             "enumDescriptions": [
               "Show image data URLs, local image files, and remote image URLs as thumbnails.",
               "Show image data URLs and local image files as thumbnails. Remote URLs stay as text.",
-              "Show the raw image data text, as printed."
+              "Show the raw text, as printed, with no thumbnails."
             ],
             "default": "images-including-remote-urls",
             "markdownDescription": "How the Output views show images in REPL output: data URLs, local files, and remote URLs. The output window, output file and terminal always show the raw text. **Calva: Toggle Output View Image Display** switches it for the session."
@@ -1870,8 +1870,8 @@
         "icon": "$(file-media)"
       },
       {
-        "command": "calva.toggleOutputViewImageDisplayFromIncludingRemote",
-        "title": "Show local images only",
+        "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
+        "title": "Show images without remote URLs",
         "category": "Calva",
         "icon": "$(globe)"
       },
@@ -3684,7 +3684,7 @@
           "when": "true"
         },
         {
-          "command": "calva.toggleOutputViewImageDisplayFromIncludingRemote",
+          "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
           "when": "false"
         },
         {
@@ -3870,7 +3870,7 @@
           "group": "navigation@3"
         },
         {
-          "command": "calva.toggleOutputViewImageDisplayFromIncludingRemote",
+          "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
           "when": "view == calva.output-sidebar && calva:outputViewImageDisplay == images-including-remote-urls",
           "group": "navigation@4"
         },

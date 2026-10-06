@@ -138,3 +138,28 @@
       (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))
     (testing "the thumbnail img includes its border in max-width"
       (is (= "border-box" (get image-rule "box-sizing"))))))
+
+(deftest remote-image-src-gated-by-display-mode-test
+  (let [body (.-body js/document)
+        remote {:image/n 1
+                :image/kind :remote
+                :image/src "https://example.com/a.png"
+                :image/source "https://example.com/a.png"
+                :image/subtype "png"
+                :image/mime "image/png"}]
+    (.setAttribute body "data-image-display" "images")
+    (let [^js thumb (ui/create-image-element remote)
+          ^js img (->> (.-children thumb)
+                       (filter #(= "IMG" (.-tagName ^js %)))
+                       first)]
+      (testing "images mode leaves remote img src unset"
+        (is (str/blank? (str (.-src img))))
+        (is (= "https://example.com/a.png" (.-calvaRemoteSrc img))))
+      (set! (.-querySelectorAll js/document)
+            (fn [sel]
+              (if (= sel "img[data-image-kind=\"remote\"]")
+                #js {:forEach (fn [f] (f img))}
+                #js {:forEach (fn [_])})))
+      (ui/set-image-display! "images-including-remote-urls")
+      (testing "switching to images-including-remote-urls sets the src"
+        (is (= "https://example.com/a.png" (.-src img)))))))

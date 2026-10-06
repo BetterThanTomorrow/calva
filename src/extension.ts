@@ -245,7 +245,7 @@ async function activate(context: vscode.ExtensionContext) {
     clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
     toggleReplOutputWordWrap: cljsLib.toggleReplOutputWordWrap,
     toggleOutputViewImageDisplay: cljsLib.toggleOutputViewImageDisplay,
-    toggleOutputViewImageDisplayFromIncludingRemote: cljsLib.toggleOutputViewImageDisplay,
+    toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls: cljsLib.toggleOutputViewImageDisplay,
     toggleOutputViewImageDisplayFromImages: cljsLib.toggleOutputViewImageDisplay,
     toggleOutputViewImageDisplayFromRaw: cljsLib.toggleOutputViewImageDisplay,
     increaseOutputViewFontSize: cljsLib.increaseOutputViewFontSize,

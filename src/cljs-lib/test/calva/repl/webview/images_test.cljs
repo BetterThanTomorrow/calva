@@ -214,4 +214,42 @@
 
   (testing "U+2028 and U+2029 stay in the joined segment text"
     (let [text (str "abc\u2028def\u2029ghi\n" (sut/placeholder png-image-1) "\n")]
-      (is (= text (apply str (map :text (sut/segments-with-images text [png-image-1]))))))))
+      (is (= text (apply str (map :text (sut/segments-with-images text [png-image-1])))))))
+
+  (testing "the same URL on two lines places one thumbnail per line by line-index"
+    (let [img0 {:image/n 1 :image/kind :local :image/src "/tmp/a.png"
+                :image/source "/tmp/a.png" :image/line-index 0
+                :image/subtype "png" :image/mime "image/png"}
+          img1 {:image/n 2 :image/kind :local :image/src "/tmp/a.png"
+                :image/source "/tmp/a.png" :image/line-index 1
+                :image/subtype "png" :image/mime "image/png"}
+          text "/tmp/a.png\n/tmp/a.png\n"]
+      (is (= [{:text "/tmp/a.png\n" :images [img0]}
+              {:text "/tmp/a.png\n" :images [img1]}]
+             (sut/segments-with-images text [img0 img1])))))
+
+  (testing "a mention line after a real path line does not steal the thumbnail"
+    (let [img {:image/n 1 :image/kind :local :image/src "a.png"
+               :image/source "a.png" :image/line-index 0
+               :image/subtype "png" :image/mime "image/png"}
+          text "a.png\nsaved data.png and more\n"]
+      (is (= [{:text "a.png\n" :images [img]}
+              {:text "saved data.png and more\n" :images []}]
+             (sut/segments-with-images text [img])))))
+
+  (testing "a mention line before the real path places the thumbnail once, with that line"
+    (let [img {:image/n 1 :image/kind :local :image/src "/tmp/a.png"
+               :image/source "/tmp/a.png" :image/line-index 1
+               :image/subtype "png" :image/mime "image/png"}
+          text "look: /tmp/a.png\n/tmp/a.png\n"]
+      (is (= [{:text "look: /tmp/a.png\n/tmp/a.png\n" :images [img]}]
+             (sut/segments-with-images text [img])))))
+
+  (testing "a Windows printed-string path sits under its own line"
+    (let [printed (pr-str "C:\\Users\\pez\\a.png")
+          img {:image/n 1 :image/kind :local :image/src "C:\\Users\\pez\\a.png"
+               :image/source "C:\\Users\\pez\\a.png" :image/line-index 0
+               :image/subtype "png" :image/mime "image/png"}
+          text (str printed "\n")]
+      (is (= [{:text text :images [img]}]
+             (sut/segments-with-images text [img]))))))
