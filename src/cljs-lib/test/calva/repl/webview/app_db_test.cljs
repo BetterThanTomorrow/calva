@@ -192,6 +192,34 @@
                                      [:msg/clear-output-view]])]
       (is (nil? (:output/pending-stdout db))))))
 
+(deftest pending-stdout-context-test
+  (testing "a context change flushes pending stdout and does not join the new context"
+    (let [meta-a {:meta/who "a" :meta/ns "a.ns" :meta/repl-session-key "clj"}
+          meta-b {:meta/who "b" :meta/ns "b.ns" :meta/repl-session-key "clj"}
+          {:keys [db fxs]} (run-actions sut/initial-db
+                                        [[:msg/output {:command/name "show-stdout"
+                                                       :output "data:image/png;base64,AAAA"
+                                                       :output-category "evalOut"
+                                                       :meta meta-a}]
+                                         [:msg/output {:command/name "show-stdout"
+                                                       :output "from-b\n"
+                                                       :output-category "evalOut"
+                                                       :meta meta-b}]])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
+      (is (= [[:fx/append-ns-info meta-a]
+              [:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
+                                              :images [{:image/n 1
+                                                        :image/mime "image/png"
+                                                        :image/subtype "png"
+                                                        :image/size "3 B"
+                                                        :image/data-url "data:image/png;base64,AAAA"}]
+                                              :raw "data:image/png;base64,AAAA"}
+               "evalOut"]
+              [:fx/append-ns-info meta-b]
+              [:fx/append-stdout "from-b\n" "evalOut"]]
+             fxs)))))
+
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
     (is (= 1.1 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.1}))))
