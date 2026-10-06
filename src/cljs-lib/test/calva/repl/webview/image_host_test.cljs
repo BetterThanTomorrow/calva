@@ -65,14 +65,50 @@
   [m]
   #js {:get (fn [k] (get m (str/lower-case k)))})
 
+(defn- mock-body
+  "A ReadableStream-like body from byte vectors (`chunks`), or one that never finishes when
+   `:never-ends` is true (rejects when `signal` aborts)."
+  [{:keys [chunks never-ends signal]}]
+  (let [queue (atom (mapv #(js/Uint8Array. (clj->js %)) (or chunks [])))
+        cancelled? (atom false)
+        reader #js {:read (fn []
+                            (cond
+                              @cancelled?
+                              (js/Promise.resolve #js {:done true :value nil})
+
+                              never-ends
+                              (js/Promise.
+                               (fn [_resolve reject]
+                                 (let [fail! #(reject (js/Error. "aborted"))]
+                                   (if (and signal (.-aborted signal))
+                                     (fail!)
+                                     (when signal
+                                       (.addEventListener signal "abort" fail! #js {:once true}))))))
+
+                              :else
+                              (js/Promise.resolve
+                               (if-let [chunk (first @queue)]
+                                 (do (swap! queue rest)
+                                     #js {:done false :value chunk})
+                                 #js {:done true :value nil}))))
+                    :cancel (fn []
+                              (reset! cancelled? true)
+                              (js/Promise.resolve nil))}]
+    #js {:getReader (fn [] reader)
+         :cancel (fn []
+                   (reset! cancelled? true)
+                   (js/Promise.resolve nil))}))
+
 (defn- mock-response
-  [{:keys [ok status headers body-bytes]}]
-  (let [arr (js/Uint8Array. (clj->js (or body-bytes [])))
-        buffer (.-buffer arr)]
-    #js {:ok ok
-         :status status
-         :headers (headers-map headers)
-         :arrayBuffer (fn [] (js/Promise.resolve buffer))}))
+  [{:keys [ok status headers body-bytes chunks never-ends signal]}]
+  #js {:ok ok
+       :status status
+       :headers (headers-map headers)
+       :body (mock-body {:chunks (or chunks
+                                     (when body-bytes [body-bytes])
+                                     [])
+                         :never-ends never-ends
+                         :signal signal})})
 
 (deftest fetch-image-bytes-refusals-test
   (async done
@@ -123,6 +159,52 @@
                  (.catch (fn [e]
                            (is false (str e))
                            (done))))))))
+
+(deftest fetch-image-bytes-stream-cap-test
+  (async done
+         (reset! sut/!max-image-bytes 8)
+         (let [orig js/fetch]
+           (set! js/fetch (fn [_url opts]
+                            (js/Promise.resolve
+                             (mock-response {:ok true
+                                             :status 200
+                                             :headers {"content-type" "image/png"}
+                                             :chunks [[1 2 3 4] [5 6 7 8] [9]]
+                                             :signal (.-signal opts)}))))
+           (-> (sut/fetch-image-bytes "https://example.com/big.png")
+               (.then (fn [result]
+                        (set! js/fetch orig)
+                        (reset! sut/!max-image-bytes nil)
+                        (is (nil? result) "body past cap with no Content-Length is refused")
+                        (done)))
+               (.catch (fn [e]
+                         (set! js/fetch orig)
+                         (reset! sut/!max-image-bytes nil)
+                         (is false (str e))
+                         (done)))))))
+
+(deftest fetch-image-bytes-timeout-test
+  (async done
+         (reset! sut/!fetch-timeout-ms 40)
+         (let [orig js/fetch]
+           (set! js/fetch (fn [_url opts]
+                            (js/Promise.resolve
+                             (mock-response {:ok true
+                                             :status 200
+                                             :headers {"content-type" "image/png"}
+                                             :never-ends true
+                                             :signal (.-signal opts)}))))
+           (-> (sut/fetch-image-bytes "https://example.com/slow.png")
+               (.then (fn [result]
+                        (set! js/fetch orig)
+                        (reset! sut/!fetch-timeout-ms nil)
+                        (is (nil? result) "body that never finishes times out")
+                        (done)))
+               (.catch (fn [e]
+                         (set! js/fetch orig)
+                         (reset! sut/!fetch-timeout-ms nil)
+                         (is false (str e))
+                         (done)))))))
 
 (deftest fetch-image-for-copy-mode-and-url-test
   (let [posted (atom nil)
