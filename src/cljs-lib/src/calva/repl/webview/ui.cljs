@@ -149,8 +149,14 @@
 
 (defn show-copied!
   [^js button]
-  (set! (.. button -dataset -copied) "true")
-  (js/setTimeout #(set! (.. button -dataset -copied) "false") 1500))
+  (let [prior (.getAttribute button "aria-label")]
+    (set! (.. button -dataset -copied) "true")
+    (.setAttribute button "aria-label" "Copied")
+    (js/setTimeout (fn []
+                     (set! (.. button -dataset -copied) "false")
+                     (when prior
+                       (.setAttribute button "aria-label" prior)))
+                   1500)))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
