@@ -94,9 +94,8 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- handle-output
-  "Pending stdout that this message does not continue is appended first. A REPL
-   context change is a stream boundary: pending stdout is flushed as it is, then
-   this message is handled with no pending."
+  "Pending stdout that this message does not continue is appended first. When the REPL context
+   changes, pending stdout is flushed as it is, and this message is handled with no pending stdout."
   [db {:keys [command/name output meta output-category]}]
   (let [context-key (meta-context-key meta)
         context-changed? (and context-key (not= context-key (:output/last-context db)))
