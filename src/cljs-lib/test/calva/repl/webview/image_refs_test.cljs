@@ -33,7 +33,9 @@
          (sut/unwrap-printed-string "\"https://example.com/a.png\"")))
   (is (= "C:\\temp\\new.png"
          (sut/unwrap-printed-string "\"C:\\\\temp\\\\new.png\"")))
-  (is (nil? (sut/unwrap-printed-string "https://example.com/a.png"))))
+  (is (nil? (sut/unwrap-printed-string "https://example.com/a.png")))
+  (is (nil? (sut/unwrap-printed-string "\"a.png\" \"b.png\""))
+      "a line with two printed strings is not one string form"))
 
 (deftest image-refs-test
   (testing "a whole printed string result"
@@ -50,9 +52,11 @@
     (let [images (sut/image-refs "https://a.com/x.png\n/tmp/y.gif\n")]
       (is (= 2 (count images)))
       (is (= [0 1] (map :image/line-index images)))))
-  (testing "a Windows path printed as a Clojure string keeps escapes"
+  (testing "a Windows path printed as a Clojure string keeps its backslashes"
     (let [line (str (pr-str "C:\\Users\\pez\\a.png") "\n")
           images (sut/image-refs line)]
       (is (= 1 (count images)))
       (is (= "C:\\Users\\pez\\a.png" (:image/src (first images))))
-      (is (= 0 (:image/line-index (first images)))))))
+      (is (= 0 (:image/line-index (first images))))))
+  (testing "two printed strings on one line are not a whole-line image path"
+    (is (= [] (sut/image-refs "\"tmp/a.png\" \"b.png\"\n")))))

@@ -310,7 +310,8 @@
     (set! (.-alt img) label)
     (set! (.-title img) label)
     (when kind
-      (set! (.. img -dataset -imageKind) (name kind)))
+      (set! (.. img -dataset -imageKind) (name kind))
+      (set! (.. thumbnail -dataset -imageKind) (name kind)))
     (set! (.-type button) "button")
     (set! (.-title button) "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
@@ -475,6 +476,7 @@
 (defn clear-output-dom
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
+  (reset! !pending-local-images [])
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons

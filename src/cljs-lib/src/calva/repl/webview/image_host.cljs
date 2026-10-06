@@ -14,7 +14,7 @@
 (defn local-resource-roots
   "Roots that let the output webviews load any local image file, plus the extension itself."
   []
-  (let [extension-uri (some-> @util/vscode-context .-extensionUri)
+  (let [extension-uri (some-> ^js @util/vscode-context .-extensionUri)
         root (file-root-uri ^js @util/vscode)]
     (to-array (remove nil? [extension-uri root]))))
 
@@ -42,24 +42,27 @@
 
 (defn file-uri-for-ref
   "A vscode file URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
-   root. Nil for network paths, non-empty authority, missing URI API, or missing project root."
+   root. Nil for network paths, non-empty authority, missing URI API, a relative path when there is
+   no project root, or a URI that Uri.parse cannot build."
   [^js vscode src]
-  (when (and vscode (not (network-path? src)))
-    (let [uri (cond
-                (str/starts-with? src "file:")
-                (.. ^js vscode -Uri (parse src))
+  (try
+    (when (and vscode (not (network-path? src)))
+      (let [uri (cond
+                  (str/starts-with? src "file:")
+                  (.. ^js vscode -Uri (parse src))
 
-                (absolute-path? src)
-                (.. ^js vscode -Uri (file src))
+                  (absolute-path? src)
+                  (.. ^js vscode -Uri (file src))
 
-                :else
-                (when-let [project-root (util/get-project-root-uri)]
-                  (reduce (fn [u part]
-                            (.. ^js vscode -Uri (joinPath u part)))
-                          project-root
-                          (remove str/blank? (str/split src #"[\\/]+")))))]
-      (when (and uri (blank-authority? uri))
-        uri))))
+                  :else
+                  (when-let [project-root (util/get-project-root-uri)]
+                    (reduce (fn [u part]
+                              (.. ^js vscode -Uri (joinPath u part)))
+                            project-root
+                            (remove str/blank? (str/split src #"[\\/]+")))))]
+        (when (and uri (blank-authority? uri))
+          uri)))
+    (catch :default _ nil)))
 
 (defn as-webview-image-uri
   "The webview URI for `file-uri`, or nil."
@@ -178,8 +181,8 @@
   (.toString (js/Buffer.from bytes) "base64"))
 
 (defn fetch-image-bytes
-  "Promise of `{:mime :base64}` for `url`, or nil on redirect, bad type, size, timeout, or failure.
-   The timeout covers headers and the body read."
+  "Promise of `{:mime :base64}` for `url`, or nil when the response redirects, is not image/*, is
+   larger than max-image-bytes, times out, or fails. The timeout covers headers and the body read."
   [url]
   (let [controller (js/AbortController.)
         timer (js/setTimeout #(.abort controller) (timeout-ms))]
@@ -205,6 +208,7 @@
                        (do (cancel-body! response) nil))))))
         (.catch (fn [_] nil))
         (.finally (fn [] (js/clearTimeout timer))))))
+
 (defn- allow-remote-copy?
   []
   (= "images-including-remote-urls" (current-image-display)))
