@@ -10,6 +10,8 @@
    ["highlight.js/lib/languages/clojure" :as clojure]))
 
 ;; The DOM element where output is written
+(def ^:private !lazy-raw-entries (atom []))
+
 (def output-dom-element (js/document.getElementById "output"))
 
 (defn ensure-dom-content-loaded
@@ -202,6 +204,26 @@
     (.. thumbnail (appendChild button))
     thumbnail))
 
+(declare create-image-form-element)
+
+(defn- raw-display?
+  []
+  (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
+
+(defn- ensure-raw-form!
+  "Builds the raw form on `entry` once, when a builder is still attached."
+  [^js entry]
+  (when-let [create-raw-el! (.-calvaCreateRawEl! entry)]
+    (set! (.-calvaCreateRawEl! entry) nil)
+    (.. entry (appendChild (create-image-form-element "raw" [(create-raw-el!)])))))
+
+(defn- attach-raw-form!
+  [^js entry create-raw-el!]
+  (set! (.-calvaCreateRawEl! entry) create-raw-el!)
+  (if (raw-display?)
+    (ensure-raw-form! entry)
+    (swap! !lazy-raw-entries conj entry)))
+
 (defn create-image-form-element
   [image-form children]
   (let [element (js/document.createElement "div")]
@@ -240,10 +262,9 @@
         img-elements))
 
 (defn append-with-images!
-  "Appends an output entry that has images, in both forms: placeholder text split so each image
-   sits directly below its placeholder line, and `raw-element` (the original text). The body's
-   `data-image-display` attribute decides which form shows. Returns the entry element."
-  [^js dom-element {:keys [text images raw-element create-text-el!]}]
+  "Appends an output entry that has images. The images form is built now. The raw form is built
+   when the display is already raw, or later when it switches to raw. Returns the entry element."
+  [^js dom-element {:keys [text images create-raw-el! create-text-el!]}]
   (let [entry (create-element "div" "output-with-images" nil)
         images-form (js/document.createElement "div")]
     (.. images-form (setAttribute "data-image-form" "images"))
@@ -252,22 +273,23 @@
      (append-segments! images-form (images/segments-with-images text images) create-text-el!))
     (.. entry (setAttribute "data-output-element-type" "images"))
     (.. entry (appendChild images-form))
-    (.. entry (appendChild (create-image-form-element "raw" [raw-element])))
+    (attach-raw-form! entry create-raw-el!)
     (.. dom-element (appendChild entry))
     entry))
 
 (defn append-result-with-images
   [^js dom-element {:keys [text raw images]}]
-  (let [raw-result (clojure-code-element raw)
-        entry (append-with-images! dom-element
+  (let [entry (append-with-images! dom-element
                                    {:text text
                                     :images images
-                                    :raw-element (:container-element raw-result)
+                                    :create-raw-el! (fn []
+                                                      (let [raw-result (clojure-code-element raw)]
+                                                        (highlight-code! (:code-element raw-result))
+                                                        (:container-element raw-result)))
                                     :create-text-el! (fn [segment-text]
                                                        (let [{:keys [container-element code-element]} (clojure-code-element segment-text)]
                                                          (highlight-code! code-element)
                                                          container-element))})]
-    (highlight-code! (:code-element raw-result))
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn create-stdout-element
@@ -283,7 +305,7 @@
         entry (append-with-images! dom-element
                                    {:text text
                                     :images images
-                                    :raw-element (create-stdout-element raw category)
+                                    :create-raw-el! #(create-stdout-element raw category)
                                     :create-text-el! #(create-stdout-element % category)})]
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
@@ -326,6 +348,7 @@
 
 (defn clear-output-dom
   [^js output-dom-element]
+  (reset! !lazy-raw-entries [])
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons
@@ -362,7 +385,11 @@
 
 (defn set-image-display!
   [image-display]
-  (.. js/document -body (setAttribute "data-image-display" image-display)))
+  (some-> js/document .-body (.setAttribute "data-image-display" image-display))
+  (when (= "raw" image-display)
+    (let [entries @!lazy-raw-entries]
+      (reset! !lazy-raw-entries [])
+      (run! ensure-raw-form! entries))))
 
 (defn set-font-scale!
   [scale]
