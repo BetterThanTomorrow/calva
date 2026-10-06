@@ -146,7 +146,7 @@ body[data-image-display="images"] .output-image-thumbnail:has([data-image-kind="
    display: none;
 }
 
-body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnail:not(:has([data-image-kind="remote"])))) {
+body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnail:not([data-pending="true"]):not([data-image-kind="remote"]))) {
    display: none;
 }
 

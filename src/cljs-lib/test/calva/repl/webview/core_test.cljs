@@ -98,21 +98,26 @@
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
                                                              :css-href "css-href"
-                                                             :csp-source "csp-source"})]
-      (is (= 2 (count (re-seq #"js-source" result))))
-      (is (= 2 (count (re-seq #"css-href" result))))
-      (is (= 1 (count (re-seq #"csp-source" result))))
+                                                             :csp-source "csp-source"
+                                                             :script-nonce "test-nonce"})]
+      (is (= 1 (count (re-seq #"js-source" result))))
+      (is (= 1 (count (re-seq #"css-href" result))))
+      (is (= 2 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
-      (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
+      (is (re-find #"script-src 'unsafe-eval' 'nonce-test-nonce'" result))
+      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
-                                                              :csp-source "csp-source"})]
-      (is (= 2 (count (re-seq #"js-source" result))))
-      (is (= 2 (count (re-seq #"css-href" result))))
-      (is (= 1 (count (re-seq #"csp-source" result))))
+                                                              :csp-source "csp-source"
+                                                              :script-nonce "test-nonce"})]
+      (is (= 1 (count (re-seq #"js-source" result))))
+      (is (= 1 (count (re-seq #"css-href" result))))
+      (is (= 2 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
+      (is (re-find #"script-src 'nonce-test-nonce'" result))
+      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given greeting html, should render it before, not inside, the output div"
@@ -121,6 +126,7 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :greeting-html "GREETING-MARKER"}))))
   (testing "Given word-wrap is enabled, should add the word-wrap body class"
     (is (re-find #"<body class=\"word-wrap\" "
@@ -128,6 +134,7 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :word-wrap? true}))))
   (testing "Given word-wrap is disabled, should not add the word-wrap body class"
     (is (re-find #"<body data-image-display="
@@ -135,6 +142,7 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :word-wrap? false}))))
   (testing "Given image-display \"raw\", should mark the body with data-image-display=\"raw\""
     (is (re-find #"<body data-image-display=\"raw\">"
@@ -142,19 +150,22 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :image-display "raw"}))))
   (testing "Given no image-display, should mark the body with data-image-display=\"images-including-remote-urls\""
     (is (re-find #"<body data-image-display=\"images-including-remote-urls\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
-                                        :csp-source "csp-source"}))))
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"}))))
   (testing "Given word-wrap and image-display, should add both to the body"
     (is (re-find #"<body class=\"word-wrap\" data-image-display=\"images\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :word-wrap? true
                                         :image-display "images"}))))
   (testing "Given a font-scale, should set the font scale css variable on the html element"
@@ -163,22 +174,28 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :font-scale 1.25}))))
   (testing "Given no font-scale, should default the font scale css variable to 1"
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
-                                        :csp-source "csp-source"})))))
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"})))))
 
-(deftest get-webview-html-csp-exact-urls-test
-  (testing "script-src and style-src use the exact js and css URLs, not csp-source"
+(deftest get-webview-html-csp-nonce-test
+  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
-                                                              :csp-source "csp-source"})]
-      (is (re-find #"script-src js-source" result))
-      (is (re-find #"style-src[\s\S]*css-href;" result))
-      (is (re-find #"img-src data: https: http: csp-source" result)))))
+                                                              :csp-source "csp-source"
+                                                              :script-nonce "abc-123"})]
+      (is (re-find #"script-src 'nonce-abc-123'" result))
+      (is (re-find #"<script nonce=\"abc-123\" src=\"js-source\"></script>" result))
+      (is (re-find #"style-src[\s\S]*csp-source;" result))
+      (is (re-find #"img-src data: https: http: csp-source" result))
+      (is (nil? (re-find #"script-src js-source" result)))
+      (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -216,7 +233,8 @@
           as-webview-uri-spy (spy/stub "some-css-href")
           ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
                                                 :cspSource "some-csp-source"}})
-          get-webview-html-spy (spy/stub "some-html")]
+          get-webview-html-spy (spy/stub "some-html")
+          fixed-nonce #uuid "11111111-1111-1111-1111-111111111111"]
       (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
                     sut/get-css-path (test-util/wrap-spy get-css-path-spy)
                     greeting/logo-webview-uri (constantly "some-logo-href")
@@ -224,6 +242,7 @@
                     sut/word-wrap? (constantly true)
                     sut/get-output-views-font-scale-setting (constantly 1.5)
                     sut/image-display (constantly "raw")
+                    random-uuid (constantly fixed-nonce)
                     sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
         (sut/set-webview-html! context {:webview-panel webview-panel})
         (testing "should call get-js-source with expected args"
@@ -232,10 +251,11 @@
           (is (spy/called-once-with? get-css-path-spy context)))
         (testing "should call asWebviewUri once for the CSS"
           (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
-        (testing "should call get-webview-html with expected args"
+        (testing "should call get-webview-html with expected args including a script nonce"
           (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
                                                                    :css-href "some-css-href"
                                                                    :csp-source "some-csp-source"
+                                                                   :script-nonce (str fixed-nonce)
                                                                    :code-theme nil
                                                                    :greeting-html "some-greeting"
                                                                    :word-wrap? true

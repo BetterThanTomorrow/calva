@@ -170,7 +170,7 @@
 
 (defn- images-on-line
   "Images that belong under this line: refs with matching `:image/line-index`, then data-URL
-   placeholders found by source text in the line (order by index within the line)."
+   placeholders found by source text in the line, ordered by their position in the line."
   [line-idx line images]
   (let [by-line-index (->> images
                            (filter #(= line-idx (:image/line-index %)))

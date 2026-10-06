@@ -245,7 +245,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -262,8 +262,8 @@
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
-                              " css-href ";
-                    script-src " (when is-debug " 'unsafe-eval' ") js-source ";
+                              " csp-source ";
+                    script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
                     form-action 'none';\">
@@ -285,7 +285,7 @@
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
 
-    <script src=\"" js-source "\"></script>
+    <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
   </body>
 </html>"))
 
@@ -311,11 +311,13 @@
         css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
+        script-nonce (str (random-uuid))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
                                                 :css-href css-href
                                                 :csp-source csp-source
+                                                :script-nonce script-nonce
                                                 :code-theme (code-theme-from-context context)
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)

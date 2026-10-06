@@ -89,3 +89,74 @@
               "leaving raw resolves pending local images")))
       (finally
         (some-> js/document .-body (.setAttribute "data-image-display" "images"))))))
+
+(defn- stdout-raw-text
+  [^js entry]
+  (some (fn [child]
+          (when (= "raw" (attr child "data-image-form"))
+            (some-> (aget (.-children child) 0)
+                    .-children
+                    (aget 0)
+                    .-textContent)))
+        (.-children entry)))
+
+(deftest raw-mode-shows-url-and-path-source-lines-test
+  (try
+    (with-redefs [ui/highlight-code! (fn [_])
+                  ui/post-to-host! (fn [_])]
+      (ui/set-image-display! "raw")
+      (let [host (js/document.createElement "div")
+            remote {:image/kind :remote
+                    :image/src "https://example.com/a.png"
+                    :image/source "https://example.com/a.png"
+                    :image/mime "image/png"
+                    :image/subtype "png"
+                    :image/line-index 0}
+            local {:image/kind :local
+                   :image/src "/tmp/cat.png"
+                   :image/source "/tmp/cat.png"
+                   :image/mime "image/png"
+                   :image/subtype "png"
+                   :image/line-index 0}
+            url-line "\"https://example.com/a.png\"\n"
+            path-line "/tmp/cat.png\n"]
+        (ui/append-result-with-images host {:text url-line :raw url-line :images [remote]})
+        (ui/append-result-with-images host {:text path-line :raw path-line :images [local]})
+        (ui/append-stdout-with-images host {:text url-line :raw url-line :images [remote]} "evalErr")
+        (ui/append-stdout-with-images host {:text path-line :raw path-line :images [local]} "evalErr")
+        (let [url-result (aget (.-children host) 0)
+              path-result (aget (.-children host) 1)
+              url-stderr (aget (.-children host) 2)
+              path-stderr (aget (.-children host) 3)]
+          (is (= url-line (raw-text url-result))
+              "raw mode results keep a URL-only line as printed")
+          (is (= path-line (raw-text path-result))
+              "raw mode results keep a path-only line as printed")
+          (is (= url-line (stdout-raw-text url-stderr))
+              "raw mode stderr keeps a URL-only line as printed")
+          (is (= path-line (stdout-raw-text path-stderr))
+              "raw mode stderr keeps a path-only line as printed"))))
+    (finally
+      (some-> js/document .-body (.setAttribute "data-image-display" "images")))))
+
+(deftest clear-output-dom-resets-pending-local-images-test
+  (let [posts (atom [])]
+    (try
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))
+                    ui/highlight-code! (fn [_])]
+        (ui/set-image-display! "raw")
+        (let [host (js/document.createElement "div")
+              local {:image/kind :local
+                     :image/src "/tmp/cat.png"
+                     :image/source "/tmp/cat.png"
+                     :image/mime "image/png"
+                     :image/subtype "png"}]
+          (ui/append-result-with-images host {:text "/tmp/cat.png\n"
+                                              :raw "/tmp/cat.png\n"
+                                              :images [local]})
+          (ui/clear-output-dom host)
+          (ui/set-image-display! "images")
+          (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
+              "clear-output-dom drops queued local resolves")))
+      (finally
+        (some-> js/document .-body (.setAttribute "data-image-display" "images"))))))

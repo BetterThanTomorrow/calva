@@ -13,7 +13,10 @@
   ([]
    (fake-vscode nil))
   ([authority-for-parse]
-   (let [uri-api #js {:parse (fn [_src] (fake-uri authority-for-parse))
+   (let [uri-api #js {:parse (fn [src]
+                               (when (str/starts-with? src "file:////")
+                                 (throw (js/Error. "path cannot begin with two slash characters")))
+                               (fake-uri authority-for-parse))
                       :file (fn [src]
                               (if (or (str/starts-with? src "//")
                                       (str/starts-with? src "\\\\"))
@@ -28,20 +31,22 @@
     (is (nil? (sut/file-uri-for-ref (fake-vscode) "//server/share/x.png"))))
   (testing "file URI with a host authority"
     (is (nil? (sut/file-uri-for-ref (fake-vscode "server") "file://server/share/x.png"))))
+  (testing "file://// that Uri.parse cannot build returns nil"
+    (is (nil? (sut/file-uri-for-ref (fake-vscode) "file:////server/share/x.png"))))
   (testing "file:/// with empty authority is kept"
     (let [uri (sut/file-uri-for-ref (fake-vscode "") "file:///tmp/x.png")]
       (is (some? uri))
-      (is (str/blank? (str (.-authority uri)))))))
+      (is (str/blank? (str (.-authority ^js uri)))))))
 
 (deftest file-uri-for-ref-paths-test
   (testing "POSIX absolute path"
     (let [uri (sut/file-uri-for-ref (fake-vscode) "/tmp/x.png")]
       (is (some? uri))
-      (is (str/blank? (str (.-authority uri))))))
+      (is (str/blank? (str (.-authority ^js uri))))))
   (testing "Windows drive path"
     (let [uri (sut/file-uri-for-ref (fake-vscode) "C:\\Users\\pez\\a.png")]
       (is (some? uri))
-      (is (str/blank? (str (.-authority uri))))))
+      (is (str/blank? (str (.-authority ^js uri))))))
   (testing "relative path joined to project root"
     (let [root (fake-uri "")
           vscode (fake-vscode)]
@@ -252,9 +257,9 @@
                host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
                                        :postMessage (fn [s] (reset! posted s))}}
                vscode (let [base (fake-vscode)]
-                        (set! (.-workspace base)
+                        (set! (.-workspace ^js base)
                               #js {:fs #js {:stat (fn [uri]
-                                                    (if (= "" (str (.-authority uri)))
+                                                    (if (= "" (str (.-authority ^js uri)))
                                                       (js/Promise.resolve #js {})
                                                       (js/Promise.reject (js/Error. "missing"))))}})
                         base)]
@@ -267,7 +272,7 @@
               (fn []
                 (is (str/includes? (str @posted) "local-image-resolved"))
                 (reset! posted nil)
-                (set! (.. vscode -workspace -fs -stat)
+                (set! (.. ^js vscode -workspace -fs -stat)
                       (fn [_] (js/Promise.reject (js/Error. "missing"))))
                 (sut/handle-webview-message! host #js {:command "resolve-local-image"
                                                        :id "missing"
@@ -277,4 +282,22 @@
                    (is (str/includes? (str @posted) "local-image-missing"))
                    (done))
                  20))
+              20)))))
+
+(deftest resolve-local-image-file-four-slash-fails-closed-test
+  (async done
+         (let [posted (atom nil)
+               host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
+                                       :postMessage (fn [s] (reset! posted s))}}
+               vscode (fake-vscode)]
+           (with-redefs [util/vscode (atom vscode)]
+             (reset! posted nil)
+             (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                    :id "unc"
+                                                    :src "file:////server/share/x.png"})
+             (js/setTimeout
+              (fn []
+                (is (str/includes? (str @posted) "local-image-missing")
+                    "file://// fails closed and the handler still replies")
+                (done))
               20)))))

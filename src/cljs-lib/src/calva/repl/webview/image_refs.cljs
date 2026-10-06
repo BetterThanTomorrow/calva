@@ -77,14 +77,14 @@
                     (not (re-find #"\s" s))))))
 
 (defn unwrap-printed-string
-  "Contents of a Clojure-printed string, or nil."
+  "Contents of a Clojure-printed string, or nil. The line must be exactly one string form."
   [s]
   (when (and (>= (count s) 2)
              (str/starts-with? s "\"")
              (str/ends-with? s "\""))
     (try
       (let [v (reader/read-string s)]
-        (when (string? v) v))
+        (when (and (string? v) (= s (pr-str v))) v))
       (catch :default _ nil))))
 
 (defn- ref-kind
