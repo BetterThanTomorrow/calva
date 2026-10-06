@@ -20,6 +20,7 @@
          :dataset #js {}
          :children children
          :setAttribute (fn [k v] (aset attributes k v))
+         :getAttribute (fn [k] (aget attributes k))
          :appendChild (fn [child] (.push children child) child)
          :addEventListener (fn [& _])
          :dispatchEvent (fn [_])}))
@@ -31,3 +32,6 @@
              :createElement create-element
              :createElementNS (fn [_ tag] (create-element tag))
              :createTextNode (fn [text] #js {:nodeType 3 :textContent text})}))
+
+(when-not (.-body js/document)
+  (set! (.-body js/document) (create-element "body")))
