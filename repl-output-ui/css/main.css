@@ -127,6 +127,11 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
    display: none;
 }
 
+.output-image-thumbnail[data-pending="true"],
+body[data-image-display="images"] .output-image-thumbnail:has([data-image-kind="remote"]) {
+   display: none;
+}
+
 .output-images {
    display: flex;
    flex-direction: column;

@@ -84,7 +84,23 @@
 
   (testing "a data URL with no payload is left alone"
     (is (= {:text "data:image/png;base64, AAAA" :images []}
-           (sut/extract-images "data:image/png;base64, AAAA")))))
+           (sut/extract-images "data:image/png;base64, AAAA"))))
+
+  (testing "a whole-line https image URL is kept in the text and returned as a remote image"
+    (let [url "https://example.com/cat.png"
+          {:keys [text images]} (sut/extract-images (str "\"" url "\"\n"))]
+      (is (= (str "\"" url "\"\n") text))
+      (is (= :remote (:image/kind (first images))))
+      (is (= url (:image/src (first images))))))
+
+  (testing "a whole-line file path is returned as a local image"
+    (let [{:keys [text images]} (sut/extract-images "/tmp/cat.png\n")]
+      (is (= "/tmp/cat.png\n" text))
+      (is (= :local (:image/kind (first images))))))
+
+  (testing "a URL mention inside a longer line is left alone"
+    (is (= {:text "look: https://example.com/cat.png\n" :images []}
+           (sut/extract-images "look: https://example.com/cat.png\n")))))
 
 (deftest image-subtype-test
   (testing "a bare data:image/ mention followed later by ;base64, is left alone"

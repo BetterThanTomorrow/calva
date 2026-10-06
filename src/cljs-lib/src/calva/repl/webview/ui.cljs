@@ -161,12 +161,63 @@
                               (.setAttribute button "aria-label" original)))
                        1500)))
 
+(defonce vscode-api
+  (when (exists? js/acquireVsCodeApi)
+    (js/acquireVsCodeApi)))
+
+(defonce !host-requests (atom {}))
+
+(defn post-to-host!
+  [message]
+  (when vscode-api
+    (.postMessage vscode-api (clj->js message))))
+
+(defn- host-request-id
+  []
+  (str (random-uuid)))
+
+(defn- remember-host-request!
+  [id handler]
+  (swap! !host-requests assoc id handler))
+
+(defn- deliver-host-request!
+  [id payload]
+  (when-let [handler (get @!host-requests id)]
+    (swap! !host-requests dissoc id)
+    (handler payload)))
+
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
    needs the user activation."
-  [^js button ^js img {:image/keys [mime data-url]}]
-  (let [png (if (= "image/png" mime)
+  [^js button ^js img {:image/keys [mime data-url kind src]}]
+  (let [png (cond
+              (and data-url (= "image/png" mime))
               (js/Promise.resolve (data-url-blob data-url mime))
+
+              data-url
+              (png-blob img)
+
+              (= :remote kind)
+              (js/Promise.
+               (fn [resolve reject]
+                 (let [id (host-request-id)]
+                   (remember-host-request!
+                    id
+                    (fn [{:keys [base64 mime]}]
+                      (if-not base64
+                        (reject (js/Error. "Cannot fetch the image"))
+                        (let [data-url (str "data:" mime ";base64," base64)]
+                          (if (str/starts-with? (str mime) "image/png")
+                            (resolve (data-url-blob data-url "image/png"))
+                            (let [tmp (js/document.createElement "img")]
+                              (set! (.-onload tmp)
+                                    (fn []
+                                      (-> (png-blob tmp) (.then resolve) (.catch reject))))
+                              (set! (.-onerror tmp) #(reject (js/Error. "Cannot decode the image")))
+                              (set! (.-src tmp) data-url)))))))
+                   (post-to-host! {:command "fetch-image-for-copy" :id id :url src}))))
+
+              :else
               (png-blob img))]
     (-> (.. js/navigator -clipboard (write #js [(js/ClipboardItem. #js {"image/png" png})]))
         (.then #(show-copied! button))
@@ -193,16 +244,39 @@
 (def check-icon-path
   "M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z")
 
+(defn- includes-remote-urls?
+  []
+  (= "images-including-remote-urls"
+     (some-> js/document .-body (.getAttribute "data-image-display"))))
+
+(defn- hide-until-load!
+  [^js thumb ^js img]
+  (set! (.. thumb -dataset -pending) "true")
+  (.addEventListener img "load"
+                     (fn []
+                       (set! (.. thumb -dataset -pending) "false"))
+                     #js {:once true})
+  (.addEventListener img "error"
+                     (fn []
+                       (when-let [parent (.-parentNode thumb)]
+                         (.removeChild parent thumb)
+                         (when (zero? (.-childElementCount parent))
+                           (when-let [grandparent (.-parentNode parent)]
+                             (.removeChild grandparent parent)))))
+                     #js {:once true}))
+
 (defn create-image-element
-  "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button."
-  [{:image/keys [data-url] :as image}]
+  "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
+   Local and remote images stay hidden until they load; a failure removes the thumbnail."
+  [{:image/keys [data-url kind src] :as image}]
   (let [label (images/label image)
         thumbnail (create-element "div" "output-image-thumbnail" nil)
         img (create-element "img" "output-image" nil)
         button (create-element "button" "output-image-copy" nil)]
-    (set! (.-src img) data-url)
     (set! (.-alt img) label)
     (set! (.-title img) label)
+    (when kind
+      (set! (.. img -dataset -imageKind) (name kind)))
     (set! (.-type button) "button")
     (set! (.-title button) "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
@@ -212,6 +286,23 @@
     (.. button (addEventListener "click" #(copy-image! button img image)))
     (.. thumbnail (appendChild img))
     (.. thumbnail (appendChild button))
+    (cond
+      data-url (set! (.-src img) data-url)
+      (= :local kind) (let [id (host-request-id)]
+                        (hide-until-load! thumbnail img)
+                        (remember-host-request!
+                         id
+                         (fn [{:keys [webview-uri]}]
+                           (if webview-uri
+                             (set! (.-src img) webview-uri)
+                             (when-let [parent (.-parentNode thumbnail)]
+                               (.removeChild parent thumbnail)))))
+                        (post-to-host! {:command "resolve-local-image" :id id :src src}))
+      (= :remote kind) (do (set! (.-calvaRemoteSrc img) src)
+                           (hide-until-load! thumbnail img)
+                           (when (includes-remote-urls?)
+                             (set! (.-src img) src)))
+      :else (when src (set! (.-src img) src)))
     thumbnail))
 
 (declare create-image-form-element)
@@ -393,9 +484,22 @@
       (.. body -classList (add "word-wrap"))
       (.. body -classList (remove "word-wrap")))))
 
+(defn- apply-remote-src!
+  [image-display]
+  (when-let [query (.-querySelectorAll js/document)]
+    (when (fn? query)
+      (let [imgs (query "img[data-image-kind=\"remote\"]")]
+        (.forEach imgs
+                  (fn [^js img]
+                    (when (and (= "images-including-remote-urls" image-display)
+                               (.-calvaRemoteSrc img)
+                               (str/blank? (str (.-src img))))
+                      (set! (.-src img) (.-calvaRemoteSrc img)))))))))
+
 (defn set-image-display!
   [image-display]
   (some-> js/document .-body (.setAttribute "data-image-display" image-display))
+  (apply-remote-src! image-display)
   (when (= "raw" image-display)
     (let [entries @!lazy-raw-entries]
       (reset! !lazy-raw-entries [])
@@ -453,6 +557,10 @@
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "scroll-to"            (dispatch! [:msg/scroll-to message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
+         "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
+         "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
+         "image-bytes"          (deliver-host-request! (:id message-data) message-data)
+         "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

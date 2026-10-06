@@ -2,8 +2,10 @@
   "Base64 image data URL detection for the output views. The pattern starts from Backseat Driver
    `reduce-images`, with the image subtype restricted to MIME token characters so a match cannot
    run across prose to a later `;base64,`. Optional `;name=value` MIME parameters (token characters
-   only) may sit between the image type and ;base64."
+   only) may sit between the image type and ;base64. Whole-line image URLs and file paths are
+   added by `calva.repl.webview.image-refs` without replacing the source text."
   (:require
+   [calva.repl.webview.image-refs :as image-refs]
    [clojure.string :as str]))
 
 (def image-data-url-pattern "data:(image/[A-Za-z0-9.+-]+)(?:;[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]+)*;base64,([A-Za-z0-9+/=\\s]+)")
@@ -121,16 +123,15 @@
 
 (defn label
   [{:image/keys [n subtype size]}]
-  (str "image-" n " " subtype " " size))
+  (if size
+    (str "image-" n " " subtype " " size)
+    (str "image-" n " " subtype)))
 
 (defn placeholder
   [image]
   (str "<<" (label image) ">>"))
 
-(defn extract-images
-  "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
-   Returns `{:text replaced-text :images [image ...]}`, where each image has `:image/n`,
-   `:image/mime`, `:image/subtype`, `:image/size` and `:image/data-url` (whitespace removed)."
+(defn- data-url-images
   [text]
   (if-not (str/includes? text "data:image/")
     {:text text :images []}
@@ -150,11 +151,28 @@
       {:text (apply str (concat pieces [(subs text (last ends))]))
        :images (vec images)})))
 
+(defn extract-images
+  "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
+   Whole-line image URLs and file paths are returned as extra images and left in the text.
+   Returns `{:text ... :images [image ...]}`."
+  [text]
+  (let [{:keys [text images]} (data-url-images text)
+        n0 (count images)
+        refs (map-indexed (fn [i image]
+                            (assoc image :image/n (+ n0 (inc i))))
+                          (image-refs/image-refs text))]
+    {:text text
+     :images (into (vec images) refs)}))
+
+(defn- source-of
+  [image]
+  (or (:image/source image) (placeholder image)))
+
 (defn- images-on-line
   [line images]
   (->> images
        (keep (fn [image]
-               (when-let [idx (str/index-of line (placeholder image))]
+               (when-let [idx (str/index-of line (source-of image))]
                  [idx image])))
        (sort-by first)
        (mapv second)))
