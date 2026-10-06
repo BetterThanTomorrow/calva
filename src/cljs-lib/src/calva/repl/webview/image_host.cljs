@@ -80,6 +80,18 @@
 
 (def fetch-timeout-ms 15000)
 
+(defonce !max-image-bytes (atom nil))
+
+(defonce !fetch-timeout-ms (atom nil))
+
+(defn- byte-cap
+  []
+  (or @!max-image-bytes max-image-bytes))
+
+(defn- timeout-ms
+  []
+  (or @!fetch-timeout-ms fetch-timeout-ms))
+
 (defonce !image-display-fn (atom nil))
 
 (defn set-image-display-fn!
@@ -106,55 +118,93 @@
     (if raw
       (let [n (js/parseInt raw 10)]
         (and (not (js/isNaN n))
-             (<= n max-image-bytes)))
+             (<= n (byte-cap))))
       true)))
 
-(defn- read-body-capped!
-  "Promise of a Uint8Array up to `max-image-bytes`, or nil when empty or too large."
+(defn- cancel-body!
+  "Cancels `response`'s body stream when present. Effect: drops unread bytes."
   [^js response]
-  (-> (.arrayBuffer response)
-      (.then (fn [buffer]
-               (let [bytes (js/Uint8Array. buffer)
-                     n (.-length bytes)]
-                 (cond
-                   (zero? n) nil
-                   (> n max-image-bytes) nil
-                   :else bytes))))
-      (.catch (fn [_] nil))))
+  (when-let [body (.-body response)]
+    (when (fn? (.-cancel body))
+      (-> (.cancel body)
+          (.catch (fn [_] nil))))))
+
+(defn- concat-chunks
+  "One Uint8Array from `chunks`, or nil when empty."
+  [chunks total]
+  (when (pos? total)
+    (let [out (js/Uint8Array. total)
+          offset (atom 0)]
+      (doseq [^js chunk chunks]
+        (.set out chunk @offset)
+        (swap! offset + (.-length chunk)))
+      out)))
+
+(defn- read-body-capped!
+  "Promise of a Uint8Array up to the byte cap, or nil when empty, oversize, or failed.
+   Reads `response.body` by chunk; aborts `controller` and returns nil once the count passes the cap."
+  [^js response ^js controller]
+  (let [body (.-body response)
+        cap (byte-cap)]
+    (if-not (and body (fn? (.-getReader body)))
+      (js/Promise.resolve nil)
+      (let [reader (.getReader body)
+            chunks (atom [])
+            total (atom 0)]
+        (letfn [(fail []
+                  (-> (.cancel reader)
+                      (.catch (fn [_] nil))
+                      (.then (fn [_] nil))))
+                (step []
+                  (-> (.read reader)
+                      (.then (fn [^js result]
+                               (if (.-done result)
+                                 (concat-chunks @chunks @total)
+                                 (let [^js value (.-value result)
+                                       n (+ @total (.-length value))]
+                                   (if (> n cap)
+                                     (do
+                                       (.abort controller)
+                                       (fail))
+                                     (do
+                                       (reset! total n)
+                                       (swap! chunks conj value)
+                                       (step)))))))
+                      (.catch (fn [_] nil))))]
+          (step))))))
 
 (defn bytes->base64
   [bytes]
   (.toString (js/Buffer.from bytes) "base64"))
 
 (defn fetch-image-bytes
-  "Promise of `{:mime :base64}` for `url`, or nil on redirect, bad type, size, timeout, or failure."
+  "Promise of `{:mime :base64}` for `url`, or nil on redirect, bad type, size, timeout, or failure.
+   The timeout covers headers and the body read."
   [url]
   (let [controller (js/AbortController.)
-        timer (js/setTimeout #(.abort controller) fetch-timeout-ms)]
+        timer (js/setTimeout #(.abort controller) (timeout-ms))]
     (-> (js/fetch url #js {:signal (.-signal controller)
                            :redirect "manual"})
         (.then (fn [^js response]
-                 (js/clearTimeout timer)
                  (let [status (.-status response)]
                    (cond
                      (or (not (.-ok response))
                          (<= 300 status 399))
-                     nil
+                     (do (cancel-body! response) nil)
 
                      (not (content-length-ok? response))
-                     nil
+                     (do (cancel-body! response) nil)
 
                      :else
-                     (when-let [mime (image-content-type (.get (.-headers response) "content-type"))]
-                       (-> (read-body-capped! response)
+                     (if-let [mime (image-content-type (.get (.-headers response) "content-type"))]
+                       (-> (read-body-capped! response controller)
                            (.then (fn [bytes]
                                     (when bytes
                                       {:mime mime
-                                       :base64 (bytes->base64 bytes)})))))))))
-        (.catch (fn [_]
-                  (js/clearTimeout timer)
-                  nil)))))
-
+                                       :base64 (bytes->base64 bytes)}))))
+                       (do (cancel-body! response) nil))))))
+        (.catch (fn [_] nil))
+        (.finally (fn [] (js/clearTimeout timer))))))
 (defn- allow-remote-copy?
   []
   (= "images-including-remote-urls" (current-image-display)))
