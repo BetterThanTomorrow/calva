@@ -10,9 +10,10 @@
    ["highlight.js/lib/languages/clojure" :as clojure]))
 
 ;; The DOM element where output is written
-(def ^:private !lazy-raw-entries (atom []))
-
 (def output-dom-element (js/document.getElementById "output"))
+
+;; Output entries whose raw form is not built yet. They get it when the display switches to raw.
+(def ^:private !lazy-raw-entries (atom []))
 
 (defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
