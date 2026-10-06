@@ -99,6 +99,13 @@
       (is (< (- (js/Date.now) started) 1000)))))
 
 (deftest image-mime-parameters-test
+  (testing "detected with a MIME type that has no parameters"
+    (let [{:keys [text images]} (sut/extract-images png-data-url)
+          image (first images)]
+      (is (= "<<image-1 png 8 B>>" text))
+      (is (= "image/png" (:image/mime image)))
+      (is (= png-data-url (:image/data-url image)))))
+
   (testing "a data URL with charset is detected with a bare mime and a working data URL"
     (let [url "data:image/svg+xml;charset=utf-8;base64,PHN2Zz4="
           {:keys [text images]} (sut/extract-images url)
@@ -117,6 +124,11 @@
 
   (testing "prose with a semicolon then a later ;base64, does not span a match"
     (let [text "\"data:image/png\" foo; bar;base64,AAAA"]
+      (is (= {:text text :images []} (sut/extract-images text)))))
+
+  (testing "prose that starts right after the image type is not a match"
+    (doseq [text ["data:image/png; see note; then ;base64,AAAA"
+                  "data:image/png;x=1 and prose;base64,AAAA"]]
       (is (= {:text text :images []} (sut/extract-images text))))))
 
 (deftest pending-start-test
@@ -144,6 +156,9 @@
     (is (= 5 (sut/pending-start "text data:image/svg+xml;charset=utf-8;base64,")))
     (is (= 0 (sut/pending-start "data:image/svg+xml;char")))
     (is (= 2 (sut/pending-start "x data:image/png;foo=bar"))))
+
+  (testing "a cut inside a later parameter is held back from the start of the header"
+    (is (= 0 (sut/pending-start "data:image/png;a=b;c="))))
 
   (testing "a parameterised header with an open payload is pending from its start"
     (is (= 0 (sut/pending-start "data:image/svg+xml;charset=utf-8;base64,AAAA")))))

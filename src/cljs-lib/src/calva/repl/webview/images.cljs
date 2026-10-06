@@ -2,7 +2,7 @@
   "Base64 image data URL detection for the output views. The pattern starts from Backseat Driver
    `reduce-images`, with the image subtype restricted to MIME token characters so a match cannot
    run across prose to a later `;base64,`. Optional `;name=value` MIME parameters (token characters
-   only) may sit between the type and `;base64`."
+   only) may sit between the image type and ;base64."
   (:require
    [clojure.string :as str]))
 
