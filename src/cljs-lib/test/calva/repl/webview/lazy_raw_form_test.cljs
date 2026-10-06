@@ -34,32 +34,35 @@
 
 (deftest lazy-raw-form-test
   (let [highlights (atom 0)]
-    (with-redefs [ui/highlight-code! (fn [_] (swap! highlights inc))]
-      (ui/set-image-display! "raw")
-      (ui/set-image-display! "images")
-      (reset! highlights 0)
-      (let [host (js/document.createElement "div")
-            raw "\"data:image/png;base64,iVBORw0KGgo=\""
-            text "\"<<image-1 png 8 B>>\""]
-        (testing "images mode does not build or highlight the raw form"
-          (ui/append-result-with-images host {:text text :raw raw :images [image-1]})
-          (let [entry (aget (.-children host) 0)]
-            (is (= ["images"] (form-kinds entry)))
-            (is (= 1 @highlights))))
-        (testing "switching to raw builds and highlights the raw form once"
-          (ui/set-image-display! "raw")
-          (let [entry (aget (.-children host) 0)]
-            (is (= ["images" "raw"] (form-kinds entry)))
-            (is (= raw (raw-text entry)))
-            (is (= 2 @highlights))))
-        (testing "toggling back to images and to raw keeps the one raw form"
-          (ui/set-image-display! "images")
-          (ui/set-image-display! "raw")
-          (let [entry (aget (.-children host) 0)]
-            (is (= ["images" "raw"] (form-kinds entry)))
-            (is (= 2 @highlights))))
-        (testing "an entry appended in raw mode has the raw form immediately"
-          (ui/append-result-with-images host {:text text :raw raw :images [image-1]})
-          (let [entry (aget (.-children host) 1)]
-            (is (= ["images" "raw"] (form-kinds entry)))
-            (is (= 4 @highlights))))))))
+    (try
+      (with-redefs [ui/highlight-code! (fn [_] (swap! highlights inc))]
+        (ui/set-image-display! "raw")
+        (ui/set-image-display! "images")
+        (reset! highlights 0)
+        (let [host (js/document.createElement "div")
+              raw "\"data:image/png;base64,iVBORw0KGgo=\""
+              text "\"<<image-1 png 8 B>>\""]
+          (testing "images mode does not build or highlight the raw form"
+            (ui/append-result-with-images host {:text text :raw raw :images [image-1]})
+            (let [entry (aget (.-children host) 0)]
+              (is (= ["images"] (form-kinds entry)))
+              (is (= 1 @highlights))))
+          (testing "switching to raw builds and highlights the raw form once"
+            (ui/set-image-display! "raw")
+            (let [entry (aget (.-children host) 0)]
+              (is (= ["images" "raw"] (form-kinds entry)))
+              (is (= raw (raw-text entry)))
+              (is (= 2 @highlights))))
+          (testing "toggling back to images and to raw keeps the one raw form"
+            (ui/set-image-display! "images")
+            (ui/set-image-display! "raw")
+            (let [entry (aget (.-children host) 0)]
+              (is (= ["images" "raw"] (form-kinds entry)))
+              (is (= 2 @highlights))))
+          (testing "an entry appended in raw mode has the raw form immediately"
+            (ui/append-result-with-images host {:text text :raw raw :images [image-1]})
+            (let [entry (aget (.-children host) 1)]
+              (is (= ["images" "raw"] (form-kinds entry)))
+              (is (= 4 @highlights))))))
+      (finally
+        (some-> js/document .-body (.setAttribute "data-image-display" "images"))))))
