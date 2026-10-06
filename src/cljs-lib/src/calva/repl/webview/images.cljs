@@ -20,12 +20,12 @@
     (and (= "\r" (get text i)) (= "\n" (get text (inc i)))) 2
     :else 0))
 
-;strike-the-root: when the last wrapped line is itself full width (64 or 76 characters) and the next
-;printed line starts with a letter or digit, that line is taken as more base64. A heuristic cannot
-;tell `done` from a short last base64 line; images_test pins this.
 (defn- wrap-break-length
   "Length of the line break at `i` when it wraps base64, otherwise 0. `width` is the wrap width set
-   by the first wrapped line, if any."
+   by the first wrapped line, if any. A break wraps when the line before it is full width and the
+   next character is in the base64 alphabet. **NB**: This means that when the last base64 line is
+   itself full width (64 or 76 characters), and the next line starts with a base64 character,
+   that line will be treated as more base64 data."
   [text i line-length width]
   (let [break-length (line-break-length text i)
         full-line? (if width (= width line-length) (contains? wrap-widths line-length))]
