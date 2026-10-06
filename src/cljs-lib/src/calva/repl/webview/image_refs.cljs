@@ -51,8 +51,9 @@
                 (url-subtype s))))
 
 (defn file-image-uri?
+  "True when `s` is a `file:///` URI (empty authority) whose path ends in an image extension."
   [s]
-  (boolean (and (re-matches #"^file://\S+$" s)
+  (boolean (and (re-matches #"^file:///\S+$" s)
                 (url-subtype s))))
 
 (defn image-file-path?

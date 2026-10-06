@@ -157,6 +157,7 @@
 
 (defn ^:export init-image-display!
   []
+  (image-host/set-image-display-fn! image-display)
   (set-image-display-context! (image-display))
   (when-let [vscode-context @util/vscode-context]
     (when-let [listener (create-image-display-change-listener)]
@@ -261,8 +262,8 @@
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
-                              " csp-source ";
-                    script-src " (when is-debug " 'unsafe-eval' ") csp-source ";
+                              " css-href ";
+                    script-src " (when is-debug " 'unsafe-eval' ") js-source ";
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
                     form-action 'none';\">
