@@ -150,14 +150,16 @@
 
 (defn show-copied!
   [^js button]
-  (let [prior (.getAttribute button "aria-label")]
-    (set! (.. button -dataset -copied) "true")
-    (.setAttribute button "aria-label" "Copied")
-    (js/setTimeout (fn []
-                     (set! (.. button -dataset -copied) "false")
-                     (when prior
-                       (.setAttribute button "aria-label" prior)))
-                   1500)))
+  (when-let [pending (.-calvaCopyRestoreTimeout button)]
+    (js/clearTimeout pending))
+  (set! (.. button -dataset -copied) "true")
+  (.setAttribute button "aria-label" "Copied to clipboard")
+  (set! (.-calvaCopyRestoreTimeout button)
+        (js/setTimeout #(do (set! (.-calvaCopyRestoreTimeout button) nil)
+                            (set! (.. button -dataset -copied) "false")
+                            (when-let [original (.getAttribute button "data-copy-label")]
+                              (.setAttribute button "aria-label" original)))
+                       1500)))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -204,6 +206,7 @@
     (set! (.-type button) "button")
     (set! (.-title button) "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
+    (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
     (.. button (appendChild (create-icon-element "copy" copy-icon-path)))
     (.. button (appendChild (create-icon-element "check" check-icon-path)))
     (.. button (addEventListener "click" #(copy-image! button img image)))
