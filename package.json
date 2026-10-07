@@ -370,7 +370,7 @@
               "Show the raw text, as printed, with no thumbnails."
             ],
             "default": "images-including-remote-urls",
-            "markdownDescription": "How the Output views show images in REPL output: data URLs, local files, and remote URLs. The output window, output file and terminal always show the raw text. **Calva: Toggle Output View Image Display** switches it for the session."
+            "markdownDescription": "How the Output views show images in REPL output: data URLs, local files, and remote URLs. The output window, output file and terminal always show the raw text. **Calva: Cycle Output View Image Display** switches it for the session."
           },
           "calva.fiddleFilePaths": {
             "type": "array",
@@ -1864,28 +1864,10 @@
         "icon": "$(word-wrap)"
       },
       {
-        "command": "calva.toggleOutputViewImageDisplay",
-        "title": "Toggle Output View Image Display",
+        "command": "calva.cycleOutputViewImageDisplay",
+        "title": "Cycle Output View Image Display",
         "category": "Calva",
         "icon": "$(file-media)"
-      },
-      {
-        "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
-        "title": "Show images without remote URLs",
-        "category": "Calva",
-        "icon": "$(globe)"
-      },
-      {
-        "command": "calva.toggleOutputViewImageDisplayFromImages",
-        "title": "Show raw image data",
-        "category": "Calva",
-        "icon": "$(file-media)"
-      },
-      {
-        "command": "calva.toggleOutputViewImageDisplayFromRaw",
-        "title": "Show images including remote URLs",
-        "category": "Calva",
-        "icon": "$(code)"
       },
       {
         "command": "calva.decreaseOutputViewFontSize",
@@ -3684,18 +3666,6 @@
           "when": "true"
         },
         {
-          "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
-          "when": "false"
-        },
-        {
-          "command": "calva.toggleOutputViewImageDisplayFromImages",
-          "when": "false"
-        },
-        {
-          "command": "calva.toggleOutputViewImageDisplayFromRaw",
-          "when": "false"
-        },
-        {
           "command": "calva.debug.instrument",
           "when": "editorLangId == clojure"
         },
@@ -3870,18 +3840,8 @@
           "group": "navigation@3"
         },
         {
-          "command": "calva.toggleOutputViewImageDisplayFromImagesIncludingRemoteUrls",
-          "when": "view == calva.output-sidebar && calva:outputViewImageDisplay == images-including-remote-urls",
-          "group": "navigation@4"
-        },
-        {
-          "command": "calva.toggleOutputViewImageDisplayFromImages",
-          "when": "view == calva.output-sidebar && calva:outputViewImageDisplay == images",
-          "group": "navigation@4"
-        },
-        {
-          "command": "calva.toggleOutputViewImageDisplayFromRaw",
-          "when": "view == calva.output-sidebar && calva:outputViewImageDisplay == raw",
+          "command": "calva.cycleOutputViewImageDisplay",
+          "when": "view == calva.output-sidebar",
           "group": "navigation@4"
         },
         {

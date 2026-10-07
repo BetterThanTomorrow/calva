@@ -56,7 +56,7 @@ How the output views show images can be configured via the `calva.outputViewImag
 * `"images"` – data URLs and local files. Remote URLs stay as text, with no network request.
 * `"raw"` – the raw text, as printed.
 
-There is also a command for toggling image display in-session across both views: **Calva: Toggle Output View Image Display**. It cycles those three modes. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command. Its icon shows the current mode, and its title says which mode a click switches to.
+The command: **Calva: Cycle Output View Image Display** cycles image display in-session across both views, if issued with no argument. The command also takes one of the three modes as an argument and will switch (in-session) to the provided mode.
 
 The output window, output file and terminal always show the raw text.
 

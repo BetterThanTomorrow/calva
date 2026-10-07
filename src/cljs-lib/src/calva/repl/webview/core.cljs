@@ -136,12 +136,25 @@
                 -1)]
     (nth image-display-modes (mod (inc idx) n))))
 
-(defn ^:export toggle-image-display
-  []
-  (let [new-display (next-image-display (image-display))]
-    (reset! image-display-override new-display)
-    (set-image-display-context! new-display)
-    (post-image-display-to-all-views! new-display)))
+(defn apply-image-display!
+  [display]
+  (reset! image-display-override display)
+  (set-image-display-context! display)
+  (post-image-display-to-all-views! display))
+
+(defn ^:export cycle-image-display
+  ([]
+   (apply-image-display! (next-image-display (image-display))))
+  ([display]
+   (cond
+     (some #{display} image-display-modes)
+     (apply-image-display! display)
+
+     (string? display)
+     nil
+
+     :else
+     (apply-image-display! (next-image-display (image-display))))))
 
 (defn create-image-display-change-listener
   []
