@@ -1,6 +1,5 @@
 (ns calva.repl.webview.app-db-test
   (:require
-   [calva.repl.webview.fake-document]
    [calva.repl.webview.app-db :as sut]
    [cljs.test :refer-macros [deftest testing is]]))
 
