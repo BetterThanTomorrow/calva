@@ -276,28 +276,24 @@
 (defonce ^:private !pending-local-images (atom []))
 
 (defn- resolve-local-image!
-  "Asks the host for a webview URI. No-ops when a resolve was already posted for `img`, so flush
-   and the DOM scan on mode change do not double-post."
+  "Asks the host for a webview URI for a local image path."
   [^js img ^js thumbnail src]
-  (when-not (.-calvaLocalResolvePosted img)
-    (set! (.-calvaLocalResolvePosted img) true)
-    (let [id (host-request-id)]
-      (remember-host-request!
-       id
-       (fn [{:keys [webview-uri]}]
-         (if webview-uri
-           (do (set! (.-src img) webview-uri)
-               (.setAttribute img "src" webview-uri))
-           (remove-thumbnail! thumbnail))))
-      (post-to-host! {:command "resolve-local-image" :id id :src src}))))
+  (let [id (host-request-id)]
+    (remember-host-request!
+     id
+     (fn [{:keys [webview-uri]}]
+       (if webview-uri
+         (do (set! (.-src img) webview-uri)
+             (.setAttribute img "src" webview-uri))
+         (remove-thumbnail! thumbnail))))
+    (post-to-host! {:command "resolve-local-image" :id id :src src})))
 
 (defn- queue-pending-local!
   [^js img ^js thumbnail src]
   (swap! !pending-local-images conj {:img img :thumbnail thumbnail :src src}))
 
 (defn- img-src-unset?
-  "True when `img` has no `src` content attribute yet. Prefer this over `(.-src img)`, which
-   browsers may report as a resolved document URL even when the attribute was never set."
+  "True when `img` has no `src` attribute."
   [^js img]
   (str/blank? (or (.getAttribute img "src") "")))
 
@@ -525,42 +521,30 @@
 
 (defn- apply-remote-src!
   [image-display]
-  (when-let [query (.-querySelectorAll js/document)]
-    (when (fn? query)
-      (let [imgs (query "img[data-image-kind=\"remote\"]")]
-        (.forEach imgs
-                  (fn [^js img]
-                    (when (and (= "images-including-remote-urls" image-display)
-                               (.-calvaRemoteSrc img)
-                               (str/blank? (str (.-src img))))
-                      (set! (.-src img) (.-calvaRemoteSrc img)))))))))
+  (when (fn? (.-querySelectorAll js/document))
+    (let [imgs (.querySelectorAll js/document "img[data-image-kind=\"remote\"]")]
+      (.forEach imgs
+                (fn [^js img]
+                  (when (and (= "images-including-remote-urls" image-display)
+                             (.-calvaRemoteSrc img)
+                             (str/blank? (str (.-src img))))
+                    (set! (.-src img) (.-calvaRemoteSrc img))))))))
 
 (defn- apply-local-src!
-  "When leaving raw, resolve every local image that still has no `src`, the same lookup a fresh
-   evaluation uses. Flushes the queue from raw-mode appends, then scans the DOM so a lost queue
-   or a non-blank `img.src` IDL value cannot skip the lookup."
+  "When leaving raw, resolve local images that were queued while in raw mode."
   [image-display]
   (when-not (= "raw" image-display)
-    (flush-pending-local!)
-    (when-let [query (.-querySelectorAll js/document)]
-      (when (fn? query)
-        (let [imgs (query "img[data-image-kind=\"local\"]")]
-          (.forEach imgs
-                    (fn [^js img]
-                      (when (and (.-calvaLocalSrc img)
-                                 (img-src-unset? img))
-                        (when-let [thumb (.-parentNode img)]
-                          (resolve-local-image! img thumb (.-calvaLocalSrc img)))))))))))
+    (flush-pending-local!)))
 
 (defn set-image-display!
   [image-display]
   (some-> js/document .-body (.setAttribute "data-image-display" image-display))
-  (apply-remote-src! image-display)
-  (apply-local-src! image-display)
   (when (= "raw" image-display)
     (let [entries @!lazy-raw-entries]
       (reset! !lazy-raw-entries [])
-      (run! ensure-raw-form! entries))))
+      (run! ensure-raw-form! entries)))
+  (apply-remote-src! image-display)
+  (apply-local-src! image-display))
 
 (defn set-font-scale!
   [scale]

@@ -292,45 +292,74 @@
                                                     (if (= "" (str (.-authority ^js uri)))
                                                       (js/Promise.resolve #js {})
                                                       (js/Promise.reject (js/Error. "missing"))))}})
-                        base)]
-           (with-redefs [util/vscode (atom vscode)]
-             (reset! posted nil)
-             (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                    :id "exist"
-                                                    :src "/tmp/x.png"})
-             (js/setTimeout
-              (fn []
-                (is (str/includes? (str @posted) "local-image-resolved"))
-                (reset! posted nil)
-                (set! (.. ^js vscode -workspace -fs -stat)
-                      (fn [_] (js/Promise.reject (js/Error. "missing"))))
-                (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                       :id "missing"
-                                                       :src "/tmp/nope.png"})
-                (js/setTimeout
-                 (fn []
-                   (is (str/includes? (str @posted) "local-image-missing"))
-                   (done))
-                 20))
-              20)))))
+                        base)
+               !settled (atom false)
+               finish! (fn []
+                         (when (compare-and-set! !settled false true)
+                           (done)))]
+           (-> (js/Promise.resolve nil)
+               (.then (fn []
+                        (with-redefs [util/vscode (atom vscode)]
+                          (reset! posted nil)
+                          (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                 :id "exist"
+                                                                 :src "/tmp/x.png"}))
+                        (js/Promise.
+                         (fn [resolve]
+                           (js/setTimeout
+                            (fn []
+                              (is (str/includes? (str @posted) "local-image-resolved"))
+                              (resolve nil))
+                            20)))))
+               (.then (fn []
+                        (with-redefs [util/vscode (atom vscode)]
+                          (reset! posted nil)
+                          (set! (.. ^js vscode -workspace -fs -stat)
+                                (fn [_] (js/Promise.reject (js/Error. "missing"))))
+                          (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                 :id "missing"
+                                                                 :src "/tmp/nope.png"}))
+                        (js/Promise.
+                         (fn [resolve]
+                           (js/setTimeout
+                            (fn []
+                              (is (str/includes? (str @posted) "local-image-missing"))
+                              (resolve nil))
+                            20)))))
+               (.then (fn [_] (finish!)))
+               (.catch (fn [e]
+                         (is false (str e))
+                         (finish!)))))))
 
 (deftest resolve-local-image-file-four-slash-fails-closed-test
   (async done
          (let [posted (atom nil)
                host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
                                        :postMessage (fn [s] (reset! posted s))}}
-               vscode (fake-vscode)]
-           (with-redefs [util/vscode (atom vscode)]
-             (reset! posted nil)
-             (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                    :id "unc"
-                                                    :src "file:////server/share/x.png"})
-             (js/setTimeout
-              (fn []
-                (is (str/includes? (str @posted) "local-image-missing")
-                    "file://// fails closed and the handler still replies")
-                (done))
-              20)))))
+               vscode (fake-vscode)
+               !settled (atom false)
+               finish! (fn []
+                         (when (compare-and-set! !settled false true)
+                           (done)))]
+           (-> (js/Promise.resolve nil)
+               (.then (fn []
+                        (with-redefs [util/vscode (atom vscode)]
+                          (reset! posted nil)
+                          (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                 :id "unc"
+                                                                 :src "file:////server/share/x.png"}))
+                        (js/Promise.
+                         (fn [resolve]
+                           (js/setTimeout
+                            (fn []
+                              (is (str/includes? (str @posted) "local-image-missing")
+                                  "file://// fails closed and the handler still replies")
+                              (resolve nil))
+                            20)))))
+               (.then (fn [_] (finish!)))
+               (.catch (fn [e]
+                         (is false (str e))
+                         (finish!)))))))
 
 (deftest resolve-local-image-rejects-non-image-paths-test
   (async done
