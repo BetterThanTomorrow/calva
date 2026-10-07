@@ -131,6 +131,34 @@
   [image]
   (str "<<" (label image) ">>"))
 
+(defn- newline-at
+  "Length of a newline at `i`, or 0."
+  [text i]
+  (cond
+    (= "\n" (get text i)) 1
+    (and (= "\r" (get text i)) (= "\n" (get text (inc i)))) 2
+    (= "\r" (get text i)) 1
+    :else 0))
+
+(defn- line-pos-at
+  "`[line-index line-offset]` for character index `abs` in `text`."
+  [text abs]
+  (loop [i 0 line 0 line-start 0]
+    (if (>= i abs)
+      [line (- abs line-start)]
+      (let [nl (newline-at text i)]
+        (if (pos? nl)
+          (recur (+ i nl) (inc line) (+ i nl))
+          (recur (inc i) line line-start))))))
+
+(defn- with-placeholder-line-pos
+  "Adds `:image/line-index` and `:image/line-offset` from each image's placeholder in `text`."
+  [text image]
+  (if-let [abs (str/index-of text (placeholder image))]
+    (let [[line-idx line-offset] (line-pos-at text abs)]
+      (assoc image :image/line-index line-idx :image/line-offset line-offset))
+    image))
+
 (defn- data-url-images
   [text]
   (if-not (str/includes? text "data:image/")
@@ -147,9 +175,10 @@
           ends (cons 0 (map :end found))
           pieces (mapcat (fn [rest-start {:keys [start]} image]
                            [(subs text rest-start start) (placeholder image)])
-                         ends found images)]
-      {:text (apply str (concat pieces [(subs text (last ends))]))
-       :images (vec images)})))
+                         ends found images)
+          new-text (apply str (concat pieces [(subs text (last ends))]))]
+      {:text new-text
+       :images (mapv #(with-placeholder-line-pos new-text %) images)})))
 
 (defn extract-images
   "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
@@ -175,26 +204,23 @@
   (or (:image/source image) (placeholder image)))
 
 (defn- images-on-line
-  "Images that belong under this line, ordered by their position in the line."
-  [line-idx line by-line data-urls]
-  (let [indexed (get by-line line-idx [])
-        from-indexed (map-indexed
-                      (fn [tie image]
-                        [(or (str/index-of line (source-of image))
-                             (+ (count line) tie))
-                         image])
-                      indexed)
-        from-data (keep (fn [image]
-                          (when-let [idx (str/index-of line (source-of image))]
-                            [idx image]))
-                        data-urls)]
-    (->> (concat from-indexed from-data)
+  "Images that belong under this line, ordered by position in the line.
+   Indexed images use `:image/line-offset`; unindexed ones match their source text."
+  [line-idx line by-line unindexed]
+  (let [from-indexed (map (fn [image]
+                            [(:image/line-offset image) image])
+                          (get by-line line-idx []))
+        from-unindexed (keep (fn [image]
+                               (when-let [idx (str/index-of line (source-of image))]
+                                 [idx image]))
+                             unindexed)]
+    (->> (concat from-indexed from-unindexed)
          (sort-by first)
          (mapv second))))
 
 (defn- add-line-to-segments
-  [{:keys [buf out line-idx]} line by-line data-urls]
-  (let [on-line (images-on-line line-idx line by-line data-urls)]
+  [{:keys [buf out line-idx]} line by-line unindexed]
+  (let [on-line (images-on-line line-idx line by-line unindexed)]
     (if (seq on-line)
       {:buf []
        :out (conj out {:text (apply str (conj buf line))
@@ -209,11 +235,11 @@
    `{:text line-or-lines :images [...]}`: those images belong directly below that text.
    Images that never appear in `text` are a last segment with empty text."
   [text images]
-  (let [by-line (group-by :image/line-index (filter :image/line-index images))
-        data-urls (into [] (remove :image/line-index images))
+  (let [by-line (group-by :image/line-index (filter #(contains? % :image/line-index) images))
+        unindexed (into [] (remove #(contains? % :image/line-index) images))
         lines (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" (or text ""))
         {:keys [buf out]} (reduce (fn [state line]
-                                    (add-line-to-segments state line by-line data-urls))
+                                    (add-line-to-segments state line by-line unindexed))
                                   {:buf [] :out [] :line-idx 0}
                                   lines)
         segments (cond-> out
