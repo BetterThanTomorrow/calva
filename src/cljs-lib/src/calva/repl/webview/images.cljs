@@ -1,9 +1,9 @@
 (ns calva.repl.webview.images
   "Base64 image data URL detection for the output views. The pattern starts from Backseat Driver
-   `reduce-images`, with the image subtype restricted to MIME token characters so a match cannot
-   run across prose to a later `;base64,`. Optional `;name=value` MIME parameters (token characters
-   only) may sit between the image type and ;base64. Whole-line image URLs and file paths are
-   added by `calva.repl.webview.image-refs` without replacing the source text."
+   reduce-images, with the image subtype restricted to MIME token characters so a match cannot
+   run across prose to a later ;base64,. Optional ;name=value MIME parameters (token characters
+   only) may sit between the image type and ;base64. Image URLs and file paths are added by
+   calva.repl.webview.image-refs without replacing the source text."
   (:require
    [calva.repl.webview.image-refs :as image-refs]
    [clojure.string :as str]))
@@ -153,16 +153,22 @@
 
 (defn extract-images
   "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
-   Whole-line image URLs and file paths are returned as extra images and left in the text.
-   Returns `{:text ... :images [image ...]}`."
-  [text]
-  (let [{:keys [text images]} (data-url-images text)
-        n0 (count images)
-        refs (map-indexed (fn [i image]
-                            (assoc image :image/n (+ n0 (inc i))))
-                          (image-refs/image-refs text))]
-    {:text text
-     :images (into (vec images) refs)}))
+   Image URLs and file paths are returned as extra images and left in the text. Pass
+   `{:refs :result}` for evaluation results (every matching printed string); the default is
+   whole-line matching for stdout and stderr. Returns `{:text ... :images [image ...]}`."
+  ([text]
+   (extract-images text {:refs :whole-line}))
+  ([text {:keys [refs] :or {refs :whole-line}}]
+   (let [{:keys [text images]} (data-url-images text)
+         n0 (count images)
+         ref-images (case refs
+                      :result (image-refs/result-image-refs text)
+                      (image-refs/image-refs text))
+         numbered (map-indexed (fn [i image]
+                                 (assoc image :image/n (+ n0 (inc i))))
+                               ref-images)]
+     {:text text
+      :images (into (vec images) numbered)})))
 
 (defn- source-of
   [image]

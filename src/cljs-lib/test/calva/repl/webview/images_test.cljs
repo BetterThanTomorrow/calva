@@ -253,3 +253,13 @@
           text (str printed "\n")]
       (is (= [{:text text :images [img]}]
              (sut/segments-with-images text [img]))))))
+
+(deftest result-extract-images-test
+  (testing "result refs find every matching printed string inside a map"
+    (let [text (pr-str {:icon "calva-symbol.svg" :logo "https://example.com/x.png"})
+          {:keys [images]} (sut/extract-images text {:refs :result})]
+      (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
+      (is (= [1 2] (mapv :image/n images)))))
+  (testing "default extract-images stays whole-line for stdout-shaped text"
+    (let [text (pr-str {:icon "calva-symbol.svg"})]
+      (is (= {:text text :images []} (sut/extract-images text))))))

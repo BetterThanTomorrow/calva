@@ -1,10 +1,11 @@
 (ns calva.repl.webview.image-refs
-  "Whole-line image URLs and file paths in output. A match is the whole line (whitespace trimmed),
+  "Image URLs and file paths in output. Stdout and stderr match a whole line (whitespace trimmed),
    or the contents of a Clojure-printed string that is the whole line. Mentions inside a longer
-   line do not count. Data URLs stay in `calva.repl.webview.images`.
+   line do not count. Evaluation results also match every printed string whose whole contents are
+   an image URL, file URI, or image path. Data URLs stay in calva.repl.webview.images.
 
-   Path rule: an absolute path (POSIX `/` or a Windows drive letter) and a `file:///` URI may
-   contain spaces; a relative path may not contain whitespace; `~` is not expanded."
+   Path rule: an absolute path (POSIX / or a Windows drive letter) and a file:/// URI may
+   contain spaces; a relative path may not contain whitespace; ~ is not expanded."
   (:require
    [cljs.reader :as reader]
    [clojure.string :as str]))
@@ -129,4 +130,99 @@
                         (when-let [image (image-ref (line-token line))]
                           (assoc image :image/line-index idx))))
          (keep identity)
+         vec)))
+
+(defn- next-in-string
+  "Next index inside a string at `i`, `:closed` at the closing quote, or nil if truncated."
+  [text i]
+  (let [c (get text i)]
+    (cond
+      (nil? c) nil
+      (= "\\" c) (when (get text (inc i)) (+ i 2))
+      (= "\"" c) :closed
+      :else (inc i))))
+
+(defn- string-literal-end*
+  [text i]
+  (let [n (next-in-string text i)]
+    (cond
+      (nil? n) nil
+      (= :closed n) (inc i)
+      :else (recur text n))))
+
+(defn- string-literal-end
+  "Index after the closing quote of the string starting at `start`, or nil."
+  [text start]
+  (when (= "\"" (get text start))
+    (string-literal-end* text (inc start))))
+
+(defn- newline-length-at
+  "Length of a newline starting at `i`, or 0."
+  [text i]
+  (let [c (get text i)]
+    (cond
+      (= "\n" c) 1
+      (and (= "\r" c) (= "\n" (get text (inc i)))) 2
+      (= "\r" c) 1
+      :else 0)))
+
+(defn- step-line-index
+  [text n j]
+  (let [nl (newline-length-at text j)]
+    (if (pos? nl)
+      [(inc n) (+ j nl)]
+      [n (inc j)])))
+
+(defn- line-index-at
+  [text i]
+  (loop [n 0 j 0]
+    (if (>= j i)
+      n
+      (let [[n' j'] (step-line-index text n j)]
+        (recur n' j')))))
+
+(defn- image-ref-at-printed-string
+  [text start end]
+  (when-let [contents (unwrap-printed-string (subs text start end))]
+    (when-let [image (image-ref contents)]
+      (assoc image :image/line-index (line-index-at text start)))))
+
+(defn- conj-printed-string-ref
+  [found text start end]
+  (if-let [image (image-ref-at-printed-string text start end)]
+    (conj found image)
+    found))
+
+(defn- advance-printed-string-scan
+  [text q found]
+  (if-let [end (string-literal-end text q)]
+    [end (conj-printed-string-ref found text q end)]
+    [(inc q) found]))
+
+(defn- scan-printed-string-refs
+  [text]
+  (loop [i 0 found []]
+    (if-let [q (str/index-of text "\"" i)]
+      (let [[ni found'] (advance-printed-string-scan text q found)]
+        (recur ni found'))
+      found)))
+
+(defn- printed-string-image-refs
+  "Image refs from Clojure-printed string literals in `text`, in appearance order."
+  [text]
+  (if (string? text)
+    (scan-printed-string-refs text)
+    []))
+
+(defn result-image-refs
+  "Image refs for an evaluation result: every matching printed string, plus whole-line refs that
+   are not already covered by a string on that line. Appearance order."
+  [text]
+  (let [from-strings (printed-string-image-refs text)
+        seen (into #{} (map (juxt :image/src :image/line-index) from-strings))
+        from-lines (->> (image-refs text)
+                        (remove (fn [img]
+                                  (contains? seen [(:image/src img) (:image/line-index img)]))))]
+    (->> (concat from-strings from-lines)
+         (sort-by :image/line-index)
          vec)))
