@@ -80,17 +80,17 @@ The table below lists the features of the different output destinations.
 | Feature | REPL Window | Output View | Output Sidebar | Output Channel | Terminal |
 | :------ | :---------: | :---------: | :-----------: | :------------: | :------: |
 | Can be placed in VS Code Panel views (sidebars and bottom panel) | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Can be placed in VS Code Editors area | ✅ | ✅ | ❌ | ✅ |
-| Rich stack traces | ✅ | ❌ * | ❌ | ❌ |
-| Paredit navigation and selection | ✅ | ❌ * | ❌ | ❌ |
-| Button to copy specific output | ❌ | ✅ | ✅ | ❌ |
-| Syntax highlighting | ✅ | ✅ | ✅ | ✅ |
-| Syntax highlighting matches editor | ✅ | ❌ * | ❌ | ❌ |
-| Supports input | ✅ | ❌ | ❌ | ❌ * |
-| ANSI Escape sequences (TUI things) | ❌ | ❌ | ❌ | ✅ |
-| Handles high volume output well | ❌ | ✅ | ✅ | ✅ |
-| Handles large data structures well | ❌ | ✅ | ✅ | ✅ |
-| Command for clearing output | ❌ | ✅ | ✅ | ✅ |
+| Can be placed in VS Code Editors area | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Image display | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Rich stack traces | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Paredit navigation and selection | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Button to copy specific output | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Syntax highlighting | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Syntax highlighting matches editor | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Supports input | ✅ | ❌ * | ❌ * |  ❌ | ❌ * |
+| ANSI Escape sequences (TUI things) | ❌ | ❌ * | ❌ * | ❌ | ✅ |
+| Handles high volume output well | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Handles large data structures well | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 \* Support can be added.
 

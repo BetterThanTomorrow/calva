@@ -794,7 +794,7 @@
                                                                      :image-display "raw"}))
         (is (spy/called-n-times? post-message-to-webview-spy 2))))))
 
-(deftest toggle-image-display-test
+(deftest cycle-image-display-test
   (testing "cycles \"images-including-remote-urls\" to \"images\""
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
@@ -802,7 +802,7 @@
                     sut/get-image-display-setting (constantly "images-including-remote-urls")
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
-        (sut/toggle-image-display)
+        (sut/cycle-image-display)
         (is (= "images" @sut/image-display-override))
         (is (spy/called-once-with? set-context-spy "images"))
         (is (spy/called-once-with? post-spy "images")))))
@@ -813,7 +813,7 @@
                     sut/get-image-display-setting (constantly "images")
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
-        (sut/toggle-image-display)
+        (sut/cycle-image-display)
         (is (= "raw" @sut/image-display-override))
         (is (spy/called-once-with? set-context-spy "raw"))
         (is (spy/called-once-with? post-spy "raw")))))
@@ -823,9 +823,41 @@
                     sut/get-image-display-setting (constantly "images")
                     sut/set-image-display-context! (constantly nil)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
-        (sut/toggle-image-display)
+        (sut/cycle-image-display)
         (is (= "images-including-remote-urls" @sut/image-display-override))
-        (is (spy/called-once-with? post-spy "images-including-remote-urls"))))))
+        (is (spy/called-once-with? post-spy "images-including-remote-urls")))))
+  (testing "passing \"raw\" selects \"raw\" when setting is \"images-including-remote-urls\" and override is nil"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display "raw")
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "passing an invalid mode leaves override in place and does not set context or post"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display "nope")
+        (is (= "images" @sut/image-display-override))
+        (is (spy/not-called? set-context-spy))
+        (is (spy/not-called? post-spy)))))
+  (testing "a non-string argument cycles, the way the sidebar button calls the command"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display nil)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images"))
+        (is (spy/called-once-with? post-spy "images"))))))
 
 (deftest create-image-display-change-listener-test
   (let [captured-handler (atom nil)
