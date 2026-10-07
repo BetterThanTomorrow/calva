@@ -235,8 +235,9 @@
                                                 :cspSource "some-csp-source"}})
           get-webview-html-spy (spy/stub "some-html")
           fixed-nonce "11111111-1111-1111-1111-111111111111"
-          orig-random-uuid (.-randomUUID js/crypto)]
-      (set! (.-randomUUID js/crypto) (fn [] fixed-nonce))
+          crypto-mod (js/require "crypto")
+          orig-random-uuid (.-randomUUID crypto-mod)]
+      (set! (.-randomUUID crypto-mod) (fn [] fixed-nonce))
       (try
         (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
                       sut/get-css-path (test-util/wrap-spy get-css-path-spy)
@@ -266,7 +267,7 @@
           (testing "should set webview html to result of call to get-webview-html"
             (is (= "some-html" (.. webview-panel -webview -html)))))
         (finally
-          (set! (.-randomUUID js/crypto) orig-random-uuid))))))
+          (set! (.-randomUUID crypto-mod) orig-random-uuid))))))
 
 (deftest set-code-theme!-test
   (testing "Given a context and a ColorThemeKind,"

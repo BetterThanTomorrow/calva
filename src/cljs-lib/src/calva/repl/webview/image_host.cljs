@@ -12,7 +12,7 @@
   (mapv #(.file uri-api (str % ":\\")) "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
 
 (defn file-root-uris
-  "Filesystem roots for webview localResourceRoots: every drive letter on win32, else `/`."
+  "Filesystem roots for webview localResourceRoots: every drive letter when `platform` is win32, else `/`."
   [^js vscode platform]
   (when-let [uri (some-> vscode .-Uri)]
     (if (= "win32" platform)

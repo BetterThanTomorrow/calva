@@ -336,6 +336,10 @@
   (async done
          (let [posted (atom nil)
                stat-calls (atom 0)
+               !settled (atom false)
+               finish! (fn []
+                         (when (compare-and-set! !settled false true)
+                           (done)))
                host #js {:webview #js {:asWebviewUri (fn [uri] (str "webview:" uri))
                                        :postMessage (fn [s] (reset! posted s))}}
                vscode (let [base (fake-vscode)]
@@ -347,9 +351,10 @@
                refuse! (fn [id src]
                          (reset! posted nil)
                          (reset! stat-calls 0)
-                         (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                                :id id
-                                                                :src src})
+                         (with-redefs [util/vscode (atom vscode)]
+                           (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                  :id id
+                                                                  :src src}))
                          (js/Promise.
                           (fn [resolve]
                             (js/setTimeout
@@ -360,11 +365,13 @@
                                    (str "stat never called: " id))
                                (resolve nil))
                              20))))]
-           (with-redefs [util/vscode (atom vscode)]
-             (-> (refuse! "passwd-path" "/etc/passwd")
-                 (.then #(refuse! "passwd-uri" "file:///etc/passwd"))
-                 (.then #(refuse! "non-string" 42))
-                 (.then done))))))
+           (-> (refuse! "passwd-path" "/etc/passwd")
+               (.then #(refuse! "passwd-uri" "file:///etc/passwd"))
+               (.then #(refuse! "non-string" 42))
+               (.then (fn [_] (finish!)))
+               (.catch (fn [e]
+                         (is false (str e))
+                         (finish!)))))))
 
 (deftest file-root-uris-test
   (testing "POSIX root"

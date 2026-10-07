@@ -29,14 +29,6 @@
     (images/extract-images output)
     {:text output :images []}))
 
-(defn- raw-display?
-  "True when the output webview body is in raw image-display mode."
-  []
-  (boolean
-   (and (exists? js/document)
-        (.-body js/document)
-        (= "raw" (.getAttribute (.-body js/document) "data-image-display")))))
-
 (defn- continues-pending?
   [db command-name category]
   (and (= "show-stdout" command-name)
@@ -46,46 +38,36 @@
   "Joins pending stdout of the same `category` with `output`, then splits off a tail that may
    continue in the next chunk: nREPL sends stdout in chunks of about 1 kB, which cuts long image
    data URLs. Returns `{:shown text :pending {:text :category}}`, `:pending` nil when nothing is
-   held back. In raw mode nothing is held back: every chunk is shown as printed."
+   held back."
   [db output category]
   (let [joined (if (continues-pending? db "show-stdout" category)
                  (str (get-in db [:output/pending-stdout :text]) output)
-                 output)]
-    (if (raw-display?)
+                 output)
+        start (when (string? joined)
+                (images/pending-start joined))]
+    (if start
+      {:shown (subs joined 0 start)
+       :pending {:text (subs joined start) :category category}}
       {:shown joined
-       :pending nil}
-      (let [start (when (string? joined)
-                    (images/pending-start joined))]
-        (if start
-          {:shown (subs joined 0 start)
-           :pending {:text (subs joined start) :category category}}
-          {:shown joined
-           :pending nil})))))
+       :pending nil})))
 
 (defn- stdout-fxs
   "Stdout with images is appended as both forms: `:text` with placeholders plus `:images`, and the
-   original text as `:raw`. In raw mode every line is appended as plain text, as printed."
+   original text as `:raw`."
   [output category]
-  (if (raw-display?)
-    (if (seq output)
-      [[:fx/append-stdout output category]]
-      [])
-    (let [{:keys [text images] :as extracted} (output-text-and-images "show-stdout" output)]
-      (cond
-        (seq images) [[:fx/append-stdout-with-images (assoc extracted :raw output) category]]
-        (seq text) [[:fx/append-stdout text category]]
-        :else []))))
+  (let [{:keys [text images] :as extracted} (output-text-and-images "show-stdout" output)]
+    (cond
+      (seq images) [[:fx/append-stdout-with-images (assoc extracted :raw output) category]]
+      (seq text) [[:fx/append-stdout text category]]
+      :else [])))
 
 (defn- result-fxs
-  "A result with images is appended as both forms, like stdout. In raw mode the result is appended
-   as plain text, as printed."
+  "A result with images is appended as both forms, like stdout."
   [output]
-  (if (raw-display?)
-    [[:fx/append-result output]]
-    (let [{:keys [images] :as extracted} (output-text-and-images "show-result" output)]
-      (if (seq images)
-        [[:fx/append-result-with-images (assoc extracted :raw output)]]
-        [[:fx/append-result output]]))))
+  (let [{:keys [images] :as extracted} (output-text-and-images "show-result" output)]
+    (if (seq images)
+      [[:fx/append-result-with-images (assoc extracted :raw output)]]
+      [[:fx/append-result output]])))
 
 (defn- message-update
   "The pending stdout and the append fxs for one output message."
