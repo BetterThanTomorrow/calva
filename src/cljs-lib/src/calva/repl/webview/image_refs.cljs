@@ -120,8 +120,9 @@
     (or (unwrap-printed-string trimmed) trimmed)))
 
 (defn image-refs
-  "Whole-line image URL or image file path refs in `text`, as image maps with `:image/kind` `:remote` or
-   `:local` and `:image/line-index` (0-based line in `text`). Does not replace the source text."
+  "Image URLs and image file paths that fill a whole line of `text`, as image maps with `:image/kind`
+   `:remote` or `:local` and `:image/line-index` (0-based line in `text`). Does not replace the source
+   text."
   [text]
   (if-not (string? text)
     []
@@ -173,38 +174,66 @@
       [(inc n) (+ j nl)]
       [n (inc j)])))
 
-(defn- line-index-at
-  [text i]
-  (loop [n 0 j 0]
-    (if (>= j i)
+(defn- line-index-from
+  "Line index at `to`, carrying `line` forward from index `from`."
+  [text from to line]
+  (loop [n line j from]
+    (if (>= j to)
       n
       (let [[n' j'] (step-line-index text n j)]
         (recur n' j')))))
 
+(defn- quote-after-backslash?
+  "True when the quote at `q` is preceded by a backslash (printed char literal)."
+  [text q]
+  (and (pos? q)
+       (= "\\" (get text (dec q)))))
+
+(defn- hash-prefixed-string-quote?
+  "True when the quote at `q` opens a printed form that starts with # (regex or tag)."
+  [text q]
+  (and (pos? q)
+       (= "#" (get text (dec q)))))
+
 (defn- image-ref-at-printed-string
-  [text start end]
+  [text start end line]
   (when-let [contents (unwrap-printed-string (subs text start end))]
     (when-let [image (image-ref contents)]
-      (assoc image :image/line-index (line-index-at text start)))))
+      (assoc image :image/line-index line))))
 
 (defn- conj-printed-string-ref
-  [found text start end]
-  (if-let [image (image-ref-at-printed-string text start end)]
+  [found text start end line]
+  (if-let [image (image-ref-at-printed-string text start end line)]
     (conj found image)
     found))
 
-(defn- advance-printed-string-scan
-  [text q found]
+(defn- consume-printed-string
+  "Advance past the string at `q`; optionally keep an image ref. Returns `[ni line found]`."
+  [text q line found keep?]
   (if-let [end (string-literal-end text q)]
-    [end (conj-printed-string-ref found text q end)]
-    [(inc q) found]))
+    [end
+     (line-index-from text q end line)
+     (if keep?
+       (conj-printed-string-ref found text q end line)
+       found)]
+    [(inc q) line found]))
 
 (defn- scan-printed-string-refs
   [text]
-  (loop [i 0 found []]
+  (loop [i 0 line 0 found []]
     (if-let [q (str/index-of text "\"" i)]
-      (let [[ni found'] (advance-printed-string-scan text q found)]
-        (recur ni found'))
+      (let [line-at-q (line-index-from text i q line)]
+        (cond
+          (quote-after-backslash? text q)
+          (recur (inc q) line-at-q found)
+
+          (hash-prefixed-string-quote? text q)
+          (let [[ni line' found'] (consume-printed-string text q line-at-q found false)]
+            (recur ni line' found'))
+
+          :else
+          (let [[ni line' found'] (consume-printed-string text q line-at-q found true)]
+            (recur ni line' found'))))
       found)))
 
 (defn- printed-string-image-refs

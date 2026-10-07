@@ -93,4 +93,24 @@
     (is (= ["/tmp/bare.png"]
            (mapv :image/src (sut/result-image-refs "/tmp/bare.png\n")))))
   (testing "stdout keeps the whole-line rule: nested strings are not image-refs"
-    (is (= [] (sut/image-refs (pr-str {:icon "calva-symbol.svg"}))))))
+    (is (= [] (sut/image-refs (pr-str {:icon "calva-symbol.svg"})))))
+  (testing "a character literal quote does not hide later image strings"
+    (let [bs "\\"
+          q "\""
+          vec-text (str "[" bs q " " q "x.png" q "]")
+          map-text (str "{:a " bs q ", :c " q "bar.png" q "}")]
+      (is (= ["x.png"] (mapv :image/src (sut/result-image-refs vec-text))))
+      (is (= ["bar.png"] (mapv :image/src (sut/result-image-refs map-text))))))
+  (testing "a printed regex is not an image string"
+    (let [q "\""
+          text (str "[#" q "cat.png" q " " q "y.png" q "]")]
+      (is (= ["y.png"] (mapv :image/src (sut/result-image-refs text))))))
+  (testing "many image strings on one line scan fast"
+    (let [text (pr-str (vec (repeat 3000 "tmp/a.png")))
+          t0 (.now js/Date)
+          images (sut/result-image-refs text)
+          elapsed (- (.now js/Date) t0)]
+      (is (= 3000 (count images)))
+      (is (= (vec (repeat 3000 0)) (mapv :image/line-index images)))
+      (is (< elapsed 1000)
+          (str "expected under 1000ms, took " elapsed "ms")))))
