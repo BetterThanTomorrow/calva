@@ -1,9 +1,9 @@
 (ns calva.repl.webview.images
   "Base64 image data URL detection for the output views. The pattern starts from Backseat Driver
-   reduce-images, with the image subtype restricted to MIME token characters so a match cannot
-   run across prose to a later ;base64,. Optional ;name=value MIME parameters (token characters
-   only) may sit between the image type and ;base64. Image URLs and file paths are added by
-   calva.repl.webview.image-refs without replacing the source text."
+   `reduce-images`, with the image subtype restricted to MIME token characters so a match cannot
+   run across prose to a later `;base64,`. Optional `;name=value` MIME parameters (token characters
+   only) may sit between the image type and `;base64`. Image URLs and file paths are added by
+   `calva.repl.webview.image-refs` without replacing the source text."
   (:require
    [calva.repl.webview.image-refs :as image-refs]
    [clojure.string :as str]))
@@ -153,7 +153,7 @@
 
 (defn extract-images
   "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
-   Image URLs and file paths are returned as extra images and left in the text. Pass
+   Image URLs and image file paths are returned as extra images and left in the text. Pass
    `{:refs :result}` for evaluation results (every matching printed string); the default is
    whole-line matching for stdout and stderr. Returns `{:text ... :images [image ...]}`."
   ([text]
