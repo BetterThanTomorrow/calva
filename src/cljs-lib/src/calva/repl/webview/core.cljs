@@ -311,7 +311,7 @@
         css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
-        script-nonce (str (random-uuid))
+        script-nonce (js/crypto.randomUUID)
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source

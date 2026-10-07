@@ -115,24 +115,11 @@
                         [])
         body (mock-body {:chunks chunk-bytes
                          :never-ends never-ends
-                         :signal signal})
-        array-buffer (fn []
-                       (if never-ends
-                         (js/Promise.
-                          (fn [_resolve reject]
-                            (let [fail! #(reject (js/Error. "aborted"))]
-                              (if (and signal (.-aborted signal))
-                                (fail!)
-                                (when signal
-                                  (.addEventListener signal "abort" fail! #js {:once true}))))))
-                         (let [flat (into [] (mapcat identity chunk-bytes))
-                               u8 (js/Uint8Array. (clj->js flat))]
-                           (js/Promise.resolve (.-buffer u8)))))]
+                         :signal signal})]
     #js {:ok ok
          :status status
          :headers (headers-map headers)
-         :body body
-         :arrayBuffer array-buffer}))
+         :body body}))
 
 (deftest fetch-image-bytes-refusals-test
   (async done
@@ -341,40 +328,37 @@
                               #js {:fs #js {:stat (fn [_uri]
                                                     (swap! stat-calls inc)
                                                     (js/Promise.resolve #js {}))}})
-                        base)]
+                        base)
+               refuse! (fn [id src]
+                         (reset! posted nil)
+                         (reset! stat-calls 0)
+                         (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                :id id
+                                                                :src src})
+                         (js/Promise.
+                          (fn [resolve]
+                            (js/setTimeout
+                             (fn []
+                               (is (str/includes? (str @posted) "local-image-missing")
+                                   (str "refused: " id))
+                               (is (zero? @stat-calls)
+                                   (str "stat never called: " id))
+                               (resolve nil))
+                             20))))]
            (with-redefs [util/vscode (atom vscode)]
-             (reset! posted nil)
-             (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                    :id "passwd"
-                                                    :src "/etc/passwd"})
-             (js/setTimeout
-              (fn []
-                (is (str/includes? (str @posted) "local-image-missing")
-                    "non-image path is refused")
-                (is (zero? @stat-calls)
-                    "stat is never called for a non-image path")
-                (done))
-              20)))))
+             (-> (refuse! "passwd-path" "/etc/passwd")
+                 (.then #(refuse! "passwd-uri" "file:///etc/passwd"))
+                 (.then #(refuse! "non-string" 42))
+                 (.then done))))))
 
 (deftest file-root-uris-test
   (testing "POSIX root"
-    (reset! sut/!platform-override "darwin")
-    (try
-      (let [roots (sut/file-root-uris (fake-vscode))]
-        (is (= 1 (count roots)))
-        (is (= "/" (.-fsPath ^js (first roots)))))
-      (finally
-        (reset! sut/!platform-override nil))))
-  (testing "win32 roots for every existing drive"
-    (let [seen (atom [])]
-      (reset! sut/!platform-override "win32")
-      (try
-        (with-redefs [sut/drive-exists? (fn [root]
-                                          (swap! seen conj root)
-                                          (contains? #{"C:\\" "D:\\"} root))]
-          (let [roots (sut/file-root-uris (fake-vscode))
-                paths (mapv #(.-fsPath ^js %) roots)]
-            (is (= ["C:\\" "D:\\"] paths))
-            (is (= 26 (count @seen)) "every drive letter is checked")))
-        (finally
-          (reset! sut/!platform-override nil))))))
+    (let [roots (sut/file-root-uris (fake-vscode) "darwin")]
+      (is (= 1 (count roots)))
+      (is (= "/" (.-fsPath ^js (first roots))))))
+  (testing "win32 roots for every drive letter"
+    (let [roots (sut/file-root-uris (fake-vscode) "win32")
+          paths (mapv #(.-fsPath ^js %) roots)]
+      (is (= 26 (count paths)))
+      (is (= "A:\\" (first paths)))
+      (is (= "Z:\\" (last paths))))))

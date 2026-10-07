@@ -234,35 +234,39 @@
           ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
                                                 :cspSource "some-csp-source"}})
           get-webview-html-spy (spy/stub "some-html")
-          fixed-nonce #uuid "11111111-1111-1111-1111-111111111111"]
-      (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
-                    sut/get-css-path (test-util/wrap-spy get-css-path-spy)
-                    greeting/logo-webview-uri (constantly "some-logo-href")
-                    greeting/html-for-view (constantly "some-greeting")
-                    sut/word-wrap? (constantly true)
-                    sut/get-output-views-font-scale-setting (constantly 1.5)
-                    sut/image-display (constantly "raw")
-                    random-uuid (constantly fixed-nonce)
-                    sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
-        (sut/set-webview-html! context {:webview-panel webview-panel})
-        (testing "should call get-js-source with expected args"
-          (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-        (testing "should call get-css-path with expected args"
-          (is (spy/called-once-with? get-css-path-spy context)))
-        (testing "should call asWebviewUri once for the CSS"
-          (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
-        (testing "should call get-webview-html with expected args including a script nonce"
-          (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
-                                                                   :css-href "some-css-href"
-                                                                   :csp-source "some-csp-source"
-                                                                   :script-nonce (str fixed-nonce)
-                                                                   :code-theme nil
-                                                                   :greeting-html "some-greeting"
-                                                                   :word-wrap? true
-                                                                   :font-scale 1.5
-                                                                   :image-display "raw"})))
-        (testing "should set webview html to result of call to get-webview-html"
-          (is (= "some-html" (.. webview-panel -webview -html))))))))
+          fixed-nonce "11111111-1111-1111-1111-111111111111"
+          orig-random-uuid (.-randomUUID js/crypto)]
+      (set! (.-randomUUID js/crypto) (fn [] fixed-nonce))
+      (try
+        (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
+                      sut/get-css-path (test-util/wrap-spy get-css-path-spy)
+                      greeting/logo-webview-uri (constantly "some-logo-href")
+                      greeting/html-for-view (constantly "some-greeting")
+                      sut/word-wrap? (constantly true)
+                      sut/get-output-views-font-scale-setting (constantly 1.5)
+                      sut/image-display (constantly "raw")
+                      sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
+          (sut/set-webview-html! context {:webview-panel webview-panel})
+          (testing "should call get-js-source with expected args"
+            (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
+          (testing "should call get-css-path with expected args"
+            (is (spy/called-once-with? get-css-path-spy context)))
+          (testing "should call asWebviewUri once for the CSS"
+            (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
+          (testing "should call get-webview-html with expected args including a script nonce"
+            (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
+                                                                     :css-href "some-css-href"
+                                                                     :csp-source "some-csp-source"
+                                                                     :script-nonce fixed-nonce
+                                                                     :code-theme nil
+                                                                     :greeting-html "some-greeting"
+                                                                     :word-wrap? true
+                                                                     :font-scale 1.5
+                                                                     :image-display "raw"})))
+          (testing "should set webview html to result of call to get-webview-html"
+            (is (= "some-html" (.. webview-panel -webview -html)))))
+        (finally
+          (set! (.-randomUUID js/crypto) orig-random-uuid))))))
 
 (deftest set-code-theme!-test
   (testing "Given a context and a ColorThemeKind,"

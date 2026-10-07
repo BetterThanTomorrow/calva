@@ -6,34 +6,16 @@
    [calva.util :as util]
    [clojure.string :as str]))
 
-(defonce !platform-override
-  ;; Test override for js/process.platform; nil uses the real platform.
-  (atom nil))
-
-(defn- current-platform
-  []
-  (or @!platform-override js/process.platform))
-
-(defn- drive-exists?
-  "True when `root` exists on disk. Separated for tests."
-  [root]
-  (.existsSync (js/require "fs") root))
-
 (defn- win32-drive-root-uris
-  "One Uri.file root per existing drive letter on win32."
+  "One Uri.file root per drive letter A-Z on win32."
   [^js uri-api]
-  (into []
-        (keep (fn [letter]
-                (let [root (str letter ":\\")]
-                  (when (drive-exists? root)
-                    (.file uri-api root))))
-              "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+  (mapv #(.file uri-api (str % ":\\")) "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
 
 (defn file-root-uris
-  "Filesystem roots for webview localResourceRoots: every existing drive on win32, else `/`."
-  [^js vscode]
+  "Filesystem roots for webview localResourceRoots: every drive letter on win32, else `/`."
+  [^js vscode platform]
   (when-let [uri (some-> vscode .-Uri)]
-    (if (= "win32" (current-platform))
+    (if (= "win32" platform)
       (win32-drive-root-uris uri)
       [(.file uri "/")])))
 
@@ -41,8 +23,8 @@
   "Roots that let the output webviews load any local image file, plus the extension itself."
   []
   (let [extension-uri (some-> ^js @util/vscode-context .-extensionUri)
-        roots (file-root-uris ^js @util/vscode)]
-    (to-array (into [] (remove nil? (cons extension-uri roots))))))
+        roots (file-root-uris ^js @util/vscode js/process.platform)]
+    (to-array (remove nil? (cons extension-uri roots)))))
 
 (defn webview-options
   [command-uri]
@@ -245,10 +227,16 @@
     (post! (merge {:command/name "image-bytes"} result))
     (post! {:command/name "image-bytes-missing"})))
 
+(defn- local-image-src?
+  "True when `src` is a string that names a local image file or file:/// image URI."
+  [src]
+  (and (string? src)
+       (or (image-refs/file-image-uri? src)
+           (image-refs/image-file-path? src))))
+
 (defn- resolve-local-image-message!
   [^js webview-host post! ^js vscode src]
-  (if-not (or (image-refs/file-image-uri? src)
-              (image-refs/image-file-path? src))
+  (if-not (local-image-src? src)
     (post! {:command/name "local-image-missing"})
     (let [file-uri (file-uri-for-ref vscode src)]
       (-> (stat-file! vscode file-uri)
