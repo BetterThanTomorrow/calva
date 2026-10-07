@@ -26,7 +26,7 @@
 (defn get-sidebar-help-html
   [csp-source]
   (let [destinations (current-output-destinations)
-        style-nonce (str (random-uuid))]
+        style-nonce (js/crypto.randomUUID)]
     (str "<!DOCTYPE html>"
          "<html lang=\"en\"><head>"
          "<meta charset=\"UTF-8\">"
