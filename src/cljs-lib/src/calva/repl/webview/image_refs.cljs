@@ -133,6 +133,18 @@
          (keep identity)
          vec)))
 
+(def max-result-image-refs
+  "Most image refs kept for one evaluation result."
+  50)
+
+(def max-result-scan-chars
+  "Above this printed-result length, skip the per-string scan."
+  1048576)
+
+(defn- cap-result-image-refs
+  [images]
+  (vec (take max-result-image-refs images)))
+
 (defn- next-in-string
   "Next index inside a string at `i`, `:closed` at the closing quote, or nil if truncated."
   [text i]
@@ -175,7 +187,7 @@
       [n (inc j)])))
 
 (defn- line-index-from
-  "Line index at `to`, carrying `line` forward from index `from`."
+  "Line index of character position `to`, counting forward from line `line` at position `from`."
   [text from to line]
   (loop [n line j from]
     (if (>= j to)
@@ -190,7 +202,7 @@
        (= "\\" (get text (dec q)))))
 
 (defn- hash-prefixed-string-quote?
-  "True when the quote at `q` opens a printed form that starts with # (regex or tag)."
+  "True when the quote at `q` follows # (a printed regex)."
   [text q]
   (and (pos? q)
        (= "#" (get text (dec q)))))
@@ -208,7 +220,7 @@
     found))
 
 (defn- consume-printed-string
-  "Advance past the string at `q`; optionally keep an image ref. Returns `[ni line found]`."
+  "Advance past the string at `q`; optionally keep an image ref. Returns `[next-index line found]`."
   [text q line found keep?]
   (if-let [end (string-literal-end text q)]
     [end
@@ -218,23 +230,29 @@
        found)]
     [(inc q) line found]))
 
+(defn- scan-next-quote
+  "`[next-index line found]` after the next quote at or after `i`, or nil."
+  [text i line found]
+  (when-let [q (str/index-of text "\"" i)]
+    (let [line-at-q (line-index-from text i q line)]
+      (cond
+        (quote-after-backslash? text q)
+        [(inc q) line-at-q found]
+
+        (hash-prefixed-string-quote? text q)
+        (consume-printed-string text q line-at-q found false)
+
+        :else
+        (consume-printed-string text q line-at-q found true)))))
+
 (defn- scan-printed-string-refs
   [text]
   (loop [i 0 line 0 found []]
-    (if-let [q (str/index-of text "\"" i)]
-      (let [line-at-q (line-index-from text i q line)]
-        (cond
-          (quote-after-backslash? text q)
-          (recur (inc q) line-at-q found)
-
-          (hash-prefixed-string-quote? text q)
-          (let [[ni line' found'] (consume-printed-string text q line-at-q found false)]
-            (recur ni line' found'))
-
-          :else
-          (let [[ni line' found'] (consume-printed-string text q line-at-q found true)]
-            (recur ni line' found'))))
-      found)))
+    (if (>= (count found) max-result-image-refs)
+      found
+      (if-let [[next-index line' found'] (scan-next-quote text i line found)]
+        (recur next-index line' found')
+        found))))
 
 (defn- printed-string-image-refs
   "Image refs from Clojure-printed string literals in `text`, in appearance order."
@@ -245,13 +263,18 @@
 
 (defn result-image-refs
   "Image refs for an evaluation result: every matching printed string, plus whole-line refs that
-   are not already covered by a string on that line. Appearance order."
+   are not already covered by a string on that line. Appearance order. At most `max-result-image-refs`.
+   Above `max-result-scan-chars`, only whole-line refs."
   [text]
-  (let [from-strings (printed-string-image-refs text)
-        seen (into #{} (map (juxt :image/src :image/line-index) from-strings))
-        from-lines (->> (image-refs text)
-                        (remove (fn [img]
-                                  (contains? seen [(:image/src img) (:image/line-index img)]))))]
-    (->> (concat from-strings from-lines)
-         (sort-by :image/line-index)
-         vec)))
+  (if-not (string? text)
+    []
+    (if (> (count text) max-result-scan-chars)
+      (cap-result-image-refs (image-refs text))
+      (let [from-strings (printed-string-image-refs text)
+            seen (into #{} (map (juxt :image/src :image/line-index) from-strings))
+            from-lines (->> (image-refs text)
+                            (remove (fn [img]
+                                      (contains? seen [(:image/src img) (:image/line-index img)]))))]
+        (->> (concat from-strings from-lines)
+             (sort-by :image/line-index)
+             cap-result-image-refs)))))

@@ -50,10 +50,12 @@
   (let [prev (or (some-> js/document .-body (.getAttribute "data-image-display"))
                  "images-including-remote-urls")]
     (try
+      (ui/clear-output-dom (js/document.createElement "div"))
       (ui/set-image-display! display)
       (f)
       (finally
-        (ui/set-image-display! prev)))))
+        (ui/set-image-display! prev)
+        (ui/clear-output-dom (js/document.createElement "div"))))))
 
 (deftest dual-form-raw-holds-printed-text-test
   (testing "in raw mode, every image stderr and result line shows exact printed text in the raw form"
@@ -265,13 +267,10 @@
               (apply-output! host app-db/initial-db
                              {:command/name "show-result" :output output})
               (let [entry (aget (.-children host) 0)
-                    form (first (filter #(= "images" (attr % "data-image-form"))
-                                        (.-children entry)))
-                    images-row (first (filter #(some #{"output-images"}
-                                                     (vec (.. % -classList -names)))
-                                              (.-children form)))
-                    thumbs (.-childElementCount images-row)
+                    img (first-local-img entry)
+                    thumbs (some-> img .-parentNode .-parentNode .-children .-length)
                     resolves (filter #(= "resolve-local-image" (:command %)) @posts)]
+                (is (some? img))
                 (is (= 2 thumbs)
                     "each matching string still gets a row")
                 (is (= 1 (count resolves))
