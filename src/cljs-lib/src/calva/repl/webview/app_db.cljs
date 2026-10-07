@@ -22,8 +22,8 @@
 
 (defn output-text-and-images
   "Results and stdout get image data URLs swapped for placeholders, with the images returned
-   separately. Results also match every printed image string; stdout keeps the whole-line rule.
-   Other output is returned as is."
+   separately. Evaluation results also match every printed string that is a whole image URL or
+   image file path; stdout and stderr match whole lines. Other output is returned as is."
   [command-name output]
   (if (and (string? output)
            (#{"show-result" "show-stdout"} command-name))
