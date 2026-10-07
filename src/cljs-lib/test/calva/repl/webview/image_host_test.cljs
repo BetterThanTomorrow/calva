@@ -365,7 +365,8 @@
                                    (str "stat never called: " id))
                                (resolve nil))
                              20))))]
-           (-> (refuse! "passwd-path" "/etc/passwd")
+           (-> (js/Promise.resolve nil)
+               (.then #(refuse! "passwd-path" "/etc/passwd"))
                (.then #(refuse! "passwd-uri" "file:///etc/passwd"))
                (.then #(refuse! "non-string" 42))
                (.then (fn [_] (finish!)))
