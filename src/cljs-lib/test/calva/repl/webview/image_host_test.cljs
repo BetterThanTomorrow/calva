@@ -198,7 +198,18 @@
   (async done
          (reset! sut/!fetch-timeout-ms 40)
          (let [orig js/fetch
-               !signal (atom nil)]
+               !signal (atom nil)
+               !settled (atom false)
+               !guard (atom nil)]
+           (reset! !guard
+                   (js/setTimeout
+                    (fn []
+                      (when (compare-and-set! !settled false true)
+                        (set! js/fetch orig)
+                        (reset! sut/!fetch-timeout-ms nil)
+                        (is false "fetch-image-bytes did not settle after the timeout")
+                        (done)))
+                    1000))
            (set! js/fetch (fn [_url opts]
                             (reset! !signal (.-signal opts))
                             (js/Promise.resolve
@@ -212,13 +223,17 @@
                            (set! js/fetch orig)
                            (reset! sut/!fetch-timeout-ms nil)))
                (.then (fn [result]
-                        (is (nil? result) "body that never finishes times out")
-                        (is (true? (some-> ^js @!signal .-aborted))
-                            "fetch signal was aborted")
-                        (done)))
+                        (when (compare-and-set! !settled false true)
+                          (js/clearTimeout @!guard)
+                          (is (nil? result) "body that never finishes times out")
+                          (is (true? (some-> ^js @!signal .-aborted))
+                              "fetch signal was aborted")
+                          (done))))
                (.catch (fn [e]
-                         (is false (str e))
-                         (done)))))))
+                         (when (compare-and-set! !settled false true)
+                           (js/clearTimeout @!guard)
+                           (is false (str e))
+                           (done))))))))
 
 (deftest fetch-image-for-copy-mode-and-url-test
   (let [posted (atom nil)
