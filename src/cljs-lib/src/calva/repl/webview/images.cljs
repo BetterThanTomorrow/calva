@@ -175,24 +175,26 @@
   (or (:image/source image) (placeholder image)))
 
 (defn- images-on-line
-  "Images that belong under this line: refs with matching `:image/line-index`, then data-URL
-   placeholders found by source text in the line, ordered by their position in the line."
-  [line-idx line images]
-  (let [by-line-index (->> images
-                           (filter #(= line-idx (:image/line-index %)))
-                           vec)
-        by-source (->> images
-                       (remove :image/line-index)
-                       (keep (fn [image]
-                               (when-let [idx (str/index-of line (source-of image))]
-                                 [idx image])))
-                       (sort-by first)
-                       (mapv second))]
-    (into by-line-index by-source)))
+  "Images that belong under this line, ordered by their position in the line."
+  [line-idx line by-line data-urls]
+  (let [indexed (get by-line line-idx [])
+        from-indexed (map-indexed
+                      (fn [tie image]
+                        [(or (str/index-of line (source-of image))
+                             (+ (count line) tie))
+                         image])
+                      indexed)
+        from-data (keep (fn [image]
+                          (when-let [idx (str/index-of line (source-of image))]
+                            [idx image]))
+                        data-urls)]
+    (->> (concat from-indexed from-data)
+         (sort-by first)
+         (mapv second))))
 
 (defn- add-line-to-segments
-  [{:keys [buf out line-idx]} line images]
-  (let [on-line (images-on-line line-idx line images)]
+  [{:keys [buf out line-idx]} line by-line data-urls]
+  (let [on-line (images-on-line line-idx line by-line data-urls)]
     (if (seq on-line)
       {:buf []
        :out (conj out {:text (apply str (conj buf line))
@@ -207,9 +209,11 @@
    `{:text line-or-lines :images [...]}`: those images belong directly below that text.
    Images that never appear in `text` are a last segment with empty text."
   [text images]
-  (let [lines (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" (or text ""))
+  (let [by-line (group-by :image/line-index (filter :image/line-index images))
+        data-urls (into [] (remove :image/line-index images))
+        lines (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" (or text ""))
         {:keys [buf out]} (reduce (fn [state line]
-                                    (add-line-to-segments state line images))
+                                    (add-line-to-segments state line by-line data-urls))
                                   {:buf [] :out [] :line-idx 0}
                                   lines)
         segments (cond-> out

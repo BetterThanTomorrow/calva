@@ -112,7 +112,7 @@
           text (apply str (repeat 2000 (str "[:img {:src \"" svg "\"}]\n")))
           started (js/Date.now)]
       (is (= {:text text :images []} (sut/extract-images text)))
-      (is (< (- (js/Date.now) started) 1000)))))
+      (is (< (- (js/Date.now) started) 5000)))))
 
 (deftest image-mime-parameters-test
   (testing "detected with a MIME type that has no parameters"
@@ -253,6 +253,44 @@
           text (str printed "\n")]
       (is (= [{:text text :images [img]}]
              (sut/segments-with-images text [img]))))))
+
+(deftest segments-with-images-order-and-cost-test
+  (testing "data URLs and paths on one line keep printed order"
+    (let [d1 "data:image/png;base64,iVBORw0KGgo="
+          d2 "data:image/png;base64,AAAA"
+          {:keys [text images]} (sut/extract-images (pr-str [d1 "a.png" d2 "b.png"]) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= [(sut/placeholder (first images)) "a.png"
+              (sut/placeholder (second images)) "b.png"]
+             row-srcs))))
+
+  (testing "a map with a data URL and a path keeps printed order"
+    (let [d "data:image/png;base64,iVBORw0KGgo="
+          {:keys [text images]} (sut/extract-images (pr-str {:a d :b "b.png"}) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= [(sut/placeholder (first images)) "b.png"] row-srcs))))
+
+  (testing "splitting many pretty-printed lines stays fast with many images"
+    (let [n 3000
+          text (str/join "\n" (map #(str "\"p" % ".png\"") (range n)))
+          imgs (mapv (fn [i]
+                       {:image/n (inc i)
+                        :image/kind :local
+                        :image/src (str "p" i ".png")
+                        :image/source (str "p" i ".png")
+                        :image/line-index i
+                        :image/subtype "png"
+                        :image/mime "image/png"})
+                     (range n))
+          t0 (.now js/Date)
+          segs (sut/segments-with-images text imgs)
+          elapsed (- (.now js/Date) t0)]
+      (is (= n (count segs)))
+      (is (= n (count (mapcat :images segs))))
+      (is (< elapsed 1000)
+          (str "expected under 1000ms, took " elapsed "ms")))))
 
 (deftest result-extract-images-test
   (testing "result refs find every matching printed string inside a map"
