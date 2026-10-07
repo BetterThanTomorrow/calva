@@ -252,6 +252,64 @@
             (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
                 "clear-output-dom drops queued local resolves")))))))
 
+(deftest repeated-local-paths-post-one-resolve-test
+  (testing "repeated identical strings give one row each and one host lookup"
+    (let [posts (atom [])]
+      (with-redefs [ui/highlight-code! (fn [_])
+                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+        (with-image-display!
+          "images"
+          (fn []
+            (let [host (js/document.createElement "div")
+                  output (pr-str ["tmp/a.png" "tmp/a.png"])]
+              (apply-output! host app-db/initial-db
+                             {:command/name "show-result" :output output})
+              (let [entry (aget (.-children host) 0)
+                    form (first (filter #(= "images" (attr % "data-image-form"))
+                                        (.-children entry)))
+                    images-row (first (filter #(some #{"output-images"}
+                                                     (vec (.. % -classList -names)))
+                                              (.-children form)))
+                    thumbs (.-childElementCount images-row)
+                    resolves (filter #(= "resolve-local-image" (:command %)) @posts)]
+                (is (= 2 thumbs)
+                    "each matching string still gets a row")
+                (is (= 1 (count resolves))
+                    "one host lookup per unique path")))))))))
+
+(deftest nested-missing-image-removes-thumbnail-test
+  (testing "a nested image path that does not resolve leaves no empty row"
+    (let [posts (atom [])]
+      (with-redefs [ui/highlight-code! (fn [_])
+                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+        (with-image-display!
+          "images"
+          (fn []
+            (let [host (js/document.createElement "div")
+                  output (pr-str {:icon "missing-image.png"})]
+              (apply-output! host app-db/initial-db
+                             {:command/name "show-result" :output output})
+              (let [entry (aget (.-children host) 0)
+                    img (first-local-img entry)
+                    msg (first (filter #(= "resolve-local-image" (:command %)) @posts))]
+                (is (some? img)
+                    "images mode shows a thumbnail while the host looks up the path")
+                (is (some? msg))
+                (ui/handle-message #js {:data (pr-str {:command/name "local-image-missing"
+                                                       :id (:id msg)})})
+                (is (nil? (first-local-img entry))
+                    "the thumbnail is removed")
+                (let [form (first (filter #(= "images" (attr % "data-image-form"))
+                                          (.-children entry)))
+                      outline (for [child (.-children form)]
+                                (cond
+                                  (= "PRE" (.-tagName child)) :text
+                                  (some #{"output-images"}
+                                        (vec (.. child -classList -names))) :images
+                                  :else :other))]
+                  (is (= [:text] (vec outline))
+                      "no empty image row is left"))))))))))
+
 (deftest nested-result-image-strings-toggle-modes-test
   (testing "a result with nested image strings keeps dual forms across all three modes"
     (with-redefs [ui/highlight-code! (fn [_])

@@ -1,7 +1,8 @@
 (ns calva.repl.webview.image-refs-test
   (:require
    [calva.repl.webview.image-refs :as sut]
-   [cljs.test :refer-macros [deftest testing is]]))
+   [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as str]))
 
 (deftest image-ref-test
   (testing "http and https URLs whose path ends in an image extension"
@@ -98,19 +99,43 @@
     (let [bs "\\"
           q "\""
           vec-text (str "[" bs q " " q "x.png" q "]")
-          map-text (str "{:a " bs q ", :c " q "bar.png" q "}")]
+          map-text (str "{:a " bs q ", :c " q "bar.png" q "}")
+          te-vec (str "[" bs q " " q "a.png" q " " q "b.png" q "]")
+          te-map (str "{:q " bs q ", :icon " q "calva-symbol.svg" q "}")]
       (is (= ["x.png"] (mapv :image/src (sut/result-image-refs vec-text))))
-      (is (= ["bar.png"] (mapv :image/src (sut/result-image-refs map-text))))))
+      (is (= ["bar.png"] (mapv :image/src (sut/result-image-refs map-text))))
+      (is (= ["a.png" "b.png"] (mapv :image/src (sut/result-image-refs te-vec))))
+      (is (= ["calva-symbol.svg"] (mapv :image/src (sut/result-image-refs te-map))))))
   (testing "a printed regex is not an image string"
     (let [q "\""
           text (str "[#" q "cat.png" q " " q "y.png" q "]")]
       (is (= ["y.png"] (mapv :image/src (sut/result-image-refs text))))))
-  (testing "many image strings on one line scan fast"
-    (let [text (pr-str (vec (repeat 3000 "tmp/a.png")))
+  (testing "a printed tagged value still counts as an image string"
+    (let [q "\""
+          text (str "#my/tag " q "x.png" q)]
+      (is (= ["x.png"] (mapv :image/src (sut/result-image-refs text))))))
+  (testing "repeated identical strings keep one row each"
+    (is (= ["tmp/a.png" "tmp/a.png"]
+           (mapv :image/src (sut/result-image-refs (pr-str ["tmp/a.png" "tmp/a.png"]))))))
+  (testing "a result over 1 MB uses the whole-line rule"
+    (let [nested (pr-str {:icon "a.png"})
+          text (str (apply str (repeat 1048577 "x")) "\n" nested)
+          whole-line (str (apply str (repeat 1048577 "x")) "\n\"a.png\"\n")]
+      (is (= [] (mapv :image/src (sut/result-image-refs text))))
+      (is (= ["a.png"] (mapv :image/src (sut/result-image-refs whole-line))))))
+  (testing "100,000 matching strings stay fast and give 50 rows"
+    (let [text (pr-str (vec (repeat 100000 "a.png")))
           t0 (.now js/Date)
           images (sut/result-image-refs text)
           elapsed (- (.now js/Date) t0)]
-      (is (= 3000 (count images)))
-      (is (= (vec (repeat 3000 0)) (mapv :image/line-index images)))
-      (is (< elapsed 1000)
-          (str "expected under 1000ms, took " elapsed "ms")))))
+      (is (= 50 (count images)))
+      (is (= (vec (repeat 50 "a.png")) (mapv :image/src images)))
+      (is (= (vec (repeat 50 0)) (mapv :image/line-index images)))
+      (is (< elapsed 5000)
+          (str "expected under 5000ms, took " elapsed "ms"))))
+  (testing "the cap keeps the first 50 in order, with their line indexes"
+    (let [text (str/join "\n" (map #(str "\"line-" % ".png\"") (range 60)))
+          images (sut/result-image-refs text)]
+      (is (= 50 (count images)))
+      (is (= (mapv #(str "line-" % ".png") (range 50)) (mapv :image/src images)))
+      (is (= (vec (range 50)) (mapv :image/line-index images))))))
