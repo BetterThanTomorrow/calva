@@ -276,26 +276,37 @@
 (defonce ^:private !pending-local-images (atom []))
 
 (defn- resolve-local-image!
+  "Asks the host for a webview URI. No-ops when a resolve was already posted for `img`, so flush
+   and the DOM scan on mode change do not double-post."
   [^js img ^js thumbnail src]
-  (let [id (host-request-id)]
-    (remember-host-request!
-     id
-     (fn [{:keys [webview-uri]}]
-       (if webview-uri
-         (set! (.-src img) webview-uri)
-         (remove-thumbnail! thumbnail))))
-    (post-to-host! {:command "resolve-local-image" :id id :src src})))
+  (when-not (.-calvaLocalResolvePosted img)
+    (set! (.-calvaLocalResolvePosted img) true)
+    (let [id (host-request-id)]
+      (remember-host-request!
+       id
+       (fn [{:keys [webview-uri]}]
+         (if webview-uri
+           (do (set! (.-src img) webview-uri)
+               (.setAttribute img "src" webview-uri))
+           (remove-thumbnail! thumbnail))))
+      (post-to-host! {:command "resolve-local-image" :id id :src src}))))
 
 (defn- queue-pending-local!
   [^js img ^js thumbnail src]
   (swap! !pending-local-images conj {:img img :thumbnail thumbnail :src src}))
+
+(defn- img-src-unset?
+  "True when `img` has no `src` content attribute yet. Prefer this over `(.-src img)`, which
+   browsers may report as a resolved document URL even when the attribute was never set."
+  [^js img]
+  (str/blank? (or (.getAttribute img "src") "")))
 
 (defn- flush-pending-local!
   []
   (let [pending @!pending-local-images]
     (reset! !pending-local-images [])
     (doseq [{:keys [img thumbnail src]} pending]
-      (when (and img (str/blank? (str (.-src img))))
+      (when (and img (img-src-unset? img))
         (resolve-local-image! img thumbnail src)))))
 
 (defn create-image-element
@@ -389,7 +400,9 @@
 
 (defn append-with-images!
   "Appends an output entry that has images. The images form is built now. The raw form is built
-   when the display is already raw, or later when it switches to raw. Returns the entry element."
+   when the display is already raw, or later when it switches to raw. The entry is appended before
+   the raw form is built, so a throw while building the raw form cannot drop the whole entry.
+   Returns the entry element."
   [^js dom-element {:keys [text images create-raw-el! create-text-el!]}]
   (let [entry (create-element "div" "output-with-images" nil)
         images-form (js/document.createElement "div")]
@@ -399,8 +412,8 @@
      (append-segments! images-form (images/segments-with-images text images) create-text-el!))
     (.. entry (setAttribute "data-output-element-type" "images"))
     (.. entry (appendChild images-form))
-    (attach-raw-form! entry create-raw-el!)
     (.. dom-element (appendChild entry))
+    (attach-raw-form! entry create-raw-el!)
     entry))
 
 (defn append-result-with-images
@@ -523,9 +536,21 @@
                       (set! (.-src img) (.-calvaRemoteSrc img)))))))))
 
 (defn- apply-local-src!
+  "When leaving raw, resolve every local image that still has no `src`, the same lookup a fresh
+   evaluation uses. Flushes the queue from raw-mode appends, then scans the DOM so a lost queue
+   or a non-blank `img.src` IDL value cannot skip the lookup."
   [image-display]
   (when-not (= "raw" image-display)
-    (flush-pending-local!)))
+    (flush-pending-local!)
+    (when-let [query (.-querySelectorAll js/document)]
+      (when (fn? query)
+        (let [imgs (query "img[data-image-kind=\"local\"]")]
+          (.forEach imgs
+                    (fn [^js img]
+                      (when (and (.-calvaLocalSrc img)
+                                 (img-src-unset? img))
+                        (when-let [thumb (.-parentNode img)]
+                          (resolve-local-image! img thumb (.-calvaLocalSrc img)))))))))))
 
 (defn set-image-display!
   [image-display]

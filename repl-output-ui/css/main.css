@@ -150,10 +150,6 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    display: none;
 }
 
-[data-image-form="images"] > pre {
-   margin-block: 0;
-}
-
 .output-image-thumbnail {
    display: flex;
    align-items: flex-start;
