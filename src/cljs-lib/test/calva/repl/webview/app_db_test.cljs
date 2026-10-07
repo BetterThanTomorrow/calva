@@ -341,3 +341,19 @@
                                                   :output "hello\n"
                                                   :output-category "evalOut"}])]
       (is (= [[:fx/append-stdout "hello\n" "evalOut"]] (:uf/fxs result))))))
+
+(deftest nested-result-image-strings-test
+  (testing "a result with nested image path strings gets one image per match"
+    (let [output (pr-str {:icon "calva-symbol.svg" :logo "https://example.com/x.png"})
+          result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result" :output output}])
+          [[_ {:keys [text images raw]}]] (:uf/fxs result)]
+      (is (= output text))
+      (is (= output raw))
+      (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
+      (is (= [:local :remote] (mapv :image/kind images)))))
+  (testing "stdout with a printed map of image paths stays whole-line only"
+    (let [output (str (pr-str {:icon "calva-symbol.svg"}) "\n")
+          result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-stdout"
+                                                                  :output output
+                                                                  :output-category "evalOut"}])]
+      (is (= [[:fx/append-stdout output "evalOut"]] (:uf/fxs result))))))

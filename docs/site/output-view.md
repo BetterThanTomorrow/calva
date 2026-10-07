@@ -42,7 +42,9 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 ## Images
 
-When REPL output contains an image data URL, or a line that is a whole image URL or image file path, the output views show the image as a thumbnail on its own line below the source line, starting at the left edge of the view. Thumbnails are scaled down to fit the view width. This is the same for evaluation results, stdout, and stderr.
+When REPL output contains an image data URL, or an image URL or image file path, the output views show the image as a thumbnail on its own line below the source line, starting at the left edge of the view. Thumbnails are scaled down to fit the view width.
+
+For evaluation results, every printed string whose whole contents are an image URL, `file://` URI, or image path counts — including strings nested in maps and vectors, and string keys. Stdout and stderr keep the whole-line rule: the trimmed line (or a printed string that is the whole line) must be the URL or path. A mention inside a longer string does not count.
 
 Base64 image data URLs (e.g. `data:image/png;base64,...`) are shown as a short placeholder, like `<<image-1 png 12 kB>>`, with the thumbnail below it. Image URLs (`http://` or `https://`) and file paths (including `file://`) keep the source text as printed, and the thumbnail appears only when the file exists or the URL loads. Known extensions: png, jpg, jpeg, gif, svg, webp.
 

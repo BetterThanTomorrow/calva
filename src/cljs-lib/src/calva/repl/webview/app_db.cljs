@@ -22,11 +22,14 @@
 
 (defn output-text-and-images
   "Results and stdout get image data URLs swapped for placeholders, with the images returned
-   separately. Other output is returned as is."
+   separately. Results also match every printed image string; stdout keeps the whole-line rule.
+   Other output is returned as is."
   [command-name output]
   (if (and (string? output)
            (#{"show-result" "show-stdout"} command-name))
-    (images/extract-images output)
+    (images/extract-images output (if (= "show-result" command-name)
+                                    {:refs :result}
+                                    {:refs :whole-line}))
     {:text output :images []}))
 
 (defn- continues-pending?

@@ -251,3 +251,29 @@
             (ui/set-image-display! "images")
             (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
                 "clear-output-dom drops queued local resolves")))))))
+
+(deftest nested-result-image-strings-toggle-modes-test
+  (testing "a result with nested image strings keeps dual forms across all three modes"
+    (with-redefs [ui/highlight-code! (fn [_])
+                  ui/post-to-host! (fn [_])]
+      (with-image-display!
+        "images-including-remote-urls"
+        (fn []
+          (let [host (js/document.createElement "div")
+                output (pr-str {:icon "calva-symbol.svg" :logo "https://example.com/x.png"})]
+            (apply-output! host app-db/initial-db
+                           {:command/name "show-result" :output output})
+            (let [entry (aget (.-children host) 0)]
+              (is (= ["images"] (form-kinds entry))
+                  "nested matches create an images form")
+              (ui/set-image-display! "images")
+              (is (= ["images"] (form-kinds entry))
+                  "images mode keeps the images form")
+              (ui/set-image-display! "raw")
+              (is (= ["images" "raw"] (form-kinds entry))
+                  "raw adds the printed text form")
+              (is (= output (result-raw-text entry))
+                  "raw shows the result exactly as printed")
+              (ui/set-image-display! "images-including-remote-urls")
+              (is (= ["images" "raw"] (form-kinds entry))
+                  "returning to remote mode keeps both forms"))))))))

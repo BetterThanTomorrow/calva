@@ -60,3 +60,37 @@
       (is (= 0 (:image/line-index (first images))))))
   (testing "two printed strings on one line are not a whole-line image path"
     (is (= [] (sut/image-refs "\"tmp/a.png\" \"b.png\"\n")))))
+
+(deftest result-image-refs-test
+  (testing "a map with a relative path and a remote URL"
+    (let [text (pr-str {:icon "calva-symbol.svg" :logo "https://example.com/x.png"})
+          images (sut/result-image-refs text)]
+      (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
+      (is (= [:local :remote] (mapv :image/kind images)))))
+  (testing "a vector of paths"
+    (is (= ["tmp/a.png" "tmp/b.png"]
+           (mapv :image/src (sut/result-image-refs (pr-str ["tmp/a.png" "tmp/b.png"]))))))
+  (testing "a nested map keeps appearance order"
+    (let [text (pr-str {:a {:p "tmp/a.png"} :b ["tmp/b.gif" "https://ex.com/c.webp"]})]
+      (is (= ["tmp/a.png" "tmp/b.gif" "https://ex.com/c.webp"]
+             (mapv :image/src (sut/result-image-refs text))))))
+  (testing "a string key counts the same as a value"
+    (is (= ["calva-symbol.svg"]
+           (mapv :image/src (sut/result-image-refs (pr-str {"calva-symbol.svg" :ok}))))))
+  (testing "a non-image string and a longer string containing a path get no row"
+    (is (= [] (sut/result-image-refs (pr-str {:x "notes.txt"}))))
+    (is (= [] (sut/result-image-refs (pr-str "look at cat.png")))))
+  (testing "pretty-printed strings keep line indexes in appearance order"
+    (let [text "{:icon \"calva-symbol.svg\"\n :logo \"https://example.com/x.png\"}"
+          images (sut/result-image-refs text)]
+      (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
+      (is (= [0 1] (mapv :image/line-index images)))))
+  (testing "whole-line refs still count, without duplicating a whole-line printed string"
+    (let [text (str (pr-str "https://example.com/a.png") "\n")
+          images (sut/result-image-refs text)]
+      (is (= 1 (count images)))
+      (is (= "https://example.com/a.png" (:image/src (first images)))))
+    (is (= ["/tmp/bare.png"]
+           (mapv :image/src (sut/result-image-refs "/tmp/bare.png\n")))))
+  (testing "stdout keeps the whole-line rule: nested strings are not image-refs"
+    (is (= [] (sut/image-refs (pr-str {:icon "calva-symbol.svg"}))))))
