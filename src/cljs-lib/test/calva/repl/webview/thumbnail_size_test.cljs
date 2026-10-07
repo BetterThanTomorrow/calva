@@ -143,7 +143,6 @@
       (is (some? inset))
       (is (= "var(--calva-output-inset)" (get body-rule "padding-inline"))))
     (testing "thumbnails cancel that inset and never use vw"
-      (is (= "calc(-1 * var(--calva-output-inset))" (get images-rule "margin-inline")))
       (is (nil? (get images-rule "margin-inline-start")))
       (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))
     (testing "the thumbnail img includes its border in max-width"

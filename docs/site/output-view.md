@@ -42,7 +42,7 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 ## Images
 
-When REPL output contains an image data URL, image URL, or image file path, the output views show the image as a thumbnail on its own line below the source line, starting at the left edge of the view. Thumbnails are scaled down to fit the view width.
+When REPL output contains an image data URL, image URL, or image file path, the output views show the image as a thumbnail on its own line below the source line. Thumbnails are scaled down to fit the view width.
 
 For evaluation results, every printed string whose whole contents are an image URL or image file path counts — including strings nested in maps and vectors, and string keys. Stdout and stderr keep the whole-line rule: the trimmed line (or a printed string that is the whole line) must be the URL or path. A mention inside a longer string does not count.
 
