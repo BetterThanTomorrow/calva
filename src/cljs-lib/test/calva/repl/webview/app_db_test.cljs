@@ -307,50 +307,38 @@
       (is (= 0.0 (get-in result [:uf/db :output/font-size-adjustment])))
       (is (= [[:fx/set-font-scale 1.0]] (:uf/fxs result))))))
 
-(defn- with-image-display!
-  [display f]
-  (let [prev (or (some-> js/document .-body (.getAttribute "data-image-display"))
-                 "images-including-remote-urls")]
-    (try
-      (some-> js/document .-body (.setAttribute "data-image-display" display))
-      (f)
-      (finally
-        (some-> js/document .-body (.setAttribute "data-image-display" prev))))))
-
-(deftest raw-mode-appends-image-lines-as-plain-text-test
-  (testing "in raw mode, stderr image refs and a data URL are plain append-stdout, not with-images"
-    (with-image-display!
-      "raw"
-      (fn []
-        (doseq [output ["/tmp/no-such-image.png\n"
-                        "https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva.png\n"
-                        "/Users/pez/Projects/calva/assets/calva-symbol.svg\n"
-                        (str png-data-url "\n")]]
-          (let [result (sut/handle-action sut/initial-db
-                                          [:msg/output {:command/name "show-stdout"
-                                                        :output output
-                                                        :output-category "evalErr"}])]
-            (is (= [[:fx/append-stdout output "evalErr"]] (:uf/fxs result))
-                (str "raw mode must plain-append stderr: " output)))))))
-  (testing "in raw mode, a result that is an image path or URL is plain append-result"
-    (with-image-display!
-      "raw"
-      (fn []
-        (doseq [output ["\"/tmp/cat.png\""
-                        "\"https://example.com/a.png\""]]
-          (let [result (sut/handle-action sut/initial-db
-                                          [:msg/output {:command/name "show-result"
-                                                        :output output}])]
-            (is (= [[:fx/append-result output]] (:uf/fxs result))
-                (str "raw mode must plain-append result: " output)))))))
-  (testing "image modes still use with-images for the same stderr lines"
-    (with-image-display!
-      "images-including-remote-urls"
-      (fn []
-        (let [output "/tmp/no-such-image.png\n"
-              result (sut/handle-action sut/initial-db
-                                        [:msg/output {:command/name "show-stdout"
-                                                      :output output
-                                                      :output-category "evalErr"}])
-              [[op]] (:uf/fxs result)]
-          (is (= :fx/append-stdout-with-images op)))))))
+(deftest image-lines-always-emit-with-images-and-raw-test
+  (testing "stderr image refs and a data URL always get with-images, with :raw as printed"
+    (doseq [output ["/tmp/no-such-image.png\n"
+                    "https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva.png\n"
+                    "/tmp/calva-symbol.svg\n"
+                    (str png-data-url "\n")]]
+      (let [result (sut/handle-action sut/initial-db
+                                      [:msg/output {:command/name "show-stdout"
+                                                    :output output
+                                                    :output-category "evalErr"}])
+            [[op payload category]] (:uf/fxs result)]
+        (is (= :fx/append-stdout-with-images op)
+            (str "stderr image line uses with-images: " output))
+        (is (= "evalErr" category))
+        (is (= output (:raw payload))
+            (str "raw form payload is exact printed text: " output))
+        (is (seq (:images payload))))))
+  (testing "result image path or URL always gets with-images, with :raw as printed"
+    (doseq [output ["\"/tmp/cat.png\""
+                    "\"https://example.com/a.png\""]]
+      (let [result (sut/handle-action sut/initial-db
+                                      [:msg/output {:command/name "show-result"
+                                                    :output output}])
+            [[op payload]] (:uf/fxs result)]
+        (is (= :fx/append-result-with-images op)
+            (str "result image line uses with-images: " output))
+        (is (= output (:raw payload))
+            (str "raw form payload is exact printed text: " output))
+        (is (seq (:images payload))))))
+  (testing "stdout without an image extension stays plain append-stdout"
+    (let [result (sut/handle-action sut/initial-db
+                                    [:msg/output {:command/name "show-stdout"
+                                                  :output "hello\n"
+                                                  :output-category "evalOut"}])]
+      (is (= [[:fx/append-stdout "hello\n" "evalOut"]] (:uf/fxs result))))))
