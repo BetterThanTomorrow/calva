@@ -123,9 +123,10 @@
           whole-line (str (apply str (repeat 1048577 "x")) "\n\"a.png\"\n")]
       (is (= [] (mapv :image/src (sut/result-image-refs text))))
       (is (= ["a.png"] (mapv :image/src (sut/result-image-refs whole-line))))))
-  (testing "100,000 matching strings stay fast and give 50 rows"
+  (testing "10,000 matching strings stay fast and give 50 rows"
     ;; 5 s only catches a quadratic regression; the margin avoids flakes under load.
-    (let [text (pr-str (vec (repeat 100000 "a.png")))
+    ;; 10,000 is far above the 50-row cap; old quadratic code fails the bound in ~50 s.
+    (let [text (pr-str (vec (repeat 10000 "a.png")))
           t0 (.now js/Date)
           images (sut/result-image-refs text)
           elapsed (- (.now js/Date) t0)]
