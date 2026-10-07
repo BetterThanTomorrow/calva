@@ -12,6 +12,8 @@
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
 
+(defonce ^:private !lazy-raw-entries (atom []))
+
 (defn ensure-dom-content-loaded
   "Ensures the DOM is ready before executing the callback"
   [callback]
@@ -334,6 +336,20 @@
 
 (declare create-image-form-element)
 
+(defn- ensure-raw-form!
+  "Builds the raw form on `entry` once, when a builder is still attached."
+  [^js entry]
+  (when-let [create-raw-el! (.-calvaCreateRawEl! entry)]
+    (set! (.-calvaCreateRawEl! entry) nil)
+    (.. entry (appendChild (create-image-form-element "raw" [(create-raw-el!)])))))
+
+(defn- attach-raw-form!
+  [^js entry create-raw-el!]
+  (set! (.-calvaCreateRawEl! entry) create-raw-el!)
+  (if (raw-display?)
+    (ensure-raw-form! entry)
+    (swap! !lazy-raw-entries conj entry)))
+
 (defn create-image-form-element
   [image-form children]
   (let [element (js/document.createElement "div")]
@@ -372,8 +388,8 @@
         img-elements))
 
 (defn append-with-images!
-  "Appends an output entry that has images. Builds both forms now: the images form, and a raw form
-   that holds the exact printed text so raw mode never shows an empty gap. Returns the entry."
+  "Appends an output entry that has images. The images form is built now. The raw form is built
+   when the display is already raw, or later when it switches to raw. Returns the entry element."
   [^js dom-element {:keys [text images create-raw-el! create-text-el!]}]
   (let [entry (create-element "div" "output-with-images" nil)
         images-form (js/document.createElement "div")]
@@ -383,7 +399,7 @@
      (append-segments! images-form (images/segments-with-images text images) create-text-el!))
     (.. entry (setAttribute "data-output-element-type" "images"))
     (.. entry (appendChild images-form))
-    (.. entry (appendChild (create-image-form-element "raw" [(create-raw-el!)])))
+    (attach-raw-form! entry create-raw-el!)
     (.. dom-element (appendChild entry))
     entry))
 
@@ -458,6 +474,7 @@
 
 (defn clear-output-dom
   [^js output-dom-element]
+  (reset! !lazy-raw-entries [])
   (reset! !pending-local-images [])
   (set! (.-innerHTML output-dom-element) ""))
 
@@ -514,7 +531,11 @@
   [image-display]
   (some-> js/document .-body (.setAttribute "data-image-display" image-display))
   (apply-remote-src! image-display)
-  (apply-local-src! image-display))
+  (apply-local-src! image-display)
+  (when (= "raw" image-display)
+    (let [entries @!lazy-raw-entries]
+      (reset! !lazy-raw-entries [])
+      (run! ensure-raw-form! entries))))
 
 (defn set-font-scale!
   [scale]

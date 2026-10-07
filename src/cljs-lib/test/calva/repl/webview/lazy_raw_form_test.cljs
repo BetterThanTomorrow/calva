@@ -105,7 +105,7 @@
                               :output output
                               :output-category "evalOut"})
               (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
-                  "raw mode defers local resolve")
+                  "raw mode waits to resolve local images")
               (ui/set-image-display! "images-including-remote-urls")
               (is (seq (filter #(= "resolve-local-image" (:command %)) @posts))
                   "leaving raw resolves pending local images")
@@ -115,24 +115,30 @@
 
 (deftest toggle-to-raw-shows-printed-text-test
   (testing "output printed in an image mode shows as plain text after toggling to raw"
-    (with-redefs [ui/highlight-code! (fn [_])
-                  ui/post-to-host! (fn [_])]
-      (with-image-display!
-        "images-including-remote-urls"
-        (fn []
-          (let [host (js/document.createElement "div")
-                output "https://example.com/a.png\n"]
-            (apply-output! host app-db/initial-db
-                           {:command/name "show-stdout"
-                            :output output
-                            :output-category "evalErr"})
-            (let [entry (aget (.-children host) 0)]
-              (is (= ["images" "raw"] (form-kinds entry))
-                  "both forms exist at append time")
-              (is (= output (stdout-raw-text entry)))
-              (ui/set-image-display! "raw")
-              (is (= output (stdout-raw-text entry))
-                  "raw form still holds the printed text after toggle"))))))))
+    (let [highlights (atom 0)]
+      (with-redefs [ui/highlight-code! (fn [_] (swap! highlights inc))
+                    ui/post-to-host! (fn [_])]
+        (with-image-display!
+          "images-including-remote-urls"
+          (fn []
+            (let [host (js/document.createElement "div")
+                  output "\"https://example.com/a.png\""]
+              (reset! highlights 0)
+              (apply-output! host app-db/initial-db
+                             {:command/name "show-result"
+                              :output output})
+              (let [entry (aget (.-children host) 0)]
+                (is (= ["images"] (form-kinds entry))
+                    "one form at append time in image mode")
+                (is (= 1 @highlights)
+                    "image mode does not highlight the raw text")
+                (ui/set-image-display! "raw")
+                (is (= ["images" "raw"] (form-kinds entry))
+                    "both forms after switching to raw")
+                (is (= output (result-raw-text entry))
+                    "raw form holds the printed text after toggle")
+                (is (= 2 @highlights)
+                    "switching to raw highlights the raw form once")))))))))
 
 (deftest clear-output-dom-drops-pending-local-resolves-test
   (let [posts (atom [])]
