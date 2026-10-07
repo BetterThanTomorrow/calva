@@ -276,7 +276,7 @@
 (defonce ^:private !pending-local-images (atom []))
 
 (defn- resolve-local-image!
-  "Asks the host for a webview URI for a local image path."
+  "Asks the host for a webview URI for an image file path."
   [^js img ^js thumbnail src]
   (let [id (host-request-id)]
     (remember-host-request!
