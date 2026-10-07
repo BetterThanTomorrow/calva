@@ -128,7 +128,17 @@
                         (filter #(some #{".output-image"} (:selectors %)))
                         (map :declarations)
                         (apply merge))
-        inset (get body-rule "--calva-output-inset")]
+        inset (get body-rule "--calva-output-inset")
+        gap-top (->> rules
+                     (filter #(some #{"[data-image-form=\"images\"] > pre:not([data-output-element-type]):not(:first-child)"}
+                                    (:selectors %)))
+                     (map :declarations)
+                     (apply merge))
+        gap-bottom (->> rules
+                        (filter #(some #{"[data-image-form=\"images\"] > pre:not([data-output-element-type]):not(:last-child)"}
+                                       (:selectors %)))
+                        (map :declarations)
+                        (apply merge))]
     (testing "main.css owns the body inline padding as an inset variable"
       (is (some? inset))
       (is (= "var(--calva-output-inset)" (get body-rule "padding-inline"))))
@@ -137,7 +147,10 @@
       (is (nil? (get images-rule "margin-inline-start")))
       (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))
     (testing "the thumbnail img includes its border in max-width"
-      (is (= "border-box" (get image-rule "box-sizing"))))))
+      (is (= "border-box" (get image-rule "box-sizing"))))
+    (testing "adjacent images-form result segments share no vertical gap"
+      (is (= "0" (get gap-top "margin-top")))
+      (is (= "0" (get gap-bottom "margin-bottom"))))))
 
 (deftest remote-image-src-gated-by-display-mode-test
   (let [body (.-body js/document)

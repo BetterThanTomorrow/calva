@@ -127,6 +127,25 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
    display: none;
 }
 
+/* Adjacent result segments in the images form share one printed result. Drop the browser
+   pre/code margins and theme padding between them so a removed or pending image row leaves
+   no gap. */
+[data-image-form="images"] > pre:not([data-output-element-type]):not(:first-child) {
+   margin-top: 0;
+}
+
+[data-image-form="images"] > pre:not([data-output-element-type]):not(:last-child) {
+   margin-bottom: 0;
+}
+
+[data-image-form="images"] > pre:not([data-output-element-type]):not(:first-child) > code {
+   padding-top: 0;
+}
+
+[data-image-form="images"] > pre:not([data-output-element-type]):not(:last-child) > code {
+   padding-bottom: 0;
+}
+
 .output-image-thumbnail[data-pending="true"],
 body[data-image-display="images"] .output-image-thumbnail:has([data-image-kind="remote"]) {
    display: none;
