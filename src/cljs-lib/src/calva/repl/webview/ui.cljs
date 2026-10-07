@@ -273,7 +273,7 @@
   []
   (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
 
-(defonce ^:private !local-image-resolves (atom {}))
+(defonce ^:private !local-image-lookups (atom {}))
 
 (defonce ^:private !pending-local-images (atom []))
 
@@ -285,17 +285,17 @@
     (remove-thumbnail! thumbnail)))
 
 (defn- resolve-local-image!
-  "Asks the host for a webview URI for an image file path."
+  "Asks the host for a webview URI for an image file path. Each path being looked up is asked about only once."
   [^js img ^js thumbnail src]
-  (if (contains? @!local-image-resolves src)
-    (swap! !local-image-resolves update src conj [img thumbnail])
+  (if (contains? @!local-image-lookups src)
+    (swap! !local-image-lookups update src conj [img thumbnail])
     (let [id (host-request-id)]
-      (swap! !local-image-resolves assoc src [[img thumbnail]])
+      (swap! !local-image-lookups assoc src [[img thumbnail]])
       (remember-host-request!
        id
        (fn [{:keys [webview-uri]}]
-         (let [waiters (get @!local-image-resolves src)]
-           (swap! !local-image-resolves dissoc src)
+         (let [waiters (get @!local-image-lookups src)]
+           (swap! !local-image-lookups dissoc src)
            (doseq [[img thumbnail] waiters]
              (apply-local-resolve! img thumbnail webview-uri)))))
       (post-to-host! {:command "resolve-local-image" :id id :src src}))))
@@ -497,7 +497,7 @@
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
   (reset! !pending-local-images [])
-  (reset! !local-image-resolves {})
+  (reset! !local-image-lookups {})
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons

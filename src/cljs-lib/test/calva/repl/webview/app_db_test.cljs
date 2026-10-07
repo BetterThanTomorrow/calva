@@ -62,7 +62,12 @@
                 :image/mime "image/png"
                 :image/subtype "png"
                 :image/size "8 B"
-                :image/data-url png-data-url})
+                :image/data-url png-data-url
+                :image/line-index 0
+                :image/line-offset 0})
+
+(def png-image-in-quotes
+  (assoc png-image :image/line-offset 1))
 
 (deftest images-test
   (testing "a result with an image is appended with placeholder text, images and the raw text"
@@ -70,7 +75,7 @@
           payload {:command/name "show-result" :output output}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-result-with-images {:text "\"<<image-1 png 8 B>>\""
-                                              :images [png-image]
+                                              :images [png-image-in-quotes]
                                               :raw output}]]
              (:uf/fxs result)))))
 
@@ -132,7 +137,9 @@
                   :image/mime "image/png"
                   :image/subtype "png"
                   :image/size "1 kB"
-                  :image/data-url split-data-url})
+                  :image/data-url split-data-url
+                  :image/line-index 0
+                  :image/line-offset 0})
 
 (deftest pending-stdout-test
   (testing "a data URL split across two stdout chunks is one image"
@@ -171,7 +178,9 @@
                                                         :image/mime "image/png"
                                                         :image/subtype "png"
                                                         :image/size "3 B"
-                                                        :image/data-url "data:image/png;base64,AAAA"}]
+                                                        :image/data-url "data:image/png;base64,AAAA"
+                                                        :image/line-index 0
+                                                        :image/line-offset 0}]
                                               :raw "data:image/png;base64,AAAA"}
                "evalOut"]
               [:fx/append-result "nil"]]
@@ -214,7 +223,9 @@
                                             :image/mime "image/png"
                                             :image/subtype "png"
                                             :image/size "3 B"
-                                            :image/data-url "data:image/png;base64,AAAA"}]
+                                            :image/data-url "data:image/png;base64,AAAA"
+                                            :image/line-index 0
+                                            :image/line-offset 0}]
                                   :raw "data:image/png;base64,AAAA"}
    "evalOut"])
 
@@ -252,7 +263,9 @@
                                                         :image/mime "image/svg+xml"
                                                         :image/subtype "svg+xml"
                                                         :image/size "5 B"
-                                                        :image/data-url url}]
+                                                        :image/data-url url
+                                                        :image/line-index 0
+                                                        :image/line-offset 0}]
                                               :raw (str url "\n")}
                "evalOut"]]
              fxs)))))

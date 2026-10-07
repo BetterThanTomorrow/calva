@@ -254,7 +254,7 @@
             (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
                 "clear-output-dom drops queued local resolves")))))))
 
-(deftest repeated-local-paths-post-one-resolve-test
+(deftest repeated-local-paths-post-one-lookup-test
   (testing "repeated identical strings give one row each and one host lookup"
     (let [posts (atom [])]
       (with-redefs [ui/highlight-code! (fn [_])

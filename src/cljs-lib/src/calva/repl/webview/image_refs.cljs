@@ -129,12 +129,12 @@
     (->> (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" text)
          (map-indexed (fn [idx line]
                         (when-let [image (image-ref (line-token line))]
-                          (assoc image :image/line-index idx))))
+                          (assoc image :image/line-index idx :image/line-offset 0))))
          (keep identity)
          vec)))
 
 (def max-result-image-refs
-  "Most image refs kept for one evaluation result."
+  "The largest number of image refs kept for one evaluation result."
   50)
 
 (def max-result-scan-chars
@@ -179,21 +179,16 @@
       (= "\r" c) 1
       :else 0)))
 
-(defn- step-line-index
-  [text n j]
-  (let [nl (newline-length-at text j)]
-    (if (pos? nl)
-      [(inc n) (+ j nl)]
-      [n (inc j)])))
-
-(defn- line-index-from
-  "Line index of character position `to`, counting forward from line `line` at position `from`."
-  [text from to line]
-  (loop [n line j from]
+(defn- line-state-from
+  "Line state at character `to`, advancing from `from` with `line-state` `{:line :start}`."
+  [text from to {:keys [line start]}]
+  (loop [n line j from ls start]
     (if (>= j to)
-      n
-      (let [[n' j'] (step-line-index text n j)]
-        (recur n' j')))))
+      {:line n :start ls}
+      (let [nl (newline-length-at text j)]
+        (if (pos? nl)
+          (recur (inc n) (+ j nl) (+ j nl))
+          (recur n (inc j) ls))))))
 
 (defn- quote-after-backslash?
   "True when the quote at `q` is preceded by a backslash (printed char literal)."
@@ -208,50 +203,51 @@
        (= "#" (get text (dec q)))))
 
 (defn- image-ref-at-printed-string
-  [text start end line]
-  (when-let [contents (unwrap-printed-string (subs text start end))]
+  [text q end {:keys [line start]}]
+  (when-let [contents (unwrap-printed-string (subs text q end))]
     (when-let [image (image-ref contents)]
-      (assoc image :image/line-index line))))
+      (assoc image
+             :image/line-index line
+             :image/line-offset (- q start)))))
 
-(defn- conj-printed-string-ref
-  [found text start end line]
-  (if-let [image (image-ref-at-printed-string text start end line)]
-    (conj found image)
-    found))
-
-(defn- consume-printed-string
-  "Advance past the string at `q`; optionally keep an image ref. Returns `[next-index line found]`."
-  [text q line found keep?]
+(defn- advance-past-printed-string
+  "Advance past the string at `q`. Returns `[next-index line-state]`."
+  [text q line-state]
   (if-let [end (string-literal-end text q)]
-    [end
-     (line-index-from text q end line)
-     (if keep?
-       (conj-printed-string-ref found text q end line)
-       found)]
-    [(inc q) line found]))
+    [end (line-state-from text q end line-state)]
+    [(inc q) line-state]))
 
 (defn- scan-next-quote
-  "`[next-index line found]` after the next quote at or after `i`, or nil."
-  [text i line found]
+  "`[next-index line-state found]` after the next quote at or after `i`, or nil."
+  [text i line-state found]
   (when-let [q (str/index-of text "\"" i)]
-    (let [line-at-q (line-index-from text i q line)]
+    (let [at-q (line-state-from text i q line-state)]
       (cond
         (quote-after-backslash? text q)
-        [(inc q) line-at-q found]
+        [(inc q) at-q found]
 
         (hash-prefixed-string-quote? text q)
-        (consume-printed-string text q line-at-q found false)
+        (let [[ni ls'] (advance-past-printed-string text q at-q)]
+          [ni ls' found])
 
         :else
-        (consume-printed-string text q line-at-q found true)))))
+        (if-let [end (string-literal-end text q)]
+          (let [ls' (line-state-from text q end at-q)
+                found' (if-let [image (image-ref-at-printed-string text q end at-q)]
+                         (conj found image)
+                         found)]
+            [end ls' found'])
+          [(inc q) at-q found])))))
 
 (defn- scan-printed-string-refs
   [text]
-  (loop [i 0 line 0 found []]
+  (loop [i 0
+         line-state {:line 0 :start 0}
+         found []]
     (if (>= (count found) max-result-image-refs)
       found
-      (if-let [[next-index line' found'] (scan-next-quote text i line found)]
-        (recur next-index line' found')
+      (if-let [[next-index line-state' found'] (scan-next-quote text i line-state found)]
+        (recur next-index line-state' found')
         found))))
 
 (defn- printed-string-image-refs
@@ -262,9 +258,7 @@
     []))
 
 (defn result-image-refs
-  "Image refs for an evaluation result: every matching printed string, plus whole-line refs that
-   are not already covered by a string on that line. Appearance order. At most `max-result-image-refs`.
-   Above `max-result-scan-chars`, only whole-line refs."
+  "Returns them in printed order, at most `max-result-image-refs`. Above `max-result-scan-chars` characters, it only finds whole-line refs."
   [text]
   (if-not (string? text)
     []
@@ -276,5 +270,5 @@
                             (remove (fn [img]
                                       (contains? seen [(:image/src img) (:image/line-index img)]))))]
         (->> (concat from-strings from-lines)
-             (sort-by :image/line-index)
+             (sort-by (juxt :image/line-index :image/line-offset))
              cap-result-image-refs)))))

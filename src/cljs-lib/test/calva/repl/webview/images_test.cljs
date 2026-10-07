@@ -40,7 +40,9 @@
                :image/mime "image/png"
                :image/subtype "png"
                :image/size "8 B"
-               :image/data-url png-data-url}]
+               :image/data-url png-data-url
+               :image/line-index 0
+               :image/line-offset 1}]
              images))))
 
   (testing "several images are numbered from 1 in order"
@@ -271,6 +273,20 @@
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= [(sut/placeholder (first images)) "b.png"] row-srcs))))
+
+  (testing "duplicate paths on one line keep printed order around a data URL"
+    (let [d1 "data:image/png;base64,iVBORw0KGgo="
+          {:keys [text images]} (sut/extract-images (pr-str ["a.png" d1 "a.png"]) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= ["a.png" (sut/placeholder (first images)) "a.png"] row-srcs))))
+
+  (testing "a path that is a substring of an earlier path keeps printed order"
+    (let [d1 "data:image/png;base64,iVBORw0KGgo="
+          {:keys [text images]} (sut/extract-images (pr-str [{:note "x/b.png"} d1 "b.png"]) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= ["x/b.png" (sut/placeholder (first images)) "b.png"] row-srcs))))
 
   (testing "splitting many pretty-printed lines stays fast with many images"
     (let [n 3000
