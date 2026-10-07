@@ -256,7 +256,7 @@
       (is (= [{:text text :images [img]}]
              (sut/segments-with-images text [img]))))))
 
-(deftest segments-with-images-order-and-cost-test
+(deftest segments-with-images-mixed-order-test
   (testing "data URLs and paths on one line keep printed order"
     (let [d1 "data:image/png;base64,iVBORw0KGgo="
           d2 "data:image/png;base64,AAAA"
@@ -275,7 +275,7 @@
       (is (= [(sut/placeholder (first images)) "b.png"] row-srcs))))
 
   (testing "duplicate paths on one line keep printed order around a data URL"
-    (let [d1 "data:image/png;base64,iVBORw0KGgo="
+    (let [d1 "data:image/png;base64,AAAA"
           {:keys [text images]} (sut/extract-images (pr-str ["a.png" d1 "a.png"]) {:refs :result})
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
@@ -286,8 +286,30 @@
           {:keys [text images]} (sut/extract-images (pr-str [{:note "x/b.png"} d1 "b.png"]) {:refs :result})
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= ["x/b.png" (sut/placeholder (first images)) "b.png"] row-srcs))))
+      (is (= ["x/b.png" (sut/placeholder (first images)) "b.png"] row-srcs)))))
 
+(deftest segments-with-images-offset-order-test
+  (testing "prose containing a path-like word does not steal order from later path strings"
+    (let [{:keys [text images]} (sut/extract-images (pr-str {:note "see q.png" :p "a.png" :q "q.png"})
+                                                    {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= ["a.png" "q.png"] row-srcs))))
+
+  (testing "a keyword that looks like a path is not a row"
+    (let [{:keys [text images]} (sut/extract-images (pr-str {:b.png "a.png" :c "b.png"}) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= ["a.png" "b.png"] row-srcs))))
+
+  (testing "a Windows path before a data URL keeps printed order by scanner offset"
+    (let [d "data:image/png;base64,AAAA"
+          {:keys [text images]} (sut/extract-images (pr-str ["C:\\img\\a.png" d]) {:refs :result})
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= ["C:\\img\\a.png" (sut/placeholder (first images))] row-srcs)))))
+
+(deftest segments-with-images-cost-test
   (testing "splitting many pretty-printed lines stays fast with many images"
     (let [n 3000
           text (str/join "\n" (map #(str "\"p" % ".png\"") (range n)))
