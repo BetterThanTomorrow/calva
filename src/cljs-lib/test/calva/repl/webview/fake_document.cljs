@@ -10,28 +10,42 @@
   (let [class-names #js []
         attributes #js {}
         style #js {}
-        children #js []]
+        children #js []
+        el #js {}]
     (js/Object.defineProperty style "setProperty" #js {:value (fn [k v] (aset style k v))})
-    #js {:tagName (.toUpperCase tag)
-         :classList #js {:names class-names
-                         :add (fn [& names] (run! #(.push class-names %) names))}
-         :attributes attributes
-         :style style
-         :dataset #js {}
-         :children children
-         :setAttribute (fn [k v] (aset attributes k v))
-         :getAttribute (fn [k] (aget attributes k))
-         :appendChild (fn [child] (.push children child) child)
-         :addEventListener (fn [& _])
-         :dispatchEvent (fn [_])}))
+    (js/Object.defineProperty el "childElementCount" #js {:get (fn [] (.-length children))})
+    (set! (.-tagName el) (.toUpperCase tag))
+    (set! (.-classList el) #js {:names class-names
+                                :add (fn [& names] (run! #(.push class-names %) names))})
+    (set! (.-attributes el) attributes)
+    (set! (.-style el) style)
+    (set! (.-dataset el) #js {})
+    (set! (.-children el) children)
+    (set! (.-setAttribute el) (fn [k v] (aset attributes k v)))
+    (set! (.-getAttribute el) (fn [k] (aget attributes k)))
+    (set! (.-appendChild el) (fn [child]
+                               (set! (.-parentNode child) el)
+                               (.push children child)
+                               child))
+    (set! (.-removeChild el) (fn [child]
+                               (let [idx (.indexOf (js/Array.from children) child)]
+                                 (when (>= idx 0)
+                                   (.splice children idx 1)
+                                   (set! (.-parentNode child) nil)))
+                               child))
+    (set! (.-addEventListener el) (fn [& _]))
+    (set! (.-dispatchEvent el) (fn [_]))
+    el))
 
 (when-not (exists? js/document)
   (set! js/globalThis.CustomEvent (fn [name opts] #js {:type name :detail (.-detail opts)}))
   (set! js/globalThis.document
-        #js {:getElementById (fn [_])
+        #js {:readyState "complete"
+             :getElementById (fn [_])
              :createElement create-element
              :createElementNS (fn [_ tag] (create-element tag))
              :createTextNode (fn [text] #js {:nodeType 3 :textContent text})
+             :addEventListener (fn [& _])
              :querySelectorAll (fn [_sel]
                                  (this-as this
                                    (when-not (identical? this js/document)
