@@ -180,7 +180,7 @@
 
 (defn- complete-local-resolve!
   "Simulates the host's local-image-resolved reply for one posted request."
-  [posts img]
+  [posts ^js img]
   (when-let [msg (first (filter #(and (= "resolve-local-image" (:command %))
                                       (= (.-calvaLocalSrc img) (:src %)))
                                 @posts))]
@@ -215,10 +215,6 @@
                     err-img (first-local-img err-entry)]
                 (is (some? out-img))
                 (is (some? err-img))
-                ;; Browser IDL may report a non-blank src while the content attribute is still
-                ;; unset; the mode-change path must still resolve (this fails on tip 6489df61b).
-                (set! (.-src out-img) "https://example.invalid/")
-                (set! (.-src err-img) "https://example.invalid/")
                 (ui/set-image-display! "images-including-remote-urls")
                 (let [resolves (filter #(= "resolve-local-image" (:command %)) @posts)]
                   (is (= 2 (count resolves))

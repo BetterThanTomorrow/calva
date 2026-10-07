@@ -31,7 +31,20 @@
         #js {:getElementById (fn [_])
              :createElement create-element
              :createElementNS (fn [_ tag] (create-element tag))
-             :createTextNode (fn [text] #js {:nodeType 3 :textContent text})}))
+             :createTextNode (fn [text] #js {:nodeType 3 :textContent text})
+             :querySelectorAll (fn [_sel]
+                                 (this-as this
+                                   (when-not (identical? this js/document)
+                                     (throw (js/TypeError. "Illegal invocation")))
+                                   #js []))}))
 
 (when-not (.-body js/document)
   (set! (.-body js/document) (create-element "body")))
+
+(when-not (fn? (.-querySelectorAll js/document))
+  (set! (.-querySelectorAll js/document)
+        (fn [_sel]
+          (this-as this
+            (when-not (identical? this js/document)
+              (throw (js/TypeError. "Illegal invocation")))
+            #js []))))
