@@ -380,15 +380,15 @@
           (testing "should call createWebviewPanel with expected args"
             (let [calls (spy/calls create-webview-panel-spy)]
               (is (= 1 (count calls)))
-              (is (= '[("calva.output-view"
-                        "REPL Output"
-                        {:preserveFocus true, :viewColumn 1}
-                        {:enableScripts true
-                         :enableCommandUris ["calva.showReplOutputView"]
-                         :localResourceRoots []
-                         :retainContextWhenHidden true
-                         :enableFindWidget true})]
-                     (js->clj calls :keywordize-keys true)))))
+              (is (= [["calva.output-view"
+                       "REPL Output"
+                       {:preserveFocus true, :viewColumn 1}
+                       {:enableScripts true
+                        :enableCommandUris ["calva.showReplOutputView"]
+                        :localResourceRoots []
+                        :retainContextWhenHidden true
+                        :enableFindWidget true}]]
+                     (mapv vec (js->clj calls :keywordize-keys true))))))
           (testing "should call initialize-webview-panel with expected args"
             (is (spy/called-once-with? initialize-webview-panel-spy context stub-webview-panel)))
           (testing "should return the webview panel"
