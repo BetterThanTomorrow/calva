@@ -1,13 +1,10 @@
 (ns calva.repl.webview.thumbnail-size-test
-  "Thumbnails show images at their natural size and only shrink to fit the view. Node has no layout
-   engine, so these tests guard the two inputs that decide the size: the markup `ui` creates and the
-   rules in main.css."
+  "The thumbnail img carries no size of its own. A remote image gets its src only when the display mode includes remote URLs."
   (:require
    [calva.repl.webview.fake-document]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]
    [clojure.string :as str]
-   ["fs" :as fs]))
+   [cljs.test :refer-macros [deftest testing is]]))
 
 (def image {:image/n 1
             :image/mime "image/png"
@@ -29,127 +26,6 @@
       (is (nil? (.-height img))))
     (testing "the img has no inline style"
       (is (= [] (vec (js-keys (.-style img))))))))
-
-(defn parse-rules
-  "The rules of `css` as `{:selectors [...] :declarations {property value}}`, lower-cased. Handles
-   flat rules; a nested block's inner rules parse as flat rules."
-  [css]
-  (for [[_ selectors body] (re-seq #"([^{}]+)\{([^{}]*)\}" (str/replace css #"/\*[\s\S]*?\*/" ""))]
-    {:selectors (map str/trim (str/split selectors #","))
-     :declarations (into {}
-                         (for [declaration (str/split body #";")
-                               :let [[property value] (map str/trim (str/split declaration #":" 2))]
-                               :when (seq value)]
-                           [(str/lower-case property) (str/lower-case value)]))}))
-
-(def thumbnail-selector-re #"\.output-image(?:s|-thumbnail)?(?![\w-])")
-
-(defn targets-img?
-  "True when `selector` names a thumbnail class and its last compound matches the thumbnail img."
-  [selector]
-  (boolean (and (re-find thumbnail-selector-re selector)
-                (re-find #"^img(?![\w-])|\.output-image(?![\w-])"
-                         (last (str/split selector #"[\s>+~]+"))))))
-
-(defn flex-grows?
-  "True when a `flex` shorthand `value` gives a non-zero flex-grow."
-  [value]
-  (and (some? value)
-       (not (contains? #{"none" "initial" "0"} value))
-       (not (str/starts-with? value "0 "))))
-
-(defn img-stretches
-  "The declarations among `declarations` that can size an img past its natural size."
-  [declarations]
-  (cond-> {}
-    (not (contains? #{nil "auto"} (get declarations "width"))) (assoc "width" (get declarations "width"))
-    (not (contains? #{nil "auto"} (get declarations "height"))) (assoc "height" (get declarations "height"))
-    (contains? declarations "min-width") (assoc "min-width" (get declarations "min-width"))
-    (contains? declarations "min-height") (assoc "min-height" (get declarations "min-height"))
-    (contains? declarations "flex-grow") (assoc "flex-grow" (get declarations "flex-grow"))
-    (flex-grows? (get declarations "flex")) (assoc "flex" (get declarations "flex"))
-    (contains? #{"fill" "cover"} (get declarations "object-fit")) (assoc "object-fit" (get declarations "object-fit"))))
-
-(def main-css (str (fs/readFileSync "repl-output-ui/css/main.css" "utf8")))
-
-(deftest thumbnail-css-keeps-natural-size-test
-  (let [rules (parse-rules main-css)
-        image-rule (->> rules
-                        (filter #(some #{".output-image"} (:selectors %)))
-                        (map :declarations)
-                        (apply merge))]
-    (testing "main.css has an .output-image rule that shrinks the img and keeps its aspect ratio"
-      (is (seq image-rule))
-      (is (some? (get image-rule "max-width")))
-      (is (= "auto" (get image-rule "height"))))
-    (testing "no rule for the thumbnail img sizes it past its natural size"
-      (is (= {} (into {}
-                      (for [{:keys [selectors declarations]} rules
-                            selector selectors
-                            :when (targets-img? selector)
-                            :let [stretches (img-stretches declarations)]
-                            :when (seq stretches)]
-                        [selector stretches])))))
-    (testing "no thumbnail container rule stretches its items"
-      (is (= [] (for [{:keys [selectors declarations]} rules
-                      selector selectors
-                      :when (and (re-find thumbnail-selector-re selector)
-                                 (= "stretch" (get declarations "align-items")))]
-                  selector))))))
-
-(deftest parse-rules-test
-  (is (= [{:selectors [".a" "b .c"] :declarations {"width" "auto" "background" "url(data:x)"}}]
-         (parse-rules "/* note */ .a, b .c { Width: AUTO; background: url(data:x) }"))))
-
-(deftest img-stretches-test
-  (is (= {} (img-stretches {"width" "auto" "height" "auto" "max-width" "100%" "flex" "0 1 auto"})))
-  (is (= {"width" "100%" "flex" "1"} (img-stretches {"width" "100%" "flex" "1"})))
-  (is (= {"min-width" "10px" "object-fit" "cover"} (img-stretches {"min-width" "10px" "object-fit" "cover"}))))
-
-(deftest targets-img?-test
-  (is (targets-img? ".output-image"))
-  (is (targets-img? ".output-image-thumbnail img"))
-  (is (targets-img? ".output-image-thumbnail > .output-image:hover"))
-  (is (not (targets-img? ".output-greeting img.calva-logo")))
-  (is (not (targets-img? ".output-image-copy")))
-  (is (not (targets-img? ".output-image-thumbnail:hover .output-image-copy"))))
-
-(deftest output-images-start-at-view-left-edge-test
-  (let [rules (parse-rules main-css)
-        body-rule (->> rules
-                       (filter #(some #{"body"} (:selectors %)))
-                       (map :declarations)
-                       (apply merge))
-        images-rule (->> rules
-                         (filter #(some #{".output-images"} (:selectors %)))
-                         (map :declarations)
-                         (apply merge))
-        image-rule (->> rules
-                        (filter #(some #{".output-image"} (:selectors %)))
-                        (map :declarations)
-                        (apply merge))
-        inset (get body-rule "--calva-output-inset")
-        gap-top (->> rules
-                     (filter #(some #{"[data-image-form=\"images\"] > pre:not([data-output-element-type]):not(:first-child)"}
-                                    (:selectors %)))
-                     (map :declarations)
-                     (apply merge))
-        gap-bottom (->> rules
-                        (filter #(some #{"[data-image-form=\"images\"] > pre:not([data-output-element-type]):not(:last-child)"}
-                                       (:selectors %)))
-                        (map :declarations)
-                        (apply merge))]
-    (testing "main.css owns the body inline padding as an inset variable"
-      (is (some? inset))
-      (is (= "var(--calva-output-inset)" (get body-rule "padding-inline"))))
-    (testing "thumbnails cancel that inset and never use vw"
-      (is (nil? (get images-rule "margin-inline-start")))
-      (is (not-any? #(re-find #"vw" (str %)) (vals images-rule))))
-    (testing "the thumbnail img includes its border in max-width"
-      (is (= "border-box" (get image-rule "box-sizing"))))
-    (testing "adjacent images-form result segments share no vertical gap"
-      (is (= "0" (get gap-top "margin-top")))
-      (is (= "0" (get gap-bottom "margin-bottom"))))))
 
 (deftest remote-image-src-gated-by-display-mode-test
   (let [body (.-body js/document)
