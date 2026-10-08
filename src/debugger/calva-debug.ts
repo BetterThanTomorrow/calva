@@ -22,6 +22,7 @@ import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
 import { addedBreakpointsToSync, uniqueByKey } from './source-breakpoint-sync';
 import { UnsupportedWarningState } from './unsupported-warning-state';
+import { advanceAfterDisconnect } from './disconnect-action';
 import {
   insertBreakpointForms,
   insertDebugScopes,
@@ -464,9 +465,21 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.DisconnectArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    response.success = false;
-    response.message = 'Use Continue to resume execution and close the Calva debugger toolbar.';
-    this.sendResponse(response);
+    const session = replSession.getSession();
+    const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
+
+    if (!session || !id || !key) {
+      response.success = false;
+      response.message = 'Cannot advance because the debugger session is no longer available.';
+      this.sendResponse(response);
+      return;
+    }
+
+    // The Disconnect toolbar command ends the current DAP session. Release it
+    // before stepping so a subsequent need-debug-input can start a new session.
+    advanceAfterDisconnect(session, id, key, () => this.sendResponse(response), (error) => {
+      console.error('Calva debugger: failed to advance after disconnect', error);
+    });
   }
 
   protected terminateRequest(
