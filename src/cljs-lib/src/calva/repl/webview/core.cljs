@@ -411,7 +411,7 @@
                            "REPL Output"
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
-                           (let [opts (image-host/webview-options "calva.showReplOutputView")]
+                           (let [^js opts (image-host/webview-options "calva.showReplOutputView")]
                              (set! (.-retainContextWhenHidden opts) true)
                              (set! (.-enableFindWidget opts) true)
                              opts)))]
