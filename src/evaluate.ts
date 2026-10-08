@@ -26,6 +26,7 @@ import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as clientRegistry from './nrepl/client-registry';
+import * as debug from './debugger/calva-debug';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -426,7 +427,13 @@ async function evaluateSelection(document = {}, options) {
 
     if (code.length > 0) {
       if (options.debug) {
+        if (!debug.supportsDebuggerOps(session)) {
+          debug.warnUnsupportedDebugger(session);
+          return;
+        }
         code = '#dbg\n' + code;
+      } else {
+        code = debug.instrumentCodeWithSourceBreakpoints(doc, codeSelection, code, session);
       }
       annotations.decorateSelection(
         '',
@@ -1003,6 +1010,7 @@ async function evaluateInCurrentEditor(
 
 export {
   interruptAllEvaluations,
+  evaluateCodeUpdatingUI,
   loadDocument,
   loadFileCommand,
   loadFile,

@@ -5,6 +5,20 @@ export type SessionRoutingMode = 'auto' | 'pinned';
 
 const ROUTING_MODE_STATE_KEY = 'session-routing-mode';
 const PINNED_SESSION_STATE_KEY = 'session-routing-pinned-session-key';
+const routingChangeListeners = new Set<() => void>();
+
+export function onDidChangeRouting(listener: () => void): { dispose(): void } {
+  routingChangeListeners.add(listener);
+  return {
+    dispose() {
+      routingChangeListeners.delete(listener);
+    },
+  };
+}
+
+export function notifyRoutingChanged(): void {
+  routingChangeListeners.forEach((listener) => listener());
+}
 
 function readStoredKey(stateKey: string): string | undefined {
   const value = cljsLib.getStateValue(stateKey);
@@ -56,11 +70,13 @@ export function pinSession(sessionKey: string | undefined): void {
 
   cljsLib.setStateValue(PINNED_SESSION_STATE_KEY, sessionKey);
   setRoutingMode('pinned');
+  notifyRoutingChanged();
 }
 
 export function enableAutoRouting(): void {
   clearStateKey(PINNED_SESSION_STATE_KEY);
   setRoutingMode('auto');
+  notifyRoutingChanged();
 }
 
 export function isPinned(): boolean {

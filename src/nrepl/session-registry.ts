@@ -3,6 +3,7 @@ import type * as nrepl from './index';
 import * as clientRegistry from './client-registry';
 import * as sessionNameSuffix from './session-name-suffix';
 import * as sessionEvents from './session-events';
+import type { Disposable } from 'vscode';
 
 export interface SessionMetadata {
   key: string;
@@ -15,6 +16,26 @@ export interface SessionMetadata {
 }
 
 const registeredSessions = new Map<string, nrepl.NReplSession>();
+export type SessionChangeEvent =
+  | { type: 'registered'; key: string }
+  | { type: 'unregistered'; key: string }
+  | { type: 'renamed'; oldKey: string; newKey: string };
+
+const sessionChangeListeners = new Set<(event: SessionChangeEvent) => void>();
+
+export function onDidChangeSessions(listener: (event: SessionChangeEvent) => void): Disposable {
+  sessionChangeListeners.add(listener);
+
+  return {
+    dispose() {
+      sessionChangeListeners.delete(listener);
+    },
+  };
+}
+
+function fireSessionChange(event: SessionChangeEvent): void {
+  sessionChangeListeners.forEach((listener) => listener(event));
+}
 
 export function registerSession(
   key: string,
@@ -31,12 +52,12 @@ export function registerSession(
   registeredSessions.set(key, session);
 
   (session as any)._calvaSessionMetadata = fullMetadata;
-
   sessionEvents.fireSessionsChanged({
     type: 'session-added',
     sessionKey: key,
     clientKey: computedOwnerId,
   });
+  fireSessionChange({ type: 'registered', key });
 }
 
 export function getSession(key: string): nrepl.NReplSession | undefined {
@@ -48,13 +69,16 @@ export function unregisterSession(key: string): void {
   const metadata = (session as any)?._calvaSessionMetadata as SessionMetadata | undefined;
   const clientKey = metadata?.connectionOwnerId ?? session?.client?.clientKey;
 
-  registeredSessions.delete(key);
+  const wasRegistered = registeredSessions.delete(key);
 
   sessionEvents.fireSessionsChanged({
     type: 'session-removed',
     sessionKey: key,
     clientKey,
   });
+  if (wasRegistered) {
+    fireSessionChange({ type: 'unregistered', key });
+  }
 }
 
 export function listSessions(): SessionMetadata[] {
@@ -248,6 +272,7 @@ export function renameSession(oldKey: string, newKey: string): boolean {
     previousSessionKey: oldKey,
     clientKey,
   });
+  fireSessionChange({ type: 'renamed', oldKey, newKey });
 
   return true;
 }
