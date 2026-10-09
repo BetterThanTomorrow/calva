@@ -5,8 +5,7 @@
 (def initial-db
   {:output/last-context nil
    :output/base-font-scale 1.0
-   :output/font-size-adjustment 0.0
-   :output/pending-stdout nil})
+   :output/font-size-adjustment 0.0})
 
 (defonce !app-db (atom initial-db))
 
@@ -21,70 +20,33 @@
         (/ 100))))
 
 (defn output-text-and-images
-  "Results and stdout get image data URLs swapped for placeholders, with the images returned
-   separately. Evaluation results also match every printed string that is a whole image URL or
-   image file path; stdout and stderr match whole lines. Other output is returned as is."
+  "Results get image data URLs swapped for placeholders, with the images returned separately.
+   Matching printed strings that are a whole image URL or image file path are also returned.
+   Stdout and other output are returned as is."
   [command-name output]
   (if (and (string? output)
-           (#{"show-result" "show-stdout"} command-name))
-    (images/extract-images output (if (= "show-result" command-name)
-                                    {:refs :result}
-                                    {:refs :whole-line}))
+           (= "show-result" command-name))
+    (images/extract-images output {:refs :result})
     {:text output :images []}))
 
-(defn- continues-pending?
-  [db command-name category]
-  (and (= "show-stdout" command-name)
-       (= category (get-in db [:output/pending-stdout :category]))))
-
-(defn- split-pending-stdout
-  "Joins pending stdout of the same `category` with `output`, then splits off a tail that may
-   continue in the next chunk: nREPL sends stdout in chunks of about 1 kB, which cuts long image
-   data URLs. Returns `{:shown :pending :raw}`; `:raw` is text to append without image extraction
-   when an open pending payload exceeded `images/max-pending-stdout-chars`."
-  [db output category]
-  (if (continues-pending? db "show-stdout" category)
-    (images/continue-pending-stdout (:output/pending-stdout db) output)
-    (images/take-pending-stdout output category)))
-
-(defn- pending-stdout-text
-  "Full stdout text held in `pending`, including any same-line `:prefix`."
-  [pending]
-  (str (:prefix pending) (:text pending)))
-
-(defn- stdout-fxs
-  "Stdout with images is appended as both forms: `:text` with placeholders plus `:images`, and the
-   original text as `:raw`."
-  [output category]
-  (let [{:keys [text images] :as extracted} (output-text-and-images "show-stdout" output)]
-    (cond
-      (seq images) [[:fx/append-stdout-with-images (assoc extracted :raw output) category]]
-      (seq text) [[:fx/append-stdout text category]]
-      :else [])))
-
 (defn- result-fxs
-  "A result with images is appended as both forms, like stdout."
+  "A result with images is appended as both forms: `:text` with placeholders plus `:images`, and
+   the original text as `:raw`."
   [output]
   (let [{:keys [images] :as extracted} (output-text-and-images "show-result" output)]
     (if (seq images)
       [[:fx/append-result-with-images (assoc extracted :raw output)]]
       [[:fx/append-result output]])))
 
-(defn- message-update
-  "The pending stdout and the append fxs for one output message."
-  [db command-name output category]
+(defn- message-fxs
+  [command-name output category]
   (case command-name
-    "show-stdout" (let [{:keys [shown pending raw]} (split-pending-stdout db output category)]
-                    {:pending pending
-                     :fxs (cond-> []
-                            (seq raw) (conj [:fx/append-stdout raw category])
-                            (seq shown) (into (stdout-fxs shown category)))})
-    "show-result" {:pending nil
-                   :fxs (result-fxs output)}
-    "show-evaluated-code" {:pending nil
-                           :fxs [[:fx/append-evaluated-code output]]}
-    {:pending nil
-     :fxs []}))
+    "show-stdout" (if (seq output)
+                    [[:fx/append-stdout output category]]
+                    [])
+    "show-result" (result-fxs output)
+    "show-evaluated-code" [[:fx/append-evaluated-code output]]
+    []))
 
 (defn- meta-context-key
   [meta]
@@ -97,21 +59,14 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- handle-output
-  "Pending stdout that this message does not continue is appended first. When the REPL context
-   changes, pending stdout is flushed as it is, and this message is handled with no pending stdout."
   [db {:keys [command/name output meta output-category]}]
   (let [context-key (meta-context-key meta)
         context-changed? (and context-key (not= context-key (:output/last-context db)))
         category (or output-category "evalOut")
-        db-for-update (cond-> db
-                        context-changed? (assoc :output/pending-stdout nil))
-        flushed (when-not (continues-pending? db-for-update name category)
-                  (:output/pending-stdout db))
-        {:keys [pending fxs]} (message-update db-for-update name output category)]
-    {:uf/db  (cond-> (assoc db :output/pending-stdout pending)
-               context-changed? (assoc :output/last-context context-key))
+        fxs (message-fxs name output category)]
+    {:uf/db (cond-> db
+              context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []
-               flushed (into (stdout-fxs (pending-stdout-text flushed) (:category flushed)))
                context-changed? (conj [:fx/append-ns-info meta])
                :always (into fxs))}))
 
@@ -119,19 +74,11 @@
   [db [action-type payload]]
   (case action-type
     :msg/clear-output-view
-    {:uf/db  (assoc db :output/last-context nil :output/pending-stdout nil)
+    {:uf/db  (assoc db :output/last-context nil)
      :uf/fxs [[:fx/clear-dom]]}
 
     :msg/output
     (handle-output db payload)
-
-    :msg/flush-pending-stdout
-    (if-let [pending (:output/pending-stdout db)]
-      (if (:payload-start pending)
-        {:uf/db db}
-        {:uf/db (assoc db :output/pending-stdout nil)
-         :uf/fxs (stdout-fxs (pending-stdout-text pending) (:category pending))})
-      {:uf/db db})
 
     :msg/set-image-display
     {:uf/db db

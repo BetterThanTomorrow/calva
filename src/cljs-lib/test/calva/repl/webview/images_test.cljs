@@ -86,23 +86,7 @@
 
   (testing "a data URL with no payload is left alone"
     (is (= {:text "data:image/png;base64, AAAA" :images []}
-           (sut/extract-images "data:image/png;base64, AAAA"))))
-
-  (testing "a whole-line https image URL is kept in the text and returned as a remote image"
-    (let [url "https://example.com/cat.png"
-          {:keys [text images]} (sut/extract-images (str "\"" url "\"\n"))]
-      (is (= (str "\"" url "\"\n") text))
-      (is (= :remote (:image/kind (first images))))
-      (is (= url (:image/src (first images))))))
-
-  (testing "a whole-line file path is returned as a local image"
-    (let [{:keys [text images]} (sut/extract-images "/tmp/cat.png\n")]
-      (is (= "/tmp/cat.png\n" text))
-      (is (= :local (:image/kind (first images))))))
-
-  (testing "a URL mention inside a longer line is left alone"
-    (is (= {:text "look: https://example.com/cat.png\n" :images []}
-           (sut/extract-images "look: https://example.com/cat.png\n")))))
+           (sut/extract-images "data:image/png;base64, AAAA")))))
 
 (deftest image-subtype-test
   (testing "a bare data:image/ mention followed later by ;base64, is left alone"
@@ -148,40 +132,6 @@
     (doseq [text ["data:image/png; see note; then ;base64,AAAA"
                   "data:image/png;x=1 and prose;base64,AAAA"]]
       (is (= {:text text :images []} (sut/extract-images text))))))
-
-(deftest pending-start-test
-  (testing "text without a data URL has nothing pending"
-    (is (nil? (sut/pending-start "hello\n"))))
-
-  (testing "a data URL whose payload runs to the end is pending from its start"
-    (is (= 2 (sut/pending-start "x data:image/png;base64,AAAA")))
-    (is (= 0 (sut/pending-start "data:image/png;base64,AAA="))))
-
-  (testing "a data URL ended by padding, or by prose, has nothing pending"
-    (is (nil? (sut/pending-start "data:image/png;base64,AA==")))
-    (is (nil? (sut/pending-start (str png-data-url " done")))))
-
-  (testing "a full-width wrapped line ending in a line break is pending"
-    (is (= 0 (sut/pending-start (str "data:image/png;base64," (apply str (repeat 76 "A")) "\n")))))
-
-  (testing "a trailing beginning of a data URL header is pending"
-    (is (= 5 (sut/pending-start "text data:image/pn")))
-    (is (= 5 (sut/pending-start "text data:image/png;base64,")))
-    (is (= 4 (sut/pending-start "end d")))
-    (is (nil? (sut/pending-start "end d\n")))
-    (is (nil? (sut/pending-start "end d\r\n")))))
-
-(deftest pending-start-mime-parameters-test
-  (testing "a trailing parameterised header is pending"
-    (is (= 5 (sut/pending-start "text data:image/svg+xml;charset=utf-8;base64,")))
-    (is (= 0 (sut/pending-start "data:image/svg+xml;char")))
-    (is (= 2 (sut/pending-start "x data:image/png;foo=bar"))))
-
-  (testing "a cut inside a later parameter is held back from the start of the header"
-    (is (= 0 (sut/pending-start "data:image/png;a=b;c="))))
-
-  (testing "a parameterised header with an open payload is pending from its start"
-    (is (= 0 (sut/pending-start "data:image/svg+xml;charset=utf-8;base64,AAAA")))))
 
 (deftest label-and-placeholder-test
   (let [image {:image/n 2 :image/subtype "jpeg" :image/size "12 kB"}]
@@ -338,6 +288,10 @@
           {:keys [images]} (sut/extract-images text {:refs :result})]
       (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
       (is (= [1 2] (mapv :image/n images)))))
-  (testing "default extract-images stays whole-line for stdout-shaped text"
+  (testing "default extract-images uses result refs and finds nested paths"
+    (let [text (pr-str {:icon "calva-symbol.svg"})
+          {:keys [images]} (sut/extract-images text)]
+      (is (= ["calva-symbol.svg"] (mapv :image/src images)))))
+  (testing ":whole-line refs leave nested map strings alone"
     (let [text (pr-str {:icon "calva-symbol.svg"})]
-      (is (= {:text text :images []} (sut/extract-images text))))))
+      (is (= {:text text :images []} (sut/extract-images text {:refs :whole-line}))))))

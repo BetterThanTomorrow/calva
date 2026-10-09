@@ -4,10 +4,7 @@
    [calva.repl.webview.fake-document]
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.ui :as ui]
-   [clojure.string :as str]
    [cljs.test :refer-macros [deftest testing is]]))
-
-(def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 
 (defn- attr
   [el k]
@@ -16,16 +13,6 @@
 (defn- form-kinds
   [^js entry]
   (vec (keep #(attr % "data-image-form") (.-children entry))))
-
-(defn- stdout-raw-text
-  [^js entry]
-  (some (fn [child]
-          (when (= "raw" (attr child "data-image-form"))
-            (some-> (aget (.-children child) 0)
-                    .-children
-                    (aget 0)
-                    .-textContent)))
-        (.-children entry)))
 
 (defn- result-raw-text
   [^js entry]
@@ -58,36 +45,21 @@
         (ui/clear-output-dom (js/document.createElement "div"))))))
 
 (deftest dual-form-raw-holds-printed-text-test
-  (testing "in raw mode, every image stderr and result line shows exact printed text in the raw form"
+  (testing "in raw mode, every image result line shows exact printed text in the raw form"
     (with-redefs [ui/highlight-code! (fn [_])
                   ui/post-to-host! (fn [_])]
       (with-image-display!
         "raw"
         (fn []
           (let [host (js/document.createElement "div")
-                stderr-lines ["/tmp/no-such-image.png\n"
-                              "https://example.com/a.png\n"
-                              "/tmp/calva-symbol.svg\n"
-                              (str png-data-url "\n")]
                 result-lines ["\"/tmp/cat.png\""
                               "\"https://example.com/a.png\""]]
-            (doseq [output stderr-lines]
-              (apply-output! host app-db/initial-db
-                             {:command/name "show-stdout"
-                              :output output
-                              :output-category "evalErr"}))
             (doseq [output result-lines]
               (apply-output! host app-db/initial-db
                              {:command/name "show-result"
                               :output output}))
-            (doseq [[i output] (map-indexed vector stderr-lines)]
-              (let [entry (aget (.-children host) i)]
-                (is (= ["images" "raw"] (form-kinds entry))
-                    (str "stderr dual form: " output))
-                (is (= output (stdout-raw-text entry))
-                    (str "raw mode appends stderr as plain text: " output))))
             (doseq [[i output] (map-indexed vector result-lines)]
-              (let [entry (aget (.-children host) (+ (count stderr-lines) i))]
+              (let [entry (aget (.-children host) i)]
                 (is (= ["images" "raw"] (form-kinds entry))
                     (str "result dual form: " output))
                 (is (= output (result-raw-text entry))
@@ -102,11 +74,10 @@
           "raw"
           (fn []
             (let [host (js/document.createElement "div")
-                  output "/tmp/cat.png\n"]
+                  output "\"/tmp/cat.png\""]
               (apply-output! host app-db/initial-db
-                             {:command/name "show-stdout"
-                              :output output
-                              :output-category "evalOut"})
+                             {:command/name "show-result"
+                              :output output})
               (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
                   "raw mode waits to resolve local images")
               (ui/set-image-display! "images-including-remote-urls")
@@ -114,7 +85,30 @@
                   "leaving raw resolves pending local images")
               (let [entry (aget (.-children host) 0)]
                 (is (= ["images" "raw"] (form-kinds entry)))
-                (is (= output (stdout-raw-text entry)))))))))))
+                (is (= output (result-raw-text entry)))))))))))
+
+(deftest show-stdout-produces-no-image-forms-test
+  (testing "show-stdout with a local path produces no data-image-form entries"
+    (let [posts (atom [])]
+      (with-redefs [ui/highlight-code! (fn [_])
+                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+        (with-image-display!
+          "images-including-remote-urls"
+          (fn []
+            (let [host (js/document.createElement "div")]
+              (apply-output! host app-db/initial-db
+                             {:command/name "show-stdout"
+                              :output "/tmp/cat.png\n"
+                              :output-category "evalOut"})
+              (let [entry (aget (.-children host) 0)
+                    text-node (aget (.-children entry) 0)]
+                (is (some? entry))
+                (is (= "PRE" (.-tagName entry))
+                    "stdout is a plain pre element")
+                (is (= "evalOut" (attr entry "data-output-element-type")))
+                (is (= "/tmp/cat.png\n" (.-textContent text-node)))
+                (is (empty? (filter #(= "resolve-local-image" (:command %)) @posts))
+                    "stdout never asks the host to resolve an image")))))))))
 
 (deftest toggle-to-raw-shows-printed-text-test
   (testing "output printed in an image mode shows as plain text after toggling to raw"
@@ -155,14 +149,18 @@
                        :image/src "/tmp/cat.png"
                        :image/source "/tmp/cat.png"
                        :image/subtype "png"
-                       :image/mime "image/png"}]
+                       :image/mime "image/png"}
+                make-text-el! (fn [t]
+                                (let [pre (js/document.createElement "pre")]
+                                  (.. pre (appendChild (js/document.createTextNode t)))
+                                  pre))]
             (is (thrown? js/Error
                          (ui/append-with-images!
                           host
                           {:text "/tmp/cat.png\n"
                            :images [image]
                            :create-raw-el! #(throw (js/Error. "raw boom"))
-                           :create-text-el! #(ui/create-stdout-element % "evalOut")})))
+                           :create-text-el! make-text-el!})))
             (is (= 1 (.-length (.-children host)))
                 "images form still lands when raw form throws")
             (is (= ["images"] (form-kinds (aget (.-children host) 0))))))))))
@@ -179,64 +177,6 @@
                             (.-children child))))
                   (.-children form))))
         (.-children entry)))
-
-(defn- complete-local-resolve!
-  "Simulates the host's local-image-resolved reply for one posted request."
-  [posts ^js img]
-  (when-let [msg (first (filter #(and (= "resolve-local-image" (:command %))
-                                      (= (.-calvaLocalSrc img) (:src %)))
-                                @posts))]
-    (set! (.-src img) (str "webview:" (:src msg)))
-    (.setAttribute img "src" (str "webview:" (:src msg)))
-    (when-let [thumb (.-parentNode img)]
-      (set! (.. thumb -dataset -pending) "false"))
-    msg))
-
-(deftest toggle-from-raw-resolves-local-stdout-and-stderr-test
-  (testing "local paths printed in raw get an image row after switching to an image mode"
-    (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
-        (with-image-display!
-          "raw"
-          (fn []
-            (let [host (js/document.createElement "div")
-                  out-path "/tmp/out-symbol.svg\n"
-                  err-path "/tmp/err-symbol.svg\n"]
-              (apply-output! host app-db/initial-db
-                             {:command/name "show-stdout"
-                              :output out-path
-                              :output-category "evalOut"})
-              (apply-output! host app-db/initial-db
-                             {:command/name "show-stdout"
-                              :output err-path
-                              :output-category "evalErr"})
-              (let [out-entry (aget (.-children host) 0)
-                    err-entry (aget (.-children host) 1)
-                    out-img (first-local-img out-entry)
-                    err-img (first-local-img err-entry)]
-                (is (some? out-img))
-                (is (some? err-img))
-                (ui/set-image-display! "images-including-remote-urls")
-                (let [resolves (filter #(= "resolve-local-image" (:command %)) @posts)]
-                  (is (= 2 (count resolves))
-                      "mode change resolves stdout and stderr local paths")
-                  (is (complete-local-resolve! posts out-img))
-                  (is (complete-local-resolve! posts err-img))
-                  (doseq [[entry img path] [[out-entry out-img out-path]
-                                            [err-entry err-img err-path]]]
-                    (is (str/starts-with? (str (.getAttribute img "src")) "webview:")
-                        (str "host resolve reply sets src: " path))
-                    (let [form (first (filter #(= "images" (attr % "data-image-form"))
-                                              (.-children entry)))
-                          outline (for [child (.-children form)]
-                                    (cond
-                                      (= "PRE" (.-tagName child)) :text
-                                      (some #{"output-images"}
-                                            (vec (.. child -classList -names))) :images
-                                      :else :other))]
-                      (is (= [:text :images] (vec outline))
-                          (str "image row follows the source line: " path)))))))))))))
 
 (deftest clear-output-dom-drops-pending-local-resolves-test
   (let [posts (atom [])]

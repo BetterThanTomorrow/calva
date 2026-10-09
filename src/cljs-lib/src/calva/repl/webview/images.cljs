@@ -91,118 +91,6 @@
                                                 :base64 (subs text payload-start end)}))))
         found))))
 
-(def ^:private partial-header-pattern
-  #"d(?:a(?:t(?:a(?::(?:i(?:m(?:a(?:g(?:e(?:/(?:[A-Za-z0-9.+-]*(?:;(?:[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]+;)*(?:b(?:a(?:s(?:e(?:6(?:4,?)?)?)?)?)?|[A-Za-z0-9.+-]+=[A-Za-z0-9.+-]*|[A-Za-z0-9.+-]*))?)?)?)?)?)?)?)?)?)?)?)?$")
-
-(defn- open-payload?
-  "True when more base64 or padding appended to `text` would still belong to the payload at
-   `payload-start`."
-  [text payload-start]
-  (some #(> (base64-payload-end (str text %) payload-start) (count text)) ["A" "="]))
-
-(defn pending-start
-  "Index in `text` where an image data URL starts that may continue in the next chunk of the same
-   stream, or nil. That is the last data URL when its payload is still open at the end of `text`,
-   or a trailing beginning of a data URL header. A chunk that ends in a newline never holds a
-   partial header: only an open base64 payload may span a line break."
-  [text]
-  (let [{:keys [start payload-start]} (peek (image-data-urls text))]
-    (if (and start (open-payload? text payload-start))
-      start
-      (when-not (or (str/ends-with? text "\n") (str/ends-with? text "\r"))
-        (when-let [partial-header (re-find partial-header-pattern text)]
-          (- (count text) (count partial-header)))))))
-
-(def max-pending-stdout-chars
-  "Largest unfinished stdout image data-URL held across chunks. 1048576 characters, the same
-   bound as `calva.repl.webview.image-refs/max-result-scan-chars`, so an open stream cannot grow
-   past the cost ceiling already used for result scanning."
-  1048576)
-
-(defn- open-payload-pending
-  "Pending map for an open base64 payload in `text`, with a scan cursor for the next chunk."
-  [text category payload-start]
-  (let [scan (advance-base64-payload text payload-start payload-start nil)]
-    (merge {:text text
-            :category category
-            :payload-start payload-start}
-           (select-keys scan [:i :line-start :width]))))
-
-(defn- pending-from-open-text
-  "Pending map when `text` ends in an open image data URL or partial header, else nil."
-  [text category]
-  (when-let [start (pending-start text)]
-    (let [pending-text (subs text start)
-          {:keys [payload-start]} (peek (image-data-urls pending-text))]
-      (if (and payload-start (open-payload? pending-text payload-start))
-        (open-payload-pending pending-text category payload-start)
-        {:text pending-text :category category}))))
-
-(defn take-pending-stdout
-  "Split `text` into a prefix that can be shown now and a tail that may continue in the next
-   stdout chunk. Returns `{:shown :pending :raw}`. When a pending tail remains, any preceding
-   text on the same unfinished line is kept on the pending map as `:prefix` so a later image
-   entry can stay on that line; `:shown` is then nil. `:raw` is unused here."
-  [text category]
-  (if-let [pending (pending-from-open-text text category)]
-    (let [shown (subs text 0 (- (count text) (count (:text pending))))]
-      {:shown nil
-       :pending (cond-> pending
-                  (seq shown) (assoc :prefix shown))
-       :raw nil})
-    {:shown text
-     :pending nil
-     :raw nil}))
-
-(defn continue-pending-stdout
-  "Join `pending` with `chunk`. Scans only the new characters when the pending payload is already
-   open. Past `max-pending-stdout-chars`, emits the joined text as `:raw` (no image treatment).
-   A `:prefix` on `pending` is prepended to emitted `:shown` or `:raw`, and kept on a remaining
-   pending tail. Returns `{:shown :pending :raw}`."
-  [pending chunk]
-  (let [category (:category pending)
-        prefix (:prefix pending)
-        prev (:text pending)
-        joined (str prev chunk)
-        with-prefix (fn [{:keys [shown pending raw]}]
-                      {:shown (when (seq shown) (str prefix shown))
-                       :pending (cond-> pending
-                                  (and pending (seq prefix)) (assoc :prefix prefix))
-                       :raw (when (seq raw) (str prefix raw))})]
-    (cond
-      (> (count joined) max-pending-stdout-chars)
-      {:shown nil
-       :pending nil
-       :raw (str prefix joined)}
-
-      (:payload-start pending)
-      (let [scan (advance-base64-payload joined
-                                         (:i pending)
-                                         (:line-start pending)
-                                         (:width pending))]
-        (if-let [end (:end scan)]
-          (let [complete (subs joined 0 end)
-                rest (subs joined end)
-                {:keys [shown pending raw]} (take-pending-stdout rest category)]
-            (with-prefix {:shown (str complete shown)
-                          :pending pending
-                          :raw raw}))
-          {:shown nil
-           :pending (merge {:text joined
-                            :category category
-                            :payload-start (:payload-start pending)}
-                           (select-keys scan [:i :line-start :width])
-                           (when (seq prefix) {:prefix prefix}))
-           :raw nil}))
-
-      :else
-      (let [result (take-pending-stdout joined category)]
-        (if (:pending result)
-          (with-prefix result)
-          {:shown (str prefix (:shown result))
-           :pending nil
-           :raw (:raw result)})))))
-
 (defn decoded-byte-count
   [base64]
   (let [compact (str/replace base64 #"\s" "")
@@ -283,15 +171,15 @@
   "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
    Image URLs and image file paths are returned as extra images and left in the text. Pass
    `{:refs :result}` for evaluation results (every matching printed string); the default is
-   whole-line matching for stdout and stderr. Returns `{:text ... :images [image ...]}`."
+   `:result`. Returns `{:text ... :images [image ...]}`."
   ([text]
-   (extract-images text {:refs :whole-line}))
-  ([text {:keys [refs] :or {refs :whole-line}}]
+   (extract-images text {:refs :result}))
+  ([text {:keys [refs] :or {refs :result}}]
    (let [{:keys [text images]} (data-url-images text)
          n0 (count images)
          ref-images (case refs
-                      :result (image-refs/result-image-refs text)
-                      (image-refs/image-refs text))
+                      :whole-line (image-refs/image-refs text)
+                      (image-refs/result-image-refs text))
          numbered (map-indexed (fn [i image]
                                  (assoc image :image/n (+ n0 (inc i))))
                                ref-images)]

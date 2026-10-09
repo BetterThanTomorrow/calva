@@ -439,23 +439,6 @@
                                                          container-element))})]
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
-(defn create-stdout-element
-  [text category]
-  (let [pre-element (js/document.createElement "pre")]
-    (.. pre-element (appendChild (js/document.createTextNode (strip-ansi text))))
-    (.. pre-element (setAttribute "data-output-element-type" category))
-    pre-element))
-
-(defn append-stdout-with-images
-  [^js dom-element {:keys [text raw images]} category]
-  (let [category (or category "evalOut")
-        entry (append-with-images! dom-element
-                                   {:text text
-                                    :images images
-                                    :create-raw-el! #(create-stdout-element raw category)
-                                    :create-text-el! #(create-stdout-element % category)})]
-    (.. dom-element (dispatchEvent (output-appended-event entry)))))
-
 (defn session-str
   [{:meta/keys [repl-session-key shadow-build shadow-runtime-id]}]
   (let [parts (cond-> []
@@ -575,7 +558,6 @@
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
-    :fx/append-stdout-with-images (append-stdout-with-images output-dom-element (first args) (second args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
@@ -583,41 +565,14 @@
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/scroll-to (scroll-to (first args))))
 
-(def ^:private pending-stdout-flush-ms
-  "Idle wait before flushing a short pending stdout prefix as plain text."
-  50)
-
-(defonce ^:private !pending-stdout-flush-timer (atom nil))
-
-(declare dispatch!)
-
-(defn- clear-pending-stdout-flush-timer!
-  []
-  (when-let [t @!pending-stdout-flush-timer]
-    (js/clearTimeout t)
-    (reset! !pending-stdout-flush-timer nil)))
-
-(defn- arm-pending-stdout-flush-timer!
-  []
-  (clear-pending-stdout-flush-timer!)
-  (reset! !pending-stdout-flush-timer
-          (js/setTimeout (fn []
-                           (reset! !pending-stdout-flush-timer nil)
-                           (dispatch! [:msg/flush-pending-stdout]))
-                         pending-stdout-flush-ms)))
-
 (defn dispatch!
   [action]
   (let [current-db @app-db/!app-db
-        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)
-        next-db (or db current-db)]
+        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)]
     (when (and db (not= db current-db))
       (reset! app-db/!app-db db))
     (run! #(exec-effect! output-dom-element %) fxs)
-    (run! dispatch! dxs)
-    (if (:output/pending-stdout next-db)
-      (arm-pending-stdout-flush-timer!)
-      (clear-pending-stdout-flush-timer!))))
+    (run! dispatch! dxs)))
 
 (defn ^:export clear-output-view
   []

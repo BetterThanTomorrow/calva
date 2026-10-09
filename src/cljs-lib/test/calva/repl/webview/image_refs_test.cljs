@@ -93,7 +93,7 @@
       (is (= "https://example.com/a.png" (:image/src (first images)))))
     (is (= ["/tmp/bare.png"]
            (mapv :image/src (sut/result-image-refs "/tmp/bare.png\n")))))
-  (testing "stdout keeps the whole-line rule: nested strings are not image-refs"
+  (testing "image-refs keeps the whole-line rule: nested strings are not image-refs"
     (is (= [] (sut/image-refs (pr-str {:icon "calva-symbol.svg"})))))
   (testing "a character literal quote does not hide later image strings"
     (let [bs "\\"
@@ -124,8 +124,6 @@
       (is (= [] (mapv :image/src (sut/result-image-refs text))))
       (is (= ["a.png"] (mapv :image/src (sut/result-image-refs whole-line))))))
   (testing "10,000 matching strings stay fast and give 50 rows"
-    ;; 5 s only catches a quadratic regression; the margin avoids flakes under load.
-    ;; 10,000 is far above the 50-row cap; old quadratic code fails the bound in ~50 s.
     (let [text (pr-str (vec (repeat 10000 "a.png")))
           t0 (.now js/Date)
           images (sut/result-image-refs text)
