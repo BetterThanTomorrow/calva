@@ -144,14 +144,13 @@
                   :image/line-offset 0})
 
 (deftest pending-stdout-test
-  (testing "a data URL split across two stdout chunks is one image"
+  (testing "a data URL split across two stdout chunks stays on one line with its prefix"
     (let [{:keys [db fxs]} (run-actions sut/initial-db
                                         (map stdout (chunks (str "before " split-data-url "\nafter\n") 2)))]
       (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "before " "evalOut"]
-              [:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\nafter\n"
-                                              :images [split-image]
-                                              :raw (str split-data-url "\nafter\n")}
+      (is (= [[:fx/append-stdout-with-images {:text "before <<image-1 png 1 kB>>\nafter\n"
+                                              :images [(assoc split-image :image/line-offset 7)]
+                                              :raw (str "before " split-data-url "\nafter\n")}
                "evalOut"]]
              fxs))))
 
@@ -165,10 +164,32 @@
                "evalOut"]]
              fxs))))
 
-  (testing "a chunk that ends inside the data URL header is held back"
+  (testing "a chunk that ends inside the data URL header keeps the prefix with the pending tail"
     (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "look: data:image/pn")])]
-      (is (= {:text "data:image/pn" :category "evalOut"} (select-keys (:output/pending-stdout db) [:text :category])))
-      (is (= [[:fx/append-stdout "look: " "evalOut"]] fxs))))
+      (is (= {:text "data:image/pn" :prefix "look: " :category "evalOut"}
+             (select-keys (:output/pending-stdout db) [:text :prefix :category])))
+      (is (= [] fxs))))
+
+  (testing "a short pending prefix flushes as plain text when a result arrives"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout "end d")
+                                         [:msg/output {:command/name "show-result" :output "nil"}]])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "end d" "evalOut"]
+              [:fx/append-result "nil"]]
+             fxs))))
+
+  (testing "a short pending prefix flushes as plain text on :msg/flush-pending-stdout"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout "end d")
+                                         [:msg/flush-pending-stdout]])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "end d" "evalOut"]] fxs))))
+
+  (testing "a chunk ending in a newline does not hold a short trailing d"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "end d\n")])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout "end d\n" "evalOut"]] fxs))))
 
   (testing "a result flushes pending stdout before it"
     (let [{:keys [db fxs]} (run-actions sut/initial-db
@@ -192,8 +213,7 @@
     (let [{:keys [fxs]} (run-actions sut/initial-db
                                      [(stdout "x data:ima")
                                       (stdout "boom\n" "evalErr")])]
-      (is (= [[:fx/append-stdout "x " "evalOut"]
-              [:fx/append-stdout "data:ima" "evalOut"]
+      (is (= [[:fx/append-stdout "x data:ima" "evalOut"]
               [:fx/append-stdout "boom\n" "evalErr"]]
              fxs))))
 
@@ -300,22 +320,21 @@
              fxs)))))
 
 (deftest pending-stdout-mime-parameters-test
-  (testing "a parameterised header split across stdout chunks is held back and joined"
+  (testing "a parameterised header split across stdout chunks stays on one line with its prefix"
     (let [url "data:image/svg+xml;charset=utf-8;base64,PHN2Zz4="
           {:keys [db fxs]} (run-actions sut/initial-db
                                         [(stdout "look: data:image/svg+xml;char")
                                          (stdout "set=utf-8;base64,PHN2Zz4=\n")])]
       (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "look: " "evalOut"]
-              [:fx/append-stdout-with-images {:text "<<image-1 svg+xml 5 B>>\n"
+      (is (= [[:fx/append-stdout-with-images {:text "look: <<image-1 svg+xml 5 B>>\n"
                                               :images [{:image/n 1
                                                         :image/mime "image/svg+xml"
                                                         :image/subtype "svg+xml"
                                                         :image/size "5 B"
                                                         :image/data-url url
                                                         :image/line-index 0
-                                                        :image/line-offset 0}]
-                                              :raw (str url "\n")}
+                                                        :image/line-offset 6}]
+                                              :raw (str "look: " url "\n")}
                "evalOut"]]
              fxs)))))
 
