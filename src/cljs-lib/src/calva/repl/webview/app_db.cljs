@@ -127,8 +127,10 @@
 
     :msg/flush-pending-stdout
     (if-let [pending (:output/pending-stdout db)]
-      {:uf/db (assoc db :output/pending-stdout nil)
-       :uf/fxs (stdout-fxs (pending-stdout-text pending) (:category pending))}
+      (if (:payload-start pending)
+        {:uf/db db}
+        {:uf/db (assoc db :output/pending-stdout nil)
+         :uf/fxs (stdout-fxs (pending-stdout-text pending) (:category pending))})
       {:uf/db db})
 
     :msg/set-image-display
