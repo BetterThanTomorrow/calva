@@ -130,19 +130,19 @@ body:not([data-image-display="raw"]) [data-image-form="raw"] {
 /* Adjacent result segments in the images form share one printed result. Drop the browser
    pre/code margins and theme padding between them so a removed or pending image row leaves
    no gap. */
-[data-image-form="images"] > pre:not([data-output-element-type]):not(:first-child) {
+[data-image-form="images"] > pre:not(:first-child) {
    margin-top: 0;
 }
 
-[data-image-form="images"] > pre:not([data-output-element-type]):not(:last-child) {
+[data-image-form="images"] > pre:not(:last-child) {
    margin-bottom: 0;
 }
 
-[data-image-form="images"] > pre:not([data-output-element-type]):not(:first-child) > code {
+[data-image-form="images"] > pre:not(:first-child) > code {
    padding-top: 0;
 }
 
-[data-image-form="images"] > pre:not([data-output-element-type]):not(:last-child) > code {
+[data-image-form="images"] > pre:not(:last-child) > code {
    padding-bottom: 0;
 }
 

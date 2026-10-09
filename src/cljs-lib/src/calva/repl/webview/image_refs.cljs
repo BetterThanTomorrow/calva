@@ -1,8 +1,7 @@
 (ns calva.repl.webview.image-refs
-  "Image URLs and file paths in output. Stdout and stderr match a whole line (whitespace trimmed),
-   or the contents of a Clojure-printed string that is the whole line. Mentions inside a longer
-   line do not count. Evaluation results also match every printed string whose whole contents are
-   an image URL or image file path. Data URLs stay in `calva.repl.webview.images`.
+  "Image URLs and file paths in evaluation results. Finds every printed string whose whole
+   contents are an image URL or image file path. Above `max-result-scan-chars` characters,
+   `image-refs` whole-line matching is the fallback. Data URLs stay in `calva.repl.webview.images`.
 
    Path rule: an absolute path (POSIX `/` or a Windows drive letter) and a `file:///` URI may
    contain spaces; a relative path may not contain whitespace; `~` is not expanded."

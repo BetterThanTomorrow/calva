@@ -19,21 +19,13 @@
         js/Math.round
         (/ 100))))
 
-(defn output-text-and-images
-  "Results get image data URLs swapped for placeholders, with the images returned separately.
-   Matching printed strings that are a whole image URL or image file path are also returned.
-   Stdout and other output are returned as is."
-  [command-name output]
-  (if (and (string? output)
-           (= "show-result" command-name))
-    (images/extract-images output {:refs :result})
-    {:text output :images []}))
-
 (defn- result-fxs
   "A result with images is appended as both forms: `:text` with placeholders plus `:images`, and
    the original text as `:raw`."
   [output]
-  (let [{:keys [images] :as extracted} (output-text-and-images "show-result" output)]
+  (let [{:keys [images] :as extracted} (if (string? output)
+                                         (images/extract-images output)
+                                         {:text output :images []})]
     (if (seq images)
       [[:fx/append-result-with-images (assoc extracted :raw output)]]
       [[:fx/append-result output]])))
