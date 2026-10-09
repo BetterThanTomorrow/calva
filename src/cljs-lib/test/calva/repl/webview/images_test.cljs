@@ -167,7 +167,9 @@
   (testing "a trailing beginning of a data URL header is pending"
     (is (= 5 (sut/pending-start "text data:image/pn")))
     (is (= 5 (sut/pending-start "text data:image/png;base64,")))
-    (is (= 4 (sut/pending-start "end d")))))
+    (is (= 4 (sut/pending-start "end d")))
+    (is (nil? (sut/pending-start "end d\n")))
+    (is (nil? (sut/pending-start "end d\r\n")))))
 
 (deftest pending-start-mime-parameters-test
   (testing "a trailing parameterised header is pending"

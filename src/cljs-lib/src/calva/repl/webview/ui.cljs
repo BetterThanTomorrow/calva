@@ -583,14 +583,41 @@
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/scroll-to (scroll-to (first args))))
 
+(def ^:private pending-stdout-flush-ms
+  "Idle wait before flushing a short pending stdout prefix as plain text."
+  50)
+
+(defonce ^:private !pending-stdout-flush-timer (atom nil))
+
+(declare dispatch!)
+
+(defn- clear-pending-stdout-flush-timer!
+  []
+  (when-let [t @!pending-stdout-flush-timer]
+    (js/clearTimeout t)
+    (reset! !pending-stdout-flush-timer nil)))
+
+(defn- arm-pending-stdout-flush-timer!
+  []
+  (clear-pending-stdout-flush-timer!)
+  (reset! !pending-stdout-flush-timer
+          (js/setTimeout (fn []
+                           (reset! !pending-stdout-flush-timer nil)
+                           (dispatch! [:msg/flush-pending-stdout]))
+                         pending-stdout-flush-ms)))
+
 (defn dispatch!
   [action]
   (let [current-db @app-db/!app-db
-        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)]
+        {:uf/keys [db fxs dxs]} (app-db/handle-action current-db action)
+        next-db (or db current-db)]
     (when (and db (not= db current-db))
       (reset! app-db/!app-db db))
     (run! #(exec-effect! output-dom-element %) fxs)
-    (run! dispatch! dxs)))
+    (run! dispatch! dxs)
+    (if (:output/pending-stdout next-db)
+      (arm-pending-stdout-flush-timer!)
+      (clear-pending-stdout-flush-timer!))))
 
 (defn ^:export clear-output-view
   []

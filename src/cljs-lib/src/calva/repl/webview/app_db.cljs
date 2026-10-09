@@ -47,6 +47,11 @@
     (images/continue-pending-stdout (:output/pending-stdout db) output)
     (images/take-pending-stdout output category)))
 
+(defn- pending-stdout-text
+  "Full stdout text held in `pending`, including any same-line `:prefix`."
+  [pending]
+  (str (:prefix pending) (:text pending)))
+
 (defn- stdout-fxs
   "Stdout with images is appended as both forms: `:text` with placeholders plus `:images`, and the
    original text as `:raw`."
@@ -106,7 +111,7 @@
     {:uf/db  (cond-> (assoc db :output/pending-stdout pending)
                context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []
-               flushed (into (stdout-fxs (:text flushed) (:category flushed)))
+               flushed (into (stdout-fxs (pending-stdout-text flushed) (:category flushed)))
                context-changed? (conj [:fx/append-ns-info meta])
                :always (into fxs))}))
 
@@ -119,6 +124,12 @@
 
     :msg/output
     (handle-output db payload)
+
+    :msg/flush-pending-stdout
+    (if-let [pending (:output/pending-stdout db)]
+      {:uf/db (assoc db :output/pending-stdout nil)
+       :uf/fxs (stdout-fxs (pending-stdout-text pending) (:category pending))}
+      {:uf/db db})
 
     :msg/set-image-display
     {:uf/db db

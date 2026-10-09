@@ -103,13 +103,15 @@
 (defn pending-start
   "Index in `text` where an image data URL starts that may continue in the next chunk of the same
    stream, or nil. That is the last data URL when its payload is still open at the end of `text`,
-   or a trailing beginning of a data URL header."
+   or a trailing beginning of a data URL header. A chunk that ends in a newline never holds a
+   partial header: only an open base64 payload may span a line break."
   [text]
   (let [{:keys [start payload-start]} (peek (image-data-urls text))]
     (if (and start (open-payload? text payload-start))
       start
-      (when-let [partial-header (re-find partial-header-pattern text)]
-        (- (count text) (count partial-header))))))
+      (when-not (or (str/ends-with? text "\n") (str/ends-with? text "\r"))
+        (when-let [partial-header (re-find partial-header-pattern text)]
+          (- (count text) (count partial-header)))))))
 
 (def max-pending-stdout-chars
   "Largest unfinished stdout image data-URL held across chunks. 1048576 characters, the same
@@ -138,12 +140,16 @@
 
 (defn take-pending-stdout
   "Split `text` into a prefix that can be shown now and a tail that may continue in the next
-   stdout chunk. Returns `{:shown :pending :raw}`; `:raw` is unused here."
+   stdout chunk. Returns `{:shown :pending :raw}`. When a pending tail remains, any preceding
+   text on the same unfinished line is kept on the pending map as `:prefix` so a later image
+   entry can stay on that line; `:shown` is then nil. `:raw` is unused here."
   [text category]
   (if-let [pending (pending-from-open-text text category)]
-    {:shown (subs text 0 (- (count text) (count (:text pending))))
-     :pending pending
-     :raw nil}
+    (let [shown (subs text 0 (- (count text) (count (:text pending))))]
+      {:shown nil
+       :pending (cond-> pending
+                  (seq shown) (assoc :prefix shown))
+       :raw nil})
     {:shown text
      :pending nil
      :raw nil}))
@@ -151,16 +157,23 @@
 (defn continue-pending-stdout
   "Join `pending` with `chunk`. Scans only the new characters when the pending payload is already
    open. Past `max-pending-stdout-chars`, emits the joined text as `:raw` (no image treatment).
-   Returns `{:shown :pending :raw}`."
+   A `:prefix` on `pending` is prepended to emitted `:shown` or `:raw`, and kept on a remaining
+   pending tail. Returns `{:shown :pending :raw}`."
   [pending chunk]
   (let [category (:category pending)
+        prefix (:prefix pending)
         prev (:text pending)
-        joined (str prev chunk)]
+        joined (str prev chunk)
+        with-prefix (fn [{:keys [shown pending raw]}]
+                      {:shown (when (seq shown) (str prefix shown))
+                       :pending (cond-> pending
+                                  (and pending (seq prefix)) (assoc :prefix prefix))
+                       :raw (when (seq raw) (str prefix raw))})]
     (cond
       (> (count joined) max-pending-stdout-chars)
       {:shown nil
        :pending nil
-       :raw joined}
+       :raw (str prefix joined)}
 
       (:payload-start pending)
       (let [scan (advance-base64-payload joined
@@ -171,18 +184,24 @@
           (let [complete (subs joined 0 end)
                 rest (subs joined end)
                 {:keys [shown pending raw]} (take-pending-stdout rest category)]
-            {:shown (str complete shown)
-             :pending pending
-             :raw raw})
+            (with-prefix {:shown (str complete shown)
+                          :pending pending
+                          :raw raw}))
           {:shown nil
            :pending (merge {:text joined
                             :category category
                             :payload-start (:payload-start pending)}
-                           (select-keys scan [:i :line-start :width]))
+                           (select-keys scan [:i :line-start :width])
+                           (when (seq prefix) {:prefix prefix}))
            :raw nil}))
 
       :else
-      (take-pending-stdout joined category))))
+      (let [result (take-pending-stdout joined category)]
+        (if (:pending result)
+          (with-prefix result)
+          {:shown (str prefix (:shown result))
+           :pending nil
+           :raw (:raw result)})))))
 
 (defn decoded-byte-count
   [base64]
