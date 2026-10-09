@@ -36,32 +36,25 @@
       break-length
       0)))
 
-(defn- advance-base64-payload
-  "Continue a base64 payload scan at `i`. Returns `{:end n}` when the payload ended
-   at `n`, or `{:i :line-start :width}` when it is still open at the end of `text`."
-  [text i line-start width]
-  (loop [i i
-         line-start line-start
-         width width]
-    (let [c (get text i)]
-      (cond
-        (nil? c) {:i i :line-start line-start :width width}
-        (base64-char? c) (recur (inc i) line-start width)
-        (= "=" c) {:end (if (= "=" (get text (inc i))) (+ i 2) (inc i))}
-        :else (let [line-length (- i line-start)
-                    break-length (wrap-break-length text i line-length width)]
-                (if (pos? break-length)
-                  (recur (+ i break-length) (+ i break-length) line-length)
-                  {:end i}))))))
-
 (defn base64-payload-end
   "Index where the base64 payload starting at `start` ends: right after `=` padding, or at the
    first character outside the base64 alphabet. A line break continues the payload when it wraps
    base64: the line before it is 64 or 76 characters (later lines the same width as the first)
    and more base64 follows."
   [text start]
-  (let [result (advance-base64-payload text start start nil)]
-    (or (:end result) (:i result))))
+  (loop [i start
+         line-start start
+         width nil]
+    (let [c (get text i)]
+      (cond
+        (nil? c) i
+        (base64-char? c) (recur (inc i) line-start width)
+        (= "=" c) (if (= "=" (get text (inc i))) (+ i 2) (inc i))
+        :else (let [line-length (- i line-start)
+                    break-length (wrap-break-length text i line-length width)]
+                (if (pos? break-length)
+                  (recur (+ i break-length) (+ i break-length) line-length)
+                  i))))))
 
 (defn- match-payload-start
   "Index in the searched text where the base64 payload of `match` begins."
@@ -169,22 +162,17 @@
 
 (defn extract-images
   "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
-   Image URLs and image file paths are returned as extra images and left in the text. Pass
-   `{:refs :result}` for evaluation results (every matching printed string); the default is
-   `:result`. Returns `{:text ... :images [image ...]}`."
-  ([text]
-   (extract-images text {:refs :result}))
-  ([text {:keys [refs] :or {refs :result}}]
-   (let [{:keys [text images]} (data-url-images text)
-         n0 (count images)
-         ref-images (case refs
-                      :whole-line (image-refs/image-refs text)
-                      (image-refs/result-image-refs text))
-         numbered (map-indexed (fn [i image]
-                                 (assoc image :image/n (+ n0 (inc i))))
-                               ref-images)]
-     {:text text
-      :images (into (vec images) numbered)})))
+   Image URLs and image file paths are returned as extra images and left in the text.
+   Returns `{:text ... :images [image ...]}`."
+  [text]
+  (let [{:keys [text images]} (data-url-images text)
+        n0 (count images)
+        ref-images (image-refs/result-image-refs text)
+        numbered (map-indexed (fn [i image]
+                                (assoc image :image/n (+ n0 (inc i))))
+                              ref-images)]
+    {:text text
+     :images (into (vec images) numbered)}))
 
 (defn- source-of
   [image]

@@ -212,7 +212,7 @@
   (testing "data URLs and paths on one line keep printed order"
     (let [d1 "data:image/png;base64,iVBORw0KGgo="
           d2 "data:image/png;base64,AAAA"
-          {:keys [text images]} (sut/extract-images (pr-str [d1 "a.png" d2 "b.png"]) {:refs :result})
+          {:keys [text images]} (sut/extract-images (pr-str [d1 "a.png" d2 "b.png"]))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= [(sut/placeholder (first images)) "a.png"
@@ -221,42 +221,41 @@
 
   (testing "a map with a data URL and a path keeps printed order"
     (let [d "data:image/png;base64,iVBORw0KGgo="
-          {:keys [text images]} (sut/extract-images (pr-str {:a d :b "b.png"}) {:refs :result})
+          {:keys [text images]} (sut/extract-images (pr-str {:a d :b "b.png"}))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= [(sut/placeholder (first images)) "b.png"] row-srcs))))
 
   (testing "duplicate paths on one line keep printed order around a data URL"
     (let [d1 "data:image/png;base64,AAAA"
-          {:keys [text images]} (sut/extract-images (pr-str ["a.png" d1 "a.png"]) {:refs :result})
+          {:keys [text images]} (sut/extract-images (pr-str ["a.png" d1 "a.png"]))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= ["a.png" (sut/placeholder (first images)) "a.png"] row-srcs))))
 
   (testing "a path that is a substring of an earlier path keeps printed order"
     (let [d1 "data:image/png;base64,iVBORw0KGgo="
-          {:keys [text images]} (sut/extract-images (pr-str [{:note "x/b.png"} d1 "b.png"]) {:refs :result})
+          {:keys [text images]} (sut/extract-images (pr-str [{:note "x/b.png"} d1 "b.png"]))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= ["x/b.png" (sut/placeholder (first images)) "b.png"] row-srcs)))))
 
 (deftest segments-with-images-offset-order-test
   (testing "prose containing a path-like word does not steal order from later path strings"
-    (let [{:keys [text images]} (sut/extract-images (pr-str {:note "see q.png" :p "a.png" :q "q.png"})
-                                                    {:refs :result})
+    (let [{:keys [text images]} (sut/extract-images (pr-str {:note "see q.png" :p "a.png" :q "q.png"}))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= ["a.png" "q.png"] row-srcs))))
 
   (testing "a keyword that looks like a path is not a row"
-    (let [{:keys [text images]} (sut/extract-images (pr-str {:b.png "a.png" :c "b.png"}) {:refs :result})
+    (let [{:keys [text images]} (sut/extract-images (pr-str {:b.png "a.png" :c "b.png"}))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= ["a.png" "b.png"] row-srcs))))
 
   (testing "a Windows path before a data URL keeps printed order by scanner offset"
     (let [d "data:image/png;base64,AAAA"
-          {:keys [text images]} (sut/extract-images (pr-str ["C:\\img\\a.png" d]) {:refs :result})
+          {:keys [text images]} (sut/extract-images (pr-str ["C:\\img\\a.png" d]))
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
       (is (= ["C:\\img\\a.png" (sut/placeholder (first images))] row-srcs)))))
@@ -285,13 +284,10 @@
 (deftest result-extract-images-test
   (testing "result refs find every matching printed string inside a map"
     (let [text (pr-str {:icon "calva-symbol.svg" :logo "https://example.com/x.png"})
-          {:keys [images]} (sut/extract-images text {:refs :result})]
+          {:keys [images]} (sut/extract-images text)]
       (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
       (is (= [1 2] (mapv :image/n images)))))
-  (testing "default extract-images uses result refs and finds nested paths"
+  (testing "extract-images uses result refs and finds nested paths"
     (let [text (pr-str {:icon "calva-symbol.svg"})
           {:keys [images]} (sut/extract-images text)]
-      (is (= ["calva-symbol.svg"] (mapv :image/src images)))))
-  (testing ":whole-line refs leave nested map strings alone"
-    (let [text (pr-str {:icon "calva-symbol.svg"})]
-      (is (= {:text text :images []} (sut/extract-images text {:refs :whole-line}))))))
+      (is (= ["calva-symbol.svg"] (mapv :image/src images))))))
