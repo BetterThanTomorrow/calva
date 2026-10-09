@@ -40,19 +40,12 @@
 (defn- split-pending-stdout
   "Joins pending stdout of the same `category` with `output`, then splits off a tail that may
    continue in the next chunk: nREPL sends stdout in chunks of about 1 kB, which cuts long image
-   data URLs. Returns `{:shown text :pending {:text :category}}`, `:pending` nil when nothing is
-   held back."
+   data URLs. Returns `{:shown :pending :raw}`; `:raw` is text to append without image extraction
+   when an open pending payload exceeded `images/max-pending-stdout-chars`."
   [db output category]
-  (let [joined (if (continues-pending? db "show-stdout" category)
-                 (str (get-in db [:output/pending-stdout :text]) output)
-                 output)
-        start (when (string? joined)
-                (images/pending-start joined))]
-    (if start
-      {:shown (subs joined 0 start)
-       :pending {:text (subs joined start) :category category}}
-      {:shown joined
-       :pending nil})))
+  (if (continues-pending? db "show-stdout" category)
+    (images/continue-pending-stdout (:output/pending-stdout db) output)
+    (images/take-pending-stdout output category)))
 
 (defn- stdout-fxs
   "Stdout with images is appended as both forms: `:text` with placeholders plus `:images`, and the
@@ -76,9 +69,11 @@
   "The pending stdout and the append fxs for one output message."
   [db command-name output category]
   (case command-name
-    "show-stdout" (let [{:keys [shown pending]} (split-pending-stdout db output category)]
+    "show-stdout" (let [{:keys [shown pending raw]} (split-pending-stdout db output category)]
                     {:pending pending
-                     :fxs (stdout-fxs shown category)})
+                     :fxs (cond-> []
+                            (seq raw) (conj [:fx/append-stdout raw category])
+                            (seq shown) (into (stdout-fxs shown category)))})
     "show-result" {:pending nil
                    :fxs (result-fxs output)}
     "show-evaluated-code" {:pending nil

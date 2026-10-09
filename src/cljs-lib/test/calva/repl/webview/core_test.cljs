@@ -152,8 +152,8 @@
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :image-display "raw"}))))
-  (testing "Given no image-display, should mark the body with data-image-display=\"images-including-remote-urls\""
-    (is (re-find #"<body data-image-display=\"images-including-remote-urls\">"
+  (testing "Given no image-display, should mark the body with data-image-display=\"images\""
+    (is (re-find #"<body data-image-display=\"images\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
@@ -746,12 +746,12 @@
                                                          setting-value))})}})
 
 (deftest get-image-display-setting-test
-  (testing "returns \"images-including-remote-urls\" when VS Code is not available"
+  (testing "returns \"images\" when VS Code is not available"
     (with-redefs [util/vscode (atom nil)]
-      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
-  (testing "returns \"images-including-remote-urls\" when the setting is not set"
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images\" when the setting is not set"
     (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" js/undefined))]
-      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
+      (is (= "images" (sut/get-image-display-setting)))))
   (testing "returns \"images\" when the setting is \"images\""
     (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images"))]
       (is (= "images" (sut/get-image-display-setting)))))
@@ -793,6 +793,12 @@
         (is (spy/called-with? post-message-to-webview-spy webview-b {:command/name "set-image-display"
                                                                      :image-display "raw"}))
         (is (spy/called-n-times? post-message-to-webview-spy 2))))))
+
+(deftest image-display-modes-start-at-default-test
+  (testing "the cycle list starts at the default local-only mode"
+    (is (= "images" sut/default-image-display))
+    (is (= "images" (first sut/image-display-modes)))
+    (is (= ["images" "raw" "images-including-remote-urls"] sut/image-display-modes))))
 
 (deftest cycle-image-display-test
   (testing "cycles \"images-including-remote-urls\" to \"images\""

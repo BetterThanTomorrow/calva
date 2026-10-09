@@ -52,9 +52,9 @@ To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy i
 
 How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
 
-* `"images-including-remote-urls"` (default) – data URLs, local files, and remote URLs.
-* `"images"` – data URLs and local files. Remote URLs stay as text, with no network request.
-* `"raw"` – the raw text, as printed.
+* `"images"` (default) – data URLs and local files are rendered as images. Remote URLs stay as text, with no network request.
+* `"raw"` – no images are rendered.
+* `"images-including-remote-urls"` – Images are rendered for data URLs, local files, and remote URLs.
 
 The command: **Calva: Cycle Output View Image Display** cycles image display in-session across both views, if issued with no argument. The command also takes one of the three modes as an argument and will switch (in-session) to the provided mode.
 
