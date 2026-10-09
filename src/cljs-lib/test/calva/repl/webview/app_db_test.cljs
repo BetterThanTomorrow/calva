@@ -1,8 +1,6 @@
 (ns calva.repl.webview.app-db-test
   (:require
    [calva.repl.webview.app-db :as sut]
-   [calva.repl.webview.images :as images]
-   [clojure.string :as str]
    [cljs.test :refer-macros [deftest testing is]]))
 
 (deftest initial-db-test
@@ -81,14 +79,11 @@
                                               :raw output}]]
              (:uf/fxs result)))))
 
-  (testing "stdout with an image is appended with placeholder text, images and the raw text"
+  (testing "stdout with a data URL is plain append-stdout"
     (let [output (str png-data-url "\n")
           payload {:command/name "show-stdout" :output output :output-category "evalOut"}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 8 B>>\n"
-                                              :images [png-image]
-                                              :raw output}
-               "evalOut"]]
+      (is (= [[:fx/append-stdout output "evalOut"]]
              (:uf/fxs result)))))
 
   (testing "two images on one line are two images, in order"
@@ -114,252 +109,6 @@
                                                                             :image-display "raw"}])]
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
-
-(defn- stdout
-  ([text] (stdout text "evalOut"))
-  ([text category] [:msg/output {:command/name "show-stdout" :output text :output-category category}]))
-
-(defn- run-actions
-  "Runs `actions` through `handle-action` from `db`. Returns the last db and all fxs in order."
-  [db actions]
-  (reduce (fn [{:keys [db fxs]} action]
-            (let [result (sut/handle-action db action)]
-              {:db (:uf/db result) :fxs (into fxs (:uf/fxs result))}))
-          {:db db :fxs []}
-          actions))
-
-(defn- chunks
-  [text n]
-  (let [size (js/Math.ceil (/ (count text) n))]
-    (map #(apply str %) (partition-all size text))))
-
-(def split-data-url (str "data:image/png;base64," (apply str (repeat 1600 "A")) "=="))
-
-(def split-image {:image/n 1
-                  :image/mime "image/png"
-                  :image/subtype "png"
-                  :image/size "1 kB"
-                  :image/data-url split-data-url
-                  :image/line-index 0
-                  :image/line-offset 0})
-
-(deftest pending-stdout-test
-  (testing "a data URL split across two stdout chunks stays on one line with its prefix"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        (map stdout (chunks (str "before " split-data-url "\nafter\n") 2)))]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout-with-images {:text "before <<image-1 png 1 kB>>\nafter\n"
-                                              :images [(assoc split-image :image/line-offset 7)]
-                                              :raw (str "before " split-data-url "\nafter\n")}
-               "evalOut"]]
-             fxs))))
-
-  (testing "a data URL split across three stdout chunks is one image"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        (map stdout (chunks (str split-data-url "\n") 3)))]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\n"
-                                              :images [split-image]
-                                              :raw (str split-data-url "\n")}
-               "evalOut"]]
-             fxs))))
-
-  (testing "a chunk that ends inside the data URL header keeps the prefix with the pending tail"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "look: data:image/pn")])]
-      (is (= {:text "data:image/pn" :prefix "look: " :category "evalOut"}
-             (select-keys (:output/pending-stdout db) [:text :prefix :category])))
-      (is (= [] fxs))))
-
-  (testing "a short pending prefix flushes as plain text when a result arrives"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout "end d")
-                                         [:msg/output {:command/name "show-result" :output "nil"}]])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "end d" "evalOut"]
-              [:fx/append-result "nil"]]
-             fxs))))
-
-  (testing "a short pending prefix flushes as plain text on :msg/flush-pending-stdout"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout "end d")
-                                         [:msg/flush-pending-stdout]])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "end d" "evalOut"]] fxs))))
-
-  (testing "a chunk ending in a newline does not hold a short trailing d"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "end d\n")])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout "end d\n" "evalOut"]] fxs))))
-
-  (testing "a result flushes pending stdout before it"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout "data:image/png;base64,AAAA")
-                                         [:msg/output {:command/name "show-result" :output "nil"}]])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
-                                              :images [{:image/n 1
-                                                        :image/mime "image/png"
-                                                        :image/subtype "png"
-                                                        :image/size "3 B"
-                                                        :image/data-url "data:image/png;base64,AAAA"
-                                                        :image/line-index 0
-                                                        :image/line-offset 0}]
-                                              :raw "data:image/png;base64,AAAA"}
-               "evalOut"]
-              [:fx/append-result "nil"]]
-             fxs))))
-
-  (testing "stdout of another category flushes pending stdout before it"
-    (let [{:keys [fxs]} (run-actions sut/initial-db
-                                     [(stdout "x data:ima")
-                                      (stdout "boom\n" "evalErr")])]
-      (is (= [[:fx/append-stdout "x data:ima" "evalOut"]
-              [:fx/append-stdout "boom\n" "evalErr"]]
-             fxs))))
-
-  (testing "clearing the output view drops pending stdout"
-    (let [{:keys [db]} (run-actions sut/initial-db
-                                    [(stdout "data:image/png;base64,AAAA")
-                                     [:msg/clear-output-view]])]
-      (is (nil? (:output/pending-stdout db))))))
-
-(deftest pending-stdout-idle-flush-keeps-open-payload-test
-  (testing "an open data URL payload stays pending on :msg/flush-pending-stdout"
-    (let [{:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout "data:image/png;base64,AAAA")
-                                         [:msg/flush-pending-stdout]])]
-      (is (some? (:payload-start (:output/pending-stdout db))))
-      (is (= [] fxs))))
-
-  (testing "an open payload survives flush and completes as one image when more chunks arrive"
-    (let [half (quot (count split-data-url) 2)
-          first-half (subs split-data-url 0 half)
-          rest (str (subs split-data-url half) "\n")
-          {:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout first-half)
-                                         [:msg/flush-pending-stdout]
-                                         (stdout rest)])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\n"
-                                              :images [split-image]
-                                              :raw (str split-data-url "\n")}
-               "evalOut"]]
-             fxs)))))
-
-(deftest pending-stdout-bound-test
-  (testing "an endless unterminated data-URL stream stays bounded and falls back to text"
-    (let [header "data:image/png;base64,"
-          chunk (apply str (repeat 4096 "A"))
-          ;; Well past the 1 MB pending cap; old code would grow without bound.
-          n (inc (quot images/max-pending-stdout-chars (count chunk)))
-          actions (into [(stdout header)] (repeat n (stdout chunk)))
-          {:keys [db fxs]} (run-actions sut/initial-db actions)
-          pending-text (get-in db [:output/pending-stdout :text])
-          raw-fxs (filter (fn [[op text]]
-                           (and (= :fx/append-stdout op)
-                                (string? text)
-                                (str/starts-with? text header)))
-                         fxs)
-          image-fxs (filter (fn [[op]] (= :fx/append-stdout-with-images op)) fxs)]
-      (is (nil? pending-text))
-      (is (seq raw-fxs))
-      (is (empty? image-fxs))
-      (is (every? #(<= (count (second %)) (+ images/max-pending-stdout-chars (count chunk)))
-                  raw-fxs))))
-
-  (testing "a payload split across many chunks still becomes one image"
-    (let [payload (apply str (repeat 8000 "A"))
-          url (str "data:image/png;base64," payload "==")
-          piece 200
-          actions (map stdout (concat (map #(apply str %)
-                                           (partition-all piece url))
-                                      ["\n"]))
-          {:keys [db fxs]} (run-actions sut/initial-db actions)
-          image-fxs (filter (fn [[op]] (= :fx/append-stdout-with-images op)) fxs)]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= 1 (count image-fxs)))
-      (is (= url (get-in (first image-fxs) [1 :images 0 :image/data-url])))))
-
-  (testing "many open-payload chunks stay fast"
-    ;; 5 s only catches a quadratic rescan of the whole pending buffer per chunk.
-    (let [header "data:image/png;base64,"
-          chunk (apply str (repeat 1024 "A"))
-          n 2000
-          actions (into [(stdout header)] (repeat n (stdout chunk)))
-          t0 (.now js/Date)
-          {:keys [db]} (run-actions sut/initial-db actions)
-          elapsed (- (.now js/Date) t0)
-          pending-len (count (or (get-in db [:output/pending-stdout :text]) ""))]
-      (is (<= pending-len images/max-pending-stdout-chars))
-      (is (< elapsed 5000)
-          (str "expected under 5000ms, took " elapsed "ms")))))
-
-(defn- run-two-eval-out
-  "Runs two evalOut stdout messages, first as context a then as context b."
-  [output-a output-b]
-  (let [meta-a {:meta/who "a" :meta/ns "a.ns" :meta/repl-session-key "clj"}
-        meta-b {:meta/who "b" :meta/ns "b.ns" :meta/repl-session-key "clj"}
-        {:keys [db fxs]} (run-actions sut/initial-db
-                                      [[:msg/output {:command/name "show-stdout"
-                                                     :output output-a
-                                                     :output-category "evalOut"
-                                                     :meta meta-a}]
-                                       [:msg/output {:command/name "show-stdout"
-                                                     :output output-b
-                                                     :output-category "evalOut"
-                                                     :meta meta-b}]])]
-    {:db db :fxs fxs :meta-a meta-a :meta-b meta-b}))
-
-(def ^:private flushed-aaaa-stdout-fx
-  [:fx/append-stdout-with-images {:text "<<image-1 png 3 B>>"
-                                  :images [{:image/n 1
-                                            :image/mime "image/png"
-                                            :image/subtype "png"
-                                            :image/size "3 B"
-                                            :image/data-url "data:image/png;base64,AAAA"
-                                            :image/line-index 0
-                                            :image/line-offset 0}]
-                                  :raw "data:image/png;base64,AAAA"}
-   "evalOut"])
-
-(deftest pending-stdout-context-test
-  (testing "a context change flushes pending stdout and does not join the new context"
-    (let [{:keys [db fxs meta-a meta-b]} (run-two-eval-out "data:image/png;base64,AAAA" "from-b\n")]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
-      (is (= [[:fx/append-ns-info meta-a]
-              flushed-aaaa-stdout-fx
-              [:fx/append-ns-info meta-b]
-              [:fx/append-stdout "from-b\n" "evalOut"]]
-             fxs))))
-
-  (testing "a context change leaves only the new context's pending tail"
-    (let [{:keys [db fxs meta-a meta-b]} (run-two-eval-out "data:image/png;base64,AAAA" "data:image/png;a=b;c=")]
-      (is (= {:text "data:image/png;a=b;c=" :category "evalOut"} (select-keys (:output/pending-stdout db) [:text :category])))
-      (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
-      (is (= [[:fx/append-ns-info meta-a]
-              flushed-aaaa-stdout-fx
-              [:fx/append-ns-info meta-b]]
-             fxs)))))
-
-(deftest pending-stdout-mime-parameters-test
-  (testing "a parameterised header split across stdout chunks stays on one line with its prefix"
-    (let [url "data:image/svg+xml;charset=utf-8;base64,PHN2Zz4="
-          {:keys [db fxs]} (run-actions sut/initial-db
-                                        [(stdout "look: data:image/svg+xml;char")
-                                         (stdout "set=utf-8;base64,PHN2Zz4=\n")])]
-      (is (nil? (:output/pending-stdout db)))
-      (is (= [[:fx/append-stdout-with-images {:text "look: <<image-1 svg+xml 5 B>>\n"
-                                              :images [{:image/n 1
-                                                        :image/mime "image/svg+xml"
-                                                        :image/subtype "svg+xml"
-                                                        :image/size "5 B"
-                                                        :image/data-url url
-                                                        :image/line-index 0
-                                                        :image/line-offset 6}]
-                                              :raw (str "look: " url "\n")}
-               "evalOut"]]
-             fxs)))))
 
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
@@ -411,7 +160,7 @@
       (is (= [[:fx/set-font-scale 1.0]] (:uf/fxs result))))))
 
 (deftest image-lines-always-emit-with-images-and-raw-test
-  (testing "stderr image refs and a data URL always get with-images, with :raw as printed"
+  (testing "stderr image-looking lines stay plain append-stdout"
     (doseq [output ["/tmp/no-such-image.png\n"
                     "https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva.png\n"
                     "/tmp/calva-symbol.svg\n"
@@ -419,14 +168,9 @@
       (let [result (sut/handle-action sut/initial-db
                                       [:msg/output {:command/name "show-stdout"
                                                     :output output
-                                                    :output-category "evalErr"}])
-            [[op payload category]] (:uf/fxs result)]
-        (is (= :fx/append-stdout-with-images op)
-            (str "stderr image line uses with-images: " output))
-        (is (= "evalErr" category))
-        (is (= output (:raw payload))
-            (str "raw form payload is exact printed text: " output))
-        (is (seq (:images payload))))))
+                                                    :output-category "evalErr"}])]
+        (is (= [[:fx/append-stdout output "evalErr"]] (:uf/fxs result))
+            (str "stderr stays plain append-stdout: " output)))))
   (testing "result image path or URL always gets with-images, with :raw as printed"
     (doseq [output ["\"/tmp/cat.png\""
                     "\"https://example.com/a.png\""]]
@@ -455,8 +199,14 @@
       (is (= output raw))
       (is (= ["calva-symbol.svg" "https://example.com/x.png"] (mapv :image/src images)))
       (is (= [:local :remote] (mapv :image/kind images)))))
-  (testing "stdout with a printed map of image paths stays whole-line only"
+  (testing "stdout never extracts images"
     (let [output (str (pr-str {:icon "calva-symbol.svg"}) "\n")
+          result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-stdout"
+                                                                  :output output
+                                                                  :output-category "evalOut"}])]
+      (is (= [[:fx/append-stdout output "evalOut"]] (:uf/fxs result)))))
+  (testing "show-stdout with a data URL only appends stdout"
+    (let [output (str png-data-url "\n")
           result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-stdout"
                                                                   :output output
                                                                   :output-category "evalOut"}])]

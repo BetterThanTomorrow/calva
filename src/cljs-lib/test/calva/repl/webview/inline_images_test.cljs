@@ -68,30 +68,3 @@
                 [:text "     :i2 \"<<image-2 png 8 B>>\"}}"]
                 [:images ["image-2 png 8 B"]]]
                (images-form-outline (images-form entry))))))))
-
-(deftest stdout-places-images-after-placeholder-lines-test
-  (let [host (js/document.createElement "div")
-        text "before\n<<image-1 png 8 B>>\nbetween\n<<image-2 png 8 B>>\nafter\n"
-        _ (ui/append-stdout-with-images host {:text text :raw text :images [image-1 image-2]} "evalOut")
-        entry (aget (.-children host) 0)]
-    (is (= [[:text "before\n<<image-1 png 8 B>>\n"]
-            [:images ["image-1 png 8 B"]]
-            [:text "between\n<<image-2 png 8 B>>\n"]
-            [:images ["image-2 png 8 B"]]
-            [:text "after\n"]]
-           (images-form-outline (images-form entry))))))
-
-(deftest stderr-places-images-after-placeholder-lines-test
-  (let [host (js/document.createElement "div")
-        text "err-before\n<<image-1 png 8 B>>\nerr-after\n"
-        _ (ui/append-stdout-with-images host {:text text :raw text :images [image-1]} "evalErr")
-        form (images-form (aget (.-children host) 0))]
-    (is (= [[:text "err-before\n<<image-1 png 8 B>>\n"]
-            [:images ["image-1 png 8 B"]]
-            [:text "err-after\n"]]
-           (images-form-outline form)))
-    (testing "split stderr segments keep evalErr"
-      (is (= ["evalErr" "evalErr"]
-             (vec (for [child (.-children form)
-                        :when (= "PRE" (.-tagName child))]
-                    (attr child "data-output-element-type"))))))))
