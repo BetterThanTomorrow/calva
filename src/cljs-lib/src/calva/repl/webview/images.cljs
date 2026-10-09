@@ -36,25 +36,32 @@
       break-length
       0)))
 
+(defn- advance-base64-payload
+  "Continue a base64 payload scan at `i`. Returns `{:end n}` when the payload ended
+   at `n`, or `{:i :line-start :width}` when it is still open at the end of `text`."
+  [text i line-start width]
+  (loop [i i
+         line-start line-start
+         width width]
+    (let [c (get text i)]
+      (cond
+        (nil? c) {:i i :line-start line-start :width width}
+        (base64-char? c) (recur (inc i) line-start width)
+        (= "=" c) {:end (if (= "=" (get text (inc i))) (+ i 2) (inc i))}
+        :else (let [line-length (- i line-start)
+                    break-length (wrap-break-length text i line-length width)]
+                (if (pos? break-length)
+                  (recur (+ i break-length) (+ i break-length) line-length)
+                  {:end i}))))))
+
 (defn base64-payload-end
   "Index where the base64 payload starting at `start` ends: right after `=` padding, or at the
    first character outside the base64 alphabet. A line break continues the payload when it wraps
    base64: the line before it is 64 or 76 characters (later lines the same width as the first)
    and more base64 follows."
   [text start]
-  (loop [i start
-         line-start start
-         width nil]
-    (let [c (get text i)]
-      (cond
-        (nil? c) i
-        (base64-char? c) (recur (inc i) line-start width)
-        (= "=" c) (if (= "=" (get text (inc i))) (+ i 2) (inc i))
-        :else (let [line-length (- i line-start)
-                    break-length (wrap-break-length text i line-length width)]
-                (if (pos? break-length)
-                  (recur (+ i break-length) (+ i break-length) line-length)
-                  i))))))
+  (let [result (advance-base64-payload text start start nil)]
+    (or (:end result) (:i result))))
 
 (defn- match-payload-start
   "Index in the searched text where the base64 payload of `match` begins."
@@ -103,6 +110,79 @@
       start
       (when-let [partial-header (re-find partial-header-pattern text)]
         (- (count text) (count partial-header))))))
+
+(def max-pending-stdout-chars
+  "Largest unfinished stdout image data-URL held across chunks. 1048576 characters, the same
+   bound as `calva.repl.webview.image-refs/max-result-scan-chars`, so an open stream cannot grow
+   past the cost ceiling already used for result scanning."
+  1048576)
+
+(defn- open-payload-pending
+  "Pending map for an open base64 payload in `text`, with a scan cursor for the next chunk."
+  [text category payload-start]
+  (let [scan (advance-base64-payload text payload-start payload-start nil)]
+    (merge {:text text
+            :category category
+            :payload-start payload-start}
+           (select-keys scan [:i :line-start :width]))))
+
+(defn- pending-from-open-text
+  "Pending map when `text` ends in an open image data URL or partial header, else nil."
+  [text category]
+  (when-let [start (pending-start text)]
+    (let [pending-text (subs text start)
+          {:keys [payload-start]} (peek (image-data-urls pending-text))]
+      (if (and payload-start (open-payload? pending-text payload-start))
+        (open-payload-pending pending-text category payload-start)
+        {:text pending-text :category category}))))
+
+(defn take-pending-stdout
+  "Split `text` into a prefix that can be shown now and a tail that may continue in the next
+   stdout chunk. Returns `{:shown :pending :raw}`; `:raw` is unused here."
+  [text category]
+  (if-let [pending (pending-from-open-text text category)]
+    {:shown (subs text 0 (- (count text) (count (:text pending))))
+     :pending pending
+     :raw nil}
+    {:shown text
+     :pending nil
+     :raw nil}))
+
+(defn continue-pending-stdout
+  "Join `pending` with `chunk`. Scans only the new characters when the pending payload is already
+   open. Past `max-pending-stdout-chars`, emits the joined text as `:raw` (no image treatment).
+   Returns `{:shown :pending :raw}`."
+  [pending chunk]
+  (let [category (:category pending)
+        prev (:text pending)
+        joined (str prev chunk)]
+    (cond
+      (> (count joined) max-pending-stdout-chars)
+      {:shown nil
+       :pending nil
+       :raw joined}
+
+      (:payload-start pending)
+      (let [scan (advance-base64-payload joined
+                                         (:i pending)
+                                         (:line-start pending)
+                                         (:width pending))]
+        (if-let [end (:end scan)]
+          (let [complete (subs joined 0 end)
+                rest (subs joined end)
+                {:keys [shown pending raw]} (take-pending-stdout rest category)]
+            {:shown (str complete shown)
+             :pending pending
+             :raw raw})
+          {:shown nil
+           :pending (merge {:text joined
+                            :category category
+                            :payload-start (:payload-start pending)}
+                           (select-keys scan [:i :line-start :width]))
+           :raw nil}))
+
+      :else
+      (take-pending-stdout joined category))))
 
 (defn decoded-byte-count
   [base64]

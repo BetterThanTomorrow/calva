@@ -97,10 +97,10 @@
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def image-display-modes
-  ["images-including-remote-urls" "images" "raw"])
+  ["images" "raw" "images-including-remote-urls"])
 
 (def default-image-display
-  "images-including-remote-urls")
+  "images")
 
 (defn get-image-display-setting
   []

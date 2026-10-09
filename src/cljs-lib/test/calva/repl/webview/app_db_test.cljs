@@ -1,6 +1,8 @@
 (ns calva.repl.webview.app-db-test
   (:require
    [calva.repl.webview.app-db :as sut]
+   [calva.repl.webview.images :as images]
+   [clojure.string :as str]
    [cljs.test :refer-macros [deftest testing is]]))
 
 (deftest initial-db-test
@@ -165,7 +167,7 @@
 
   (testing "a chunk that ends inside the data URL header is held back"
     (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "look: data:image/pn")])]
-      (is (= {:text "data:image/pn" :category "evalOut"} (:output/pending-stdout db)))
+      (is (= {:text "data:image/pn" :category "evalOut"} (select-keys (:output/pending-stdout db) [:text :category])))
       (is (= [[:fx/append-stdout "look: " "evalOut"]] fxs))))
 
   (testing "a result flushes pending stdout before it"
@@ -200,6 +202,54 @@
                                     [(stdout "data:image/png;base64,AAAA")
                                      [:msg/clear-output-view]])]
       (is (nil? (:output/pending-stdout db))))))
+
+(deftest pending-stdout-bound-test
+  (testing "an endless unterminated data-URL stream stays bounded and falls back to text"
+    (let [header "data:image/png;base64,"
+          chunk (apply str (repeat 4096 "A"))
+          ;; Well past the 1 MB pending cap; old code would grow without bound.
+          n (inc (quot images/max-pending-stdout-chars (count chunk)))
+          actions (into [(stdout header)] (repeat n (stdout chunk)))
+          {:keys [db fxs]} (run-actions sut/initial-db actions)
+          pending-text (get-in db [:output/pending-stdout :text])
+          raw-fxs (filter (fn [[op text]]
+                           (and (= :fx/append-stdout op)
+                                (string? text)
+                                (str/starts-with? text header)))
+                         fxs)
+          image-fxs (filter (fn [[op]] (= :fx/append-stdout-with-images op)) fxs)]
+      (is (nil? pending-text))
+      (is (seq raw-fxs))
+      (is (empty? image-fxs))
+      (is (every? #(<= (count (second %)) (+ images/max-pending-stdout-chars (count chunk)))
+                  raw-fxs))))
+
+  (testing "a payload split across many chunks still becomes one image"
+    (let [payload (apply str (repeat 8000 "A"))
+          url (str "data:image/png;base64," payload "==")
+          piece 200
+          actions (map stdout (concat (map #(apply str %)
+                                           (partition-all piece url))
+                                      ["\n"]))
+          {:keys [db fxs]} (run-actions sut/initial-db actions)
+          image-fxs (filter (fn [[op]] (= :fx/append-stdout-with-images op)) fxs)]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= 1 (count image-fxs)))
+      (is (= url (get-in (first image-fxs) [1 :images 0 :image/data-url])))))
+
+  (testing "many open-payload chunks stay fast"
+    ;; 5 s only catches a quadratic rescan of the whole pending buffer per chunk.
+    (let [header "data:image/png;base64,"
+          chunk (apply str (repeat 1024 "A"))
+          n 2000
+          actions (into [(stdout header)] (repeat n (stdout chunk)))
+          t0 (.now js/Date)
+          {:keys [db]} (run-actions sut/initial-db actions)
+          elapsed (- (.now js/Date) t0)
+          pending-len (count (or (get-in db [:output/pending-stdout :text]) ""))]
+      (is (<= pending-len images/max-pending-stdout-chars))
+      (is (< elapsed 5000)
+          (str "expected under 5000ms, took " elapsed "ms")))))
 
 (defn- run-two-eval-out
   "Runs two evalOut stdout messages, first as context a then as context b."
@@ -242,8 +292,7 @@
 
   (testing "a context change leaves only the new context's pending tail"
     (let [{:keys [db fxs meta-a meta-b]} (run-two-eval-out "data:image/png;base64,AAAA" "data:image/png;a=b;c=")]
-      (is (= {:text "data:image/png;a=b;c=" :category "evalOut"}
-             (:output/pending-stdout db)))
+      (is (= {:text "data:image/png;a=b;c=" :category "evalOut"} (select-keys (:output/pending-stdout db) [:text :category])))
       (is (= ["b" "clj" nil nil "b.ns"] (:output/last-context db)))
       (is (= [[:fx/append-ns-info meta-a]
               flushed-aaaa-stdout-fx
