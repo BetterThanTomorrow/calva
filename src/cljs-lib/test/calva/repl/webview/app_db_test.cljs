@@ -186,6 +186,28 @@
       (is (nil? (:output/pending-stdout db)))
       (is (= [[:fx/append-stdout "end d" "evalOut"]] fxs))))
 
+  (testing "an open data URL payload stays pending on :msg/flush-pending-stdout"
+    (let [{:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout "data:image/png;base64,AAAA")
+                                         [:msg/flush-pending-stdout]])]
+      (is (some? (:payload-start (:output/pending-stdout db))))
+      (is (= [] fxs))))
+
+  (testing "an open payload survives flush and completes as one image when more chunks arrive"
+    (let [half (quot (count split-data-url) 2)
+          first-half (subs split-data-url 0 half)
+          rest (str (subs split-data-url half) "\n")
+          {:keys [db fxs]} (run-actions sut/initial-db
+                                        [(stdout first-half)
+                                         [:msg/flush-pending-stdout]
+                                         (stdout rest)])]
+      (is (nil? (:output/pending-stdout db)))
+      (is (= [[:fx/append-stdout-with-images {:text "<<image-1 png 1 kB>>\n"
+                                              :images [split-image]
+                                              :raw (str split-data-url "\n")}
+               "evalOut"]]
+             fxs))))
+
   (testing "a chunk ending in a newline does not hold a short trailing d"
     (let [{:keys [db fxs]} (run-actions sut/initial-db [(stdout "end d\n")])]
       (is (nil? (:output/pending-stdout db)))
