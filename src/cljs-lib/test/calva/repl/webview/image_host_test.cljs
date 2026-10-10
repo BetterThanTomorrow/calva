@@ -414,3 +414,50 @@
       (is (= 26 (count paths)))
       (is (= "A:\\" (first paths)))
       (is (= "Z:\\" (last paths))))))
+
+(deftest local-resource-roots-project-root-throws-test
+  (testing "a throwing project-root lookup only drops that entry"
+    (let [extension-uri (fake-uri "" "/ext")
+          vscode (fake-vscode)]
+      (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                    util/vscode (atom vscode)
+                    util/get-project-root-uri (fn
+                                               ([] (throw (js/Error. "no root")))
+                                               ([_] (throw (js/Error. "no root"))))]
+        (let [roots (vec (sut/local-resource-roots))]
+          (is (some #(= extension-uri %) roots)
+              "extension URI stays when project root throws")
+          (is (not-any? nil? roots)))))))
+
+(deftest stat-file!-timeout-test
+  (async done
+         (reset! sut/!stat-timeout-ms 40)
+         (let [!settled (atom false)
+               !guard (atom nil)
+               vscode (let [base (fake-vscode)]
+                        (set! (.-workspace ^js base)
+                              #js {:fs #js {:stat (fn [_uri]
+                                                    (js/Promise. (fn [_resolve _reject])))}})
+                        base)
+               file-uri (fake-uri "" "/tmp/x.png")]
+           (reset! !guard
+                   (js/setTimeout
+                    (fn []
+                      (when (compare-and-set! !settled false true)
+                        (reset! sut/!stat-timeout-ms nil)
+                        (is false "stat-file! did not settle after the timeout")
+                        (done)))
+                    1000))
+           (-> (sut/stat-file! vscode file-uri)
+               (.finally (fn []
+                           (reset! sut/!stat-timeout-ms nil)))
+               (.then (fn [result]
+                        (when (compare-and-set! !settled false true)
+                          (js/clearTimeout @!guard)
+                          (is (nil? result) "a never-settling stat times out as nil")
+                          (done))))
+               (.catch (fn [e]
+                         (when (compare-and-set! !settled false true)
+                           (js/clearTimeout @!guard)
+                           (is false (str e))
+                           (done))))))))

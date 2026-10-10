@@ -8,10 +8,12 @@
 (defn- fake-uri
   ([authority]
    (fake-uri authority nil))
-  ([authority fs-path]
-   #js {:authority authority
-        :fsPath fs-path
-        :toString (fn [] (str "uri:" (or fs-path authority)))}))
+  ([authority path]
+   #js {:scheme (if (str/blank? (str authority)) "file" "vscode-remote")
+        :authority (or authority "")
+        :path (or path "")
+        :fsPath (or path "")
+        :toString (fn [] (str "uri:" (or path authority)))}))
 
 (defn- fake-vscode
   ([]
@@ -26,7 +28,22 @@
                                       (str/starts-with? src "\\\\"))
                                 (fake-uri "server" src)
                                 (fake-uri "" src)))
-                      :joinPath (fn [uri & _parts] uri)}]
+                      :joinPath (fn [uri & parts]
+                                  (let [base (vec (remove str/blank?
+                                                          (str/split (str (.-path uri)) #"/")))
+                                        segs (reduce (fn [acc part]
+                                                       (cond
+                                                         (or (str/blank? part) (= "." part)) acc
+                                                         (= ".." part) (if (seq acc) (pop acc) acc)
+                                                         :else (conj acc part)))
+                                                     base
+                                                     parts)
+                                        new-path (str "/" (str/join "/" segs))]
+                                    #js {:scheme (.-scheme uri)
+                                         :authority (.-authority uri)
+                                         :path new-path
+                                         :fsPath new-path
+                                         :toString (fn [] (str "uri:" new-path))}))}]
      #js {:Uri uri-api})))
 
 (deftest file-uri-for-ref-remote-project-root-test
@@ -102,3 +119,20 @@
                (.catch (fn [e]
                          (is false (str e))
                          (finish!)))))))
+
+(deftest file-uri-for-ref-rejects-dotdot-under-remote-root-test
+  (let [root (fake-uri "ssh-remote+host" "/home/user/proj")
+        vscode (fake-vscode)]
+    (with-redefs [util/get-project-root-uri (fn
+                                              ([] root)
+                                              ([_] root))]
+      (testing "../ escapes are refused"
+        (is (nil? (sut/file-uri-for-ref vscode "../x.png")))
+        (is (nil? (sut/file-uri-for-ref vscode "a/../../x.png")))
+        (is (nil? (sut/file-uri-for-ref vscode "..\\x.png"))))
+      (testing "a path under the remote root is kept"
+        (let [uri (sut/file-uri-for-ref vscode "charts/a.png")]
+          (is (some? uri))
+          (is (= "vscode-remote" (.-scheme ^js uri)))
+          (is (= "ssh-remote+host" (.-authority ^js uri)))
+          (is (= "/home/user/proj/charts/a.png" (.-path ^js uri))))))))

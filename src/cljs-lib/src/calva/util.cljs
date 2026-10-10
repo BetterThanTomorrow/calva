@@ -7,9 +7,7 @@
 (def project-root-uri-key "connect.projectDirNew")
 
 (defn get-first-workspace-folder-uri []
-  (-> (.. ^js @vscode -workspace -workspaceFolders)
-      first ;; Handle nil here?
-      (.. -uri)))
+  (some-> ^js @vscode .-workspace .-workspaceFolders first .-uri))
 
 (defn ^:export get-project-root-uri
   ([]
