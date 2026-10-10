@@ -52,8 +52,8 @@
 (defn listen-for-workspace-folder-changes!
   "Rebuilds localResourceRoots when workspace folders change. Returns a Disposable, or nil."
   [^js webview-host]
-  (when-let [vscode @util/vscode]
-    (when-let [workspace (.-workspace vscode)]
+  (when-let [vscode ^js @util/vscode]
+    (when-let [workspace ^js (.-workspace vscode)]
       (when (fn? (.-onDidChangeWorkspaceFolders workspace))
         (.onDidChangeWorkspaceFolders workspace
                                       (fn [_]
