@@ -347,3 +347,48 @@
       (is (= [1 3] (mapv :image/line-index images)))
       (is (= [0 0] (mapv :image/line-offset images)))
       (is (= "pre\n<<image-1 png 3 B>>\npost\n<<image-2 png 3 B>>" text)))))
+
+(deftest extract-images-payload-budget-test
+  (testing "a data URL past the payload budget is a marker and is left out of :images"
+    (try
+      (reset! sut/!max-result-data-url-payload-chars 8)
+      (let [small "data:image/gif;base64,AAAA"
+            {:keys [text images]} (sut/extract-images (str png-data-url " " small))]
+        (is (= "<<image png 8 B>> <<image-1 gif 3 B>>" text))
+        (is (= [small] (mapv :image/data-url images)))
+        (is (= [1] (mapv :image/n images)))
+        (is (not (str/includes? text png-base64))))
+      (finally
+        (reset! sut/!max-result-data-url-payload-chars nil))))
+
+  (testing "a data URL within the budget stays an image"
+    (try
+      (reset! sut/!max-result-data-url-payload-chars 12)
+      (let [{:keys [text images]} (sut/extract-images png-data-url)]
+        (is (= "<<image-1 png 8 B>>" text))
+        (is (= 1 (count images)))
+        (is (= png-data-url (:image/data-url (first images)))))
+      (finally
+        (reset! sut/!max-result-data-url-payload-chars nil))))
+
+  (testing "the budget is a running total across data URLs in one result"
+    (try
+      (reset! sut/!max-result-data-url-payload-chars 14)
+      (let [small "data:image/gif;base64,AAAA"
+            {:keys [text images]} (sut/extract-images (str small " " png-data-url))]
+        (is (= "<<image-1 gif 3 B>> <<image png 8 B>>" text))
+        (is (= [small] (mapv :image/data-url images)))
+        (is (not (str/includes? text png-base64))))
+      (finally
+        (reset! sut/!max-result-data-url-payload-chars nil))))
+
+  (testing "an omitted data URL leaves a following path ref numbered in the image form"
+    (try
+      (reset! sut/!max-result-data-url-payload-chars 4)
+      (let [{:keys [text images]} (sut/extract-images (pr-str [png-data-url "a.png"]))]
+        (is (= ["a.png"] (mapv :image/src images)))
+        (is (= [1] (mapv :image/n images)))
+        (is (str/includes? text "<<image png 8 B>>"))
+        (is (not (str/includes? text png-base64))))
+      (finally
+        (reset! sut/!max-result-data-url-payload-chars nil)))))

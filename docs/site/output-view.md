@@ -44,6 +44,8 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.
 
+Data URLs in one result share a budget of 1,048,576 compact base64 characters. A data URL that does not fit is left out of the thumbnails. The image form shows `<<image TYPE SIZE>>` where that data URL was. The raw form keeps the original text.
+
 
 
 

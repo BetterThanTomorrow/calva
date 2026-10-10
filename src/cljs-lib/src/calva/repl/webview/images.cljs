@@ -137,6 +137,8 @@
    maps for one result."
   1048576)
 
+(defonce !max-result-data-url-payload-chars (atom nil))
+
 (defn- compact-base64
   [base64]
   (str/replace base64 #"\s" ""))
@@ -149,7 +151,8 @@
    :cand/payload-start payload-start
    :cand/mime mime
    :cand/base64 base64
-   :cand/payload-chars (count (compact-base64 base64))})
+   :cand/payload-chars (count (compact-base64 base64))
+   :cand/decoded-bytes (decoded-byte-count base64)})
 
 (defn- ref-candidate
   [image]
@@ -157,38 +160,45 @@
    :cand/start (:image/start image)
    :cand/image image})
 
+(defn- payload-char-limit
+  []
+  (or @!max-result-data-url-payload-chars max-result-data-url-payload-chars))
+
 (defn- accept-data-cand?
   [payload {:cand/keys [payload-chars]}]
-  (<= (+ payload payload-chars) max-result-data-url-payload-chars))
+  (<= (+ payload payload-chars) (payload-char-limit)))
 
 (defn- step-select-result-image
-  [{:keys [accepted payload] :as state} c]
+  [{:keys [accepted omitted payload] :as state} c]
   (cond
     (>= (count accepted) image-refs/max-result-image-refs)
     (reduced state)
 
-    (and (= :data (:cand/kind c)) (not (accept-data-cand? payload c)))
-    state
+    (and (= :data (:cand/kind c))
+         (not (accept-data-cand? payload c)))
+    (update state :omitted conj (dissoc c :cand/base64))
 
     (= :data (:cand/kind c))
     {:accepted (conj accepted c)
+     :omitted omitted
      :payload (+ payload (:cand/payload-chars c))}
 
     :else
     {:accepted (conj accepted c)
+     :omitted omitted
      :payload payload}))
 
 (defn- select-result-image-cands
   "Keeps the first `max-result-image-refs` candidates in printed order. A data URL that would
-   push the compact base64 total past `max-result-data-url-payload-chars` is skipped and stays
-   as printed text."
+   push the compact base64 total past the payload budget is returned in `:omitted` without its
+   base64. Candidates past the count cap are dropped and stay as printed text."
   [data-found refs]
-  (:accepted
-   (reduce step-select-result-image
-           {:accepted [] :payload 0}
-           (->> (concat (map data-url-candidate data-found)
-                        (map ref-candidate refs))
-                (sort-by :cand/start)))))
+  (-> (reduce step-select-result-image
+              {:accepted [] :omitted [] :payload 0}
+              (->> (concat (map data-url-candidate data-found)
+                           (map ref-candidate refs))
+                   (sort-by :cand/start)))
+      (select-keys [:accepted :omitted])))
 
 (defn- advance-one
   [s abs-start {:keys [i line line-start]}]
@@ -207,6 +217,11 @@
                 (recur (advance-one s abs-start state))))]
     [(:line end) (:line-start end)]))
 
+(defn- omitted-data-url-marker
+  "Text that replaces a data URL the payload budget leaves out of the image form."
+  [{:cand/keys [mime decoded-bytes]}]
+  (str "<<image " (subs mime (count "image/")) " " (format-byte-size decoded-bytes) ">>"))
+
 (defn- data-image-from-cand
   [text {:cand/keys [n mime base64 payload-start start]}]
   {:image/n n
@@ -215,13 +230,30 @@
    :image/size (format-byte-size (decoded-byte-count base64))
    :image/data-url (str (subs text start payload-start) (compact-base64 base64))})
 
+(defn- data-cand-replacement
+  "Replacement text for one data-URL candidate, and the image when the candidate is kept."
+  [text {:cand/keys [start end] :as c} line line-offset]
+  (let [omitted? (:cand/omitted c)
+        image (when-not omitted?
+                (assoc (data-image-from-cand text c)
+                       :image/line-index line
+                       :image/line-offset line-offset))
+        replacement (if omitted?
+                      (omitted-data-url-marker c)
+                      (placeholder image))]
+    {:replacement replacement
+     :image image
+     :shift [start (- (count replacement) (- end start))]}))
+
 (defn- rebuild-with-data-urls
-  "Replaces each accepted data URL with its placeholder and records line positions while building."
+  "Replaces each accepted data URL with its placeholder and each omitted data URL with a short
+   marker. Records line positions while building. An omitted data URL adds no image."
   [text data-cands]
   (loop [pos 0
          remaining data-cands
          pieces []
          images []
+         shifts []
          out-len 0
          line 0
          line-start 0]
@@ -230,25 +262,22 @@
             chunk (subs text pos start)
             [line' line-start'] (advance-through chunk out-len line line-start)
             out-at-ph (+ out-len (count chunk))
-            image (assoc (data-image-from-cand text c)
-                         :image/line-index line'
-                         :image/line-offset (- out-at-ph line-start'))
-            ph (placeholder image)]
+            {:keys [replacement image shift]} (data-cand-replacement text
+                                                                     c
+                                                                     line'
+                                                                     (- out-at-ph line-start'))]
         (recur end
                (rest remaining)
-               (conj pieces chunk ph)
-               (conj images image)
-               (+ out-at-ph (count ph))
+               (conj pieces chunk replacement)
+               (cond-> images
+                 image (conj image))
+               (conj shifts shift)
+               (+ out-at-ph (count replacement))
                line'
                line-start'))
       {:text (apply str (conj pieces (subs text pos)))
        :images images
-       :shift-events (mapv (fn [c img]
-                             [(:cand/start c)
-                              (- (count (placeholder img))
-                                 (- (:cand/end c) (:cand/start c)))])
-                           data-cands
-                           images)})))
+       :shift-events shifts})))
 
 (defn- shift-abs
   [orig-start shift-events]
@@ -271,8 +300,9 @@
 
 (defn extract-images
   "Replaces accepted base64 image data URLs in `text` with `<<image-N TYPE SIZE>>`, numbered
-   from 1 in printed order with path and URL refs. Data URLs past the shared count cap or the
-   payload budget stay as printed text. Image URLs and file paths are left in the text.
+   from 1 in printed order with path and URL refs. A data URL past the payload budget is
+   replaced with `<<image TYPE SIZE>>` and left out of `:images`. Data URLs past the shared
+   count cap stay as printed text. Image URLs and file paths are left in the text.
    Returns `{:text ... :images [image ...]}`."
   [text]
   (if-not (string? text)
@@ -281,11 +311,15 @@
                        (image-data-urls text)
                        [])
           refs (image-refs/result-image-refs text)
-          selected (->> (select-result-image-cands data-found refs)
+          {:keys [accepted omitted]} (select-result-image-cands data-found refs)
+          selected (->> accepted
                         (sort-by :cand/start)
                         (map-indexed (fn [i c] (assoc c :cand/n (inc i))))
                         vec)
-          data-cands (filterv #(= :data (:cand/kind %)) selected)
+          data-cands (->> (concat (filterv #(= :data (:cand/kind %)) selected)
+                                  (mapv #(assoc % :cand/omitted true) omitted))
+                          (sort-by :cand/start)
+                          vec)
           ref-cands (filterv #(= :ref (:cand/kind %)) selected)
           {:keys [text images shift-events]} (rebuild-with-data-urls text data-cands)
           ref-images (mapv #(ref-image-from-cand text shift-events %) ref-cands)]

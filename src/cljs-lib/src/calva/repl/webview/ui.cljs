@@ -355,7 +355,7 @@
 
 (defn create-image-element
   "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
-   Local and remote images stay hidden until they load; a failure removes the thumbnail."
+   Data-URL, local, and remote images stay hidden until they load; a failure removes the thumbnail."
   [{:image/keys [data-url kind src session-key] :as image}]
   (let [label (images/label image)
         thumbnail (create-element "div" "output-image-thumbnail" nil)
@@ -376,7 +376,8 @@
     (.. thumbnail (appendChild img))
     (.. thumbnail (appendChild button))
     (cond
-      data-url (set! (.-src img) data-url)
+      data-url (do (hide-until-load! thumbnail img)
+                   (set! (.-src img) data-url))
       (= :local kind) (do (hide-until-load! thumbnail img)
                           (set! (.-calvaLocalSrc img) src)
                           (if (raw-display?)

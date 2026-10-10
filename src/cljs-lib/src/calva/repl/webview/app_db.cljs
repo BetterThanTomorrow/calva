@@ -20,16 +20,17 @@
         (/ 100))))
 
 (defn- result-fxs
-  "A result with images is appended as both forms: `:text` with placeholders plus `:images`, and
-   the original text as `:raw`. `meta` is kept so relative local paths resolve against the
-   producing session's root."
+  "A result with images, or with data URLs replaced by markers, is appended as both forms:
+   `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
+   local paths resolve against the producing session's root."
   [output meta]
-  (let [{:keys [images] :as extracted} (if (string? output)
-                                         (images/extract-images output)
-                                         {:text output :images []})]
-    (if (seq images)
+  (let [{:keys [text images] :as extracted} (if (string? output)
+                                               (images/extract-images output)
+                                               {:text output :images []})]
+    (if (or (seq images)
+            (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
-                                         meta (assoc :meta meta))]]
+                                        meta (assoc :meta meta))]]
       [[:fx/append-result output]])))
 
 (defn- message-fxs
