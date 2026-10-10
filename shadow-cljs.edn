@@ -34,6 +34,7 @@
                              :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
                              :cycleOutputViewImageDisplay calva.repl.webview.core/cycle-image-display
                              :initOutputViewImageDisplay calva.repl.webview.core/init-image-display!
+                             :setSessionProjectRootUriFn calva.repl.webview.image-host/set-session-project-root-uri-fn!
                              :increaseOutputViewFontSize calva.repl.webview.core/increase-font-size
                              :decreaseOutputViewFontSize calva.repl.webview.core/decrease-font-size
                              :resetOutputViewFontSize calva.repl.webview.core/reset-font-size

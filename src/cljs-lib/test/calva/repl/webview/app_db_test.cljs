@@ -79,6 +79,17 @@
                                               :raw output}]]
              (:uf/fxs result)))))
 
+  (testing "show-result keeps meta on the images fx for session-root resolve"
+    (let [output (str "\"" png-data-url "\"")
+          meta {:meta/repl-session-key "clj" :meta/ns "user"}
+          payload {:command/name "show-result" :output output :meta meta}
+          result (sut/handle-action sut/initial-db [:msg/output payload])
+          images-fx (some (fn [[op payload]]
+                            (when (= :fx/append-result-with-images op)
+                              payload))
+                          (:uf/fxs result))]
+      (is (= meta (:meta images-fx)))))
+
   (testing "stdout with a data URL is plain append-stdout"
     (let [output (str png-data-url "\n")
           payload {:command/name "show-stdout" :output output :output-category "evalOut"}

@@ -13,6 +13,27 @@
         :fsPath fs-path
         :toString (fn [] (str "uri:" (or fs-path authority)))}))
 
+(defn- fake-uri-with-path
+  [authority path]
+  #js {:scheme (if (str/blank? (str authority)) "file" "vscode-remote")
+       :authority (or authority "")
+       :path (or path "")
+       :fsPath (or path "")
+       :toString (fn [] (str "uri:" (or path authority)))})
+
+(defn- join-path-uri
+  [uri & parts]
+  (let [base (vec (remove str/blank? (str/split (str (.-path uri)) #"/")))
+        segs (reduce (fn [acc part]
+                       (cond
+                         (or (str/blank? part) (= "." part)) acc
+                         (= ".." part) (if (seq acc) (pop acc) acc)
+                         :else (conj acc part)))
+                     base
+                     parts)
+        new-path (str "/" (str/join "/" segs))]
+    (fake-uri-with-path (.-authority uri) new-path)))
+
 (defn- fake-vscode
   ([]
    (fake-vscode nil))
@@ -26,7 +47,7 @@
                                       (str/starts-with? src "\\\\"))
                                 (fake-uri "server" src)
                                 (fake-uri "" src)))
-                      :joinPath (fn [uri & _parts] uri)}]
+                      :joinPath join-path-uri}]
      #js {:Uri uri-api})))
 
 (deftest file-uri-for-ref-rejects-network-paths-test
@@ -42,7 +63,16 @@
       (is (some? uri))
       (is (str/blank? (str (.-authority ^js uri)))))))
 
-(deftest file-uri-for-ref-paths-test
+(defn- with-session-root-fn!
+  [f body]
+  (let [prev @sut/!session-project-root-uri-fn]
+    (try
+      (sut/set-session-project-root-uri-fn! f)
+      (body)
+      (finally
+        (sut/set-session-project-root-uri-fn! prev)))))
+
+(deftest file-uri-for-ref-absolute-paths-test
   (testing "POSIX absolute path"
     (let [uri (sut/file-uri-for-ref (fake-vscode) "/tmp/x.png")]
       (is (some? uri))
@@ -50,19 +80,51 @@
   (testing "Windows drive path"
     (let [uri (sut/file-uri-for-ref (fake-vscode) "C:\\Users\\pez\\a.png")]
       (is (some? uri))
-      (is (str/blank? (str (.-authority ^js uri))))))
-  (testing "relative path joined to project root"
-    (let [root (fake-uri "")
+      (is (str/blank? (str (.-authority ^js uri)))))))
+
+(deftest file-uri-for-ref-session-root-test
+  (testing "relative path uses the session root, not the global root"
+    (let [session-root (fake-uri-with-path "" "/session/a")
+          global-root (fake-uri-with-path "" "/global/b")
           vscode (fake-vscode)]
-      (with-redefs [util/get-project-root-uri (fn
-                                                ([] root)
-                                                ([_] root))]
-        (is (some? (sut/file-uri-for-ref vscode "charts/a.png"))))))
-  (testing "relative path with no project root gives nil"
-    (with-redefs [util/get-project-root-uri (fn
-                                              ([] nil)
-                                              ([_] nil))]
-      (is (nil? (sut/file-uri-for-ref (fake-vscode) "charts/a.png"))))))
+      (with-session-root-fn!
+       (fn [session-key]
+         (case session-key "clj" session-root nil))
+       (fn []
+         (with-redefs [util/get-project-root-uri (fn
+                                                   ([] global-root)
+                                                   ([_] global-root))]
+           (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
+             (is (some? uri))
+             (is (= "/session/a/charts/a.png" (.-path ^js uri)))
+             (is (not= "/global/b/charts/a.png" (.-path ^js uri)))))))))
+  (testing "relative path with no session root gives nil"
+    (with-session-root-fn!
+     (constantly nil)
+     (fn []
+       (is (nil? (sut/file-uri-for-ref (fake-vscode) "charts/a.png" "clj")))
+       (is (nil? (sut/file-uri-for-ref (fake-vscode) "charts/a.png")))))))
+
+(deftest file-uri-for-ref-multi-session-and-dotdot-test
+  (testing "multiple sessions keep different roots"
+    (let [root-a (fake-uri-with-path "" "/proj-a")
+          root-b (fake-uri-with-path "" "/proj-b")
+          vscode (fake-vscode)]
+      (with-session-root-fn!
+       (fn [session-key]
+         (case session-key "clj" root-a "cljs" root-b nil))
+       (fn []
+         (is (= "/proj-a/x.png" (.-path ^js (sut/file-uri-for-ref vscode "x.png" "clj"))))
+         (is (= "/proj-b/x.png" (.-path ^js (sut/file-uri-for-ref vscode "x.png" "cljs"))))))))
+  (testing ".. climbs out of the session root"
+    (let [root (fake-uri-with-path "" "/home/user/proj")
+          vscode (fake-vscode)]
+      (with-session-root-fn!
+       (fn [_] root)
+       (fn []
+         (is (= "/home/user/x.png" (.-path ^js (sut/file-uri-for-ref vscode "../x.png" "clj"))))
+         (is (= "/home/user/x.png" (.-path ^js (sut/file-uri-for-ref vscode "a/../../x.png" "clj"))))
+         (is (= "/home/user/x.png" (.-path ^js (sut/file-uri-for-ref vscode "..\\x.png" "clj")))))))))
 
 (deftest image-content-type-test
   (is (= "image/png" (sut/image-content-type "image/png")))

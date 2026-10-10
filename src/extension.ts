@@ -48,6 +48,7 @@ import * as fiddleFiles from './fiddle-files';
 import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as shadowRuntime from './shadow-cljs-runtime';
 import * as outputSidebar from './results-output/output-sidebar';
 
@@ -89,6 +90,17 @@ async function activate(context: vscode.ExtensionContext) {
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
+  cljsLib.setSessionProjectRootUriFn((sessionKey: string) => {
+    const root = sessionRegistry.getSessionMetadata(sessionKey)?.projectRoot;
+    if (!root) {
+      return undefined;
+    }
+    try {
+      return vscode.Uri.parse(root);
+    } catch {
+      return undefined;
+    }
+  });
   cljsLib.initReplOutputWordWrap();
   cljsLib.initOutputViewImageDisplay();
   cljsLib.initReplOutputFontSizeScale();

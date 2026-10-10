@@ -58,51 +58,50 @@
   (when (and uri (blank-authority? uri))
     uri))
 
-(defn- under-project-root?
-  "True when `joined` stays on `project-root`'s scheme and authority, and its path is the root
-   path or under it."
-  [^js project-root ^js joined]
-  (and project-root joined
-       (= (.-scheme project-root) (.-scheme joined))
-       (= (str (.-authority project-root)) (str (.-authority joined)))
-       (let [root-path (str (.-path project-root))
-             joined-path (str (.-path joined))
-             under-prefix (if (str/ends-with? root-path "/")
-                            root-path
-                            (str root-path "/"))]
-         (or (= joined-path root-path)
-             (str/starts-with? joined-path under-prefix)))))
+(defonce !session-project-root-uri-fn (atom nil))
+
+(defn ^:export set-session-project-root-uri-fn!
+  "Registers how the host looks up a REPL session's project-root URI by session key."
+  [f]
+  (reset! !session-project-root-uri-fn f))
+
+(defn- session-project-root-uri
+  "Project-root URI for `session-key`, or nil when the key or lookup is missing."
+  [session-key]
+  (when-let [f @!session-project-root-uri-fn]
+    (when session-key
+      (f session-key))))
 
 (defn- project-relative-file-uri
-  "Join `src` onto the Calva project root URI. Keeps the root's scheme and authority. Nil when the
-   joined path steps outside the root."
-  [^js vscode src]
-  (when-let [project-root (util/get-project-root-uri)]
-    (let [joined (reduce (fn [u part]
-                           (.. ^js vscode -Uri (joinPath u part)))
-                         project-root
-                         (remove str/blank? (str/split src #"[\\/]+")))]
-      (when (under-project-root? project-root joined)
-        joined))))
+  "Join `src` onto `project-root`. Keeps the root's scheme and authority. Nil when there is no root.
+   `..` segments climb out of the root the same way Uri.joinPath does."
+  [^js vscode ^js project-root src]
+  (when project-root
+    (reduce (fn [u part]
+              (.. ^js vscode -Uri (joinPath u part)))
+            project-root
+            (remove str/blank? (str/split src #"[\\/]+")))))
 
 (defn file-uri-for-ref
-  "A vscode URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
-   root. Relative paths keep the project-root URI as joined (any scheme and authority). Nil for
-   network paths, user-supplied file: or absolute paths with a non-empty authority, missing URI
-   API, a relative path when there is no project root, or a URI that Uri.parse cannot build."
-  [^js vscode src]
-  (try
-    (when (and vscode (not (network-path? src)))
-      (cond
-        (str/starts-with? src "file:")
-        (uri-without-authority (.. ^js vscode -Uri (parse src)))
+  "A vscode URI for a `file:///` URI, an absolute path, or a path relative to the producing REPL
+   session's project root. Relative paths keep that root's scheme and authority. Nil for network
+   paths, user-supplied file: or absolute paths with a non-empty authority, missing URI API, a
+   relative path when there is no session root, or a URI that Uri.parse cannot build."
+  ([vscode src]
+   (file-uri-for-ref vscode src nil))
+  ([^js vscode src session-key]
+   (try
+     (when (and vscode (not (network-path? src)))
+       (cond
+         (str/starts-with? src "file:")
+         (uri-without-authority (.. ^js vscode -Uri (parse src)))
 
-        (absolute-path? src)
-        (uri-without-authority (.. ^js vscode -Uri (file src)))
+         (absolute-path? src)
+         (uri-without-authority (.. ^js vscode -Uri (file src)))
 
-        :else
-        (project-relative-file-uri vscode src)))
-    (catch :default _ nil)))
+         :else
+         (project-relative-file-uri vscode (session-project-root-uri session-key) src)))
+     (catch :default _ nil))))
 
 (defn as-webview-image-uri
   "The webview URI for `file-uri`, or nil."
@@ -283,10 +282,11 @@
            (image-refs/image-file-path? src))))
 
 (defn- resolve-local-image-message!
-  [^js webview-host post! ^js vscode src]
+  [^js webview-host post! src session-key]
   (if-not (local-image-src? src)
     (post! {:command/name "local-image-missing"})
-    (let [file-uri (file-uri-for-ref vscode src)]
+    (let [vscode @util/vscode
+          file-uri (file-uri-for-ref vscode src session-key)]
       (-> (stat-file! vscode file-uri)
           (.then (fn [uri]
                    (if uri
@@ -307,14 +307,15 @@
   [^js webview-host ^js message]
   (let [command (.-command message)
         id (.-id message)
-        vscode @util/vscode
         post! (fn [payload]
                 (when webview-host
                   (.. webview-host -webview
                       (postMessage (pr-str (merge {:id id} payload))))))]
     (case command
       "resolve-local-image"
-      (resolve-local-image-message! webview-host post! vscode (.-src message))
+      (resolve-local-image-message! webview-host post!
+                                    (.-src message)
+                                    (.-sessionKey message))
 
       "fetch-image-for-copy"
       (fetch-image-for-copy-message! post! (.-url message))
