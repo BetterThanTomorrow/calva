@@ -298,36 +298,47 @@
     (reset! !local-image-src->id {})
     (swap! !host-requests #(apply dissoc % ids))))
 
+(defn- local-image-lookup-key
+  "Coalesce key for in-flight local lookups: path plus producing session key."
+  [src session-key]
+  [src session-key])
+
 (defn- start-local-image-lookup!
   "Posts one host lookup for `src` and stores waiters under the request id."
-  [^js img ^js thumbnail src]
-  (let [id (host-request-id)]
-    (swap! !local-image-src->id assoc src id)
-    (swap! !local-image-lookups assoc id {:src src :waiters [[img thumbnail]]})
+  [^js img ^js thumbnail src session-key]
+  (let [id (host-request-id)
+        lookup-key (local-image-lookup-key src session-key)]
+    (swap! !local-image-src->id assoc lookup-key id)
+    (swap! !local-image-lookups assoc id {:src src
+                                          :session-key session-key
+                                          :waiters [[img thumbnail]]})
     (remember-host-request!
      id
      (fn [{:keys [webview-uri]}]
        (when-let [entry (get @!local-image-lookups id)]
          (swap! !local-image-lookups dissoc id)
-         (swap! !local-image-src->id dissoc (:src entry))
+         (swap! !local-image-src->id
+                dissoc
+                (local-image-lookup-key (:src entry) (:session-key entry)))
          (doseq [[img thumbnail] (:waiters entry)]
            (apply-local-resolve! img thumbnail webview-uri)))))
-    (post-to-host! {:command "resolve-local-image" :id id :src src})))
+    (post-to-host! (cond-> {:command "resolve-local-image" :id id :src src}
+                     session-key (assoc :sessionKey session-key)))))
 
 (defn- resolve-local-image!
   "Asks the host for a webview URI for an image file path. Waiters are keyed by request id so a
-   late reply cannot consume a newer lookup for the same src. Identical paths coalesce onto one
-   in-flight id while that lookup is open."
-  [^js img ^js thumbnail src]
-  (if-let [existing-id (get @!local-image-src->id src)]
+   late reply cannot consume a newer lookup for the same src. Identical paths from the same
+   session coalesce onto one in-flight id while that lookup is open."
+  [^js img ^js thumbnail src session-key]
+  (if-let [existing-id (get @!local-image-src->id (local-image-lookup-key src session-key))]
     (swap! !local-image-lookups update-in [existing-id :waiters] conj [img thumbnail])
     (if (< (count @!local-image-lookups) max-local-image-lookups)
-      (start-local-image-lookup! img thumbnail src)
+      (start-local-image-lookup! img thumbnail src session-key)
       (remove-thumbnail! thumbnail))))
 
 (defn- queue-pending-local!
-  [^js img ^js thumbnail src]
-  (swap! !pending-local-images conj {:img img :thumbnail thumbnail :src src}))
+  [^js img ^js thumbnail src session-key]
+  (swap! !pending-local-images conj {:img img :thumbnail thumbnail :src src :session-key session-key}))
 
 (defn- img-src-unset?
   "True when `img` has no `src` attribute."
@@ -338,14 +349,14 @@
   []
   (let [pending @!pending-local-images]
     (reset! !pending-local-images [])
-    (doseq [{:keys [img thumbnail src]} pending]
+    (doseq [{:keys [img thumbnail src session-key]} pending]
       (when (and img (img-src-unset? img))
-        (resolve-local-image! img thumbnail src)))))
+        (resolve-local-image! img thumbnail src session-key)))))
 
 (defn create-image-element
   "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
    Local and remote images stay hidden until they load; a failure removes the thumbnail."
-  [{:image/keys [data-url kind src] :as image}]
+  [{:image/keys [data-url kind src session-key] :as image}]
   (let [label (images/label image)
         thumbnail (create-element "div" "output-image-thumbnail" nil)
         img (create-element "img" "output-image" nil)
@@ -369,8 +380,8 @@
       (= :local kind) (do (hide-until-load! thumbnail img)
                           (set! (.-calvaLocalSrc img) src)
                           (if (raw-display?)
-                            (queue-pending-local! img thumbnail src)
-                            (resolve-local-image! img thumbnail src)))
+                            (queue-pending-local! img thumbnail src session-key)
+                            (resolve-local-image! img thumbnail src session-key)))
       (= :remote kind) (do (set! (.-calvaRemoteSrc img) src)
                            (hide-until-load! thumbnail img)
                            (when (includes-remote-urls?)
@@ -450,8 +461,10 @@
     entry))
 
 (defn append-result-with-images
-  [^js dom-element {:keys [text raw images]}]
-  (let [entry (append-with-images! dom-element
+  [^js dom-element {:keys [text raw images meta]}]
+  (let [session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
+        images (mapv #(cond-> % session-key (assoc :image/session-key session-key)) images)
+        entry (append-with-images! dom-element
                                    {:text text
                                     :images images
                                     :create-raw-el! (fn []

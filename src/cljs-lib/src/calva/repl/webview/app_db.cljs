@@ -21,22 +21,24 @@
 
 (defn- result-fxs
   "A result with images is appended as both forms: `:text` with placeholders plus `:images`, and
-   the original text as `:raw`."
-  [output]
+   the original text as `:raw`. `meta` is kept so relative local paths resolve against the
+   producing session's root."
+  [output meta]
   (let [{:keys [images] :as extracted} (if (string? output)
                                          (images/extract-images output)
                                          {:text output :images []})]
     (if (seq images)
-      [[:fx/append-result-with-images (assoc extracted :raw output)]]
+      [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
+                                         meta (assoc :meta meta))]]
       [[:fx/append-result output]])))
 
 (defn- message-fxs
-  [command-name output category]
+  [command-name output category meta]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output)
+    "show-result" (result-fxs output meta)
     "show-evaluated-code" [[:fx/append-evaluated-code output]]
     []))
 
@@ -55,7 +57,7 @@
   (let [context-key (meta-context-key meta)
         context-changed? (and context-key (not= context-key (:output/last-context db)))
         category (or output-category "evalOut")
-        fxs (message-fxs name output category)]
+        fxs (message-fxs name output category meta)]
     {:uf/db (cond-> db
               context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []

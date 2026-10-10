@@ -104,6 +104,24 @@
                                      :webview-uri "webview:ok"})})
                 (is (= "webview:ok" (.getAttribute img "src")))))))))))
 
+(deftest relative-local-image-posts-session-key-test
+  (testing "a relative path posts resolve-local-image with the producing session key"
+    (let [posts (atom [])]
+      (with-redefs [ui/highlight-code! (fn [_])
+                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+        (with-image-display!
+          "images"
+          (fn []
+            (let [host (js/document.createElement "div")]
+              (apply-output! host app-db/initial-db
+                             {:command/name "show-result"
+                              :output "\"charts/a.png\""
+                              :meta {:meta/repl-session-key "clj" :meta/ns "user"}})
+              (let [msg (first (filter #(= "resolve-local-image" (:command %)) @posts))]
+                (is (some? msg))
+                (is (= "charts/a.png" (:src msg)))
+                (is (= "clj" (:sessionKey msg)))))))))))
+
 (deftest many-local-image-lookups-leave-nothing-behind-test
   (testing "many resolved lookups leave no waiters or host handlers behind"
     (let [posts (atom [])]

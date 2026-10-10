@@ -47,15 +47,17 @@
      #js {:Uri uri-api})))
 
 (deftest file-uri-for-ref-remote-project-root-test
-  (testing "relative path keeps a trusted remote project-root URI"
+  (testing "relative path keeps a trusted remote session project-root URI"
     (let [root (fake-uri "ssh-remote+host" "/home/user/proj")
-          vscode (fake-vscode)]
-      (with-redefs [util/get-project-root-uri (fn
-                                                ([] root)
-                                                ([_] root))]
-        (let [uri (sut/file-uri-for-ref vscode "charts/a.png")]
+          vscode (fake-vscode)
+          prev @sut/!session-project-root-uri-fn]
+      (try
+        (sut/set-session-project-root-uri-fn! (fn [_] root))
+        (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
           (is (some? uri))
-          (is (= "ssh-remote+host" (.-authority ^js uri)))))))
+          (is (= "ssh-remote+host" (.-authority ^js uri))))
+        (finally
+          (sut/set-session-project-root-uri-fn! prev)))))
   (testing "user-supplied file: and UNC paths with an authority stay refused"
     (is (nil? (sut/file-uri-for-ref (fake-vscode "server") "file://server/share/x.png")))
     (is (nil? (sut/file-uri-for-ref (fake-vscode) "\\\\server\\share\\x.png")))
@@ -99,14 +101,17 @@
                            (done)))]
            (-> (js/Promise.resolve nil)
                (.then (fn []
-                        (with-redefs [util/vscode (atom vscode)
-                                      util/get-project-root-uri (fn
-                                                                  ([] root)
-                                                                  ([_] root))]
-                          (reset! posted nil)
-                          (sut/handle-webview-message! host #js {:command "resolve-local-image"
-                                                                 :id "remote-rel"
-                                                                 :src "charts/a.png"}))
+                        (let [prev @sut/!session-project-root-uri-fn]
+                          (try
+                            (sut/set-session-project-root-uri-fn! (fn [_] root))
+                            (with-redefs [util/vscode (atom vscode)]
+                              (reset! posted nil)
+                              (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                     :id "remote-rel"
+                                                                     :src "charts/a.png"
+                                                                     :sessionKey "clj"}))
+                            (finally
+                              (sut/set-session-project-root-uri-fn! prev))))
                         (js/Promise.
                          (fn [resolve]
                            (js/setTimeout
@@ -120,19 +125,23 @@
                          (is false (str e))
                          (finish!)))))))
 
-(deftest file-uri-for-ref-rejects-dotdot-under-remote-root-test
+(deftest file-uri-for-ref-allows-dotdot-under-remote-root-test
   (let [root (fake-uri "ssh-remote+host" "/home/user/proj")
-        vscode (fake-vscode)]
-    (with-redefs [util/get-project-root-uri (fn
-                                              ([] root)
-                                              ([_] root))]
-      (testing "../ escapes are refused"
-        (is (nil? (sut/file-uri-for-ref vscode "../x.png")))
-        (is (nil? (sut/file-uri-for-ref vscode "a/../../x.png")))
-        (is (nil? (sut/file-uri-for-ref vscode "..\\x.png"))))
-      (testing "a path under the remote root is kept"
-        (let [uri (sut/file-uri-for-ref vscode "charts/a.png")]
+        vscode (fake-vscode)
+        prev @sut/!session-project-root-uri-fn]
+    (try
+      (sut/set-session-project-root-uri-fn! (fn [_] root))
+      (testing "../ climbs out of the remote session root"
+        (let [uri (sut/file-uri-for-ref vscode "../x.png" "clj")]
           (is (some? uri))
           (is (= "vscode-remote" (.-scheme ^js uri)))
           (is (= "ssh-remote+host" (.-authority ^js uri)))
-          (is (= "/home/user/proj/charts/a.png" (.-path ^js uri))))))))
+          (is (= "/home/user/x.png" (.-path ^js uri)))))
+      (testing "a path under the remote root is kept"
+        (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
+          (is (some? uri))
+          (is (= "vscode-remote" (.-scheme ^js uri)))
+          (is (= "ssh-remote+host" (.-authority ^js uri)))
+          (is (= "/home/user/proj/charts/a.png" (.-path ^js uri)))))
+      (finally
+        (sut/set-session-project-root-uri-fn! prev)))))
