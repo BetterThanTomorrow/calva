@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Output-view: Instead of blobs as encoded strings, show the image](https://github.com/BetterThanTomorrow/calva/issues/3287)
+
 ## [2.0.599] - 2026-09-23
 
 - Fix: [autoConnectRepl tried to connect even if no .nrepl-port present](https://github.com/BetterThanTomorrow/calva/issues/3278)

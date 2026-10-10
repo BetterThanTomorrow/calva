@@ -357,6 +357,21 @@
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
+          "calva.outputViewImageDisplay": {
+            "type": "string",
+            "enum": [
+              "images",
+              "raw",
+              "images-including-remote-urls"
+            ],
+            "enumDescriptions": [
+              "Show image data URLs and local image files as thumbnails. Remote URLs stay as text.",
+              "Show the raw text, as printed, with no thumbnails.",
+              "Show image data URLs, local image files, and remote image URLs as thumbnails."
+            ],
+            "default": "images",
+            "markdownDescription": "How the Output views show images in REPL output: data URLs, local files, and remote URLs. The default is local only, so printing untrusted data does not make network requests on its own. The output window, output file and terminal always show the raw text. **Calva: Cycle Output View Image Display** switches between local images and raw for the session; remote loading is only via this setting or an explicit command argument."
+          },
           "calva.fiddleFilePaths": {
             "type": "array",
             "markdownDescription": "An array of `source` and `fiddle` root paths, relative to the project root. This is used by the commands **Calva: Open Fiddle File for Current File**, and **Calva: Evaluate Fiddle File for Current File**. Example:\n\n```json\n\"calva.fiddleFilePaths\": [\n  {\n    \"source\": [\"src\"],\n    \"fiddle\": [\"env\", \"dev\", \"fiddles\"]\n  }\n]\n```\n\nThe default is `null`, which will make Calva associate files with a `.fiddle` file extension as the fiddle file for a Clojure file. E.g. a file `src/foo/bar/baz_main.cljc`, will have an associated fiddle file named `src/foo/bar/baz_main.fiddle`. See [calva.io/fiddle](https://calva.io/fiddle-files/) for more info.",
@@ -1847,6 +1862,12 @@
         "title": "Toggle REPL Output Word Wrap",
         "category": "Calva",
         "icon": "$(word-wrap)"
+      },
+      {
+        "command": "calva.cycleOutputViewImageDisplay",
+        "title": "Cycle Output View Image Display",
+        "category": "Calva",
+        "icon": "$(file-media)"
       },
       {
         "command": "calva.decreaseOutputViewFontSize",
@@ -3819,9 +3840,14 @@
           "group": "navigation@3"
         },
         {
-          "command": "calva.clearReplOutputSidebar",
+          "command": "calva.cycleOutputViewImageDisplay",
           "when": "view == calva.output-sidebar",
           "group": "navigation@4"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@5"
         },
         {
           "command": "calva.pasteAsInspectorItem",

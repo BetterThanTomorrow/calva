@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.image-host :as image-host]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
@@ -25,7 +26,7 @@
 (defn get-sidebar-help-html
   [csp-source]
   (let [destinations (current-output-destinations)
-        style-nonce (str (random-uuid))]
+        style-nonce (.randomUUID (js/require "crypto"))]
     (str "<!DOCTYPE html>"
          "<html lang=\"en\"><head>"
          "<meta charset=\"UTF-8\">"
@@ -107,16 +108,18 @@
              (fn [^js webview-view _context _token]
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
+               (image-host/listen-for-webview-messages! webview-view)
                (set! (.. webview-view -webview -options)
-                     #js {:enableScripts true
-                          :enableCommandUris #js ["calva.showReplOutputSidebar"]
-                          :localResourceRoots #js [(.. ^js @util/vscode-context -extensionUri)]})
+                     (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
-               (add-context-subscription!
-                (.. webview-view
-                    (onDidDispose (fn []
-                                    (reset! output-sidebar-webview-view nil)
-                                    (core/unregister-webview! webview-view)))))
+               (let [ws-folders-disposable (image-host/listen-for-workspace-folder-changes! webview-view)]
+                 (add-context-subscription!
+                  (.. webview-view
+                      (onDidDispose (fn []
+                                      (when ws-folders-disposable
+                                        (.dispose ^js ws-folders-disposable))
+                                      (reset! output-sidebar-webview-view nil)
+                                      (core/unregister-webview! webview-view))))))
                (add-context-subscription!
                 (.. webview-view
                     (onDidChangeVisibility

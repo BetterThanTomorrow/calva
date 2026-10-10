@@ -1,12 +1,14 @@
 (ns calva.repl.webview.core
   (:require
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.image-host :as image-host]
    [calva.util :as util]
    [clojure.string :as str]))
 
 (defonce output-view-webview-panel (atom nil))
 (defonce registered-webviews (atom #{}))
 (defonce word-wrap-override (atom nil))
+(defonce image-display-override (atom nil))
 
 (defn register-webview!
   [^js webview]
@@ -94,6 +96,93 @@
     (when-let [listener (create-word-wrap-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
+(def image-display-modes
+  ["images" "raw" "images-including-remote-urls"])
+
+(def image-display-cycle-modes
+  "Modes the Cycle Output View Image Display command walks. Remote loading stays on the
+   setting and on an explicit command argument."
+  ["images" "raw"])
+
+(def default-image-display
+  "images")
+
+(defn get-image-display-setting
+  []
+  (if-let [vscode @util/vscode]
+    (let [setting (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViewImageDisplay"))]
+      (if (some #{setting} image-display-modes)
+        setting
+        default-image-display))
+    default-image-display))
+
+(defn image-display
+  []
+  (or @image-display-override
+      (get-image-display-setting)))
+
+(defn set-image-display-context!
+  [display]
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -commands (executeCommand "setContext" "calva:outputViewImageDisplay" display))))
+
+(defn post-image-display-to-all-views!
+  [display]
+  (run! #(post-message-to-webview % {:command/name "set-image-display"
+                                     :image-display display})
+        @registered-webviews))
+
+(defn next-image-display
+  [current]
+  (let [n (count image-display-cycle-modes)
+        idx (or (->> image-display-cycle-modes
+                     (keep-indexed (fn [i mode] (when (= mode current) i)))
+                     first)
+                -1)]
+    (if (neg? idx)
+      (first image-display-cycle-modes)
+      (nth image-display-cycle-modes (mod (inc idx) n)))))
+
+(defn apply-image-display!
+  [display]
+  (reset! image-display-override display)
+  (set-image-display-context! display)
+  (post-image-display-to-all-views! display))
+
+(defn ^:export cycle-image-display
+  ([]
+   (apply-image-display! (next-image-display (image-display))))
+  ([display]
+   (cond
+     (some #{display} image-display-modes)
+     (apply-image-display! display)
+
+     (string? display)
+     nil
+
+     :else
+     (apply-image-display! (next-image-display (image-display))))))
+
+(defn create-image-display-change-listener
+  []
+  (when-let [vscode @util/vscode]
+    (.. ^js vscode -workspace
+        (onDidChangeConfiguration
+         (fn [^js event]
+           (when (.affectsConfiguration event "calva.outputViewImageDisplay")
+             (reset! image-display-override nil)
+             (let [display (image-display)]
+               (set-image-display-context! display)
+               (post-image-display-to-all-views! display))))))))
+
+(defn ^:export init-image-display!
+  []
+  (image-host/set-image-display-fn! image-display)
+  (set-image-display-context! (image-display))
+  (when-let [vscode-context @util/vscode-context]
+    (when-let [listener (create-image-display-change-listener)]
+      (.. ^js vscode-context -subscriptions (push listener)))))
+
 (defn get-output-views-font-scale-setting
   []
   (if-let [vscode @util/vscode]
@@ -176,7 +265,7 @@
 ;; dev workflow to function properly
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -187,14 +276,14 @@
 
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
-                    img-src data: " csp-source ";
+                    img-src data: https: http: " csp-source ";
                     style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
                               " csp-source ";
-                    script-src " (when is-debug " 'unsafe-eval' ") csp-source ";
+                    script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
                     form-action 'none';\">
@@ -212,11 +301,11 @@
     />
 
   </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") ">
+  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
 
-    <script src=\"" js-source "\"></script>
+    <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
   </body>
 </html>"))
 
@@ -242,15 +331,18 @@
         css-path (get-css-path context)
         css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
         csp-source (.. ^js webview-panel -webview -cspSource)
+        script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
                                                 :css-href css-href
                                                 :csp-source csp-source
+                                                :script-nonce script-nonce
                                                 :code-theme (code-theme-from-context context)
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)
-                                                :font-scale (get-output-views-font-scale-setting)})]
+                                                :font-scale (get-output-views-font-scale-setting)
+                                                :image-display (image-display)})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -303,15 +395,19 @@
 
 (defn add-listeners!
   [^js webview-panel]
-  (.. webview-panel
-      (onDidDispose
-       (fn []
-         (dispose-repl-output-webview-panel output-view-webview-panel)
-         (unregister-webview! webview-panel)))))
+  (let [ws-folders-disposable (image-host/listen-for-workspace-folder-changes! webview-panel)]
+    (.. webview-panel
+        (onDidDispose
+         (fn []
+           (when ws-folders-disposable
+             (.dispose ^js ws-folders-disposable))
+           (dispose-repl-output-webview-panel output-view-webview-panel)
+           (unregister-webview! webview-panel))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]
   (register-webview! webview-panel)
+  (image-host/listen-for-webview-messages! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -325,20 +421,10 @@
                            "REPL Output"
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
-                           #js {:enableScripts true
-                                :enableCommandUris #js ["calva.showReplOutputView"]
-                                ;; If performance or memory consumption becomes a problem, we can use the setState
-                                ;; and getState to manually retain the context of the webview when it's hidden.
-                                ;; See https://code.visualstudio.com/api/extension-guides/webview#persistence
-                                ;; See also: https://code.visualstudio.com/api/references/vscode-api#WebviewPanelOptions
-                                ;; "retainContextWhenHidden has a high memory overhead and should only be used if your
-                                ;; panel's context cannot be quickly saved and restored."
-                                ;; Content reloading using setState and getState and message passing between the webview
-                                ;; and the extension was attempted, but it proved to be troublesome, so it was removed.
-                                ;; If someone wants to attempt to add it again, here's the PR for the removal:
-                                ;; https://github.com/BetterThanTomorrow/calva/pull/2896
-                                :retainContextWhenHidden true
-                                :enableFindWidget true}))]
+                           (let [^js opts (image-host/webview-options "calva.showReplOutputView")]
+                             (set! (.-retainContextWhenHidden opts) true)
+                             (set! (.-enableFindWidget opts) true)
+                             opts)))]
     (initialize-webview-panel context webview-panel)
     (reset! output-view-webview-panel webview-panel)))
 

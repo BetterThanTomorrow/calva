@@ -1,4 +1,6 @@
-(ns calva.repl.webview.app-db)
+(ns calva.repl.webview.app-db
+  (:require
+   [calva.repl.webview.images :as images]))
 
 (def initial-db
   {:output/last-context nil
@@ -17,6 +19,52 @@
         js/Math.round
         (/ 100))))
 
+(defn- result-fxs
+  "A result with images, or with data URLs replaced by markers, is appended as both forms:
+   `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
+   local paths resolve against the producing session's root."
+  [output meta]
+  (let [{:keys [text images] :as extracted} (if (string? output)
+                                               (images/extract-images output)
+                                               {:text output :images []})]
+    (if (or (seq images)
+            (not= text output))
+      [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
+                                        meta (assoc :meta meta))]]
+      [[:fx/append-result output]])))
+
+(defn- message-fxs
+  [command-name output category meta]
+  (case command-name
+    "show-stdout" (if (seq output)
+                    [[:fx/append-stdout output category]]
+                    [])
+    "show-result" (result-fxs output meta)
+    "show-evaluated-code" [[:fx/append-evaluated-code output]]
+    []))
+
+(defn- meta-context-key
+  [meta]
+  (let [{:meta/keys [ns who repl-session-key shadow-build shadow-runtime-id]} meta
+        ns (or ns (:ns meta))
+        who (or who (:who meta))
+        repl-session-key (or repl-session-key (:repl-session-key meta))
+        shadow-build (or shadow-build (:shadow-build meta))
+        shadow-runtime-id (or shadow-runtime-id (:shadow-runtime-id meta))]
+    (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
+
+(defn- handle-output
+  [db {:keys [command/name output meta output-category]}]
+  (let [context-key (meta-context-key meta)
+        context-changed? (and context-key (not= context-key (:output/last-context db)))
+        category (or output-category "evalOut")
+        fxs (message-fxs name output category meta)]
+    {:uf/db (cond-> db
+              context-changed? (assoc :output/last-context context-key))
+     :uf/fxs (cond-> []
+               context-changed? (conj [:fx/append-ns-info meta])
+               :always (into fxs))}))
+
 (defn handle-action
   [db [action-type payload]]
   (case action-type
@@ -25,22 +73,11 @@
      :uf/fxs [[:fx/clear-dom]]}
 
     :msg/output
-    (let [{:keys [command/name output meta output-category]} payload
-          {:meta/keys [ns who repl-session-key shadow-build shadow-runtime-id]} meta
-          ns (or ns (:ns meta))
-          who (or who (:who meta))
-          repl-session-key (or repl-session-key (:repl-session-key meta))
-          shadow-build (or shadow-build (:shadow-build meta))
-          shadow-runtime-id (or shadow-runtime-id (:shadow-runtime-id meta))
-          context-key (when ns [who repl-session-key shadow-build shadow-runtime-id ns])
-          context-changed? (and context-key (not= context-key (:output/last-context db)))]
-      {:uf/db  (cond-> db
-                 context-changed? (assoc :output/last-context context-key))
-       :uf/fxs (cond-> []
-                 context-changed? (conj [:fx/append-ns-info meta])
-                 (= name "show-result") (conj [:fx/append-result output])
-                 (= name "show-evaluated-code") (conj [:fx/append-evaluated-code output])
-                 (= name "show-stdout") (conj [:fx/append-stdout output (or output-category "evalOut")]))})
+    (handle-output db payload)
+
+    :msg/set-image-display
+    {:uf/db db
+     :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
     :msg/set-code-theme
     {:uf/db db
