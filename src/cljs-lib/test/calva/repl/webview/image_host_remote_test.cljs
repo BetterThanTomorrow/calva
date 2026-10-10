@@ -145,3 +145,24 @@
           (is (= "/home/user/proj/charts/a.png" (.-path ^js uri)))))
       (finally
         (sut/set-session-project-root-uri-fn! prev)))))
+
+(deftest local-resource-roots-includes-remote-session-root-test
+  (let [extension-uri (fake-uri "" "/ext")
+        project-root (fake-uri "remote+primary" "/home/user/primary")
+        session-root (fake-uri "remote+other" "/home/user/other")
+        vscode (fake-vscode)
+        prev @sut/!live-session-root-uris-fn]
+    (try
+      (sut/set-live-session-root-uris-fn! (constantly [session-root]))
+      (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                    util/vscode (atom vscode)
+                    util/get-project-root-uri (fn
+                                               ([] project-root)
+                                               ([_] project-root))]
+        (let [roots (vec (sut/local-resource-roots))]
+          (is (some #(= session-root %) roots)
+              "non-primary remote session root is in localResourceRoots")
+          (is (some #(= project-root %) roots)
+              "global project root stays")))
+      (finally
+        (sut/set-live-session-root-uris-fn! prev)))))
