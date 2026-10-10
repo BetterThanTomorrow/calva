@@ -392,3 +392,17 @@
         (is (not (str/includes? text png-base64))))
       (finally
         (reset! sut/!max-result-data-url-payload-chars nil)))))
+
+(deftest omitted-data-urls-count-toward-candidate-cap-test
+  (testing "fifty omitted data URLs fill the cap and the next data URL stays printed"
+    (try
+      (reset! sut/!max-result-data-url-payload-chars 8)
+      (let [small "data:image/gif;base64,AAAA"
+            {:keys [text images]} (sut/extract-images
+                                   (str/join "\n" (concat (repeat 50 png-data-url) [small])))]
+        (is (= [] images))
+        (is (= 50 (count (re-seq #"<<image png 8 B>>" text))))
+        (is (str/includes? text small))
+        (is (not (str/includes? text png-base64))))
+      (finally
+        (reset! sut/!max-result-data-url-payload-chars nil)))))

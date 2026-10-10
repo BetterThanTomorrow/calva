@@ -171,7 +171,7 @@
 (defn- step-select-result-image
   [{:keys [accepted omitted payload] :as state} c]
   (cond
-    (>= (count accepted) image-refs/max-result-image-refs)
+    (>= (+ (count accepted) (count omitted)) image-refs/max-result-image-refs)
     (reduced state)
 
     (and (= :data (:cand/kind c))
@@ -189,9 +189,10 @@
      :payload payload}))
 
 (defn- select-result-image-cands
-  "Keeps the first `max-result-image-refs` candidates in printed order. A data URL that would
-   push the compact base64 total past the payload budget is returned in `:omitted` without its
-   base64. Candidates past the count cap are dropped and stay as printed text."
+  "Keeps the first `max-result-image-refs` candidates in printed order, counting both kept
+   images and omitted data URLs. A data URL that would push the compact base64 total past the
+   payload budget is returned in `:omitted` without its base64. Candidates past the count cap
+   are dropped and stay as printed text."
   [data-found refs]
   (-> (reduce step-select-result-image
               {:accepted [] :omitted [] :payload 0}
@@ -301,9 +302,9 @@
 (defn extract-images
   "Replaces accepted base64 image data URLs in `text` with `<<image-N TYPE SIZE>>`, numbered
    from 1 in printed order with path and URL refs. A data URL past the payload budget is
-   replaced with `<<image TYPE SIZE>>` and left out of `:images`. Data URLs past the shared
-   count cap stay as printed text. Image URLs and file paths are left in the text.
-   Returns `{:text ... :images [image ...]}`."
+   replaced with `<<image TYPE SIZE>>` and left out of `:images`. That replacement counts toward
+   the shared count cap. Data URLs past the cap stay as printed text. Image URLs and file paths
+   are left in the text. Returns `{:text ... :images [image ...]}`."
   [text]
   (if-not (string? text)
     {:text text :images []}
