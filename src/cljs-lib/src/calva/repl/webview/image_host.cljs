@@ -24,7 +24,9 @@
    root (any scheme/authority), and filesystem drive roots."
   []
   (let [extension-uri (some-> ^js @util/vscode-context .-extensionUri)
-        project-root (util/get-project-root-uri)
+        project-root (try
+                       (util/get-project-root-uri)
+                       (catch :default _ nil))
         roots (file-root-uris ^js @util/vscode js/process.platform)]
     (to-array (remove nil? (cons extension-uri (cons project-root roots))))))
 
@@ -56,14 +58,32 @@
   (when (and uri (blank-authority? uri))
     uri))
 
+(defn- under-project-root?
+  "True when `joined` stays on `project-root`'s scheme and authority, and its path is the root
+   path or under it."
+  [^js project-root ^js joined]
+  (and project-root joined
+       (= (.-scheme project-root) (.-scheme joined))
+       (= (str (.-authority project-root)) (str (.-authority joined)))
+       (let [root-path (str (.-path project-root))
+             joined-path (str (.-path joined))
+             under-prefix (if (str/ends-with? root-path "/")
+                            root-path
+                            (str root-path "/"))]
+         (or (= joined-path root-path)
+             (str/starts-with? joined-path under-prefix)))))
+
 (defn- project-relative-file-uri
-  "Join `src` onto the Calva project root URI. Keeps the root's scheme and authority."
+  "Join `src` onto the Calva project root URI. Keeps the root's scheme and authority. Nil when the
+   joined path steps outside the root."
   [^js vscode src]
   (when-let [project-root (util/get-project-root-uri)]
-    (reduce (fn [u part]
-              (.. ^js vscode -Uri (joinPath u part)))
-            project-root
-            (remove str/blank? (str/split src #"[\\/]+")))))
+    (let [joined (reduce (fn [u part]
+                           (.. ^js vscode -Uri (joinPath u part)))
+                         project-root
+                         (remove str/blank? (str/split src #"[\\/]+")))]
+      (when (under-project-root? project-root joined)
+        joined))))
 
 (defn file-uri-for-ref
   "A vscode URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
@@ -90,13 +110,29 @@
   (when (and webview file-uri)
     (str (.. webview (asWebviewUri file-uri)))))
 
+(def stat-timeout-ms 5000)
+
+(defonce !stat-timeout-ms (atom nil))
+
+(defn- stat-timeout
+  []
+  (or @!stat-timeout-ms stat-timeout-ms))
+
 (defn stat-file!
-  "Promise that resolves the URI when the file exists, else nil."
+  "Promise that resolves the URI when the file exists within the stat timeout, else nil."
   [^js vscode file-uri]
   (if (and vscode file-uri)
-    (-> (.. ^js vscode -workspace -fs (stat file-uri))
-        (.then (fn [_] file-uri))
-        (.catch (fn [_] nil)))
+    (let [timer (atom nil)
+          timeout-p (js/Promise.
+                     (fn [resolve]
+                       (reset! timer (js/setTimeout #(resolve nil) (stat-timeout)))))
+          stat-p (-> (.. ^js vscode -workspace -fs (stat file-uri))
+                     (.then (fn [_] file-uri))
+                     (.catch (fn [_] nil)))]
+      (-> (js/Promise.race #js [stat-p timeout-p])
+          (.finally (fn []
+                      (when-let [t @timer]
+                        (js/clearTimeout t))))))
     (js/Promise.resolve nil)))
 
 (def max-image-bytes (* 20 1024 1024))
