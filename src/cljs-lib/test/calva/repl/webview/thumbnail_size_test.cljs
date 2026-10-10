@@ -59,3 +59,37 @@
         (if prev-display
           (.setAttribute body "data-image-display" prev-display)
           (.removeAttribute body "data-image-display"))))))
+
+(defn- img-listener
+  [^js img type]
+  (some (fn [entry]
+          (when (= type (.-type entry))
+            entry))
+        (.-calvaListeners img)))
+
+(defn- thumbnail-img
+  [^js thumb]
+  (first (filter #(= "IMG" (.-tagName ^js %))
+                 (.-children thumb))))
+
+(deftest data-url-error-removes-thumbnail-test
+  (let [thumb (ui/create-image-element image)
+        img (thumbnail-img thumb)
+        parent (js/document.createElement "div")
+        error-listener (img-listener img "error")
+        load-listener (img-listener img "load")]
+    (testing "the error and load listeners are installed before src is set"
+      (is (fn? (.-f error-listener)))
+      (is (fn? (.-f load-listener)))
+      (is (nil? (.-src-when-added error-listener)))
+      (is (nil? (.-src-when-added load-listener)))
+      (is (= (:image/data-url image) (.-src img)))
+      (is (= "true" (.. thumb -dataset -pending))))
+    (testing "load clears the pending flag"
+      ((.-f load-listener))
+      (is (= "false" (.. thumb -dataset -pending))))
+    (testing "error removes the thumbnail"
+      (.appendChild parent thumb)
+      ((.-f error-listener))
+      (is (nil? (.-parentNode thumb)))
+      (is (zero? (.-childElementCount parent))))))

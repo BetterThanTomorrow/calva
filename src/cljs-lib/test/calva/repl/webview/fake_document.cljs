@@ -40,7 +40,10 @@
                                    (.splice children idx 1)
                                    (set! (.-parentNode child) nil)))
                                child))
-    (set! (.-addEventListener el) (fn [& _]))
+    (set! (.-calvaListeners el) #js [])
+    (set! (.-addEventListener el) (fn [type f]
+                                    (.push (.-calvaListeners el)
+                                           #js {:type type :f f :src-when-added (.-src el)})))
     (set! (.-dispatchEvent el) (fn [_]))
     el))
 

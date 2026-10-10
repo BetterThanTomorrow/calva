@@ -1,6 +1,7 @@
 (ns calva.repl.webview.app-db-test
   (:require
    [calva.repl.webview.app-db :as sut]
+   [calva.repl.webview.images :as images]
    [cljs.test :refer-macros [deftest testing is]]))
 
 (deftest initial-db-test
@@ -222,3 +223,18 @@
                                                                   :output output
                                                                   :output-category "evalOut"}])]
       (is (= [[:fx/append-stdout output "evalOut"]] (:uf/fxs result))))))
+
+(deftest payload-budget-result-uses-both-forms-test
+  (testing "an over-budget data URL is a marker in the image form and the original text in :raw"
+    (try
+      (reset! images/!max-result-data-url-payload-chars 4)
+      (let [output (str "\"" png-data-url "\"")
+            result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result"
+                                                                    :output output}])
+            [[op payload]] (:uf/fxs result)]
+        (is (= :fx/append-result-with-images op))
+        (is (= "\"<<image png 8 B>>\"" (:text payload)))
+        (is (= output (:raw payload)))
+        (is (= [] (:images payload))))
+      (finally
+        (reset! images/!max-result-data-url-payload-chars nil)))))
