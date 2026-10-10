@@ -112,11 +112,14 @@
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
-               (add-context-subscription!
-                (.. webview-view
-                    (onDidDispose (fn []
-                                    (reset! output-sidebar-webview-view nil)
-                                    (core/unregister-webview! webview-view)))))
+               (let [ws-folders-disposable (image-host/listen-for-workspace-folder-changes! webview-view)]
+                 (add-context-subscription!
+                  (.. webview-view
+                      (onDidDispose (fn []
+                                      (when ws-folders-disposable
+                                        (.dispose ^js ws-folders-disposable))
+                                      (reset! output-sidebar-webview-view nil)
+                                      (core/unregister-webview! webview-view))))))
                (add-context-subscription!
                 (.. webview-view
                     (onDidChangeVisibility

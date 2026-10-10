@@ -217,3 +217,87 @@
                (.catch (fn [e]
                          (is false (str e))
                          (finish!)))))))
+
+(deftest apply-local-resource-roots-tracks-workspace-folder-changes-test
+  (let [extension-uri (fake-uri "" "/ext")
+        remote-a (fake-uri "vscode-remote+a" "/home/a")
+        remote-b (fake-uri "vscode-remote+b" "/home/b")
+        vscode (fake-vscode)
+        options #js {:enableScripts true
+                     :enableCommandUris #js ["calva.showReplOutputView"]
+                     :localResourceRoots #js [extension-uri]}
+        host #js {:webview #js {:options options}}
+        set-folders! (fn [uris]
+                       (set! (.-workspace ^js vscode)
+                             #js {:workspaceFolders
+                                  (to-array (map (fn [uri] #js {:uri uri}) uris))}))
+        remote-roots (fn []
+                       (->> (array-seq (.. ^js host -webview -options -localResourceRoots))
+                            (filter #(not= "file" (.-scheme ^js %)))
+                            vec))
+        remote-count (fn []
+                       (count (filter #(not= extension-uri %)
+                                      (remote-roots))))]
+    (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                  util/vscode (atom vscode)]
+      (testing "adding a workspace folder updates the roots"
+        (set-folders! [remote-a])
+        (sut/apply-local-resource-roots! host)
+        (is (some #(= remote-a %) (remote-roots)))
+        (is (= 1 (remote-count)))
+        (set-folders! [remote-a remote-b])
+        (sut/apply-local-resource-roots! host)
+        (is (some #(= remote-a %) (remote-roots)))
+        (is (some #(= remote-b %) (remote-roots)))
+        (is (= 2 (remote-count))))
+      (testing "removing a workspace folder updates the roots"
+        (set-folders! [remote-b])
+        (sut/apply-local-resource-roots! host)
+        (is (not-any? #(= remote-a %) (remote-roots)))
+        (is (some #(= remote-b %) (remote-roots)))
+        (is (= 1 (remote-count))))
+      (testing "repeated changes keep the list the size of the current folders"
+        (dotimes [_ 8]
+          (set-folders! [remote-a remote-b])
+          (sut/apply-local-resource-roots! host)
+          (is (= 2 (remote-count))
+              "two remote folders stay two remote roots")
+          (set-folders! [remote-a])
+          (sut/apply-local-resource-roots! host)
+          (is (= 1 (remote-count))
+              "one remote folder stays one remote root"))
+        (is (= 1 (remote-count)))
+        (is (some #(= remote-a %) (remote-roots)))
+        (is (not-any? #(= remote-b %) (remote-roots)))))))
+
+(deftest listen-for-workspace-folder-changes-disposes-test
+  (let [extension-uri (fake-uri "" "/ext")
+        remote-a (fake-uri "vscode-remote+a" "/home/a")
+        remote-b (fake-uri "vscode-remote+b" "/home/b")
+        !handler (atom nil)
+        !disposed (atom false)
+        vscode (fake-vscode)
+        options #js {:enableScripts true
+                     :localResourceRoots #js [extension-uri]}
+        host #js {:webview #js {:options options}}]
+    (set! (.-workspace ^js vscode)
+          #js {:workspaceFolders #js [#js {:uri remote-a}]
+               :onDidChangeWorkspaceFolders
+               (fn [handler]
+                 (reset! !handler handler)
+                 #js {:dispose (fn [] (reset! !disposed true))})})
+    (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                  util/vscode (atom vscode)]
+      (let [disposable (sut/listen-for-workspace-folder-changes! host)]
+        (is (some? @!handler))
+        (is (some? disposable))
+        (set! (.-workspaceFolders ^js (.-workspace vscode))
+              #js [#js {:uri remote-a}
+                   #js {:uri remote-b}])
+        (@!handler #js {})
+        (let [roots (vec (array-seq (.. ^js host -webview -options -localResourceRoots)))]
+          (is (some #(= remote-b %) roots)
+              "listener rebuild replaces roots from current folders"))
+        (.dispose ^js disposable)
+        (is (true? @!disposed)
+            "dispose tears down the workspaceFolders listener")))))
