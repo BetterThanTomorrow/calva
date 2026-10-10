@@ -273,7 +273,13 @@
   []
   (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
 
+(def max-local-image-lookups
+  "Cap on in-flight local image lookups keyed by request id."
+  64)
+
 (defonce ^:private !local-image-lookups (atom {}))
+
+(defonce ^:private !local-image-src->id (atom {}))
 
 (defonce ^:private !pending-local-images (atom []))
 
@@ -284,21 +290,40 @@
         (.setAttribute img "src" webview-uri))
     (remove-thumbnail! thumbnail)))
 
-(defn- resolve-local-image!
-  "Asks the host for a webview URI for an image file path. Each path being looked up is asked about only once."
+(defn- clear-local-image-lookups!
+  "Drops in-flight local image waiters and their host-request handlers."
+  []
+  (let [ids (keys @!local-image-lookups)]
+    (reset! !local-image-lookups {})
+    (reset! !local-image-src->id {})
+    (swap! !host-requests #(apply dissoc % ids))))
+
+(defn- start-local-image-lookup!
+  "Posts one host lookup for `src` and stores waiters under the request id."
   [^js img ^js thumbnail src]
-  (if (contains? @!local-image-lookups src)
-    (swap! !local-image-lookups update src conj [img thumbnail])
-    (let [id (host-request-id)]
-      (swap! !local-image-lookups assoc src [[img thumbnail]])
-      (remember-host-request!
-       id
-       (fn [{:keys [webview-uri]}]
-         (let [waiters (get @!local-image-lookups src)]
-           (swap! !local-image-lookups dissoc src)
-           (doseq [[img thumbnail] waiters]
-             (apply-local-resolve! img thumbnail webview-uri)))))
-      (post-to-host! {:command "resolve-local-image" :id id :src src}))))
+  (let [id (host-request-id)]
+    (swap! !local-image-src->id assoc src id)
+    (swap! !local-image-lookups assoc id {:src src :waiters [[img thumbnail]]})
+    (remember-host-request!
+     id
+     (fn [{:keys [webview-uri]}]
+       (when-let [entry (get @!local-image-lookups id)]
+         (swap! !local-image-lookups dissoc id)
+         (swap! !local-image-src->id dissoc (:src entry))
+         (doseq [[img thumbnail] (:waiters entry)]
+           (apply-local-resolve! img thumbnail webview-uri)))))
+    (post-to-host! {:command "resolve-local-image" :id id :src src})))
+
+(defn- resolve-local-image!
+  "Asks the host for a webview URI for an image file path. Waiters are keyed by request id so a
+   late reply cannot consume a newer lookup for the same src. Identical paths coalesce onto one
+   in-flight id while that lookup is open."
+  [^js img ^js thumbnail src]
+  (if-let [existing-id (get @!local-image-src->id src)]
+    (swap! !local-image-lookups update-in [existing-id :waiters] conj [img thumbnail])
+    (if (< (count @!local-image-lookups) max-local-image-lookups)
+      (start-local-image-lookup! img thumbnail src)
+      (remove-thumbnail! thumbnail))))
 
 (defn- queue-pending-local!
   [^js img ^js thumbnail src]
@@ -480,7 +505,7 @@
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
   (reset! !pending-local-images [])
-  (reset! !local-image-lookups {})
+  (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
 
 (defn update-theme-of-copy-buttons

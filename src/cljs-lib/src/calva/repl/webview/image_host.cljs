@@ -20,11 +20,13 @@
       [(.file uri "/")])))
 
 (defn local-resource-roots
-  "Roots that let the output webviews load any local image file, plus the extension itself."
+  "Roots that let the output webviews load local image files: the extension, the Calva project
+   root (any scheme/authority), and filesystem drive roots."
   []
   (let [extension-uri (some-> ^js @util/vscode-context .-extensionUri)
+        project-root (util/get-project-root-uri)
         roots (file-root-uris ^js @util/vscode js/process.platform)]
-    (to-array (remove nil? (cons extension-uri roots)))))
+    (to-array (remove nil? (cons extension-uri (cons project-root roots))))))
 
 (defn webview-options
   [command-uri]
@@ -48,28 +50,38 @@
   [^js uri]
   (str/blank? (str (.-authority uri))))
 
+(defn- uri-without-authority
+  "`uri` when it has an empty authority, else nil."
+  [^js uri]
+  (when (and uri (blank-authority? uri))
+    uri))
+
+(defn- project-relative-file-uri
+  "Join `src` onto the Calva project root URI. Keeps the root's scheme and authority."
+  [^js vscode src]
+  (when-let [project-root (util/get-project-root-uri)]
+    (reduce (fn [u part]
+              (.. ^js vscode -Uri (joinPath u part)))
+            project-root
+            (remove str/blank? (str/split src #"[\\/]+")))))
+
 (defn file-uri-for-ref
-  "A vscode file URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
-   root. Nil for network paths, non-empty authority, missing URI API, a relative path when there is
-   no project root, or a URI that Uri.parse cannot build."
+  "A vscode URI for a `file:///` URI, an absolute path, or a path relative to the Calva project
+   root. Relative paths keep the project-root URI as joined (any scheme and authority). Nil for
+   network paths, user-supplied file: or absolute paths with a non-empty authority, missing URI
+   API, a relative path when there is no project root, or a URI that Uri.parse cannot build."
   [^js vscode src]
   (try
     (when (and vscode (not (network-path? src)))
-      (let [uri (cond
-                  (str/starts-with? src "file:")
-                  (.. ^js vscode -Uri (parse src))
+      (cond
+        (str/starts-with? src "file:")
+        (uri-without-authority (.. ^js vscode -Uri (parse src)))
 
-                  (absolute-path? src)
-                  (.. ^js vscode -Uri (file src))
+        (absolute-path? src)
+        (uri-without-authority (.. ^js vscode -Uri (file src)))
 
-                  :else
-                  (when-let [project-root (util/get-project-root-uri)]
-                    (reduce (fn [u part]
-                              (.. ^js vscode -Uri (joinPath u part)))
-                            project-root
-                            (remove str/blank? (str/split src #"[\\/]+")))))]
-        (when (and uri (blank-authority? uri))
-          uri)))
+        :else
+        (project-relative-file-uri vscode src)))
     (catch :default _ nil)))
 
 (defn as-webview-image-uri

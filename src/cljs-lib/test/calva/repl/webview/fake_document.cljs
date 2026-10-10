@@ -14,6 +14,13 @@
         el #js {}]
     (js/Object.defineProperty style "setProperty" #js {:value (fn [k v] (aset style k v))})
     (js/Object.defineProperty el "childElementCount" #js {:get (fn [] (.-length children))})
+    (js/Object.defineProperty el "innerHTML"
+                              #js {:configurable true
+                                   :get (fn [] "")
+                                   :set (fn [_]
+                                          (doseq [i (range (.-length children))]
+                                            (set! (.-parentNode (aget children i)) nil))
+                                          (.splice children 0 (.-length children)))})
     (set! (.-tagName el) (.toUpperCase tag))
     (set! (.-classList el) #js {:names class-names
                                 :add (fn [& names] (run! #(.push class-names %) names))})
