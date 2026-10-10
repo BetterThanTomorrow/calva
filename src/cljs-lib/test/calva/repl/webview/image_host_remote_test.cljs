@@ -63,18 +63,24 @@
     (is (nil? (sut/file-uri-for-ref (fake-vscode) "\\\\server\\share\\x.png")))
     (is (nil? (sut/file-uri-for-ref (fake-vscode) "//server/share/x.png")))))
 
-(deftest local-resource-roots-includes-project-root-test
+(deftest local-resource-roots-uses-non-file-workspace-folders-test
   (let [extension-uri (fake-uri "" "/ext")
-        project-root (fake-uri "ssh-remote+host" "/home/user/proj")
+        remote-folder (fake-uri "vscode-remote+host" "/home/user/proj")
+        file-folder (fake-uri "" "/local/proj")
         vscode (fake-vscode)]
+    (set! (.-workspace ^js vscode)
+          #js {:workspaceFolders #js [#js {:uri remote-folder}
+                                      #js {:uri file-folder}]})
     (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
                   util/vscode (atom vscode)
                   util/get-project-root-uri (fn
-                                             ([] project-root)
-                                             ([_] project-root))]
+                                             ([] (throw (js/Error. "global getter must not be used")))
+                                             ([_] (throw (js/Error. "global getter must not be used"))))]
       (let [roots (vec (sut/local-resource-roots))]
-        (is (some #(= project-root %) roots)
-            "project root is in localResourceRoots")
+        (is (some #(= remote-folder %) roots)
+            "non-file workspace folder is in localResourceRoots")
+        (is (not-any? #(= file-folder %) roots)
+            "file workspace folder is omitted")
         (is (some #(= extension-uri %) roots)
             "extension URI stays in localResourceRoots")))))
 
@@ -146,23 +152,68 @@
       (finally
         (sut/set-session-project-root-uri-fn! prev)))))
 
-(deftest local-resource-roots-includes-remote-session-root-test
-  (let [extension-uri (fake-uri "" "/ext")
-        project-root (fake-uri "remote+primary" "/home/user/primary")
-        session-root (fake-uri "remote+other" "/home/user/other")
-        vscode (fake-vscode)
-        prev @sut/!live-session-root-uris-fn]
-    (try
-      (sut/set-live-session-root-uris-fn! (constantly [session-root]))
-      (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
-                    util/vscode (atom vscode)
-                    util/get-project-root-uri (fn
-                                               ([] project-root)
-                                               ([_] project-root))]
-        (let [roots (vec (sut/local-resource-roots))]
-          (is (some #(= session-root %) roots)
-              "non-primary remote session root is in localResourceRoots")
-          (is (some #(= project-root %) roots)
-              "global project root stays")))
-      (finally
-        (sut/set-live-session-root-uris-fn! prev)))))
+(deftest resolve-local-image-second-remote-session-loads-test
+  (async done
+         (let [posted (atom nil)
+               root-file (fake-uri "" "/proj-a")
+               root-remote (fake-uri "vscode-remote+host" "/home/user/other")
+               host #js {:webview #js {:asWebviewUri (fn [uri]
+                                                      (str "webview:"
+                                                           (.-authority ^js uri)
+                                                           (.-fsPath ^js uri)))
+                                       :postMessage (fn [s] (reset! posted s))}}
+               vscode (let [base (fake-vscode)]
+                        (set! (.-workspace ^js base)
+                              #js {:workspaceFolders #js [#js {:uri root-file}
+                                                          #js {:uri root-remote}]
+                                   :fs #js {:stat (fn [uri]
+                                                    (if (= "vscode-remote+host"
+                                                           (str (.-authority ^js uri)))
+                                                      (js/Promise.resolve #js {})
+                                                      (js/Promise.reject (js/Error. "missing"))))}})
+                        base)
+               !settled (atom false)
+               finish! (fn []
+                         (when (compare-and-set! !settled false true)
+                           (done)))]
+           (-> (js/Promise.resolve nil)
+               (.then (fn []
+                        (let [prev @sut/!session-project-root-uri-fn]
+                          (try
+                            (sut/set-session-project-root-uri-fn!
+                             (fn [session-key]
+                               (case session-key
+                                 "clj" root-file
+                                 "cljs" root-remote
+                                 nil)))
+                            (with-redefs [util/vscode-context (atom #js {:extensionUri (fake-uri "" "/ext")})
+                                          util/vscode (atom vscode)
+                                          util/get-project-root-uri (fn
+                                                                     ([] (throw (js/Error. "unused")))
+                                                                     ([_] (throw (js/Error. "unused"))))]
+                              (let [roots (vec (sut/local-resource-roots))]
+                                (is (some #(= root-remote %) roots)
+                                    "second session remote workspace folder is allow-listed")
+                                (is (not-any? #(= root-file %) roots)
+                                    "file session folder is omitted from roots"))
+                              (reset! posted nil)
+                              (sut/handle-webview-message! host #js {:command "resolve-local-image"
+                                                                     :id "second-remote"
+                                                                     :src "charts/a.png"
+                                                                     :sessionKey "cljs"}))
+                            (finally
+                              (sut/set-session-project-root-uri-fn! prev))))
+                        (js/Promise.
+                         (fn [resolve]
+                           (js/setTimeout
+                            (fn []
+                              (is (str/includes? (str @posted) "local-image-resolved")
+                                  "second session remote relative path loads")
+                              (is (str/includes? (str @posted) "vscode-remote+host")
+                                  "resolved URI keeps the remote session authority")
+                              (resolve nil))
+                            20)))))
+               (.then (fn [_] (finish!)))
+               (.catch (fn [e]
+                         (is false (str e))
+                         (finish!)))))))

@@ -14,11 +14,6 @@
   [^js webview]
   (swap! registered-webviews conj webview))
 
-(defn ^:export refresh-local-resource-roots!
-  "Rebuilds localResourceRoots on every registered output webview from live session roots."
-  []
-  (run! image-host/apply-local-resource-roots! @registered-webviews))
-
 (defn unregister-webview!
   [^js webview]
   (swap! registered-webviews disj webview))
