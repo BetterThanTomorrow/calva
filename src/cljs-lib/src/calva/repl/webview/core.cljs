@@ -395,11 +395,14 @@
 
 (defn add-listeners!
   [^js webview-panel]
-  (.. webview-panel
-      (onDidDispose
-       (fn []
-         (dispose-repl-output-webview-panel output-view-webview-panel)
-         (unregister-webview! webview-panel)))))
+  (let [ws-folders-disposable (image-host/listen-for-workspace-folder-changes! webview-panel)]
+    (.. webview-panel
+        (onDidDispose
+         (fn []
+           (when ws-folders-disposable
+             (.dispose ^js ws-folders-disposable))
+           (dispose-repl-output-webview-panel output-view-webview-panel)
+           (unregister-webview! webview-panel))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]

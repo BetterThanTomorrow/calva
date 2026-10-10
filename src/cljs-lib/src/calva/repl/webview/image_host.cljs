@@ -41,6 +41,24 @@
         remote-folders (filter non-file-uri? folder-uris)]
     (to-array (remove nil? (concat [extension-uri] remote-folders drive-roots)))))
 
+(defn apply-local-resource-roots!
+  "Replaces `webview-host`'s localResourceRoots with a fresh rebuild."
+  [^js webview-host]
+  (when-let [webview (some-> webview-host .-webview)]
+    (let [prev (or (.-options webview) #js {})]
+      (set! (.-options webview)
+            (js/Object.assign #js {} prev #js {:localResourceRoots (local-resource-roots)})))))
+
+(defn listen-for-workspace-folder-changes!
+  "Rebuilds localResourceRoots when workspace folders change. Returns a Disposable, or nil."
+  [^js webview-host]
+  (when-let [vscode @util/vscode]
+    (when-let [workspace (.-workspace vscode)]
+      (when (fn? (.-onDidChangeWorkspaceFolders workspace))
+        (.onDidChangeWorkspaceFolders workspace
+                                      (fn [_]
+                                        (apply-local-resource-roots! webview-host)))))))
+
 (defn webview-options
   [command-uri]
   (let [opts #js {:enableScripts true
