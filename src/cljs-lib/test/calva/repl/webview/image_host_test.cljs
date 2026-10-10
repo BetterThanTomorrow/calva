@@ -477,6 +477,112 @@
       (is (= "A:\\" (first paths)))
       (is (= "Z:\\" (last paths))))))
 
+(defn- with-live-session-roots-fn!
+  [f body]
+  (let [prev @sut/!live-session-root-uris-fn]
+    (try
+      (sut/set-live-session-root-uris-fn! f)
+      (body)
+      (finally
+        (sut/set-live-session-root-uris-fn! prev)))))
+
+(deftest local-resource-roots-includes-live-session-roots-test
+  (testing "live session roots join extension, project, and drive roots"
+    (let [extension-uri (fake-uri "" "/ext")
+          project-root (fake-uri "" "/global")
+          session-root (fake-uri-with-path "remote+host" "/home/user/other")
+          vscode (fake-vscode)]
+      (with-live-session-roots-fn!
+       (constantly [session-root])
+       (fn []
+         (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                       util/vscode (atom vscode)
+                       util/get-project-root-uri (fn
+                                                   ([] project-root)
+                                                   ([_] project-root))]
+           (let [roots (vec (sut/local-resource-roots))]
+             (is (some #(= session-root %) roots)
+                 "live session root is in localResourceRoots")
+             (is (some #(= extension-uri %) roots))
+             (is (some #(= project-root %) roots))))))))
+  (testing "duplicate session roots collapse to one entry"
+    (let [extension-uri (fake-uri "" "/ext")
+          project-root (fake-uri "" "/global")
+          session-root (fake-uri-with-path "" "/session")
+          vscode (fake-vscode)]
+      (with-live-session-roots-fn!
+       (constantly [session-root session-root])
+       (fn []
+         (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                       util/vscode (atom vscode)
+                       util/get-project-root-uri (fn
+                                                   ([] project-root)
+                                                   ([_] project-root))]
+           (let [roots (vec (sut/local-resource-roots))
+                 keys (mapv #(str (.-authority %) "|" (.-fsPath %)) roots)]
+             (is (= 1 (count (filter #(= session-root %) roots))))
+             (is (= (count keys) (count (set keys)))))))))))
+
+(deftest local-resource-roots-rebuild-stays-bounded-test
+  (testing "many connect/disconnect rebuilds leave the list bounded by live unique roots"
+    (let [extension-uri (fake-uri "" "/ext")
+          project-root (fake-uri "" "/global")
+          vscode (fake-vscode)
+          live (atom [])
+          max-seen (atom 0)]
+      (with-live-session-roots-fn!
+       (fn [] @live)
+       (fn []
+         (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                       util/vscode (atom vscode)
+                       util/get-project-root-uri (fn
+                                                   ([] project-root)
+                                                   ([_] project-root))]
+           (let [fixed-count (count (vec (sut/local-resource-roots)))]
+             (dotimes [i 200]
+               (let [root-a (fake-uri-with-path (str "auth-" (mod i 3)) (str "/proj-" (mod i 3)))
+                     root-b (fake-uri-with-path "other" "/other")]
+                 (reset! live [root-a root-b root-a])
+                 (let [n (count (vec (sut/local-resource-roots)))]
+                   (swap! max-seen max n)
+                   (is (<= n (+ fixed-count 2))
+                       "rebuild never grows past fixed roots plus unique live roots"))))
+             (reset! live [])
+             (let [after (vec (sut/local-resource-roots))]
+               (is (= fixed-count (count after))
+                   "disconnect clears session roots from the rebuild")
+               (is (not-any? #(= "other" (str (.-authority %))) after))
+               (is (<= @max-seen (+ fixed-count 2)))))))))))
+
+(deftest apply-local-resource-roots!-test
+  (testing "rebuilds localResourceRoots on an existing webview without appending"
+    (let [extension-uri (fake-uri "" "/ext")
+          project-root (fake-uri "" "/global")
+          session-root (fake-uri-with-path "remote+b" "/b")
+          vscode (fake-vscode)
+          webview #js {:options #js {:enableScripts true
+                                     :enableCommandUris #js ["calva.showReplOutputView"]
+                                     :localResourceRoots #js [extension-uri]}}
+          host #js {:webview webview}]
+      (with-live-session-roots-fn!
+       (constantly [session-root])
+       (fn []
+         (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
+                       util/vscode (atom vscode)
+                       util/get-project-root-uri (fn
+                                                   ([] project-root)
+                                                   ([_] project-root))]
+           (sut/apply-local-resource-roots! host)
+           (let [roots (vec (.-localResourceRoots ^js (.-options webview)))]
+             (is (true? (.-enableScripts ^js (.-options webview))))
+             (is (= ["calva.showReplOutputView"]
+                    (vec (.-enableCommandUris ^js (.-options webview)))))
+             (is (some #(= session-root %) roots))
+             (sut/apply-local-resource-roots! host)
+             (is (= (count roots)
+                    (count (vec (.-localResourceRoots ^js (.-options webview)))))
+                 "second apply rebuilds to the same length"))))))))
+
 (deftest local-resource-roots-project-root-throws-test
   (testing "a throwing project-root lookup only drops that entry"
     (let [extension-uri (fake-uri "" "/ext")

@@ -35,6 +35,8 @@
                              :cycleOutputViewImageDisplay calva.repl.webview.core/cycle-image-display
                              :initOutputViewImageDisplay calva.repl.webview.core/init-image-display!
                              :setSessionProjectRootUriFn calva.repl.webview.image-host/set-session-project-root-uri-fn!
+                             :setLiveSessionRootUrisFn calva.repl.webview.image-host/set-live-session-root-uris-fn!
+                             :refreshLocalResourceRoots calva.repl.webview.core/refresh-local-resource-roots!
                              :increaseOutputViewFontSize calva.repl.webview.core/increase-font-size
                              :decreaseOutputViewFontSize calva.repl.webview.core/decrease-font-size
                              :resetOutputViewFontSize calva.repl.webview.core/reset-font-size

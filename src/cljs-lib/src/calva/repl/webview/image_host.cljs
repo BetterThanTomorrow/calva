@@ -19,16 +19,51 @@
       (win32-drive-root-uris uri)
       [(.file uri "/")])))
 
+(defonce !live-session-root-uris-fn (atom nil))
+
+(defn ^:export set-live-session-root-uris-fn!
+  "Registers how the host lists project-root URIs for live REPL sessions."
+  [f]
+  (reset! !live-session-root-uris-fn f))
+
+(defn- live-session-root-uris
+  "Project-root URIs for live REPL sessions, or nil when no lookup is registered."
+  []
+  (when-let [f @!live-session-root-uris-fn]
+    (seq (f))))
+
+(defn- uri-identity
+  "Stable key for URI uniqueness: scheme, authority, and path."
+  [^js uri]
+  (when uri
+    (str (.-scheme uri) "|" (.-authority uri) "|" (or (.-path uri) (.-fsPath uri)))))
+
+(defn- conj-unique-uri
+  "Conj `uri` onto `acc` when its identity is not yet in `seen`."
+  [seen acc uri]
+  (if-let [k (uri-identity uri)]
+    (if (contains? @seen k)
+      acc
+      (do (swap! seen conj k)
+          (conj acc uri)))
+    acc))
+
 (defn local-resource-roots
   "Roots that let the output webviews load local image files: the extension, the Calva project
-   root (any scheme/authority), and filesystem drive roots."
+   root, live REPL session roots, and filesystem drive roots. Rebuilds from current inputs;
+   duplicates collapse by URI identity."
   []
   (let [extension-uri (some-> ^js @util/vscode-context .-extensionUri)
         project-root (try
                        (util/get-project-root-uri)
                        (catch :default _ nil))
-        roots (file-root-uris ^js @util/vscode js/process.platform)]
-    (to-array (remove nil? (cons extension-uri (cons project-root roots))))))
+        session-roots (or (live-session-root-uris) ())
+        drive-roots (or (file-root-uris ^js @util/vscode js/process.platform) ())
+        seen (atom #{})]
+    (to-array
+     (reduce (fn [acc uri] (conj-unique-uri seen acc uri))
+             []
+             (concat [extension-uri project-root] session-roots drive-roots)))))
 
 (defn webview-options
   [command-uri]
@@ -36,6 +71,16 @@
                   :enableCommandUris #js [command-uri]
                   :localResourceRoots (local-resource-roots)}]
     opts))
+
+(defn apply-local-resource-roots!
+  "Rebuilds localResourceRoots on `webview-host`'s webview from current roots."
+  [^js webview-host]
+  (when-let [webview (some-> webview-host .-webview)]
+    (let [prev (.-options webview)]
+      (set! (.-options webview)
+            #js {:enableScripts (if prev (boolean (.-enableScripts prev)) true)
+                 :enableCommandUris (when prev (.-enableCommandUris prev))
+                 :localResourceRoots (local-resource-roots)}))))
 
 (defn- absolute-path?
   [s]
