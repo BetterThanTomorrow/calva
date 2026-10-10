@@ -139,3 +139,20 @@
       (is (= 50 (count images)))
       (is (= (mapv #(str "line-" % ".png") (range 50)) (mapv :image/src images)))
       (is (= (vec (range 50)) (mapv :image/line-index images))))))
+
+(deftest result-image-refs-oversize-bounded-test
+  (testing "a 2 MB result with 100,000 whole-line paths stays fast and gives 50"
+    ;; Bound is generous: old code built every whole-line ref then capped at 50.
+    (let [line "a.png\n"
+          n 100000
+          pad-size (- 2097152 (* n (count line)))
+          text (str (apply str (repeat n line))
+                    (when (pos? pad-size) (apply str (repeat pad-size "x"))))
+          t0 (.now js/Date)
+          images (sut/result-image-refs text)
+          elapsed (- (.now js/Date) t0)]
+      (is (> (count text) sut/max-result-scan-chars))
+      (is (= 50 (count images)))
+      (is (= (vec (repeat 50 "a.png")) (mapv :image/src images)))
+      (is (< elapsed 5000)
+          (str "expected under 5000ms, took " elapsed "ms")))))

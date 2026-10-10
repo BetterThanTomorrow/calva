@@ -131,48 +131,168 @@
           (recur (+ i nl) (inc line) (+ i nl))
           (recur (inc i) line line-start))))))
 
-(defn- with-placeholder-line-pos
-  "Adds `:image/line-index` and `:image/line-offset` from each image's placeholder in `text`."
-  [text image]
-  (if-let [abs (str/index-of text (placeholder image))]
-    (let [[line-idx line-offset] (line-pos-at text abs)]
-      (assoc image :image/line-index line-idx :image/line-offset line-offset))
-    image))
+(def max-result-data-url-payload-chars
+  "Total compact base64 characters kept as data-URL images in one result. Same size as
+   `image-refs/max-result-scan-chars`: bounds memory for data-URL payloads held on the image
+   maps for one result."
+  1048576)
 
-(defn- data-url-images
-  [text]
-  (if-not (str/includes? text "data:image/")
-    {:text text :images []}
-    (let [found (image-data-urls text)
-          images (map-indexed (fn [i {:keys [mime base64 start payload-start]}]
-                                {:image/n (inc i)
-                                 :image/mime mime
-                                 :image/subtype (subs mime (count "image/"))
-                                 :image/size (format-byte-size (decoded-byte-count base64))
-                                 :image/data-url (str (subs text start payload-start)
-                                                      (str/replace base64 #"\s" ""))})
-                              found)
-          ends (cons 0 (map :end found))
-          pieces (mapcat (fn [rest-start {:keys [start]} image]
-                           [(subs text rest-start start) (placeholder image)])
-                         ends found images)
-          new-text (apply str (concat pieces [(subs text (last ends))]))]
-      {:text new-text
-       :images (mapv #(with-placeholder-line-pos new-text %) images)})))
+(defn- compact-base64
+  [base64]
+  (str/replace base64 #"\s" ""))
+
+(defn- data-url-candidate
+  [{:keys [mime base64 start end payload-start]}]
+  {:cand/kind :data
+   :cand/start start
+   :cand/end end
+   :cand/payload-start payload-start
+   :cand/mime mime
+   :cand/base64 base64
+   :cand/payload-chars (count (compact-base64 base64))})
+
+(defn- ref-candidate
+  [image]
+  {:cand/kind :ref
+   :cand/start (:image/start image)
+   :cand/image image})
+
+(defn- accept-data-cand?
+  [payload {:cand/keys [payload-chars]}]
+  (<= (+ payload payload-chars) max-result-data-url-payload-chars))
+
+(defn- step-select-result-image
+  [{:keys [accepted payload] :as state} c]
+  (cond
+    (>= (count accepted) image-refs/max-result-image-refs)
+    (reduced state)
+
+    (and (= :data (:cand/kind c)) (not (accept-data-cand? payload c)))
+    state
+
+    (= :data (:cand/kind c))
+    {:accepted (conj accepted c)
+     :payload (+ payload (:cand/payload-chars c))}
+
+    :else
+    {:accepted (conj accepted c)
+     :payload payload}))
+
+(defn- select-result-image-cands
+  "Keeps the first `max-result-image-refs` candidates in printed order. A data URL that would
+   push the compact base64 total past `max-result-data-url-payload-chars` is skipped and stays
+   as printed text."
+  [data-found refs]
+  (:accepted
+   (reduce step-select-result-image
+           {:accepted [] :payload 0}
+           (->> (concat (map data-url-candidate data-found)
+                        (map ref-candidate refs))
+                (sort-by :cand/start)))))
+
+(defn- advance-one
+  [s abs-start {:keys [i line line-start]}]
+  (let [nl (newline-at s i)]
+    (if (pos? nl)
+      {:i (+ i nl) :line (inc line) :line-start (+ abs-start i nl)}
+      {:i (inc i) :line line :line-start line-start})))
+
+(defn- advance-through
+  "Line state after appending `s` that starts at absolute output index `abs-start`."
+  [s abs-start line line-start]
+  (let [n (count s)
+        end (loop [state {:i 0 :line line :line-start line-start}]
+              (if (>= (:i state) n)
+                state
+                (recur (advance-one s abs-start state))))]
+    [(:line end) (:line-start end)]))
+
+(defn- data-image-from-cand
+  [text {:cand/keys [n mime base64 payload-start start]}]
+  {:image/n n
+   :image/mime mime
+   :image/subtype (subs mime (count "image/"))
+   :image/size (format-byte-size (decoded-byte-count base64))
+   :image/data-url (str (subs text start payload-start) (compact-base64 base64))})
+
+(defn- rebuild-with-data-urls
+  "Replaces each accepted data URL with its placeholder and records line positions while building."
+  [text data-cands]
+  (loop [pos 0
+         remaining data-cands
+         pieces []
+         images []
+         out-len 0
+         line 0
+         line-start 0]
+    (if-let [c (first remaining)]
+      (let [{:cand/keys [start end]} c
+            chunk (subs text pos start)
+            [line' line-start'] (advance-through chunk out-len line line-start)
+            out-at-ph (+ out-len (count chunk))
+            image (assoc (data-image-from-cand text c)
+                         :image/line-index line'
+                         :image/line-offset (- out-at-ph line-start'))
+            ph (placeholder image)]
+        (recur end
+               (rest remaining)
+               (conj pieces chunk ph)
+               (conj images image)
+               (+ out-at-ph (count ph))
+               line'
+               line-start'))
+      {:text (apply str (conj pieces (subs text pos)))
+       :images images
+       :shift-events (mapv (fn [c img]
+                             [(:cand/start c)
+                              (- (count (placeholder img))
+                                 (- (:cand/end c) (:cand/start c)))])
+                           data-cands
+                           images)})))
+
+(defn- shift-abs
+  [orig-start shift-events]
+  (reduce (fn [abs [start delta]]
+            (if (< start orig-start)
+              (+ abs delta)
+              abs))
+          orig-start
+          shift-events))
+
+(defn- ref-image-from-cand
+  [new-text shift-events {:cand/keys [n image start]}]
+  (let [abs' (shift-abs start shift-events)
+        [line-idx line-offset] (line-pos-at new-text abs')]
+    (-> image
+        (assoc :image/n n
+               :image/line-index line-idx
+               :image/line-offset line-offset)
+        (dissoc :image/start))))
 
 (defn extract-images
-  "Replaces each base64 image data URL in `text` with `<<image-N TYPE SIZE>>`, numbered from 1.
-   Image URLs and image file paths are returned as extra images and left in the text.
+  "Replaces accepted base64 image data URLs in `text` with `<<image-N TYPE SIZE>>`, numbered
+   from 1 in printed order with path and URL refs. Data URLs past the shared count cap or the
+   payload budget stay as printed text. Image URLs and file paths are left in the text.
    Returns `{:text ... :images [image ...]}`."
   [text]
-  (let [{:keys [text images]} (data-url-images text)
-        n0 (count images)
-        ref-images (image-refs/result-image-refs text)
-        numbered (map-indexed (fn [i image]
-                                (assoc image :image/n (+ n0 (inc i))))
-                              ref-images)]
-    {:text text
-     :images (into (vec images) numbered)}))
+  (if-not (string? text)
+    {:text text :images []}
+    (let [data-found (if (str/includes? text "data:image/")
+                       (image-data-urls text)
+                       [])
+          refs (image-refs/result-image-refs text)
+          selected (->> (select-result-image-cands data-found refs)
+                        (sort-by :cand/start)
+                        (map-indexed (fn [i c] (assoc c :cand/n (inc i))))
+                        vec)
+          data-cands (filterv #(= :data (:cand/kind %)) selected)
+          ref-cands (filterv #(= :ref (:cand/kind %)) selected)
+          {:keys [text images shift-events]} (rebuild-with-data-urls text data-cands)
+          ref-images (mapv #(ref-image-from-cand text shift-events %) ref-cands)]
+      {:text text
+       :images (->> (concat images ref-images)
+                    (sort-by (juxt :image/line-index :image/line-offset))
+                    vec)})))
 
 (defn- source-of
   [image]

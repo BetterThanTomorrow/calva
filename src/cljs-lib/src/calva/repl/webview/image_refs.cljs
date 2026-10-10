@@ -118,6 +118,63 @@
   (let [trimmed (str/trim (str/replace line #"[\r\n]+$" ""))]
     (or (unwrap-printed-string trimmed) trimmed)))
 
+(defn- newline-length-at
+  "Length of a newline starting at `i`, or 0."
+  [text i]
+  (let [c (get text i)]
+    (cond
+      (= "\n" c) 1
+      (and (= "\r" c) (= "\n" (get text (inc i)))) 2
+      (= "\r" c) 1
+      :else 0)))
+
+(defn- next-line-span
+  "`[line-end next-i]` for the line starting at `i` in `text` of length `n`."
+  [text i n]
+  (let [line-end (loop [j i]
+                   (if (or (>= j n) (pos? (newline-length-at text j)))
+                     j
+                     (recur (inc j))))
+        nl (newline-length-at text line-end)]
+    [line-end (if (pos? nl) (+ line-end nl) n)]))
+
+(defn- maybe-whole-line-ref
+  [text i idx line-end]
+  (when-let [image (image-ref (line-token (subs text i line-end)))]
+    (assoc image
+           :image/line-index idx
+           :image/line-offset 0
+           :image/start i)))
+
+(defn- image-refs-done?
+  [{:keys [found limit i n char-budget]}]
+  (or (>= (count found) limit)
+      (>= i n)
+      (>= i char-budget)))
+
+(defn- conj-whole-line-ref
+  [found {:keys [text i idx line-end]}]
+  (if-let [image (maybe-whole-line-ref text i idx line-end)]
+    (conj found image)
+    found))
+
+(defn- image-refs*
+  "Whole-line image refs in `text`, stopping at `limit` matches or after reading
+   `char-budget` characters. `limit` or `char-budget` nil means no bound on that axis."
+  [text limit char-budget]
+  (let [limit (or limit js/Infinity)
+        char-budget (or char-budget js/Infinity)
+        n (count text)]
+    (loop [i 0
+           idx 0
+           found []]
+      (if (image-refs-done? {:found found :limit limit :i i :n n :char-budget char-budget})
+        found
+        (let [[line-end next-i] (next-line-span text i n)]
+          (recur next-i
+                 (inc idx)
+                 (conj-whole-line-ref found {:text text :i i :idx idx :line-end line-end})))))))
+
 (defn image-refs
   "Image URLs and image file paths that fill a whole line of `text`, as image maps with `:image/kind`
    `:remote` or `:local` and `:image/line-index` (0-based line in `text`). Does not replace the source
@@ -125,12 +182,7 @@
   [text]
   (if-not (string? text)
     []
-    (->> (re-seq #"[^\r\n]*(?:\r\n|\n|\r)|[^\r\n]+$" text)
-         (map-indexed (fn [idx line]
-                        (when-let [image (image-ref (line-token line))]
-                          (assoc image :image/line-index idx :image/line-offset 0))))
-         (keep identity)
-         vec)))
+    (image-refs* text nil nil)))
 
 (def max-result-image-refs
   "The largest number of image refs kept for one evaluation result."
@@ -168,16 +220,6 @@
   (when (= "\"" (get text start))
     (string-literal-end* text (inc start))))
 
-(defn- newline-length-at
-  "Length of a newline starting at `i`, or 0."
-  [text i]
-  (let [c (get text i)]
-    (cond
-      (= "\n" c) 1
-      (and (= "\r" c) (= "\n" (get text (inc i)))) 2
-      (= "\r" c) 1
-      :else 0)))
-
 (defn- line-state-from
   "Line state at character `to`, advancing from `from` with `line-state` `{:line :start}`."
   [text from to {:keys [line start]}]
@@ -207,7 +249,8 @@
     (when-let [image (image-ref contents)]
       (assoc image
              :image/line-index line
-             :image/line-offset (- q start)))))
+             :image/line-offset (- q start)
+             :image/start q))))
 
 (defn- advance-past-printed-string
   "Advance past the string at `q`. Returns `[next-index line-state]`."
@@ -256,18 +299,28 @@
     (scan-printed-string-refs text)
     []))
 
+(def max-whole-line-scan-chars
+  "When falling back to whole-line refs on a large result, stop reading after this many
+   characters if fewer than `max-result-image-refs` matches were found. Twice the nested-scan
+   threshold: enough for a 2 MB hostile dump, without walking an unbounded buffer."
+  (* 2 max-result-scan-chars))
+
 (defn result-image-refs
   "Returns them in printed order, at most `max-result-image-refs`. Above `max-result-scan-chars` characters, it only finds whole-line refs."
   [text]
   (if-not (string? text)
     []
     (if (> (count text) max-result-scan-chars)
-      (cap-result-image-refs (image-refs text))
+      (image-refs* text max-result-image-refs max-whole-line-scan-chars)
       (let [from-strings (printed-string-image-refs text)
             seen (into #{} (map (juxt :image/src :image/line-index) from-strings))
-            from-lines (->> (image-refs text)
-                            (remove (fn [img]
-                                      (contains? seen [(:image/src img) (:image/line-index img)]))))]
+            remaining (- max-result-image-refs (count from-strings))
+            from-lines (if (pos? remaining)
+                         (->> (image-refs* text max-result-image-refs nil)
+                              (remove (fn [img]
+                                        (contains? seen [(:image/src img) (:image/line-index img)])))
+                              (take remaining))
+                         [])]
         (->> (concat from-strings from-lines)
              (sort-by (juxt :image/line-index :image/line-offset))
              cap-result-image-refs)))))

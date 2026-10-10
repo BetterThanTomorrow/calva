@@ -208,37 +208,45 @@
       (is (= [{:text text :images [img]}]
              (sut/segments-with-images text [img]))))))
 
+(defn- data-images
+  [images]
+  (filterv :image/data-url images))
+
 (deftest segments-with-images-mixed-order-test
   (testing "data URLs and paths on one line keep printed order"
     (let [d1 "data:image/png;base64,iVBORw0KGgo="
           d2 "data:image/png;base64,AAAA"
           {:keys [text images]} (sut/extract-images (pr-str [d1 "a.png" d2 "b.png"]))
+          datas (data-images images)
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= [(sut/placeholder (first images)) "a.png"
-              (sut/placeholder (second images)) "b.png"]
+      (is (= [(sut/placeholder (first datas)) "a.png"
+              (sut/placeholder (second datas)) "b.png"]
              row-srcs))))
 
   (testing "a map with a data URL and a path keeps printed order"
     (let [d "data:image/png;base64,iVBORw0KGgo="
           {:keys [text images]} (sut/extract-images (pr-str {:a d :b "b.png"}))
+          datas (data-images images)
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= [(sut/placeholder (first images)) "b.png"] row-srcs))))
+      (is (= [(sut/placeholder (first datas)) "b.png"] row-srcs))))
 
   (testing "duplicate paths on one line keep printed order around a data URL"
     (let [d1 "data:image/png;base64,AAAA"
           {:keys [text images]} (sut/extract-images (pr-str ["a.png" d1 "a.png"]))
+          datas (data-images images)
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= ["a.png" (sut/placeholder (first images)) "a.png"] row-srcs))))
+      (is (= ["a.png" (sut/placeholder (first datas)) "a.png"] row-srcs))))
 
   (testing "a path that is a substring of an earlier path keeps printed order"
     (let [d1 "data:image/png;base64,iVBORw0KGgo="
           {:keys [text images]} (sut/extract-images (pr-str [{:note "x/b.png"} d1 "b.png"]))
+          datas (data-images images)
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= ["x/b.png" (sut/placeholder (first images)) "b.png"] row-srcs)))))
+      (is (= ["x/b.png" (sut/placeholder (first datas)) "b.png"] row-srcs)))))
 
 (deftest segments-with-images-offset-order-test
   (testing "prose containing a path-like word does not steal order from later path strings"
@@ -256,9 +264,10 @@
   (testing "a Windows path before a data URL keeps printed order by scanner offset"
     (let [d "data:image/png;base64,AAAA"
           {:keys [text images]} (sut/extract-images (pr-str ["C:\\img\\a.png" d]))
+          datas (data-images images)
           row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
                          (:images (first (sut/segments-with-images text images))))]
-      (is (= ["C:\\img\\a.png" (sut/placeholder (first images))] row-srcs)))))
+      (is (= ["C:\\img\\a.png" (sut/placeholder (first datas))] row-srcs)))))
 
 (deftest segments-with-images-cost-test
   (testing "splitting many pretty-printed lines stays fast with many images"
@@ -291,3 +300,50 @@
     (let [text (pr-str {:icon "calva-symbol.svg"})
           {:keys [images]} (sut/extract-images text)]
       (is (= ["calva-symbol.svg"] (mapv :image/src images))))))
+
+(deftest extract-images-shared-cap-test
+  (testing "40,000 tiny data URLs in one result give 50 rows and stay fast"
+    ;; Bound is generous: old code rescans new-text per data URL (quadratic) and freezes.
+    (let [tiny "data:image/png;base64,AAAA"
+          text (str/join "\n" (repeat 40000 tiny))
+          t0 (.now js/Date)
+          {:keys [text images]} (sut/extract-images text)
+          elapsed (- (.now js/Date) t0)]
+      (is (= 50 (count images)))
+      (is (= 50 (count (re-seq #"<<image-" text))))
+      (is (str/includes? text "data:image/png;base64,AAAA"))
+      (is (< elapsed 5000)
+          (str "expected under 5000ms, took " elapsed "ms"))))
+
+  (testing "many data URLs on one line keep printed order with paths under the shared cap"
+    (let [d1 "data:image/png;base64,iVBORw0KGgo="
+          d2 "data:image/png;base64,AAAA"
+          {:keys [text images]} (sut/extract-images (pr-str [d1 "a.png" d2 "b.png"]))
+          datas (data-images images)
+          row-srcs (mapv #(or (:image/src %) (sut/placeholder %))
+                         (:images (first (sut/segments-with-images text images))))]
+      (is (= 4 (count images)))
+      (is (= [(sut/placeholder (first datas)) "a.png"
+              (sut/placeholder (second datas)) "b.png"]
+             row-srcs))))
+
+  (testing "data URLs and path refs share the 50 cap in printed order"
+    (let [d "data:image/png;base64,AAAA"
+          paths (mapv #(str "p" % ".png") (range 40))
+          datas (vec (repeat 20 d))
+          text (pr-str (into paths datas))
+          {:keys [images]} (sut/extract-images text)
+          kinds (mapv #(if (:image/data-url %) :data :path) images)]
+      (is (= 50 (count images)))
+      (is (= 40 (count (filter #{:path} kinds))))
+      (is (= 10 (count (filter #{:data} kinds))))
+      (is (= :path (first kinds)))
+      (is (= :data (last kinds)))))
+
+  (testing "placeholder line positions come from the reconstruction pass"
+    (let [d "data:image/png;base64,AAAA"
+          text (str "pre\n" d "\npost\n" d)
+          {:keys [text images]} (sut/extract-images text)]
+      (is (= [1 3] (mapv :image/line-index images)))
+      (is (= [0 0] (mapv :image/line-offset images)))
+      (is (= "pre\n<<image-1 png 3 B>>\npost\n<<image-2 png 3 B>>" text)))))

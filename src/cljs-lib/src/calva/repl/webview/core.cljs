@@ -99,6 +99,11 @@
 (def image-display-modes
   ["images" "raw" "images-including-remote-urls"])
 
+(def image-display-cycle-modes
+  "Modes the Cycle Output View Image Display command walks. Remote loading stays on the
+   setting and on an explicit command argument."
+  ["images" "raw"])
+
 (def default-image-display
   "images")
 
@@ -129,12 +134,14 @@
 
 (defn next-image-display
   [current]
-  (let [n (count image-display-modes)
-        idx (or (->> image-display-modes
+  (let [n (count image-display-cycle-modes)
+        idx (or (->> image-display-cycle-modes
                      (keep-indexed (fn [i mode] (when (= mode current) i)))
                      first)
                 -1)]
-    (nth image-display-modes (mod (inc idx) n))))
+    (if (neg? idx)
+      (first image-display-cycle-modes)
+      (nth image-display-cycle-modes (mod (inc idx) n)))))
 
 (defn apply-image-display!
   [display]
