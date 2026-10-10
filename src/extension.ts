@@ -49,7 +49,6 @@ import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
-import * as sessionEvents from './nrepl/session-events';
 import * as shadowRuntime from './shadow-cljs-runtime';
 import * as outputSidebar from './results-output/output-sidebar';
 
@@ -102,25 +101,6 @@ async function activate(context: vscode.ExtensionContext) {
       return undefined;
     }
   });
-  cljsLib.setLiveSessionRootUrisFn(() => {
-    const roots: vscode.Uri[] = [];
-    for (const meta of sessionRegistry.listSessions()) {
-      if (!meta.projectRoot) {
-        continue;
-      }
-      try {
-        roots.push(vscode.Uri.parse(meta.projectRoot));
-      } catch {
-        // skip unparseable roots
-      }
-    }
-    return roots;
-  });
-  context.subscriptions.push(
-    sessionEvents.onSessionsChanged(() => {
-      cljsLib.refreshLocalResourceRoots();
-    })
-  );
   cljsLib.initReplOutputWordWrap();
   cljsLib.initOutputViewImageDisplay();
   cljsLib.initReplOutputFontSizeScale();
