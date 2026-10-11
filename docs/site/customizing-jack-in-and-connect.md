@@ -118,7 +118,7 @@ The `calva.disconnect` command takes an optional options argument defined like s
   }
 ```
 
-`clientKey` disconnects that connection (from connection events or [`repl.listConnections()`](api.md#repllistconnections)). `host` and `port` together disconnect by nREPL address. `wsServerPort` disconnects a WebSocket nREPL server. `disconnectAll` disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.
+`clientKey` disconnects one connection, using the key from connection events or [`repl.listConnections()`](api.md#repllistconnections). `host` and `port` together disconnect by nREPL address. `wsServerPort` disconnects a WebSocket nREPL server. `disconnectAll` disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.
 
 You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
 
