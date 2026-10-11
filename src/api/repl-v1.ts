@@ -9,8 +9,14 @@ import * as whoTracking from './who-tracking';
 import * as outputDestinations from '../results-output/output-destinations';
 import * as logUtil from './log-util';
 import * as clientRegistry from '../nrepl/client-registry';
+import {
+  listConnections as listConnectionsFromRegistry,
+  type ReplConnectionInfo,
+} from '../nrepl/list-connections';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as sessionEvents from '../nrepl/session-events';
+
+export type { ReplConnectionInfo };
 
 type Result = {
   result: string;
@@ -363,6 +369,10 @@ export const evaluateCode = async (
 
 export const currentSessionKey = () => {
   return replSession.getSessionKey();
+};
+
+export const listConnections = (): ReplConnectionInfo[] => {
+  return listConnectionsFromRegistry();
 };
 
 export const listSessions = (): ReplSessionInfo[] => {

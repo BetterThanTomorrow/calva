@@ -75,6 +75,31 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
     const sessionKey = calva.repl.currentSessionKey()
     ```
 
+### `repl.listConnections()`
+
+Use `repl.listConnections()` to inspect every registered Calva nREPL connection. Any caller can use it at any time. It returns a collection/array of objects with the following shape:
+
+* `clientKey` (`string`, required): The opaque connection key from Calva connection events. Pass it to `calva.disconnect` as `{clientKey}` when you want to tear down that connection without a picker.
+* `host` (`string`, optional): The nREPL host string stored for the connection (exact match; Calva does not rewrite `localhost` ↔ `127.0.0.1`).
+* `port` (`number`, optional): The nREPL port for the connection.
+* `projectRoot` (`string`, optional): The connection's own project-root URI string (not a global active-root read).
+* `replSessionKeys` (`string[]`, required): Session keys belonging to this connection (for example `clj`, `cljs`).
+
+=== "Joyride"
+
+  ```clojure
+  (def connections (calva/repl.listConnections))
+  (doseq [c connections]
+    (println (:clientKey c) (:host c) (:port c) (:replSessionKeys c)))
+  ```
+
+=== "JavaScript"
+
+  ```javascript
+  const connections = calva.repl.listConnections();
+  const byPort = connections.find((c) => c.host === 'localhost' && c.port === 7888);
+  ```
+
 ### `repl.listSessions()`
 
 Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:

@@ -1870,6 +1870,8 @@ export async function shouldAutoConnect(): Promise<boolean> {
 export function disconnect(
   options: {
     clientKey?: string;
+    host?: string;
+    port?: number;
     wsServerPort?: number;
     disconnectAll?: boolean;
     preserveSuffix?: boolean;
@@ -1901,6 +1903,15 @@ export function disconnect(
       targetWsServer = [...nReplWsServer.getActiveServers()].find(
         (s) => s.port === options.wsServerPort
       );
+    }
+
+    if (!targetClientKey && options?.host !== undefined && options?.port !== undefined) {
+      const match = clients.find(
+        (client) => client.host === options.host && client.port === options.port
+      );
+      if (match) {
+        targetClientKey = match.key;
+      }
     }
 
     if (!disconnectAll && !targetClientKey && !targetWsServer) {
