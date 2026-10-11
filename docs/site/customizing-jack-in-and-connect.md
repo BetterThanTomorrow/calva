@@ -116,7 +116,7 @@ The `calva.disconnect` command takes an optional options argument defined like s
   }
 ```
 
-`clientKey` is the opaque connection key from Calva connection events / `listClients` (for example `nrepl-client-1`). `wsServerPort` targets an orphan WebSocket nREPL server by port. `disconnectAll` tears down every registered client and every active WebSocket server without a picker. With no options (including when the editor context menu passes a document Uri), the command shows the disconnect picker as usual. An unknown `clientKey` or `wsServerPort` shows an information message and does not open the picker or disconnect anything.
+`clientKey` is the opaque connection key from Calva connection events / `listClients` (for example `nrepl-client-1`). `wsServerPort` targets a WebSocket nREPL server by port, whether it is an orphan or belongs to a connected client. `disconnectAll` tears down every registered client and every active WebSocket server without a picker. Pass only one of `clientKey`, `wsServerPort`, or `disconnectAll`; more than one shows an information message and does not open the picker or disconnect anything. With no options (including when the editor context menu passes a document Uri), the command shows the disconnect picker as usual. An unknown `clientKey` or `wsServerPort` shows an information message and does not open the picker or disconnect anything.
 
 You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
 

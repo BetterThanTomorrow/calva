@@ -78,12 +78,10 @@ describe('planDisconnectCommand', () => {
   });
 
   it('reports an unknown clientKey without forwarding', () => {
-    expectLib
-      .expect(planDisconnectCommand({ clientKey: 'nrepl-client-missing' }, known))
-      .toEqual({
-        action: 'unknown',
-        message: 'No Calva connection with clientKey nrepl-client-missing',
-      });
+    expectLib.expect(planDisconnectCommand({ clientKey: 'nrepl-client-missing' }, known)).toEqual({
+      action: 'unknown',
+      message: 'No Calva connection with clientKey nrepl-client-missing',
+    });
   });
 
   it('reports an unknown wsServerPort without forwarding', () => {
@@ -91,5 +89,20 @@ describe('planDisconnectCommand', () => {
       action: 'unknown',
       message: 'No WebSocket server on port 9999',
     });
+  });
+
+  it('rejects more than one target without forwarding', () => {
+    expectLib
+      .expect(planDisconnectCommand({ clientKey: 'nrepl-client-1', disconnectAll: true }, known))
+      .toEqual({
+        action: 'unknown',
+        message: 'calva.disconnect accepts only one of clientKey, wsServerPort, or disconnectAll',
+      });
+    expectLib
+      .expect(planDisconnectCommand({ wsServerPort: 12345, disconnectAll: true }, known))
+      .toEqual({
+        action: 'unknown',
+        message: 'calva.disconnect accepts only one of clientKey, wsServerPort, or disconnectAll',
+      });
   });
 });
