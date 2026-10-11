@@ -44,12 +44,26 @@ describe('parseDisconnectCommandOptions', () => {
       )
       .toEqual({ clientKey: 'nrepl-client-1', disconnectAll: true });
   });
+
+  it('keeps host and port only when both are correctly typed', () => {
+    expectLib
+      .expect(parseDisconnectCommandOptions({ host: 'localhost', port: 7888 }))
+      .toEqual({ host: 'localhost', port: 7888 });
+  });
+
+  it('returns null for host without port or port without host', () => {
+    expectLib.expect(parseDisconnectCommandOptions({ host: 'localhost' })).toBe(null);
+    expectLib.expect(parseDisconnectCommandOptions({ port: 7888 })).toBe(null);
+    expectLib.expect(parseDisconnectCommandOptions({ host: 'localhost', port: '7888' })).toBe(null);
+    expectLib.expect(parseDisconnectCommandOptions({ host: 1, port: 7888 })).toBe(null);
+  });
 });
 
 describe('planDisconnectCommand', () => {
   const known = {
     hasClient: (clientKey: string) => clientKey === 'nrepl-client-1',
     hasWsServerPort: (port: number) => port === 12345,
+    hasHostPort: (host: string, port: number) => host === 'localhost' && port === 7888,
   };
 
   it('forwards null options for the picker path', () => {
@@ -77,6 +91,12 @@ describe('planDisconnectCommand', () => {
       .toEqual({ action: 'forward', options: { disconnectAll: true } });
   });
 
+  it('forwards a known host and port', () => {
+    expectLib
+      .expect(planDisconnectCommand({ host: 'localhost', port: 7888 }, known))
+      .toEqual({ action: 'forward', options: { host: 'localhost', port: 7888 } });
+  });
+
   it('reports an unknown clientKey without forwarding', () => {
     expectLib.expect(planDisconnectCommand({ clientKey: 'nrepl-client-missing' }, known)).toEqual({
       action: 'unknown',
@@ -91,18 +111,26 @@ describe('planDisconnectCommand', () => {
     });
   });
 
+  it('reports an unknown host and port without forwarding', () => {
+    expectLib.expect(planDisconnectCommand({ host: 'localhost', port: 9999 }, known)).toEqual({
+      action: 'unknown',
+      message: 'No Calva connection at localhost:9999',
+    });
+  });
+
   it('rejects more than one target without forwarding', () => {
+    const message =
+      'calva.disconnect accepts only one of clientKey, host and port, wsServerPort, or disconnectAll';
     expectLib
       .expect(planDisconnectCommand({ clientKey: 'nrepl-client-1', disconnectAll: true }, known))
-      .toEqual({
-        action: 'unknown',
-        message: 'calva.disconnect accepts only one of clientKey, wsServerPort, or disconnectAll',
-      });
+      .toEqual({ action: 'unknown', message });
     expectLib
       .expect(planDisconnectCommand({ wsServerPort: 12345, disconnectAll: true }, known))
-      .toEqual({
-        action: 'unknown',
-        message: 'calva.disconnect accepts only one of clientKey, wsServerPort, or disconnectAll',
-      });
+      .toEqual({ action: 'unknown', message });
+    expectLib
+      .expect(
+        planDisconnectCommand({ clientKey: 'nrepl-client-1', host: 'localhost', port: 7888 }, known)
+      )
+      .toEqual({ action: 'unknown', message });
   });
 });

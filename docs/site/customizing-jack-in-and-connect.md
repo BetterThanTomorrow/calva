@@ -111,12 +111,14 @@ The `calva.disconnect` command takes an optional options argument defined like s
 ```typescript
   options?: {
     clientKey?: string;
+    host?: string;
+    port?: number;
     wsServerPort?: number;
     disconnectAll?: boolean;
   }
 ```
 
-`clientKey` is the opaque connection key from Calva connection events / `listClients` (for example `nrepl-client-1`). `wsServerPort` targets a WebSocket nREPL server by port, whether it is an orphan or belongs to a connected client. `disconnectAll` tears down every registered client and every active WebSocket server without a picker. Pass only one of `clientKey`, `wsServerPort`, or `disconnectAll`; more than one shows an information message and does not open the picker or disconnect anything. With no options (including when the editor context menu passes a document Uri), the command shows the disconnect picker as usual. An unknown `clientKey` or `wsServerPort` shows an information message and does not open the picker or disconnect anything.
+`clientKey` is the opaque connection key from Calva connection events / [`repl.listConnections()`](api.md#repllistconnections) (for example `nrepl-client-1`). `host` and `port` together target a registered connection by its nREPL host and port (both required; host is a string, port a number). Matching is exact against the strings and numbers stored on the connection — Calva does not rewrite `localhost` ↔ `127.0.0.1`. `wsServerPort` targets a WebSocket nREPL server by port, whether it is an orphan or belongs to a connected client. `disconnectAll` tears down every registered client and every active WebSocket server without a picker. Pass only one target: `clientKey`, or `host` and `port` together, or `wsServerPort`, or `disconnectAll`. More than one shows an information message and does not open the picker or disconnect anything. With no options (including when the editor context menu passes a document Uri, or when only `host` or only `port` is supplied), the command shows the disconnect picker as usual. An unknown `clientKey`, unknown `host`/`port` pair, or unknown `wsServerPort` shows an information message and does not open the picker or disconnect anything.
 
 You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
 
@@ -132,6 +134,10 @@ You can provide these options from keyboard shortcuts or from [Joyride](https://
 (vscode/commands.executeCommand
  "calva.disconnect"
  (clj->js {:clientKey "nrepl-client-1"}))
+
+(vscode/commands.executeCommand
+ "calva.disconnect"
+ (clj->js {:host "localhost" :port 7888}))
 ```
 
 ## Auto-evaluate Code on Connect

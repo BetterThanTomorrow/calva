@@ -677,6 +677,8 @@ function disconnectWithCommandArg(arg: unknown) {
     hasClient: (clientKey) => clientRegistry.getClient(clientKey) !== undefined,
     hasWsServerPort: (port) =>
       [...nReplWsServer.getActiveServers()].some((server) => server.port === port),
+    hasHostPort: (host, port) =>
+      clientRegistry.listClients().some((client) => client.host === host && client.port === port),
   });
   if (plan.action === 'unknown') {
     void vscode.window.showInformationMessage(plan.message);
