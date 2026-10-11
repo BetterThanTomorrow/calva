@@ -13,10 +13,11 @@ import {
   listConnections as listConnectionsFromRegistry,
   type ReplConnectionInfo,
 } from '../nrepl/list-connections';
+import { buildReplSessionInfo, type ReplSessionInfo } from '../nrepl/repl-session-info';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
 import * as sessionEvents from '../nrepl/session-events';
 
-export type { ReplConnectionInfo };
+export type { ReplConnectionInfo, ReplSessionInfo };
 
 type Result = {
   result: string;
@@ -31,20 +32,6 @@ type Result = {
   shadowBuild?: string;
   shadowRuntimeId?: number;
 };
-
-export interface ReplSessionInfo {
-  replSessionKey: string;
-  projectRoot?: string;
-  lastActivity?: number;
-  globs?: string[];
-  currentRoutedTarget?: boolean;
-  replType: 'clj' | 'cljs';
-  hasBuilds: boolean;
-  supportsRuntimes: boolean;
-  availableBuilds?: string[];
-  currentlyConnectedCljsBuild?: string;
-  currentlyConnectedRuntimeId?: number;
-}
 
 export interface ReplSessionAndRuntimesInfo extends ReplSessionInfo {
   builds?: ShadowBuildInfo[];
@@ -380,23 +367,12 @@ export const listSessions = (): ReplSessionInfo[] => {
   return sessionRegistry.listSessions().map((session) => {
     const clientKey = session.connectionOwnerId;
     const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
-    const isCljs = session.isSecondary || false;
-    const supportsRuntimes = isCljs && connState ? connState.cljsTypeName === 'shadow-cljs' : false;
-    return {
-      replSessionKey: session.key,
-      projectRoot: session.projectRoot
-        ? vscode.workspace.asRelativePath(session.projectRoot)
-        : undefined,
-      lastActivity: session.lastActivity,
-      globs: session.globs,
-      currentRoutedTarget: session.key === currentSessionKey,
-      replType: isCljs ? 'cljs' : 'clj',
-      hasBuilds: isCljs && connState ? !!connState.hasBuilds : false,
-      supportsRuntimes,
-      availableBuilds: isCljs ? connState?.availableBuilds : undefined,
-      currentlyConnectedCljsBuild: isCljs ? connState?.cljsBuild || undefined : undefined,
-      currentlyConnectedRuntimeId: isCljs ? connState?.shadowCljsRuntimeId : undefined,
-    };
+    return buildReplSessionInfo(
+      session,
+      currentSessionKey,
+      session.projectRoot ? vscode.workspace.asRelativePath(session.projectRoot) : undefined,
+      connState
+    );
   });
 };
 
@@ -407,12 +383,16 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
   for (const session of sessionRegistry.listSessions()) {
     const clientKey = session.connectionOwnerId;
     const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
-    const isCljs = session.isSecondary || false;
-    const supportsRuntimes = isCljs && connState ? connState.cljsTypeName === 'shadow-cljs' : false;
+    const sessionInfo = buildReplSessionInfo(
+      session,
+      currentSessionKey,
+      session.projectRoot ? vscode.workspace.asRelativePath(session.projectRoot) : undefined,
+      connState
+    );
 
     let builds: ShadowBuildInfo[] | undefined;
 
-    if (supportsRuntimes && clientKey && connState) {
+    if (sessionInfo.supportsRuntimes && clientKey && connState) {
       const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
       if (allBuildsData) {
         const { activeBuilds, runtimes } = allBuildsData;
@@ -472,19 +452,7 @@ export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesI
     }
 
     sessionInfoList.push({
-      replSessionKey: session.key,
-      projectRoot: session.projectRoot
-        ? vscode.workspace.asRelativePath(session.projectRoot)
-        : undefined,
-      lastActivity: session.lastActivity,
-      globs: session.globs,
-      currentRoutedTarget: session.key === currentSessionKey,
-      replType: isCljs ? 'cljs' : 'clj',
-      hasBuilds: isCljs && connState ? !!connState.hasBuilds : false,
-      supportsRuntimes,
-      availableBuilds: isCljs ? connState?.availableBuilds : undefined,
-      currentlyConnectedCljsBuild: isCljs ? connState?.cljsBuild || undefined : undefined,
-      currentlyConnectedRuntimeId: isCljs ? connState?.shadowCljsRuntimeId : undefined,
+      ...sessionInfo,
       builds,
     });
   }

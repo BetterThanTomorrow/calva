@@ -105,6 +105,7 @@ Use `repl.listConnections()` to inspect every registered Calva nREPL connection.
 Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
 
 * `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
+* `clientKey` (`string`, optional): The opaque connection key of the connection that owns this session (same key as in `repl.listConnections()` / connection events). Absent when the session has no registered owner.
 * `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
