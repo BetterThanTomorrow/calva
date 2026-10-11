@@ -104,6 +104,36 @@ A Joyride command for connecting to a REPL on port 55555, without being asked fo
 (vscode/commands.executeCommand "calva.connect" (clj->js {:port "55555" :connectSequence "Generic"}))
 ```
 
+#### Options for the Disconnect Command
+
+The `calva.disconnect` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    clientKey?: string;
+    wsServerPort?: number;
+    disconnectAll?: boolean;
+  }
+```
+
+`clientKey` is the opaque connection key from Calva connection events / `listClients` (for example `nrepl-client-1`). `wsServerPort` targets an orphan WebSocket nREPL server by port. `disconnectAll` tears down every registered client and every active WebSocket server without a picker. With no options (including when the editor context menu passes a document Uri), the command shows the disconnect picker as usual. An unknown `clientKey` or `wsServerPort` shows an information message and does not open the picker or disconnect anything.
+
+You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
+
+```json
+    {
+        "command": "calva.disconnect",
+        "args": {"disconnectAll": true},
+        "key": "ctrl+alt+c shift+d",
+    },
+```
+
+```clojure
+(vscode/commands.executeCommand
+ "calva.disconnect"
+ (clj->js {:clientKey "nrepl-client-1"}))
+```
+
 ## Auto-evaluate Code on Connect
 
 You can have Calva evaluate code whenever a REPL has been connected via the `calva.autoEvaluateCode.onConnect` setting. It has two entries `clj` and `cljs`:
