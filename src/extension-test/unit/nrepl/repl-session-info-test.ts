@@ -60,4 +60,32 @@ describe('buildReplSessionInfo', () => {
       .expect(buildReplSessionInfo(session, undefined, undefined, undefined).clientKey)
       .toBe(undefined);
   });
+
+  it('returns copies of globs and availableBuilds so callers cannot mutate the registry', () => {
+    const globs = ['**/*.clj'];
+    const availableBuilds = [':app', ':node'];
+    const session: SessionMetadata = {
+      key: 'cljs',
+      connectionOwnerId: 'nrepl-client-2',
+      isSecondary: true,
+      globs,
+    };
+    const connState: ConnectionState = {
+      cljsBuild: ':app',
+      cljsTypeName: 'shadow-cljs',
+      hasBuilds: true,
+      availableBuilds,
+      shadowCljsRuntimeId: 42,
+    };
+
+    const info = buildReplSessionInfo(session, 'clj', 'apps/ui', connState);
+    info.globs!.push('**/*.evil');
+    info.availableBuilds!.push(':evil');
+
+    const again = buildReplSessionInfo(session, 'clj', 'apps/ui', connState);
+    expectLib.expect(again.globs).toEqual(['**/*.clj']);
+    expectLib.expect(again.availableBuilds).toEqual([':app', ':node']);
+    expectLib.expect(globs).toEqual(['**/*.clj']);
+    expectLib.expect(availableBuilds).toEqual([':app', ':node']);
+  });
 });

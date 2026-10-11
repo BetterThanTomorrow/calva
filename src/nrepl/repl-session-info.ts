@@ -29,7 +29,7 @@ function cljsSessionFields(connState: ConnectionState | undefined) {
   return {
     hasBuilds: !!connState.hasBuilds,
     supportsRuntimes: connState.cljsTypeName === 'shadow-cljs',
-    availableBuilds: connState.availableBuilds,
+    availableBuilds: connState.availableBuilds?.slice(),
     currentlyConnectedCljsBuild: connState.cljsBuild || undefined,
     currentlyConnectedRuntimeId: connState.shadowCljsRuntimeId,
   };
@@ -51,7 +51,7 @@ export function buildReplSessionInfo(
     replSessionKey: session.key,
     projectRoot: relativeProjectRoot,
     lastActivity: session.lastActivity,
-    globs: session.globs,
+    globs: session.globs?.slice(),
     currentRoutedTarget: session.key === currentSessionKey,
     replType: isCljs ? 'cljs' : 'clj',
     ...(isCljs
