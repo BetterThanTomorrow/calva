@@ -118,7 +118,7 @@ The `calva.disconnect` command takes an optional options argument defined like s
   }
 ```
 
-`clientKey` is the opaque connection key from Calva connection events or [`repl.listConnections()`](api.md#repllistconnections) (for example `nrepl-client-1`). Pass `clientKey` to disconnect one connection without a picker. `host` and `port` together target a registered connection by nREPL host and port (both required; `host` a string, `port` a number). Matching is exact against the values stored on the connection; Calva does not rewrite `localhost` ↔ `127.0.0.1`. `wsServerPort` targets a WebSocket nREPL server by port. `disconnectAll` disconnects every registered client and every active WebSocket server without a picker. Pass one target: `clientKey`, or `host` and `port` together, or `wsServerPort`, or `disconnectAll`. More than one target shows an information message and does not open the picker or disconnect. With no options, or with only `host` or only `port`, the command shows the disconnect picker. An unknown `clientKey`, unknown `host`/`port` pair, or unknown `wsServerPort` shows an information message and does not open the picker or disconnect.
+`clientKey` disconnects that connection (from connection events or [`repl.listConnections()`](api.md#repllistconnections)). `host` and `port` together disconnect by nREPL address. `wsServerPort` disconnects a WebSocket nREPL server. `disconnectAll` disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.
 
 You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
 
@@ -131,13 +131,7 @@ You can provide these options from keyboard shortcuts or from [Joyride](https://
 ```
 
 ```clojure
-(vscode/commands.executeCommand
- "calva.disconnect"
- (clj->js {:clientKey "nrepl-client-1"}))
-
-(vscode/commands.executeCommand
- "calva.disconnect"
- (clj->js {:host "localhost" :port 7888}))
+(vscode/commands.executeCommand "calva.disconnect" (clj->js {:clientKey "nrepl-client-1"}))
 ```
 
 ## Auto-evaluate Code on Connect
