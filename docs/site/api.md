@@ -79,11 +79,11 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
 
 Use `repl.listConnections()` to inspect every registered Calva nREPL connection. Any caller can use it at any time. It returns a collection/array of objects with the following shape:
 
-* `clientKey` (`string`, required): The opaque connection key from Calva connection events. Pass it to `calva.disconnect` as `{clientKey}` when you want to tear down that connection without a picker.
+* `clientKey` (`string`, required): The opaque connection key from Calva connection events. Pass it to `calva.disconnect` as `{clientKey}` when you want to tear down that connection without a picker. Match `repl.listSessions()` / `repl.listSessionsAndRuntimes()` rows to a connection with this key (do not string-compare `projectRoot` across those APIs).
 * `host` (`string`, optional): The nREPL host string stored for the connection (exact match; Calva does not rewrite `localhost` ↔ `127.0.0.1`).
-* `port` (`number`, optional): The nREPL port for the connection.
-* `projectRoot` (`string`, optional): The connection's own project-root URI string (not a global active-root read).
-* `replSessionKeys` (`string[]`, required): Session keys belonging to this connection (for example `clj`, `cljs`).
+* `port` (`number`, optional): For a TCP nREPL connection, the nREPL port. For a WebSocket connection, the WebSocket server port — the same port `calva.disconnect` accepts as `{wsServerPort}`.
+* `projectRoot` (`string`, optional): The connection's own project-root as a full URI string (for example `file:///…`). Not a global active-root read. `repl.listSessions()` and `repl.listSessionsAndRuntimes()` return a different `projectRoot` format (workspace-relative); join those rows on `clientKey`.
+* `replSessionKeys` (`string[]`, required): Session keys belonging to this connection (for example `clj`, `cljs`). May be `[]` while the client is still connecting (registered before any sessions exist).
 
 === "Joyride"
 
@@ -105,8 +105,8 @@ Use `repl.listConnections()` to inspect every registered Calva nREPL connection.
 Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
 
 * `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
-* `clientKey` (`string`, optional): The opaque connection key of the connection that owns this session (same key as in `repl.listConnections()` / connection events). Absent when the session has no registered owner.
-* `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
+* `clientKey` (`string`, optional): The opaque connection key of the connection that owns this session (same key as in `repl.listConnections()` / connection events). Absent when the session has no registered owner. Use this to match a session to its connection; `projectRoot` formats differ across the APIs.
+* `projectRoot` (`string`, optional): Workspace-relative path from VS Code `asRelativePath` on the session's project root (in a multi-root workspace, prefixed with the folder name). `repl.listConnections()` returns the full URI string instead.
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
 * `replType` (`'clj' | 'cljs'`, required): Describes whether this is a Clojure or ClojureScript session.
