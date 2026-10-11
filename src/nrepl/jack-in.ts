@@ -17,10 +17,7 @@ import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
 import * as nReplWsServer from './nrepl-ws-server';
-import {
-  parseDisconnectCommandOptions,
-  planDisconnectCommand,
-} from './disconnect-command';
+import { parseDisconnectCommandOptions, planDisconnectCommand } from './disconnect-command';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {

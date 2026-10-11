@@ -59,6 +59,16 @@ export function planDisconnectCommand(
   if (!options) {
     return { action: 'forward', options: null };
   }
+  const targetCount =
+    (options.clientKey !== undefined ? 1 : 0) +
+    (options.wsServerPort !== undefined ? 1 : 0) +
+    (options.disconnectAll !== undefined ? 1 : 0);
+  if (targetCount > 1) {
+    return {
+      action: 'unknown',
+      message: 'calva.disconnect accepts only one of clientKey, wsServerPort, or disconnectAll',
+    };
+  }
   if (options.clientKey !== undefined && !deps.hasClient(options.clientKey)) {
     return {
       action: 'unknown',
