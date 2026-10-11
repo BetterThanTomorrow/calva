@@ -28,7 +28,7 @@
                                       (str/starts-with? src "\\\\"))
                                 (fake-uri "server" src)
                                 (fake-uri "" src)))
-                      :joinPath (fn [uri & parts]
+                      :joinPath (fn [^js uri & parts]
                                   (let [base (vec (remove str/blank?
                                                           (str/split (str (.-path uri)) #"/")))
                                         segs (reduce (fn [acc part]

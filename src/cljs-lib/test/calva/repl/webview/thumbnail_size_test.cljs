@@ -76,8 +76,8 @@
   (let [thumb (ui/create-image-element image)
         img (thumbnail-img thumb)
         parent (js/document.createElement "div")
-        error-listener (img-listener img "error")
-        load-listener (img-listener img "load")]
+        ^js error-listener (img-listener img "error")
+        ^js load-listener (img-listener img "load")]
     (testing "the error and load listeners are installed before src is set"
       (is (fn? (.-f error-listener)))
       (is (fn? (.-f load-listener)))

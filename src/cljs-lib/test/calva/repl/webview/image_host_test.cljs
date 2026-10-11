@@ -22,7 +22,7 @@
        :toString (fn [] (str "uri:" (or path authority)))})
 
 (defn- join-path-uri
-  [uri & parts]
+  [^js uri & parts]
   (let [base (vec (remove str/blank? (str/split (str (.-path uri)) #"/")))
         segs (reduce (fn [acc part]
                        (cond
