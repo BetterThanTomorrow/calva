@@ -79,8 +79,13 @@ describe('buildReplSessionInfo', () => {
     };
 
     const info = buildReplSessionInfo(session, 'clj', 'apps/ui', connState);
-    info.globs!.push('**/*.evil');
-    info.availableBuilds!.push(':evil');
+    const returnedGlobs = info.globs;
+    const returnedBuilds = info.availableBuilds;
+    if (returnedGlobs === undefined || returnedBuilds === undefined) {
+      throw new Error('expected globs and availableBuilds');
+    }
+    returnedGlobs.push('**/*.evil');
+    returnedBuilds.push(':evil');
 
     const again = buildReplSessionInfo(session, 'clj', 'apps/ui', connState);
     expectLib.expect(again.globs).toEqual(['**/*.clj']);
