@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 - [Output-view: Instead of blobs as encoded strings, show the image](https://github.com/BetterThanTomorrow/calva/issues/3287)
+- Fix: [Bencode/nrepl: Requests go out with unsorted dict keys](https://github.com/BetterThanTomorrow/calva/issues/3293)
 
 ## [2.0.599] - 2026-09-23
 
