@@ -133,6 +133,7 @@ describe(`${suiteName} suite`, () => {
     assert.strictEqual(sessions.length, 1);
     const uiMeta = sessions.find((s) => s.replSessionKey === uiSessionKey);
     assert.ok(uiMeta);
+    assert.strictEqual(uiMeta.clientKey, clientKey);
     assert.strictEqual(uiMeta.replType, 'cljs');
     assert.strictEqual(uiMeta.hasBuilds, true);
     assert.strictEqual(uiMeta.supportsRuntimes, true);
