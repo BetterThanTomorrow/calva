@@ -40,8 +40,6 @@ The `calva.jackIn` command takes an optional options argument defined like so:
 
 Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.
 
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
 Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
 
 ```json
@@ -86,8 +84,6 @@ The `calva.connect` command takes an optional options argument defined like so:
 
 Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.
 
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
 Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
 
 ```json
@@ -119,8 +115,6 @@ The `calva.disconnect` command takes an optional options argument defined like s
 ```
 
 `clientKey` disconnects one connection, using the key from connection events or [`repl.listConnections()`](api.md#repllistconnections). `host` and `port` together disconnect by nREPL address. `wsServerPort` disconnects a WebSocket nREPL server. `disconnectAll` disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.
-
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
 
 ```json
     {
