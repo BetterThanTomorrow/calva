@@ -4,9 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Output-view: Instead of blobs as encoded strings, show the image](https://github.com/BetterThanTomorrow/calva/issues/3287)
+- [Output-view: Display images in the results](https://github.com/BetterThanTomorrow/calva/issues/3287)
 - Fix: [Bencode/nrepl: Requests go out with unsorted dict keys](https://github.com/BetterThanTomorrow/calva/issues/3293)
-- [The `calva.disconnect` command ignores its argument](https://github.com/BetterThanTomorrow/calva/issues/3294)
+- Fix: [The `calva.disconnect` command ignores its argument](https://github.com/BetterThanTomorrow/calva/issues/3294)
 
 ## [2.0.599] - 2026-09-23
 
