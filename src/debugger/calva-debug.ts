@@ -335,13 +335,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     // separately by the editor and keep their configured gutter positions.
     const source = new debugAdapter.Source(path.basename(debugResponse.file), debugResponse.file);
     const stackFrames = [
-      new debugAdapter.StackFrame(
-        0,
-        tokenCursor.getFunctionName(),
-        source,
-        line + 1,
-        column + 1
-      ),
+      new debugAdapter.StackFrame(0, tokenCursor.getFunctionName(), source, line + 1, column + 1),
     ];
 
     response.body = {
@@ -477,9 +471,15 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
     // The Disconnect toolbar command ends the current DAP session. Release it
     // before stepping so a subsequent need-debug-input can start a new session.
-    advanceAfterDisconnect(session, id, key, () => this.sendResponse(response), (error) => {
-      console.error('Calva debugger: failed to advance after disconnect', error);
-    });
+    advanceAfterDisconnect(
+      session,
+      id,
+      key,
+      () => this.sendResponse(response),
+      (error) => {
+        console.error('Calva debugger: failed to advance after disconnect', error);
+      }
+    );
   }
 
   protected terminateRequest(

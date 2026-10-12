@@ -1,5 +1,9 @@
 export interface DebugInputSession {
-  sendDebugInput(input: string, debugResponseId: string, debugResponseKey: string): Promise<unknown>;
+  sendDebugInput(
+    input: string,
+    debugResponseId: string,
+    debugResponseKey: string
+  ): Promise<unknown>;
 }
 
 /** End the DAP session before asking nREPL to advance to the next form. */
