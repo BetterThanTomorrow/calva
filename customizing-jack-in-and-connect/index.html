@@ -1286,6 +1286,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#options-for-the-disconnect-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options for the Disconnect Command
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2367,6 +2376,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#options-for-the-disconnect-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options for the Disconnect Command
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2510,7 +2528,6 @@
 <span class="w">  </span><span class="p">}</span>
 </code></pre></div>
 <p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
-<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
 <p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.jackIn"</span><span class="p">,</span>
@@ -2539,7 +2556,6 @@
 <span class="w">  </span><span class="p">}</span>
 </code></pre></div>
 <p>Where <code>ReplConnectSequence</code> is a <a href="../connect-sequences/">Connect Sequences</a>. If you provide a string it needs to match against a built-in or custom connect sequence. With <code>disableAutoSelect</code> you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.</p>
-<p>You can provide these options from keyboard shortcuts or from <a href="https://github.com/BetterThanTomorrow/joyride">Joyride</a> scripts.</p>
 <p>Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with <code>autoSelectForConnect</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.connect"</span><span class="p">,</span>
@@ -2549,6 +2565,25 @@
 </code></pre></div>
 <p>A Joyride command for connecting to a REPL on port 55555, without being asked for project type:</p>
 <div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.connect"</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:port</span><span class="w"> </span><span class="s">"55555"</span><span class="w"> </span><span class="ss">:connectSequence</span><span class="w"> </span><span class="s">"Generic"</span><span class="p">}))</span>
+</code></pre></div>
+<h4 id="options-for-the-disconnect-command">Options for the Disconnect Command<a class="headerlink" href="#options-for-the-disconnect-command" title="Permanent link">#</a></h4>
+<p>The <code>calva.disconnect</code> command takes an optional options argument defined like so:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nx">options</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">clientKey?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">host?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">port?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">wsServerPort?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+<span class="w">    </span><span class="nx">disconnectAll?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div>
+<p><code>clientKey</code> disconnects one connection, using the key from connection events or <a href="../api/#repllistconnections"><code>repl.listConnections()</code></a>. <code>host</code> and <code>port</code> together disconnect by nREPL address. <code>wsServerPort</code> disconnects a WebSocket nREPL server. <code>disconnectAll</code> disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calva.disconnect"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"disconnectAll"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ctrl+alt+c shift+d"</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">vscode/commands.executeCommand</span><span class="w"> </span><span class="s">"calva.disconnect"</span><span class="w"> </span><span class="p">(</span><span class="nf">clj-&gt;js</span><span class="w"> </span><span class="p">{</span><span class="ss">:clientKey</span><span class="w"> </span><span class="s">"nrepl-client-1"</span><span class="p">}))</span>
 </code></pre></div>
 <h2 id="auto-evaluate-code-on-connect">Auto-evaluate Code on Connect<a class="headerlink" href="#auto-evaluate-code-on-connect" title="Permanent link">#</a></h2>
 <p>You can have Calva evaluate code whenever a REPL has been connected via the <code>calva.autoEvaluateCode.onConnect</code> setting. It has two entries <code>clj</code> and <code>cljs</code>:</p>

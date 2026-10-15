@@ -799,6 +799,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Images
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clear-output" class="md-nav__link">
     <span class="md-ellipsis">
       Clear Output
@@ -2279,6 +2288,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Images
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clear-output" class="md-nav__link">
     <span class="md-ellipsis">
       Clear Output
@@ -2370,6 +2388,17 @@
 <li><code>"off"</code> – disables word wrapping in the output views.</li>
 </ul>
 <p>There is also a command for toggling word wrap in-session across both views: <strong>Calva: Toggle REPL Output Word Wrap</strong>. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.</p>
+<h2 id="images">Images<a class="headerlink" href="#images" title="Permanent link">#</a></h2>
+<p>When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.</p>
+<p>To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.</p>
+<p>How the output views show images can be configured via the <code>calva.outputViewImageDisplay</code> setting. It accepts:</p>
+<ul>
+<li><code>"images"</code> (default) – data URLs and local files are rendered as images. Remote URLs stay as text, with no network request.</li>
+<li><code>"raw"</code> – no images are rendered.</li>
+<li><code>"images-including-remote-urls"</code> – Images are rendered for data URLs, local files, and remote URLs.</li>
+</ul>
+<p>The command: <strong>Calva: Cycle Output View Image Display</strong> cycles in-session between <code>"images"</code> and <code>"raw"</code> across both views, if issued with no argument. Remote loading (<code>"images-including-remote-urls"</code>) is only reached through the setting or by passing that mode as an argument to the command.</p>
+<p>The output window, output file and terminal always show the raw text.</p>
 <h2 id="clear-output">Clear Output<a class="headerlink" href="#clear-output" title="Permanent link">#</a></h2>
 <p>Use the commands <strong>Calva: Clear Output View</strong> and <strong>Calva: Clear Output Sidebar</strong> to clear the respective view. The sidebar view also has a title clear button.</p>
 <h2 id="searchfind">Search/Find<a class="headerlink" href="#searchfind" title="Permanent link">#</a></h2>
