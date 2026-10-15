@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.600] - 2026-10-12
+
+- [Output-view: Display images in the results](https://github.com/BetterThanTomorrow/calva/issues/3287)
+- Fix: [Bencode/nrepl: Requests go out with unsorted dict keys](https://github.com/BetterThanTomorrow/calva/issues/3293)
+- Fix: [The `calva.disconnect` command ignores its argument](https://github.com/BetterThanTomorrow/calva/issues/3294)
+
 ## [2.0.599] - 2026-09-23
 
 - Fix: [autoConnectRepl tried to connect even if no .nrepl-port present](https://github.com/BetterThanTomorrow/calva/issues/3278)

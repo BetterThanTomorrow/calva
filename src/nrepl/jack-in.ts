@@ -17,6 +17,7 @@ import * as output from '../results-output/output';
 import * as inspector from '../providers/inspector';
 import * as clientRegistry from './client-registry';
 import * as nReplWsServer from './nrepl-ws-server';
+import { parseDisconnectCommandOptions, planDisconnectCommand } from './disconnect-command';
 
 function resolveEnvVariables(entry: any): any {
   if (typeof entry === 'string') {
@@ -671,9 +672,24 @@ export async function jackInCommand(options: {
   await jackIn(connectSequence, options?.disableAutoSelect);
 }
 
-export function calvaDisconnect() {
+function disconnectWithCommandArg(arg: unknown) {
+  const plan = planDisconnectCommand(parseDisconnectCommandOptions(arg), {
+    hasClient: (clientKey) => clientRegistry.getClient(clientKey) !== undefined,
+    hasWsServerPort: (port) =>
+      [...nReplWsServer.getActiveServers()].some((server) => server.port === port),
+    hasHostPort: (host, port) =>
+      clientRegistry.listClients().some((client) => client.host === host && client.port === port),
+  });
+  if (plan.action === 'unknown') {
+    void vscode.window.showInformationMessage(plan.message);
+    return;
+  }
+  void connector.disconnect(plan.options);
+}
+
+export function calvaDisconnect(arg?: unknown) {
   if (utilities.getConnectedState()) {
-    void connector.disconnect();
+    disconnectWithCommandArg(arg);
     return;
   } else if (utilities.getConnectingState() || utilities.getLaunchingState()) {
     void vscode.window
@@ -694,7 +710,7 @@ export function calvaDisconnect() {
       });
     return;
   } else if (nReplWsServer.getActiveServers().size > 0) {
-    void connector.disconnect();
+    disconnectWithCommandArg(arg);
     return;
   }
   void vscode.window.showInformationMessage('Not connected to a REPL server');

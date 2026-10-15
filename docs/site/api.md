@@ -75,12 +75,29 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
     const sessionKey = calva.repl.currentSessionKey()
     ```
 
+### `repl.listConnections()`
+
+Use `repl.listConnections()` to inspect every registered Calva nREPL connection. It returns a collection/array of objects with the following shape:
+
+* `clientKey` (`string`, required): Opaque connection key. Pass `{clientKey}` to `calva.disconnect`, or match a session from `repl.listSessions()`.
+* `host` (`string`, optional): nREPL host.
+* `port` (`number`, optional): nREPL port, or for a WebSocket connection the WebSocket server port.
+* `projectRoot` (`string`, optional): Full URI string of the project root (for example `file:///…`).
+* `replSessionKeys` (`string[]`, required): Session keys on this connection (for example `clj`, `cljs`). Empty while connecting.
+
+=== "Joyride"
+
+    ```clojure
+    (def connections (calva/repl.listConnections))
+    ```
+
 ### `repl.listSessions()`
 
 Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
 
 * `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
-* `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
+* `clientKey` (`string`, optional): Connection key of the connection that owns this session (same as in `repl.listConnections()`).
+* `projectRoot` (`string`, optional): Workspace-relative path of the session's project root (folder-prefixed in a multi-root workspace).
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
 * `replType` (`'clj' | 'cljs'`, required): Describes whether this is a Clojure or ClojureScript session.
@@ -106,7 +123,7 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 
 ### `repl.listSessionsAndRuntimes()`
 
-Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered Calva REPL session, including secondary or custom session roles, and query all builds and connected runtimes. It returns a Promise resolving to a collection/array of metadata objects with the same shape as `repl.listSessions()`, but including an additional nested `builds` property:
+Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered Calva REPL session, including secondary or custom session roles, and query all builds and connected runtimes. It returns a Promise resolving to a collection/array of metadata objects with the same shape as `repl.listSessions()`, plus an additional nested `builds` property:
 
 * `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
     * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
