@@ -1,6 +1,7 @@
 (ns calva.docs.shell
   "The Material page around each docs page."
   (:require [calva.docs.nav :as nav]
+            [calva.docs.toc :as toc]
             [calva.docs.url :as url]
             [clojure.data.json :as json]
             [hiccup2.core :as h]))
@@ -27,7 +28,7 @@
    [:div.md-source__icon.md-icon (icon site :git-alt)]
    [:div.md-source__repository name]])
 
-(defn- palette [{:material/keys [palette palette-script] :as site}]
+(defn- palette [{:material/keys [palette] palette-script :script/palette :as site}]
   (list
    [:form.md-header__option {:data-md-component "palette"}
     (map-indexed
@@ -105,11 +106,11 @@
       [:div.md-nav__source (source site)]
       (nav/primary-nav site page)]]]])
 
-(def ^:private toc-sidebar
+(defn- toc-sidebar [{:page/keys [toc]}]
   [:div.md-sidebar.md-sidebar--secondary {:data-md-component "sidebar" :data-md-type "toc"}
    [:div.md-sidebar__scrollwrap
     [:div.md-sidebar__inner
-     [:nav.md-nav.md-nav--secondary {:aria-label "Table of contents"}]]]])
+     (toc/toc-nav toc)]]])
 
 (def ^:private footer
   [:footer.md-footer
@@ -121,7 +122,7 @@
 
 (defn- head
   [{:site/keys [name description favicon extra-css] site-url :site/url
-    :material/keys [stylesheets fonts-stylesheet fonts-style md-helpers-script]}
+    :material/keys [stylesheets fonts-stylesheet fonts-style] :script/keys [md-helpers]}
    {:page/keys [url title prev-url next-url] page-description :page/description}]
   (let [href #(url/site-href url %)]
     [:head
@@ -139,7 +140,7 @@
      [:style (h/raw fonts-style)]
      (for [path extra-css] [:link {:rel "stylesheet" :href (href path)}])
      [:script (h/raw (str "__md_scope=new URL(" (json/write-str (url/site-root url)) ",location),"
-                          md-helpers-script))]]))
+                          md-helpers))]]))
 
 (defn- config-json [{:material/keys [features search-worker translations]} {:page/keys [url]}]
   (json/write-str {:base (url/site-root url)
@@ -147,8 +148,9 @@
                    :search (url/site-href url search-worker)
                    :translations translations}))
 
-(defn- body [{:material/keys [palette bundle] :build/keys [live-reload?] :as site}
-             {:page/keys [url html h1 title] :as page}]
+(defn- body [{:material/keys [palette bundle] :build/keys [live-reload?] :script/keys [tabs-restore hash-target]
+              :as site}
+             {:page/keys [url body h1 title headings] :as page}]
   (let [{:palette/keys [scheme primary accent]} (first palette)]
     [:body {:dir "ltr"
             :data-md-color-scheme scheme
@@ -157,18 +159,22 @@
      [:input.md-toggle {:type "checkbox" :id "__drawer" :autocomplete "off" :data-md-toggle "drawer"}]
      [:input.md-toggle {:type "checkbox" :id "__search" :autocomplete "off" :data-md-toggle "search"}]
      [:label.md-overlay {:for "__drawer"}]
-     [:div {:data-md-component "skip"}]
+     [:div {:data-md-component "skip"}
+      (when-let [{:heading/keys [id]} (first headings)]
+        [:a.md-skip {:href (str "#" id)} "Skip to content"])]
      [:div {:data-md-component "announce"}]
      (header site page)
      [:div.md-container {:data-md-component "container"}
       [:main.md-main {:data-md-component "main"}
        [:div.md-main__inner.md-grid
         (primary-sidebar site page)
-        toc-sidebar
+        (toc-sidebar page)
         [:div.md-content {:data-md-component "content"}
          [:article.md-content__inner.md-typeset
           (when-not h1 [:h1 title])
-          (h/raw html)]]]]
+          body]]
+        [:script (h/raw tabs-restore)]
+        [:script (h/raw hash-target)]]]
       footer]
      [:div.md-dialog {:data-md-component "dialog"} [:div.md-dialog__inner.md-typeset]]
      [:script#__config {:type "application/json"} (h/raw (config-json site page))]
