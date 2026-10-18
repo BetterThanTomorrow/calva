@@ -5,7 +5,7 @@
             [hiccup2.core :as h])
   (:import [java.text Normalizer Normalizer$Form]
            [org.commonmark.ext.gfm.tables TablesExtension]
-           [org.commonmark.node Code FencedCodeBlock Heading Image IndentedCodeBlock Link Node Text]
+           [org.commonmark.node Code FencedCodeBlock Heading Image IndentedCodeBlock Link LinkReferenceDefinition Node Text]
            [org.commonmark.parser Parser]
            [org.commonmark.renderer NodeRenderer]
            [org.commonmark.renderer.html AttributeProvider AttributeProviderFactory HtmlNodeRendererContext
@@ -93,11 +93,29 @@
     (.appendChild heading link)
     link))
 
-(defn- parse-block [{:block/keys [markdown title tabs] :as block}]
+(defn- block-markdowns [{:block/keys [markdown tabs]}]
+  (cons markdown (mapcat block-markdowns tabs)))
+
+(defn- reference-definitions
+  "Returns the link reference definition lines in `blocks`, as one Markdown string."
+  [blocks]
+  (->> (mapcat block-markdowns blocks)
+       (keep identity)
+       (mapcat #(re-seq #"(?m)^ {0,3}\[[^\]]+\]:[ \t]+\S.*$" %))
+       (string/join "\n")))
+
+(defn- parse
+  "Parses `markdown` with the page's reference `definitions`, and leaves the definitions out of the tree."
+  [definitions markdown]
+  (let [doc (.parse parser (cond-> markdown (seq definitions) (str "\n\n" definitions)))]
+    (run! #(.unlink ^Node %) (filterv #(instance? LinkReferenceDefinition %) (nodes doc)))
+    doc))
+
+(defn- parse-block [definitions {:block/keys [markdown title tabs] :as block}]
   (cond-> block
-    markdown (assoc :block/doc (.parse parser markdown))
-    title (assoc :block/title-doc (.parse parser title))
-    tabs (assoc :block/tabs (mapv parse-block tabs))))
+    markdown (assoc :block/doc (parse definitions markdown))
+    title (assoc :block/title-doc (parse definitions title))
+    tabs (assoc :block/tabs (mapv #(parse-block definitions %) tabs))))
 
 (defn- block-docs [{:block/keys [doc title-doc tabs]}]
   (concat [title-doc doc] (mapcat block-docs tabs)))
@@ -134,12 +152,14 @@
 (defn render-blocks
   "Renders the Markdown bodies and titles of `blocks` as `:block/html` and
   `:block/title-html`, with link and image destinations passed through `href-fn`.
+  Link reference definitions apply to the whole page.
   Headings get unique ids and permalinks. Returns the rendered blocks as
   `:page/blocks`, the headings, in page order, as `:page/headings`, the text
   before the first heading and under each heading as `:page/sections`, and the
   link destinations as written as `:page/links`."
   [blocks href-fn]
-  (let [blocks (mapv parse-block blocks)
+  (let [definitions (reference-definitions blocks)
+        blocks (mapv #(parse-block definitions %) blocks)
         page-nodes (vec (mapcat nodes (keep identity (mapcat block-docs blocks))))
         links (into [] (keep link-destination) page-nodes)
         heading-nodes (filter #(instance? Heading %) page-nodes)
