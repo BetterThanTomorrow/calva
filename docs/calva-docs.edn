@@ -4,10 +4,22 @@
  :site/logo "img/calva-symbol-white.svg"
  :site/favicon "img/favicon.ico"
  :site/extra-css ["stylesheets/extra.css"]
+ :site/static ["CNAME" "img" "images" "stylesheets"]
  :repo/name "Calva"
  :repo/url "https://github.com/BetterThanTomorrow/calva"
- :repo/edit-uri "edit/published/docs/site"
  :material/features ["search.share" "content.tabs.link"]
+ :material/palette [{:palette/media "(prefers-color-scheme: light)"
+                     :palette/scheme "default"
+                     :palette/primary "custom"
+                     :palette/accent "custom"
+                     :palette/icon :brightness-7
+                     :palette/name "Switch to dark mode"}
+                    {:palette/media "(prefers-color-scheme: dark)"
+                     :palette/scheme "slate"
+                     :palette/primary "custom"
+                     :palette/accent "custom"
+                     :palette/icon :brightness-4
+                     :palette/name "Switch to light mode"}]
  :search/separator "[\\s\\-\\._]"
  :social-card/background-color "#db9550"
  :social-card/color "#fafafa"

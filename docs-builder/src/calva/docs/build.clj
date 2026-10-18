@@ -2,37 +2,71 @@
   "Reads the docs sources, renders the site as a map of output files, and writes it."
   (:require [calva.docs.markdown :as markdown]
             [calva.docs.shell :as shell]
+            [calva.docs.url :as url]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:import [java.io File]))
+
+(def ^:private material-dir "docs-builder/vendor/material-9.5.16")
 
 (defn nav-sources
   "Returns the page source files in `nav`, in nav order."
   [nav]
   (->> nav flatten (filter #(string/ends-with? % ".md"))))
 
+(defn- tree-files
+  "Returns the files at or under `from`, skipping dotfiles, as a map from their path under `to` to the file."
+  [^File from to]
+  (into {}
+        (for [^File f (file-seq from)
+              :when (and (.isFile f) (not (string/starts-with? (.getName f) ".")))]
+          [(str to (subs (.getPath f) (count (.getPath from)))) f])))
+
+(defn- read-assets [root static]
+  (apply merge
+         (tree-files (io/file root material-dir "stylesheets") "assets/stylesheets")
+         (tree-files (io/file root material-dir "javascripts") "assets/javascripts")
+         (for [path static]
+           (tree-files (io/file root "docs/site" path) path))))
+
 (defn read-site
-  "Returns the site config under `root`, with its nav pages as `:site/pages`."
+  "Returns the site config under `root`, merged with the Material shell data, the
+  static files as `:site/assets`, and the nav pages as `:site/pages`."
   [{:build/keys [root]}]
   (let [config (edn/read-string (slurp (io/file root "docs/calva-docs.edn")))
+        shell-dir (io/file root material-dir "shell")
         read-page (fn [src]
                     (assoc (markdown/page-parts (slurp (io/file root "docs/site" src)))
                            :page/src src))]
-    (assoc config :site/pages (mapv read-page (nav-sources (:site/nav config))))))
+    (merge config
+           (edn/read-string (slurp (io/file shell-dir "shell.edn")))
+           {:material/md-helpers-script (string/trim (slurp (io/file shell-dir "md-helpers.js")))
+            :material/palette-script (string/trim (slurp (io/file shell-dir "palette.js")))
+            :site/assets (read-assets root (:site/static config))
+            :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
 
-(defn page-url
-  "Returns the site-relative URL for the page source file `src`."
-  [src]
-  (if (= "index.md" src)
-    ""
-    (str (string/replace src #"\.md$" "") "/")))
+(defn- with-content [{:page/keys [src markdown title] :as page}]
+  (let [page-url (url/page-url src)
+        {:page/keys [h1] :as rendered} (markdown/render markdown #(url/content-href page-url %))]
+    (merge page rendered {:page/url page-url
+                          :page/title (or title h1 src)})))
+
+(defn- with-neighbors [pages]
+  (mapv (fn [prev page next]
+          (assoc page :page/prev-url (:page/url prev) :page/next-url (:page/url next)))
+        (cons nil pages)
+        pages
+        (concat (rest pages) [nil])))
 
 (defn render-site
-  "Returns `site` as a map from output path to file content."
-  [{:site/keys [pages] :as site}]
-  (into {}
-        (for [{:page/keys [src] :as page} pages]
-          [(str (page-url src) "index.html") (shell/page-html site page)])))
+  "Returns `site` as a map from output path to file content, a string or a file to copy."
+  [{:site/keys [pages assets] :as site}]
+  (let [pages (with-neighbors (mapv with-content pages))
+        site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
+    (into assets
+          (for [{:page/keys [url] :as page} pages]
+            [(str url "index.html") (shell/page-html site page)]))))
 
 (defn- delete-tree! [dir]
   (doseq [f (reverse (file-seq (io/file dir)))]
@@ -45,7 +79,7 @@
   (doseq [[path content] files]
     (let [f (io/file out-dir path)]
       (io/make-parents f)
-      (spit f content)))
+      (io/copy content f)))
   {:build/out-dir out-dir
    :build/file-count (count files)})
 
