@@ -148,7 +148,7 @@
                    :translations translations}))
 
 (defn- body [{:material/keys [palette bundle] :build/keys [live-reload?] :as site}
-             {:page/keys [url html] :as page}]
+             {:page/keys [url html h1 title] :as page}]
   (let [{:palette/keys [scheme primary accent]} (first palette)]
     [:body {:dir "ltr"
             :data-md-color-scheme scheme
@@ -166,7 +166,9 @@
         (primary-sidebar site page)
         toc-sidebar
         [:div.md-content {:data-md-component "content"}
-         [:article.md-content__inner.md-typeset (h/raw html)]]]]
+         [:article.md-content__inner.md-typeset
+          (when-not h1 [:h1 title])
+          (h/raw html)]]]]
       footer]
      [:div.md-dialog {:data-md-component "dialog"} [:div.md-dialog__inner.md-typeset]]
      [:script#__config {:type "application/json"} (h/raw (config-json site page))]
