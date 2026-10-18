@@ -13,11 +13,9 @@
 (defn- content-path? [{:serve/keys [docs-dir]} path]
   (string/starts-with? path (str docs-dir "/")))
 
-(defn- start-build [state paths]
+(defn- start-build [state]
   {:uf/db (assoc state :serve/building? true)
-   :uf/fxs [[:serve/fx.build
-             (select-keys state [:build/root :build/out-dir :build/live-reload?])
-             (boolean (some #(code-path? state %) paths))]]})
+   :uf/fxs [[:serve/fx.build (select-keys state [:build/root :build/out-dir :build/live-reload?])]]})
 
 (defn- build-report [{:build/keys [error file-count ms]}]
   (if error
@@ -29,7 +27,7 @@
   (if server
     {:uf/fxs [[:serve/fx.log (str "Already serving on port " port)]]}
     (let [state (assoc options :serve/clients #{} :serve/pending-paths #{})]
-      (update (start-build state #{})
+      (update (start-build state)
               :uf/fxs
               #(into [[:serve/fx.track-code src-dir]
                       [:serve/fx.start-server (select-keys state [:serve/port :build/out-dir])]
@@ -41,16 +39,14 @@
   {:uf/db {}
    :uf/fxs [[:serve/fx.stop server watcher]]})
 
-(defmethod handle-action :serve/ax.unloading
-  [{:serve/keys [watcher] :as state} _]
-  (when watcher
-    {:uf/db (dissoc state :serve/watcher)
-     :uf/fxs [[:serve/fx.stop nil watcher]]}))
-
 (defmethod handle-action :serve/ax.reloaded
-  [{:serve/keys [server watcher docs-dir src-dir]} _]
-  (when (and server (not watcher))
-    {:uf/fxs [[:serve/fx.watch [docs-dir src-dir]]]}))
+  [{:serve/keys [server watcher docs-dir src-dir] :as state} _]
+  (when server
+    (update (start-build (dissoc state :serve/watcher))
+            :uf/fxs
+            #(into [[:serve/fx.stop nil watcher]
+                    [:serve/fx.watch [docs-dir src-dir]]]
+                   %))))
 
 (defmethod handle-action :serve/ax.paths-changed
   [{:serve/keys [building?] :as state} [_ paths]]
@@ -58,7 +54,9 @@
     (cond
       (empty? paths) nil
       building? {:uf/db (update state :serve/pending-paths into paths)}
-      :else (start-build state paths))))
+      (some #(code-path? state %) paths) {:uf/db (assoc state :serve/building? true)
+                                          :uf/fxs [[:serve/fx.reload-code]]}
+      :else (start-build state))))
 
 (defmethod handle-action :serve/ax.build-finished
   [{:serve/keys [pending-paths clients] :as state} [_ {:build/keys [error] :as result}]]

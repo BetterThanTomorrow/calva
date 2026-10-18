@@ -23,7 +23,7 @@
     (is (= [[:serve/fx.track-code "/repo/docs-builder/src"]
             [:serve/fx.start-server {:serve/port 8000 :build/out-dir "../.tmp/site"}]
             [:serve/fx.watch ["/repo/docs" "/repo/docs-builder/src"]]
-            [:serve/fx.build build-options false]]
+            [:serve/fx.build build-options]]
            fxs)))
   (testing "a second start only reports"
     (is (= {:uf/fxs [[:serve/fx.log "Already serving on port 8000"]]}
@@ -31,11 +31,12 @@
 
 (deftest paths-changed
   (testing "a page change builds without reloading code"
-    (is (= [[:serve/fx.build build-options false]]
+    (is (= [[:serve/fx.build build-options]]
            (:uf/fxs (actions/handle-action serving [:serve/ax.paths-changed ["/repo/docs/site/api.md"]])))))
-  (testing "a builder source change reloads code, then builds"
-    (is (= [[:serve/fx.build build-options true]]
-           (:uf/fxs (actions/handle-action serving [:serve/ax.paths-changed ["/repo/docs-builder/src/calva/docs/shell.clj"]])))))
+  (testing "a builder source change reloads code, and the reloaded serve builds"
+    (is (= {:uf/db (assoc serving :serve/building? true)
+            :uf/fxs [[:serve/fx.reload-code]]}
+           (actions/handle-action serving [:serve/ax.paths-changed ["/repo/docs-builder/src/calva/docs/shell.clj"]]))))
   (testing "changes outside the docs and the builder source are ignored"
     (is (nil? (actions/handle-action serving [:serve/ax.paths-changed ["/repo/docs-builder/src/.#shell.clj~" "/repo/src/calva.ts"]]))))
   (testing "changes during a build wait for it"
@@ -69,15 +70,15 @@
          (-> (actions/handle-action serving [:serve/ax.client-closed :browser]) :uf/db :serve/clients))))
 
 (deftest code-reload
-  (testing "unloading the serve namespace stops its watcher"
-    (is (= {:uf/db (dissoc serving :serve/watcher)
-            :uf/fxs [[:serve/fx.stop nil :watcher]]}
-           (actions/handle-action (assoc serving :serve/watcher :watcher) [:serve/ax.unloading]))))
-  (testing "the reloaded serve namespace starts a new watcher"
-    (is (= {:uf/fxs [[:serve/fx.watch ["/repo/docs" "/repo/docs-builder/src"]]]}
-           (actions/handle-action serving [:serve/ax.reloaded]))))
-  (testing "a reload in place keeps the running watcher"
-    (is (nil? (actions/handle-action (assoc serving :serve/watcher :watcher) [:serve/ax.reloaded]))))
+  (testing "the reloaded serve namespace swaps in a new watcher and builds"
+    (let [{:uf/keys [db fxs]} (actions/handle-action (assoc serving :serve/watcher :old-watcher)
+                                                     [:serve/ax.reloaded])]
+      (is (= true (:serve/building? db)))
+      (is (nil? (:serve/watcher db)))
+      (is (= [[:serve/fx.stop nil :old-watcher]
+              [:serve/fx.watch ["/repo/docs" "/repo/docs-builder/src"]]
+              [:serve/fx.build build-options]]
+             fxs))))
   (testing "a stopped serve stays stopped"
     (is (nil? (actions/handle-action {} [:serve/ax.reloaded])))))
 

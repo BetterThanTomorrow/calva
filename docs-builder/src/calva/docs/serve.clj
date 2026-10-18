@@ -45,9 +45,7 @@
   (println message))
 
 (defmethod perform-effect! :serve/fx.track-code [[_ src-dir]]
-  (reload/init {:dirs [src-dir]
-                :no-unload (reload/find-namespaces #"calva\.docs\..*")
-                :output :quieter}))
+  (reload/init {:dirs [src-dir] :output :quieter}))
 
 (defmethod perform-effect! :serve/fx.start-server [[_ {:serve/keys [port] :build/keys [out-dir]}]]
   (.mkdirs (io/file out-dir))
@@ -61,15 +59,20 @@
                      #(dispatch! [:serve/ax.paths-changed [(str (:path %))]])
                      dirs)]))
 
-(defmethod perform-effect! :serve/fx.build [[_ options reload-code?]]
+(defmethod perform-effect! :serve/fx.build [[_ options]]
   (future
     (dispatch! [:serve/ax.build-finished
                 (try
-                  (when reload-code?
-                    (reload/reload))
                   (build/build! options)
                   (catch Throwable e
                     {:build/error (error-message e)}))])))
+
+(defmethod perform-effect! :serve/fx.reload-code [_]
+  (future
+    (try
+      (reload/reload {:only #"calva\.docs\.serve"})
+      (catch Throwable e
+        (dispatch! [:serve/ax.build-finished {:build/error (error-message e)}])))))
 
 (defmethod perform-effect! :serve/fx.notify [[_ clients]]
   (doseq [channel clients]
@@ -97,13 +100,9 @@
   []
   (dispatch! [:serve/ax.stop]))
 
-(defn before-ns-unload
-  "Stops the file watcher before clj-reload removes this namespace. The watcher's callback calls this namespace's `dispatch!`, so it would keep building with the removed code."
-  []
-  (dispatch! [:serve/ax.unloading]))
-
 (defn after-ns-reload
-  "Starts a file watcher after clj-reload loads this namespace, when the serve runs without one."
+  "clj-reload calls this after it loads this namespace. The serve then builds, and swaps
+  in a file watcher that calls this namespace, since the old one calls the replaced code."
   []
   (dispatch! [:serve/ax.reloaded]))
 
