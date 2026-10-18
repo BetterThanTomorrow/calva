@@ -1,5 +1,5 @@
 ---
-title: Gnome Linux Keybindings
+title: Gnome/Linux Keybindings
 description: Some keybindings to make it easier for Gnome Linux users
 ---
 
