@@ -3940,7 +3940,7 @@
     ]
   },
   "scripts": {
-    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve --livereload",
+    "watch-docs": "cd docs-builder && clojure -M:serve",
     "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "precompile": "npm i && npm run clean",
     "compile-cljs": "npx shadow-cljs -A:dev:test compile :calva-lib :test :repl-output-ui",

@@ -35,7 +35,6 @@ Add this alias to your **project's** `deps.edn`:
     {:extra-deps {vlaaad/reveal {:mvn/version "<version>"}}
      :main-opts  ["-m" "nrepl.cmdline"
                   "--middleware" "[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"]}}
-
 ```
 
 And then jack-in choosing the deps.edn option and then pick the `:reveal-nrepl-middleware` alias.
@@ -91,7 +90,6 @@ If you find the font to small you can add a `:jvm-opts` key to make it a little 
      :jvm-opts   ["-Dvlaaad.reveal.prefs={:font-size,17}"]
      :main-opts  ["-m" "nrepl.cmdline"
                   "--middleware" "[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"]}}
-
 ```
 
 ## Using Java > 11?
