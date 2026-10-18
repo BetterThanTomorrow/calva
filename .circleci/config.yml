@@ -406,26 +406,29 @@ jobs:
           git push origin HEAD
   deploy-docs:
     docker:
-    - image: cimg/python:3.13-node
-    environment:
-      MKDOCS_ENV: production
+    - image: cimg/clojure:1.12.6-openjdk-21.0
     steps:
     - add_ssh_keys:
         fingerprints:
         - d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14
     - checkout
     - run:
-        name: Update system package lists
-        command: sudo apt-get update
-    - run:
-        name: Install mkdocs-materials dependencies
-        command: sudo apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-    - run:
-        name: Install mkdocs and mkdocs-materials
-        command: pip install -r requirements.txt
+        name: Install fontconfig for the social cards
+        command: sudo apt-get update && sudo apt-get install -y fontconfig
     - run:
         name: Deploy docs
-        command: git checkout published; mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
+        command: |
+          git config --global user.email "$GITHUB_USER_EMAIL"
+          git config --global user.name "$GITHUB_USER_NAME"
+          git checkout published
+          (cd docs-builder && clojure -M:build --production)
+          git clone --branch gh-pages --single-branch --depth 1 "$(git remote get-url origin)" /tmp/gh-pages
+          find /tmp/gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a site/. /tmp/gh-pages/
+          touch /tmp/gh-pages/.nojekyll
+          git -C /tmp/gh-pages add -A
+          git -C /tmp/gh-pages diff --cached --quiet || git -C /tmp/gh-pages commit -m "Deploy docs [skip ci]"
+          git -C /tmp/gh-pages push origin HEAD:gh-pages
   bump-dev-version:
     docker:
     - image: cimg/node:22.16.0

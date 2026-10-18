@@ -77,8 +77,10 @@ output.calva-repl
 .clj-kondo
 /clojure-lsp*
 
-# MkDocs
+# Docs site output
 /site/
+
+# Tool caches
 .cache/
 
 # Calva dev
