@@ -9,6 +9,11 @@
     ""
     (str (string/replace src #"\.md$" "") "/")))
 
+(defn social-card-path
+  "Returns the site path of the social card for the page source file `src`."
+  [src]
+  (str "assets/images/social/" (string/replace src #"\.md$" ".png")))
+
 (defn- depth [from-url]
   (count (re-seq #"/" from-url)))
 
