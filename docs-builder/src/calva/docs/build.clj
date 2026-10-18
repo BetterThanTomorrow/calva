@@ -1,7 +1,9 @@
 (ns calva.docs.build
   "Reads the docs sources, renders the site as a map of output files, and writes it."
-  (:require [calva.docs.markdown :as markdown]
+  (:require [calva.docs.blocks :as blocks]
+            [calva.docs.markdown :as markdown]
             [calva.docs.shell :as shell]
+            [calva.docs.toc :as toc]
             [calva.docs.url :as url]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
@@ -30,9 +32,16 @@
          (for [path static]
            (tree-files (io/file root "docs/site" path) path))))
 
+(defn- read-scripts
+  "Returns the `names`d scripts in `dir` as `:script/<name>` entries."
+  [dir names]
+  (into {} (for [script-name names]
+             [(keyword "script" script-name)
+              (string/trim (slurp (io/file dir (str script-name ".js"))))])))
+
 (defn read-site
-  "Returns the site config under `root`, merged with the Material shell data, the
-  static files as `:site/assets`, and the nav pages as `:site/pages`."
+  "Returns the site config under `root`, merged with the Material shell data and
+  scripts, the static files as `:site/assets`, and the nav pages as `:site/pages`."
   [{:build/keys [root]}]
   (let [config (edn/read-string (slurp (io/file root "docs/calva-docs.edn")))
         shell-dir (io/file root material-dir "shell")
@@ -41,16 +50,22 @@
                            :page/src src))]
     (merge config
            (edn/read-string (slurp (io/file shell-dir "shell.edn")))
-           {:material/md-helpers-script (string/trim (slurp (io/file shell-dir "md-helpers.js")))
-            :material/palette-script (string/trim (slurp (io/file shell-dir "palette.js")))
-            :site/assets (read-assets root (:site/static config))
+           (read-scripts shell-dir ["md-helpers" "palette" "tabs-restore" "hash-target"])
+           {:site/assets (read-assets root (:site/static config))
             :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
 
 (defn- with-content [{:page/keys [src markdown title] :as page}]
   (let [page-url (url/page-url src)
-        {:page/keys [h1] :as rendered} (markdown/render markdown #(url/content-href page-url %))]
-    (merge page rendered {:page/url page-url
-                          :page/title (or title h1 src)})))
+        {:page/keys [blocks headings]} (markdown/render-blocks (blocks/page-blocks markdown)
+                                                               #(url/content-href page-url %))
+        h1 (some #(when (= 1 (:heading/level %)) (:heading/text %)) headings)]
+    (assoc page
+           :page/url page-url
+           :page/title (or title h1 src)
+           :page/h1 h1
+           :page/headings headings
+           :page/toc (toc/page-toc headings)
+           :page/body (blocks/page-body blocks))))
 
 (defn- with-neighbors [pages]
   (mapv (fn [prev page next]

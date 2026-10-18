@@ -1,17 +1,27 @@
 (ns calva.docs.nav
   "The site nav as Material's primary navigation."
-  (:require [calva.docs.url :as url]
+  (:require [calva.docs.toc :as toc]
+            [calva.docs.url :as url]
             [clojure.string :as string]))
 
 (declare nav-list)
 
-(defn- page-item [{:site/keys [pages-by-src]} {:page/keys [url] :as page} src]
+(defn- active-item [title toc]
+  [:li {:class "md-nav__item md-nav__item--active"}
+   [:input {:class "md-nav__toggle md-toggle" :type "checkbox" :id "__toc"}]
+   (when (seq toc)
+     [:label {:class "md-nav__link md-nav__link--active" :for "__toc"}
+      [:span.md-ellipsis title]
+      [:span.md-nav__icon.md-icon]])
+   [:a {:class "md-nav__link md-nav__link--active" :href "./"}
+    [:span.md-ellipsis title]]
+   (when (seq toc)
+     (toc/toc-nav toc))])
+
+(defn- page-item [{:site/keys [pages-by-src]} {:page/keys [url toc] :as page} src]
   (let [{:page/keys [title] target :page/url} (pages-by-src src)]
     (if (= src (:page/src page))
-      [:li {:class "md-nav__item md-nav__item--active"}
-       [:input {:class "md-nav__toggle md-toggle" :type "checkbox" :id "__toc"}]
-       [:a {:class "md-nav__link md-nav__link--active" :href "./"}
-        [:span.md-ellipsis title]]]
+      (active-item title toc)
       [:li.md-nav__item
        [:a.md-nav__link {:href (url/site-href url target)}
         [:span.md-ellipsis title]]])))

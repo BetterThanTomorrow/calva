@@ -1,16 +1,28 @@
 (ns calva.docs.markdown
-  "Docs pages from Markdown source: front matter and HTML."
+  "Docs pages from Markdown source: front matter, HTML, and heading ids."
   (:require [clojure.string :as string])
-  (:import [org.commonmark.ext.gfm.tables TablesExtension]
+  (:import [java.text Normalizer Normalizer$Form]
+           [org.commonmark.ext.gfm.tables TablesExtension]
            [org.commonmark.node Code Heading Image Link Node Text]
            [org.commonmark.parser Parser]
-           [org.commonmark.renderer.html HtmlRenderer]))
+           [org.commonmark.renderer.html AttributeProvider AttributeProviderFactory HtmlRenderer]))
 
 (def ^:private extensions [(TablesExtension/create)])
 
 (def ^:private parser (-> (Parser/builder) (.extensions extensions) .build))
 
-(def ^:private renderer (-> (HtmlRenderer/builder) (.extensions extensions) .build))
+(defn- html-renderer
+  "Returns a renderer that gives the heading nodes in `ids` their id, and the
+  `permalinks` nodes the `headerlink` class."
+  [ids permalinks]
+  (let [provider (reify AttributeProvider
+                   (setAttributes [_ node _tag attrs]
+                     (when-let [id (ids node)] (.put attrs "id" id))
+                     (when (permalinks node) (.put attrs "class" "headerlink"))))]
+    (-> (HtmlRenderer/builder)
+        (.extensions extensions)
+        (.attributeProviderFactory (reify AttributeProviderFactory (create [_ _] provider)))
+        .build)))
 
 (defn- children [^Node node]
   (take-while some? (iterate #(.getNext ^Node %) (.getFirstChild node))))
@@ -25,8 +37,13 @@
                       nil)
                    (nodes node))))
 
-(defn- h1? [node]
-  (and (instance? Heading node) (= 1 (.getLevel ^Heading node))))
+(defn- slug [text]
+  (-> (Normalizer/normalize text Normalizer$Form/NFKD)
+      (string/replace #"[^\x00-\x7F]" "")
+      (string/replace #"[^\w\s-]" "")
+      string/trim
+      string/lower-case
+      (string/replace #"[-\s]+" "-")))
 
 (defn- relink! [href-fn node]
   (condp instance? node
@@ -34,15 +51,69 @@
     Image (.setDestination ^Image node (href-fn (.getDestination ^Image node)))
     nil))
 
-(defn render
-  "Returns the HTML for the CommonMark `markdown` as `:page/html`, with link and image
-  destinations passed through `href-fn`, and the text of its first H1 as `:page/h1`."
-  [markdown href-fn]
-  (let [doc (.parse parser markdown)
-        all (nodes doc)]
-    (run! #(relink! href-fn %) all)
-    {:page/html (.render renderer doc)
-     :page/h1 (some->> all (filter h1?) first plain-text)}))
+(defn- unique-id [ids id]
+  (if (or (contains? ids id) (string/blank? id))
+    (recur ids (if-let [[_ base n] (re-matches #"(.*)_(\d+)" id)]
+                 (str base "_" (inc (parse-long n)))
+                 (str id "_1")))
+    id))
+
+(defn heading-ids
+  "Returns the ids for headings with the `texts`, in page order. Repeated and empty
+  ids get numbered suffixes, so the ids are unique on the page."
+  [texts]
+  (first (reduce (fn [[out ids] text]
+                   (let [id (unique-id ids (slug text))]
+                     [(conj out id) (conj ids id)]))
+                 [[] #{}]
+                 texts)))
+
+(defn- parse [markdown href-fn]
+  (let [doc (.parse parser markdown)]
+    (run! #(relink! href-fn %) (nodes doc))
+    doc))
+
+(defn- add-permalink! [^Heading heading id]
+  (let [link (doto (Link. (str "#" id) "Permanent link") (.appendChild (Text. "#")))]
+    (.appendChild heading link)
+    link))
+
+(defn- parse-block [href-fn {:block/keys [markdown title tabs] :as block}]
+  (cond-> block
+    markdown (assoc :block/doc (parse markdown href-fn))
+    title (assoc :block/title-doc (parse title href-fn))
+    tabs (assoc :block/tabs (mapv #(parse-block href-fn %) tabs))))
+
+(defn- block-docs [{:block/keys [doc tabs]}]
+  (cons doc (mapcat block-docs tabs)))
+
+(defn- inline-html [^HtmlRenderer renderer ^Node doc]
+  (apply str (map #(.render renderer %) (some-> doc .getFirstChild children))))
+
+(defn- render-block [^HtmlRenderer renderer {:block/keys [doc title-doc tabs] :as block}]
+  (cond-> (dissoc block :block/markdown :block/doc :block/title-doc)
+    doc (assoc :block/html (.render renderer doc))
+    title-doc (assoc :block/title-html (inline-html renderer title-doc))
+    tabs (assoc :block/tabs (mapv #(render-block renderer %) tabs))))
+
+(defn render-blocks
+  "Renders the Markdown bodies and titles of `blocks` as `:block/html` and
+  `:block/title-html`, with link and image destinations passed through `href-fn`.
+  Headings get unique ids and permalinks. Returns the rendered blocks as
+  `:page/blocks`, and the headings, in page order, as `:page/headings`."
+  [blocks href-fn]
+  (let [blocks (mapv #(parse-block href-fn %) blocks)
+        heading-nodes (filter #(instance? Heading %)
+                              (mapcat nodes (keep identity (mapcat block-docs blocks))))
+        headings (mapv (fn [^Heading node id]
+                         {:heading/level (.getLevel node) :heading/id id :heading/text (plain-text node)})
+                       heading-nodes
+                       (heading-ids (map plain-text heading-nodes)))
+        ids (map :heading/id headings)
+        renderer (html-renderer (zipmap heading-nodes ids)
+                                (set (map add-permalink! heading-nodes ids)))]
+    {:page/blocks (mapv #(render-block renderer %) blocks)
+     :page/headings headings}))
 
 (defn- unquoted [s]
   (if-let [[_ inner] (re-matches #"\"(.*)\"" s)]
@@ -72,5 +143,7 @@
 
 (comment
   (dissoc (page-parts (slurp "../docs/site/api.md")) :page/markdown)
-  (render "# Hi `there`\n\nSee [j](joyride.md)\n\n| a | b |\n|---|---|\n| 1 | 2 |" #(str "../" %))
+  (render-blocks [{:block/type :markdown :block/markdown "# Hi `there`\n\nSee [j](joyride.md)"}
+                  {:block/type :admonition :block/title "A `title`" :block/markdown "Body"}]
+                 #(str "../" %))
   :rcf)
