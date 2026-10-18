@@ -159,7 +159,7 @@ Default keybinding                | Action | Description
     You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
 !!! Note "clojure-lsp drag fwd/back overlap"
-    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternatives. See the [clojure-lsp](clojure-lsp.md#clojure-lsp-drag-fwdback) page.
+    As an experimental feature, the two commands for dragging forms forward and backward have clojure-lsp alternatives. See the [clojure-lsp](clojure-lsp.md) page.
 
 ### Drag bindings forward/backward
 
@@ -229,6 +229,7 @@ Calva loads and merges configuration in this order:
 4. User config (from `~/.config/calva/config.edn` in your home directory)
 
 **Key merging behavior:**
+
 - **customPairForms**: Custom forms are appended to defaults. Defaults cannot be overridden.
 - **customThreadingMacros**: Custom macros are concatenated with defaults for both `firstArg` and `lastArg` arrays.
 - **aliasMap**: Settings from later sources override earlier ones for the same alias key.
@@ -354,6 +355,7 @@ Each pair form configuration object supports these fields:
 | `tripleMarker` | flat (optional) | Special marker for triple pairs (like `":>>"` in `condp`) |
 
 **Type descriptions:**
+
 - **`vector-binding`**: For forms with a binding vector like `(let [a 1 b 2] ...)`
 - **`flat`**: For forms with inline pairs like `(cond test1 result1 test2 result2)`
 - **`keyword`**: For keyword modifiers like `(for [x xs :let [y (inc x)]] ...)`
@@ -372,9 +374,11 @@ Threading macros affect how Calva calculates pair offsets in forms. For example,
 ### Default Threading Macros
 
 **Thread-first** (threads into first argument position):
+
 - `->`, `some->`, `cond->`, `promesa.core/->`
 
 **Thread-last** (threads into last argument position):
+
 - `->>`, `some->>`, `cond->>`, `promesa.core/->>`
 
 ```json
