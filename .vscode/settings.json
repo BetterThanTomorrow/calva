@@ -240,6 +240,15 @@
         "cljsLaunchBuilds": [":calva-lib", ":repl-output-ui", ":test"]
       },
       "projectRootPath": ["."]
+    },
+    {
+      "name": "Calva docs",
+      "projectType": "deps.edn",
+      "replSessionNames": { "primary": "docs" },
+      "projectRootPath": ["docs-builder"],
+      "menuSelections": {
+        "cljAliases": [":dev"]
+      }
     }
   ],
   "workbench.colorCustomizations": {
