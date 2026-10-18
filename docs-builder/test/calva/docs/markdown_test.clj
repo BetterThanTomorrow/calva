@@ -34,7 +34,10 @@
     (is (= {:page/title "Tao" :page/markdown "# Tao\n" :page/markdown-line 4}
            (markdown/page-parts "---\ntitle: Tao\n---\n# Tao\n")))
     (is (= {:page/markdown "# Tao\n" :page/markdown-line 1}
-           (markdown/page-parts "# Tao\n")))))
+           (markdown/page-parts "# Tao\n"))))
+  (testing "CRLF line endings, as in a Windows checkout"
+    (is (= {:page/title "Tao" :page/markdown "# Tao\n\nBody\n" :page/markdown-line 4}
+           (markdown/page-parts "---\r\ntitle: Tao\r\n---\r\n# Tao\r\n\r\nBody\r\n")))))
 
 (deftest reference-links
   (testing "a reference definition in one block resolves links in the other blocks and their titles"
