@@ -11,17 +11,7 @@
 
 (defonce ^:private !state (atom {}))
 
-(defmulti ^:private perform-effect! (fn [[kind]] kind))
-
-(defn dispatch!
-  "Runs `action` through the serve loop."
-  [action]
-  (locking !state
-    (let [{:uf/keys [db fxs dxs]} (actions/handle-action @!state action)]
-      (when db
-        (reset! !state db))
-      (run! perform-effect! fxs)
-      (run! dispatch! dxs))))
+(declare dispatch!)
 
 (defn- reload-socket [request]
   (http/as-channel request
@@ -39,27 +29,22 @@
         (site request)))))
 
 (defn- error-message [e]
-  (str (ex-message e) (some->> (ex-cause e) ex-message (str ": "))))
+  (str (or (ex-message e) (.getName (class e)))
+       (some->> (ex-cause e) ex-message (str ": "))))
 
-(defmethod perform-effect! :serve/fx.log [[_ message]]
-  (println message))
-
-(defmethod perform-effect! :serve/fx.track-code [[_ src-dir]]
-  (reload/init {:dirs [src-dir] :output :quieter}))
-
-(defmethod perform-effect! :serve/fx.start-server [[_ {:serve/keys [port] :build/keys [out-dir]}]]
+(defn- start-server! [[_ {:serve/keys [port] :build/keys [out-dir]}]]
   (.mkdirs (io/file out-dir))
   (dispatch! [:db/ax.assoc :serve/server
               (http/run-server (handler out-dir) {:port port :legacy-return-value? false})])
   (println (str "Serving the docs on http://localhost:" port)))
 
-(defmethod perform-effect! :serve/fx.watch [[_ dirs]]
+(defn- watch! [[_ dirs]]
   (dispatch! [:db/ax.assoc :serve/watcher
               (apply beholder/watch
                      #(dispatch! [:serve/ax.paths-changed [(str (:path %))]])
                      dirs)]))
 
-(defmethod perform-effect! :serve/fx.build [[_ options]]
+(defn- build! [[_ options]]
   (future
     (dispatch! [:serve/ax.build-finished
                 (try
@@ -67,20 +52,38 @@
                   (catch Throwable e
                     {:build/error (error-message e)}))])))
 
-(defmethod perform-effect! :serve/fx.reload-code [_]
+(defn- reload-code! [_]
   (future
     (try
       (reload/reload {:only #"calva\.docs\.serve"})
       (catch Throwable e
         (dispatch! [:serve/ax.build-finished {:build/error (error-message e)}])))))
 
-(defmethod perform-effect! :serve/fx.notify [[_ clients]]
-  (doseq [channel clients]
-    (http/send! channel "reload")))
-
-(defmethod perform-effect! :serve/fx.stop [[_ server watcher]]
+(defn- stop-serving! [[_ server watcher]]
   (some-> server http/server-stop!)
   (some-> watcher beholder/stop))
+
+(defn- perform-effect! [[kind & args :as effect]]
+  (case kind
+    :serve/fx.log (println (first args))
+    :serve/fx.track-code (reload/init {:dirs [(first args)] :output :quieter})
+    :serve/fx.start-server (start-server! effect)
+    :serve/fx.watch (watch! effect)
+    :serve/fx.build (build! effect)
+    :serve/fx.reload-code (reload-code! effect)
+    :serve/fx.notify (doseq [channel (first args)] (http/send! channel "reload"))
+    :serve/fx.stop (stop-serving! effect)
+    (throw (ex-info "Unhandled serve effect" {:uf/effect effect}))))
+
+(defn dispatch!
+  "Runs `action` through the serve loop."
+  [action]
+  (locking !state
+    (let [{:uf/keys [db fxs dxs]} (actions/handle-action @!state action)]
+      (when db
+        (reset! !state db))
+      (run! perform-effect! fxs)
+      (run! dispatch! dxs))))
 
 (defn- canonical-path [& parts]
   (.getCanonicalPath ^java.io.File (apply io/file parts)))
