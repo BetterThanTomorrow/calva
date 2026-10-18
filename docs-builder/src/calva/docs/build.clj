@@ -58,7 +58,8 @@
            (read-scripts shell-dir ["md-helpers" "palette" "tabs-restore" "hash-target" "analytics"])
            {:social-card/logo (slurp (io/file root "docs/site" (:site/logo config)))
             :social-card/font-files {:bold (io/file root fonts-dir "Roboto-Bold.ttf")
-                                     :regular (io/file root fonts-dir "Roboto-Regular.ttf")}
+                                     :regular (io/file root fonts-dir "Roboto-Regular.ttf")
+                                     :emoji (io/file root fonts-dir "NotoEmoji.ttf")}
             :site/assets (read-assets root (:site/static config))
             :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
 
