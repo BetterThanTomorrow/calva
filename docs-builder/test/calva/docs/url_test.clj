@@ -30,3 +30,7 @@
   (testing "anchors, absolute paths and URLs are unchanged"
     (doseq [href ["#local" "/abs" "https://example.org/a.md" "mailto:a@b.c" ""]]
       (is (= href (url/content-href "api/" href))))))
+
+(deftest social-card-path
+  (is (= "assets/images/social/index.png" (url/social-card-path "index.md")))
+  (is (= "assets/images/social/api.png" (url/social-card-path "api.md"))))

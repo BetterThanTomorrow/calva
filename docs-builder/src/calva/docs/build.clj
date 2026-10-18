@@ -5,6 +5,7 @@
             [calva.docs.search :as search]
             [calva.docs.shell :as shell]
             [calva.docs.sitemap :as sitemap]
+            [calva.docs.social :as social]
             [calva.docs.toc :as toc]
             [calva.docs.url :as url]
             [clojure.edn :as edn]
@@ -13,6 +14,7 @@
   (:import [java.io File]))
 
 (def ^:private material-dir "docs-builder/vendor/material-9.5.16")
+(def ^:private fonts-dir "docs-builder/resources/fonts")
 
 (defn nav-sources
   "Returns the page source files in `nav`, in nav order."
@@ -43,7 +45,8 @@
 
 (defn read-site
   "Returns the site config under `root`, merged with the Material shell data and
-  scripts, the static files as `:site/assets`, and the nav pages as `:site/pages`."
+  scripts, the social card logo and fonts, the static files as `:site/assets`, and
+  the nav pages as `:site/pages`."
   [{:build/keys [root]}]
   (let [config (edn/read-string (slurp (io/file root "docs/calva-docs.edn")))
         shell-dir (io/file root material-dir "shell")
@@ -53,7 +56,10 @@
     (merge config
            (edn/read-string (slurp (io/file shell-dir "shell.edn")))
            (read-scripts shell-dir ["md-helpers" "palette" "tabs-restore" "hash-target" "analytics"])
-           {:site/assets (read-assets root (:site/static config))
+           {:social-card/logo (slurp (io/file root "docs/site" (:site/logo config)))
+            :social-card/font-files {:bold (io/file root fonts-dir "Roboto-Bold.ttf")
+                                     :regular (io/file root fonts-dir "Roboto-Regular.ttf")}
+            :site/assets (read-assets root (:site/static config))
             :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
 
 (defn- with-content [{:page/keys [src markdown title] :as page}]
@@ -88,8 +94,10 @@
   (let [pages (with-neighbors (mapv with-content pages))
         site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
     (merge assets
-           (into {} (for [{:page/keys [url] :as page} pages]
-                      [(str url "index.html") (shell/page-html site page)]))
+           (into {} (for [{:page/keys [url src] :as page} pages
+                          file [[(str url "index.html") (shell/page-html site page)]
+                                [(url/social-card-path src) (social/card-png site page)]]]
+                      file))
            {"404.html" (shell/page-html site not-found-page)
             "search/search_index.json" (search/search-index separator pages)}
            (sitemap/sitemap-files site-url (map :page/url pages)))))

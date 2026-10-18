@@ -132,6 +132,26 @@
         (when prev-url [:link {:rel "prev" :href (url/site-href url prev-url)}])
         (when next-url [:link {:rel "next" :href (url/site-href url next-url)}])))
 
+(defn- social-meta
+  [{site-url :site/url site-name :site/name :site/keys [description]}
+   {:page/keys [src url title] page-description :page/description}]
+  (when src
+    (let [title (str title " - " site-name)
+          description (or page-description description)
+          image (str site-url "/" (url/social-card-path src))]
+      (list [:meta {:property "og:type" :content "website"}]
+            [:meta {:property "og:title" :content title}]
+            [:meta {:property "og:description" :content description}]
+            [:meta {:property "og:image" :content image}]
+            [:meta {:property "og:image:type" :content "image/png"}]
+            [:meta {:property "og:image:width" :content "1200"}]
+            [:meta {:property "og:image:height" :content "630"}]
+            [:meta {:property "og:url" :content (str site-url "/" url)}]
+            [:meta {:name "twitter:card" :content "summary_large_image"}]
+            [:meta {:name "twitter:title" :content title}]
+            [:meta {:name "twitter:description" :content description}]
+            [:meta {:name "twitter:image" :content image}]))))
+
 (defn- head
   [{:site/keys [name description favicon extra-css]
     :material/keys [stylesheets fonts-stylesheet fonts-style] :script/keys [md-helpers] :as site}
@@ -142,6 +162,7 @@
      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
      [:meta {:name "description" :content (or page-description description)}]
      (page-links site page)
+     (social-meta site page)
      [:link {:rel "icon" :href (href favicon)}]
      [:title (if title (str title " - " name) name)]
      (for [path stylesheets] [:link {:rel "stylesheet" :href (href path)}])
