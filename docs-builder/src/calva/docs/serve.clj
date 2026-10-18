@@ -94,7 +94,7 @@
 
 (defn start!
   "Builds the docs, serves them on `port`, and rebuilds when the docs or the builder change."
-  [& {:serve/keys [port] :or {port 8000}}]
+  [& {:serve/keys [port] :or {port 8765}}]
   (dispatch! [:serve/ax.start {:serve/port port
                                :serve/docs-dir (canonical-path ".." "docs")
                                :serve/src-dir (canonical-path "src")
