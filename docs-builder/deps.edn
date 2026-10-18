@@ -1,0 +1,17 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}
+        org.commonmark/commonmark {:mvn/version "0.30.1"}
+        org.commonmark/commonmark-ext-gfm-tables {:mvn/version "0.30.1"}
+        hiccup/hiccup {:mvn/version "2.0.0"}
+        http-kit/http-kit {:mvn/version "2.8.1"}
+        ring/ring-core {:mvn/version "1.15.5"}
+        com.nextjournal/beholder {:mvn/version "1.0.3"}
+        org.slf4j/slf4j-nop {:mvn/version "1.7.36"}
+        io.github.tonsky/clj-reload {:mvn/version "1.0.0"}}
+ :aliases
+ {:build {:main-opts ["-m" "calva.docs.cli" "build"]}
+  :serve {:main-opts ["-m" "calva.docs.cli" "serve"]}
+  :dev {:extra-paths ["test"]}
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+         :main-opts ["-m" "cognitect.test-runner"]}}}
