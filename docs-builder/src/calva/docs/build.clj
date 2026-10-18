@@ -1,6 +1,7 @@
 (ns calva.docs.build
   "Reads the docs sources, renders the site as a map of output files, and writes it."
   (:require [calva.docs.blocks :as blocks]
+            [calva.docs.lint :as lint]
             [calva.docs.markdown :as markdown]
             [calva.docs.search :as search]
             [calva.docs.shell :as shell]
@@ -43,6 +44,16 @@
              [(keyword "script" script-name)
               (string/trim (slurp (io/file dir (str script-name ".js"))))])))
 
+(defn- page-sources
+  "Returns the page sources in `nav`. Throws when the nav lists pages that have no file."
+  [root nav]
+  (let [sources (nav-sources nav)
+        missing (remove #(.exists (io/file root "docs/site" %)) sources)]
+    (when (seq missing)
+      (throw (ex-info (str "The nav lists pages that have no file: " (string/join ", " missing))
+                      {:site/missing-pages missing})))
+    sources))
+
 (defn read-site
   "Returns the site config under `root`, merged with the Material shell data and
   scripts, the social card logo and fonts, the static files as `:site/assets`, and
@@ -61,18 +72,19 @@
                                      :regular (io/file root fonts-dir "Roboto-Regular.ttf")
                                      :emoji (io/file root fonts-dir "NotoEmoji.ttf")}
             :site/assets (read-assets root (:site/static config))
-            :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
+            :site/pages (mapv read-page (page-sources root (:site/nav config)))})))
 
 (defn- with-content [{:page/keys [src markdown title] :as page}]
   (let [page-url (url/page-url src)
-        {:page/keys [blocks headings sections]} (markdown/render-blocks (blocks/page-blocks markdown)
-                                                                        #(url/content-href page-url %))
+        {:page/keys [blocks headings sections links]} (markdown/render-blocks (blocks/page-blocks markdown)
+                                                                              #(url/content-href page-url %))
         h1 (some #(when (= 1 (:heading/level %)) (:heading/text %)) headings)]
     (assoc page
            :page/url page-url
            :page/title (or title h1 src)
            :page/h1 h1
            :page/headings headings
+           :page/links links
            :page/sections sections
            :page/toc (toc/page-toc headings)
            :page/body (blocks/page-body blocks))))
@@ -90,10 +102,10 @@
    :page/body (list [:h1 "404 - Not found"])})
 
 (defn render-site
-  "Returns `site` as a map from output path to file content, a string, bytes, or a file to copy."
+  "Returns `site`, with its pages rendered, as a map from output path to file content, a string,
+  bytes, or a file to copy."
   [{site-url :site/url :site/keys [pages assets] :search/keys [separator] :as site}]
-  (let [pages (with-neighbors (mapv with-content pages))
-        site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
+  (let [site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
     (merge assets
            (into {} (for [{:page/keys [url src] :as page} pages
                           file [[(str url "index.html") (shell/page-html site page)]
@@ -119,11 +131,13 @@
    :build/file-count (count files)})
 
 (defn build!
-  "Builds the site from `root` into `out-dir`. Returns a summary of what was written."
+  "Builds the site from `root` into `out-dir`. Returns a summary of what was written, with the
+  problems a reader would trip on as `:build/problems`."
   [options]
   (let [start (System/nanoTime)
-        files (render-site (merge (read-site options) options))]
-    (assoc (write-site! options files)
+        site (update (merge (read-site options) options) :site/pages #(with-neighbors (mapv with-content %)))]
+    (assoc (write-site! options (render-site site))
+           :build/problems (vec (lint/site-problems (:site/pages site)))
            :build/ms (quot (- (System/nanoTime) start) 1000000))))
 
 (comment

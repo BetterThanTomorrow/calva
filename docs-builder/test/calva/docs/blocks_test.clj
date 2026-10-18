@@ -30,3 +30,14 @@
   (testing "block markers inside a fenced code block are code"
     (is (= [{:block/type :markdown :block/markdown "```\n!!! Note\n    x\n```"}]
            (blocks/page-blocks (lines "```" "!!! Note" "    x" "```"))))))
+
+(deftest block-problems
+  (testing "block markup that renders as text, by source line, skipping code fences"
+    (is (= [{:problem/line 12 :problem/message "`=== “Tab”` starts like a block, but doesn't parse as one"}
+            {:problem/line 15 :problem/message "`!!! note` has no body indented four spaces"}
+            {:problem/line 21 :problem/message "`!!! tip` is inside another block, where it renders as text"}]
+           (blocks/block-problems (string/join "\n" ["Text" "" "=== “Tab”" "    body" ""
+                                                     "!!! note" "  two-space body" ""
+                                                     "??? info" "    Body" "" "    !!! tip" "        Nested" ""
+                                                     "```" "!!! not a block in code" "```"])
+                                  10)))))

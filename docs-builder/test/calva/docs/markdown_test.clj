@@ -28,3 +28,17 @@
   (testing "values are trimmed and unquoted, and section keys get the section namespace"
     (is (= {:page/title "Tao" :page/description "Learn about Calva" :search/boost "7"}
            (markdown/front-matter "title: \"Tao\"\ndescription: Learn about Calva \nsearch:\n  boost: 7")))))
+
+(deftest page-parts
+  (testing "the Markdown after the front matter, and the source line it starts on"
+    (is (= {:page/title "Tao" :page/markdown "# Tao\n" :page/markdown-line 4}
+           (markdown/page-parts "---\ntitle: Tao\n---\n# Tao\n")))
+    (is (= {:page/markdown "# Tao\n" :page/markdown-line 1}
+           (markdown/page-parts "# Tao\n")))))
+
+(deftest page-links
+  (testing "link destinations as written, from bodies and titles, without the permalinks"
+    (is (= ["api.md#x" "tao.md"]
+           (:page/links (markdown/render-blocks [{:block/type :markdown :block/markdown "# A\n\n[x](api.md#x)"}
+                                                 {:block/type :admonition :block/title "[t](tao.md)" :block/markdown "Body"}]
+                                                #(str "../" %)))))))
