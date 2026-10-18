@@ -1,19 +1,34 @@
 (ns calva.docs.markdown
   "Docs pages from Markdown source: front matter, HTML, and heading ids."
-  (:require [clojure.string :as string])
+  (:require [calva.docs.highlight :as highlight]
+            [clojure.string :as string]
+            [hiccup2.core :as h])
   (:import [java.text Normalizer Normalizer$Form]
            [org.commonmark.ext.gfm.tables TablesExtension]
-           [org.commonmark.node Code Heading Image Link Node Text]
+           [org.commonmark.node Code FencedCodeBlock Heading Image IndentedCodeBlock Link Node Text]
            [org.commonmark.parser Parser]
-           [org.commonmark.renderer.html AttributeProvider AttributeProviderFactory HtmlRenderer]))
+           [org.commonmark.renderer NodeRenderer]
+           [org.commonmark.renderer.html AttributeProvider AttributeProviderFactory HtmlNodeRendererContext
+            HtmlNodeRendererFactory HtmlRenderer]))
 
 (def ^:private extensions [(TablesExtension/create)])
 
 (def ^:private parser (-> (Parser/builder) (.extensions extensions) .build))
 
+(defn- code-renderer [^HtmlNodeRendererContext context]
+  (reify NodeRenderer
+    (getNodeTypes [_] #{FencedCodeBlock IndentedCodeBlock})
+    (render [_ node]
+      (let [language (when (instance? FencedCodeBlock node)
+                       (re-find #"\S+" (or (.getInfo ^FencedCodeBlock node) "")))
+            source (if (instance? FencedCodeBlock node)
+                     (.getLiteral ^FencedCodeBlock node)
+                     (.getLiteral ^IndentedCodeBlock node))]
+        (.raw (.getWriter context) (str (h/html (highlight/code-block language source))))))))
+
 (defn- html-renderer
   "Returns a renderer that gives the heading nodes in `ids` their id, and the
-  `permalinks` nodes the `headerlink` class."
+  `permalinks` nodes the `headerlink` class. Code blocks are highlighted."
   [ids permalinks]
   (let [provider (reify AttributeProvider
                    (setAttributes [_ node _tag attrs]
@@ -22,6 +37,7 @@
     (-> (HtmlRenderer/builder)
         (.extensions extensions)
         (.attributeProviderFactory (reify AttributeProviderFactory (create [_ _] provider)))
+        (.nodeRendererFactory (reify HtmlNodeRendererFactory (create [_ context] (code-renderer context))))
         .build)))
 
 (defn- children [^Node node]
