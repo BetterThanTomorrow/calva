@@ -49,7 +49,7 @@ The way that Calva Parinfer works is that for any edit of the document it first 
 
 ## Infer Parens
 
-!!! Mote "This is no longer available in Calva"
+!!! Note "This is no longer available in Calva"
     See above about how to try this build anyway, warts and all.
 
 When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.

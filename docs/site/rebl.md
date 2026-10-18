@@ -58,6 +58,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
     ]
 }
 ```
+
 ## Leiningen
 
 Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles) so that they will be available for all your projects. Here's a sample user profile (located at `~/.lein/profiles.clj` on mac):
@@ -86,6 +87,7 @@ Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/le
  :nrebl {:repl-options {:nrepl-middleware [nrebl.middleware/wrap-nrebl]}
         :dependencies [[rickmoynihan/nrebl.middleware "0.3.1"]]}}
 ```
+
 [More info here](https://github.com/eccentric-j/lein-rebl-example)
 
 Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REPL Connect Sequences](connect-sequences.md) if you haven't.) Add the following to your vscode settings.json:

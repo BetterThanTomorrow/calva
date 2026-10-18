@@ -7,7 +7,7 @@ description: Community Styleguide conforming formatting by default. And it just 
 
 We have tried to make Calva's formatter so that it _just works_. It is enabled by default for Clojure files, and with the default configuration it mostly follows Bozhidar Batsov's [Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide). Calva uses [cljfmt](https://github.com/weavejester/cljfmt) for the formatting.
 
-!!! Tips "Tab formats the current surrounding form"
+!!! Tip "Tab formats the current surrounding form"
     Calva's code formatter sets the default keybinding of its **Format Current Form** command to `tab`. Meaning that most often when things look a bit untidy, you can press `tab` to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (`ctrl+up`) first. See [The Paredit Guide](paredit.md) for more on moving the cursor structurally through your code.
 
 With the default settings, Calva's formatting behaves like so:
@@ -19,7 +19,7 @@ With the default settings, Calva's formatting behaves like so:
 -   formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
 -   formats `(comment ...)` forms special, see [rich comments](#rich-comments)
 
-!!! Tips "Infer parens at will"
+!!! Tip "Infer parens at will"
     Calva has a command that will ”heal” the bracket structure if it is correctly indented using Parinfer **Infer parens**. This command is default bound to `ctrl+alt+p i`.
 
 Also: If you have **Format on Save** enabled in VS Code, it will be Calva doing the formatting for Clojure files.

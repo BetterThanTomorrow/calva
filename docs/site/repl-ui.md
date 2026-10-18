@@ -89,12 +89,14 @@ When connected, the tooltip displays the connection details: `nrepl://hostname:p
 You can customize the REPL indicator colors for different connection states using these settings:
 
 **For dark themes:**
+
 * `calva.statusColor.dark.connectedStatusColor` - Color when connected (default: green)
 * `calva.statusColor.dark.disconnectedColor` - Color when disconnected (default: gray)
 * `calva.statusColor.dark.launchingColor` - Color during launch (default: orange)
 * `calva.statusColor.dark.typeStatusColor` - Color for session type indicator
 
 **For light themes:**
+
 * `calva.statusColor.light.connectedStatusColor`
 * `calva.statusColor.light.disconnectedColor`
 * `calva.statusColor.light.launchingColor`

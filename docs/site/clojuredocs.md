@@ -9,7 +9,7 @@ search:
 
 [clojuredocs.org](https://clojuredocs.org) is the goto place #1 for finding out more about Clojure core(-ish) functions, macros, etcetera. It contains the doc strings from the functions and adds crowd sourced examples of usage and see alsos. You can surf for quite long on that site without getting bored. 😄
 
-<figure markdown>
+<figure>
   <iframe width="560" height="315" src="https://www.youtube.com/embed/a4sm_B_mqhs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
   <figcaption>You can surf ClojureDocs in Calva</figcaption>
 </figure>
