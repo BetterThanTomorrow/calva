@@ -3,6 +3,7 @@
   (:require [calva.docs.blocks :as blocks]
             [calva.docs.markdown :as markdown]
             [calva.docs.shell :as shell]
+            [calva.docs.sitemap :as sitemap]
             [calva.docs.toc :as toc]
             [calva.docs.url :as url]
             [clojure.edn :as edn]
@@ -50,7 +51,7 @@
                            :page/src src))]
     (merge config
            (edn/read-string (slurp (io/file shell-dir "shell.edn")))
-           (read-scripts shell-dir ["md-helpers" "palette" "tabs-restore" "hash-target"])
+           (read-scripts shell-dir ["md-helpers" "palette" "tabs-restore" "hash-target" "analytics"])
            {:site/assets (read-assets root (:site/static config))
             :site/pages (mapv read-page (nav-sources (:site/nav config)))})))
 
@@ -74,14 +75,21 @@
         pages
         (concat (rest pages) [nil])))
 
+(def ^:private not-found-page
+  {:page/url "/"
+   :page/h1 "404 - Not found"
+   :page/body (list [:h1 "404 - Not found"])})
+
 (defn render-site
-  "Returns `site` as a map from output path to file content, a string or a file to copy."
-  [{:site/keys [pages assets] :as site}]
+  "Returns `site` as a map from output path to file content, a string, bytes, or a file to copy."
+  [{site-url :site/url :site/keys [pages assets] :as site}]
   (let [pages (with-neighbors (mapv with-content pages))
         site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
-    (into assets
-          (for [{:page/keys [url] :as page} pages]
-            [(str url "index.html") (shell/page-html site page)]))))
+    (merge assets
+           (into {} (for [{:page/keys [url] :as page} pages]
+                      [(str url "index.html") (shell/page-html site page)]))
+           {"404.html" (shell/page-html site not-found-page)}
+           (sitemap/sitemap-files site-url (map :page/url pages)))))
 
 (defn- delete-tree! [dir]
   (doseq [f (reverse (file-seq (io/file dir)))]

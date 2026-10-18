@@ -8,12 +8,16 @@
 
 (deftest site-root
   (is (= "." (url/site-root "")))
-  (is (= ".." (url/site-root "api/"))))
+  (is (= ".." (url/site-root "api/")))
+  (is (= "/" (url/site-root "/"))))
 
 (deftest site-href
   (is (= "./" (url/site-href "" "")))
   (is (= "../" (url/site-href "api/" "")))
-  (is (= "../img/favicon.ico" (url/site-href "api/" "img/favicon.ico"))))
+  (is (= "../img/favicon.ico" (url/site-href "api/" "img/favicon.ico")))
+  (testing "the page at / is served at any path, so it links from the site root"
+    (is (= "/" (url/site-href "/" "")))
+    (is (= "/img/favicon.ico" (url/site-href "/" "img/favicon.ico")))))
 
 (deftest content-href
   (testing "links to pages point at their directory URLs"

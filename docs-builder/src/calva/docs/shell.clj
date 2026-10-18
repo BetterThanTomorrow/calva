@@ -4,6 +4,7 @@
             [calva.docs.toc :as toc]
             [calva.docs.url :as url]
             [clojure.data.json :as json]
+            [clojure.string :as string]
             [hiccup2.core :as h]))
 
 (def ^:private live-reload-script
@@ -120,27 +121,37 @@
       [:a {:href "https://squidfunk.github.io/mkdocs-material/" :target "_blank" :rel "noopener"}
        "Material for MkDocs"]]]]])
 
+(defn- analytics
+  [{:analytics/keys [google-property plausible-domain] :build/keys [production?] analytics-script :script/analytics}]
+  (list [:script#__analytics (h/raw (string/replace analytics-script "{{property}}" google-property))]
+        (when production?
+          [:script {:defer true :data-domain plausible-domain :src "https://plausible.io/js/script.js"}])))
+
+(defn- page-links [{site-url :site/url} {:page/keys [src url prev-url next-url]}]
+  (list (when src [:link {:rel "canonical" :href (str site-url "/" url)}])
+        (when prev-url [:link {:rel "prev" :href (url/site-href url prev-url)}])
+        (when next-url [:link {:rel "next" :href (url/site-href url next-url)}])))
+
 (defn- head
-  [{:site/keys [name description favicon extra-css] site-url :site/url
-    :material/keys [stylesheets fonts-stylesheet fonts-style] :script/keys [md-helpers]}
-   {:page/keys [url title prev-url next-url] page-description :page/description}]
+  [{:site/keys [name description favicon extra-css]
+    :material/keys [stylesheets fonts-stylesheet fonts-style] :script/keys [md-helpers] :as site}
+   {:page/keys [url title] page-description :page/description :as page}]
   (let [href #(url/site-href url %)]
     [:head
      [:meta {:charset "utf-8"}]
      [:meta {:name "viewport" :content "width=device-width,initial-scale=1"}]
      [:meta {:name "description" :content (or page-description description)}]
-     [:link {:rel "canonical" :href (str site-url "/" url)}]
-     (when prev-url [:link {:rel "prev" :href (href prev-url)}])
-     (when next-url [:link {:rel "next" :href (href next-url)}])
+     (page-links site page)
      [:link {:rel "icon" :href (href favicon)}]
-     [:title (str title " - " name)]
+     [:title (if title (str title " - " name) name)]
      (for [path stylesheets] [:link {:rel "stylesheet" :href (href path)}])
      [:link {:rel "preconnect" :href "https://fonts.gstatic.com" :crossorigin ""}]
      [:link {:rel "stylesheet" :href fonts-stylesheet}]
      [:style (h/raw fonts-style)]
      (for [path extra-css] [:link {:rel "stylesheet" :href (href path)}])
      [:script (h/raw (str "__md_scope=new URL(" (json/write-str (url/site-root url)) ",location),"
-                          md-helpers))]]))
+                          md-helpers))]
+     (analytics site)]))
 
 (defn- config-json [{:material/keys [features search-worker translations]} {:page/keys [url]}]
   (json/write-str {:base (url/site-root url)

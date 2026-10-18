@@ -13,16 +13,18 @@
   (count (re-seq #"/" from-url)))
 
 (defn site-root
-  "Returns the site root relative to the page at `from-url`."
+  "Returns the site root relative to the page at `from-url`, or `/` for the page at `/`."
   [from-url]
-  (if (zero? (depth from-url))
-    "."
-    (string/join "/" (repeat (depth from-url) ".."))))
+  (cond
+    (= "/" from-url) "/"
+    (zero? (depth from-url)) "."
+    :else (string/join "/" (repeat (depth from-url) ".."))))
 
 (defn site-href
-  "Returns the href from the page at `from-url` to the site path `path`."
+  "Returns the href from the page at `from-url` to the site path `path`. The page at `/` is
+  served at any path, like the 404 page, so its hrefs start at the site root."
   [from-url path]
-  (let [href (str (string/join (repeat (depth from-url) "../")) path)]
+  (let [href (str (if (= "/" from-url) "/" (string/join (repeat (depth from-url) "../"))) path)]
     (if (string/blank? href) "./" href)))
 
 (defn content-href

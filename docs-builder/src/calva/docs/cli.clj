@@ -10,6 +10,7 @@
       nil parsed
       "--port" (recur more (assoc parsed :serve/port (parse-long value)))
       "--out" (recur more (assoc parsed :build/out-dir value))
+      "--production" (recur (cons value more) (assoc parsed :build/production? true))
       (throw (ex-info (str "Unknown option " flag) {:cli/flag flag})))))
 
 (defn -main
@@ -21,5 +22,5 @@
                 (println "Built" file-count "files into" out-dir "in" ms "ms"))
       "serve" (do (serve/start! options)
                   @(promise))
-      (do (println "Usage: clojure -M:build [--out dir] | clojure -M:serve [--port n]")
+      (do (println "Usage: clojure -M:build [--out dir] [--production] | clojure -M:serve [--port n]")
           (System/exit 1)))))
