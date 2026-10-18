@@ -3,9 +3,11 @@
   placed like Material's social cards."
   (:require [clojure.string :as string])
   (:import [java.awt Color Font Graphics2D RenderingHints]
+           [java.awt.font TextAttribute TextLayout]
            [java.awt.geom AffineTransform Path2D$Double]
            [java.awt.image BufferedImage]
            [java.io ByteArrayOutputStream File]
+           [java.text AttributedString]
            [javax.imageio ImageIO]))
 
 ;; Before AWT starts, so that the JVM doesn't show up as an app on macOS.
@@ -57,17 +59,34 @@
           []
           (string/split (string/trim text) #"\s+")))
 
+(defn- font-runs
+  "Returns `text` as `[start end font]` runs, with `fallback` for the characters `font` can't draw."
+  [^Font font fallback ^String text]
+  (->> (range (count text))
+       (partition-by #(.canDisplay font (.charAt text %)))
+       (map (fn [[start :as indexes]]
+              [start (inc (last indexes)) (if (.canDisplay font (.charAt text start)) font fallback)]))))
+
+(defn- text-layout ^TextLayout [frc font fallback ^String text]
+  (let [attributed (AttributedString. text)]
+    (doseq [[start end run-font] (font-runs font fallback text)]
+      (.addAttribute attributed TextAttribute/FONT run-font (int start) (int end)))
+    (TextLayout. (.getIterator attributed) frc)))
+
 (defn- draw-text!
-  "Draws `text` in `box`, with the ink of the first line starting half the spacing down the box."
+  "Draws `text` in `box`, with the ink of the first line starting half the spacing down the box.
+  Characters the box font can't draw, like emoji, are drawn with the emoji font."
   [^Graphics2D g fonts ^String text {:text/keys [font size at lines spacing]}]
-  (let [font (.deriveFont ^Font (fonts font) (float size))
-        frc (.getFontRenderContext g)
-        ink-height (- (.getY (.getVisualBounds (.createGlyphVector font frc text))))
-        fits? #(<= (.getWidth (.getStringBounds font ^String % frc)) text-width)
+  (let [frc (.getFontRenderContext g)
+        layout #(text-layout frc
+                             (.deriveFont ^Font (fonts font) (float size))
+                             (.deriveFont ^Font (fonts :emoji) (float size))
+                             %)
+        ink-height (- (.getY (.getBounds (layout text))))
+        fits? #(<= (.getAdvance (layout %)) text-width)
         [x y] at]
-    (.setFont g font)
-    (doseq [[i ^String line] (map-indexed vector (take lines (wrap-words fits? text)))]
-      (.drawString g line (float x) (float (+ y (/ spacing 2) ink-height (* i (+ ink-height spacing))))))))
+    (doseq [[i line] (map-indexed vector (take lines (wrap-words fits? text)))]
+      (.draw (layout line) g (float x) (float (+ y (/ spacing 2) ink-height (* i (+ ink-height spacing))))))))
 
 (defn- png-bytes [^BufferedImage image]
   (let [out (ByteArrayOutputStream.)]
