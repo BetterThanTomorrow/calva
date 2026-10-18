@@ -4,7 +4,7 @@
  :site/logo "img/calva-symbol-white.svg"
  :site/favicon "img/favicon.ico"
  :site/extra-css ["stylesheets/extra.css"]
- :site/static ["CNAME" "img" "images" "stylesheets"]
+ :site/static ["CNAME" "img" "images" "stylesheets" "_static" "calva-symbol-logo-white.svg" "theming"]
  :repo/name "Calva"
  :repo/url "https://github.com/BetterThanTomorrow/calva"
  :material/features ["search.share" "content.tabs.link"]
