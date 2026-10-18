@@ -244,6 +244,17 @@ jobs:
         command: npm run smoke-test -- --calva-vsix=/tmp/artifacts/calva-$( node -p 'require("./package.json").version' ).vsix --test-workspace=test-data/projects/smoke-sub-projects
     - store_test_results:
         path: ~/calva/junit
+  test-docs-builder:
+    docker:
+    - image: cimg/clojure:1.12.6-openjdk-21.0
+    steps:
+    - checkout
+    - run:
+        name: Install fontconfig for the social cards
+        command: sudo apt-get update && sudo apt-get install -y fontconfig
+    - run:
+        name: Run docs builder tests
+        command: cd docs-builder && clojure -M:test
   github-release:
     docker:
     - image: cibuilds/github:0.10
@@ -474,6 +485,7 @@ workflows:
     - build:
         requires:
         - checkout
+    - test-docs-builder
     - eslint-check:
         requires:
         - build
