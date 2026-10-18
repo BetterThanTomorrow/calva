@@ -1,6 +1,7 @@
 (ns calva.docs.serve-actions
   "Decisions for the docs serve loop. An action takes the serve state and returns `:uf/db`, `:uf/fxs` and `:uf/dxs`."
-  (:require [clojure.string :as string]))
+  (:require [calva.docs.lint :as lint]
+            [clojure.string :as string]))
 
 (defn- code-path? [{:serve/keys [src-dir]} path]
   (and (string/starts-with? path (str src-dir "/"))
@@ -13,10 +14,11 @@
   {:uf/db (assoc state :serve/building? true)
    :uf/fxs [[:serve/fx.build (select-keys state [:build/root :build/out-dir :build/live-reload?])]]})
 
-(defn- build-report [{:build/keys [error file-count ms]}]
+(defn- build-report [{:build/keys [error file-count ms problems]}]
   (if error
     (str "Build failed: " error)
-    (str "Built " file-count " files in " ms " ms")))
+    (string/join "\n  " (cons (str "Built " file-count " files in " ms " ms")
+                              (map lint/problem-report problems)))))
 
 (defn- start
   [{:serve/keys [server port]} [_ {:serve/keys [docs-dir src-dir] :as options}]]

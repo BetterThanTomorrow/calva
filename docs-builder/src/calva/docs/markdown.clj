@@ -84,24 +84,23 @@
                  [[] #{}]
                  texts)))
 
-(defn- parse [markdown href-fn]
-  (let [doc (.parse parser markdown)]
-    (run! #(relink! href-fn %) (nodes doc))
-    doc))
+(defn- link-destination [node]
+  (when (instance? Link node)
+    (.getDestination ^Link node)))
 
 (defn- add-permalink! [^Heading heading id]
   (let [link (doto (Link. (str "#" id) "Permanent link") (.appendChild (Text. "#")))]
     (.appendChild heading link)
     link))
 
-(defn- parse-block [href-fn {:block/keys [markdown title tabs] :as block}]
+(defn- parse-block [{:block/keys [markdown title tabs] :as block}]
   (cond-> block
-    markdown (assoc :block/doc (parse markdown href-fn))
-    title (assoc :block/title-doc (parse title href-fn))
-    tabs (assoc :block/tabs (mapv #(parse-block href-fn %) tabs))))
+    markdown (assoc :block/doc (.parse parser markdown))
+    title (assoc :block/title-doc (.parse parser title))
+    tabs (assoc :block/tabs (mapv parse-block tabs))))
 
-(defn- block-docs [{:block/keys [doc tabs]}]
-  (cons doc (mapcat block-docs tabs)))
+(defn- block-docs [{:block/keys [doc title-doc tabs]}]
+  (concat [title-doc doc] (mapcat block-docs tabs)))
 
 (defn- inline-html [^HtmlRenderer renderer ^Node doc]
   (apply str (map #(.render renderer %) (some-> doc .getFirstChild children))))
@@ -136,12 +135,14 @@
   "Renders the Markdown bodies and titles of `blocks` as `:block/html` and
   `:block/title-html`, with link and image destinations passed through `href-fn`.
   Headings get unique ids and permalinks. Returns the rendered blocks as
-  `:page/blocks`, the headings, in page order, as `:page/headings`, and the text
-  before the first heading and under each heading as `:page/sections`."
+  `:page/blocks`, the headings, in page order, as `:page/headings`, the text
+  before the first heading and under each heading as `:page/sections`, and the
+  link destinations as written as `:page/links`."
   [blocks href-fn]
-  (let [blocks (mapv #(parse-block href-fn %) blocks)
-        heading-nodes (filter #(instance? Heading %)
-                              (mapcat nodes (keep identity (mapcat block-docs blocks))))
+  (let [blocks (mapv parse-block blocks)
+        page-nodes (vec (mapcat nodes (keep identity (mapcat block-docs blocks))))
+        links (into [] (keep link-destination) page-nodes)
+        heading-nodes (filter #(instance? Heading %) page-nodes)
         headings (mapv (fn [^Heading node id]
                          {:heading/level (.getLevel node) :heading/id id :heading/text (plain-text node)})
                        heading-nodes
@@ -149,8 +150,10 @@
         ids (map :heading/id headings)
         permalinks (set (map add-permalink! heading-nodes ids))
         renderer (html-renderer (zipmap heading-nodes ids) permalinks)]
+    (run! #(relink! href-fn %) page-nodes)
     {:page/blocks (mapv #(render-block renderer %) blocks)
      :page/headings headings
+     :page/links links
      :page/sections (reduce (add-to-sections renderer (zipmap heading-nodes headings) permalinks)
                             [{:section/html ""}]
                             (mapcat block-nodes blocks))}))
@@ -175,11 +178,14 @@
   (second (reduce front-matter-entry [nil {}] (string/split-lines text))))
 
 (defn page-parts
-  "Returns the page `source` as its front matter entries plus `:page/markdown`."
+  "Returns the page `source` as its front matter entries plus `:page/markdown`, and the
+  source line number where the Markdown starts as `:page/markdown-line`."
   [source]
   (if-let [[_ text body] (re-matches #"(?s)---\n(.*?)\n---\n(.*)" source)]
-    (assoc (front-matter text) :page/markdown body)
-    {:page/markdown source}))
+    (assoc (front-matter text)
+           :page/markdown body
+           :page/markdown-line (+ 3 (count (string/split-lines text))))
+    {:page/markdown source :page/markdown-line 1}))
 
 (comment
   (dissoc (page-parts (slurp "../docs/site/api.md")) :page/markdown)

@@ -85,3 +85,12 @@
 (deftest stop
   (is (= {:uf/db {} :uf/fxs [[:serve/fx.stop :server nil]]}
          (actions/handle-action serving [:serve/ax.stop]))))
+
+(deftest build-problems
+  (testing "a build with problems reports them, and still reloads the browsers"
+    (is (= [[:serve/fx.log "Built 69 files in 50 ms\n  tao.md:5: a problem"]
+            [:serve/fx.notify #{:browser}]]
+           (:uf/fxs (actions/handle-action (assoc serving :serve/building? true)
+                                           [:serve/ax.build-finished
+                                            {:build/file-count 69 :build/ms 50
+                                             :build/problems [{:problem/src "tao.md" :problem/line 5 :problem/message "a problem"}]}]))))))

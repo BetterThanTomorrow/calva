@@ -70,6 +70,35 @@
                     group)))
         (partition-by tab? (split-blocks (string/split-lines markdown)))))
 
+(defn- head-message
+  "Returns what is wrong with `line` when it starts like a block head outside a code `fence`."
+  [line fence block nested?]
+  (when (and (nil? fence) (some->> line (re-matches #"(?:!!!|\?\?\?\+?|===)(?:\s.*)?")))
+    (cond
+      nested? "is inside another block, where it renders as text"
+      (nil? block) "starts like a block, but doesn't parse as one"
+      (string/blank? (:block/markdown block)) "has no body indented four spaces")))
+
+(defn- conj-problem [problems line-number line message]
+  (cond-> problems
+    message (conj {:problem/line line-number :problem/message (str "`" line "` " message)})))
+
+(defn- lines-problems [lines first-line nested?]
+  (loop [i 0 fence nil problems []]
+    (let [line (get lines i)
+          [block end] (block-at lines i fence)
+          problems (conj-problem problems (+ first-line i) line (head-message line fence block nested?))]
+      (cond
+        (= i (count lines)) problems
+        block (recur end nil (into problems (lines-problems (string/split-lines (:block/markdown block)) (+ first-line i 1) true)))
+        :else (recur (inc i) (next-fence fence line) problems)))))
+
+(defn block-problems
+  "Returns the block markup in `markdown` that renders as text, as `:problem/line` and
+  `:problem/message`. `first-line` is the source line number of the first line."
+  [markdown first-line]
+  (lines-problems (string/split-lines markdown) first-line false))
+
 (defn- tab-set [n {:block/keys [tabs]}]
   (let [tab-id #(str "__tabbed_" n "_" (inc %))]
     [:div.tabbed-set.tabbed-alternate {:data-tabs (str n ":" (count tabs))}
