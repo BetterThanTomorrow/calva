@@ -53,7 +53,7 @@ Together with the connect sequence this will make for a start of a Krell session
     (You might need to install the React Native inspector globally):
     ```sh
     yarn global add react-devtools
-    ````
+    ```
 1. **Launch Debugger** (`F5`)
 1. Hack away, with hot reload and interactive REPL
 
