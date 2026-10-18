@@ -134,7 +134,6 @@ And these **Workspace** settings:
             "snippet": "(start)"
         }
     ],
-
 ```
 
 Issuing **Run Custom REPL Command** will then render a VS Code menu with all the commands, where the Workspace configured commands will be listed first.

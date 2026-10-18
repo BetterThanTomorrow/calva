@@ -190,7 +190,6 @@ This script doesn't actually start a REPL, it's provided more for giving you an 
 
 (when (= *file* (System/getProperty "babashka.file"))
   (process-args parsed-args))
-
 ```
 
 It's written in Babashka to encourage you to write your shell scripts in a civilized language. 😀 See the article [Changing my mind: Converting a script from bash to Babashka](https://blog.agical.se/en/posts/changing-my-mind--converting-a-script-from-bash-to-babashka/) for a small success-story about this mindset. See also [bash2bb](https://github.com/pesterhazy/bash2bb).
