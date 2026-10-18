@@ -3,12 +3,20 @@
   (:require [calva.docs.lint :as lint]
             [clojure.string :as string]))
 
+(defn- slashed [path]
+  (string/replace path "\\" "/"))
+
+(defn- under?
+  "True when `path` is inside `dir`. Windows paths use backslashes."
+  [dir path]
+  (string/starts-with? (slashed path) (str (slashed dir) "/")))
+
 (defn- code-path? [{:serve/keys [src-dir]} path]
-  (and (string/starts-with? path (str src-dir "/"))
+  (and (under? src-dir path)
        (string/ends-with? path ".clj")))
 
 (defn- content-path? [{:serve/keys [docs-dir]} path]
-  (string/starts-with? path (str docs-dir "/")))
+  (under? docs-dir path))
 
 (defn- start-build [state]
   {:uf/db (assoc state :serve/building? true)

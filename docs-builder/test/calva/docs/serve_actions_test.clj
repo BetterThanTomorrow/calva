@@ -44,6 +44,17 @@
            (actions/handle-action (assoc serving :serve/building? true)
                                   [:serve/ax.paths-changed ["/repo/docs/site/api.md"]])))))
 
+(deftest windows-paths-changed
+  (let [serving (assoc serving
+                       :serve/docs-dir "C:\\repo\\docs"
+                       :serve/src-dir "C:\\repo\\docs-builder\\src")]
+    (testing "a page change with backslash paths builds"
+      (is (= [[:serve/fx.build build-options]]
+             (:uf/fxs (actions/handle-action serving [:serve/ax.paths-changed ["C:\\repo\\docs\\site\\api.md"]])))))
+    (testing "a builder source change with backslash paths reloads code"
+      (is (= [[:serve/fx.reload-code]]
+             (:uf/fxs (actions/handle-action serving [:serve/ax.paths-changed ["C:\\repo\\docs-builder\\src\\calva\\docs\\shell.clj"]])))))))
+
 (deftest build-finished
   (testing "a build reloads the browsers"
     (is (= [[:serve/fx.log "Built 69 files in 50 ms"]
