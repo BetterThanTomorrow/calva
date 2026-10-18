@@ -1,6 +1,7 @@
 (ns calva.docs.markdown
   "Docs pages from Markdown source: front matter, HTML, and heading ids."
-  (:require [calva.docs.highlight :as highlight]
+  (:require [calva.docs.blocks :as blocks]
+            [calva.docs.highlight :as highlight]
             [clojure.string :as string]
             [hiccup2.core :as h])
   (:import [java.text Normalizer Normalizer$Form]
@@ -96,12 +97,20 @@
 (defn- block-markdowns [{:block/keys [markdown tabs]}]
   (cons markdown (mapcat block-markdowns tabs)))
 
+(defn- unfenced-lines
+  "Returns the lines of `markdown` that are outside code fences."
+  [markdown]
+  (let [lines (string/split-lines markdown)]
+    (keep (fn [[fence line]] (when-not fence line))
+          (map vector (reductions blocks/next-fence nil lines) lines))))
+
 (defn- reference-definitions
-  "Returns the link reference definition lines in `blocks`, as one Markdown string."
+  "Returns the link reference definition lines in `blocks`, outside code fences, as one Markdown string."
   [blocks]
   (->> (mapcat block-markdowns blocks)
        (keep identity)
-       (mapcat #(re-seq #"(?m)^ {0,3}\[[^\]]+\]:[ \t]+\S.*$" %))
+       (mapcat unfenced-lines)
+       (filter #(re-matches #" {0,3}\[[^\]]+\]:[ \t]+\S.*" %))
        (string/join "\n")))
 
 (defn- parse

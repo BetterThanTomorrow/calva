@@ -49,7 +49,15 @@
                                          {:block/type :markdown :block/markdown "[x]: https://x.org"}]
                                         identity)
                 :page/blocks
-                (map #(select-keys % [:block/html :block/title-html])))))))
+                (map #(select-keys % [:block/html :block/title-html]))))))
+  (testing "a definition-like line in a code fence defines nothing"
+    (is (= "<p>See [X][x]</p>\n"
+           (-> (markdown/render-blocks [{:block/type :markdown :block/markdown "See [X][x]"}
+                                        {:block/type :markdown :block/markdown "```\n[x]: https://x.org\n```"}]
+                                       identity)
+               :page/blocks
+               first
+               :block/html)))))
 
 (deftest page-links
   (testing "link destinations as written, from bodies and titles, without the permalinks"

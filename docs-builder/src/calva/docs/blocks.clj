@@ -13,7 +13,9 @@
     (when-let [[_ title] (re-matches #"=== +\"(.*)\" *" line)]
       {:block/type :tab :block/title title})))
 
-(defn- next-fence [fence line]
+(defn next-fence
+  "Returns the code fence marker open after `line`, given the `fence` open before it, or nil."
+  [fence line]
   (let [marker (second (re-matches #" {0,3}(`{3,}|~{3,}).*" line))]
     (cond
       (nil? fence) marker
