@@ -199,13 +199,15 @@
 
 (defn page-parts
   "Returns the page `source` as its front matter entries plus `:page/markdown`, and the
-  source line number where the Markdown starts as `:page/markdown-line`."
+  source line number where the Markdown starts as `:page/markdown-line`. CRLF line
+  endings become LF."
   [source]
-  (if-let [[_ text body] (re-matches #"(?s)---\n(.*?)\n---\n(.*)" source)]
-    (assoc (front-matter text)
-           :page/markdown body
-           :page/markdown-line (+ 3 (count (string/split-lines text))))
-    {:page/markdown source :page/markdown-line 1}))
+  (let [source (string/replace source "\r\n" "\n")]
+    (if-let [[_ text body] (re-matches #"(?s)---\n(.*?)\n---\n(.*)" source)]
+      (assoc (front-matter text)
+             :page/markdown body
+             :page/markdown-line (+ 3 (count (string/split-lines text))))
+      {:page/markdown source :page/markdown-line 1})))
 
 (comment
   (dissoc (page-parts (slurp "../docs/site/api.md")) :page/markdown)
