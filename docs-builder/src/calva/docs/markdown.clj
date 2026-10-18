@@ -162,7 +162,7 @@
 
 (defn- front-matter-entry
   [[section entries] line]
-  (if-let [[_ indent k v] (re-matches #"( *)([\w-]+):\s*(.*)" line)]
+  (if-let [[_ indent k v] (re-matches #"( *)([\w-]+):\s*(.*?)\s*" line)]
     (cond
       (string/blank? v) [k entries]
       (seq indent) [section (assoc entries (keyword section k) (unquoted v))]

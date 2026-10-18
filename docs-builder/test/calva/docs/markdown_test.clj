@@ -23,3 +23,8 @@
                                       :block/markdown "Intro\n\n# Title `x`\n\nBody *b*\n\n## Sub\n\n- a"}
                                      {:block/type :admonition :block/title "Note" :block/markdown "In a note"}]
                                     identity))))))
+
+(deftest front-matter
+  (testing "values are trimmed and unquoted, and section keys get the section namespace"
+    (is (= {:page/title "Tao" :page/description "Learn about Calva" :search/boost "7"}
+           (markdown/front-matter "title: \"Tao\"\ndescription: Learn about Calva \nsearch:\n  boost: 7")))))
