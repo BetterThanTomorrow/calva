@@ -144,7 +144,7 @@ Set either of these to `null` to disable the feature for that REPL type. (The Se
 
 !!! Note "For Clojure this is in addition to `afterPrimaryReplConnectedCode`"
 
-  There are two mechanisms for evaluating code when a Clojure REPL is connected. The `afterPrimaryReplConnectedCode` setting of custom connect sequences, and this `calva.autoEvaluateCode.onConnect.clj` setting. There is no _fundamental_ difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run *before* the connect sequence after-Jack-in code.
+    There are two mechanisms for evaluating code when a Clojure REPL is connected. The `afterPrimaryReplConnectedCode` setting of custom connect sequences, and this `calva.autoEvaluateCode.onConnect.clj` setting. There is no _fundamental_ difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run *before* the connect sequence after-Jack-in code.
 
 !!! Note "All configured code is concatenated"
     If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also `null` disables the feature:

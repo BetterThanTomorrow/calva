@@ -109,17 +109,17 @@ Use `repl.listSessions()` to inspect every registered Calva REPL session, includ
 
 === "Joyride"
 
-  ```clojure
-  (def sessions (calva/repl.listSessions))
-  (println "Session keys:" (map :replSessionKey sessions))
-  ```
+    ```clojure
+    (def sessions (calva/repl.listSessions))
+    (println "Session keys:" (map :replSessionKey sessions))
+    ```
 
 === "JavaScript"
 
-  ```javascript
-  const sessions = calva.repl.listSessions();
-  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
-  ```
+    ```javascript
+    const sessions = calva.repl.listSessions();
+    const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
+    ```
 
 ### `repl.listSessionsAndRuntimes()`
 
@@ -141,28 +141,28 @@ Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered 
 
 === "Joyride"
 
-  ```clojure
-  (let [sessions (await (calva/repl.listSessionsAndRuntimes))]
-    (doseq [s sessions]
-      (println "Session key:" (:replSessionKey s))
-      (doseq [b (:builds s)]
-        (println "  Build:" (:buildId b) "Active?" (:isActive b))
-        (doseq [r (:runtimes b)]
-          (println "    Runtime:" (:runtimeId r) (:description r))))))
-  ```
+    ```clojure
+    (let [sessions (await (calva/repl.listSessionsAndRuntimes))]
+      (doseq [s sessions]
+        (println "Session key:" (:replSessionKey s))
+        (doseq [b (:builds s)]
+          (println "  Build:" (:buildId b) "Active?" (:isActive b))
+          (doseq [r (:runtimes b)]
+            (println "    Runtime:" (:runtimeId r) (:description r))))))
+    ```
 
 === "JavaScript"
 
-  ```javascript
-  const sessions = await calva.repl.listSessionsAndRuntimes();
-  const cljsSession = sessions.find(s => s.replType === 'cljs');
-  if (cljsSession && cljsSession.builds) {
-    for (const b of cljsSession.builds) {
-      console.log(`Build ${b.buildId} is active: ${b.isActive}`);
-      console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+    ```javascript
+    const sessions = await calva.repl.listSessionsAndRuntimes();
+    const cljsSession = sessions.find(s => s.replType === 'cljs');
+    if (cljsSession && cljsSession.builds) {
+      for (const b of cljsSession.builds) {
+        console.log(`Build ${b.buildId} is active: ${b.isActive}`);
+        console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+      }
     }
-  }
-  ```
+    ```
 
 ### `repl.onSessionsChanged()`
 
