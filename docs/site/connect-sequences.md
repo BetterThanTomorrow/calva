@@ -95,7 +95,7 @@ The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/
     1. User settings
 
 !!! Note "Force the project type menu to show"
-    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](connect.md#options-for-the-jack-in-command) and [Options for the Jack-in Command](connect.md#options-for-the-connect-command) for more on this.
+    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](customizing-jack-in-and-connect.md#options-for-the-connect-command) and [Options for the Jack-in Command](customizing-jack-in-and-connect.md#options-for-the-jack-in-command) for more on this.
 
 !!! Note "Path segments"
     `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
