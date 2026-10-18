@@ -36,6 +36,18 @@
     (is (= {:page/markdown "# Tao\n" :page/markdown-line 1}
            (markdown/page-parts "# Tao\n")))))
 
+(deftest reference-links
+  (testing "a reference definition in one block resolves links in the other blocks and their titles"
+    (is (= [{:block/html "<p>See <a href=\"https://x.org\">X</a></p>\n"}
+            {:block/html "<p>Body</p>\n" :block/title-html "<a href=\"https://x.org\">X</a> title"}
+            {:block/html ""}]
+           (->> (markdown/render-blocks [{:block/type :markdown :block/markdown "See [X][x]"}
+                                         {:block/type :admonition :block/title "[X][x] title" :block/markdown "Body"}
+                                         {:block/type :markdown :block/markdown "[x]: https://x.org"}]
+                                        identity)
+                :page/blocks
+                (map #(select-keys % [:block/html :block/title-html])))))))
+
 (deftest page-links
   (testing "link destinations as written, from bodies and titles, without the permalinks"
     (is (= ["api.md#x" "tao.md"]
