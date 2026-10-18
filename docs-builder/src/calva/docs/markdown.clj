@@ -112,11 +112,32 @@
     title-doc (assoc :block/title-html (inline-html renderer title-doc))
     tabs (assoc :block/tabs (mapv #(render-block renderer %) tabs))))
 
+(defn- block-nodes
+  "Returns the top-level nodes of `block` and its tabs, in page order, with each title first."
+  [{:block/keys [doc title-doc tabs]}]
+  (concat (some-> title-doc children) (some-> doc children) (mapcat block-nodes tabs)))
+
+(defn- join-html [html more]
+  (if (string/blank? html) more (str html " " more)))
+
+(defn- add-to-sections
+  "Returns a reducing function that starts a section at each node in `headings`, and adds the
+  HTML of other nodes to the current section."
+  [^HtmlRenderer renderer headings permalinks]
+  (fn [sections ^Node node]
+    (if-let [{:heading/keys [id level]} (headings node)]
+      (conj sections {:section/id id
+                      :section/level level
+                      :section/title-html (apply str (map #(.render renderer %) (remove permalinks (children node))))
+                      :section/html ""})
+      (update-in sections [(dec (count sections)) :section/html] join-html (string/trim (.render renderer node))))))
+
 (defn render-blocks
   "Renders the Markdown bodies and titles of `blocks` as `:block/html` and
   `:block/title-html`, with link and image destinations passed through `href-fn`.
   Headings get unique ids and permalinks. Returns the rendered blocks as
-  `:page/blocks`, and the headings, in page order, as `:page/headings`."
+  `:page/blocks`, the headings, in page order, as `:page/headings`, and the text
+  before the first heading and under each heading as `:page/sections`."
   [blocks href-fn]
   (let [blocks (mapv #(parse-block href-fn %) blocks)
         heading-nodes (filter #(instance? Heading %)
@@ -126,10 +147,13 @@
                        heading-nodes
                        (heading-ids (map plain-text heading-nodes)))
         ids (map :heading/id headings)
-        renderer (html-renderer (zipmap heading-nodes ids)
-                                (set (map add-permalink! heading-nodes ids)))]
+        permalinks (set (map add-permalink! heading-nodes ids))
+        renderer (html-renderer (zipmap heading-nodes ids) permalinks)]
     {:page/blocks (mapv #(render-block renderer %) blocks)
-     :page/headings headings}))
+     :page/headings headings
+     :page/sections (reduce (add-to-sections renderer (zipmap heading-nodes headings) permalinks)
+                            [{:section/html ""}]
+                            (mapcat block-nodes blocks))}))
 
 (defn- unquoted [s]
   (if-let [[_ inner] (re-matches #"\"(.*)\"" s)]
