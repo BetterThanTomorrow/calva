@@ -52,10 +52,14 @@
                   (catch Throwable e
                     {:build/error (error-message e)}))])))
 
-(defn- reload-code! [_]
+(defn- reload-code!
+  "Reloads the changed builder code, then continues through the `dispatch!` that the reload
+  may have replaced, since this code and its watcher are then the replaced code."
+  [_]
   (future
     (try
-      (reload/reload {:only #"calva\.docs\.serve"})
+      (reload/reload)
+      ((requiring-resolve `dispatch!) [:serve/ax.reloaded])
       (catch Throwable e
         (dispatch! [:serve/ax.build-finished {:build/error (error-message e)}])))))
 
@@ -102,12 +106,6 @@
   "Stops the server and the file watcher."
   []
   (dispatch! [:serve/ax.stop]))
-
-(defn after-ns-reload
-  "clj-reload calls this after it loads this namespace. The serve then builds, and swaps
-  in a file watcher that calls this namespace, since the old one calls the replaced code."
-  []
-  (dispatch! [:serve/ax.reloaded]))
 
 (comment
   (start!)
