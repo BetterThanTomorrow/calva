@@ -7,6 +7,7 @@ Changes to Calva.
 - Fix: [Calva adds `.lsp` and `.clj-kondo` folders to non-Clojure projects](https://github.com/BetterThanTomorrow/calva/issues/2610)
   - Don't auto-start clojure-lsp in the first workspace root unless that folder holds a Clojure project or an open Clojure file
   - Activate on `onDebugResolve:clojure` (was mistakenly `onDebugResolve:type`) and on `bb.edn`
+- Development: Building https://calva.io with a custom, Clojure, builder, instead of MkDocs, Material, Python, etc.
 
 ## [2.0.600] - 2026-10-12
 
