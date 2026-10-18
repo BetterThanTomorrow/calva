@@ -68,6 +68,19 @@
   (is (= #{}
          (-> (actions/handle-action serving [:serve/ax.client-closed :browser]) :uf/db :serve/clients))))
 
+(deftest code-reload
+  (testing "unloading the serve namespace stops its watcher"
+    (is (= {:uf/db (dissoc serving :serve/watcher)
+            :uf/fxs [[:serve/fx.stop nil :watcher]]}
+           (actions/handle-action (assoc serving :serve/watcher :watcher) [:serve/ax.unloading]))))
+  (testing "the reloaded serve namespace starts a new watcher"
+    (is (= {:uf/fxs [[:serve/fx.watch ["/repo/docs" "/repo/docs-builder/src"]]]}
+           (actions/handle-action serving [:serve/ax.reloaded]))))
+  (testing "a reload in place keeps the running watcher"
+    (is (nil? (actions/handle-action (assoc serving :serve/watcher :watcher) [:serve/ax.reloaded]))))
+  (testing "a stopped serve stays stopped"
+    (is (nil? (actions/handle-action {} [:serve/ax.reloaded])))))
+
 (deftest stop
   (is (= {:uf/db {} :uf/fxs [[:serve/fx.stop :server nil]]}
          (actions/handle-action serving [:serve/ax.stop]))))

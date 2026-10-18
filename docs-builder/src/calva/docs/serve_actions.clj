@@ -41,6 +41,17 @@
   {:uf/db {}
    :uf/fxs [[:serve/fx.stop server watcher]]})
 
+(defmethod handle-action :serve/ax.unloading
+  [{:serve/keys [watcher] :as state} _]
+  (when watcher
+    {:uf/db (dissoc state :serve/watcher)
+     :uf/fxs [[:serve/fx.stop nil watcher]]}))
+
+(defmethod handle-action :serve/ax.reloaded
+  [{:serve/keys [server watcher docs-dir src-dir]} _]
+  (when (and server (not watcher))
+    {:uf/fxs [[:serve/fx.watch [docs-dir src-dir]]]}))
+
 (defmethod handle-action :serve/ax.paths-changed
   [{:serve/keys [building?] :as state} [_ paths]]
   (let [paths (filter #(or (content-path? state %) (code-path? state %)) paths)]

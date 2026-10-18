@@ -97,6 +97,16 @@
   []
   (dispatch! [:serve/ax.stop]))
 
+(defn before-ns-unload
+  "Stops the file watcher before clj-reload removes this namespace. The watcher's callback calls this namespace's `dispatch!`, so it would keep building with the removed code."
+  []
+  (dispatch! [:serve/ax.unloading]))
+
+(defn after-ns-reload
+  "Starts a file watcher after clj-reload loads this namespace, when the serve runs without one."
+  []
+  (dispatch! [:serve/ax.reloaded]))
+
 (comment
   (start!)
   (stop!)
