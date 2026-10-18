@@ -10,3 +10,16 @@
   (testing "repeated and empty ids get numbered suffixes"
     (is (= ["notes" "notes_1" "notes_2" "_1"]
            (markdown/heading-ids ["Notes" "Notes" "Notes" "!!!"])))))
+
+(deftest page-sections
+  (testing "the text before the first heading, then each heading's text up to the next heading"
+    (is (= [{:section/html "<p>Intro</p>"}
+            {:section/id "title-x" :section/level 1 :section/title-html "Title <code>x</code>"
+             :section/html "<p>Body <em>b</em></p>"}
+            {:section/id "sub" :section/level 2 :section/title-html "Sub"
+             :section/html "<ul>\n<li>a</li>\n</ul> <p>Note</p> <p>In a note</p>"}]
+           (:page/sections
+            (markdown/render-blocks [{:block/type :markdown
+                                      :block/markdown "Intro\n\n# Title `x`\n\nBody *b*\n\n## Sub\n\n- a"}
+                                     {:block/type :admonition :block/title "Note" :block/markdown "In a note"}]
+                                    identity))))))

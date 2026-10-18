@@ -2,6 +2,7 @@
   "Reads the docs sources, renders the site as a map of output files, and writes it."
   (:require [calva.docs.blocks :as blocks]
             [calva.docs.markdown :as markdown]
+            [calva.docs.search :as search]
             [calva.docs.shell :as shell]
             [calva.docs.sitemap :as sitemap]
             [calva.docs.toc :as toc]
@@ -57,14 +58,15 @@
 
 (defn- with-content [{:page/keys [src markdown title] :as page}]
   (let [page-url (url/page-url src)
-        {:page/keys [blocks headings]} (markdown/render-blocks (blocks/page-blocks markdown)
-                                                               #(url/content-href page-url %))
+        {:page/keys [blocks headings sections]} (markdown/render-blocks (blocks/page-blocks markdown)
+                                                                        #(url/content-href page-url %))
         h1 (some #(when (= 1 (:heading/level %)) (:heading/text %)) headings)]
     (assoc page
            :page/url page-url
            :page/title (or title h1 src)
            :page/h1 h1
            :page/headings headings
+           :page/sections sections
            :page/toc (toc/page-toc headings)
            :page/body (blocks/page-body blocks))))
 
@@ -82,13 +84,14 @@
 
 (defn render-site
   "Returns `site` as a map from output path to file content, a string, bytes, or a file to copy."
-  [{site-url :site/url :site/keys [pages assets] :as site}]
+  [{site-url :site/url :site/keys [pages assets] :search/keys [separator] :as site}]
   (let [pages (with-neighbors (mapv with-content pages))
         site (assoc site :site/pages-by-src (into {} (map (juxt :page/src identity)) pages))]
     (merge assets
            (into {} (for [{:page/keys [url] :as page} pages]
                       [(str url "index.html") (shell/page-html site page)]))
-           {"404.html" (shell/page-html site not-found-page)}
+           {"404.html" (shell/page-html site not-found-page)
+            "search/search_index.json" (search/search-index separator pages)}
            (sitemap/sitemap-files site-url (map :page/url pages)))))
 
 (defn- delete-tree! [dir]
