@@ -2,10 +2,6 @@
   "Decisions for the docs serve loop. An action takes the serve state and returns `:uf/db`, `:uf/fxs` and `:uf/dxs`."
   (:require [clojure.string :as string]))
 
-(defmulti handle-action
-  "Returns the next state, effects and follow-up actions for `action` in `state`."
-  (fn [_state [kind]] kind))
-
 (defn- code-path? [{:serve/keys [src-dir]} path]
   (and (string/starts-with? path (str src-dir "/"))
        (string/ends-with? path ".clj")))
@@ -22,7 +18,7 @@
     (str "Build failed: " error)
     (str "Built " file-count " files in " ms " ms")))
 
-(defmethod handle-action :serve/ax.start
+(defn- start
   [{:serve/keys [server port]} [_ {:serve/keys [docs-dir src-dir] :as options}]]
   (if server
     {:uf/fxs [[:serve/fx.log (str "Already serving on port " port)]]}
@@ -34,12 +30,12 @@
                       [:serve/fx.watch [docs-dir src-dir]]]
                      %)))))
 
-(defmethod handle-action :serve/ax.stop
+(defn- stop
   [{:serve/keys [server watcher]} _]
   {:uf/db {}
    :uf/fxs [[:serve/fx.stop server watcher]]})
 
-(defmethod handle-action :serve/ax.reloaded
+(defn- reloaded
   [{:serve/keys [server watcher docs-dir src-dir] :as state} _]
   (when server
     (update (start-build (dissoc state :serve/watcher))
@@ -48,7 +44,7 @@
                     [:serve/fx.watch [docs-dir src-dir]]]
                    %))))
 
-(defmethod handle-action :serve/ax.paths-changed
+(defn- paths-changed
   [{:serve/keys [building?] :as state} [_ paths]]
   (let [paths (filter #(or (content-path? state %) (code-path? state %)) paths)]
     (cond
@@ -58,7 +54,7 @@
                                           :uf/fxs [[:serve/fx.reload-code]]}
       :else (start-build state))))
 
-(defmethod handle-action :serve/ax.build-finished
+(defn- build-finished
   [{:serve/keys [pending-paths clients] :as state} [_ {:build/keys [error] :as result}]]
   {:uf/db (assoc state :serve/building? false :serve/pending-paths #{})
    :uf/fxs (cond-> [[:serve/fx.log (build-report result)]]
@@ -66,18 +62,16 @@
    :uf/dxs (when (seq pending-paths)
              [[:serve/ax.paths-changed pending-paths]])})
 
-(defmethod handle-action :serve/ax.client-opened
-  [state [_ channel]]
-  {:uf/db (update state :serve/clients conj channel)})
-
-(defmethod handle-action :serve/ax.client-closed
-  [state [_ channel]]
-  {:uf/db (update state :serve/clients disj channel)})
-
-(defmethod handle-action :db/ax.assoc
-  [state [_ k v]]
-  {:uf/db (assoc state k v)})
-
-(defmethod handle-action :default
-  [_state action]
-  (throw (ex-info "Unhandled serve action" {:uf/action action})))
+(defn handle-action
+  "Returns the next state, effects and follow-up actions for `action` in `state`."
+  [state [kind & args :as action]]
+  (case kind
+    :serve/ax.start (start state action)
+    :serve/ax.stop (stop state action)
+    :serve/ax.reloaded (reloaded state action)
+    :serve/ax.paths-changed (paths-changed state action)
+    :serve/ax.build-finished (build-finished state action)
+    :serve/ax.client-opened {:uf/db (update state :serve/clients conj (first args))}
+    :serve/ax.client-closed {:uf/db (update state :serve/clients disj (first args))}
+    :db/ax.assoc {:uf/db (apply assoc state args)}
+    (throw (ex-info "Unhandled serve action" {:uf/action action}))))
