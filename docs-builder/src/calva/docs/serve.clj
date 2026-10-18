@@ -44,24 +44,25 @@
                      #(dispatch! [:serve/ax.paths-changed [(str (:path %))]])
                      dirs)]))
 
-(defn- build! [[_ options]]
-  (future
-    (dispatch! [:serve/ax.build-finished
-                (try
-                  (build/build! options)
-                  (catch Throwable e
-                    {:build/error (error-message e)}))])))
+(defn- build! [[_ run options]]
+  (dispatch! [:db/ax.assoc :serve/build
+              (future
+                (dispatch! [:serve/ax.build-finished run
+                            (try
+                              (build/build! options)
+                              (catch Throwable e
+                                {:build/error (error-message e)}))]))]))
 
 (defn- reload-code!
   "Reloads the changed builder code, then continues through the `dispatch!` that the reload
   may have replaced, since this code and its watcher are then the replaced code."
-  [_]
+  [[_ run]]
   (future
     (try
       (reload/reload)
-      ((requiring-resolve `dispatch!) [:serve/ax.reloaded])
+      ((requiring-resolve `dispatch!) [:serve/ax.reloaded run])
       (catch Throwable e
-        (dispatch! [:serve/ax.build-finished {:build/error (error-message e)}])))))
+        (dispatch! [:serve/ax.build-finished run {:build/error (error-message e)}])))))
 
 (defn- stop-serving! [[_ server watcher]]
   (some-> server http/server-stop!)
@@ -96,6 +97,7 @@
   "Builds the docs, serves them on `port`, and rebuilds when the docs or the builder change."
   [& {:serve/keys [port] :or {port 8765}}]
   (dispatch! [:serve/ax.start {:serve/port port
+                               :serve/run (random-uuid)
                                :serve/docs-dir (canonical-path ".." "docs")
                                :serve/src-dir (canonical-path "src")
                                :build/root ".."
@@ -103,9 +105,14 @@
                                :build/live-reload? true}]))
 
 (defn stop!
-  "Stops the server and the file watcher."
+  "Stops the server and the file watcher, then waits for a build in progress, so that a
+  new start doesn't build into the same directory at the same time."
   []
-  (dispatch! [:serve/ax.stop]))
+  (some-> (locking !state
+            (let [{:serve/keys [build]} @!state]
+              (dispatch! [:serve/ax.stop])
+              build))
+          deref))
 
 (comment
   (start!)

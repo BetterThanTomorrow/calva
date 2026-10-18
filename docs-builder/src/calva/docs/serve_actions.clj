@@ -18,9 +18,9 @@
 (defn- content-path? [{:serve/keys [docs-dir]} path]
   (under? docs-dir path))
 
-(defn- start-build [state]
+(defn- start-build [{:serve/keys [run] :as state}]
   {:uf/db (assoc state :serve/building? true)
-   :uf/fxs [[:serve/fx.build (select-keys state [:build/root :build/out-dir :build/live-reload?])]]})
+   :uf/fxs [[:serve/fx.build run (select-keys state [:build/root :build/out-dir :build/live-reload?])]]})
 
 (defn- build-report [{:build/keys [error file-count ms problems]}]
   (if error
@@ -46,8 +46,9 @@
    :uf/fxs [[:serve/fx.stop server watcher]]})
 
 (defn- reloaded
-  [{:serve/keys [server watcher docs-dir src-dir] :as state} _]
-  (when server
+  "Swaps in a new watcher and builds, when the code reload is from the current run."
+  [{:serve/keys [run watcher docs-dir src-dir] :as state} [_ reload-run]]
+  (when (= run reload-run)
     (update (start-build (dissoc state :serve/watcher))
             :uf/fxs
             #(into [[:serve/fx.stop nil watcher]
@@ -55,22 +56,24 @@
                    %))))
 
 (defn- paths-changed
-  [{:serve/keys [building?] :as state} [_ paths]]
+  [{:serve/keys [run building?] :as state} [_ paths]]
   (let [paths (filter #(or (content-path? state %) (code-path? state %)) paths)]
     (cond
       (empty? paths) nil
       building? {:uf/db (update state :serve/pending-paths into paths)}
       (some #(code-path? state %) paths) {:uf/db (assoc state :serve/building? true)
-                                          :uf/fxs [[:serve/fx.reload-code]]}
+                                          :uf/fxs [[:serve/fx.reload-code run]]}
       :else (start-build state))))
 
 (defn- build-finished
-  [{:serve/keys [pending-paths clients] :as state} [_ {:build/keys [error] :as result}]]
-  {:uf/db (assoc state :serve/building? false :serve/pending-paths #{})
-   :uf/fxs (cond-> [[:serve/fx.log (build-report result)]]
-             (not error) (conj [:serve/fx.notify clients]))
-   :uf/dxs (when (seq pending-paths)
-             [[:serve/ax.paths-changed pending-paths]])})
+  "Reports the build and reloads the browsers, when the build is from the current run."
+  [{:serve/keys [run pending-paths clients] :as state} [_ build-run {:build/keys [error] :as result}]]
+  (when (= run build-run)
+    {:uf/db (assoc state :serve/building? false :serve/pending-paths #{})
+     :uf/fxs (cond-> [[:serve/fx.log (build-report result)]]
+               (not error) (conj [:serve/fx.notify clients]))
+     :uf/dxs (when (seq pending-paths)
+               [[:serve/ax.paths-changed pending-paths]])}))
 
 (defn handle-action
   "Returns the next state, effects and follow-up actions for `action` in `state`."
