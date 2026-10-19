@@ -35,8 +35,8 @@
 (defn- start-server! [[_ {:serve/keys [port] :build/keys [out-dir]}]]
   (.mkdirs (io/file out-dir))
   (dispatch! [:db/ax.assoc :serve/server
-              (http/run-server (handler out-dir) {:port port :legacy-return-value? false})])
-  (println (str "Serving the docs on http://localhost:" port)))
+              (http/run-server (handler out-dir) {:ip "127.0.0.1" :port port :legacy-return-value? false})])
+  (println (str "Serving the docs on http://127.0.0.1:" port)))
 
 (defn- watch! [[_ dirs]]
   (dispatch! [:db/ax.assoc :serve/watcher
@@ -95,7 +95,7 @@
 
 (defn start!
   "Builds the docs, serves them on `port`, and rebuilds when the docs or the builder change."
-  [& {:serve/keys [port] :or {port 8765}}]
+  [& {:serve/keys [port] :or {port 8484}}]
   (dispatch! [:serve/ax.start {:serve/port port
                                :serve/run (random-uuid)
                                :serve/docs-dir (canonical-path ".." "docs")
