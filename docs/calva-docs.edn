@@ -2,9 +2,13 @@
  :site/url "https://calva.io"
  :site/description "Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code."
  :site/logo "img/calva-symbol-white.svg"
- :site/favicon "img/favicon.ico"
+ :site/icons [{:rel "icon" :href "img/favicon.ico" :sizes "16x16"}
+              {:rel "icon" :href "img/favicon-32x32.png" :sizes "32x32" :type "image/png"}
+              {:rel "icon" :href "img/favicon-96x96.png" :sizes "96x96" :type "image/png"}
+              {:rel "apple-touch-icon" :href "img/apple-icon-180x180.png" :sizes "180x180"}
+              {:rel "manifest" :href "img/manifest.json"}]
  :site/extra-css ["stylesheets/extra.css"]
- :site/static ["CNAME" "img" "images" "stylesheets" "_static" "calva-symbol-logo-white.svg" "theming"]
+ :site/static ["CNAME" "img" "images" "stylesheets" "_static" "calva-symbol-logo-white.svg"]
  :repo/name "Calva"
  :repo/url "https://github.com/BetterThanTomorrow/calva"
  :material/features ["search.share" "content.tabs.link"]
