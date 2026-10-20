@@ -20,7 +20,11 @@ import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as getText from '../util/get-text';
 import * as namespace from '../namespace';
-import { addedBreakpointsToSync, uniqueByKey } from './source-breakpoint-sync';
+import {
+  affectedBreakpointLocations,
+  reconcileBreakpointLocations,
+  type BreakpointLocation,
+} from './source-breakpoint-sync';
 import { UnsupportedWarningState } from './unsupported-warning-state';
 import { advanceAfterDisconnect } from './disconnect-action';
 import {
@@ -92,6 +96,8 @@ let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
 let sourceBreakpointStepTargets:
   | { file: string; formStart: number; endOffset: number }[]
   | undefined;
+const previousBreakpointLocations = new WeakMap<vscode.SourceBreakpoint, BreakpointLocation>();
+let breakpointReconciliation = Promise.resolve();
 const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
 const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
 
@@ -1049,9 +1055,10 @@ function instrumentCodeWithSourceBreakpoints(
   document: vscode.TextDocument,
   selection: vscode.Selection,
   code: string,
-  session?: nrepl.NReplSession
+  session?: nrepl.NReplSession,
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
 ): string {
-  const breakpoints = vscode.debug.breakpoints
+  const breakpoints = sourceBreakpoints
     .filter(isClojureSourceBreakpoint)
     .filter(
       (breakpoint) =>
@@ -1070,7 +1077,8 @@ function instrumentCodeWithSourceBreakpoints(
 
 async function evaluateTopLevelFormForBreakpoint(
   document: vscode.TextDocument,
-  position: vscode.Position
+  position: vscode.Position,
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
 ): Promise<void> {
   const session = getBreakpointEvaluationSession(document);
   if (!session) {
@@ -1080,7 +1088,7 @@ async function evaluateTopLevelFormForBreakpoint(
   if (!selection || code.length === 0) {
     return;
   }
-  await evaluateBreakpointForm(document, selection, code, session);
+  await evaluateBreakpointForm(document, selection, code, session, sourceBreakpoints);
 }
 
 function getBreakpointEvaluationSession(
@@ -1105,10 +1113,17 @@ async function evaluateBreakpointForm(
   document: vscode.TextDocument,
   selection: vscode.Selection,
   code: string,
-  session: nrepl.NReplSession
+  session: nrepl.NReplSession,
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
 ): Promise<void> {
   const [ns, nsForm] = namespace.getNamespace(document, selection.end);
-  const codeToEvaluate = instrumentCodeWithSourceBreakpoints(document, selection, code, session);
+  const codeToEvaluate = instrumentCodeWithSourceBreakpoints(
+    document,
+    selection,
+    code,
+    session,
+    sourceBreakpoints
+  );
 
   try {
     await evaluateBreakpointCode(document, selection, codeToEvaluate, ns, nsForm, session);
@@ -1151,34 +1166,71 @@ async function evaluateBreakpointCode(
   }).value;
 }
 
+function breakpointLocation(breakpoint: vscode.SourceBreakpoint): BreakpointLocation {
+  return {
+    uri: breakpoint.location.uri.toString(),
+    line: breakpoint.location.range.start.line,
+    character: breakpoint.location.range.start.character,
+  };
+}
+
+function rememberBreakpointLocations(): void {
+  for (const breakpoint of existingClojureSourceBreakpoints()) {
+    previousBreakpointLocations.set(breakpoint, breakpointLocation(breakpoint));
+  }
+}
+
 function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
-  const changedBreakpoints = addedBreakpointsToSync(event, isClojureSourceBreakpoint);
-  void syncSourceBreakpoints(changedBreakpoints);
+  const affectedLocations = affectedBreakpointLocations(
+    event,
+    previousBreakpointLocations,
+    breakpointLocation,
+    isClojureSourceBreakpoint
+  );
+  rememberBreakpointLocations();
+  breakpointReconciliation = breakpointReconciliation
+    .then(() => syncSourceBreakpointLocations(affectedLocations))
+    .catch((error) => {
+      console.error('Failed reconciling source breakpoints', error);
+    });
 }
 
 async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
-  const targets: { document: vscode.TextDocument; position: vscode.Position; key: string }[] = [];
-  for (const breakpoint of breakpoints) {
-    const document = await vscode.workspace.openTextDocument(breakpoint.location.uri);
-    const targetPosition = breakpointTargetPosition(document, breakpoint);
-    const [selection] = getText.currentTopLevelFormText(document, targetPosition);
-    if (!selection) {
-      continue;
+  await syncSourceBreakpointLocations(breakpoints.map(breakpointLocation));
+}
+
+async function syncSourceBreakpointLocations(locations: BreakpointLocation[]): Promise<void> {
+  await reconcileBreakpointLocations(
+    locations,
+    async (location) => {
+      const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(location.uri));
+      const position = new vscode.Position(location.line, location.character);
+      const [selection] = getText.currentTopLevelFormText(document, position);
+      if (!selection) {
+        return undefined;
+      }
+      const key = [
+        document.uri.toString(),
+        selection.start.line,
+        selection.start.character,
+        selection.end.line,
+        selection.end.character,
+      ].join(':');
+      return { document, position, key };
+    },
+    (target) => target.key,
+    existingClojureSourceBreakpoints,
+    (target, breakpoints) =>
+      evaluateTopLevelFormForBreakpoint(target.document, target.position, breakpoints),
+    (error, phase) => {
+      console.error(
+        phase === 'resolve'
+          ? 'Failed resolving source breakpoint target'
+          : 'Failed evaluating source breakpoint target',
+        error
+      );
     }
-
-    const key = [
-      document.uri.toString(),
-      selection.start.line,
-      selection.start.character,
-      selection.end.line,
-      selection.end.character,
-    ].join(':');
-    targets.push({ document, position: targetPosition, key });
-  }
-
-  for (const target of uniqueByKey(targets, (item) => item.key)) {
-    await evaluateTopLevelFormForBreakpoint(target.document, target.position);
-  }
+  );
 }
 
 function registerSourceBreakpointInstrumentation(
@@ -1186,6 +1238,7 @@ function registerSourceBreakpointInstrumentation(
   evaluator?: BreakpointCodeEvaluator
 ): void {
   breakpointCodeEvaluator = evaluator;
+  rememberBreakpointLocations();
   let activeDebuggerSession: nrepl.NReplSession | undefined;
   const reconcileActiveSession = () => {
     activeDebuggerSession = reconcileDebuggerSession(
