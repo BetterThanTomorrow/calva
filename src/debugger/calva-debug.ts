@@ -72,9 +72,21 @@ type ExtractedStructure = {
 
 type BreakpointCodeEvaluator = (
   code: string,
-  options: any,
+  options: BreakpointEvaluationOptions,
   selection?: vscode.Selection
 ) => Promise<string | null>;
+
+type BreakpointEvaluationOptions = {
+  filePath: string;
+  line: number;
+  column: number;
+  ns: string;
+  nsForm: string;
+  session: nrepl.NReplSession;
+  pprintOptions: { enabled: boolean };
+};
+
+type DocumentTokenCursor = ReturnType<ReturnType<typeof docMirror.getDocument>['getTokenCursor']>;
 
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
 let sourceBreakpointStepTargets:
@@ -171,15 +183,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     response.body = {
       breakpoints: (args.breakpoints ?? []).map((breakpoint) => ({
         verified: supported,
-        ...(supported
-          ? {}
-          : {
-              message: !args.source.path
-                ? 'Breakpoint source path is unavailable.'
-                : !isClojureFamilySourcePath(args.source.path)
-                ? 'Calva GUI breakpoints require a Clojure-family source file.'
-                : unsupportedDebuggerMessage(session),
-            }),
+        ...(!supported ? { message: breakpointSupportMessage(args.source.path, session) } : {}),
         line: breakpoint.line,
         column: breakpoint.column,
       })),
@@ -517,6 +521,19 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   }
 }
 
+function breakpointSupportMessage(
+  sourcePath: string | undefined,
+  session: nrepl.NReplSession
+): string {
+  if (!sourcePath) {
+    return 'Breakpoint source path is unavailable.';
+  }
+  if (!isClojureFamilySourcePath(sourcePath)) {
+    return 'Calva GUI breakpoints require a Clojure-family source file.';
+  }
+  return unsupportedDebuggerMessage(session);
+}
+
 CalvaDebugSession.run(CalvaDebugSession);
 
 class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -583,36 +600,33 @@ function onNreplMessage(data: any): void {
   }
 }
 
-function handleNeedDebugInput(response: any): void {
-  // Make sure the form exists in the editor and was not instrumented in the repl window
-  if (
+type DebugInputResponse = {
+  file?: unknown;
+  column?: unknown;
+  line?: unknown;
+  id?: string;
+  key?: string;
+};
+
+function hasSourceLocation(response: DebugInputResponse): response is DebugInputResponse & {
+  file: string;
+  column: number;
+  line: number;
+} {
+  return (
     typeof response.file === 'string' &&
     typeof response.column === 'number' &&
     typeof response.line === 'number'
-  ) {
+  );
+}
+
+function handleNeedDebugInput(response: DebugInputResponse): void {
+  // Make sure the form exists in the editor and was not instrumented in the repl window
+  if (hasSourceLocation(response)) {
     cljsLib.setStateValue(DEBUG_RESPONSE_KEY, response);
 
     if (!vscode.debug.activeDebugSession) {
-      if (sourceBreakpointStepTargets?.length) {
-        void shouldExposeSourceBreakpointStop(response).then((isTargetStop) => {
-          if (isTargetStop) {
-            void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
-          } else {
-            // Let the nREPL response handler consume this need-debug-input
-            // message before reusing its id for the next step request.
-            setTimeout(() => {
-              const session = replSession.getSession();
-              if (session) {
-                void session.sendDebugInput(':next', response.id, response.key).catch((error) => {
-                  console.error('Calva debugger: failed auto-stepping to GUI breakpoint', error);
-                });
-              }
-            }, 0);
-          }
-        });
-      } else {
-        void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
-      }
+      exposeOrAdvanceStop(response);
     }
   } else {
     const session = replSession.getSession();
@@ -623,37 +637,38 @@ function handleNeedDebugInput(response: any): void {
   }
 }
 
-async function shouldExposeSourceBreakpointStop(response: any): Promise<boolean> {
-  const targets = sourceBreakpointStepTargets;
-  if (!targets?.length || typeof response.file !== 'string') {
-    return true;
+function exposeOrAdvanceStop(
+  response: DebugInputResponse & { file: string; line: number; column: number }
+): void {
+  if (!sourceBreakpointStepTargets?.length) {
+    void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+    return;
   }
-
-  try {
-    const uri =
-      response.file.startsWith('jar:') || response.file.startsWith('file:')
-        ? vscode.Uri.parse(response.file)
-        : vscode.Uri.file(response.file);
-    const document = await vscode.workspace.openTextDocument(uri);
-    const line = convertOneBasedToZeroBased(response.line);
-    const column = convertOneBasedToZeroBased(response.column);
-    const responseOffset = document.offsetAt(new vscode.Position(line, column));
-    const cursor = docMirror.getDocument(document).getTokenCursor(responseOffset);
-    const responseFormRange = cursor.rangeForDefun(responseOffset);
-    const sameInstrumentedForm = targets.some(
-      (target) =>
-        vscode.Uri.file(target.file).toString() === uri.toString() &&
-        responseFormRange?.[0] === target.formStart
-    );
-    if (!sameInstrumentedForm) {
-      return true;
+  void shouldExposeSourceBreakpointStop(response).then((isTargetStop) => {
+    if (isTargetStop) {
+      void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+    } else {
+      advanceToNextGuiBreakpoint(response);
     }
-    debugUtil.moveTokenCursorToBreakpoint(cursor, response);
-    return targets.some(
-      (target) =>
-        vscode.Uri.file(target.file).toString() === uri.toString() &&
-        target.endOffset === cursor.offsetStart
-    );
+  });
+}
+
+function advanceToNextGuiBreakpoint(response: DebugInputResponse): void {
+  setTimeout(() => {
+    const session = replSession.getSession();
+    if (session) {
+      void session.sendDebugInput(':next', response.id, response.key).catch((error) => {
+        console.error('Calva debugger: failed auto-stepping to GUI breakpoint', error);
+      });
+    }
+  }, 0);
+}
+
+async function shouldExposeSourceBreakpointStop(
+  response: DebugInputResponse & { file: string; line: number; column: number }
+): Promise<boolean> {
+  try {
+    return await matchesSourceBreakpointTarget(response, sourceBreakpointStepTargets);
   } catch (error) {
     console.error(
       'Calva debugger: could not map an auto-step location to the GUI breakpoint',
@@ -663,6 +678,54 @@ async function shouldExposeSourceBreakpointStop(response: any): Promise<boolean>
     // legitimate pause indefinitely.
     return true;
   }
+}
+
+async function matchesSourceBreakpointTarget(
+  response: DebugInputResponse & { file: string; line: number; column: number },
+  targets: { file: string; formStart: number; endOffset: number }[] | undefined
+): Promise<boolean> {
+  if (!targets?.length) {
+    return true;
+  }
+  const uri = sourceLocationUri(response.file);
+  const document = await vscode.workspace.openTextDocument(uri);
+  const offset = document.offsetAt(
+    new vscode.Position(
+      convertOneBasedToZeroBased(response.line),
+      convertOneBasedToZeroBased(response.column)
+    )
+  );
+  const cursor = docMirror.getDocument(document).getTokenCursor(offset);
+  const responseFormRange = cursor.rangeForDefun(offset);
+  if (!targets.some((target) => targetMatchesForm(target, uri, responseFormRange?.[0]))) {
+    return true;
+  }
+  debugUtil.moveTokenCursorToBreakpoint(cursor, response);
+  return !targets.some((target) => targetMatchesStop(target, uri, cursor.offsetStart));
+}
+
+function sourceLocationUri(file: string): vscode.Uri {
+  return file.startsWith('jar:') || file.startsWith('file:')
+    ? vscode.Uri.parse(file)
+    : vscode.Uri.file(file);
+}
+
+function targetMatchesForm(
+  target: { file: string; formStart: number },
+  uri: vscode.Uri,
+  formStart: number | undefined
+): boolean {
+  return (
+    vscode.Uri.file(target.file).toString() === uri.toString() && target.formStart === formStart
+  );
+}
+
+function targetMatchesStop(
+  target: { file: string; endOffset: number },
+  uri: vscode.Uri,
+  offset: number
+): boolean {
+  return vscode.Uri.file(target.file).toString() === uri.toString() && target.endOffset === offset;
 }
 
 vscode.debug.onDidStartDebugSession((session) => {
@@ -754,13 +817,12 @@ function listFormOffsetsForRange(
 
   for (let offset = startOffset; offset <= endOffset; offset++) {
     const tokenCursor = mirrorDocument.getTokenCursor(offset);
-    const token = tokenCursor.getToken();
-    if (tokenCursor.offsetStart !== offset || token.type !== 'open' || !token.raw.endsWith('(')) {
+    if (!isListOpeningAtOffset(tokenCursor, offset)) {
       continue;
     }
 
     const [formStart] = tokenCursor.rangeForCurrentForm(offset);
-    if (formStart < startOffset || formStart > endOffset || seen.has(formStart)) {
+    if (!isNewFormOffset(formStart, startOffset, endOffset, seen)) {
       continue;
     }
 
@@ -769,6 +831,20 @@ function listFormOffsetsForRange(
   }
 
   return offsets;
+}
+
+function isListOpeningAtOffset(tokenCursor: DocumentTokenCursor, offset: number): boolean {
+  const token = tokenCursor.getToken();
+  return tokenCursor.offsetStart === offset && token.type === 'open' && token.raw.endsWith('(');
+}
+
+function isNewFormOffset(
+  formStart: number,
+  startOffset: number,
+  endOffset: number,
+  seen: Set<number>
+): boolean {
+  return formStart >= startOffset && formStart <= endOffset && !seen.has(formStart);
 }
 
 function lineBreakpointTargetOffset(
@@ -796,21 +872,21 @@ function positionedBreakpointTargetOffset(
   const offset = document.offsetAt(position);
   const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
-  if (tokenCursor.offsetStart === offset && tokenCursor.getToken().type === 'open') {
+  const enclosingList = tokenCursor.rangeForList(1);
+  if (isOpeningTokenAtOffset(tokenCursor, offset)) {
     return offset;
   }
+  return enclosingList?.[0] ?? positionedFormStart(tokenCursor, offset);
+}
 
-  const enclosingList = tokenCursor.rangeForList(1);
-  if (enclosingList && enclosingList[0] !== undefined) {
-    return enclosingList[0];
-  }
+function isOpeningTokenAtOffset(tokenCursor: DocumentTokenCursor, offset: number): boolean {
+  return tokenCursor.offsetStart === offset && tokenCursor.getToken().type === 'open';
+}
 
-  if (tokenCursor.backwardFunction()) {
-    return tokenCursor.offsetStart;
-  }
-
-  const [formStart] = tokenCursor.rangeForCurrentForm(offset);
-  return formStart;
+function positionedFormStart(tokenCursor: DocumentTokenCursor, offset: number): number {
+  return tokenCursor.backwardFunction()
+    ? tokenCursor.offsetStart
+    : tokenCursor.rangeForCurrentForm(offset)[0];
 }
 
 function breakpointTargetOffset(
@@ -841,13 +917,21 @@ function functionBodyRangeForBreakpoint(
   document: vscode.TextDocument,
   targetOffset: number
 ): [number, number] | undefined {
-  const tokenCursor = docMirror.getDocument(document).getTokenCursor(targetOffset);
-  const defunRange = tokenCursor.rangeForDefun(targetOffset);
-  if (!defunRange) {
-    return undefined;
-  }
+  const defunRange = docMirror
+    .getDocument(document)
+    .getTokenCursor(targetOffset)
+    .rangeForDefun(targetOffset);
+  return defunRange
+    ? functionBodyRangeWithinDefn(document, defunRange[0], defunRange[1], targetOffset)
+    : undefined;
+}
 
-  const [formStart, formEnd] = defunRange;
+function functionBodyRangeWithinDefn(
+  document: vscode.TextDocument,
+  formStart: number,
+  formEnd: number,
+  targetOffset: number
+): [number, number] | undefined {
   const formHead = document
     .getText(new vscode.Range(document.positionAt(formStart), document.positionAt(formEnd)))
     .trimStart()
@@ -855,17 +939,49 @@ function functionBodyRangeForBreakpoint(
   if (!formHead) {
     return undefined;
   }
-
   const cursor = docMirror.getDocument(document).getTokenCursor(formStart);
+  if (!advanceCursorToFunctionBody(cursor)) {
+    return undefined;
+  }
+
+  // Only handle the common single-arity, single-body-expression shape. Other
+  // function forms keep their existing #break-only behavior.
+  const bodyStart = cursor.offsetStart;
+  const bodyEnd = formEnd - 1; // the defn's closing parenthesis
+  const isSingleBody = hasSingleBodyExpression(cursor);
+  return isTargetWithinSingleBody(isSingleBody, bodyStart, bodyEnd, targetOffset)
+    ? [bodyStart, bodyEnd]
+    : undefined;
+}
+
+function isTargetWithinSingleBody(
+  isSingleBody: boolean,
+  bodyStart: number,
+  bodyEnd: number,
+  targetOffset: number
+): boolean {
+  return isSingleBody && bodyStart <= targetOffset && targetOffset < bodyEnd;
+}
+
+function advanceCursorToFunctionBody(cursor: DocumentTokenCursor): boolean {
   cursor.next();
   cursor.forwardWhitespace();
   cursor.forwardSexp(); // defn / defn-
   cursor.forwardWhitespace();
   cursor.forwardSexp(); // function name
   cursor.forwardWhitespace();
+  skipOptionalDefnMetadata(cursor);
+  if (cursor.getToken().raw !== '[') {
+    return false;
+  }
+  cursor.forwardSexp(); // argument vector
+  cursor.forwardWhitespace();
+  return true;
+}
 
-  // A docstring or attribute map may appear between the name and arg vector.
-  if (cursor.getToken().raw.startsWith('"') || cursor.getToken().type === 'lit') {
+function skipOptionalDefnMetadata(cursor: DocumentTokenCursor): void {
+  const token = cursor.getToken();
+  if (token.raw.startsWith('"') || token.type === 'lit') {
     cursor.forwardSexp();
     cursor.forwardWhitespace();
   }
@@ -873,25 +989,14 @@ function functionBodyRangeForBreakpoint(
     cursor.forwardSexp();
     cursor.forwardWhitespace();
   }
+}
 
-  // This first implementation intentionally handles the common single-arity,
-  // single-body-expression shape. Other function forms keep their existing
-  // #break-only behavior.
-  if (cursor.getToken().raw !== '[') {
-    return undefined;
-  }
-  cursor.forwardSexp(); // argument vector
-  cursor.forwardWhitespace();
-  const bodyStart = cursor.offsetStart;
-  const bodyEnd = formEnd - 1; // the defn's closing parenthesis
+function hasSingleBodyExpression(cursor: DocumentTokenCursor): boolean {
   if (!cursor.forwardSexp()) {
-    return undefined;
+    return false;
   }
   cursor.forwardWhitespace();
-  if (cursor.getToken().type !== 'close') {
-    return undefined;
-  }
-  return bodyStart <= targetOffset && targetOffset < bodyEnd ? [bodyStart, bodyEnd] : undefined;
+  return cursor.getToken().type === 'close';
 }
 
 function injectBreakpoints(
@@ -967,57 +1072,83 @@ async function evaluateTopLevelFormForBreakpoint(
   document: vscode.TextDocument,
   position: vscode.Position
 ): Promise<void> {
-  if (!util.getConnectedState()) {
-    return;
-  }
-
-  const session = replSession.getSession(document);
+  const session = getBreakpointEvaluationSession(document);
   if (!session) {
     return;
   }
+  const [selection, code] = getText.currentTopLevelFormText(document, position);
+  if (!selection || code.length === 0) {
+    return;
+  }
+  await evaluateBreakpointForm(document, selection, code, session);
+}
 
+function getBreakpointEvaluationSession(
+  document: vscode.TextDocument
+): nrepl.NReplSession | undefined {
+  if (!util.getConnectedState()) {
+    return undefined;
+  }
+  const session = replSession.getSession(document);
+  if (!session) {
+    return undefined;
+  }
   if (!supportsDebuggerOps(session)) {
     warnUnsupportedDebugger(session);
   } else {
     initializeDebugger(session);
   }
+  return session;
+}
 
-  const [selection, code] = getText.currentTopLevelFormText(document, position);
-  if (!selection || code.length === 0) {
-    return;
-  }
-
+async function evaluateBreakpointForm(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string,
+  session: nrepl.NReplSession
+): Promise<void> {
   const [ns, nsForm] = namespace.getNamespace(document, selection.end);
   const codeToEvaluate = instrumentCodeWithSourceBreakpoints(document, selection, code, session);
 
   try {
-    if (breakpointCodeEvaluator) {
-      await breakpointCodeEvaluator(
-        codeToEvaluate,
-        {
-          filePath: document.fileName,
-          line: selection.start.line,
-          column: selection.start.character,
-          ns,
-          nsForm,
-          session,
-          pprintOptions: { enabled: false },
-        },
-        selection
-      );
-    } else {
-      await session.evaluateInNs(nsForm, ns);
-      await session.eval(codeToEvaluate, ns, {
-        file: document.fileName,
-        line: selection.start.line + 1,
-        column: selection.start.character + 1,
-        pprintOptions: { enabled: false } as any,
-      }).value;
-    }
+    await evaluateBreakpointCode(document, selection, codeToEvaluate, ns, nsForm, session);
     debugDecorations.triggerUpdateAndRenderDecorations();
   } catch (e) {
     void vscode.window.showWarningMessage(`Failed instrumenting breakpoint: ${e.message ?? e}`);
   }
+}
+
+async function evaluateBreakpointCode(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string,
+  ns: string,
+  nsForm: string,
+  session: nrepl.NReplSession
+): Promise<void> {
+  if (breakpointCodeEvaluator) {
+    await breakpointCodeEvaluator(
+      code,
+      {
+        filePath: document.fileName,
+        line: selection.start.line,
+        column: selection.start.character,
+        ns,
+        nsForm,
+        session,
+        pprintOptions: { enabled: false },
+      },
+      selection
+    );
+    return;
+  }
+  await session.evaluateInNs(nsForm, ns);
+  await session.eval(code, ns, {
+    file: document.fileName,
+    line: selection.start.line + 1,
+    column: selection.start.character + 1,
+    pprintOptions: { enabled: false },
+  }).value;
 }
 
 function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
@@ -1071,13 +1202,7 @@ function registerSourceBreakpointInstrumentation(
   };
   context.subscriptions.push(
     sessionEvents.onSessionsChanged((event) => {
-      if (
-        event.type === 'session-added' ||
-        event.type === 'session-removed' ||
-        event.type === 'connection-added' ||
-        event.type === 'connection-removed' ||
-        event.type === 'session-renamed'
-      ) {
+      if (shouldReconcileDebuggerSession(event.type)) {
         reconcileActiveSession();
       }
     }),
@@ -1090,6 +1215,16 @@ function registerSourceBreakpointInstrumentation(
       void syncChangedSourceBreakpoints(event);
     })
   );
+}
+
+function shouldReconcileDebuggerSession(eventType: string): boolean {
+  return new Set([
+    'session-added',
+    'session-removed',
+    'connection-added',
+    'connection-removed',
+    'session-renamed',
+  ]).has(eventType);
 }
 
 function terminateDebugSession(): void {

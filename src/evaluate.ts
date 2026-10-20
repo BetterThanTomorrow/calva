@@ -398,65 +398,98 @@ async function evaluateCodeUpdatingUI(
 
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
+  if (!cljsLib.getStateValue('connected')) {
+    void vscode.window.showErrorMessage('Not connected to a REPL');
+    return;
+  }
+  await evaluateConnectedSelection(document, options);
+}
 
+async function evaluateConnectedSelection(document, options): Promise<void> {
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =
     options.selectionFn;
+  const editor = util.getActiveTextEditor();
+  const selection = selectionFn(editor);
+  const codeSelection: vscode.Selection = selection[0];
+  const code = selectedCodeForEvaluation(selection[1], editor.selections[0].isEmpty);
+  const doc = util.getDocument(document);
+  ensureEvaluationDocumentIsNotPreview(doc);
+  const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
+  const line = codeSelection.start.line;
+  const column = codeSelection.start.character;
+  const filePath = doc.fileName;
+  const session = replSession.getSession(doc);
 
-  if (cljsLib.getStateValue('connected')) {
-    const editor = util.getActiveTextEditor();
-    const selection = selectionFn(editor);
-    const codeSelection: vscode.Selection = selection[0];
-    let code = selection[1];
-    [codeSelection, code]; //TODO: What's this doing here?
+  await evaluateSelectedCode(
+    editor,
+    doc,
+    codeSelection,
+    code,
+    { ...options, ns, nsForm, line, column, filePath, session },
+    session
+  );
+}
 
-    // Strip leading #_ and optional whitespace so that
-    // evaluating with the cursor at the end of #_(form) sends just (form)
-    // to the REPL instead of the silently-discarded #_(form).
-    if (editor.selections[0].isEmpty) {
-      code = code.replace(/^#_\s*/, '');
-    }
-    const doc = util.getDocument(document);
-    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
-      void vscode.window.showTextDocument(doc, { preview: false });
-    }
-    const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
-    const line = codeSelection.start.line;
-    const column = codeSelection.start.character;
-    const filePath = doc.fileName;
-    const session = replSession.getSession(doc);
+function selectedCodeForEvaluation(code: string, emptySelection: boolean): string {
+  return emptySelection ? code.replace(/^#_\s*/, '') : code;
+}
 
-    if (code.length > 0) {
-      if (options.debug) {
-        if (!debug.supportsDebuggerOps(session)) {
-          debug.warnUnsupportedDebugger(session);
-          return;
-        }
-        code = '#dbg\n' + code;
-      } else {
-        code = debug.instrumentCodeWithSourceBreakpoints(doc, codeSelection, code, session);
-      }
-      annotations.decorateSelection(
-        '',
-        codeSelection,
-        editor,
-        undefined,
-        annotations.AnnotationStatus.PENDING
-      );
-      if (
-        state.extensionContext.workspaceState.get('outputWindowActive') &&
-        !(await replWindow.lastLineIsEmpty())
-      ) {
-        replWindow.appendLine();
-      }
-      await evaluateCodeUpdatingUI(
-        code,
-        { ...options, ns, nsForm, line, column, filePath, session },
-        codeSelection
-      );
-      void output.replWindowAppendPrompt();
-    }
-  } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL');
+function ensureEvaluationDocumentIsNotPreview(document: vscode.TextDocument): void {
+  if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+    void vscode.window.showTextDocument(document, { preview: false });
+  }
+}
+
+async function evaluateSelectedCode(
+  editor: vscode.TextEditor,
+  doc: vscode.TextDocument,
+  codeSelection: vscode.Selection,
+  code: string,
+  options,
+  session: nrepl.NReplSession
+): Promise<void> {
+  if (code.length === 0 || warnForUnsupportedDebugEvaluation(options, session)) {
+    return;
+  }
+  const codeToEvaluate = evaluationCodeWithDebugSupport(options, doc, codeSelection, code, session);
+  annotations.decorateSelection(
+    '',
+    codeSelection,
+    editor,
+    undefined,
+    annotations.AnnotationStatus.PENDING
+  );
+  await prepareOutputWindowForEvaluation();
+  await evaluateCodeUpdatingUI(codeToEvaluate, options, codeSelection);
+  void output.replWindowAppendPrompt();
+}
+
+function warnForUnsupportedDebugEvaluation(options, session: nrepl.NReplSession): boolean {
+  if (options.debug && !debug.supportsDebuggerOps(session)) {
+    debug.warnUnsupportedDebugger(session);
+    return true;
+  }
+  return false;
+}
+
+function evaluationCodeWithDebugSupport(
+  options,
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string,
+  session: nrepl.NReplSession
+): string {
+  return options.debug
+    ? '#dbg\n' + code
+    : debug.instrumentCodeWithSourceBreakpoints(document, selection, code, session);
+}
+
+async function prepareOutputWindowForEvaluation(): Promise<void> {
+  if (
+    state.extensionContext.workspaceState.get('outputWindowActive') &&
+    !(await replWindow.lastLineIsEmpty())
+  ) {
+    replWindow.appendLine();
   }
 }
 
