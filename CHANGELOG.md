@@ -4,6 +4,19 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.601] - 2026-10-18
+
+- Fix: [Calva adds `.lsp` and `.clj-kondo` folders to non-Clojure projects](https://github.com/BetterThanTomorrow/calva/issues/2610)
+  - Don't auto-start clojure-lsp in the first workspace root unless that folder holds a Clojure project or an open Clojure file
+  - Activate on `onDebugResolve:clojure` (was mistakenly `onDebugResolve:type`) and on `bb.edn`
+- Development: Building https://calva.io with a custom, Clojure, builder, instead of MkDocs, Material, Python, etc.
+
+## [2.0.600] - 2026-10-12
+
+- [Output-view: Display images in the results](https://github.com/BetterThanTomorrow/calva/issues/3287)
+- Fix: [Bencode/nrepl: Requests go out with unsorted dict keys](https://github.com/BetterThanTomorrow/calva/issues/3293)
+- Fix: [The `calva.disconnect` command ignores its argument](https://github.com/BetterThanTomorrow/calva/issues/3294)
+
 ## [2.0.599] - 2026-09-23
 
 - Fix: [autoConnectRepl tried to connect even if no .nrepl-port present](https://github.com/BetterThanTomorrow/calva/issues/3278)

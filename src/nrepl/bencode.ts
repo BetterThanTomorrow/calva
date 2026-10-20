@@ -6,7 +6,8 @@
 import * as stream from 'stream';
 import * as buffer from 'buffer';
 
-/** Bencode the given JSON object */
+/** Bencode the given JSON object. Dict keys use JavaScript string sort, which
+ * matches bencode's byte order for the ASCII keys Calva sends. */
 const bencode = (value) => {
   if (value === null || value === undefined) {
     value = 0;
@@ -24,7 +25,7 @@ const bencode = (value) => {
     return 'l' + value.map(bencode).join('') + 'e';
   }
   let out = 'd';
-  for (const prop in value) {
+  for (const prop of Object.keys(value).sort()) {
     out += bencode(prop) + bencode(value[prop]);
   }
   return out + 'e';

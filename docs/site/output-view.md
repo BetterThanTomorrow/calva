@@ -40,6 +40,22 @@ Word wrapping for evaluated code and results in the output views can be configur
 
 There is also a command for toggling word wrap in-session across both views: **Calva: Toggle REPL Output Word Wrap**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
 
+## Images
+
+When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.
+
+To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
+
+How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
+
+* `"images"` (default) – data URLs and local files are rendered as images. Remote URLs stay as text, with no network request.
+* `"raw"` – no images are rendered.
+* `"images-including-remote-urls"` – Images are rendered for data URLs, local files, and remote URLs.
+
+The command: **Calva: Cycle Output View Image Display** cycles in-session between `"images"` and `"raw"` across both views, if issued with no argument. Remote loading (`"images-including-remote-urls"`) is only reached through the setting or by passing that mode as an argument to the command.
+
+The output window, output file and terminal always show the raw text.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.

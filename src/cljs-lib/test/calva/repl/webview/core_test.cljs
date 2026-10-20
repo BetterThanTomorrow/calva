@@ -98,21 +98,26 @@
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
                                                              :css-href "css-href"
-                                                             :csp-source "csp-source"})]
+                                                             :csp-source "csp-source"
+                                                             :script-nonce "test-nonce"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 3 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: csp-source" result))
-      (is (= 1 (count (re-seq #"'unsafe-eval'" result))))
+      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (re-find #"img-src data: https: http: csp-source" result))
+      (is (re-find #"script-src 'unsafe-eval' 'nonce-test-nonce'" result))
+      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
-                                                              :csp-source "csp-source"})]
+                                                              :csp-source "csp-source"
+                                                              :script-nonce "test-nonce"})]
       (is (= 1 (count (re-seq #"js-source" result))))
       (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 3 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: csp-source" result))
+      (is (= 2 (count (re-seq #"csp-source" result))))
+      (is (re-find #"img-src data: https: http: csp-source" result))
+      (is (re-find #"script-src 'nonce-test-nonce'" result))
+      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
       (is (zero? (count (re-seq #"'unsafe-eval'" result))))
       (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given greeting html, should render it before, not inside, the output div"
@@ -121,34 +126,76 @@
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :greeting-html "GREETING-MARKER"}))))
   (testing "Given word-wrap is enabled, should add the word-wrap body class"
-    (is (re-find #"<body class=\"word-wrap\">"
+    (is (re-find #"<body class=\"word-wrap\" "
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :word-wrap? true}))))
   (testing "Given word-wrap is disabled, should not add the word-wrap body class"
-    (is (re-find #"<body>"
+    (is (re-find #"<body data-image-display="
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :word-wrap? false}))))
+  (testing "Given image-display \"raw\", should mark the body with data-image-display=\"raw\""
+    (is (re-find #"<body data-image-display=\"raw\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"
+                                        :image-display "raw"}))))
+  (testing "Given no image-display, should mark the body with data-image-display=\"images\""
+    (is (re-find #"<body data-image-display=\"images\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"}))))
+  (testing "Given word-wrap and image-display, should add both to the body"
+    (is (re-find #"<body class=\"word-wrap\" data-image-display=\"images\">"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:js-source "js-source"
+                                        :css-href "css-href"
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"
+                                        :word-wrap? true
+                                        :image-display "images"}))))
   (testing "Given a font-scale, should set the font scale css variable on the html element"
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
                                         :csp-source "csp-source"
+                                        :script-nonce "n"
                                         :font-scale 1.25}))))
   (testing "Given no font-scale, should default the font scale css variable to 1"
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
                                         :css-href "css-href"
-                                        :csp-source "csp-source"})))))
+                                        :csp-source "csp-source"
+                                        :script-nonce "n"})))))
+
+(deftest get-webview-html-csp-nonce-test
+  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source"
+    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
+                                                              :css-href "css-href"
+                                                              :csp-source "csp-source"
+                                                              :script-nonce "abc-123"})]
+      (is (re-find #"script-src 'nonce-abc-123'" result))
+      (is (re-find #"<script nonce=\"abc-123\" src=\"js-source\"></script>" result))
+      (is (re-find #"style-src[\s\S]*csp-source;" result))
+      (is (re-find #"img-src data: https: http: csp-source" result))
+      (is (nil? (re-find #"script-src js-source" result)))
+      (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -186,31 +233,41 @@
           as-webview-uri-spy (spy/stub "some-css-href")
           ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
                                                 :cspSource "some-csp-source"}})
-          get-webview-html-spy (spy/stub "some-html")]
-      (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
-                    sut/get-css-path (test-util/wrap-spy get-css-path-spy)
-                    greeting/logo-webview-uri (constantly "some-logo-href")
-                    greeting/html-for-view (constantly "some-greeting")
-                    sut/word-wrap? (constantly true)
-                    sut/get-output-views-font-scale-setting (constantly 1.5)
-                    sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
-        (sut/set-webview-html! context {:webview-panel webview-panel})
-        (testing "should call get-js-source with expected args"
-          (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-        (testing "should call get-css-path with expected args"
-          (is (spy/called-once-with? get-css-path-spy context)))
-        (testing "should call asWebviewUri once for the CSS"
-          (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
-        (testing "should call get-webview-html with expected args"
-          (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
-                                                                   :css-href "some-css-href"
-                                                                   :csp-source "some-csp-source"
-                                                                   :code-theme nil
-                                                                   :greeting-html "some-greeting"
-                                                                   :word-wrap? true
-                                                                   :font-scale 1.5})))
-        (testing "should set webview html to result of call to get-webview-html"
-          (is (= "some-html" (.. webview-panel -webview -html))))))))
+          get-webview-html-spy (spy/stub "some-html")
+          fixed-nonce "11111111-1111-1111-1111-111111111111"
+          crypto-mod (js/require "crypto")
+          orig-random-uuid (.-randomUUID crypto-mod)]
+      (set! (.-randomUUID crypto-mod) (fn [] fixed-nonce))
+      (try
+        (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
+                      sut/get-css-path (test-util/wrap-spy get-css-path-spy)
+                      greeting/logo-webview-uri (constantly "some-logo-href")
+                      greeting/html-for-view (constantly "some-greeting")
+                      sut/word-wrap? (constantly true)
+                      sut/get-output-views-font-scale-setting (constantly 1.5)
+                      sut/image-display (constantly "raw")
+                      sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
+          (sut/set-webview-html! context {:webview-panel webview-panel})
+          (testing "should call get-js-source with expected args"
+            (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
+          (testing "should call get-css-path with expected args"
+            (is (spy/called-once-with? get-css-path-spy context)))
+          (testing "should call asWebviewUri once for the CSS"
+            (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
+          (testing "should call get-webview-html with expected args including a script nonce"
+            (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
+                                                                     :css-href "some-css-href"
+                                                                     :csp-source "some-csp-source"
+                                                                     :script-nonce fixed-nonce
+                                                                     :code-theme nil
+                                                                     :greeting-html "some-greeting"
+                                                                     :word-wrap? true
+                                                                     :font-scale 1.5
+                                                                     :image-display "raw"})))
+          (testing "should set webview html to result of call to get-webview-html"
+            (is (= "some-html" (.. webview-panel -webview -html)))))
+        (finally
+          (set! (.-randomUUID crypto-mod) orig-random-uuid))))))
 
 (deftest set-code-theme!-test
   (testing "Given a context and a ColorThemeKind,"
@@ -314,21 +371,24 @@
           set-webview-html-spy (spy/spy)
           add-subscriptions-spy (spy/spy)
           initialize-webview-panel-spy (spy/spy)]
-      (with-redefs [sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
+      (with-redefs [util/vscode (atom nil)
+                    util/vscode-context (atom nil)
+                    sut/set-webview-html! (test-util/wrap-spy set-webview-html-spy)
                     sut/add-subscriptions! (test-util/wrap-spy add-subscriptions-spy)
                     sut/initialize-webview-panel (test-util/wrap-spy initialize-webview-panel-spy)]
         (let [result (sut/create-repl-output-webview-panel context)]
           (testing "should call createWebviewPanel with expected args"
             (let [calls (spy/calls create-webview-panel-spy)]
               (is (= 1 (count calls)))
-              (is (= '[("calva.output-view"
-                        "REPL Output"
-                        {:preserveFocus true, :viewColumn 1}
-                        {:enableScripts true
-                         :enableCommandUris ["calva.showReplOutputView"]
-                         :retainContextWhenHidden true
-                         :enableFindWidget true})]
-                     (js->clj calls :keywordize-keys true)))))
+              (is (= [["calva.output-view"
+                       "REPL Output"
+                       {:preserveFocus true, :viewColumn 1}
+                       {:enableScripts true
+                        :enableCommandUris ["calva.showReplOutputView"]
+                        :localResourceRoots []
+                        :retainContextWhenHidden true
+                        :enableFindWidget true}]]
+                     (mapv vec (js->clj calls :keywordize-keys true))))))
           (testing "should call initialize-webview-panel with expected args"
             (is (spy/called-once-with? initialize-webview-panel-spy context stub-webview-panel)))
           (testing "should return the webview panel"
@@ -677,6 +737,175 @@
                     sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/reset-font-size)
         (is (spy/called-once-with? post-message-to-webview-spy webview-a {:command/name "reset-font-size"}))))))
+
+(defn vscode-with-calva-setting
+  [setting-name setting-value]
+  #js {:workspace #js {:getConfiguration (fn [_section]
+                                           #js {:get (fn [setting]
+                                                       (when (= setting-name setting)
+                                                         setting-value))})}})
+
+(deftest get-image-display-setting-test
+  (testing "returns \"images\" when VS Code is not available"
+    (with-redefs [util/vscode (atom nil)]
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images\" when the setting is not set"
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" js/undefined))]
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images\" when the setting is \"images\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images"))]
+      (is (= "images" (sut/get-image-display-setting)))))
+  (testing "returns \"images-including-remote-urls\" when the setting is \"images-including-remote-urls\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "images-including-remote-urls"))]
+      (is (= "images-including-remote-urls" (sut/get-image-display-setting)))))
+  (testing "returns \"raw\" when the setting is \"raw\""
+    (with-redefs [util/vscode (atom (vscode-with-calva-setting "outputViewImageDisplay" "raw"))]
+      (is (= "raw" (sut/get-image-display-setting))))))
+
+(deftest image-display-test
+  (testing "uses the setting when there is no override"
+    (with-redefs [sut/image-display-override (atom nil)
+                  sut/get-image-display-setting (constantly "raw")]
+      (is (= "raw" (sut/image-display)))))
+  (testing "uses the override when present"
+    (with-redefs [sut/image-display-override (atom "images")
+                  sut/get-image-display-setting (constantly "raw")]
+      (is (= "images" (sut/image-display))))))
+
+(deftest set-image-display-context!-test
+  (testing "sets the output view image display context"
+    (let [execute-command-spy (spy/spy)
+          vscode (clj->js {:commands {:executeCommand (test-util/wrap-spy execute-command-spy)}})]
+      (with-redefs [util/vscode (atom vscode)]
+        (sut/set-image-display-context! "raw")
+        (is (spy/called-once-with? execute-command-spy "setContext" "calva:outputViewImageDisplay" "raw"))))))
+
+(deftest post-image-display-to-all-views!-test
+  (testing "posts a set-image-display message to all registered webviews"
+    (let [post-message-to-webview-spy (spy/spy)
+          webview-a #js {}
+          webview-b #js {}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/post-image-display-to-all-views! "raw")
+        (is (spy/called-with? post-message-to-webview-spy webview-a {:command/name "set-image-display"
+                                                                     :image-display "raw"}))
+        (is (spy/called-with? post-message-to-webview-spy webview-b {:command/name "set-image-display"
+                                                                     :image-display "raw"}))
+        (is (spy/called-n-times? post-message-to-webview-spy 2))))))
+
+(deftest image-display-modes-start-at-default-test
+  (testing "valid modes still include remote; the cycle list is images then raw"
+    (is (= "images" sut/default-image-display))
+    (is (= "images" (first sut/image-display-modes)))
+    (is (= ["images" "raw" "images-including-remote-urls"] sut/image-display-modes))
+    (is (= ["images" "raw"] sut/image-display-cycle-modes))))
+
+(deftest cycle-image-display-test
+  (testing "cycles remote setting to images, not through the cycle button path to remote"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images"))
+        (is (spy/called-once-with? post-spy "images")))))
+  (testing "flips images to raw in the override, the context and all views"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display)
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "cycles raw back to images"
+    (let [post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom "raw")
+                    sut/get-image-display-setting (constantly "images")
+                    sut/set-image-display-context! (constantly nil)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? post-spy "images")))))
+  (testing "passing raw selects raw when setting is remote and override is nil"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display "raw")
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "passing an invalid mode leaves override in place and does not set context or post"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display "nope")
+        (is (= "images" @sut/image-display-override))
+        (is (spy/not-called? set-context-spy))
+        (is (spy/not-called? post-spy)))))
+  (testing "a non-string argument cycles, the way the sidebar button calls the command"
+    (let [set-context-spy (spy/spy)
+          post-spy (spy/spy)]
+      (with-redefs [sut/image-display-override (atom nil)
+                    sut/get-image-display-setting (constantly "images-including-remote-urls")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+        (sut/cycle-image-display nil)
+        (is (= "images" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images"))
+        (is (spy/called-once-with? post-spy "images"))))))
+
+(deftest create-image-display-change-listener-test
+  (let [captured-handler (atom nil)
+        vscode-stub #js {:workspace #js {:onDidChangeConfiguration (fn [handler]
+                                                                     (reset! captured-handler handler)
+                                                                     "some-listener")}}
+        event-for (fn [affected-section]
+                    #js {:affectsConfiguration #(= affected-section %)})]
+    (testing "clears the override and posts the setting when calva.outputViewImageDisplay changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [util/vscode (atom vscode-stub)
+                      sut/image-display-override (atom "raw")
+                      sut/get-image-display-setting (constantly "images")
+                      sut/set-image-display-context! (constantly nil)
+                      sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+          (is (= "some-listener" (sut/create-image-display-change-listener)))
+          (@captured-handler (event-for "calva.outputViewImageDisplay"))
+          (is (nil? @sut/image-display-override))
+          (is (spy/called-once-with? post-spy "images")))))
+    (testing "ignores other configuration changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [util/vscode (atom vscode-stub)
+                      sut/image-display-override (atom "raw")
+                      sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
+          (sut/create-image-display-change-listener)
+          (@captured-handler (event-for "calva.outputViews.wordWrap"))
+          (is (= "raw" @sut/image-display-override))
+          (is (spy/not-called? post-spy)))))))
+
+(deftest init-image-display!-test
+  (testing "sets the context and registers the configuration change listener as a subscription"
+    (let [push-spy (spy/spy)
+          set-context-spy (spy/spy)
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [util/vscode-context (atom vscode-context-stub)
+                    sut/image-display (constantly "images")
+                    sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
+                    sut/create-image-display-change-listener (constantly "some-listener")]
+        (sut/init-image-display!)
+        (is (spy/called-once-with? set-context-spy "images"))
+        (is (spy/called-once-with? push-spy "some-listener"))))))
 
 (deftest init-font-size-scale!-test
   (testing "registers a configuration change listener as a subscription"

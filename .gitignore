@@ -88,8 +88,10 @@ output.calva-repl
 **/.calva/repl.calva-repl
 **/.calva/mcp-server/port
 
-# MkDocs
+# Docs site output
 /site/
+
+# Tool caches
 .cache/
 
 # Calva dev
@@ -108,7 +110,7 @@ ephemeral-docs/
 *~
 
 **/.cljs_node_repl/
-.venv-docs/
 
 
 **/.eca/config.json
+.tmp/

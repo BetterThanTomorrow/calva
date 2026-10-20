@@ -3,7 +3,7 @@
   "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
   "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
   "icon": "assets/calva.png",
-  "version": "2.0.599",
+  "version": "2.0.601",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -61,7 +61,8 @@
     "workspaceContains:**/project.clj",
     "workspaceContains:**/shadow-cljs.edn",
     "workspaceContains:**/deps.edn",
-    "onDebugResolve:type"
+    "workspaceContains:**/bb.edn",
+    "onDebugResolve:clojure"
   ],
   "main": "./out/extension",
   "capabilities": {
@@ -361,6 +362,21 @@
             ],
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
+          },
+          "calva.outputViewImageDisplay": {
+            "type": "string",
+            "enum": [
+              "images",
+              "raw",
+              "images-including-remote-urls"
+            ],
+            "enumDescriptions": [
+              "Show image data URLs and local image files as thumbnails. Remote URLs stay as text.",
+              "Show the raw text, as printed, with no thumbnails.",
+              "Show image data URLs, local image files, and remote image URLs as thumbnails."
+            ],
+            "default": "images",
+            "markdownDescription": "How the Output views show images in REPL output: data URLs, local files, and remote URLs. The default is local only, so printing untrusted data does not make network requests on its own. The output window, output file and terminal always show the raw text. **Calva: Cycle Output View Image Display** switches between local images and raw for the session; remote loading is only via this setting or an explicit command argument."
           },
           "calva.fiddleFilePaths": {
             "type": "array",
@@ -1852,6 +1868,12 @@
         "title": "Toggle REPL Output Word Wrap",
         "category": "Calva",
         "icon": "$(word-wrap)"
+      },
+      {
+        "command": "calva.cycleOutputViewImageDisplay",
+        "title": "Cycle Output View Image Display",
+        "category": "Calva",
+        "icon": "$(file-media)"
       },
       {
         "command": "calva.decreaseOutputViewFontSize",
@@ -3824,9 +3846,14 @@
           "group": "navigation@3"
         },
         {
-          "command": "calva.clearReplOutputSidebar",
+          "command": "calva.cycleOutputViewImageDisplay",
           "when": "view == calva.output-sidebar",
           "group": "navigation@4"
+        },
+        {
+          "command": "calva.clearReplOutputSidebar",
+          "when": "view == calva.output-sidebar",
+          "group": "navigation@5"
         },
         {
           "command": "calva.pasteAsInspectorItem",
@@ -3918,7 +3945,7 @@
     ]
   },
   "scripts": {
-    "watch-docs": "python3 -m venv .venv-docs && . .venv-docs/bin/activate && pip install -q -r requirements.txt && mkdocs serve --livereload",
+    "watch-docs": "cd docs-builder && clojure -M:serve",
     "clean": "rimraf ./out ./tsconfig.tsbuildinfo ./cljs-out ./repl-output-ui/js",
     "precompile": "npm i && npm run clean",
     "compile-cljs": "npx shadow-cljs -A:dev:test compile :calva-lib :test :repl-output-ui",
