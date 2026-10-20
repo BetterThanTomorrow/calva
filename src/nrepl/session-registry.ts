@@ -15,6 +15,10 @@ export interface SessionMetadata {
   lastActivity?: number;
 }
 
+type SessionWithMetadata = nrepl.NReplSession & {
+  _calvaSessionMetadata?: SessionMetadata;
+};
+
 const registeredSessions = new Map<string, nrepl.NReplSession>();
 export type SessionChangeEvent =
   | { type: 'registered'; key: string }
@@ -66,16 +70,28 @@ export function getSession(key: string): nrepl.NReplSession | undefined {
 
 export function unregisterSession(key: string): void {
   const session = registeredSessions.get(key);
-  const metadata = (session as any)?._calvaSessionMetadata as SessionMetadata | undefined;
-  const clientKey = metadata?.connectionOwnerId ?? session?.client?.clientKey;
-
   const wasRegistered = registeredSessions.delete(key);
-
   sessionEvents.fireSessionsChanged({
     type: 'session-removed',
     sessionKey: key,
-    clientKey,
+    clientKey: getSessionClientKey(session),
   });
+  notifySessionUnregistered(wasRegistered, key);
+}
+
+function getSessionClientKey(session: nrepl.NReplSession | undefined): string | undefined {
+  return getSessionMetadataOwnerKey(session) ?? getSessionClientFallbackKey(session);
+}
+
+function getSessionMetadataOwnerKey(session: nrepl.NReplSession | undefined): string | undefined {
+  return (session as SessionWithMetadata | undefined)?._calvaSessionMetadata?.connectionOwnerId;
+}
+
+function getSessionClientFallbackKey(session: nrepl.NReplSession | undefined): string | undefined {
+  return session?.client?.clientKey;
+}
+
+function notifySessionUnregistered(wasRegistered: boolean, key: string): void {
   if (wasRegistered) {
     fireSessionChange({ type: 'unregistered', key });
   }

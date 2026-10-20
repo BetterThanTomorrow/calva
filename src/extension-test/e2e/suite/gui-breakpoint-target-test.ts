@@ -8,14 +8,19 @@ import {
 
 const { describe, it } = Mocha;
 
+async function createBreakpointDocument() {
+  await vscode.extensions.getExtension('betterthantomorrow.calva')?.activate();
+  const document = await vscode.workspace.openTextDocument({
+    language: 'clojure',
+    content: '(first) (second)\n(outer (nested))',
+  });
+  await vscode.window.showTextDocument(document);
+  return document;
+}
+
 describe('GUI breakpoint target resolution', () => {
   it('resolves a line breakpoint to the last form on its line', async () => {
-    await vscode.extensions.getExtension('betterthantomorrow.calva')?.activate();
-    const document = await vscode.workspace.openTextDocument({
-      language: 'clojure',
-      content: '(first) (second)\n(outer (nested))',
-    });
-    await vscode.window.showTextDocument(document);
+    const document = await createBreakpointDocument();
     const breakpoint = new vscode.SourceBreakpoint(
       new vscode.Location(document.uri, new vscode.Position(0, 0)),
       true
@@ -28,12 +33,7 @@ describe('GUI breakpoint target resolution', () => {
   });
 
   it('resolves a positioned breakpoint to its nested form and reports form ranges', async () => {
-    await vscode.extensions.getExtension('betterthantomorrow.calva')?.activate();
-    const document = await vscode.workspace.openTextDocument({
-      language: 'clojure',
-      content: '(first) (second)\n(outer (nested))',
-    });
-    await vscode.window.showTextDocument(document);
+    const document = await createBreakpointDocument();
     const breakpoint = new vscode.SourceBreakpoint(
       new vscode.Location(document.uri, new vscode.Position(1, 8)),
       true

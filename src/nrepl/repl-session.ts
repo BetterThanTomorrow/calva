@@ -202,54 +202,74 @@ function resolveCljcWithinConnection(
  */
 function getRoutingInfo(document?: vscode.TextDocument): RoutingResult | undefined {
   const doc = utilities.tryToGetDocument(document ?? {});
+  return (
+    getPinnedRoutingInfo() ??
+    getReplWindowRoutingInfo(doc) ??
+    getGlobRoutingInfo(doc) ??
+    getFirstAvailableRoutingInfo(doc)
+  );
+}
 
-  // 1. Pinned session takes priority
-  const pinnedSession = sessionRouting.resolvePinnedSession();
-  if (pinnedSession && sessionRegistry.getSession(pinnedSession)) {
-    return { sessionKey: pinnedSession, reason: { type: 'pinned' } };
+function getPinnedRoutingInfo(): RoutingResult | undefined {
+  const sessionKey = sessionRouting.resolvePinnedSession();
+  return sessionKey && sessionRegistry.getSession(sessionKey)
+    ? { sessionKey, reason: { type: 'pinned' } }
+    : undefined;
+}
+
+function getReplWindowRoutingInfo(doc: vscode.TextDocument): RoutingResult | undefined {
+  if (!outputWindow.isReplWindowDoc(doc)) {
+    return undefined;
   }
+  const sessionKey = outputWindow.getSessionType();
+  return sessionKey && sessionRegistry.getSession(sessionKey)
+    ? { sessionKey, reason: { type: 'repl-window' } }
+    : undefined;
+}
 
-  // 2. Repl window doc has its own session setting
-  if (outputWindow.isReplWindowDoc(doc)) {
-    const sessionKey = outputWindow.getSessionType();
-    if (sessionKey && sessionRegistry.getSession(sessionKey)) {
-      return { sessionKey, reason: { type: 'repl-window' } };
-    }
-  }
-
-  // 3. Glob pattern matching
+function getGlobRoutingInfo(doc: vscode.TextDocument): RoutingResult | undefined {
   const globMatch = findSessionKeyForDocument(doc);
-  if (globMatch && sessionRegistry.getSession(globMatch.sessionKey)) {
-    // For files landing in project-fallback, apply per-connection cljc preference
-    // This includes .cljc, .fiddle, and any other unclaimed file types
-    if (globMatch.tier === 'project-fallback') {
-      const cljcResolved = resolveCljcWithinConnection(globMatch.sessionKey, doc);
-      if (cljcResolved) {
-        return { sessionKey: cljcResolved, reason: { type: 'cljc-within-connection' } };
-      }
-    }
-    return {
-      sessionKey: globMatch.sessionKey,
-      reason: {
-        type: 'glob-match',
-        tier: globMatch.tier,
-        matchingPattern: globMatch.matchingPattern,
-      },
-    };
+  if (!globMatch || !sessionRegistry.getSession(globMatch.sessionKey)) {
+    return undefined;
   }
-
-  // 4. First available session with cljc preference applied
-  // Even when no globs match, respect the user's cljc target preference
-  const sessions = sessionRegistry.listSessions();
-  if (sessions[0]?.key) {
-    const cljcResolved = resolveCljcWithinConnection(sessions[0].key, doc);
-    if (cljcResolved) {
-      return { sessionKey: cljcResolved, reason: { type: 'cljc-within-connection' } };
-    }
-    return { sessionKey: sessions[0].key, reason: { type: 'first-available' } };
+  const cljcRouting =
+    globMatch.tier === 'project-fallback'
+      ? getCljcRoutingInfo(globMatch.sessionKey, doc)
+      : undefined;
+  if (cljcRouting) {
+    return cljcRouting;
   }
+  return {
+    sessionKey: globMatch.sessionKey,
+    reason: {
+      type: 'glob-match',
+      tier: globMatch.tier,
+      matchingPattern: globMatch.matchingPattern,
+    },
+  };
+}
 
-  return undefined;
+function getFirstAvailableRoutingInfo(doc: vscode.TextDocument): RoutingResult | undefined {
+  const sessionKey = sessionRegistry.listSessions()[0]?.key;
+  if (!sessionKey) {
+    return undefined;
+  }
+  return (
+    getCljcRoutingInfo(sessionKey, doc) ?? {
+      sessionKey,
+      reason: { type: 'first-available' },
+    }
+  );
+}
+
+function getCljcRoutingInfo(
+  sessionKey: string,
+  doc: vscode.TextDocument
+): RoutingResult | undefined {
+  const cljcSessionKey = resolveCljcWithinConnection(sessionKey, doc);
+  return cljcSessionKey
+    ? { sessionKey: cljcSessionKey, reason: { type: 'cljc-within-connection' } }
+    : undefined;
 }
 
 /**
