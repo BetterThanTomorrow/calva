@@ -121,6 +121,63 @@ suite('Jack-in and Connect suite', () => {
     );
   });
 
+  test('disableAutoSelect without a sequence shows the Project Root menu', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'disableAutoSelect without a sequence');
+
+    const testFilePath = path.join(testUtil.testDataDir, 'bb-mini/test.clj');
+    await testUtil.openFile(testFilePath);
+
+    const candidateRoots = await projectRoot.findProjectRoots();
+    const closestRoot = projectRoot.findClosestParent(
+      vscode.window.activeTextEditor?.document.uri,
+      candidateRoots
+    );
+    assert.ok(closestRoot, 'bb-mini/test.clj should sit in a project root');
+    assert.ok(
+      closestRoot.fsPath.endsWith(`${path.sep}bb-mini`),
+      `expected the bb-mini root, got ${closestRoot.fsPath}`
+    );
+
+    await state.extensionContext.workspaceState.update(
+      `qps-${closestRoot.toString()}/jack-in-type`,
+      {
+        label: 'Babashka',
+      }
+    );
+
+    let settled = false;
+    const jackInDone = Promise.resolve(
+      vscode.commands.executeCommand('calva.jackIn', { disableAutoSelect: true })
+    ).finally(() => {
+      settled = true;
+    });
+
+    const deadline = Date.now() + 25_000;
+    while (!settled && Date.now() < deadline) {
+      try {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+      } catch {
+        // The menu is not open yet.
+      }
+      await testUtil.sleep(200);
+    }
+
+    await jackInDone;
+    assert.ok(settled, 'jack-in did not finish after the menus were accepted');
+
+    const clientKey = await waitForNextClient(suite);
+    await waitForJackInCompletion(suite);
+    await waitForSessionsReady(suite, clientKey);
+
+    const client = clientRegistry.getRegisteredClient(clientKey);
+    assert.ok(client, 'jack-in should connect a client');
+    assert.strictEqual(client.projectRoot, closestRoot.toString());
+    assert.strictEqual(client.connectSequenceName, 'Babashka');
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
   test('Jack-in works with auto-selected project type', async () => {
     testUtil.log(suite, 'Reconnect: auto-selected project type');
 

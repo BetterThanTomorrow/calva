@@ -198,7 +198,7 @@ export async function initProjectDir(
     connectSequences.getCustomConnectSequences();
 
   const defaultSequences = disableAutoSelect
-    ? [connectSequence]
+    ? []
     : sequences.filter((s) =>
         connectType === connectTypes.ConnectType.Connect
           ? s.autoSelectForConnect
