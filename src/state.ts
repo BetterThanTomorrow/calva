@@ -9,6 +9,12 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 import * as connectSequences from './nrepl/connectSequence';
 import * as connectTypes from './nrepl/connect-types';
+import {
+  decideProjectRoot,
+  RootDecision,
+  RootDecisionInput,
+  SequenceForRootDecision,
+} from './project-root-decision';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -153,6 +159,68 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
   return undefined;
 }
 
+function sequenceRootKey(projectRootPath?: string[]): string | undefined {
+  if (!projectRootPath?.length) {
+    return undefined;
+  }
+  return vscode.workspace.asRelativePath(path.join(...projectRootPath));
+}
+
+function sequenceForDecision(
+  sequence: connectSequences.ReplConnectSequence
+): SequenceForRootDecision {
+  return { sequence, rootKey: sequenceRootKey(sequence.projectRootPath) };
+}
+
+/**
+ * The inputs for one root decision: candidate roots, the active file's closest
+ * root, and the caller's asRelativePath keys.
+ */
+export async function gatherRootDecision(
+  connectType: connectTypes.ConnectType,
+  connectSequence: connectSequences.ReplConnectSequence | undefined,
+  disableAutoSelect: boolean
+): Promise<{ input: RootDecisionInput; candidateUris: vscode.Uri[] }> {
+  const candidateUris = await projectRoot.findProjectRoots();
+  const activeUri = vscode.window.activeTextEditor?.document.uri;
+  const closest = activeUri ? projectRoot.findClosestParent(activeUri, candidateUris) : undefined;
+  return {
+    candidateUris,
+    input: {
+      connectType: connectType === connectTypes.ConnectType.Connect ? 'connect' : 'jack-in',
+      passedSequence: connectSequence ? sequenceForDecision(connectSequence) : undefined,
+      disableAutoSelect,
+      sequences: connectSequences.getCustomConnectSequences().map(sequenceForDecision),
+      candidateRoots: candidateUris.map((uri) => uri.fsPath),
+      closestRoot: closest?.fsPath,
+      closestRootKey: closest ? vscode.workspace.asRelativePath(closest) : undefined,
+      workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map(
+        (folder) => folder.uri.fsPath
+      ),
+    },
+  };
+}
+
+async function uriFromRootDecision(
+  decision: RootDecision,
+  candidateUris: vscode.Uri[],
+  connectType: connectTypes.ConnectType
+): Promise<vscode.Uri | undefined> {
+  if ('root' in decision) {
+    return (
+      candidateUris.find((uri) => uri.fsPath === decision.root) ?? vscode.Uri.file(decision.root)
+    );
+  }
+  if ('ask' in decision) {
+    const preselect = decision.ask.preselect
+      ? candidateUris.find((uri) => uri.fsPath === decision.ask.preselect) ??
+        vscode.Uri.file(decision.ask.preselect)
+      : undefined;
+    return projectRoot.pickProjectRoot(candidateUris, preselect, connectType);
+  }
+  return undefined;
+}
+
 /**
  * Figures out the current clojure project root, and stores it in Calva state
  */
@@ -161,70 +229,18 @@ export async function initProjectDir(
   connectSequence: connectSequences.ReplConnectSequence,
   disableAutoSelect = false
 ) {
-  // When a connectSequence with projectRootPath is explicitly provided, use it directly
-  // This supports programmatic multi-connection flows
-  if (connectSequence?.projectRootPath?.length > 0) {
-    const projectRootPath = util.resolveFileArgToUri(
-      connectSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-    if (projectRootPath) {
-      console.log('Setting project root to: ', projectRootPath.fsPath);
-      void vscode.commands.executeCommand(
-        'setContext',
-        'calva:projectRoot',
-        projectRootPath.fsPath
-      );
-      await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-      await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-      return projectRootPath;
-    }
-  }
-
-  // Otherwise, use auto-selection logic
-  const candidatePaths = await projectRoot.findProjectRoots();
-  const active_uri = vscode.window.activeTextEditor?.document.uri;
-  const closestRootPath: vscode.Uri = active_uri
-    ? projectRoot.findClosestParent(active_uri, candidatePaths)
-    : undefined;
-
-  const sequences: connectSequences.ReplConnectSequence[] =
-    connectSequences.getCustomConnectSequences();
-
-  const defaultSequences = disableAutoSelect
-    ? []
-    : sequences.filter((s) =>
-        connectType === connectTypes.ConnectType.Connect
-          ? s.autoSelectForConnect
-          : s.autoSelectForJackIn
-      );
-  const defaultSequence =
-    defaultSequences.find(
-      (s) =>
-        s.projectRootPath &&
-        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-          vscode.workspace.asRelativePath(closestRootPath)
-    ) || defaultSequences.shift();
-
-  let projectRootPath: vscode.Uri;
-  if (defaultSequence?.projectRootPath?.length > 0) {
-    projectRootPath = util.resolveFileArgToUri(
-      defaultSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-  } else {
-    projectRootPath = await projectRoot.pickProjectRoot(
-      candidatePaths,
-      closestRootPath,
-      connectType
-    );
-  }
-  if (projectRootPath) {
-    console.log('Setting project root to: ', projectRootPath.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-    return projectRootPath;
+  const { input, candidateUris } = await gatherRootDecision(
+    connectType,
+    connectSequence,
+    disableAutoSelect
+  );
+  const chosen = await uriFromRootDecision(decideProjectRoot(input), candidateUris, connectType);
+  if (chosen) {
+    console.log('Setting project root to: ', chosen.fsPath);
+    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', chosen.fsPath);
+    await cljsLib.setStateValue(PROJECT_DIR_KEY, chosen.fsPath);
+    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, chosen);
+    return chosen;
   }
   return setOrCreateNonProjectRoot(extensionContext, true);
 }
