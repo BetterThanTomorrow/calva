@@ -61,7 +61,12 @@ suite('Jack-in and Connect suite', () => {
 
     const testFilePath = await startJackInProcedure(suite, 'calva.jackIn', 'deps.edn', 'test.clj');
 
-    await loadAndAssert(suite, testFilePath, ['; bar', 'nil', 'clj꞉test꞉> ']);
+    await loadAndAssert(suite, testFilePath, [
+      '; This is the Calva REPL Window.',
+      '; bar',
+      'nil',
+      'clj꞉test꞉> ',
+    ]);
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');

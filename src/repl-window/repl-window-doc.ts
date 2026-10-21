@@ -76,6 +76,7 @@ function computeDocUri(): vscode.Uri {
 }
 
 let _docUri: vscode.Uri | undefined;
+let isInitialized = false;
 
 function getDocUri(): vscode.Uri {
   if (!_docUri) {
@@ -381,7 +382,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   if (config.getConfig().autoOpenResultOutputDestination) {
     void output.showResultOutputDestination(true);
   }
-  if (_docUri) {
+  if (isInitialized) {
     return doc;
   }
 
@@ -404,6 +405,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
+  isInitialized = true;
   return doc;
 }
 
