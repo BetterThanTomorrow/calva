@@ -1,13 +1,12 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
 import * as fileArg from '../util/resolve-file-arg';
 import * as config from '../config';
 import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
-import * as projectRoot from '../project-root';
 import * as csTypes from './connect-sequence-types';
+import { decideProjectRoot } from '../project-root-decision';
 
 // Project types that only support connect (not jack-in)
 // These have no commandLine and no startFunction in project-types.ts
@@ -404,55 +403,35 @@ function getDefaultCljsType(cljsType: string): csTypes.CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
-async function getUserSpecifiedSequence(
+async function autoSelectedSequence(
   sequences: csTypes.ReplConnectSequence[],
   connectType: connectTypes.ConnectType,
   disableAutoSelect: boolean
 ): Promise<csTypes.ReplConnectSequence | undefined> {
-  const autoSelectedSequences = disableAutoSelect
-    ? []
-    : sequences.filter((s) =>
-        connectType === connectTypes.ConnectType.Connect
-          ? s.autoSelectForConnect
-          : s.autoSelectForJackIn
-      );
-  const candidatePaths = await projectRoot.findProjectRoots();
-  const active_uri = vscode.window.activeTextEditor?.document.uri;
-  const closestRootPath: vscode.Uri = active_uri
-    ? projectRoot.findClosestParent(active_uri, candidatePaths)
-    : undefined;
-  const autoSelectedSequence =
-    autoSelectedSequences.find(
-      (s) =>
-        s.projectRootPath &&
-        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-          vscode.workspace.asRelativePath(closestRootPath)
-    ) || autoSelectedSequences.shift();
-  const userSpecifiedProjectType = autoSelectedSequence?.name;
-
-  if (userSpecifiedProjectType) {
-    const builtInSequence = sequences.find(
-      (s) => s.name.toLocaleLowerCase() === userSpecifiedProjectType.toLocaleLowerCase()
-    );
-
-    if (builtInSequence) {
-      output.appendLineOtherOut(
-        [
-          `Auto-selecting project type "${builtInSequence.name}".`,
-          `You can change this from settings:`,
-          connectSequencesDocLink,
-          '\n',
-        ].join('\n')
-      );
-
-      return builtInSequence;
-    } else {
-      output.appendLineOtherErr(`Project type "${userSpecifiedProjectType}" not found.`);
-      output.appendLineOtherOut(
-        [`You need to update the auto-select setting.`, connectSequencesDocLink, '\n'].join('\n')
-      );
-    }
+  const { input } = await state.gatherRootDecision(connectType, undefined, disableAutoSelect);
+  const decidedName = decideProjectRoot(input).sequence?.name;
+  if (!decidedName) {
+    return undefined;
   }
+  const builtInSequence = sequences.find(
+    (s) => s.name.toLocaleLowerCase() === decidedName.toLocaleLowerCase()
+  );
+  if (builtInSequence) {
+    output.appendLineOtherOut(
+      [
+        `Auto-selecting project type "${builtInSequence.name}".`,
+        `You can change this from settings:`,
+        connectSequencesDocLink,
+        '\n',
+      ].join('\n')
+    );
+    return builtInSequence;
+  }
+  output.appendLineOtherErr(`Project type "${decidedName}" not found.`);
+  output.appendLineOtherOut(
+    [`You need to update the auto-select setting.`, connectSequencesDocLink, '\n'].join('\n')
+  );
+  return undefined;
 }
 
 async function askForConnectSequence(
@@ -469,7 +448,7 @@ async function askForConnectSequence(
   const projectRootUri = state.getProjectRootUri();
   const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
 
-  const builtInSequence = await getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
+  const builtInSequence = await autoSelectedSequence(sequences, connectType, disableAutoSelect);
 
   let projectConnectSequenceName = builtInSequence?.name;
 
