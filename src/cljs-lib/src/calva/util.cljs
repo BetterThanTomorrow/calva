@@ -1,23 +1,7 @@
-(ns calva.util
-  (:require [calva.state :as state]))
+(ns calva.util)
 
 (defonce vscode (atom nil))
 (defonce vscode-context (atom nil))
-
-(def project-root-uri-key "connect.projectDirNew")
-
-(defn get-first-workspace-folder-uri []
-  (some-> ^js @vscode .-workspace .-workspaceFolders first .-uri))
-
-(defn ^:export get-project-root-uri
-  ([]
-   (get-project-root-uri true))
-  ([use-cache]
-   (if use-cache
-     (if-let [project-directory-uri (state/get-state-value project-root-uri-key)]
-       project-directory-uri
-       (get-first-workspace-folder-uri))
-     (get-first-workspace-folder-uri))))
 
 (defn ^:export initialize-cljs
   "This is meant to be called upon extension activation, and will store the vscode api reference and the context in atoms.

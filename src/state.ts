@@ -98,28 +98,22 @@ const PROJECT_DIR_KEY = 'connect.projectDir';
 const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
 
-export function getProjectRootLocal(useCache = true): string | undefined {
-  if (useCache) {
-    return cljsLib.getStateValue(PROJECT_DIR_KEY);
-  }
+export function getProjectRootLocal(): string | undefined {
+  return cljsLib.getStateValue(PROJECT_DIR_KEY);
 }
 
-export function getProjectConfig(useCache = true) {
-  if (useCache) {
-    return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
-  }
+export function getProjectConfig() {
+  return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
 }
 
 export function setProjectConfig(config) {
   return cljsLib.setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
-  if (useCache) {
-    const res = cljsLib.getStateValue(PROJECT_DIR_URI_KEY);
-    if (res) {
-      return res;
-    }
+export function getProjectRootUri(): vscode.Uri | undefined {
+  const res = cljsLib.getStateValue(PROJECT_DIR_URI_KEY);
+  if (res) {
+    return res;
   }
   if (vscode.workspace.workspaceFolders) {
     return vscode.workspace.workspaceFolders[0].uri;

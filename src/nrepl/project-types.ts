@@ -58,36 +58,6 @@ function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnect
   return path.join(...portFileSegments);
 }
 
-/**
- * If you know that you're using the local machine to access the nREPL port file,
- * you can use this method. It returns an absolute path to the right file. In case
- * you may be dealing with a remote scenario (e.g. live share), you should use
- * `nreplPortFileUri()` instead.
- */
-export function nreplPortFileLocalPath(
-  connectSequence: connectSequences.ReplConnectSequence
-): string {
-  const relativePath = nreplPortFileRelativePath(connectSequence);
-  let projectRoot = state.getProjectRootLocal();
-  if (connectSequence?.projectRootPath?.length > 0) {
-    const resolved = utilities.resolveFileArgToUri(
-      connectSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-    if (resolved) {
-      projectRoot = resolved.fsPath;
-    }
-  }
-  if (projectRoot) {
-    try {
-      return path.resolve(projectRoot, relativePath);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  return relativePath;
-}
-
 export function nreplPortFileUri(
   connectSequence: connectSequences.ReplConnectSequence
 ): vscode.Uri {
