@@ -539,12 +539,16 @@ const projectTypes: { [id: string]: ProjectType } = {
         );
 
       if (selectedBuilds && selectedBuilds.length) {
+        const leinOptions = await leinCommandLine(
+          ['shadow', 'watch', ...selectedBuilds],
+          cljsType,
+          connectSequence
+        );
         return {
-          args: leinCommandLine(['shadow', 'watch', ...selectedBuilds], cljsType, connectSequence),
+          args: leinOptions.args,
           substitutions: {
+            ...leinOptions.substitutions,
             'CLJS-LAUNCH-BUILDS': selectedBuilds,
-            ...dependenciesToSubstitutions(cljsDependencies()[cljsType]),
-            ...serverPrinterDependencies,
           },
         };
       } else {
