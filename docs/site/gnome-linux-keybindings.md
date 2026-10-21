@@ -1,7 +1,5 @@
-
-
 ---
-title: Gnome Linux Keybindings
+title: Gnome/Linux Keybindings
 description: Some keybindings to make it easier for Gnome Linux users
 ---
 
@@ -95,7 +93,7 @@ Add the JSON below to your VS Code keybindings.json file.
         "when": "calva:keybindingsEnabled && editorTextFocus && !calva:cursorInComment && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
     },
 
-    
+
     // in Gnome, ctrl+shift+alt+right, ctrl+shift+alt+left moves the workspace
     {
         "key": "ctrl+shift+alt+right",

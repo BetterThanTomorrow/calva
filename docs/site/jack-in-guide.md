@@ -82,9 +82,9 @@ For ClojureScript, things are not done yet, though, far from it. It turns out th
 In order for Calva to provide REPL power for ClojureScript projects, several things need to happen:
 
 1. A Clojure nREPL connection needs to be established. We've covered that above. Calva makes an nREPL session clone to use for the ClojureScript REPL and then:
-   1. Your ClojureScript app needs to be compiled.
-   1. Your ClojureScript app needs to be started.
-   1. The Clojure nREPL session needs to be promoted to a ClojureScript nREPL session. (This is what piggieback helps with.)
+    1. Your ClojureScript app needs to be compiled.
+    1. Your ClojureScript app needs to be started.
+    1. The Clojure nREPL session needs to be promoted to a ClojureScript nREPL session. (This is what piggieback helps with.)
 
 ### Compiling the App and Watchers
 
@@ -139,7 +139,7 @@ It is the piggieback middleware there telling you that you can unpromote the REP
 
 Because Calva uses the Clojure REPL connection to spawn the ClojureScript REPL, and because Calva only handles one Clojure REPL per VS Code window, some projects need special handling by the user.
 
-If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session! See also [connect shadow-cljs in fullstack projects](connect.md#shadow-cljs-in-full-stack-projects).
+If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, maybe you first try to Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session! See also [connect shadow-cljs in fullstack projects](shadow-cljs.md#shadow-cljs-in-full-stack-projects).
 
 See [Workspace Layouts](workspace-layouts.md) for tips about how to open the same project folder in two separate VS Code windows.
 

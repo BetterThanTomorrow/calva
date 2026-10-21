@@ -9,6 +9,8 @@ jobs:
 - prettier-check: {requires: [checkout]}
 - build:          {requires: [checkout]}
 
+- test-docs-builder
+
 - eslint-check:          {requires: [build]}
 - test-cljslib:          {requires: [build]}
 - test-e2e:              {requires: [build]}
