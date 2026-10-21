@@ -28,6 +28,10 @@ import {
 import { UnsupportedWarningState } from './unsupported-warning-state';
 import { advanceAfterDisconnect } from './disconnect-action';
 import {
+  routeSourceBreakpointStop,
+  shouldExposeSourceBreakpointStop as shouldExposeSourceBreakpointStopDecision,
+} from './source-breakpoint-stop';
+import {
   insertBreakpointForms,
   insertDebugScopes,
   isBreakpointSupported,
@@ -651,11 +655,11 @@ function exposeOrAdvanceStop(
     return;
   }
   void shouldExposeSourceBreakpointStop(response).then((isTargetStop) => {
-    if (isTargetStop) {
-      void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
-    } else {
-      advanceToNextGuiBreakpoint(response);
-    }
+    routeSourceBreakpointStop(
+      isTargetStop,
+      () => void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION),
+      () => advanceToNextGuiBreakpoint(response)
+    );
   });
 }
 
@@ -703,35 +707,19 @@ async function matchesSourceBreakpointTarget(
   );
   const cursor = docMirror.getDocument(document).getTokenCursor(offset);
   const responseFormRange = cursor.rangeForDefun(offset);
-  if (!targets.some((target) => targetMatchesForm(target, uri, responseFormRange?.[0]))) {
-    return true;
-  }
   debugUtil.moveTokenCursorToBreakpoint(cursor, response);
-  return !targets.some((target) => targetMatchesStop(target, uri, cursor.offsetStart));
+  return shouldExposeSourceBreakpointStopDecision(
+    targets.map((target) => ({ ...target, file: vscode.Uri.file(target.file).toString() })),
+    uri.toString(),
+    responseFormRange?.[0],
+    cursor.offsetStart
+  );
 }
 
 function sourceLocationUri(file: string): vscode.Uri {
   return file.startsWith('jar:') || file.startsWith('file:')
     ? vscode.Uri.parse(file)
     : vscode.Uri.file(file);
-}
-
-function targetMatchesForm(
-  target: { file: string; formStart: number },
-  uri: vscode.Uri,
-  formStart: number | undefined
-): boolean {
-  return (
-    vscode.Uri.file(target.file).toString() === uri.toString() && target.formStart === formStart
-  );
-}
-
-function targetMatchesStop(
-  target: { file: string; endOffset: number },
-  uri: vscode.Uri,
-  offset: number
-): boolean {
-  return vscode.Uri.file(target.file).toString() === uri.toString() && target.endOffset === offset;
 }
 
 vscode.debug.onDidStartDebugSession((session) => {
