@@ -85,19 +85,15 @@
 (deftest file-uri-for-ref-session-root-test
   (testing "relative path uses the session root, not the global root"
     (let [session-root (fake-uri-with-path "" "/session/a")
-          global-root (fake-uri-with-path "" "/global/b")
           vscode (fake-vscode)]
       (with-session-root-fn!
        (fn [session-key]
          (case session-key "clj" session-root nil))
        (fn []
-         (with-redefs [util/get-project-root-uri (fn
-                                                   ([] global-root)
-                                                   ([_] global-root))]
-           (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
-             (is (some? uri))
-             (is (= "/session/a/charts/a.png" (.-path ^js uri)))
-             (is (not= "/global/b/charts/a.png" (.-path ^js uri)))))))))
+         (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
+           (is (some? uri))
+           (is (= "/session/a/charts/a.png" (.-path ^js uri)))
+           (is (not= "/global/b/charts/a.png" (.-path ^js uri))))))))
   (testing "relative path with no session root gives nil"
     (with-session-root-fn!
      (constantly nil)
@@ -485,10 +481,7 @@
       (set! (.-workspace ^js vscode)
             #js {:workspaceFolders #js [#js {:uri file-folder}]})
       (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
-                    util/vscode (atom vscode)
-                    util/get-project-root-uri (fn
-                                               ([] (throw (js/Error. "global getter must not be used")))
-                                               ([_] (throw (js/Error. "global getter must not be used"))))]
+                    util/vscode (atom vscode)]
         (let [roots (vec (sut/local-resource-roots))]
           (is (some #(= extension-uri %) roots))
           (is (not-any? #(= file-folder %) roots)
@@ -506,10 +499,7 @@
                                         #js {:uri file-folder}
                                         #js {:uri remote-b}]})
       (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
-                    util/vscode (atom vscode)
-                    util/get-project-root-uri (fn
-                                               ([] (throw (js/Error. "global getter must not be used")))
-                                               ([_] (throw (js/Error. "global getter must not be used"))))]
+                    util/vscode (atom vscode)]
         (let [roots (vec (sut/local-resource-roots))]
           (is (some #(= remote-a %) roots))
           (is (some #(= remote-b %) roots))
