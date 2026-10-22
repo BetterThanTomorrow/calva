@@ -398,22 +398,22 @@ export async function copyJackInCommandToClipboard(options?: {
   disableAutoSelect?: boolean;
 }): Promise<void> {
   const providedSequence = sequenceFromArg(options?.connectSequence);
-  const projectRootUri = await state
-    .decideProjectRootUri(
+  const decided = await state
+    .decideFlowRoot(
       connectTypes.ConnectType.JackIn,
       providedSequence,
       options?.disableAutoSelect ?? false
     )
     .catch(logRootDecisionError);
-  if (!projectRootUri) {
+  if (!decided) {
     return;
   }
+  const projectRootUri = decided.root;
 
   let projectConnectSequence: connectSequences.ReplConnectSequence;
   try {
     projectConnectSequence =
-      providedSequence ??
-      (await getProjectConnectSequence(options?.disableAutoSelect ?? false, projectRootUri));
+      providedSequence ?? (await getProjectConnectSequence(decided.sequence, projectRootUri));
   } catch (e) {
     return;
   }
@@ -534,7 +534,7 @@ async function getJackInTerminalOptions(
 }
 
 async function getProjectConnectSequence(
-  disableAutoSelect: boolean,
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri
 ): Promise<connectSequences.ReplConnectSequence> {
   const cljTypes: string[] = await projectTypes.detectProjectTypes(projectRootUri);
@@ -546,7 +546,7 @@ async function getProjectConnectSequence(
     return connectSequences.askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       connectTypes.ConnectType.JackIn,
-      disableAutoSelect,
+      autoSelected,
       projectRootUri
     );
   }
@@ -554,7 +554,7 @@ async function getProjectConnectSequence(
 
 async function executeJackIn(
   connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect: boolean,
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri,
   cb?: () => unknown
 ) {
@@ -581,7 +581,7 @@ async function executeJackIn(
   let projectConnectSequence: connectSequences.ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
     try {
-      projectConnectSequence = await getProjectConnectSequence(disableAutoSelect, projectRootUri);
+      projectConnectSequence = await getProjectConnectSequence(autoSelected, projectRootUri);
     } catch (e) {
       output.appendLineOtherErr(`${e}\nAborting jack-in.`);
       // TODO: Figure out why this is not shown to the user.
@@ -626,11 +626,11 @@ async function executeJackIn(
 
 export function jackIn(
   connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect: boolean,
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri,
   cb?: () => unknown
 ): Promise<unknown> {
-  return executeJackIn(connectSequence, disableAutoSelect, projectRootUri, cb);
+  return executeJackIn(connectSequence, autoSelected, projectRootUri, cb);
 }
 
 export function jackOutCommand() {
@@ -661,7 +661,7 @@ export async function reJackInCommand() {
     return;
   }
   const { connectSequence, projectRootUri } = picked.process;
-  await jackIn(connectSequence, true, vscode.Uri.parse(projectRootUri));
+  await jackIn(connectSequence, undefined, vscode.Uri.parse(projectRootUri));
 }
 
 export async function jackInCommand(options: {
@@ -669,13 +669,13 @@ export async function jackInCommand(options: {
   disableAutoSelect?: boolean;
 }) {
   const connectSequence = sequenceFromArg(options?.connectSequence);
-  const projectRootUri = await state
+  const decided = await state
     .initProjectDir(connectTypes.ConnectType.JackIn, connectSequence, options?.disableAutoSelect)
     .catch(logRootDecisionError);
-  if (!projectRootUri) {
+  if (!decided) {
     return;
   }
-  await jackIn(connectSequence, options?.disableAutoSelect, projectRootUri);
+  await jackIn(connectSequence, decided.sequence, decided.root);
 }
 
 function disconnectWithCommandArg(arg: unknown) {

@@ -202,15 +202,23 @@ async function uriFromRootDecision(
 }
 
 /**
- * Returns the project root for a flow that leaves Calva's state as it is, such as
+ * The project root a flow decided, and the connect sequence that decided it.
+ */
+export type DecidedRoot = {
+  root: vscode.Uri;
+  sequence?: connectSequences.ReplConnectSequence;
+};
+
+/**
+ * Returns the root decision for a flow that leaves Calva's state as it is, such as
  * copying a jack-in command line. Shows the Project Root menu when the decision asks,
  * and returns `undefined` when the user cancels it.
  */
-export async function decideProjectRootUri(
+export async function decideFlowRoot(
   connectType: connectTypes.ConnectType,
   connectSequence: connectSequences.ReplConnectSequence | undefined,
   disableAutoSelect = false
-): Promise<vscode.Uri | undefined> {
+): Promise<DecidedRoot | undefined> {
   const { input, candidateUris } = await gatherRootDecision(
     connectType,
     connectSequence,
@@ -218,9 +226,10 @@ export async function decideProjectRootUri(
   );
   const decision = decideProjectRoot(input);
   if ('noCandidates' in decision) {
-    return nonProjectRootUri(true);
+    return { root: nonProjectRootUri(true), sequence: decision.sequence };
   }
-  return uriFromRootDecision(decision, candidateUris, connectType);
+  const root = await uriFromRootDecision(decision, candidateUris, connectType);
+  return root ? { root, sequence: decision.sequence } : undefined;
 }
 
 /**
@@ -231,15 +240,16 @@ export async function initProjectDir(
   connectType: connectTypes.ConnectType,
   connectSequence: connectSequences.ReplConnectSequence,
   disableAutoSelect = false
-): Promise<vscode.Uri | undefined> {
-  const root = await decideProjectRootUri(connectType, connectSequence, disableAutoSelect);
-  if (root) {
+): Promise<DecidedRoot | undefined> {
+  const decided = await decideFlowRoot(connectType, connectSequence, disableAutoSelect);
+  if (decided) {
+    const { root } = decided;
     console.log('Setting project root to: ', root.fsPath);
     void vscode.commands.executeCommand('setContext', 'calva:projectRoot', root.fsPath);
     await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
     await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
   }
-  return root;
+  return decided;
 }
 
 /**

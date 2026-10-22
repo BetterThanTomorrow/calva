@@ -1830,7 +1830,7 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
   const connectSequence = await connectSequences.askForConnectSequence(
     projectTypes.getAllProjectTypes(),
     connectTypes.ConnectType.Connect,
-    true,
+    undefined,
     projectRootUri
   );
   inspector.revealOnConnect();
@@ -1864,22 +1864,23 @@ export async function connectCommand(options?: {
   } else if (options && options.connectSequence) {
     connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
   }
-  const projectRootUri = await state
+  const decided = await state
     .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
     .catch((e) => {
       void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
       return undefined;
     });
-  if (!projectRootUri) {
+  if (!decided) {
     return;
   }
+  const projectRootUri = decided.root;
   const cljTypes = await projectTypes.detectProjectTypes(projectRootUri);
   if (!connectSequence) {
     try {
       connectSequence = await connectSequences.askForConnectSequence(
         cljTypes,
         connectTypes.ConnectType.Connect,
-        options?.disableAutoSelect,
+        decided.sequence,
         projectRootUri
       );
     } catch (e) {
