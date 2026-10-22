@@ -12,5 +12,5 @@ steps:
     - rmdir ~/calva && cp -r /tmp/build ~/calva
 
   - !:cmd
-    - Run eslint check
-    - npm run eslint
+    - Run Oxlint check
+    - npm run lint
