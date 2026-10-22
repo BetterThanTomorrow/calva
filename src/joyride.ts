@@ -65,7 +65,15 @@ export async function joyrideJackIn(projectDir: string) {
       .startNReplServer(projectDir)
       .then(async (port) => {
         utilities.setLaunchingState(null);
-        await connector.connect(connectSequences.joyrideBuiltIns[0], true, 'localhost', `${port}`);
+        await connector.connect(
+          connectSequences.joyrideBuiltIns[0],
+          true,
+          vscode.Uri.file(projectDir),
+          {
+            hostname: 'localhost',
+            port: `${port}`,
+          }
+        );
         output.appendLineOtherOut('Jack-in done.');
         void output.replWindowAppendPrompt();
       })

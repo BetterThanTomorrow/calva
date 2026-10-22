@@ -12,7 +12,6 @@ import * as docMirror from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import * as state from '../../../state';
 import * as connector from '../../../connector';
-import * as connectTypes from '../../../nrepl/connect-types';
 import * as connectSequence from '../../../nrepl/connectSequence';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as projectTypes from '../../../nrepl/project-types';
@@ -181,6 +180,78 @@ suite('Jack-in and Connect suite', () => {
     assert.strictEqual(client.connectSequenceName, 'Babashka');
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('overlapping jack-ins keep the root each one was started for', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'overlapping jack-ins');
+
+    const bbMiniRoot = path.dirname(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    const bbMini2Root = path.dirname(path.join(testUtil.testDataDir, 'bb-mini2/test.clj'));
+
+    const slowSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Slow bb-mini',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [bbMiniRoot],
+      customJackInCommandLine: 'sleep 3; bb --nrepl-server JACK-IN-NREPL-PORT',
+    };
+    const fastSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Fast bb-mini2',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [bbMini2Root],
+    };
+
+    const slowStarted = Promise.resolve(
+      vscode.commands.executeCommand('calva.jackIn', {
+        connectSequence: slowSequence,
+        disableAutoSelect: true,
+      })
+    );
+
+    const registerDeadline = Date.now() + 20_000;
+    while (
+      !jackIn
+        .listJackInProcesses()
+        .some((entry) => entry.connectSequence.name === 'Slow bb-mini') &&
+      Date.now() < registerDeadline
+    ) {
+      await testUtil.sleep(50);
+    }
+    assert.ok(
+      jackIn.listJackInProcesses().some((entry) => entry.connectSequence.name === 'Slow bb-mini'),
+      'the slow jack-in should be registered before the second one starts'
+    );
+
+    await vscode.commands.executeCommand('calva.jackIn', {
+      connectSequence: fastSequence,
+      disableAutoSelect: true,
+    });
+    await slowStarted;
+
+    const clientsDeadline = Date.now() + 30_000;
+    const rootsOf = () => clientRegistry.listClients().map((client) => client.projectRoot ?? '');
+    while (
+      !(
+        rootsOf().some((root) => root.endsWith('/bb-mini')) &&
+        rootsOf().some((root) => root.endsWith('/bb-mini2'))
+      ) &&
+      Date.now() < clientsDeadline
+    ) {
+      await testUtil.sleep(200);
+    }
+
+    const roots = rootsOf();
+    assert.strictEqual(roots.length, 2, `expected two clients, got ${roots.join(', ')}`);
+    assert.ok(
+      roots.some((root) => root.endsWith('/bb-mini')),
+      `expected a bb-mini client, got ${roots.join(', ')}`
+    );
+    assert.ok(
+      roots.some((root) => root.endsWith('/bb-mini2')),
+      `expected a bb-mini2 client, got ${roots.join(', ')}`
+    );
   });
 
   test('Jack-in works with auto-selected project type', async () => {
@@ -397,10 +468,10 @@ suite('Jack-in and Connect suite', () => {
       ...sequence1,
       projectRootPath: [firstProjectRootPath],
     };
-    await state.initProjectDir(connectTypes.ConnectType.Connect, reconnectSequence, true);
-
-    // Connect directly using the same sequence, host, and port as the first jack-in
-    await connector.connect(reconnectSequence, true, firstClientHost, String(firstClientPort));
+    await connector.connect(reconnectSequence, true, vscode.Uri.file(firstProjectRootPath), {
+      hostname: firstClientHost,
+      port: String(firstClientPort),
+    });
     const reconnectedClientKey = await waitForNextClient(suite);
     await waitForSessionsReady(suite, reconnectedClientKey);
 
@@ -575,7 +646,9 @@ async function reconnectAndAssert(
     connectSequenceOverride
   );
 
-  await connector.connect(connectSequence, true);
+  const projectRootPath = connectSequence.projectRootPath?.[0];
+  assert.ok(projectRootPath, 'connect sequence should name a project root');
+  await connector.connect(connectSequence, true, vscode.Uri.file(projectRootPath));
 
   await loadAndAssert(suite, testFilePath, needle, { waitForJackInOutput: false });
   await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

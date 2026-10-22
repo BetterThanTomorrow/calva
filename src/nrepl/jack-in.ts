@@ -301,8 +301,19 @@ async function executeJackInTask(
               utilities.setLaunchingState(null);
               statusbar.update();
               resolve();
+              const projectRootUri = jackInProcess.projectRootUri
+                ? vscode.Uri.parse(jackInProcess.projectRootUri)
+                : undefined;
+              if (!projectRootUri) {
+                output.appendLineOtherErr('Jack-in connect failed: process has no project root');
+                return;
+              }
               void connector
-                .connect(connectSequence, true, hostname, port, true)
+                .connect(connectSequence, true, projectRootUri, {
+                  hostname,
+                  port,
+                  isJackIn: true,
+                })
                 .then((result) => {
                   const entry = activeJackInProcesses.get(jackInProcess.id);
                   if (entry) {

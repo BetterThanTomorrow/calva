@@ -59,10 +59,11 @@ function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnect
 }
 
 export function nreplPortFileUri(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri
 ): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  let projectRoot = state.getProjectRootUri();
+  let projectRoot = projectRootUri;
   if (connectSequence?.projectRootPath?.length > 0) {
     const resolved = utilities.resolveFileArgToUri(
       connectSequence.projectRootPath,
