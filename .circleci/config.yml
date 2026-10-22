@@ -203,6 +203,14 @@ jobs:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
+            sudo tar -xJ -C /usr/local --strip-components=1 \
+              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
+    - run:
         name: Compile Extension Tests
         command: npm run compile-test
     - run:
@@ -227,6 +235,14 @@ jobs:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
+            sudo tar -xJ -C /usr/local --strip-components=1 \
+              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
+    - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
     - run:
@@ -244,6 +260,14 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - run:
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
+            sudo tar -xJ -C /usr/local --strip-components=1 \
+              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
     - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
