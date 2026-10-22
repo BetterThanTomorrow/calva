@@ -95,7 +95,7 @@ suite('WebSocket nREPL Connect suite', function () {
     // We need to trigger the webview AFTER the WS server starts listening,
     // so we kick off the connect (which will block on firstConnectionPromise)
     // and then open the webview.
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
     testUtil.log(suite, `[TIMING] connector.connect kicked off: ${elapsed()}`);
 
     // Wait for the WS server to be accepting connections
@@ -222,7 +222,7 @@ suite('WebSocket nREPL Connect suite', function () {
       projectRootPath: [projectDir],
     };
 
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
 
     // Wait for the WS server to be accepting connections
     await testUtil.waitForCondition(
@@ -313,7 +313,7 @@ suite('WebSocket nREPL Connect suite', function () {
     };
 
     // 1. Connect via WebSocket
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
 
     await testUtil.waitForCondition(
       () => testUtil.canConnectToPort(WS_PORT_RENAME),
@@ -410,7 +410,7 @@ suite('WebSocket nREPL Connect suite', function () {
       projectRootPath: [projectDir],
     };
 
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
 
     await testUtil.waitForCondition(
       () => testUtil.canConnectToPort(WS_PORT_SHUTDOWN),
