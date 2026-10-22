@@ -95,15 +95,16 @@ function fromCandidates(
 
 /**
  * Returns the project root and the connect sequence that decided it.
- * `ask` means the caller shows the Project Root menu. A sequence that
- * has no `projectRootPath` is still returned, so the project type menu
- * can be skipped.
+ * `ask` means the caller shows the Project Root menu. An auto-selected
+ * sequence that has no `projectRootPath` is still returned, so the project
+ * type menu can be skipped. A passed sequence keeps auto-select out of the
+ * decision.
  */
 export function decideProjectRoot(input: RootDecisionInput): RootDecision {
   const passed = input.passedSequence?.sequence;
-  const passedRoot = resolvedSequenceRoot(passed, firstWorkspaceFolder(input));
-  if (passed && passedRoot) {
-    return { root: passedRoot, sequence: passed };
+  if (passed) {
+    const passedRoot = resolvedSequenceRoot(passed, firstWorkspaceFolder(input));
+    return passedRoot ? { root: passedRoot, sequence: passed } : fromCandidates(input, undefined);
   }
 
   const chosen = chosenAutoSelect(input);

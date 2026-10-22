@@ -177,6 +177,61 @@ suite('Jack-in and Connect suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
+  test('a passed sequence without a root ignores auto-select sequences', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'passed sequence without a root');
+
+    const calvaConfig = vscode.workspace.getConfiguration('calva');
+    const originalSequences = calvaConfig.inspect('replConnectSequences')?.globalValue;
+    await calvaConfig.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'auto bb-mini2',
+          projectType: 'babashka',
+          autoSelectForJackIn: true,
+          projectRootPath: [path.join(testUtil.testDataDir, 'bb-mini2')],
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    try {
+      await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+      const bbMiniRoot = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini')).toString();
+
+      let settled = false;
+      const jackInDone = Promise.resolve(
+        vscode.commands.executeCommand('calva.jackIn', {
+          connectSequence: {
+            name: 'passed without root',
+            projectType: connectSequenceTypes.ProjectTypes['babashka'],
+            cljsType: connectSequenceTypes.CljsTypes.none,
+          },
+        })
+      ).finally(() => {
+        settled = true;
+      });
+      const deadline = Date.now() + 25_000;
+      while (!settled && Date.now() < deadline) {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+        await testUtil.sleep(200);
+      }
+      await jackInDone;
+
+      const clientKey = await waitForNextClient(suite);
+      await waitForSessionsReady(suite, clientKey);
+      assert.strictEqual(clientRegistry.getRegisteredClient(clientKey)?.projectRoot, bbMiniRoot);
+    } finally {
+      await calvaConfig.update(
+        'replConnectSequences',
+        originalSequences,
+        vscode.ConfigurationTarget.Global
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
+  });
+
   test('overlapping jack-ins keep the root each one was started for', async function () {
     this.timeout(120_000);
     testUtil.log(suite, 'overlapping jack-ins');
