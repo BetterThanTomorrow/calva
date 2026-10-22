@@ -133,12 +133,12 @@ jobs:
     - attach_workspace:
         at: /tmp
     - run:
-        name: Restore build
+        name: Restore source and dependencies
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
         name: Run prettier format check
         command: npm run prettier-check
-  eslint-check:
+  ts-lint:
     docker:
     - image: cimg/node:22.23.4
     working_directory: ~/calva
@@ -146,11 +146,14 @@ jobs:
     - attach_workspace:
         at: /tmp
     - run:
-        name: Restore build
+        name: Restore source and dependencies
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
-        name: Run eslint check
-        command: npm run eslint
+        name: Run Oxlint check
+        command: npm run lint
+    - run:
+        name: Verify lint watcher lifecycle
+        command: npm run test-lint-watch
   test-cljslib:
     docker:
     - image: cimg/node:22.23.4
@@ -486,9 +489,9 @@ workflows:
         requires:
         - checkout
     - test-docs-builder
-    - eslint-check:
+    - ts-lint:
         requires:
-        - build
+        - checkout
     - test-cljslib:
         requires:
         - build
@@ -507,7 +510,7 @@ workflows:
     - marketplace-preview-publish:
         requires:
         - prettier-check
-        - eslint-check
+        - ts-lint
         - test-cljslib
         - test-e2e
         - test-smoke
@@ -535,15 +538,15 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - prettier-check:
         requires:
-        - build
+        - checkout
         filters:
           branches:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - eslint-check:
+    - ts-lint:
         requires:
-        - build
+        - checkout
         filters:
           branches:
             ignore: /.*/
@@ -592,7 +595,7 @@ workflows:
     - github-release:
         requires:
         - prettier-check
-        - eslint-check
+        - ts-lint
         - test-cljslib
         - test-e2e
         - test-smoke

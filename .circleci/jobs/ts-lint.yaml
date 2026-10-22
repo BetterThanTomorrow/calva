@@ -8,9 +8,13 @@ steps:
   - !:attach-workspace /tmp
 
   - !:cmd
-    - Restore build
+    - Restore source and dependencies
     - rmdir ~/calva && cp -r /tmp/build ~/calva
 
   - !:cmd
-    - Run eslint check
-    - npm run eslint
+    - Run Oxlint check
+    - npm run lint
+
+  - !:cmd
+    - Verify lint watcher lifecycle
+    - npm run test-lint-watch
