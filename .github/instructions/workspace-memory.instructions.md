@@ -96,7 +96,7 @@ When monitoring automated watchers like lint or test processes, focus on the mos
 **Critical:** When watchers are running, their output IS the authoritative status. Do not run separate terminal commands to "verify" or "establish a baseline"—the watcher has already done it.
 
 - Test watcher shows "1076 passing" → Tests pass. No need to run `npm test`.
-- Lint watcher shows "✓ Clean" → Linting passes. No need to run `npm run lint`.
+- Lint watcher shows `[lint] END clean` → Linting passes. No need to run `npm run lint`.
 - TS watcher shows "Found 0 errors" → Compilation passes. No need to run `tsc`.
 
 Running commands separately wastes time and duplicates what watchers continuously do. The watcher output after your changes reflects the current state.
@@ -107,4 +107,4 @@ When development watchers (TypeScript, tests, lint, etc.) are not running, promp
 
 ## Watcher lag
 
-When making edits that trigger recompilation or retesting, account for potential lag in watcher updates. Especially the lint watcher can be very slow to update. If you suspect that the watcher gives stale results, consider running eslint in the terminal to confirm the current status.
+When making edits that trigger recompilation or retesting, account for potential lag in watcher updates. For lint, wait for the latest `[lint] END clean` or `[lint] END failed` after your edit. If the watcher has stopped, run `npm run lint` to confirm the current status.

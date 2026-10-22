@@ -141,6 +141,51 @@
       }
     },
     {
+      "label": "Calva Watch Lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint-watch"],
+      "isBackground": true,
+      "osx": {
+        "options": {
+          "shell": {
+            "executable": "/bin/zsh",
+            "args": ["-lic"]
+          }
+        }
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": {
+        "owner": "oxlint",
+        "source": "Oxlint",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+): (.*) \\[(Error|Warning)/(.+)\\]$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4,
+          "severity": 5,
+          "code": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[lint\\] START$",
+          "endsPattern": "^\\[lint\\] END"
+        }
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "group": "defaultCalva"
+      }
+    },
+    {
       "label": "Calva Watch TS Format",
       "type": "shell",
       "command": "npm",
@@ -168,7 +213,13 @@
         "kind": "build",
         "isDefault": false
       },
-      "dependsOn": ["Calva Watch TS Format", "Calva Watch TS", "Calva REPL", "Calva Watch Test TS"]
+      "dependsOn": [
+        "Calva Watch TS Format",
+        "Calva Watch TS",
+        "Calva REPL",
+        "Calva Watch Test TS",
+        "Calva Watch Lint"
+      ]
     },
     {
       "label": "Calva Watch Docs",

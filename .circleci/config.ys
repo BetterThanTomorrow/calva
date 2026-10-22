@@ -26,7 +26,7 @@ job-names =::
 - checkout
 - build
 - prettier-check
-- eslint-check
+- ts-lint
 - test-cljslib
 - test-ts-unit
 - test-e2e

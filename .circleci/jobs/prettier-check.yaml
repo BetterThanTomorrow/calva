@@ -8,7 +8,7 @@ steps:
   - !:attach-workspace /tmp
 
   - !:cmd
-    - Restore build
+    - Restore source and dependencies
     - rmdir ~/calva && cp -r /tmp/build ~/calva
 
   - !:cmd
