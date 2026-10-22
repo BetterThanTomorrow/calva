@@ -69,9 +69,11 @@ export async function reconcileBreakpointLocations<TLocation, TTarget, TBreakpoi
   onError: (error: unknown, phase: 'resolve' | 'evaluate') => void
 ): Promise<void> {
   const targets = await resolveBreakpointTargets(locations, resolveTarget, onError);
+  // Every form in one reconciliation must use the same VS Code breakpoint set.
+  const breakpoints = [...currentBreakpoints()];
   await evaluateBreakpointTargets(
     uniqueByKey(targets, keyFor),
-    currentBreakpoints,
+    breakpoints,
     evaluateTarget,
     onError
   );
@@ -98,13 +100,13 @@ async function resolveBreakpointTargets<TLocation, TTarget>(
 
 async function evaluateBreakpointTargets<TTarget, TBreakpoint>(
   targets: readonly TTarget[],
-  currentBreakpoints: () => readonly TBreakpoint[],
+  breakpoints: readonly TBreakpoint[],
   evaluateTarget: (target: TTarget, breakpoints: readonly TBreakpoint[]) => Promise<void>,
   onError: (error: unknown, phase: 'resolve' | 'evaluate') => void
 ): Promise<void> {
   for (const target of targets) {
     try {
-      await evaluateTarget(target, currentBreakpoints());
+      await evaluateTarget(target, breakpoints);
     } catch (error) {
       onError(error, 'evaluate');
     }
