@@ -1601,7 +1601,7 @@ async function nReplPortFileExists() {
     }
   }
 
-  const candidateTypes = await projectTypes.detectProjectCandidates();
+  const candidateTypes = await projectTypes.detectProjectCandidates(projectRootUri);
   if (candidateTypes.length === 0) {
     return false;
   }
@@ -1830,7 +1830,8 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
   const connectSequence = await connectSequences.askForConnectSequence(
     projectTypes.getAllProjectTypes(),
     connectTypes.ConnectType.Connect,
-    undefined
+    undefined,
+    projectRootUri
   );
   inspector.revealOnConnect();
   await outputWindow.initReplWindowDoc();
@@ -1873,13 +1874,14 @@ export async function connectCommand(options?: {
   if (!resolvedRoot) {
     return;
   }
-  const cljTypes = await projectTypes.detectProjectTypes();
+  const cljTypes = await projectTypes.detectProjectTypes(resolvedRoot);
   if (!connectSequence) {
     try {
       connectSequence = await connectSequences.askForConnectSequence(
         cljTypes,
         connectTypes.ConnectType.Connect,
-        options?.disableAutoSelect
+        options?.disableAutoSelect,
+        resolvedRoot
       );
     } catch (e) {
       output.appendLineOtherErr(`${e}\nAborting connect.`);
