@@ -123,9 +123,16 @@ export function getProjectRootUri(): vscode.Uri | undefined {
   }
 }
 
+/**
+ * Returns a new, random folder in Calva's temp dir. The folder is not created.
+ */
+export function tempRootUri(): vscode.Uri {
+  return vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
+}
+
 function nonProjectRootUri(preferWorkspaceFolder: boolean): vscode.Uri {
   const folder = preferWorkspaceFolder ? vscode.workspace.workspaceFolders?.[0]?.uri : undefined;
-  return folder ?? vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
+  return folder ?? tempRootUri();
 }
 
 export async function setOrCreateNonProjectRoot(
