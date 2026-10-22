@@ -49,7 +49,7 @@ steps:
 
 - save_cache:
     name: Save dependencies
-    key: ts-{{ checksum "package.json" }}-cljs-{{
+    key: ts-node22-{{ checksum "package.json" }}-cljs-{{
                checksum "shadow-cljs.edn" }}-grammar-{{
                checksum "clojure.tmLanguage.json" }}
     paths:
