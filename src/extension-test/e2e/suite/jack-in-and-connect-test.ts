@@ -534,6 +534,71 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'Manual reconnect test completed successfully - REPL still functional');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
+
+  test('Re-Jack-In restarts the picked REPL and leaves the other one running', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'Re-Jack-In with two projects');
+    await jackIn.calvaJackout({ force: true });
+    await testUtil.waitForJackOutComplete(suite);
+
+    const sequenceFor = (dir: string): connectSequenceTypes.ReplConnectSequence => ({
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Re-Jack-In bb',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [path.join(testUtil.testDataDir, dir)],
+    });
+    const connectedProcesses = () =>
+      jackIn
+        .listJackInProcesses()
+        .filter((p) => p.connected && p.connectSequence.name === 'Re-Jack-In bb');
+
+    for (const dir of ['bb-mini', 'bb-mini2']) {
+      await vscode.commands.executeCommand('calva.jackIn', {
+        connectSequence: sequenceFor(dir),
+        disableAutoSelect: true,
+      });
+    }
+    await testUtil.waitForCondition(
+      () => connectedProcesses().length === 2,
+      30_000,
+      100,
+      'both jack-ins should connect'
+    );
+    const [first, second] = connectedProcesses();
+    assert.ok(first.projectRootUri.endsWith('/bb-mini'), `got ${first.projectRootUri}`);
+    assert.ok(second.projectRootUri.endsWith('/bb-mini2'), `got ${second.projectRootUri}`);
+
+    let settled = false;
+    const restarted = Promise.resolve(vscode.commands.executeCommand('calva.reJackIn')).finally(
+      () => {
+        settled = true;
+      }
+    );
+    const deadline = Date.now() + 10_000;
+    while (!settled && Date.now() < deadline) {
+      await testUtil.sleep(200);
+      await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+    }
+    await restarted;
+
+    await testUtil.waitForCondition(
+      () =>
+        connectedProcesses().some(
+          (p) =>
+            p.id !== first.id && p.id !== second.id && p.projectRootUri === first.projectRootUri
+        ),
+      30_000,
+      100,
+      'the picked REPL should come back in its own folder'
+    );
+    const processIds = jackIn.listJackInProcesses().map((p) => p.id);
+    assert.ok(!processIds.includes(first.id), 'the picked process should be replaced');
+    assert.ok(processIds.includes(second.id), 'the other process should keep running');
+    assert.ok(
+      clientRegistry.getRegisteredClient(second.clientKey),
+      'the other client should stay connected'
+    );
+  });
 });
 
 function appearInOrder(needle: string[], haystack: string[]) {

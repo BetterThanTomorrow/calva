@@ -47,8 +47,7 @@ type JackInProcessEntry = {
   disposables: vscode.Disposable[];
   connected: boolean;
   clientKey?: string;
-  projectRootUri?: string;
-  connectSequenceName?: string;
+  projectRootUri: string;
 };
 
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
@@ -228,10 +227,6 @@ function registerJackInProcess(
     name: `Calva Jack-in: ${connectSequence.name}`,
     pty,
   });
-  const selectedSequenceName =
-    state.extensionContext.workspaceState.get<connectSequences.ReplConnectSequence>(
-      'selectedConnectSequence'
-    )?.name;
   const entry: JackInProcessEntry = {
     id: nextJackInProcessId++,
     pty,
@@ -240,7 +235,6 @@ function registerJackInProcess(
     disposables: [],
     connected: false,
     projectRootUri: projectRootUri.toString(),
-    connectSequenceName: selectedSequenceName ?? connectSequence.name,
   };
   let cleanedUp = false;
   const handleExit = () => {
@@ -641,23 +635,25 @@ export async function reJackInCommand() {
     void vscode.window.showInformationMessage('No active Jack-in process to restart.');
     return;
   }
-  let connectSequence: connectSequences.ReplConnectSequence;
-  if (processes.length === 1) {
-    connectSequence = processes[0].connectSequence;
-  } else {
-    const picked = await vscode.window.showQuickPick(
-      processes.map((p) => ({
-        label: p.connectSequenceName ?? p.connectSequence.name,
-        process: p,
-      })),
-      { title: 'Pick a REPL to restart', placeHolder: 'Select which Jack-in process to restart' }
-    );
-    if (!picked) {
-      return;
-    }
-    connectSequence = picked.process.connectSequence;
+  const picked =
+    processes.length === 1
+      ? { process: processes[0] }
+      : await vscode.window.showQuickPick(
+          processes.map((p) => ({
+            label: p.connectSequence.name,
+            description: vscode.workspace.asRelativePath(vscode.Uri.parse(p.projectRootUri)),
+            process: p,
+          })),
+          {
+            title: 'Pick a REPL to restart',
+            placeHolder: 'Select which Jack-in process to restart',
+          }
+        );
+  if (!picked) {
+    return;
   }
-  await jackIn(connectSequence, true, state.getProjectRootUri());
+  const { connectSequence, projectRootUri } = picked.process;
+  await jackIn(connectSequence, true, vscode.Uri.parse(projectRootUri));
 }
 
 export async function jackInCommand(options: {
