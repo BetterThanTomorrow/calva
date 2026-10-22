@@ -73,6 +73,7 @@ suite('Auto-connect suite', () => {
 
   mocha.beforeEach(async () => {
     await connector.disconnect({ disconnectAll: true });
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
   });
 
   mocha.afterEach(async () => {
@@ -249,5 +250,65 @@ suite('Auto-connect suite', () => {
       false,
       'shouldAutoConnect should be false when the targeted first sequence has no port file'
     );
+  });
+
+  test('auto-connect connects to the project of the active editor when its port file exists', async function () {
+    this.timeout(30_000);
+
+    const bbExe = testUtil.getExecutablePath('bb') || 'bb';
+    const knownPort = '16689';
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'First AutoConnect Seq',
+          projectType: 'babashka',
+          autoSelectForConnect: true,
+          projectRootPath: ['integration-test', 'bb-mini'],
+          nReplPortFile: ['.nrepl-port'],
+          cljsType: 'none',
+        },
+        {
+          name: 'Second AutoConnect Seq',
+          projectType: 'babashka',
+          autoSelectForConnect: true,
+          projectRootPath: ['integration-test', 'bb-mini2'],
+          nReplPortFile: ['.nrepl-port'],
+          cljsType: 'none',
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    let serverStarted = false;
+    bbProcess = cp.spawn(bbExe, ['nrepl-server', knownPort], { cwd: bbMini2Dir, stdio: 'pipe' });
+    bbProcess.stdout.on('data', (chunk: Buffer) => {
+      if (chunk.toString().includes('Started nREPL server at')) {
+        serverStarted = true;
+      }
+    });
+    fs.writeFileSync(bbPortFile2, knownPort);
+    await testUtil.waitForCondition(
+      () => serverStarted,
+      5000,
+      50,
+      'Timed out waiting for Babashka nREPL server to start'
+    );
+    await testUtil.openFile(path.join(bbMini2Dir, 'test.clj'));
+
+    assert.strictEqual(await connector.shouldAutoConnect(), true);
+    await connector.autoConnect();
+
+    await testUtil.waitForCondition(
+      () => clientRegistry.listClients().length === 1,
+      10_000,
+      100,
+      'Timed out waiting for REPL client to connect'
+    );
+    const [client] = clientRegistry.listClients();
+    assert.strictEqual(client.projectRoot, vscode.Uri.file(bbMini2Dir).toString());
+    assert.strictEqual(client.connectSequenceName, 'Second AutoConnect Seq');
   });
 });
