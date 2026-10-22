@@ -375,29 +375,37 @@ export function revealJackInTerminal() {
   }
 }
 
+/**
+ * Returns the connect sequence a command argument names, by name or as the sequence itself.
+ */
+function sequenceFromArg(
+  connectSequence: connectSequences.ReplConnectSequence | string | undefined
+): connectSequences.ReplConnectSequence | undefined {
+  return typeof connectSequence === 'string'
+    ? connectSequences
+        .getConnectSequences(projectTypes.getAllProjectTypes())
+        .find((s) => s.name === connectSequence)
+    : connectSequence;
+}
+
+function logRootDecisionError(e: unknown): undefined {
+  console.error('An error occurred while initializing project directory.', e);
+  return undefined;
+}
+
 export async function copyJackInCommandToClipboard(options?: {
   connectSequence?: connectSequences.ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }): Promise<void> {
-  let providedSequence: connectSequences.ReplConnectSequence | undefined;
-
-  if (options && typeof options.connectSequence === 'string') {
-    providedSequence = connectSequences
-      .getConnectSequences(projectTypes.getAllProjectTypes())
-      .find((s) => s.name === options.connectSequence);
-  } else if (options?.connectSequence) {
-    providedSequence = options.connectSequence as connectSequences.ReplConnectSequence;
-  }
-
-  let projectRootUri: vscode.Uri;
-  try {
-    projectRootUri = await state.decideProjectRootUri(
+  const providedSequence = sequenceFromArg(options?.connectSequence);
+  const projectRootUri = await state
+    .decideProjectRootUri(
       connectTypes.ConnectType.JackIn,
       providedSequence,
       options?.disableAutoSelect ?? false
-    );
-  } catch (e) {
-    console.error('An error occurred while initializing project directory.', e);
+    )
+    .catch(logRootDecisionError);
+  if (!projectRootUri) {
     return;
   }
 
@@ -660,23 +668,11 @@ export async function jackInCommand(options: {
   connectSequence?: connectSequences.ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }) {
-  let connectSequence: connectSequences.ReplConnectSequence;
-  if (options && typeof options.connectSequence === 'string') {
-    connectSequence = connectSequences
-      .getConnectSequences(projectTypes.getAllProjectTypes())
-      .find((s) => s.name === options.connectSequence);
-  } else if (options && options.connectSequence) {
-    connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
-  }
-  let projectRootUri: vscode.Uri;
-  try {
-    projectRootUri = await state.initProjectDir(
-      connectTypes.ConnectType.JackIn,
-      connectSequence,
-      options?.disableAutoSelect
-    );
-  } catch (e) {
-    console.error('An error occurred while initializing project directory.', e);
+  const connectSequence = sequenceFromArg(options?.connectSequence);
+  const projectRootUri = await state
+    .initProjectDir(connectTypes.ConnectType.JackIn, connectSequence, options?.disableAutoSelect)
+    .catch(logRootDecisionError);
+  if (!projectRootUri) {
     return;
   }
   await jackIn(connectSequence, options?.disableAutoSelect, projectRootUri);

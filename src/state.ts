@@ -180,8 +180,12 @@ export async function gatherRootDecision(
   };
 }
 
+/**
+ * Returns the decided root, or the one picked in the Project Root menu.
+ * `undefined` means the user cancelled the menu.
+ */
 async function uriFromRootDecision(
-  decision: RootDecision,
+  decision: Exclude<RootDecision, { noCandidates: true }>,
   candidateUris: vscode.Uri[],
   connectType: connectTypes.ConnectType
 ): Promise<vscode.Uri | undefined> {
@@ -190,61 +194,52 @@ async function uriFromRootDecision(
       candidateUris.find((uri) => uri.fsPath === decision.root) ?? vscode.Uri.file(decision.root)
     );
   }
-  if ('ask' in decision) {
-    const preselect = decision.ask.preselect
-      ? candidateUris.find((uri) => uri.fsPath === decision.ask.preselect) ??
-        vscode.Uri.file(decision.ask.preselect)
-      : undefined;
-    return projectRoot.pickProjectRoot(candidateUris, preselect, connectType);
-  }
-  return undefined;
+  const preselect = decision.ask.preselect
+    ? candidateUris.find((uri) => uri.fsPath === decision.ask.preselect) ??
+      vscode.Uri.file(decision.ask.preselect)
+    : undefined;
+  return projectRoot.pickProjectRoot(candidateUris, preselect, connectType);
 }
 
-async function pickRootFromDecision(
+/**
+ * Returns the project root for a flow that leaves Calva's state as it is, such as
+ * copying a jack-in command line. Shows the Project Root menu when the decision asks,
+ * and returns `undefined` when the user cancels it.
+ */
+export async function decideProjectRootUri(
   connectType: connectTypes.ConnectType,
   connectSequence: connectSequences.ReplConnectSequence | undefined,
-  disableAutoSelect: boolean
+  disableAutoSelect = false
 ): Promise<vscode.Uri | undefined> {
   const { input, candidateUris } = await gatherRootDecision(
     connectType,
     connectSequence,
     disableAutoSelect
   );
-  return uriFromRootDecision(decideProjectRoot(input), candidateUris, connectType);
+  const decision = decideProjectRoot(input);
+  if ('noCandidates' in decision) {
+    return nonProjectRootUri(true);
+  }
+  return uriFromRootDecision(decision, candidateUris, connectType);
 }
 
 /**
- * Returns the project root for a flow that leaves Calva's state as it is, such as
- * copying a jack-in command line. Shows the Project Root menu when the decision asks.
- */
-export async function decideProjectRootUri(
-  connectType: connectTypes.ConnectType,
-  connectSequence: connectSequences.ReplConnectSequence | undefined,
-  disableAutoSelect = false
-): Promise<vscode.Uri> {
-  return (
-    (await pickRootFromDecision(connectType, connectSequence, disableAutoSelect)) ??
-    nonProjectRootUri(true)
-  );
-}
-
-/**
- * Figures out the current clojure project root, and stores it in Calva state
+ * Figures out the current clojure project root, and stores it in Calva state.
+ * Returns `undefined` when the user cancels the Project Root menu.
  */
 export async function initProjectDir(
   connectType: connectTypes.ConnectType,
   connectSequence: connectSequences.ReplConnectSequence,
   disableAutoSelect = false
-) {
-  const chosen = await pickRootFromDecision(connectType, connectSequence, disableAutoSelect);
-  if (chosen) {
-    console.log('Setting project root to: ', chosen.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', chosen.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_KEY, chosen.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, chosen);
-    return chosen;
+): Promise<vscode.Uri | undefined> {
+  const root = await decideProjectRootUri(connectType, connectSequence, disableAutoSelect);
+  if (root) {
+    console.log('Setting project root to: ', root.fsPath);
+    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', root.fsPath);
+    await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
+    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
   }
-  return setOrCreateNonProjectRoot(extensionContext, true);
+  return root;
 }
 
 /**

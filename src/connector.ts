@@ -1867,21 +1867,20 @@ export async function connectCommand(options?: {
   const projectRootUri = await state
     .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
     .catch((e) => {
-      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
+      void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
       return undefined;
     });
-  const resolvedRoot = projectRootUri ?? state.getProjectRootUri();
-  if (!resolvedRoot) {
+  if (!projectRootUri) {
     return;
   }
-  const cljTypes = await projectTypes.detectProjectTypes(resolvedRoot);
+  const cljTypes = await projectTypes.detectProjectTypes(projectRootUri);
   if (!connectSequence) {
     try {
       connectSequence = await connectSequences.askForConnectSequence(
         cljTypes,
         connectTypes.ConnectType.Connect,
         options?.disableAutoSelect,
-        resolvedRoot
+        projectRootUri
       );
     } catch (e) {
       output.appendLineOtherErr(`${e}\nAborting connect.`);
@@ -1892,7 +1891,7 @@ export async function connectCommand(options?: {
   await liveShareSupport.setupLiveShareListener().catch((e) => {
     console.error('Error initializing LiveShare support: ', e);
   });
-  return standaloneConnect(connectSequence, resolvedRoot, host, port).catch((e) => {
+  return standaloneConnect(connectSequence, projectRootUri, host, port).catch((e) => {
     void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
   });
 }

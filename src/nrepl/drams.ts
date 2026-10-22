@@ -359,8 +359,10 @@ export async function startDram() {
   const config = (await deserializeDramStartConfig(state.getProjectRootUri())).config;
   console.debug('Dram start config:', config);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
-  await state.initProjectDir(connectTypes.ConnectType.JackIn, null, false);
-  const projectRootUri = state.getProjectRootUri();
+  const projectRootUri = await state.initProjectDir(connectTypes.ConnectType.JackIn, null, false);
+  if (!projectRootUri) {
+    return;
+  }
   const openPaths = dramManifest.resolveDramOpenPaths(config);
 
   if (openPaths.length === 0) {
