@@ -128,16 +128,16 @@ export function getProjectRootUri(): vscode.Uri | undefined {
   }
 }
 
-function nonProjectRootUri(preferProjectDir: boolean): vscode.Uri {
-  const projectDir = preferProjectDir ? getProjectRootUri() : undefined;
-  return projectDir ?? vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
+function nonProjectRootUri(preferWorkspaceFolder: boolean): vscode.Uri {
+  const folder = preferWorkspaceFolder ? vscode.workspace.workspaceFolders?.[0]?.uri : undefined;
+  return folder ?? vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
 }
 
 export async function setOrCreateNonProjectRoot(
   context: vscode.ExtensionContext,
-  preferProjectDir = false
+  preferWorkspaceFolder = false
 ): Promise<vscode.Uri> {
-  const root = nonProjectRootUri(preferProjectDir);
+  const root = nonProjectRootUri(preferWorkspaceFolder);
   await cljsLib.setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
   await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
   return root;
