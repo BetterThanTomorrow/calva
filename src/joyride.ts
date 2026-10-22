@@ -47,19 +47,19 @@ export function isJoyrideNReplServerRunning() {
 }
 
 export async function prepareForJackInOrConnect() {
-  const projectRootUri = await state
+  const decided = await state
     .initProjectDir(connectTypes.ConnectType.JackIn, undefined, false)
     .catch((e) => {
       void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
       return undefined;
     });
-  if (!projectRootUri) {
+  if (!decided) {
     return undefined;
   }
   inspector.revealOnConnect();
   await outputWindow.initReplWindowDoc();
   await outputWindow.openReplWindowDoc();
-  return projectRootUri.fsPath;
+  return decided.root.fsPath;
 }
 
 export async function joyrideJackIn(projectDir: string) {

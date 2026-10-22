@@ -5,7 +5,7 @@ import * as config from '../config';
 import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
 import * as csTypes from './connect-sequence-types';
-import { decideProjectRoot, mismatchedSequenceRoot } from '../project-root-decision';
+import { mismatchedSequenceRoot } from '../project-root-decision';
 
 // Project types that only support connect (not jack-in)
 // These have no commandLine and no startFunction in project-types.ts
@@ -402,13 +402,14 @@ function getDefaultCljsType(cljsType: string): csTypes.CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
-async function autoSelectedSequence(
+/**
+ * Returns the sequence among `sequences` that the root decision auto-selected.
+ */
+function autoSelectedSequence(
   sequences: csTypes.ReplConnectSequence[],
-  connectType: connectTypes.ConnectType,
-  disableAutoSelect: boolean
-): Promise<csTypes.ReplConnectSequence | undefined> {
-  const { input } = await state.gatherRootDecision(connectType, undefined, disableAutoSelect);
-  const decidedName = decideProjectRoot(input).sequence?.name;
+  autoSelected: csTypes.ReplConnectSequence | undefined
+): csTypes.ReplConnectSequence | undefined {
+  const decidedName = autoSelected?.name;
   if (!decidedName) {
     return undefined;
   }
@@ -436,7 +437,7 @@ async function autoSelectedSequence(
 async function askForConnectSequence(
   cljTypes: string[],
   connectType: connectTypes.ConnectType,
-  disableAutoSelect: boolean,
+  autoSelected: csTypes.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri
 ): Promise<csTypes.ReplConnectSequence> {
   const [saveAs, logLabel, menuTitleType] =
@@ -447,7 +448,7 @@ async function askForConnectSequence(
 
   const saveAsPath = `${projectRootUri.toString()}/${saveAs}`;
 
-  const builtInSequence = await autoSelectedSequence(sequences, connectType, disableAutoSelect);
+  const builtInSequence = autoSelectedSequence(sequences, autoSelected);
 
   let projectConnectSequenceName = builtInSequence?.name;
 
