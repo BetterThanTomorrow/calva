@@ -180,6 +180,10 @@ export async function gatherRootDecision(
   };
 }
 
+function candidateUri(rootPath: string, candidateUris: vscode.Uri[]): vscode.Uri {
+  return candidateUris.find((uri) => uri.fsPath === rootPath) ?? vscode.Uri.file(rootPath);
+}
+
 /**
  * Returns the decided root, or the one picked in the Project Root menu.
  * `undefined` means the user cancelled the menu.
@@ -190,13 +194,10 @@ async function uriFromRootDecision(
   connectType: connectTypes.ConnectType
 ): Promise<vscode.Uri | undefined> {
   if ('root' in decision) {
-    return (
-      candidateUris.find((uri) => uri.fsPath === decision.root) ?? vscode.Uri.file(decision.root)
-    );
+    return candidateUri(decision.root, candidateUris);
   }
   const preselect = decision.ask.preselect
-    ? candidateUris.find((uri) => uri.fsPath === decision.ask.preselect) ??
-      vscode.Uri.file(decision.ask.preselect)
+    ? candidateUri(decision.ask.preselect, candidateUris)
     : undefined;
   return projectRoot.pickProjectRoot(candidateUris, preselect, connectType);
 }
@@ -233,6 +234,34 @@ export async function decideFlowRoot(
 }
 
 /**
+ * Returns the root decision without the Project Root menu. Where the decision
+ * would ask, the root is the candidate closest to the active file, else the
+ * first workspace folder.
+ */
+export async function decideRootWithoutMenu(
+  connectType: connectTypes.ConnectType
+): Promise<DecidedRoot> {
+  const { input, candidateUris } = await gatherRootDecision(connectType, undefined, false);
+  const decision = decideProjectRoot(input);
+  const rootPath =
+    'root' in decision ? decision.root : 'ask' in decision ? decision.ask.preselect : undefined;
+  return {
+    root: rootPath ? candidateUri(rootPath, candidateUris) : nonProjectRootUri(true),
+    sequence: decision.sequence,
+  };
+}
+
+/**
+ * Stores `root` as Calva's project root.
+ */
+export async function storeProjectRoot(root: vscode.Uri) {
+  console.log('Setting project root to: ', root.fsPath);
+  void vscode.commands.executeCommand('setContext', 'calva:projectRoot', root.fsPath);
+  await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
+  await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
+}
+
+/**
  * Figures out the current clojure project root, and stores it in Calva state.
  * Returns `undefined` when the user cancels the Project Root menu.
  */
@@ -243,11 +272,7 @@ export async function initProjectDir(
 ): Promise<DecidedRoot | undefined> {
   const decided = await decideFlowRoot(connectType, connectSequence, disableAutoSelect);
   if (decided) {
-    const { root } = decided;
-    console.log('Setting project root to: ', root.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', root.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
+    await storeProjectRoot(decided.root);
   }
   return decided;
 }

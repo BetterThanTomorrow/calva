@@ -1584,44 +1584,37 @@ async function standaloneConnect(
   }
 }
 
-async function nReplPortFileExists() {
-  const projectRootUri = state.getProjectRootUri();
-  if (!projectRootUri) {
+async function fileExists(uri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
     return false;
   }
-  const customSequences = connectSequences.getCustomConnectSequences();
-  const autoSelectedCustom = customSequences.find((s) => s.autoSelectForConnect);
-  if (autoSelectedCustom) {
-    try {
-      const portFile = projectTypes.nreplPortFileUri(autoSelectedCustom, projectRootUri);
-      await vscode.workspace.fs.stat(portFile);
-      return true;
-    } catch {
-      return false;
+}
+
+async function sequencesToTryForAutoConnect(
+  decided: state.DecidedRoot
+): Promise<connectSequences.ReplConnectSequence[]> {
+  if (decided.sequence) {
+    return [decided.sequence];
+  }
+  const candidateTypes = await projectTypes.detectProjectCandidates(decided.root);
+  return candidateTypes.length > 0 ? connectSequences.getConnectSequences(candidateTypes) : [];
+}
+
+/**
+ * Returns the root and connect sequence to auto-connect with: the root decision
+ * without a menu, and the first sequence whose nREPL port file exists for that root.
+ */
+async function findAutoConnectTarget(): Promise<Required<state.DecidedRoot> | undefined> {
+  const decided = await state.decideRootWithoutMenu(connectTypes.ConnectType.Connect);
+  for (const sequence of await sequencesToTryForAutoConnect(decided)) {
+    if (await fileExists(projectTypes.nreplPortFileUri(sequence, decided.root))) {
+      return { root: decided.root, sequence };
     }
   }
-
-  const candidateTypes = await projectTypes.detectProjectCandidates(projectRootUri);
-  if (candidateTypes.length === 0) {
-    return false;
-  }
-
-  const sequences = connectSequences.getConnectSequences(candidateTypes);
-  const portFiles = sequences.map((sequence) =>
-    projectTypes.nreplPortFileUri(sequence, projectRootUri)
-  );
-  let fileExists = false;
-  await Promise.all(
-    portFiles.map(async (portFile) => {
-      try {
-        await vscode.workspace.fs.stat(portFile);
-        fileExists = true;
-      } catch {
-        // do nothing, file does not exist
-      }
-    })
-  );
-  return fileExists;
+  return undefined;
 }
 
 function handleConnectError(error: unknown): boolean {
@@ -1898,7 +1891,27 @@ export async function connectCommand(options?: {
 }
 
 export async function shouldAutoConnect(): Promise<boolean> {
-  return config.getConfig().autoConnectRepl && nReplPortFileExists();
+  return config.getConfig().autoConnectRepl && (await findAutoConnectTarget()) !== undefined;
+}
+
+/**
+ * Connects to the REPL whose nREPL port file the startup check finds, without menus.
+ */
+export async function autoConnect(): Promise<void> {
+  if (!config.getConfig().autoConnectRepl) {
+    return;
+  }
+  const target = await findAutoConnectTarget();
+  if (!target) {
+    return;
+  }
+  await state.storeProjectRoot(target.root);
+  await liveShareSupport.setupLiveShareListener().catch((e) => {
+    console.error('Error initializing LiveShare support: ', e);
+  });
+  void standaloneConnect(target.sequence, target.root).catch((e) => {
+    void vscode.window.showErrorMessage(`Failed connecting to REPL: ${e}`);
+  });
 }
 
 export function disconnect(

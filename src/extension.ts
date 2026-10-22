@@ -663,8 +663,8 @@ async function activate(context: vscode.ExtensionContext) {
 
   if (config.getConfig().autoStartRepl) {
     void vscode.commands.executeCommand('calva.jackIn');
-  } else if (await connector.shouldAutoConnect()) {
-    void vscode.commands.executeCommand('calva.connect');
+  } else {
+    await connector.autoConnect();
   }
 
   void drams.maybeStartDram();
