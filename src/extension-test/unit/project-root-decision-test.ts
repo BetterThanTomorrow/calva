@@ -1,12 +1,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import type * as csTypes from '../../nrepl/connect-sequence-types';
-import {
-  decideProjectRoot,
-  RootDecision,
-  RootDecisionInput,
-  SequenceForRootDecision,
-} from '../../project-root-decision';
+import { decideProjectRoot, RootDecision, RootDecisionInput } from '../../project-root-decision';
 
 const wsA = path.join('/ws', 'a');
 const wsB = path.join('/ws', 'b');
@@ -22,13 +17,6 @@ function sequence(
   };
 }
 
-function entry(
-  partial: Partial<csTypes.ReplConnectSequence> & Pick<csTypes.ReplConnectSequence, 'name'>,
-  rootKey?: string
-): SequenceForRootDecision {
-  return { sequence: sequence(partial), rootKey };
-}
-
 function input(partial: Partial<RootDecisionInput>): RootDecisionInput {
   return {
     connectType: 'jack-in',
@@ -36,7 +24,6 @@ function input(partial: Partial<RootDecisionInput>): RootDecisionInput {
     sequences: [],
     candidateRoots: [rootA, rootB],
     closestRoot: rootB,
-    closestRootKey: 'b/bb-mini2',
     workspaceFolders: [wsA, wsB],
     ...partial,
   };
@@ -46,17 +33,15 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
   {
     name: 'a passed sequence with an absolute root uses that root',
     input: input({
-      passedSequence: entry({ name: 'passed', projectRootPath: [rootB] }, 'ignored'),
-      sequences: [
-        entry({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootA] }, 'a/bb-mini'),
-      ],
+      passedSequence: sequence({ name: 'passed', projectRootPath: [rootB] }),
+      sequences: [sequence({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootA] })],
     }),
     expected: { root: rootB, sequence: sequence({ name: 'passed', projectRootPath: [rootB] }) },
   },
   {
     name: 'a passed sequence with a relative root resolves against the first workspace folder',
     input: input({
-      passedSequence: entry({ name: 'passed', projectRootPath: ['bb-mini'] }),
+      passedSequence: sequence({ name: 'passed', projectRootPath: ['bb-mini'] }),
       workspaceFolders: [wsA],
     }),
     expected: {
@@ -67,25 +52,20 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
   {
     name: 'a passed sequence without a root asks among the candidates instead of taking an auto-select root',
     input: input({
-      passedSequence: entry({ name: 'passed' }),
+      passedSequence: sequence({ name: 'passed' }),
       sequences: [
-        entry(
-          { name: 'auto', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] },
-          'a/bb-mini'
-        ),
+        sequence({ name: 'auto', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] }),
       ],
-      closestRootKey: 'a/bb-mini',
+      closestRoot: rootA,
     }),
-    expected: { ask: { candidates: [rootA, rootB], preselect: rootB } },
+    expected: { ask: { candidates: [rootA, rootB], preselect: rootA } },
   },
   {
     name: 'disableAutoSelect with a passed sequence still uses that sequence root',
     input: input({
       disableAutoSelect: true,
-      passedSequence: entry({ name: 'passed', projectRootPath: [rootA] }),
-      sequences: [
-        entry({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootB] }, 'b/bb-mini2'),
-      ],
+      passedSequence: sequence({ name: 'passed', projectRootPath: [rootA] }),
+      sequences: [sequence({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootB] })],
     }),
     expected: { root: rootA, sequence: sequence({ name: 'passed', projectRootPath: [rootA] }) },
   },
@@ -93,9 +73,7 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     name: 'disableAutoSelect without a sequence asks among several candidates',
     input: input({
       disableAutoSelect: true,
-      sequences: [
-        entry({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootA] }, 'a/bb-mini'),
-      ],
+      sequences: [sequence({ name: 'auto', autoSelectForJackIn: true, projectRootPath: [rootA] })],
     }),
     expected: { ask: { candidates: [rootA, rootB], preselect: rootB } },
   },
@@ -103,7 +81,7 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     name: 'disableAutoSelect with a passed sequence and no root asks among several candidates',
     input: input({
       disableAutoSelect: true,
-      passedSequence: entry({ name: 'passed' }),
+      passedSequence: sequence({ name: 'passed' }),
     }),
     expected: { ask: { candidates: [rootA, rootB], preselect: rootB } },
   },
@@ -113,7 +91,6 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
       disableAutoSelect: true,
       candidateRoots: [rootA],
       closestRoot: rootA,
-      closestRootKey: 'a/bb-mini',
     }),
     expected: { root: rootA },
   },
@@ -123,7 +100,6 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
       disableAutoSelect: true,
       candidateRoots: [],
       closestRoot: undefined,
-      closestRootKey: undefined,
     }),
     expected: { noCandidates: true },
   },
@@ -132,7 +108,6 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     input: input({
       disableAutoSelect: true,
       closestRoot: rootA,
-      closestRootKey: 'a/bb-mini',
     }),
     expected: { ask: { candidates: [rootA, rootB], preselect: rootA } },
   },
@@ -141,21 +116,17 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     input: input({
       disableAutoSelect: true,
       closestRoot: undefined,
-      closestRootKey: undefined,
     }),
     expected: { ask: { candidates: [rootA, rootB], preselect: undefined } },
   },
   {
-    name: 'an auto-select sequence whose key matches the closest root wins',
+    name: 'an auto-select sequence whose root is the closest root wins',
     input: input({
       sequences: [
-        entry({ name: 'first', autoSelectForJackIn: true, projectRootPath: [rootA] }, 'a/bb-mini'),
-        entry(
-          { name: 'second', autoSelectForJackIn: true, projectRootPath: [rootB] },
-          'b/bb-mini2'
-        ),
+        sequence({ name: 'first', autoSelectForJackIn: true, projectRootPath: [rootA] }),
+        sequence({ name: 'second', autoSelectForJackIn: true, projectRootPath: [rootB] }),
       ],
-      closestRootKey: 'b/bb-mini2',
+      closestRoot: rootB,
     }),
     expected: {
       root: rootB,
@@ -163,20 +134,41 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     },
   },
   {
-    name: 'a relative root key that differs from the closest key keeps the first auto-select sequence',
+    name: 'in a multi-root workspace, a relative root that resolves to the closest root wins',
     input: input({
       sequences: [
-        entry(
-          { name: 'bb-mini', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] },
-          'bb-mini'
-        ),
-        entry(
-          { name: 'bb-mini2', autoSelectForJackIn: true, projectRootPath: ['bb-mini2'] },
-          'bb-mini2'
-        ),
+        sequence({
+          name: 'project a',
+          autoSelectForJackIn: true,
+          projectRootPath: ['projects', 'a'],
+        }),
+        sequence({
+          name: 'project b',
+          autoSelectForJackIn: true,
+          projectRootPath: ['projects', 'b'],
+        }),
+      ],
+      candidateRoots: [path.join('/ws', 'projects', 'a'), path.join('/ws', 'projects', 'b')],
+      closestRoot: path.join('/ws', 'projects', 'b'),
+      workspaceFolders: ['/ws', path.join('/ws', 'projects', 'b')],
+    }),
+    expected: {
+      root: path.join('/ws', 'projects', 'b'),
+      sequence: sequence({
+        name: 'project b',
+        autoSelectForJackIn: true,
+        projectRootPath: ['projects', 'b'],
+      }),
+    },
+  },
+  {
+    name: 'a relative root that resolves outside the closest root keeps the first auto-select sequence',
+    input: input({
+      sequences: [
+        sequence({ name: 'bb-mini', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] }),
+        sequence({ name: 'bb-mini2', autoSelectForJackIn: true, projectRootPath: ['bb-mini2'] }),
       ],
       closestRoot: rootB,
-      closestRootKey: path.join('b', 'bb-mini2'),
       workspaceFolders: [wsA, wsB],
     }),
     expected: {
@@ -189,21 +181,14 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     },
   },
   {
-    name: 'a single workspace folder whose keys match selects that sequence',
+    name: 'a single workspace folder whose roots match selects that sequence',
     input: input({
       sequences: [
-        entry(
-          { name: 'bb-mini', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] },
-          'bb-mini'
-        ),
-        entry(
-          { name: 'bb-mini2', autoSelectForJackIn: true, projectRootPath: ['bb-mini2'] },
-          'bb-mini2'
-        ),
+        sequence({ name: 'bb-mini', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] }),
+        sequence({ name: 'bb-mini2', autoSelectForJackIn: true, projectRootPath: ['bb-mini2'] }),
       ],
       candidateRoots: [path.join(wsA, 'bb-mini'), path.join(wsA, 'bb-mini2')],
       closestRoot: path.join(wsA, 'bb-mini2'),
-      closestRootKey: 'bb-mini2',
       workspaceFolders: [wsA],
     }),
     expected: {
@@ -216,9 +201,31 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     },
   },
   {
+    name: 'a root with a trailing separator still matches the closest root',
+    input: input({
+      sequences: [
+        sequence({ name: 'first', autoSelectForJackIn: true, projectRootPath: [rootA] }),
+        sequence({
+          name: 'second',
+          autoSelectForJackIn: true,
+          projectRootPath: [rootB + path.sep],
+        }),
+      ],
+      closestRoot: rootB,
+    }),
+    expected: {
+      root: rootB + path.sep,
+      sequence: sequence({
+        name: 'second',
+        autoSelectForJackIn: true,
+        projectRootPath: [rootB + path.sep],
+      }),
+    },
+  },
+  {
     name: 'an auto-select sequence without a root still skips the project type menu',
     input: input({
-      sequences: [entry({ name: 'typeless', autoSelectForJackIn: true })],
+      sequences: [sequence({ name: 'typeless', autoSelectForJackIn: true })],
     }),
     expected: {
       ask: { candidates: [rootA, rootB], preselect: rootB },
@@ -230,13 +237,9 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     input: input({
       connectType: 'connect',
       sequences: [
-        entry({ name: 'jack', autoSelectForJackIn: true, projectRootPath: [rootA] }, 'a/bb-mini'),
-        entry(
-          { name: 'connect', autoSelectForConnect: true, projectRootPath: [rootB] },
-          'b/bb-mini2'
-        ),
+        sequence({ name: 'jack', autoSelectForJackIn: true, projectRootPath: [rootA] }),
+        sequence({ name: 'connect', autoSelectForConnect: true, projectRootPath: [rootB] }),
       ],
-      closestRootKey: 'b/bb-mini2',
     }),
     expected: {
       root: rootB,
@@ -251,12 +254,8 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     name: 'jack-in auto-select ignores a connect-only sequence',
     input: input({
       sequences: [
-        entry(
-          { name: 'connect', autoSelectForConnect: true, projectRootPath: [rootB] },
-          'b/bb-mini2'
-        ),
+        sequence({ name: 'connect', autoSelectForConnect: true, projectRootPath: [rootB] }),
       ],
-      closestRootKey: 'b/bb-mini2',
     }),
     expected: { ask: { candidates: [rootA, rootB], preselect: rootB } },
   },
@@ -264,9 +263,8 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     name: 'a relative auto-select root that does not resolve asks for nothing',
     input: input({
       sequences: [
-        entry({ name: 'rel', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] }, 'bb-mini'),
+        sequence({ name: 'rel', autoSelectForJackIn: true, projectRootPath: ['bb-mini'] }),
       ],
-      closestRootKey: 'bb-mini',
       workspaceFolders: [],
     }),
     expected: {
