@@ -44,6 +44,30 @@ function isSamePath(a: string | undefined, b: string | undefined): boolean {
   return a !== undefined && b !== undefined && path.relative(a, b) === '';
 }
 
+/**
+ * Returns the sequence's `projectRootPath` as an absolute path. This is the
+ * one reading of `projectRootPath`: a relative path is relative to the first
+ * of `workspaceFolders`.
+ */
+export function sequenceRootPath(
+  sequence: csTypes.ReplConnectSequence | undefined,
+  workspaceFolders: string[]
+): string | undefined {
+  return resolvedSequenceRoot(sequence, workspaceFolders[0]);
+}
+
+/**
+ * Returns the sequence's root when it names another folder than `chosenRoot`.
+ */
+export function mismatchedSequenceRoot(
+  sequence: csTypes.ReplConnectSequence,
+  chosenRoot: string,
+  workspaceFolders: string[]
+): string | undefined {
+  const root = sequenceRootPath(sequence, workspaceFolders);
+  return root !== undefined && !isSamePath(root, chosenRoot) ? root : undefined;
+}
+
 function autoSelectedSequences(input: RootDecisionInput): csTypes.ReplConnectSequence[] {
   if (input.disableAutoSelect) {
     return [];

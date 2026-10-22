@@ -1,7 +1,12 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import type * as csTypes from '../../nrepl/connect-sequence-types';
-import { decideProjectRoot, RootDecision, RootDecisionInput } from '../../project-root-decision';
+import {
+  decideProjectRoot,
+  mismatchedSequenceRoot,
+  RootDecision,
+  RootDecisionInput,
+} from '../../project-root-decision';
 
 const wsA = path.join('/ws', 'a');
 const wsB = path.join('/ws', 'b');
@@ -282,6 +287,58 @@ describe('decideProjectRoot', () => {
   for (const testCase of cases) {
     it(testCase.name, () => {
       assert.deepStrictEqual(decideProjectRoot(testCase.input), testCase.expected);
+    });
+  }
+});
+
+const mismatchCases: {
+  name: string;
+  projectRootPath?: string[];
+  chosenRoot: string;
+  expected: string | undefined;
+}[] = [
+  {
+    name: 'an absolute root for another folder is a mismatch',
+    projectRootPath: [rootB],
+    chosenRoot: rootA,
+    expected: rootB,
+  },
+  {
+    name: 'an absolute root for the chosen folder matches',
+    projectRootPath: [rootA],
+    chosenRoot: rootA,
+    expected: undefined,
+  },
+  {
+    name: 'a relative root for another folder is a mismatch',
+    projectRootPath: ['bb-mini2'],
+    chosenRoot: rootA,
+    expected: path.join(wsA, 'bb-mini2'),
+  },
+  {
+    name: 'a relative root for the chosen folder matches',
+    projectRootPath: ['bb-mini'],
+    chosenRoot: rootA,
+    expected: undefined,
+  },
+  {
+    name: 'a sequence without a root matches any folder',
+    chosenRoot: rootA,
+    expected: undefined,
+  },
+];
+
+describe('mismatchedSequenceRoot', () => {
+  for (const testCase of mismatchCases) {
+    it(testCase.name, () => {
+      assert.strictEqual(
+        mismatchedSequenceRoot(
+          sequence({ name: 'seq', projectRootPath: testCase.projectRootPath }),
+          testCase.chosenRoot,
+          [wsA, wsB]
+        ),
+        testCase.expected
+      );
     });
   }
 });

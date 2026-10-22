@@ -11,6 +11,7 @@ import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as connectSequences from './connectSequence';
 import * as joyride from '../joyride';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
+import { sequenceRootPath } from '../project-root-decision';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -64,16 +65,11 @@ export function nreplPortFileUri(
   projectRootUri: vscode.Uri
 ): vscode.Uri {
   const relativePath = nreplPortFileRelativePath(connectSequence);
-  let projectRoot = projectRootUri;
-  if (connectSequence?.projectRootPath?.length > 0) {
-    const resolved = utilities.resolveFileArgToUri(
-      connectSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-    if (resolved) {
-      projectRoot = resolved;
-    }
-  }
+  const sequenceRoot = sequenceRootPath(
+    connectSequence,
+    (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath)
+  );
+  const projectRoot = sequenceRoot ? vscode.Uri.file(sequenceRoot) : projectRootUri;
   if (projectRoot) {
     try {
       return vscode.Uri.joinPath(projectRoot, relativePath);
