@@ -83,7 +83,7 @@
       (is (str/blank? (str (.-authority ^js uri)))))))
 
 (deftest file-uri-for-ref-session-root-test
-  (testing "relative path uses the session root, not the global root"
+  (testing "relative path uses the session root"
     (let [session-root (fake-uri-with-path "" "/session/a")
           vscode (fake-vscode)]
       (with-session-root-fn!
@@ -92,8 +92,7 @@
        (fn []
          (let [uri (sut/file-uri-for-ref vscode "charts/a.png" "clj")]
            (is (some? uri))
-           (is (= "/session/a/charts/a.png" (.-path ^js uri)))
-           (is (not= "/global/b/charts/a.png" (.-path ^js uri))))))))
+           (is (= "/session/a/charts/a.png" (.-path ^js uri))))))))
   (testing "relative path with no session root gives nil"
     (with-session-root-fn!
      (constantly nil)
@@ -473,7 +472,7 @@
       (is (= "A:\\" (first paths)))
       (is (= "Z:\\" (last paths))))))
 
-(deftest local-resource-roots-independent-of-global-getter-test
+(deftest local-resource-roots-workspace-folders-test
   (testing "file workspace folders are omitted; drive roots cover local files"
     (let [extension-uri (fake-uri-with-path "" "/ext")
           file-folder (fake-uri-with-path "" "/Users/me/proj")
@@ -488,7 +487,7 @@
               "file workspace folder is not listed")
           (is (some #(= "/" (.-fsPath ^js %)) roots)
               "filesystem root remains")))))
-  (testing "non-file workspace folders are listed without calling get-project-root-uri"
+  (testing "non-file workspace folders are listed"
     (let [extension-uri (fake-uri-with-path "" "/ext")
           remote-a (fake-uri-with-path "ssh-remote+a" "/home/a")
           remote-b (fake-uri-with-path "ssh-remote+b" "/home/b")
