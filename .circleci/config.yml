@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   checkout:
     docker:
-    - image: cimg/openjdk:17.0.1-node
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
