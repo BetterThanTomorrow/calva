@@ -127,7 +127,7 @@ jobs:
         - env
   prettier-check:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -140,7 +140,7 @@ jobs:
         command: npm run prettier-check
   eslint-check:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -153,7 +153,7 @@ jobs:
         command: npm run eslint
   test-cljslib:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -171,7 +171,7 @@ jobs:
         path: ~/calva/junit
   test-ts-unit:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -297,7 +297,7 @@ jobs:
             /tmp/artifacts/
   marketplace-publish:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -322,7 +322,7 @@ jobs:
           fi
   marketplace-preview-publish:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -347,7 +347,7 @@ jobs:
           fi
   open-vsx-publish:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -372,7 +372,7 @@ jobs:
           fi
   merge-dev-into-published:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     steps:
     - add_ssh_keys:
         fingerprints:
@@ -389,7 +389,7 @@ jobs:
           git push origin HEAD
   merge-published-into-dev:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     steps:
     - add_ssh_keys:
         fingerprints:
@@ -428,7 +428,7 @@ jobs:
         command: git checkout published; mkdocs gh-deploy --config-file mkdocs.yml --message "[skip ci]" --clean
   bump-dev-version:
     docker:
-    - image: cimg/node:22.16.0
+    - image: cimg/node:22.23.4
     steps:
     - add_ssh_keys:
         fingerprints:
