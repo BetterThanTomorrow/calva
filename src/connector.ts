@@ -1830,7 +1830,7 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
   const connectSequence = await connectSequences.askForConnectSequence(
     projectTypes.getAllProjectTypes(),
     connectTypes.ConnectType.Connect,
-    undefined,
+    true,
     projectRootUri
   );
   inspector.revealOnConnect();
