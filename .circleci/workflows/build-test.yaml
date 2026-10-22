@@ -11,7 +11,7 @@ jobs:
 
 - test-docs-builder
 
-- eslint-check:          {requires: [build]}
+- ts-lint:               {requires: [checkout]}
 - test-cljslib:          {requires: [build]}
 - test-e2e:              {requires: [build]}
 - test-smoke:              {requires: [build]}
@@ -21,7 +21,7 @@ jobs:
 - marketplace-preview-publish:
     requires:
     - prettier-check
-    - eslint-check
+    - ts-lint
     - test-cljslib
     - test-e2e
     - test-smoke

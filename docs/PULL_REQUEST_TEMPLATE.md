@@ -42,5 +42,4 @@ I have:
   - [ ] Tested the particular change
   - [ ] Figured if the change might have some side effects and tested those as well.
 - [ ] Formatted all JavaScript and TypeScript code that was changed. (use the [prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) or run `npm run prettier-format`)
-- [ ] Confirmed that there are no linter warnings or errors (use the [eslint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint), run `npm run eslint` before creating your PR, or run `npm run eslint-watch` to eslint as you go).
-
+- [ ] Confirmed that there are no linter warnings or errors (check that **Calva Watch Lint** ends with `[lint] END clean`, or run `npm run lint` if the watcher is not running).
