@@ -290,6 +290,36 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'test.clj closed');
   });
 
+  test('Copy Jack-in command line substitutes JACK-IN-PROJECT-ROOT-PATH', async function () {
+    testUtil.log(suite, 'Copy Jack-in command line substitutes the project root');
+
+    const projectRootPath = path.dirname(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      name: 'copy-project-root',
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [projectRootPath],
+      customJackInCommandLine: 'echo JACK-IN-PROJECT-ROOT-PATH',
+    };
+
+    await vscode.env.clipboard.writeText('');
+    await vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
+      connectSequence,
+      disableAutoSelect: true,
+    });
+
+    const cmdLine = await vscode.env.clipboard.readText();
+    testUtil.log(suite, 'substituted cmdLine', cmdLine);
+    assert.ok(
+      cmdLine.includes(projectRootPath),
+      `expected the project root in the copied command, got ${cmdLine}`
+    );
+    assert.ok(
+      !cmdLine.includes('JACK-IN-PROJECT-ROOT-PATH'),
+      `expected the placeholder to be replaced, got ${cmdLine}`
+    );
+  });
+
   test('Copy Jack-in command line for projectless project (no deps.edn) #2976', async function () {
     testUtil.log(suite, 'Copy Jack-in command line for projectless project');
 
