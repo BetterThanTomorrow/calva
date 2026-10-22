@@ -100,21 +100,34 @@ describe('source breakpoint sync', () => {
     expectLib.expect(previous.has(breakpoint)).toBe(true);
   });
 
-  it('evaluates a removed form with current breakpoints and updates changed conditions', async () => {
-    const locations = ['removed', 'changed'];
-    const activeBreakpoints = [{ form: 'changed', condition: '(= x 2)' }];
+  it('reevaluates removed and moved forms using one current breakpoint snapshot', async () => {
+    const locations = ['removed', 'moved-old', 'moved-new', 'changed'];
+    const activeBreakpoints: { form: string; condition?: string }[] = [
+      { form: 'moved-new', condition: undefined },
+      { form: 'changed', condition: '(= x 2)' },
+    ];
     const evaluated: Record<string, string> = {};
+    let snapshotCount = 0;
+    let usedSnapshot: readonly { form: string; condition?: string }[] | undefined;
 
     await reconcileBreakpointLocations(
       locations,
       (form) => Promise.resolve({ form }),
       (target) => target.form,
-      () => activeBreakpoints,
+      () => {
+        snapshotCount++;
+        return activeBreakpoints;
+      },
       (target, breakpoints) => {
+        usedSnapshot ??= breakpoints;
+        expectLib.expect(breakpoints).toBe(usedSnapshot);
         const insertion = breakpoints
           .filter((breakpoint) => breakpoint.form === target.form)
           .map((breakpoint) => ({ offset: 0, condition: breakpoint.condition }));
         evaluated[target.form] = insertBreakpointForms('(work)', insertion);
+        if (target.form === 'removed') {
+          activeBreakpoints.push({ form: 'late-change' });
+        }
         return Promise.resolve();
       },
       (error) => {
@@ -123,7 +136,12 @@ describe('source breakpoint sync', () => {
     );
 
     expectLib.expect(evaluated.removed).toBe('(work)');
+    expectLib.expect(evaluated['moved-old']).toBe('(work)');
+    expectLib.expect(evaluated['moved-new']).toBe('#break (work)');
     expectLib.expect(evaluated.changed).toBe('#break ^{:break/when (= x 2)} (work)');
+    expectLib.expect(snapshotCount).toBe(1);
+    expectLib.expect(usedSnapshot).toHaveLength(2);
+    expectLib.expect(activeBreakpoints).toHaveLength(3);
   });
 
   it('deduplicates forms, preserves evaluation order, and continues after failures', async () => {
