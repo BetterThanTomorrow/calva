@@ -177,6 +177,59 @@ suite('Jack-in and Connect suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
+  test('a picked sequence with a relative root for another project stops the flow', async function () {
+    this.timeout(60_000);
+    testUtil.log(suite, 'picked sequence with another relative root');
+
+    const calvaConfig = vscode.workspace.getConfiguration('calva');
+    const originalSequences = calvaConfig.inspect('replConnectSequences')?.globalValue;
+    await calvaConfig.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'relative bb-mini2',
+          projectType: 'babashka',
+          projectRootPath: ['integration-test', 'bb-mini2'],
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    try {
+      await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+      const bbMiniRoot = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini'));
+      await state.extensionContext.workspaceState.update(
+        `qps-${bbMiniRoot.toString()}/jack-in-type`,
+        { label: 'relative bb-mini2' }
+      );
+      await vscode.env.clipboard.writeText('');
+
+      let settled = false;
+      const copied = Promise.resolve(
+        vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
+          disableAutoSelect: true,
+        })
+      ).finally(() => {
+        settled = true;
+      });
+      const deadline = Date.now() + 25_000;
+      while (!settled && Date.now() < deadline) {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+        await testUtil.sleep(200);
+      }
+      await copied;
+
+      assert.strictEqual(await vscode.env.clipboard.readText(), '');
+    } finally {
+      await calvaConfig.update(
+        'replConnectSequences',
+        originalSequences,
+        vscode.ConfigurationTarget.Global
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
+  });
+
   test('a passed sequence without a root ignores auto-select sequences', async function () {
     this.timeout(120_000);
     testUtil.log(suite, 'passed sequence without a root');
