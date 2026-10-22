@@ -391,7 +391,7 @@ export async function copyJackInCommandToClipboard(options?: {
 
   let projectRootUri: vscode.Uri;
   try {
-    projectRootUri = await state.initProjectDir(
+    projectRootUri = await state.decideProjectRootUri(
       connectTypes.ConnectType.JackIn,
       providedSequence,
       options?.disableAutoSelect ?? false
