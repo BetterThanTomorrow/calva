@@ -177,6 +177,38 @@ suite('Jack-in and Connect suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
+  test('Escape on the Project Root menu cancels', async function () {
+    this.timeout(60_000);
+    testUtil.log(suite, 'Escape on the Project Root menu');
+
+    await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    await vscode.env.clipboard.writeText('');
+
+    let settled = false;
+    const copied = Promise.resolve(
+      vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
+        connectSequence: {
+          name: 'cancelled copy',
+          projectType: connectSequenceTypes.ProjectTypes['babashka'],
+          cljsType: connectSequenceTypes.CljsTypes.none,
+        },
+        disableAutoSelect: true,
+      })
+    ).finally(() => {
+      settled = true;
+    });
+    const deadline = Date.now() + 25_000;
+    while (!settled && Date.now() < deadline) {
+      await testUtil.sleep(300);
+      await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    }
+    await copied;
+
+    assert.ok(settled, 'closing the Project Root menu should end the command');
+    assert.strictEqual(await vscode.env.clipboard.readText(), '');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
   test('a picked sequence with a relative root for another project stops the flow', async function () {
     this.timeout(60_000);
     testUtil.log(suite, 'picked sequence with another relative root');
