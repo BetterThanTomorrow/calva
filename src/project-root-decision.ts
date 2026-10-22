@@ -1,25 +1,16 @@
+import * as path from 'path';
 import type * as csTypes from './nrepl/connect-sequence-types';
 import * as fileArg from './util/resolve-file-arg';
 
 export type RootDecisionConnectType = 'jack-in' | 'connect';
 
-/**
- * A connect sequence plus the comparison key the caller computed for its
- * `projectRootPath`. The key is what `asRelativePath` produces today.
- */
-export interface SequenceForRootDecision {
-  sequence: csTypes.ReplConnectSequence;
-  rootKey?: string;
-}
-
 export interface RootDecisionInput {
   connectType: RootDecisionConnectType;
-  passedSequence?: SequenceForRootDecision;
+  passedSequence?: csTypes.ReplConnectSequence;
   disableAutoSelect: boolean;
-  sequences: SequenceForRootDecision[];
+  sequences: csTypes.ReplConnectSequence[];
   candidateRoots: string[];
   closestRoot?: string;
-  closestRootKey?: string;
   workspaceFolders: string[];
 }
 
@@ -35,6 +26,10 @@ function firstWorkspaceFolder(input: RootDecisionInput): string | undefined {
   return input.workspaceFolders[0];
 }
 
+/**
+ * Returns the sequence's `projectRootPath` as an absolute path. A relative
+ * path is relative to the first workspace folder.
+ */
 function resolvedSequenceRoot(
   sequence: csTypes.ReplConnectSequence | undefined,
   workspaceRoot: string | undefined
@@ -45,27 +40,29 @@ function resolvedSequenceRoot(
   return fileArg.resolveFilePath(sequence.projectRootPath, workspaceRoot);
 }
 
-function autoSelectedSequences(input: RootDecisionInput): SequenceForRootDecision[] {
+function isSamePath(a: string | undefined, b: string | undefined): boolean {
+  return a !== undefined && b !== undefined && path.relative(a, b) === '';
+}
+
+function autoSelectedSequences(input: RootDecisionInput): csTypes.ReplConnectSequence[] {
   if (input.disableAutoSelect) {
     return [];
   }
   const jackIn = input.connectType === 'jack-in';
-  return input.sequences.filter((entry) =>
-    jackIn ? entry.sequence.autoSelectForJackIn : entry.sequence.autoSelectForConnect
+  return input.sequences.filter((sequence) =>
+    jackIn ? sequence.autoSelectForJackIn : sequence.autoSelectForConnect
   );
 }
 
 /**
- * The sequence whose comparison key equals the closest root, otherwise the
- * first auto-selected sequence.
+ * Returns the auto-selected sequence whose root is the closest root,
+ * otherwise the first auto-selected sequence.
  */
-function chosenAutoSelect(input: RootDecisionInput): SequenceForRootDecision | undefined {
+function chosenAutoSelect(input: RootDecisionInput): csTypes.ReplConnectSequence | undefined {
   const candidates = autoSelectedSequences(input);
-  const matched = candidates.find(
-    (entry) =>
-      !!entry.sequence.projectRootPath?.length &&
-      entry.rootKey != null &&
-      entry.rootKey === input.closestRootKey
+  const workspaceRoot = firstWorkspaceFolder(input);
+  const matched = candidates.find((sequence) =>
+    isSamePath(resolvedSequenceRoot(sequence, workspaceRoot), input.closestRoot)
   );
   return matched ?? candidates[0];
 }
@@ -101,20 +98,20 @@ function fromCandidates(
  * decision.
  */
 export function decideProjectRoot(input: RootDecisionInput): RootDecision {
-  const passed = input.passedSequence?.sequence;
+  const passed = input.passedSequence;
   if (passed) {
     const passedRoot = resolvedSequenceRoot(passed, firstWorkspaceFolder(input));
     return passedRoot ? { root: passedRoot, sequence: passed } : fromCandidates(input, undefined);
   }
 
   const chosen = chosenAutoSelect(input);
-  if (chosen?.sequence.projectRootPath?.length) {
-    const root = resolvedSequenceRoot(chosen.sequence, firstWorkspaceFolder(input));
+  if (chosen?.projectRootPath?.length) {
+    const root = resolvedSequenceRoot(chosen, firstWorkspaceFolder(input));
     if (root) {
-      return { root, sequence: chosen.sequence };
+      return { root, sequence: chosen };
     }
-    return withSequence({ noCandidates: true }, chosen.sequence);
+    return withSequence({ noCandidates: true }, chosen);
   }
 
-  return fromCandidates(input, chosen?.sequence);
+  return fromCandidates(input, chosen);
 }

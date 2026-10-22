@@ -9,12 +9,7 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 import * as connectSequences from './nrepl/connectSequence';
 import * as connectTypes from './nrepl/connect-types';
-import {
-  decideProjectRoot,
-  RootDecision,
-  RootDecisionInput,
-  SequenceForRootDecision,
-} from './project-root-decision';
+import { decideProjectRoot, RootDecision, RootDecisionInput } from './project-root-decision';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -157,22 +152,9 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
   return undefined;
 }
 
-function sequenceRootKey(projectRootPath?: string[]): string | undefined {
-  if (!projectRootPath?.length) {
-    return undefined;
-  }
-  return vscode.workspace.asRelativePath(path.join(...projectRootPath));
-}
-
-function sequenceForDecision(
-  sequence: connectSequences.ReplConnectSequence
-): SequenceForRootDecision {
-  return { sequence, rootKey: sequenceRootKey(sequence.projectRootPath) };
-}
-
 /**
  * The inputs for one root decision: candidate roots, the active file's closest
- * root, and the caller's asRelativePath keys.
+ * root, the connect sequences and the workspace folders.
  */
 export async function gatherRootDecision(
   connectType: connectTypes.ConnectType,
@@ -186,12 +168,11 @@ export async function gatherRootDecision(
     candidateUris,
     input: {
       connectType: connectType === connectTypes.ConnectType.Connect ? 'connect' : 'jack-in',
-      passedSequence: connectSequence ? sequenceForDecision(connectSequence) : undefined,
+      passedSequence: connectSequence,
       disableAutoSelect,
-      sequences: connectSequences.getCustomConnectSequences().map(sequenceForDecision),
+      sequences: connectSequences.getCustomConnectSequences(),
       candidateRoots: candidateUris.map((uri) => uri.fsPath),
       closestRoot: closest?.fsPath,
-      closestRootKey: closest ? vscode.workspace.asRelativePath(closest) : undefined,
       workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map(
         (folder) => folder.uri.fsPath
       ),
