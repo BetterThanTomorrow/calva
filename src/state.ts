@@ -128,18 +128,16 @@ export function getProjectRootUri(): vscode.Uri | undefined {
   }
 }
 
+function nonProjectRootUri(preferProjectDir: boolean): vscode.Uri {
+  const projectDir = preferProjectDir ? getProjectRootUri() : undefined;
+  return projectDir ?? vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
+}
+
 export async function setOrCreateNonProjectRoot(
   context: vscode.ExtensionContext,
   preferProjectDir = false
 ): Promise<vscode.Uri> {
-  let root: vscode.Uri | undefined = undefined;
-  if (preferProjectDir) {
-    root = getProjectRootUri();
-  }
-  if (!root) {
-    const subDir = util.randomSlug();
-    root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
-  }
+  const root = nonProjectRootUri(preferProjectDir);
   await cljsLib.setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
   await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
   return root;
@@ -221,6 +219,34 @@ async function uriFromRootDecision(
   return undefined;
 }
 
+async function pickRootFromDecision(
+  connectType: connectTypes.ConnectType,
+  connectSequence: connectSequences.ReplConnectSequence | undefined,
+  disableAutoSelect: boolean
+): Promise<vscode.Uri | undefined> {
+  const { input, candidateUris } = await gatherRootDecision(
+    connectType,
+    connectSequence,
+    disableAutoSelect
+  );
+  return uriFromRootDecision(decideProjectRoot(input), candidateUris, connectType);
+}
+
+/**
+ * Returns the project root for a flow that leaves Calva's state as it is, such as
+ * copying a jack-in command line. Shows the Project Root menu when the decision asks.
+ */
+export async function decideProjectRootUri(
+  connectType: connectTypes.ConnectType,
+  connectSequence: connectSequences.ReplConnectSequence | undefined,
+  disableAutoSelect = false
+): Promise<vscode.Uri> {
+  return (
+    (await pickRootFromDecision(connectType, connectSequence, disableAutoSelect)) ??
+    nonProjectRootUri(true)
+  );
+}
+
 /**
  * Figures out the current clojure project root, and stores it in Calva state
  */
@@ -229,12 +255,7 @@ export async function initProjectDir(
   connectSequence: connectSequences.ReplConnectSequence,
   disableAutoSelect = false
 ) {
-  const { input, candidateUris } = await gatherRootDecision(
-    connectType,
-    connectSequence,
-    disableAutoSelect
-  );
-  const chosen = await uriFromRootDecision(decideProjectRoot(input), candidateUris, connectType);
+  const chosen = await pickRootFromDecision(connectType, connectSequence, disableAutoSelect);
   if (chosen) {
     console.log('Setting project root to: ', chosen.fsPath);
     void vscode.commands.executeCommand('setContext', 'calva:projectRoot', chosen.fsPath);
