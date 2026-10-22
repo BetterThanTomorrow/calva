@@ -90,7 +90,7 @@ CMD echo "Nothing to do here" # All actions run at image build time
 ################################################################################
 # Prettier check step
 ################################################################################
-FROM cimg/node:22.16.0 as step-prettier-check
+FROM cimg/node:22.23.4 as step-prettier-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -108,7 +108,7 @@ CMD npm run prettier-check
 ################################################################################
 # Eslint check step
 ################################################################################
-FROM cimg/node:22.16.0 as step-eslint-check
+FROM cimg/node:22.23.4 as step-eslint-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -126,7 +126,7 @@ CMD npm run eslint
 ################################################################################
 # CLJSlib test step
 ################################################################################
-FROM cimg/node:22.16.0 as step-test-cljslib
+FROM cimg/node:22.23.4 as step-test-cljslib
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -144,7 +144,7 @@ CMD npm run calva-lib-test
 ################################################################################
 # TS unit test step
 ################################################################################
-FROM cimg/node:22.16.0 as step-test-ts-unit
+FROM cimg/node:22.23.4 as step-test-ts-unit
 
 USER circleci
 WORKDIR /home/circleci/calva
