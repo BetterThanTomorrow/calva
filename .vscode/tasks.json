@@ -141,30 +141,6 @@
       }
     },
     {
-      "label": "Calva Watch Lint",
-      "type": "shell",
-      "command": "npm",
-      "args": ["run", "eslint-watch"],
-      "isBackground": true,
-      "osx": {
-        "options": {
-          "shell": {
-            "executable": "/bin/zsh",
-            "args": ["-lic"]
-          }
-        }
-      },
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "problemMatcher": "$eslint-compact",
-      "presentation": {
-        "panel": "dedicated",
-        "group": "defaultCalva"
-      }
-    },
-    {
       "label": "Calva Watch TS Format",
       "type": "shell",
       "command": "npm",
@@ -192,13 +168,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "dependsOn": [
-        "Calva Watch TS Format",
-        "Calva Watch TS",
-        "Calva REPL",
-        "Calva Watch Test TS",
-        "Calva Watch Lint"
-      ]
+      "dependsOn": ["Calva Watch TS Format", "Calva Watch TS", "Calva REPL", "Calva Watch Test TS"]
     },
     {
       "label": "Calva Watch Docs",

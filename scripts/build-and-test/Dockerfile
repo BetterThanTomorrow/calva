@@ -106,9 +106,9 @@ CMD npm run prettier-check
 
 
 ################################################################################
-# Eslint check step
+# Oxlint check step
 ################################################################################
-FROM cimg/node:22.23.4 as step-eslint-check
+FROM cimg/node:22.23.4 as step-lint-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -120,7 +120,7 @@ COPY --chown=circleci --from=step-install-deps /home/circleci/calva/node_modules
 # restore build
 COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci/calva/out
 
-CMD npm run eslint
+CMD npm run lint
 
 
 ################################################################################

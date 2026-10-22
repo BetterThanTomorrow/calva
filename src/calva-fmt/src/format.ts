@@ -376,7 +376,7 @@ function formatPositionCallback(extraConfig: CljFmtConfig) {
     vscode.window.activeTextEditor.document.version ==
       scheduledFormatCircumstances['documentVersion']
   ) {
-    formatPosition(scheduledFormatCircumstances['editor'], true, extraConfig).finally(() => {
+    void formatPosition(scheduledFormatCircumstances['editor'], true, extraConfig).finally(() => {
       scheduledFormatCircumstances = undefined;
     });
   }
