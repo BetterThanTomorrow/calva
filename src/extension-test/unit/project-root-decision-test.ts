@@ -65,7 +65,7 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
     },
   },
   {
-    name: 'a passed sequence without a root still takes an auto-select sequence root',
+    name: 'a passed sequence without a root asks among the candidates instead of taking an auto-select root',
     input: input({
       passedSequence: entry({ name: 'passed' }),
       sequences: [
@@ -76,14 +76,7 @@ const cases: { name: string; input: RootDecisionInput; expected: RootDecision }[
       ],
       closestRootKey: 'a/bb-mini',
     }),
-    expected: {
-      root: path.join(wsA, 'bb-mini'),
-      sequence: sequence({
-        name: 'auto',
-        autoSelectForJackIn: true,
-        projectRootPath: ['bb-mini'],
-      }),
-    },
+    expected: { ask: { candidates: [rootA, rootB], preselect: rootB } },
   },
   {
     name: 'disableAutoSelect with a passed sequence still uses that sequence root',
