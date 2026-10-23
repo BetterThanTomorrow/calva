@@ -57,7 +57,7 @@ export async function prepareForJackInOrConnect() {
     return undefined;
   }
   inspector.revealOnConnect();
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(decided.root);
   await outputWindow.openReplWindowDoc();
   return decided.root.fsPath;
 }
