@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.602] - 2026-10-23
+
 - Bump rewrite-clj to v1.3.59
 
 ## [2.0.601] - 2026-10-18
