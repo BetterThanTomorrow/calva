@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Calva Development QOL: Remove stateful project root]([text](https://github.com/BetterThanTomorrow/calva/issues/3295))
+  - Not just for Calva Development... A host of race conditions and misbehavior gets fixed too
+  - Closes [Fix duplicate findProjectRootUri functions]([text](https://github.com/BetterThanTomorrow/calva/issues/1557))
+
 ## [2.0.602] - 2026-10-23
 
 - Bump rewrite-clj to v1.3.59

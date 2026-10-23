@@ -10,6 +10,7 @@ import * as outputWindow from './repl-window/repl-window-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import * as fiddleFiles from './fiddle-files';
+import * as whenContexts from './when-contexts';
 import * as output from './results-output/output';
 import * as config from './config';
 import * as fileArg from './util/resolve-file-arg';
@@ -277,9 +278,8 @@ function getConnectedState() {
 function setConnectedState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:connected', value);
   cljsLib.setStateValue('connected', value);
-  if (value) {
-    fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
-  }
+  fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+  whenContexts.setProjectRootContext();
 }
 
 function getJackedInState() {
