@@ -47,8 +47,7 @@ type JackInProcessEntry = {
   disposables: vscode.Disposable[];
   connected: boolean;
   clientKey?: string;
-  projectRootUri?: string;
-  connectSequenceName?: string;
+  projectRootUri: string;
 };
 
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
@@ -56,10 +55,6 @@ let nextJackInProcessId = 1;
 
 export function listJackInProcesses(): JackInProcessEntry[] {
   return Array.from(activeJackInProcesses.values()).sort((a, b) => a.id - b.id);
-}
-
-function getProjectRootUriString(): string | undefined {
-  return state.getProjectRootUri()?.toString();
 }
 
 function matchesProjectRoot(entry: JackInProcessEntry, targetRootUri: string | undefined): boolean {
@@ -95,9 +90,9 @@ function matchesConnectSequence(
  * Matches by both sequence name AND current project root.
  */
 function findProcessesForReconnection(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  targetRootUri: string | undefined
 ): JackInProcessEntry[] {
-  const targetRootUri = getProjectRootUriString();
   return listJackInProcesses().filter((entry) =>
     matchesConnectSequence(entry, connectSequence, targetRootUri)
   );
@@ -166,9 +161,10 @@ export async function stopJackInProcessesByClientKey(
  * Only affects processes matching both sequence name AND current project root.
  */
 async function stopProcessesForReconnection(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  targetRootUri: string | undefined
 ): Promise<void> {
-  const matching = findProcessesForReconnection(connectSequence);
+  const matching = findProcessesForReconnection(connectSequence, targetRootUri);
   if (matching.length === 0) {
     return;
   }
@@ -183,10 +179,9 @@ async function stopProcessesForReconnection(
  * (name conflicts are handled via suffixes in connector.connectToHost()).
  */
 function findClientsForReconnection(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  targetRootUri: string | undefined
 ): clientRegistry.RegisteredClient[] {
-  const targetRootUri = getProjectRootUriString();
-
   return clientRegistry.listClients().filter((client) => {
     if (client.connectSequenceName !== connectSequence.name) {
       return false;
@@ -206,9 +201,10 @@ function findClientsForReconnection(
  * Only affects clients matching both sequence name AND current project root.
  */
 async function stopClientsForReconnection(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  targetRootUri: string | undefined
 ): Promise<void> {
-  const clients = findClientsForReconnection(connectSequence);
+  const clients = findClientsForReconnection(connectSequence, targetRootUri);
   for (const client of clients) {
     await connector.disconnect({ clientKey: client.key });
   }
@@ -223,17 +219,14 @@ function refreshJackedInState() {
 }
 
 function registerJackInProcess(
-  connectSequence: connectSequences.ReplConnectSequence
+  connectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri
 ): JackInProcessEntry {
   const pty = new jackInTerminal.JackInPTY();
   const terminal = (<any>vscode.window).createTerminal({
     name: `Calva Jack-in: ${connectSequence.name}`,
     pty,
   });
-  const selectedSequenceName =
-    state.extensionContext.workspaceState.get<connectSequences.ReplConnectSequence>(
-      'selectedConnectSequence'
-    )?.name;
   const entry: JackInProcessEntry = {
     id: nextJackInProcessId++,
     pty,
@@ -241,8 +234,7 @@ function registerJackInProcess(
     connectSequence,
     disposables: [],
     connected: false,
-    projectRootUri: getProjectRootUriString(),
-    connectSequenceName: selectedSequenceName ?? connectSequence.name,
+    projectRootUri: projectRootUri.toString(),
   };
   let cleanedUp = false;
   const handleExit = () => {
@@ -272,11 +264,12 @@ function handleJackInProcessExit(processId: number) {
 async function executeJackInTask(
   terminalOptions: jackInTerminal.JackInPTYOptions,
   connectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri,
   cb?: () => unknown
 ) {
   utilities.setLaunchingState(connectSequence.name);
   statusbar.update();
-  const jackInProcess = registerJackInProcess(connectSequence);
+  const jackInProcess = registerJackInProcess(connectSequence, projectRootUri);
 
   if (config.getConfig().autoOpenJackInTerminal) {
     jackInProcess.terminal.show();
@@ -302,7 +295,7 @@ async function executeJackInTask(
               statusbar.update();
               resolve();
               void connector
-                .connect(connectSequence, true, hostname, port, true)
+                .connect(connectSequence, true, projectRootUri, { hostname, port, isJackIn: true })
                 .then((result) => {
                   const entry = activeJackInProcesses.get(jackInProcess.id);
                   if (entry) {
@@ -382,43 +375,56 @@ export function revealJackInTerminal() {
   }
 }
 
+/**
+ * Returns the connect sequence a command argument names, by name or as the sequence itself.
+ */
+function sequenceFromArg(
+  connectSequence: connectSequences.ReplConnectSequence | string | undefined
+): connectSequences.ReplConnectSequence | undefined {
+  return typeof connectSequence === 'string'
+    ? connectSequences
+        .getConnectSequences(projectTypes.getAllProjectTypes())
+        .find((s) => s.name === connectSequence)
+    : connectSequence;
+}
+
+function logRootDecisionError(e: unknown): undefined {
+  console.error('An error occurred while initializing project directory.', e);
+  return undefined;
+}
+
 export async function copyJackInCommandToClipboard(options?: {
   connectSequence?: connectSequences.ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }): Promise<void> {
-  let providedSequence: connectSequences.ReplConnectSequence | undefined;
-
-  if (options && typeof options.connectSequence === 'string') {
-    providedSequence = connectSequences
-      .getConnectSequences(projectTypes.getAllProjectTypes())
-      .find((s) => s.name === options.connectSequence);
-  } else if (options?.connectSequence) {
-    providedSequence = options.connectSequence as connectSequences.ReplConnectSequence;
-  }
-
-  try {
-    await state.initProjectDir(
+  const providedSequence = sequenceFromArg(options?.connectSequence);
+  const decided = await state
+    .decideFlowRoot(
       connectTypes.ConnectType.JackIn,
       providedSequence,
       options?.disableAutoSelect ?? false
-    );
-  } catch (e) {
-    console.error('An error occurred while initializing project directory.', e);
+    )
+    .catch(logRootDecisionError);
+  if (!decided) {
     return;
   }
+  const projectRootUri = decided.root;
 
   let projectConnectSequence: connectSequences.ReplConnectSequence;
   try {
     projectConnectSequence =
-      providedSequence ?? (await getProjectConnectSequence(options?.disableAutoSelect ?? false));
+      providedSequence ?? (await getProjectConnectSequence(decided.sequence, projectRootUri));
   } catch (e) {
     return;
   }
   if (projectConnectSequence) {
     try {
-      const options = await getJackInTerminalOptions(projectConnectSequence);
-      if (options) {
-        await vscode.env.clipboard.writeText(jackInTerminal.createCommandLine(options));
+      const terminalOptions = await getJackInTerminalOptions(
+        projectConnectSequence,
+        connectSequences.rootForSequence(projectConnectSequence, projectRootUri)
+      );
+      if (terminalOptions) {
+        await vscode.env.clipboard.writeText(jackInTerminal.createCommandLine(terminalOptions));
         const message = `Jack-in command line copied to the clipboard.${
           projectTypes.isWin ? ' It is tailored for cmd.exe and may not work in other shells.' : ''
         }`;
@@ -454,7 +460,8 @@ function substituteCustomCommandLinePlaceholders(
 }
 
 async function getJackInTerminalOptions(
-  projectConnectSequence: connectSequences.ReplConnectSequence
+  projectConnectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri
 ): Promise<jackInTerminal.JackInPTYOptions> {
   const projectTypeName: string = projectConnectSequence.projectType;
   let selectedCljsType: connectSequences.CljsTypes;
@@ -479,7 +486,7 @@ async function getJackInTerminalOptions(
   }
 
   const commandLineInfo = projectType?.commandLine
-    ? await projectType.commandLine(projectConnectSequence, selectedCljsType)
+    ? await projectType.commandLine(projectConnectSequence, selectedCljsType, projectRootUri)
     : { args: [], substitutions: {} };
 
   let args: string[] = commandLineInfo.args;
@@ -494,7 +501,7 @@ async function getJackInTerminalOptions(
     projectType
   );
   const substitutions = {
-    'PROJECT-ROOT-PATH': state.getProjectRootLocal(),
+    'PROJECT-ROOT-PATH': projectRootUri.fsPath,
     ...(nReplPortFile
       ? { 'NREPL-PORT-FILE': nReplPortFile.join(projectTypes.isWin ? '\\' : '/') }
       : {}),
@@ -520,16 +527,17 @@ async function getJackInTerminalOptions(
       }, {}),
     },
     isWin: projectTypes.isWin,
-    cwd: state.getProjectRootLocal(),
+    cwd: projectRootUri.fsPath,
     useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix,
   };
   return terminalOptions;
 }
 
 async function getProjectConnectSequence(
-  disableAutoSelect: boolean
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
+  projectRootUri: vscode.Uri
 ): Promise<connectSequences.ReplConnectSequence> {
-  const cljTypes: string[] = await projectTypes.detectProjectTypes();
+  const cljTypes: string[] = await projectTypes.detectProjectTypes(projectRootUri);
   const excludes = ['generic', 'cljs-only'];
   if (joyride.isJoyrideExtensionActive() && joyride.isJoyrideNReplServerRunning()) {
     excludes.push('joyride');
@@ -538,14 +546,16 @@ async function getProjectConnectSequence(
     return connectSequences.askForConnectSequence(
       cljTypes.filter((t) => !excludes.includes(t)),
       connectTypes.ConnectType.JackIn,
-      disableAutoSelect
+      autoSelected,
+      projectRootUri
     );
   }
 }
 
 async function executeJackIn(
   connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect: boolean,
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
+  projectRootUri: vscode.Uri,
   cb?: () => unknown
 ) {
   void state.analytics().logGA4Pageview('/connect-initiated');
@@ -556,7 +566,7 @@ async function executeJackIn(
   } catch (e) {
     console.error('An error occurred while setting up Live Share listener.', e);
   }
-  if (state.getProjectRootUri().scheme === 'vsls') {
+  if (liveShareSupport.isLiveShareGuest()) {
     output.appendLineOtherErr("Aborting Jack-in, since you're the guest of a live share session.");
     output.appendLineOtherOut(
       'Please use this command instead: Connect to a running REPL server in the project.'
@@ -564,14 +574,14 @@ async function executeJackIn(
     return;
   }
   inspector.revealOnConnect();
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   output.appendLineOtherOut('Jacking in...');
   await outputWindow.openReplWindowDoc();
 
   let projectConnectSequence: connectSequences.ReplConnectSequence = connectSequence;
   if (!projectConnectSequence) {
     try {
-      projectConnectSequence = await getProjectConnectSequence(disableAutoSelect);
+      projectConnectSequence = await getProjectConnectSequence(autoSelected, projectRootUri);
     } catch (e) {
       output.appendLineOtherErr(`${e}\nAborting jack-in.`);
       // TODO: Figure out why this is not shown to the user.
@@ -585,16 +595,20 @@ async function executeJackIn(
   }
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
-    await stopProcessesForReconnection(projectConnectSequence);
-    await stopClientsForReconnection(projectConnectSequence);
+    const rootUri = connectSequences.rootForSequence(projectConnectSequence, projectRootUri);
+    await stopProcessesForReconnection(projectConnectSequence, rootUri.toString());
+    await stopClientsForReconnection(projectConnectSequence, rootUri.toString());
 
     if (projectType.startFunction) {
-      void projectType.startFunction();
+      void projectType.startFunction(rootUri);
     } else {
       try {
-        const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+        const terminalJackInOptions = await getJackInTerminalOptions(
+          projectConnectSequence,
+          rootUri
+        );
         if (terminalJackInOptions) {
-          void executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
+          void executeJackInTask(terminalJackInOptions, projectConnectSequence, rootUri, cb);
         }
       } catch (e) {
         void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
@@ -612,10 +626,11 @@ async function executeJackIn(
 
 export function jackIn(
   connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect: boolean,
+  autoSelected: connectSequences.ReplConnectSequence | undefined,
+  projectRootUri: vscode.Uri,
   cb?: () => unknown
 ): Promise<unknown> {
-  return executeJackIn(connectSequence, disableAutoSelect, cb);
+  return executeJackIn(connectSequence, autoSelected, projectRootUri, cb);
 }
 
 export function jackOutCommand() {
@@ -628,48 +643,39 @@ export async function reJackInCommand() {
     void vscode.window.showInformationMessage('No active Jack-in process to restart.');
     return;
   }
-  let connectSequence: connectSequences.ReplConnectSequence;
-  if (processes.length === 1) {
-    connectSequence = processes[0].connectSequence;
-  } else {
-    const picked = await vscode.window.showQuickPick(
-      processes.map((p) => ({
-        label: p.connectSequenceName ?? p.connectSequence.name,
-        process: p,
-      })),
-      { title: 'Pick a REPL to restart', placeHolder: 'Select which Jack-in process to restart' }
-    );
-    if (!picked) {
-      return;
-    }
-    connectSequence = picked.process.connectSequence;
+  const picked =
+    processes.length === 1
+      ? { process: processes[0] }
+      : await vscode.window.showQuickPick(
+          processes.map((p) => ({
+            label: p.connectSequence.name,
+            description: vscode.workspace.asRelativePath(vscode.Uri.parse(p.projectRootUri)),
+            process: p,
+          })),
+          {
+            title: 'Pick a REPL to restart',
+            placeHolder: 'Select which Jack-in process to restart',
+          }
+        );
+  if (!picked) {
+    return;
   }
-  await jackIn(connectSequence, true);
+  const { connectSequence, projectRootUri } = picked.process;
+  await jackIn(connectSequence, undefined, vscode.Uri.parse(projectRootUri));
 }
 
 export async function jackInCommand(options: {
   connectSequence?: connectSequences.ReplConnectSequence | string;
   disableAutoSelect?: boolean;
 }) {
-  let connectSequence: connectSequences.ReplConnectSequence;
-  if (options && typeof options.connectSequence === 'string') {
-    connectSequence = connectSequences
-      .getConnectSequences(projectTypes.getAllProjectTypes())
-      .find((s) => s.name === options.connectSequence);
-  } else if (options && options.connectSequence) {
-    connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
-  }
-  try {
-    await state.initProjectDir(
-      connectTypes.ConnectType.JackIn,
-      connectSequence,
-      options?.disableAutoSelect
-    );
-  } catch (e) {
-    console.error('An error occurred while initializing project directory.', e);
+  const connectSequence = sequenceFromArg(options?.connectSequence);
+  const decided = await state
+    .decideFlowRoot(connectTypes.ConnectType.JackIn, connectSequence, options?.disableAutoSelect)
+    .catch(logRootDecisionError);
+  if (!decided) {
     return;
   }
-  await jackIn(connectSequence, options?.disableAutoSelect);
+  await jackIn(connectSequence, decided.sequence, decided.root);
 }
 
 function disconnectWithCommandArg(arg: unknown) {

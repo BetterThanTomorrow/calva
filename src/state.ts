@@ -9,6 +9,7 @@ import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as projectRoot from './project-root';
 import * as connectSequences from './nrepl/connectSequence';
 import * as connectTypes from './nrepl/connect-types';
+import { decideProjectRoot, RootDecision, RootDecisionInput } from './project-root-decision';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -94,55 +95,29 @@ function analytics(): analyticsModule.Analytics {
   }
 }
 
-const PROJECT_DIR_KEY = 'connect.projectDir';
-const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
 
-export function getProjectRootLocal(useCache = true): string | undefined {
-  if (useCache) {
-    return cljsLib.getStateValue(PROJECT_DIR_KEY);
-  }
-}
-
-export function getProjectConfig(useCache = true) {
-  if (useCache) {
-    return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
-  }
+export function getProjectConfig() {
+  return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
 }
 
 export function setProjectConfig(config) {
   return cljsLib.setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(useCache = true): vscode.Uri | undefined {
-  if (useCache) {
-    const res = cljsLib.getStateValue(PROJECT_DIR_URI_KEY);
-    if (res) {
-      return res;
-    }
-  }
-  if (vscode.workspace.workspaceFolders) {
-    return vscode.workspace.workspaceFolders[0].uri;
-  } else {
-    return undefined;
-  }
+/**
+ * Returns a new, random folder in Calva's temp dir. The folder is not created.
+ */
+export function tempRootUri(): vscode.Uri {
+  return vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
 }
 
-export async function setOrCreateNonProjectRoot(
-  context: vscode.ExtensionContext,
-  preferProjectDir = false
-): Promise<vscode.Uri> {
-  let root: vscode.Uri | undefined = undefined;
-  if (preferProjectDir) {
-    root = getProjectRootUri();
-  }
-  if (!root) {
-    const subDir = util.randomSlug();
-    root = vscode.Uri.file(path.join(util.calvaTmpDir(), subDir));
-  }
-  await cljsLib.setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-  await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
-  return root;
+/**
+ * Returns the root for a REPL outside any project: the first workspace folder,
+ * or a temp dir when no folder is open.
+ */
+export function nonProjectRootUri(): vscode.Uri {
+  return vscode.workspace.workspaceFolders?.[0]?.uri ?? tempRootUri();
 }
 
 function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
@@ -160,79 +135,101 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 }
 
 /**
- * Figures out the current clojure project root, and stores it in Calva state
+ * The inputs for one root decision: candidate roots, the active file's closest
+ * root, the connect sequences and the workspace folders.
  */
-export async function initProjectDir(
+export async function gatherRootDecision(
   connectType: connectTypes.ConnectType,
-  connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect = false
-) {
-  // When a connectSequence with projectRootPath is explicitly provided, use it directly
-  // This supports programmatic multi-connection flows
-  if (connectSequence?.projectRootPath?.length > 0) {
-    const projectRootPath = util.resolveFileArgToUri(
-      connectSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-    if (projectRootPath) {
-      console.log('Setting project root to: ', projectRootPath.fsPath);
-      void vscode.commands.executeCommand(
-        'setContext',
-        'calva:projectRoot',
-        projectRootPath.fsPath
-      );
-      await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-      await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-      return projectRootPath;
-    }
-  }
+  connectSequence: connectSequences.ReplConnectSequence | undefined,
+  disableAutoSelect: boolean
+): Promise<{ input: RootDecisionInput; candidateUris: vscode.Uri[] }> {
+  const candidateUris = await projectRoot.findProjectRoots();
+  const activeUri = vscode.window.activeTextEditor?.document.uri;
+  const closest = activeUri ? projectRoot.findClosestParent(activeUri, candidateUris) : undefined;
+  return {
+    candidateUris,
+    input: {
+      connectType: connectType === connectTypes.ConnectType.Connect ? 'connect' : 'jack-in',
+      passedSequence: connectSequence,
+      disableAutoSelect,
+      sequences: connectSequences.getCustomConnectSequences(),
+      candidateRoots: candidateUris.map((uri) => uri.fsPath),
+      closestRoot: closest?.fsPath,
+      workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map(
+        (folder) => folder.uri.fsPath
+      ),
+    },
+  };
+}
 
-  // Otherwise, use auto-selection logic
-  const candidatePaths = await projectRoot.findProjectRoots();
-  const active_uri = vscode.window.activeTextEditor?.document.uri;
-  const closestRootPath: vscode.Uri = active_uri
-    ? projectRoot.findClosestParent(active_uri, candidatePaths)
+function candidateUri(rootPath: string, candidateUris: vscode.Uri[]): vscode.Uri {
+  return candidateUris.find((uri) => uri.fsPath === rootPath) ?? vscode.Uri.file(rootPath);
+}
+
+/**
+ * Returns the decided root, or the one picked in the Project Root menu.
+ * `undefined` means the user cancelled the menu.
+ */
+async function uriFromRootDecision(
+  decision: Exclude<RootDecision, { noCandidates: true }>,
+  candidateUris: vscode.Uri[],
+  connectType: connectTypes.ConnectType
+): Promise<vscode.Uri | undefined> {
+  if ('root' in decision) {
+    return candidateUri(decision.root, candidateUris);
+  }
+  const preselect = decision.ask.preselect
+    ? candidateUri(decision.ask.preselect, candidateUris)
     : undefined;
+  return projectRoot.pickProjectRoot(candidateUris, preselect, connectType);
+}
 
-  const sequences: connectSequences.ReplConnectSequence[] =
-    connectSequences.getCustomConnectSequences();
+/**
+ * The project root a flow decided, and the connect sequence that decided it.
+ */
+export type DecidedRoot = {
+  root: vscode.Uri;
+  sequence?: connectSequences.ReplConnectSequence;
+};
 
-  const defaultSequences = disableAutoSelect
-    ? [connectSequence]
-    : sequences.filter((s) =>
-        connectType === connectTypes.ConnectType.Connect
-          ? s.autoSelectForConnect
-          : s.autoSelectForJackIn
-      );
-  const defaultSequence =
-    defaultSequences.find(
-      (s) =>
-        s.projectRootPath &&
-        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-          vscode.workspace.asRelativePath(closestRootPath)
-    ) || defaultSequences.shift();
-
-  let projectRootPath: vscode.Uri;
-  if (defaultSequence?.projectRootPath?.length > 0) {
-    projectRootPath = util.resolveFileArgToUri(
-      defaultSequence.projectRootPath,
-      vscode.workspace.workspaceFolders
-    );
-  } else {
-    projectRootPath = await projectRoot.pickProjectRoot(
-      candidatePaths,
-      closestRootPath,
-      connectType
-    );
+/**
+ * Returns the root decision for a jack-in or connect flow. Shows the Project Root
+ * menu when the decision asks, and returns `undefined` when the user cancels it.
+ */
+export async function decideFlowRoot(
+  connectType: connectTypes.ConnectType,
+  connectSequence: connectSequences.ReplConnectSequence | undefined,
+  disableAutoSelect = false
+): Promise<DecidedRoot | undefined> {
+  const { input, candidateUris } = await gatherRootDecision(
+    connectType,
+    connectSequence,
+    disableAutoSelect
+  );
+  const decision = decideProjectRoot(input);
+  if ('noCandidates' in decision) {
+    return { root: nonProjectRootUri(), sequence: decision.sequence };
   }
-  if (projectRootPath) {
-    console.log('Setting project root to: ', projectRootPath.fsPath);
-    void vscode.commands.executeCommand('setContext', 'calva:projectRoot', projectRootPath.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_KEY, projectRootPath.fsPath);
-    await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, projectRootPath);
-    return projectRootPath;
-  }
-  return setOrCreateNonProjectRoot(extensionContext, true);
+  const root = await uriFromRootDecision(decision, candidateUris, connectType);
+  return root ? { root, sequence: decision.sequence } : undefined;
+}
+
+/**
+ * Returns the root decision without the Project Root menu. Where the decision
+ * would ask, the root is the candidate closest to the active file, else the
+ * first workspace folder.
+ */
+export async function decideRootWithoutMenu(
+  connectType: connectTypes.ConnectType
+): Promise<DecidedRoot> {
+  const { input, candidateUris } = await gatherRootDecision(connectType, undefined, false);
+  const decision = decideProjectRoot(input);
+  const rootPath =
+    'root' in decision ? decision.root : 'ask' in decision ? decision.ask.preselect : undefined;
+  return {
+    root: rootPath ? candidateUri(rootPath, candidateUris) : nonProjectRootUri(),
+    sequence: decision.sequence,
+  };
 }
 
 /**
