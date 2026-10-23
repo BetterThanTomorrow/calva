@@ -14,7 +14,10 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, 'suite', 'index');
     const testWorkspace = path.resolve(__dirname, '../../../test-fixtures');
-    const testFilters = process.argv.slice(2).filter((arg) => arg.trim().length > 0);
+    const args = process.argv.slice(2);
+    // Without --local the suite runs in a container, see run-containerized.sh
+    const runLocally = args.includes('--local');
+    const testFilters = args.filter((arg) => arg !== '--local' && arg.trim().length > 0);
 
     // Detect potentially incorrect usage patterns
     const hasSpacesInFilter = testFilters.some((arg) => arg.includes(' '));
@@ -24,13 +27,16 @@ async function main() {
 
     if (hasSpacesInFilter || looksLikeTestName) {
       console.error('\n⚠️  Filter pattern looks incorrect\n');
-      console.error('Usage: npm run e2e-test [-- filter]\n');
+      console.error('Usage: npm run e2e-test [-- [--local] filter]\n');
       console.error('The filter matches against test FILE NAMES, not test case names.\n');
       console.error('Examples:');
-      console.error('  npm run e2e-test              # Run all tests');
-      console.error('  npm run e2e-test -- jack-in   # Run files matching "jack-in"');
-      console.error('  npm run e2e-test -- cljc      # Run files matching "cljc"');
-      console.error('  npm run e2e-test -- session   # Run files matching "session"\n');
+      console.error('  npm run e2e-test                      # Run all tests');
+      console.error('  npm run e2e-test -- jack-in           # Run files matching "jack-in"');
+      console.error('  npm run e2e-test -- cljc              # Run files matching "cljc"');
+      console.error('  npm run e2e-test -- session           # Run files matching "session"');
+      console.error(
+        '  npm run e2e-test -- --local jack-in   # Run on this machine, not in a container\n'
+      );
       console.error('Available test files are in src/extension-test/e2e/suite/\n');
       process.exit(1);
     }
@@ -49,7 +55,7 @@ async function main() {
         console.error(`\n⚠️  No test files match filter: "${testFilters.join(', ')}"\n`);
         console.error('Available test files:');
         allFiles.forEach((file) => console.error(`  - ${file.replace(/-test\.js$/, '')}`));
-        console.error('\nUsage: npm run e2e-test [-- filter]\n');
+        console.error('\nUsage: npm run e2e-test [-- [--local] filter]\n');
         console.error('Examples:');
         console.error('  npm run e2e-test -- jack-in');
         console.error('  npm run e2e-test -- session\n');
@@ -59,6 +65,15 @@ async function main() {
       console.log(
         `\nRunning ${matchingFiles.length} test file(s) matching: ${testFilters.join(', ')}\n`
       );
+    }
+
+    if (!runLocally) {
+      const containerRunner = path.resolve(
+        extensionDevelopmentPath,
+        'src/extension-test/e2e/run-containerized.sh'
+      );
+      const { status } = cp.spawnSync(containerRunner, testFilters, { stdio: 'inherit' });
+      process.exit(status ?? 1);
     }
 
     const extensionTestsEnv =

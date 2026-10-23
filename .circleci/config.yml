@@ -221,7 +221,7 @@ jobs:
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3 imagemagick
     - run:
         name: Run Extension Tests
-        command: npm run e2e-test
+        command: npm run e2e-test -- --local
     - store_test_results:
         path: ~/calva/junit
     - store_artifacts:
