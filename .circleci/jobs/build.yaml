@@ -12,6 +12,8 @@ steps:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
+- !:bin Install Node
+
 - !:cmd
   - Install CLJS dependencies
   - npx shadow-cljs classpath
