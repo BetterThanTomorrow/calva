@@ -48,7 +48,7 @@ export function isJoyrideNReplServerRunning() {
 
 export async function prepareForJackInOrConnect() {
   const decided = await state
-    .initProjectDir(connectTypes.ConnectType.JackIn, undefined, false)
+    .decideFlowRoot(connectTypes.ConnectType.JackIn, undefined, false)
     .catch((e) => {
       void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
       return undefined;

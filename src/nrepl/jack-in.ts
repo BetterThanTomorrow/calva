@@ -670,7 +670,7 @@ export async function jackInCommand(options: {
 }) {
   const connectSequence = sequenceFromArg(options?.connectSequence);
   const decided = await state
-    .initProjectDir(connectTypes.ConnectType.JackIn, connectSequence, options?.disableAutoSelect)
+    .decideFlowRoot(connectTypes.ConnectType.JackIn, connectSequence, options?.disableAutoSelect)
     .catch(logRootDecisionError);
   if (!decided) {
     return;

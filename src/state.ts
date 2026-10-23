@@ -95,13 +95,7 @@ function analytics(): analyticsModule.Analytics {
   }
 }
 
-const PROJECT_DIR_KEY = 'connect.projectDir';
-const PROJECT_DIR_URI_KEY = 'connect.projectDirNew';
 const PROJECT_CONFIG_MAP = 'config';
-
-export function getProjectRootLocal(): string | undefined {
-  return cljsLib.getStateValue(PROJECT_DIR_KEY);
-}
 
 export function getProjectConfig() {
   return cljsLib.getStateValue(PROJECT_CONFIG_MAP);
@@ -111,18 +105,6 @@ export function setProjectConfig(config) {
   return cljsLib.setStateValue(PROJECT_CONFIG_MAP, config);
 }
 
-export function getProjectRootUri(): vscode.Uri | undefined {
-  const res = cljsLib.getStateValue(PROJECT_DIR_URI_KEY);
-  if (res) {
-    return res;
-  }
-  if (vscode.workspace.workspaceFolders) {
-    return vscode.workspace.workspaceFolders[0].uri;
-  } else {
-    return undefined;
-  }
-}
-
 /**
  * Returns a new, random folder in Calva's temp dir. The folder is not created.
  */
@@ -130,19 +112,12 @@ export function tempRootUri(): vscode.Uri {
   return vscode.Uri.file(path.join(util.calvaTmpDir(), util.randomSlug()));
 }
 
-function nonProjectRootUri(preferWorkspaceFolder: boolean): vscode.Uri {
-  const folder = preferWorkspaceFolder ? vscode.workspace.workspaceFolders?.[0]?.uri : undefined;
-  return folder ?? tempRootUri();
-}
-
-export async function setOrCreateNonProjectRoot(
-  context: vscode.ExtensionContext,
-  preferWorkspaceFolder = false
-): Promise<vscode.Uri> {
-  const root = nonProjectRootUri(preferWorkspaceFolder);
-  await cljsLib.setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-  await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
-  return root;
+/**
+ * Returns the root for a REPL outside any project: the first workspace folder,
+ * or a temp dir when no folder is open.
+ */
+export function nonProjectRootUri(): vscode.Uri {
+  return vscode.workspace.workspaceFolders?.[0]?.uri ?? tempRootUri();
 }
 
 function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
@@ -218,9 +193,8 @@ export type DecidedRoot = {
 };
 
 /**
- * Returns the root decision for a flow that leaves Calva's state as it is, such as
- * copying a jack-in command line. Shows the Project Root menu when the decision asks,
- * and returns `undefined` when the user cancels it.
+ * Returns the root decision for a jack-in or connect flow. Shows the Project Root
+ * menu when the decision asks, and returns `undefined` when the user cancels it.
  */
 export async function decideFlowRoot(
   connectType: connectTypes.ConnectType,
@@ -234,7 +208,7 @@ export async function decideFlowRoot(
   );
   const decision = decideProjectRoot(input);
   if ('noCandidates' in decision) {
-    return { root: nonProjectRootUri(true), sequence: decision.sequence };
+    return { root: nonProjectRootUri(), sequence: decision.sequence };
   }
   const root = await uriFromRootDecision(decision, candidateUris, connectType);
   return root ? { root, sequence: decision.sequence } : undefined;
@@ -253,34 +227,9 @@ export async function decideRootWithoutMenu(
   const rootPath =
     'root' in decision ? decision.root : 'ask' in decision ? decision.ask.preselect : undefined;
   return {
-    root: rootPath ? candidateUri(rootPath, candidateUris) : nonProjectRootUri(true),
+    root: rootPath ? candidateUri(rootPath, candidateUris) : nonProjectRootUri(),
     sequence: decision.sequence,
   };
-}
-
-/**
- * Stores `root` as Calva's project root.
- */
-export async function storeProjectRoot(root: vscode.Uri) {
-  console.log('Setting project root to: ', root.fsPath);
-  await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
-  await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
-}
-
-/**
- * Figures out the current clojure project root, and stores it in Calva state.
- * Returns `undefined` when the user cancels the Project Root menu.
- */
-export async function initProjectDir(
-  connectType: connectTypes.ConnectType,
-  connectSequence: connectSequences.ReplConnectSequence,
-  disableAutoSelect = false
-): Promise<DecidedRoot | undefined> {
-  const decided = await decideFlowRoot(connectType, connectSequence, disableAutoSelect);
-  if (decided) {
-    await storeProjectRoot(decided.root);
-  }
-  return decided;
 }
 
 /**

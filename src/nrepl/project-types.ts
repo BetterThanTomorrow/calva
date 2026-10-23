@@ -35,11 +35,11 @@ export type ProjectType = {
   commandLine?: (
     connectSequence: connectSequences.ReplConnectSequence,
     cljsType: connectSequences.CljsTypes,
-    projectRootUri?: vscode.Uri
+    projectRootUri: vscode.Uri
   ) => Promise<CommandLineInfo>;
   useWhenExists: string[];
   defaultNReplPortFile: string[];
-  startFunction?: (projectRootUri?: vscode.Uri) => Thenable<boolean | void>;
+  startFunction?: (projectRootUri: vscode.Uri) => Thenable<boolean | void>;
   defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
   defaultReplSessionNames?: connectSequences.SessionNamesConfig;
   defaultFallbackPort?: number;
@@ -78,14 +78,6 @@ export function nreplPortFileUri(
     }
   }
   return vscode.Uri.file(relativePath);
-}
-
-function commandRoot(projectRootUri?: vscode.Uri): vscode.Uri {
-  const root = projectRootUri ?? state.getProjectRootUri();
-  if (!root) {
-    throw new Error('No project root');
-  }
-  return root;
 }
 
 export function shadowConfigFile(projectRootUri: vscode.Uri): vscode.Uri {
@@ -129,9 +121,8 @@ export function leinShadowBuilds(defproject: any): string[] {
 async function selectShadowBuilds(
   connectSequence: connectSequences.ReplConnectSequence,
   foundBuilds: string[],
-  projectRootUri?: vscode.Uri
+  root: vscode.Uri
 ): Promise<{ selectedBuilds: string[]; args: string[] }> {
-  const root = commandRoot(projectRootUri);
   const menuSelections = connectSequence.menuSelections;
   let selectedBuilds: string[];
 
@@ -192,10 +183,8 @@ async function selectShadowBuilds(
   return { selectedBuilds, args };
 }
 
-async function leinDefProject(projectRootUri?: vscode.Uri): Promise<any> {
-  const bytes = await vscode.workspace.fs.readFile(
-    vscode.Uri.joinPath(commandRoot(projectRootUri), 'project.clj')
-  );
+async function leinDefProject(root: vscode.Uri): Promise<any> {
+  const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(root, 'project.clj'));
   const data = new TextDecoder('utf-8').decode(bytes);
   try {
     const parsed = cljsLib.parseForms(data);
@@ -211,9 +200,8 @@ async function leinDefProject(projectRootUri?: vscode.Uri): Promise<any> {
 async function leinProfilesAndAlias(
   defproject: any,
   connectSequence: connectSequences.ReplConnectSequence,
-  projectRootUri?: vscode.Uri
+  root: vscode.Uri
 ): Promise<{ profiles: string[]; alias: string }> {
-  const root = commandRoot(projectRootUri);
   let profiles: string[] = [],
     alias: string;
 
@@ -416,7 +404,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     commandLine: async (
       connectSequence: connectSequences.ReplConnectSequence,
       cljsType: connectSequences.CljsTypes,
-      projectRootUri?: vscode.Uri
+      projectRootUri: vscode.Uri
     ) => {
       return await leinCommandLine(
         ['repl', ':headless'],
@@ -447,7 +435,7 @@ const projectTypes: { [id: string]: ProjectType } = {
      * 5. If main-opts in alias => just use aliases
      * 6. if no main-opts => supply our own main to run nrepl with middlewares
      */
-    commandLine: async (connectSequence, cljsType, projectRootUri?) => {
+    commandLine: async (connectSequence, cljsType, projectRootUri) => {
       return cljCommandLine(connectSequence, cljsType, projectRootUri);
     },
   },
@@ -466,8 +454,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     /**
      *  Build the command line args for a shadow-project.
      */
-    commandLine: async (connectSequence, cljsType, projectRootUri?) => {
-      const root = commandRoot(projectRootUri);
+    commandLine: async (connectSequence, cljsType, root) => {
       const chan = state.outputChannel(),
         dependencies = {
           ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
@@ -514,8 +501,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     /**
      *  Build the command line args for a lein-shadow project.
      */
-    commandLine: async (connectSequence, cljsType, projectRootUri?) => {
-      const root = commandRoot(projectRootUri);
+    commandLine: async (connectSequence, cljsType, root) => {
       const chan = state.outputChannel();
 
       const defproject = await leinDefProject(root);
@@ -589,7 +575,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     commandLine: async (
       connectSequence: connectSequences.ReplConnectSequence,
       _cljsType: connectSequences.CljsTypes,
-      projectRootUri?: vscode.Uri
+      projectRootUri: vscode.Uri
     ) => {
       return cljCommandLine(connectSequence, connectSequences.CljsTypes.none, projectRootUri);
     },
@@ -610,7 +596,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     commandLine: async (
       connectSequence: connectSequences.ReplConnectSequence,
       _cljsType: connectSequences.CljsTypes,
-      projectRootUri?: vscode.Uri
+      projectRootUri: vscode.Uri
     ) => {
       return cljCommandLine(connectSequence, connectSequences.CljsTypes.none, projectRootUri);
     },
@@ -789,8 +775,8 @@ const projectTypes: { [id: string]: ProjectType } = {
       },
     },
     commandLine: undefined,
-    startFunction: (projectRootUri) =>
-      void joyride.joyrideJackIn(projectRootUri?.fsPath ?? state.getProjectRootLocal()),
+    startFunction: (projectRootUri: vscode.Uri) =>
+      void joyride.joyrideJackIn(projectRootUri.fsPath),
   },
   scittle: {
     name: 'scittle',
@@ -881,9 +867,8 @@ const projectTypes: { [id: string]: ProjectType } = {
 async function cljCommandLine(
   connectSequence: connectSequences.ReplConnectSequence,
   cljsType: connectSequences.CljsTypes,
-  projectRootUri?: vscode.Uri
+  root: vscode.Uri
 ) {
-  const root = commandRoot(projectRootUri);
   const out: string[] = [];
   let depsUri: vscode.Uri;
   try {
@@ -1001,7 +986,7 @@ async function leinCommandLine(
   command: string[],
   cljsType: connectSequences.CljsTypes,
   connectSequence: connectSequences.ReplConnectSequence,
-  projectRootUri?: vscode.Uri
+  projectRootUri: vscode.Uri
 ) {
   const args: string[] = [];
   const dependencies = {
@@ -1120,8 +1105,7 @@ export function getProjectTypeForName(name: string): ProjectType | undefined {
   }
 }
 
-export async function detectProjectCandidates(projectRootUri?: vscode.Uri): Promise<string[]> {
-  const rootUri = commandRoot(projectRootUri);
+export async function detectProjectCandidates(rootUri: vscode.Uri): Promise<string[]> {
   const projectCandidates: string[] = [];
   for (const clj in projectTypes) {
     for (const projectFileName of projectTypes[clj].useWhenExists) {
@@ -1138,7 +1122,7 @@ export async function detectProjectCandidates(projectRootUri?: vscode.Uri): Prom
   return projectCandidates;
 }
 
-export async function detectProjectTypes(projectRootUri?: vscode.Uri): Promise<string[]> {
+export async function detectProjectTypes(projectRootUri: vscode.Uri): Promise<string[]> {
   const cljProjTypes = [
     'clj-projectless',
     'cljs-only',

@@ -12,6 +12,24 @@
   },
   "rules": {
     "curly": "error",
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "state",
+        "property": "getProjectRootUri",
+        "message": "Calva has no window-wide project root. Pass the root of the flow, connection or file."
+      },
+      {
+        "object": "state",
+        "property": "getProjectRootLocal",
+        "message": "Calva has no window-wide project root. Pass the root of the flow, connection or file."
+      },
+      {
+        "object": "state",
+        "property": "initProjectDir",
+        "message": "Use state.decideFlowRoot and pass the root it returns."
+      }
+    ],
     "no-constant-condition": [
       "error",
       {
