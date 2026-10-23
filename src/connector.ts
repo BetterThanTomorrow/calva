@@ -472,8 +472,7 @@ async function connectToHost(
       port: +port,
       onError: (e) => {
         output.appendLineOtherErr(`nREPL connection failed, port ${port}: ${e}`);
-        const scheme = projectRootUri.scheme;
-        if (scheme === 'vsls') {
+        if (liveShareSupport.isLiveShareGuest()) {
           output.appendLineOtherOut('Did the host share the nREPL port?');
         }
         // Clean up acquired suffix since client wasn't registered
@@ -1785,7 +1784,7 @@ async function disconnectClientByKey(
   if (client) {
     client['silent'] = true;
     try {
-      if (state.getProjectRootUri().scheme === 'vsls') {
+      if (liveShareSupport.isLiveShareGuest()) {
         client.disconnect();
       } else {
         await client.close();
