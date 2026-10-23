@@ -209,7 +209,7 @@ suite('Jack-in and Connect suite', () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  test('a picked sequence with a relative root for another project stops the flow', async function () {
+  test('a picked sequence with a root for another project jacks in at its own root', async function () {
     this.timeout(60_000);
     testUtil.log(suite, 'picked sequence with another relative root');
 
@@ -234,13 +234,10 @@ suite('Jack-in and Connect suite', () => {
         `qps-${bbMiniRoot.toString()}/jack-in-type`,
         { label: 'relative bb-mini2' }
       );
-      await vscode.env.clipboard.writeText('');
 
       let settled = false;
-      const copied = Promise.resolve(
-        vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
-          disableAutoSelect: true,
-        })
+      const jackedIn = Promise.resolve(
+        vscode.commands.executeCommand('calva.jackIn', { disableAutoSelect: true })
       ).finally(() => {
         settled = true;
       });
@@ -249,9 +246,20 @@ suite('Jack-in and Connect suite', () => {
         await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
         await testUtil.sleep(200);
       }
-      await copied;
+      await jackedIn;
 
-      assert.strictEqual(await vscode.env.clipboard.readText(), '');
+      const clientKey = await waitForNextClient(suite);
+      await waitForSessionsReady(suite, clientKey);
+      const bbMini2Root = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini2'));
+      assert.strictEqual(
+        clientRegistry.getRegisteredClient(clientKey)?.projectRoot,
+        bbMini2Root.toString()
+      );
+      const replWindowText = (await outputWindow.openReplWindowDoc()).getText();
+      assert.ok(
+        replWindowText.includes('Connect sequence "relative bb-mini2" names the project root'),
+        'the REPL window should say that the sequence root is used'
+      );
     } finally {
       await calvaConfig.update(
         'replConnectSequences',

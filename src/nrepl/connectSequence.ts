@@ -5,7 +5,7 @@ import * as config from '../config';
 import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
 import * as csTypes from './connect-sequence-types';
-import { mismatchedSequenceRoot } from '../project-root-decision';
+import { overridingSequenceRoot, sequenceRootPath } from '../project-root-decision';
 
 // Project types that only support connect (not jack-in)
 // These have no commandLine and no startFunction in project-types.ts
@@ -434,6 +434,38 @@ function autoSelectedSequence(
   return undefined;
 }
 
+function workspaceFolderPaths(): string[] {
+  return (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
+}
+
+/**
+ * Returns the sequence's root as the project type menu shows it, or `undefined`
+ * for a sequence without `projectRootPath`.
+ */
+function sequenceRootDescription(sequence: csTypes.ReplConnectSequence): string | undefined {
+  const root = sequenceRootPath(sequence, workspaceFolderPaths());
+  return root ? vscode.workspace.asRelativePath(vscode.Uri.file(root)) : undefined;
+}
+
+/**
+ * Returns the root `sequence` runs in: its `projectRootPath` when it names
+ * another folder than `chosenRoot`, else `chosenRoot`. When the sequence's root wins,
+ * an error-styled line in the REPL output says so.
+ */
+function rootForSequence(
+  sequence: csTypes.ReplConnectSequence,
+  chosenRoot: vscode.Uri
+): vscode.Uri {
+  const sequenceRoot = overridingSequenceRoot(sequence, chosenRoot.fsPath, workspaceFolderPaths());
+  if (!sequenceRoot) {
+    return chosenRoot;
+  }
+  output.appendLineOtherErr(
+    `Connect sequence "${sequence.name}" names the project root ${sequenceRoot}, which differs from the chosen root ${chosenRoot.fsPath}. The connect sequence takes precedence.`
+  );
+  return vscode.Uri.file(sequenceRoot);
+}
+
 async function askForConnectSequence(
   cljTypes: string[],
   connectType: connectTypes.ConnectType,
@@ -473,7 +505,10 @@ async function askForConnectSequence(
         : sequences;
     const pickedSequence = await utilities.quickPickSingle({
       title: `${menuTitleType}: Project Type/Connect Sequence`,
-      values: filteredSequences.map((s) => s.name).map((a) => ({ label: a })),
+      values: filteredSequences.map((s) => ({
+        label: s.name,
+        description: sequenceRootDescription(s),
+      })),
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,
@@ -491,17 +526,6 @@ async function askForConnectSequence(
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
 
-  const otherRoot = mismatchedSequenceRoot(
-    sequence,
-    projectRootUri.fsPath,
-    (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath)
-  );
-  if (otherRoot) {
-    throw new Error(
-      `The connect sequence "${sequence.name}" is configured for project root "${otherRoot}", but the project root is "${projectRootUri.fsPath}". Please select a different connect sequence or change the project root setting for the sequence.`
-    );
-  }
-
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }
@@ -509,6 +533,7 @@ async function askForConnectSequence(
 export {
   getCustomConnectSequences,
   askForConnectSequence,
+  rootForSequence,
   getConnectSequences,
   getDefaultCljsType,
   genericBuiltIns,

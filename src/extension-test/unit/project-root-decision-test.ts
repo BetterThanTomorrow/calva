@@ -3,7 +3,7 @@ import * as path from 'path';
 import type * as csTypes from '../../nrepl/connect-sequence-types';
 import {
   decideProjectRoot,
-  mismatchedSequenceRoot,
+  overridingSequenceRoot,
   RootDecision,
   RootDecisionInput,
 } from '../../project-root-decision';
@@ -291,48 +291,48 @@ describe('decideProjectRoot', () => {
   }
 });
 
-const mismatchCases: {
+const overrideCases: {
   name: string;
   projectRootPath?: string[];
   chosenRoot: string;
   expected: string | undefined;
 }[] = [
   {
-    name: 'an absolute root for another folder is a mismatch',
+    name: 'an absolute root for another folder overrides the chosen root',
     projectRootPath: [rootB],
     chosenRoot: rootA,
     expected: rootB,
   },
   {
-    name: 'an absolute root for the chosen folder matches',
+    name: 'an absolute root for the chosen folder leaves the chosen root',
     projectRootPath: [rootA],
     chosenRoot: rootA,
     expected: undefined,
   },
   {
-    name: 'a relative root for another folder is a mismatch',
+    name: 'a relative root for another folder overrides the chosen root',
     projectRootPath: ['bb-mini2'],
     chosenRoot: rootA,
     expected: path.join(wsA, 'bb-mini2'),
   },
   {
-    name: 'a relative root for the chosen folder matches',
+    name: 'a relative root for the chosen folder leaves the chosen root',
     projectRootPath: ['bb-mini'],
     chosenRoot: rootA,
     expected: undefined,
   },
   {
-    name: 'a sequence without a root matches any folder',
+    name: 'a sequence without a root leaves the chosen root',
     chosenRoot: rootA,
     expected: undefined,
   },
 ];
 
-describe('mismatchedSequenceRoot', () => {
-  for (const testCase of mismatchCases) {
+describe('overridingSequenceRoot', () => {
+  for (const testCase of overrideCases) {
     it(testCase.name, () => {
       assert.strictEqual(
-        mismatchedSequenceRoot(
+        overridingSequenceRoot(
           sequence({ name: 'seq', projectRootPath: testCase.projectRootPath }),
           testCase.chosenRoot,
           [wsA, wsB]

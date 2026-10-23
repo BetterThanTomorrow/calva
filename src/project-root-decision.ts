@@ -58,8 +58,9 @@ export function sequenceRootPath(
 
 /**
  * Returns the sequence's root when it names another folder than `chosenRoot`.
+ * A sequence's root wins over the chosen one.
  */
-export function mismatchedSequenceRoot(
+export function overridingSequenceRoot(
   sequence: csTypes.ReplConnectSequence,
   chosenRoot: string,
   workspaceFolders: string[]
