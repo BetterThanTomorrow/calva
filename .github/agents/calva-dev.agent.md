@@ -98,7 +98,7 @@ Use `get_task_output` to check build watch status. The "Calva Dev" task launches
 - **Calva Watch TS** - TypeScript compilation
 - **Calva Watch CLJS** - ClojureScript compilation
 - **Calva Watch Test TS** - Unit test runner
-- **Calva Watch Lint** - ESLint
+- **Calva Watch Lint** - Oxlint
 
 Check watch output to verify successful compilation or diagnose build issues.
 

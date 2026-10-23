@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.602] - 2026-10-23
+
+- Bump rewrite-clj to v1.3.59
+
 ## [2.0.601] - 2026-10-18
 
 - Fix: [Calva adds `.lsp` and `.clj-kondo` folders to non-Clojure projects](https://github.com/BetterThanTomorrow/calva/issues/2610)

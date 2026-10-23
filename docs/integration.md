@@ -11,7 +11,7 @@ Generally:
 * If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`.
   Preview User Guide changes with the **Calva Docs** VS Code task (the build
   task starts it too), or with `npm run watch-docs`, then open
-  <http://127.0.0.1:8765>. The task also connects Calva to the docs builder's
+  <http://127.0.0.1:8484>. The task also connects Calva to the docs builder's
   REPL, as the `docs` session.
   `cd docs-builder && clojure -M:build` builds the site into `site/`, and fails
   on broken links and block markup.
