@@ -769,4 +769,85 @@ describe('fiddle files', () => {
       });
     });
   });
+
+  describe('per-file root', () => {
+    const ws = path.join('/ws', 'mono-repo');
+    const outer = ws;
+    const projectA = path.join(ws, 'projects', 'a');
+    const projectB = path.join(ws, 'projects', 'b');
+    const fileInA = path.join(projectA, 'src', 'a', 'core.clj');
+    const fileInB = path.join(projectB, 'src', 'b', 'main.clj');
+
+    const cases: {
+      name: string;
+      filePath: string;
+      connectionRoots: string[];
+      workspaceFolders: string[];
+      expected: string | undefined;
+    }[] = [
+      {
+        name: 'a file inside one connection gets that connection root',
+        filePath: fileInB,
+        connectionRoots: [projectA, projectB],
+        workspaceFolders: [ws],
+        expected: projectB,
+      },
+      {
+        name: 'a file inside two nested connections gets the innermost root',
+        filePath: fileInA,
+        connectionRoots: [outer, projectA],
+        workspaceFolders: [ws],
+        expected: projectA,
+      },
+      {
+        name: 'a file in a nested project without a connection gets the outer connection root',
+        filePath: fileInB,
+        connectionRoots: [outer, projectA],
+        workspaceFolders: [ws],
+        expected: outer,
+      },
+      {
+        name: 'a file inside no connection gets its workspace folder',
+        filePath: fileInA,
+        connectionRoots: [path.join('/elsewhere', 'project')],
+        workspaceFolders: [path.join('/other'), ws],
+        expected: ws,
+      },
+      {
+        name: 'a file inside nested workspace folders gets the innermost one',
+        filePath: fileInA,
+        connectionRoots: [],
+        workspaceFolders: [ws, projectA],
+        expected: projectA,
+      },
+      {
+        name: 'a connection root that only shares a name prefix does not contain the file',
+        filePath: path.join('/ws', 'project-ab', 'src', 'x.clj'),
+        connectionRoots: [path.join('/ws', 'project-a')],
+        workspaceFolders: ['/ws'],
+        expected: '/ws',
+      },
+      {
+        name: 'a file outside every connection and workspace folder has no root',
+        filePath: path.join('/tmp', 'scratch.clj'),
+        connectionRoots: [projectA],
+        workspaceFolders: [],
+        expected: undefined,
+      },
+    ];
+
+    for (const testCase of cases) {
+      it(testCase.name, () => {
+        expectLib
+          .expect(
+            fiddleFiles.perFileRoot(
+              testCase.filePath,
+              testCase.connectionRoots,
+              testCase.workspaceFolders
+            )
+          )
+          .toEqual(testCase.expected);
+      });
+    }
+  });
 });

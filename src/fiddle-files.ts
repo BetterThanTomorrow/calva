@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as fiddleFilesUtil from './util/fiddle-files';
-import * as state from './state';
+import * as clientRegistry from './nrepl/client-registry';
 import * as config from './config';
 import * as nsUtil from './util/ns-form';
 import * as evaluate from './evaluate';
@@ -16,13 +16,29 @@ const filePathToSelection: Map<string, vscode.Selection> = new Map();
 
 export let activeEditorIsFiddle = false;
 
+/**
+ * Returns the per-file root of `filePath`, or the first workspace folder for a
+ * file outside every connection and workspace folder.
+ */
+function perFileRoot(filePath: string): string | undefined {
+  const connectionRoots = clientRegistry
+    .listClients()
+    .flatMap((client) => (client.projectRoot ? [vscode.Uri.parse(client.projectRoot).fsPath] : []));
+  const workspaceFolders = (vscode.workspace.workspaceFolders ?? []).map(
+    (folder) => folder.uri.fsPath
+  );
+  return (
+    fiddleFilesUtil.perFileRoot(filePath, connectionRoots, workspaceFolders) ?? workspaceFolders[0]
+  );
+}
+
 export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
   if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
     return;
   }
   activeEditorIsFiddle = fiddleFilesUtil.isFiddleFile(
     editor.document.fileName,
-    state.getProjectRootUri()?.fsPath,
+    perFileRoot(editor.document.fileName),
     config.getConfig().fiddleFilePaths
   );
   void vscode.commands.executeCommand(
@@ -104,7 +120,7 @@ function getFiddleForSourceFile() {
     return { fiddleFileUri: null, fiddleFilePath: null };
   }
   const sourceFilePath = editor.document.fileName;
-  const projectRootPath = state.getProjectRootUri().fsPath;
+  const projectRootPath = perFileRoot(sourceFilePath);
   const fiddleFilePaths = config.getConfig().fiddleFilePaths;
   const fiddleFilePath = fiddleFilesUtil.getFiddleForSourceFile(
     sourceFilePath,
@@ -161,7 +177,7 @@ export async function openSourceFileForFiddle() {
     return;
   }
   const filePath = editor.document.fileName;
-  const projectRootPath = state.getProjectRootUri().fsPath;
+  const projectRootPath = perFileRoot(filePath);
   const fiddleFilePaths = config.getConfig().fiddleFilePaths;
   const sourceFilePath = await fiddleFilesUtil.getSourceForFiddleFile(
     filePath,

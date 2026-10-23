@@ -259,3 +259,33 @@ export function isFiddleFile(
       _internal_getMapping(fiddleFilePaths, projectRootPath, filePath, 'fiddle') !== undefined)
   );
 }
+
+function containsPath(root: string, filePath: string): boolean {
+  const relative = path.relative(root, filePath);
+  const leavesRoot = relative === '..' || relative.startsWith(`..${path.sep}`);
+  return !leavesRoot && !path.isAbsolute(relative);
+}
+
+function innermostContaining(roots: string[], filePath: string): string | undefined {
+  return roots
+    .filter((root) => containsPath(root, filePath))
+    .reduce<string | undefined>(
+      (innermost, root) => (innermost && innermost.length >= root.length ? innermost : root),
+      undefined
+    );
+}
+
+/**
+ * Returns the per-file root of `filePath`: the innermost of `connectionRoots`
+ * that contains the file, else the innermost of `workspaceFolders` that does.
+ */
+export function perFileRoot(
+  filePath: string,
+  connectionRoots: string[],
+  workspaceFolders: string[]
+): string | undefined {
+  return (
+    innermostContaining(connectionRoots, filePath) ??
+    innermostContaining(workspaceFolders, filePath)
+  );
+}
