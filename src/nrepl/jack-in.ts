@@ -566,7 +566,7 @@ async function executeJackIn(
   } catch (e) {
     console.error('An error occurred while setting up Live Share listener.', e);
   }
-  if (projectRootUri.scheme === 'vsls') {
+  if (liveShareSupport.isLiveShareGuest()) {
     output.appendLineOtherErr("Aborting Jack-in, since you're the guest of a live share session.");
     output.appendLineOtherOut(
       'Please use this command instead: Connect to a running REPL server in the project.'
