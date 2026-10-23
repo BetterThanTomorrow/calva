@@ -255,10 +255,22 @@ suite('Jack-in and Connect suite', () => {
         clientRegistry.getRegisteredClient(clientKey)?.projectRoot,
         bbMini2Root.toString()
       );
-      const replWindowText = (await outputWindow.openReplWindowDoc()).getText();
+      const precedenceNote = 'Connect sequence "relative bb-mini2" names the project root';
+      let replWindowText = '';
+      await testUtil
+        .waitForCondition(
+          async () => {
+            replWindowText = (await outputWindow.openReplWindowDoc()).getText();
+            return replWindowText.includes(precedenceNote);
+          },
+          10_000,
+          100
+        )
+        .catch(() => undefined);
+      const replWindowTail = replWindowText.slice(-1500);
       assert.ok(
-        replWindowText.includes('Connect sequence "relative bb-mini2" names the project root'),
-        'the REPL window should say that the sequence root is used'
+        replWindowText.includes(precedenceNote),
+        `the REPL window should say that the sequence root is used, it ends with:\n${replWindowTail}`
       );
     } finally {
       await calvaConfig.update(
