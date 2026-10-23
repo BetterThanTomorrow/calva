@@ -263,7 +263,6 @@ export async function decideRootWithoutMenu(
  */
 export async function storeProjectRoot(root: vscode.Uri) {
   console.log('Setting project root to: ', root.fsPath);
-  void vscode.commands.executeCommand('setContext', 'calva:projectRoot', root.fsPath);
   await cljsLib.setStateValue(PROJECT_DIR_KEY, root.fsPath);
   await cljsLib.setStateValue(PROJECT_DIR_URI_KEY, root);
 }
