@@ -1834,7 +1834,11 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
 
-    return connect(connectSequence, false, projectRootUri);
+    return connect(
+      connectSequence,
+      false,
+      connectSequences.rootForSequence(connectSequence, projectRootUri)
+    );
   } else {
     output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
   }
@@ -1884,7 +1888,10 @@ export async function connectCommand(options?: {
   await liveShareSupport.setupLiveShareListener().catch((e) => {
     console.error('Error initializing LiveShare support: ', e);
   });
-  return standaloneConnect(connectSequence, projectRootUri, host, port).catch((e) => {
+  const sequenceRootUri = connectSequence
+    ? connectSequences.rootForSequence(connectSequence, projectRootUri)
+    : projectRootUri;
+  return standaloneConnect(connectSequence, sequenceRootUri, host, port).catch((e) => {
     void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
   });
 }

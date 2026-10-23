@@ -421,7 +421,7 @@ export async function copyJackInCommandToClipboard(options?: {
     try {
       const terminalOptions = await getJackInTerminalOptions(
         projectConnectSequence,
-        projectRootUri
+        connectSequences.rootForSequence(projectConnectSequence, projectRootUri)
       );
       if (terminalOptions) {
         await vscode.env.clipboard.writeText(jackInTerminal.createCommandLine(terminalOptions));
@@ -595,20 +595,20 @@ async function executeJackIn(
   }
   if (projectConnectSequence) {
     const projectType = projectTypes.getProjectTypeForName(projectConnectSequence.projectType);
-    const targetRootUri = projectRootUri.toString();
-    await stopProcessesForReconnection(projectConnectSequence, targetRootUri);
-    await stopClientsForReconnection(projectConnectSequence, targetRootUri);
+    const rootUri = connectSequences.rootForSequence(projectConnectSequence, projectRootUri);
+    await stopProcessesForReconnection(projectConnectSequence, rootUri.toString());
+    await stopClientsForReconnection(projectConnectSequence, rootUri.toString());
 
     if (projectType.startFunction) {
-      void projectType.startFunction(projectRootUri);
+      void projectType.startFunction(rootUri);
     } else {
       try {
         const terminalJackInOptions = await getJackInTerminalOptions(
           projectConnectSequence,
-          projectRootUri
+          rootUri
         );
         if (terminalJackInOptions) {
-          void executeJackInTask(terminalJackInOptions, projectConnectSequence, projectRootUri, cb);
+          void executeJackInTask(terminalJackInOptions, projectConnectSequence, rootUri, cb);
         }
       } catch (e) {
         void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
