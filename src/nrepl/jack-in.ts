@@ -574,7 +574,7 @@ async function executeJackIn(
     return;
   }
   inspector.revealOnConnect();
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   output.appendLineOtherOut('Jacking in...');
   await outputWindow.openReplWindowDoc();
 

@@ -65,8 +65,8 @@ export const CLJS_CONNECT_GREETINGS = [
   '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
-function computeDocUri(): vscode.Uri {
-  const projectRoot = state.getProjectRootUri();
+function computeDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
+  const projectRoot = projectRootUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
     return vscode.Uri.joinPath(projectRoot, '.calva', REPL_DOC_NAME);
@@ -78,9 +78,13 @@ function computeDocUri(): vscode.Uri {
 let _docUri: vscode.Uri | undefined;
 let isInitialized = false;
 
-function getDocUri(): vscode.Uri {
+/**
+ * Returns the REPL window document. The first call decides where it lives:
+ * in `projectRootUri`, else in the first workspace folder.
+ */
+function getDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
   if (!_docUri) {
-    _docUri = computeDocUri();
+    _docUri = computeDocUri(projectRootUri);
   }
   return _docUri;
 }
@@ -362,8 +366,8 @@ export async function clearReplWindowDoc() {
   }
 }
 
-export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
-  const docUri = getDocUri();
+export async function initReplWindowDoc(projectRootUri?: vscode.Uri): Promise<vscode.TextDocument> {
+  const docUri = getDocUri(projectRootUri);
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
   try {

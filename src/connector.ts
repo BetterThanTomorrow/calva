@@ -1564,7 +1564,7 @@ async function standaloneConnect(
   hostname?: string,
   port?: string
 ) {
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   inspector.revealOnConnect();
   await outputWindow.openReplWindowDoc();
 
@@ -1827,7 +1827,7 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
     projectRootUri
   );
   inspector.revealOnConnect();
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   await outputWindow.openReplWindowDoc();
 
   if (connectSequence) {
