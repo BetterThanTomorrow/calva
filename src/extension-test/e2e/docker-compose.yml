@@ -1,0 +1,24 @@
+name: calva-e2e
+
+# Started by run-containerized.sh, which sets CALVA_REPO to the checkout's host path.
+# The checkout is mounted at that same path, since test-fixtures settings use absolute paths.
+services:
+  e2e:
+    build:
+      context: ../smoke-test
+      dockerfile: Dockerfile
+    working_dir: ${CALVA_REPO:?Start through run-containerized.sh}
+    volumes:
+      - ${CALVA_REPO}:${CALVA_REPO}
+      # Linux VS Code, its user data and extensions, apart from the host's
+      - vscode-test:${CALVA_REPO}/.vscode-test
+      - m2:/root/.m2
+      - gitlibs:/root/.gitlibs
+      - clojure:/root/.clojure
+    init: true
+
+volumes:
+  vscode-test:
+  m2:
+  gitlibs:
+  clojure:
