@@ -1818,7 +1818,7 @@ async function stopWsServer(server: nReplWsServer.NReplWsServer): Promise<void> 
 }
 
 export async function connectNonProjectREPLCommand(context: vscode.ExtensionContext) {
-  const projectRootUri = await state.setOrCreateNonProjectRoot(context, true);
+  const projectRootUri = state.nonProjectRootUri();
   const connectSequence = await connectSequences.askForConnectSequence(
     projectTypes.getAllProjectTypes(),
     connectTypes.ConnectType.Connect,
@@ -1857,7 +1857,7 @@ export async function connectCommand(options?: {
     connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
   }
   const decided = await state
-    .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
+    .decideFlowRoot(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
     .catch((e) => {
       void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
       return undefined;
@@ -1904,7 +1904,6 @@ export async function autoConnect(): Promise<void> {
   if (!target) {
     return;
   }
-  await state.storeProjectRoot(target.root);
   await liveShareSupport.setupLiveShareListener().catch((e) => {
     console.error('Error initializing LiveShare support: ', e);
   });

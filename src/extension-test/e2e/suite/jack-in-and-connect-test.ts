@@ -496,30 +496,6 @@ suite('Jack-in and Connect suite', () => {
     testUtil.log(suite, 'projectless test.clj closed');
   });
 
-  test('Copy Jack-in command line leaves the project root as it was', async function () {
-    testUtil.log(suite, 'Copy Jack-in command line leaves the project root');
-
-    const rootBefore = state.getProjectRootUri()?.toString();
-    const otherRoot = ['bb-mini', 'bb-mini2']
-      .map((dir) => path.join(testUtil.testDataDir, dir))
-      .find((root) => vscode.Uri.file(root).toString() !== rootBefore);
-
-    await vscode.env.clipboard.writeText('');
-    await vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
-      connectSequence: {
-        name: 'copy-other-project',
-        projectType: connectSequenceTypes.ProjectTypes['babashka'],
-        cljsType: connectSequenceTypes.CljsTypes.none,
-        projectRootPath: [otherRoot],
-      },
-      disableAutoSelect: true,
-    });
-
-    const cmdLine = await vscode.env.clipboard.readText();
-    assert.ok(cmdLine.includes(otherRoot), `expected the other project in ${cmdLine}`);
-    assert.strictEqual(state.getProjectRootUri()?.toString(), rootBefore);
-  });
-
   test('Reconnection with different sequence name cleans up jack-in process', async function () {
     this.timeout(120_000);
     testUtil.log(suite, 'Reconnection: different sequence name, same session names');

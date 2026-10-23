@@ -363,7 +363,7 @@ export async function startDram() {
   const config = (await deserializeDramStartConfig(workspaceFolderUri)).config;
   console.debug('Dram start config:', config);
   void vscode.workspace.fs.delete(ARGS_FILE_PATH(workspaceFolderUri));
-  const projectRootUri = (await state.initProjectDir(connectTypes.ConnectType.JackIn, null, false))
+  const projectRootUri = (await state.decideFlowRoot(connectTypes.ConnectType.JackIn, null, false))
     ?.root;
   if (!projectRootUri) {
     return;
