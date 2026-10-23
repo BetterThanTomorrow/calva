@@ -26,7 +26,7 @@ steps:
 
 - !:cmd
   - Run Extension Tests
-  - npm run e2e-test
+  - npm run e2e-test -- --local
 
 - !:store
     test_results: ~/calva/junit

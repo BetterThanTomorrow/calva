@@ -177,7 +177,7 @@ COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci
 
 RUN npm run compile-test
 
-CMD npm run e2e-test
+CMD npm run e2e-test -- --local
 
 
 ################################################################################
