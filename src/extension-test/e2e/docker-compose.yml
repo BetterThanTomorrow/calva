@@ -8,8 +8,6 @@ services:
       context: ../smoke-test
       dockerfile: Dockerfile
     working_dir: ${CALVA_REPO:?Start through run-containerized.sh}
-    environment:
-      - NPM_CONFIG_UPDATE_NOTIFIER=false
     volumes:
       - ${CALVA_REPO}:${CALVA_REPO}
       # Linux VS Code, its user data and extensions, apart from the host's
