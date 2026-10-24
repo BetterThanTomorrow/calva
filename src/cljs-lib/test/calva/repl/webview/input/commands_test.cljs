@@ -54,6 +54,8 @@
   (testing "has the macOS ctrl keys that VS Code has, and leaves out the ones VS Code doesn't bind"
     (is (every? binds? ["ctrl+a" "ctrl+e" "ctrl+f" "ctrl+b" "ctrl+n" "ctrl+p" "ctrl+d" "ctrl+h" "ctrl+k" "ctrl+o" "ctrl+t"]))
     (is (not-any? binds? ["ctrl+v" "ctrl+alt+h" "ctrl+up" "ctrl+down"])))
+  (testing "leaves the clipboard keys to VS Code's clipboard commands and cmd+f to the view's find"
+    (is (not-any? binds? ["cmd+c" "cmd+v" "cmd+x" "cmd+f"])))
   (testing "escape closes the completion list, then removes the extra cursors"
     (is (= ["closeCompletion" "simplifySelection"]
            (for [^js binding sut/keymap
