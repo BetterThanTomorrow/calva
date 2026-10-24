@@ -3479,12 +3479,12 @@
       {
         "command": "calva.replInput.newLine",
         "key": "enter",
-        "when": "calva:replInputFocused && !calva:replInputReadingStdin"
+        "when": "calva:replInputFocused && !calva:replInputReadingStdin && !calva:replInputCompletionAcceptsEnter"
       },
       {
         "command": "calva.replInput.formatCurrentForm",
         "key": "tab",
-        "when": "calva:keybindingsEnabled && calva:replInputFocused"
+        "when": "calva:keybindingsEnabled && calva:replInputFocused && !calva:replInputCompletionActive"
       },
       {
         "command": "calva.replInput.undo",

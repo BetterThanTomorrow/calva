@@ -21,7 +21,7 @@
   [id f & args]
   (apply swap! host/!state update :repl-input/evaluations f id args)
   (host/post-to-view! id (evaluation-message id))
-  (host/apply-reading-stdin-context!))
+  (host/apply-focused-contexts!))
 
 (defn- read-stdin+
   "Returns a promise of the line sent from the REPL Input `id` to the evaluation `evaluation-id`."

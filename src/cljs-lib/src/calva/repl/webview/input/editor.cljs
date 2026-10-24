@@ -2,6 +2,7 @@
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
   (:require
    [calva.repl.webview.input.commands :as commands]
+   [calva.repl.webview.input.completion :as completion]
    [calva.repl.webview.input.context :as context]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
@@ -94,9 +95,12 @@
   (let [!pending-chord? (volatile! false)]
     (.highest Prec
               (.domEventHandlers EditorView
-                                 #js {:keydown (fn [^js event _view]
+                                 #js {:keydown (fn [^js event ^js view]
                                                  (let [{:keys [cancel? pending-chord?]}
-                                                       (input-keys/keydown command-keys @!pending-chord? (keydown-event event))]
+                                                       (input-keys/keydown command-keys
+                                                                           @!pending-chord?
+                                                                           (assoc (keydown-event event)
+                                                                                  :completion-list? (completion/open? (.-state view))))]
                                                    (vreset! !pending-chord? pending-chord?)
                                                    (when cancel?
                                                      (.preventDefault event))
@@ -145,10 +149,7 @@
 
 (defonce ^:private placeholder-compartment (Compartment.))
 
-(defn- completion-open?
-  "True while the completion list is open, where `up` and `down` move in the list."
-  [^js _state]
-  false)
+(defonce ^:private completion-compartment (Compartment.))
 
 (defn- walk-key
   [^js state k]
@@ -158,7 +159,7 @@
      :cursors (.. selection -ranges -length)
      :cursor-line (.-number (.lineAt doc (.. selection -main -head)))
      :line-count (.-lines doc)
-     :completion-open? (completion-open? state)}))
+     :completion-open? (completion/open? state)}))
 
 (defn- history-keymap
   "Walks the history with `up` on the first line and `down` on the last line."
@@ -182,6 +183,7 @@
        (.of close-brackets-compartment #js [])
        (.of editing-compartment #js [])
        (.of placeholder-compartment #js [])
+       (.of completion-compartment #js [])
        (history)
        commands/extensions
        (drawSelection)
@@ -192,7 +194,8 @@
        (.of (.-updateListener EditorView)
             (fn [^js update]
               (when (or (.-docChanged update) (.-selectionSet update))
-                (dispatch! [:repl-input/ax.changed (state-payload (.-state update))]))))
+                (dispatch! [:repl-input/ax.changed (state-payload (.-state update))]))
+              (dispatch! [:repl-input/ax.completion-active (completion/open? (.-state update))])))
        (.domEventHandlers EditorView
                           #js {:focus (fn [_ _] (dispatch! [:repl-input/ax.focused]) false)
                                :blur (fn [_ _] (dispatch! [:repl-input/ax.blurred]) false)})])
@@ -303,6 +306,11 @@
                                                   (placeholder context/reading-stdin-placeholder)
                                                   #js []))})))
 
+(defn- set-completion!
+  [dispatch! config]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure completion-compartment (completion/extension dispatch! config))})))
+
 (defn exec-effect!
   [dispatch! [fx-type & args]]
   (case fx-type
@@ -317,4 +325,7 @@
     :repl-input/fx.set-editing (set-editing! (first args))
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args))
-    :repl-input/fx.set-evaluation (set-evaluation! (first args))))
+    :repl-input/fx.set-evaluation (set-evaluation! (first args))
+    :repl-input/fx.set-completion (set-completion! dispatch! (first args))
+    :repl-input/fx.deliver-completions (completion/deliver! (editor-view) dispatch! (first args))
+    :repl-input/fx.deliver-completion-docs (completion/deliver-docs! (first args))))

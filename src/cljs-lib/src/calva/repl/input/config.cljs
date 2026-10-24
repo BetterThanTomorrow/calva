@@ -4,6 +4,7 @@
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.completion :as completion]
    [calva.repl.input.history :as history]
    [calva.util :as util]
    [clojure.set :as set]
@@ -22,12 +23,13 @@
 
 (def clojure-settings
   "The settings read for Clojure, since they can be set per language."
-  (concat brackets/close-settings (keys editing-settings)))
+  (concat brackets/close-settings (keys editing-settings) completion/settings))
 
 (defn editor-settings
   [settings]
   (merge (brackets/editor-settings settings)
-         (set/rename-keys (select-keys settings (keys editing-settings)) editing-settings)))
+         (set/rename-keys (select-keys settings (keys editing-settings)) editing-settings)
+         {:completion (completion/editor-settings settings)}))
 
 (defn read-settings
   "The settings that the parsed `keybindings`, the brackets, the editing and the history depend on, as a

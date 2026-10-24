@@ -4,6 +4,7 @@
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.completion :as completion]
    [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
    [calva.repl.input.evaluations :as evaluations]
@@ -17,6 +18,13 @@
 
 (def reading-stdin-context "calva:replInputReadingStdin")
 
+(defn- focused-contexts
+  "The context keys that hold only for the focused REPL Input: whether an evaluation from it reads stdin,
+   and whether its completion list is open."
+  [{:repl-input/keys [focused evaluations records settings]}]
+  (merge {reading-stdin-context (some? (evaluations/waiting-for-stdin evaluations focused))}
+         (completion/contexts (get-in records [focused :repl-input/completion-active?]) settings)))
+
 (def initial-state
   {:repl-input/records {}
    :repl-input/focused nil
@@ -26,7 +34,7 @@
    :repl-input/applied-cursor-contexts nil
    :repl-input/evaluations {}
    :repl-input/last-evaluation-id nil
-   :repl-input/applied-reading-stdin? false
+   :repl-input/applied-focused-contexts (focused-contexts {})
    :repl-input/connected? false
    :repl-input.context/lock nil
    :repl-input.context/editor nil
@@ -108,15 +116,16 @@
               :when v]
         (set-context! k false)))))
 
-(defn apply-reading-stdin-context!
-  "Sets `calva:replInputReadingStdin` to whether an evaluation from the focused REPL Input waits for a
-   line from stdin, when that changed."
+(defn apply-focused-contexts!
+  "Sets the context keys that hold only for the focused REPL Input, those that changed: whether an
+   evaluation from it waits for a line from stdin, and whether its completion list is open."
   []
-  (let [{:repl-input/keys [focused evaluations applied-reading-stdin?]} @!state
-        reading? (some? (evaluations/waiting-for-stdin evaluations focused))]
-    (when (not= reading? applied-reading-stdin?)
-      (swap! !state assoc :repl-input/applied-reading-stdin? reading?)
-      (set-context! reading-stdin-context reading?))))
+  (let [{:repl-input/keys [applied-focused-contexts] :as state} @!state
+        contexts (focused-contexts state)]
+    (doseq [[k v] contexts
+            :when (not= v (get applied-focused-contexts k))]
+      (set-context! k v))
+    (swap! !state assoc :repl-input/applied-focused-contexts contexts)))
 
 (defn update-focus!
   [event]
@@ -127,13 +136,18 @@
     (if focused?
       (apply-cursor-contexts!)
       (release-cursor-contexts!))
-    (apply-reading-stdin-context!)))
+    (apply-focused-contexts!)))
 
 (defn- command-keys-for
+  "The command keys of `record`, with `:completion-list-keys`, the keys of those that hold while its
+   completion list is open."
   [{:repl-input/keys [keybindings settings] :as state} record]
-  (command-keys/command-keys keybindings
-                             (command-keys/context state record)
-                             (get settings command-keys/user-keys-setting)))
+  (let [context (command-keys/context state record)
+        user-keys (get settings command-keys/user-keys-setting)]
+    (assoc (command-keys/command-keys keybindings context user-keys)
+           :completion-list-keys (:keys (command-keys/command-keys keybindings
+                                                                   (merge context (completion/contexts true settings))
+                                                                   user-keys)))))
 
 (def ^:private derived-messages
   "The messages that post what the extension derives for a REPL Input, by the record key that holds it."

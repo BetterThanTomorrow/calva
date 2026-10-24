@@ -62,9 +62,10 @@
 
 (defn keydown
   "Returns `{:cancel? :pending-chord?}` for a keydown `event` in the REPL Input. `:cancel?` when the key
-   is left to VS Code: one of `command-keys`, or the key after a chord's first key. `:pending-chord?`
-   when VS Code waits for the rest of a chord after this key."
-  [{:keys [keys chords]} pending-chord? {:keys [key composing?] :as event}]
+   is left to VS Code: one of `command-keys`, or of their `:completion-list-keys` while the `event` comes
+   with the completion list open, or the key after a chord's first key. `:pending-chord?` when VS Code
+   waits for the rest of a chord after this key."
+  [{:keys [keys chords completion-list-keys]} pending-chord? {:keys [key composing? completion-list?] :as event}]
   (cond
     (or composing? (modifier-key? key))
     {:cancel? false :pending-chord? pending-chord?}
@@ -74,5 +75,5 @@
 
     :else
     (let [ids (event-key-ids event)]
-      {:cancel? (boolean (some keys ids))
+      {:cancel? (boolean (some (if completion-list? completion-list-keys keys) ids))
        :pending-chord? (boolean (some chords ids))})))

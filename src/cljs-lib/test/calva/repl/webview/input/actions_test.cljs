@@ -88,16 +88,18 @@
              (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.set-brackets message]))))))
 
 (deftest set-editor-settings-test
-  (testing "hands the closing brackets, the bracket stylesheet, and the editing settings to the editor"
+  (testing "hands the closing brackets, the bracket stylesheet, the editing settings and the completion settings to the editor"
     (let [{:uf/keys [fxs]} (sut/handle-action {:repl-input/id "output-view"}
                                               [:repl-input/ax.set-editor-settings
                                                {:close-brackets ["(" "\""]
                                                 :bracket-styles {:bracket-colors ["#0098e6"]}
                                                 :multi-cursor-modifier "ctrlCmd"
-                                                :word-separators "()[]{}"}])]
+                                                :word-separators "()[]{}"
+                                                :completion {:activate-on-typing? true :delay 10}}])]
       (is (= [[:repl-input/fx.set-close-brackets ["(" "\""]]
               [:repl-input/fx.set-bracket-css ".repl-input-bracket-0 { color: #0098e6; }\n"]
-              [:repl-input/fx.set-editing {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]{}"}]]
+              [:repl-input/fx.set-editing {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]{}"}]
+              [:repl-input/fx.set-completion {:activate-on-typing? true :delay 10 :enabled? true}]]
              fxs)))))
 
 (deftest run-command-test
@@ -128,11 +130,16 @@
                                 [:repl-input/ax.follow-editor]))))))
 
 (deftest evaluation-test
-  (let [db {:repl-input/id "output-view"}]
-    (testing "shows the evaluation bar the extension posts"
+  (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
+    (testing "shows the evaluation bar the extension posts, and turns completion off while it reads stdin"
       (is (= {:uf/db (assoc db :repl-input/evaluation :reading-stdin)
-              :uf/fxs [[:repl-input/fx.set-evaluation :reading-stdin]]}
+              :uf/fxs [[:repl-input/fx.set-evaluation :reading-stdin]
+                       [:repl-input/fx.set-completion {:delay 10 :enabled? false}]]}
              (sut/handle-action db [:repl-input/ax.set-evaluation :reading-stdin]))))
+    (testing "turns completion on again when the evaluation is done"
+      (is (= [:repl-input/fx.set-completion {:delay 10 :enabled? true}]
+             (last (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
+                                               [:repl-input/ax.set-evaluation nil]))))))
     (testing "asks the extension to interrupt"
       (is (= [[:fx/post-to-host {:command "repl-input-interrupt" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.interrupt])))))))
@@ -141,3 +148,25 @@
   (testing "asks the extension to walk the history"
     (is (= [[:fx/post-to-host {:command "repl-input-walk-history" :repl-input/id "output-view" :direction "back"}]]
            (:uf/fxs (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.walk-history :back]))))))
+
+(deftest completion-test
+  (let [db {:repl-input/id "output-view"}]
+    (testing "asks the extension to complete, and for a candidate's docs"
+      (is (= [[:fx/post-to-host {:command "repl-input-complete" :repl-input/id "output-view"
+                                 :request 4 :text "(str" :offset 4 :explicit? false}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.complete {:request 4 :text "(str" :offset 4 :explicit? false}]))))
+      (is (= [[:fx/post-to-host {:command "repl-input-resolve-completion" :repl-input/id "output-view" :request 4 :index 2}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.resolve-completion {:request 4 :index 2}])))))
+    (testing "hands the extension's answers to the editor"
+      (is (= [[:repl-input/fx.deliver-completions {:repl-input.completion/request 4}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.completions {:repl-input.completion/request 4}]))))
+      (is (= [[:repl-input/fx.deliver-completion-docs {:repl-input.completion/request 4}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.completion-docs {:repl-input.completion/request 4}])))))
+    (testing "tells the extension when the list opens and closes, and only then"
+      (let [{opened :uf/db fxs :uf/fxs} (sut/handle-action db [:repl-input/ax.completion-active true])]
+        (is (= [[:fx/post-to-host {:command "repl-input-completion-active" :repl-input/id "output-view" :active? true}]]
+               fxs))
+        (is (= {:uf/db opened} (sut/handle-action opened [:repl-input/ax.completion-active true])))
+        (is (= [[:fx/post-to-host {:command "repl-input-completion-active" :repl-input/id "output-view" :active? false}]]
+               (:uf/fxs (sut/handle-action opened [:repl-input/ax.completion-active false]))))
+        (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.completion-active false])))))))

@@ -93,25 +93,30 @@
           (swap! sut/!state assoc
                  :repl-input/keybindings (command-keys/parsed [{:command "calva.replInput.deleteBackward"
                                                                 :key "backspace"
-                                                                :when "calva:replInputFocused && !calva:cursorInComment"}])
+                                                                :when "calva:replInputFocused && !calva:cursorInComment"}
+                                                               {:command "calva.replInput.formatCurrentForm"
+                                                                :key "tab"
+                                                                :when "calva:replInputFocused && !calva:replInputCompletionActive"}])
                  :repl-input/settings {command-keys/user-keys-setting ["ctrl+j"]})
           (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
-          (testing "posts the command keys to the REPL Input when it mounts"
+          (testing "posts the command keys to the REPL Input when it mounts, and the ones while its completion list is open"
             (is (= [{:command/name "repl-input-command-keys"
                      :repl-input/id "output-view"
                      :repl-input/version 0
-                     :repl-input/command-keys {:keys #{"backspace" "ctrl+j"} :chords #{}}}]
+                     :repl-input/command-keys {:keys #{"backspace" "tab" "ctrl+j"}
+                                               :chords #{}
+                                               :completion-list-keys #{"backspace" "ctrl+j"}}}]
                    (posted-named posted "repl-input-command-keys"))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 1 :text "a" :selections [[1 1]]})
           (testing "posts nothing when the keys stay the same"
             (is (= 1 (count (posted-named posted "repl-input-command-keys")))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 2 :text "; a" :selections [[3 3]]})
           (testing "posts the keys when the REPL Input's cursor contexts change them"
-            (is (= {:keys #{"ctrl+j"} :chords #{}}
+            (is (= {:keys #{"tab" "ctrl+j"} :chords #{} :completion-list-keys #{"ctrl+j"}}
                    (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys"))))))
           (sut/settings-changed! {command-keys/user-keys-setting []})
           (testing "posts the keys when the settings change them"
-            (is (= {:keys #{} :chords #{}}
+            (is (= {:keys #{"tab"} :chords #{} :completion-list-keys #{}}
                    (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys")))))))))))
 
 (deftest edit-focused!-test

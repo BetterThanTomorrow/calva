@@ -17,6 +17,7 @@ import type * as nrepl from './nrepl';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as pareditExtension from './paredit/extension';
+import * as replInputCompletion from './repl-input-completion';
 import * as replInputDocument from './repl-input-document';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
@@ -221,7 +222,7 @@ function registerEvaluationCommands() {
   ];
 }
 
-export function activate(context: vscode.ExtensionContext) {
+function initReplInput() {
   cljsLib.initReplInput({
     ...contextAdapter,
     nsFromText: (code: string) => nsForm.nsFromText(code),
@@ -243,7 +244,12 @@ export function activate(context: vscode.ExtensionContext) {
     },
     restoreEditorCursorContexts: () =>
       whenContexts.setCursorContextIfChanged(vscode.window.activeTextEditor),
+    ...replInputCompletion.completionAdapter,
   });
+}
+
+export function activate(context: vscode.ExtensionContext) {
+  initReplInput();
   context.subscriptions.push(
     vscode.commands.registerCommand('calva.replInput.deleteBackward', () =>
       editWithOneCursor((doc) => paredit.backspace(doc, undefined, formatterConfig.getConfigNow()))

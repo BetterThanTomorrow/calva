@@ -41,3 +41,16 @@
            (keydown true {:key "Control" :code "ControlLeft" :ctrl? true}))))
   (testing "leaves keys alone while composing"
     (is (not (:cancel? (keydown {:key "Backspace" :code "Backspace" :composing? true}))))))
+
+(deftest keydown-completion-list-test
+  (let [keys (sut/command-keys {:keys #{"tab" "enter" "backspace"}
+                                :chords #{}
+                                :completion-list-keys #{"backspace"}})
+        keydown (fn [event] (sut/keydown keys false (merge {:ctrl? false :shift? false :alt? false :meta? false} event)))]
+    (testing "leaves `tab` and `enter` to VS Code while the completion list is closed"
+      (is (:cancel? (keydown {:key "Tab" :code "Tab"})))
+      (is (:cancel? (keydown {:key "Enter" :code "Enter"}))))
+    (testing "gives CodeMirror the keys whose bindings step aside while the list is open"
+      (is (not (:cancel? (keydown {:key "Tab" :code "Tab" :completion-list? true}))))
+      (is (not (:cancel? (keydown {:key "Enter" :code "Enter" :completion-list? true}))))
+      (is (:cancel? (keydown {:key "Backspace" :code "Backspace" :completion-list? true}))))))

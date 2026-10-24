@@ -1,6 +1,7 @@
 (ns calva.repl.input.messages
   "Takes the messages that the REPL Inputs in the Output views post."
   (:require
+   [calva.repl.input.complete :as complete]
    [calva.repl.input.config :as config]
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as host]
@@ -31,6 +32,9 @@
       "repl-input-follow-editor" (host/follow-editor!)
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-walk-history" (recall/walk! id (keyword direction))
+      "repl-input-complete" (complete/complete! msg)
+      "repl-input-resolve-completion" (complete/resolve! msg)
+      "repl-input-completion-active" (complete/active-changed! msg)
       nil)))
 
 (defn listen-for-messages!

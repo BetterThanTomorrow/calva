@@ -31,16 +31,52 @@
      :uf/fxs [[:repl-input/fx.unmount]
               (post db "repl-input-unmounted")]}))
 
+(defn- completion-config
+  "The completion settings, with completion off while an evaluation reads stdin."
+  [{:repl-input/keys [completion-settings evaluation]}]
+  (assoc completion-settings :enabled? (and (some? completion-settings) (not= :reading-stdin evaluation))))
+
 (defn- set-editor-settings
   [db settings]
-  {:uf/db db
-   :uf/fxs [[:repl-input/fx.set-close-brackets (:close-brackets settings)]
-            [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles settings))]
-            [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]]})
+  (let [db (assoc db :repl-input/completion-settings (:completion settings))]
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.set-close-brackets (:close-brackets settings)]
+              [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles settings))]
+              [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]
+              [:repl-input/fx.set-completion (completion-config db)]]}))
+
+(defn- handle-completion-action
+  "Handles the actions of the completion list and its docs."
+  [db [action-type payload]]
+  (case action-type
+    :repl-input/ax.complete
+    (let [{:keys [request text offset explicit?]} payload]
+      {:uf/db db
+       :uf/fxs [(post db "repl-input-complete" :request request :text text :offset offset :explicit? explicit?)]})
+
+    :repl-input/ax.completions
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.deliver-completions payload]]}
+
+    :repl-input/ax.resolve-completion
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-resolve-completion" :request (:request payload) :index (:index payload))]}
+
+    :repl-input/ax.completion-docs
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.deliver-completion-docs payload]]}
+
+    :repl-input/ax.completion-active
+    (if (= (boolean payload) (boolean (:repl-input/completion-active? db)))
+      {:uf/db db}
+      {:uf/db (assoc db :repl-input/completion-active? (boolean payload))
+       :uf/fxs [(post db "repl-input-completion-active" :active? (boolean payload))]})
+
+    {:uf/db db}))
 
 (defn- handle-evaluation-action
   "Handles the actions of the context line, the evaluation bar and the history."
-  [db [action-type payload]]
+  [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
     {:uf/db (assoc db :repl-input/context-line payload)
@@ -53,8 +89,10 @@
       {:uf/db db})
 
     :repl-input/ax.set-evaluation
-    {:uf/db (assoc db :repl-input/evaluation payload)
-     :uf/fxs [[:repl-input/fx.set-evaluation payload]]}
+    (let [db (assoc db :repl-input/evaluation payload)]
+      {:uf/db db
+       :uf/fxs [[:repl-input/fx.set-evaluation payload]
+                [:repl-input/fx.set-completion (completion-config db)]]})
 
     :repl-input/ax.interrupt
     {:uf/db db
@@ -64,7 +102,7 @@
     {:uf/db db
      :uf/fxs [(post db "repl-input-walk-history" :direction (name payload))]}
 
-    {:uf/db db}))
+    (handle-completion-action db action)))
 
 (defn handle-action
   [db [action-type payload :as action]]

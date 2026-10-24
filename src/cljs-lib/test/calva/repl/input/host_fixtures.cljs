@@ -1,13 +1,21 @@
 (ns calva.repl.input.host-fixtures
   "A host with a fake adapter and fake views, for testing `calva.repl.input.host`."
   (:require
+   [calva.repl.input.complete :as complete]
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as messages]
    [cljs.reader :as reader]
    [clojure.string :as string]))
 
-(defn fake-adapter [{:keys [contexts restored session-keys evaluations]}]
+(defn- pending-completion
+  "Records a call with `args` to an adapter function that completes, and returns a promise that the
+   test resolves."
+  [completions source args]
+  (js/Promise. (fn [resolve _]
+                 (swap! completions conj (assoc args :source source :resolve resolve)))))
+
+(defn fake-adapter [{:keys [contexts restored session-keys evaluations completions]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
@@ -20,7 +28,11 @@
        :nsFromText (fn [code] (when-let [[form ns] (re-find #"^\(ns ([\w.]+)\)" code)] #js [ns form]))
        :evaluate (fn [options]
                    (js/Promise. (fn [resolve _]
-                                  (swap! evaluations conj {:options options :resolve resolve}))))})
+                                  (swap! evaluations conj {:options options :resolve resolve}))))
+       :replCompletions (fn [session-key ns ^js doc offset]
+                          (pending-completion completions :repl {:session-key session-key :ns ns :text (.-text doc) :offset offset}))
+       :resolveReplCompletion (fn [session-key ns item]
+                                (js/Promise.resolve #js {:detail (str ns " in " session-key) :documentation (str "REPL docs for " (.-label item))}))})
 
 (defn fake-view [posted]
   #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})
@@ -30,11 +42,13 @@
               :restored (atom true)
               :posted (atom [])
               :session-keys (atom ["clj" "cljs"])
-              :evaluations (atom [])}]
+              :evaluations (atom [])
+              :completions (atom [])}]
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})
     (reset! evaluate/!running {})
+    (reset! complete/!completions {})
     (f host)))
 
 (def !view (atom nil))
