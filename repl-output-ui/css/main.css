@@ -296,3 +296,40 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    color: var(--vscode-textLink-activeForeground);
    text-decoration: underline;
 }
+
+.repl-input-evaluation-bar {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 0.5em;
+   margin-bottom: 4px;
+   padding: 2px 6px;
+   font-size: 0.9em;
+   color: var(--vscode-foreground);
+   background-color: var(--vscode-editorWidget-background);
+   border-left: 2px solid var(--vscode-progressBar-background);
+}
+
+.repl-input-evaluation-bar[hidden] {
+   display: none;
+}
+
+.repl-input-evaluation-bar.reading-stdin {
+   color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+   background-color: var(--vscode-inputValidation-warningBackground);
+   border-left-color: var(--vscode-inputValidation-warningBorder, var(--vscode-editorWarning-foreground));
+}
+
+.repl-input-interrupt {
+   padding: 1px 8px;
+   font: inherit;
+   color: var(--vscode-button-secondaryForeground);
+   background-color: var(--vscode-button-secondaryBackground);
+   border: none;
+   border-radius: 2px;
+   cursor: pointer;
+}
+
+.repl-input-interrupt:hover {
+   background-color: var(--vscode-button-secondaryHoverBackground);
+}

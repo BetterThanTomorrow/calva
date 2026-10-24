@@ -39,7 +39,7 @@
             [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]]})
 
 (defn- handle-evaluation-action
-  "Handles the actions of the context line."
+  "Handles the actions of the context line and the evaluation bar."
   [db [action-type payload]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -51,6 +51,14 @@
       {:uf/db db
        :uf/fxs [(post db "repl-input-follow-editor")]}
       {:uf/db db})
+
+    :repl-input/ax.set-evaluation
+    {:uf/db (assoc db :repl-input/evaluation payload)
+     :uf/fxs [[:repl-input/fx.set-evaluation payload]]}
+
+    :repl-input/ax.interrupt
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-interrupt")]}
 
     {:uf/db db}))
 

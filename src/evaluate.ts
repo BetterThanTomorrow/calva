@@ -155,6 +155,8 @@ type EvaluationOptions = {
   showResult?: boolean;
   showErrorMessage?: boolean;
   who?: string;
+  // Without it, the evaluation reads stdin from an input box
+  stdin?: () => Promise<string>;
 };
 
 type EvaluationHooks = {
@@ -163,6 +165,7 @@ type EvaluationHooks = {
   onStderrAfterResult?: (message: string, stacktrace: any) => boolean;
   onFailure?: (message: string, stacktrace: Promise<any>) => boolean;
   evaluateFlareCode?: (code: string) => Promise<string | null>;
+  onEvaluationSent?: (evaluation: nrepl.NReplEvaluation) => unknown;
 };
 
 type Evaluation = { ns: string } & (
@@ -199,7 +202,7 @@ function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: strin
 }
 
 function sendEvaluation(options: EvaluationOptions) {
-  const { code, session, ns, filePath, line, column, pprintOptions, who = 'ui' } = options;
+  const { code, session, ns, filePath, line, column, pprintOptions, stdin, who = 'ui' } = options;
   const sessionKey = sessionRegistry.resolveSessionKey(session);
   const outputOptions = { ns, replSessionType: sessionKey, who, ...getShadowInfo(session) };
   const err: string[] = [];
@@ -210,6 +213,7 @@ function sendEvaluation(options: EvaluationOptions) {
     column: column + 1,
     stdout: (m) => output.appendEvalOut(m, outputOptions),
     stderr: (m) => err.push(m),
+    stdin,
     pprintOptions,
   });
   recordEvaluationActivity(session, sessionKey, who);
@@ -317,6 +321,7 @@ async function evaluateToOutputDestinations(
   hooks: EvaluationHooks = {}
 ): Promise<Evaluation> {
   const sent = sendEvaluation(options);
+  hooks.onEvaluationSent?.(sent.evaluation);
   const outcome = await outputOutcome(sent, options, hooks);
   return { ...outcome, ns: sent.evaluation.ns || options.ns };
 }

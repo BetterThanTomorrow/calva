@@ -6,7 +6,7 @@
    [cljs.test :refer-macros [async deftest testing is]]
    [clojure.string :as string]))
 
-(defn- fake-adapter [{:keys [contexts restored session-keys]}]
+(defn- fake-adapter [{:keys [contexts restored session-keys evaluations]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
@@ -15,7 +15,11 @@
        :restoreEditorCursorContexts (fn [] @restored)
        :editorNamespace (fn [^js document _position] #js [(.-ns document) (str "(ns " (.-ns document) ")")])
        :routedSessionKey (fn [^js document] (if document (.-sessionKey document) "clj"))
-       :sessionKeys (fn [] (clj->js @session-keys))})
+       :sessionKeys (fn [] (clj->js @session-keys))
+       :nsFromText (fn [code] (when-let [[form ns] (re-find #"^\(ns ([\w.]+)\)" code)] #js [ns form]))
+       :evaluate (fn [options]
+                   (js/Promise. (fn [resolve _]
+                                  (swap! evaluations conj {:options options :resolve resolve}))))})
 
 (defn- fake-view [posted]
   #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})
@@ -24,10 +28,12 @@
   (let [host {:contexts (atom [])
               :restored (atom true)
               :posted (atom [])
-              :session-keys (atom ["clj" "cljs"])}]
+              :session-keys (atom ["clj" "cljs"])
+              :evaluations (atom [])}]
     (reset! sut/!state sut/initial-state)
     (reset! sut/!adapter (fake-adapter host))
     (reset! sut/!views {})
+    (reset! sut/!running {})
     (f host)))
 
 (def ^:private !view (atom nil))
@@ -249,6 +255,11 @@
   (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
                [:repl-input.context/ns :repl-input.context/session :repl-input.context/locked?]))
 
+(defn- mount-focused! [id text]
+  (post! {:command "repl-input-mounted" :repl-input/id id :version 0 :text "" :selections [[0 0]]})
+  (post! {:command "repl-input-focused" :repl-input/id id})
+  (post! {:command "repl-input-changed" :repl-input/id id :version 1 :text text :selections [[(count text) (count text)]]}))
+
 (deftest context-line-test
   (with-fresh-host
     (fn [{:keys [posted session-keys] :as host}]
@@ -279,3 +290,114 @@
           (sut/routing-changed!)
           (testing "says that the session isn't connected when routing changes"
             (is (= "cljs isn't connected" (:repl-input.context/session (last-context-line posted))))))))))
+
+(deftest evaluate-focused!-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted evaluations] :as host}]
+        (with-view host
+          (fn []
+            (mount-focused! "output-view" "(ns pirate.core)")
+            (let [evaluated (sut/evaluate-focused!)
+                  {:keys [^js options resolve]} (first @evaluations)]
+              (testing "evaluates the text in the context, with a file of its own"
+                (is (= ["(ns pirate.core)" "user" "(in-ns 'user)" "clj"]
+                       [(.-code options) (.-ns options) (.-nsForm options) (.-sessionKey options)]))
+                (is (re-matches #"calva-repl-input/\d+\.clj" (.-filePath options))))
+              (testing "clears the REPL Input"
+                (is (= [{:command/name "repl-input-edit" :repl-input/id "output-view" :repl-input/version 1 :text "" :selections [[0 0]]}]
+                       (posted-named posted "repl-input-edit"))))
+              (testing "shows that the evaluation runs"
+                (is (= :running (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation"))))))
+              (resolve #js {:succeeded true})
+              (-> evaluated
+                  (.then (fn [_]
+                           (testing "locks the namespace of a successfully evaluated ns form"
+                             (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session "clj" :repl-input.context/locked? true}
+                                    (last-context-line posted))))
+                           (testing "shows that no evaluation runs"
+                             (is (nil? (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation"))))))
+                           (post! {:command "repl-input-follow-editor" :repl-input/id "output-view"})
+                           (testing "follows the editor again on click"
+                             (is (= {:repl-input.context/ns "user" :repl-input.context/session "clj" :repl-input.context/locked? false}
+                                    (last-context-line posted))))
+                           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 3 :text "(ns pirate.ui)" :selections [[0 0]]})
+                           (let [evaluated (sut/evaluate-focused!)]
+                             ((:resolve (second @evaluations)) #js {:succeeded false})
+                             evaluated)))
+                  (.then (fn [_]
+                           (testing "keeps following the editor when the evaluation fails"
+                             (is (false? (:repl-input.context/locked? (last-context-line posted)))))
+                           (done)))))))))))
+
+(deftest evaluate-focused!-not-connected-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted evaluations session-keys] :as host}]
+        (with-view host
+          (fn []
+            (reset! session-keys [])
+            (mount-focused! "output-view" "(+ 1 2)")
+            (-> (sut/evaluate-focused!)
+                (.then (fn [_]
+                         (testing "evaluates nothing and keeps the text when no session answers"
+                           (is (= [] @evaluations))
+                           (is (= [] (posted-named posted "repl-input-edit"))))
+                         (done))))))))))
+
+(deftest stdin-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted evaluations contexts] :as host}]
+        (with-view host
+          (fn []
+            (mount-focused! "output-view" "(read-line)")
+            (sut/evaluate-focused!)
+            (let [^js options (:options (first @evaluations))
+                  line (.stdin options)]
+              (testing "shows that the evaluation reads stdin, and sets the context for `enter`"
+                (is (= :reading-stdin (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation")))))
+                (is (= ["calva:replInputReadingStdin" true] (last @contexts))))
+              (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 3 :text "Ahoy" :selections [[4 4]]})
+              (sut/send-line!)
+              (-> line
+                  (.then (fn [sent]
+                           (testing "sends the REPL Input's text as the line"
+                             (is (= "Ahoy" sent)))
+                           (testing "clears the REPL Input"
+                             (is (= "" (:text (last (posted-named posted "repl-input-edit"))))))
+                           (testing "shows that the evaluation runs again, and clears the context"
+                             (is (= :running (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation")))))
+                             (is (= ["calva:replInputReadingStdin" false] (last @contexts))))
+                           (done)))))))))))
+
+(deftest interrupt-test
+  (with-fresh-host
+    (fn [{:keys [evaluations] :as host}]
+      (with-view host
+        (fn []
+          (mount-focused! "output-view" "(Thread/sleep 10000)")
+          (sut/evaluate-focused!)
+          (let [interrupted (atom [])]
+            ((.-onSent ^js (:options (first @evaluations)))
+             #js {:id "7"
+                  :running false
+                  :interrupt #(swap! interrupted conj :evaluation)
+                  :session #js {:interrupt (fn [id]
+                                             (swap! interrupted conj [:session id])
+                                             (js/Promise.resolve))}})
+            (post! {:command "repl-input-interrupt" :repl-input/id "output-sidebar"})
+            (testing "leaves the evaluations of the other view's REPL Input running"
+              (is (= [] @interrupted)))
+            (post! {:command "repl-input-interrupt" :repl-input/id "output-view"})
+            (testing "interrupts an evaluation that has had no reply yet through its session"
+              (is (= [[:session "7"]] @interrupted))))
+          (mount-focused! "output-view" "(Thread/sleep 10000)")
+          (sut/evaluate-focused!)
+          (let [interrupted (atom [])]
+            ((.-onSent ^js (:options (second @evaluations)))
+             #js {:running true
+                  :interrupt #(swap! interrupted conj :evaluation)})
+            (sut/interrupt-focused!)
+            (testing "interrupts the focused REPL Input's running evaluation"
+              (is (= [:evaluation] @interrupted)))))))))

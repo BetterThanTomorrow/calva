@@ -4,12 +4,16 @@ import * as format from './calva-fmt/src/format';
 import * as config from './config';
 import type * as model from './cursor-doc/model';
 import * as paredit from './cursor-doc/paredit';
+import * as evaluate from './evaluate';
 import * as formatterConfig from './formatter-config';
 import * as namespace from './namespace';
+import type * as nrepl from './nrepl';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as replInputDocument from './repl-input-document';
 import * as replWindow from './repl-window/repl-window-doc';
+import * as output from './results-output/output';
+import * as nsForm from './util/ns-form';
 import * as whenContexts from './when-contexts';
 
 const editorFocusSelectionKinds = [
@@ -70,6 +74,40 @@ export function reformatRanges(doc: model.StringDocument, ranges: [number, numbe
   }
 }
 
+type Evaluation = {
+  code: string;
+  ns: string;
+  nsForm: string;
+  sessionKey: string;
+  filePath: string;
+  stdin: () => Promise<string>;
+  onSent: (evaluation: nrepl.NReplEvaluation) => unknown;
+};
+
+/** Evaluates REPL Input code to the Output Destinations, echoing it to the result destinations per `calva.evaluationSendCodeToOutputWindow`. */
+async function evaluateCode({ code, ns, nsForm, sessionKey, filePath, stdin, onSent }: Evaluation) {
+  const session = sessionRegistry.getSession(sessionKey);
+  const { evaluationSendCodeToOutputWindow, prettyPrintingOptions } = config.getConfig();
+  await namespace.createNamespaceIfNotExists(session, ns, nsForm);
+  const evaluation = await evaluate.evaluateToOutputDestinations(
+    {
+      code,
+      session,
+      ns,
+      filePath,
+      line: 0,
+      column: 0,
+      pprintOptions: prettyPrintingOptions,
+      echoDestinations: evaluationSendCodeToOutputWindow
+        ? [output.getDestinationConfiguration().evalResults]
+        : [],
+      stdin,
+    },
+    { onEvaluationSent: onSent }
+  );
+  return { succeeded: 'value' in evaluation };
+}
+
 const isClojureFile = (document: vscode.TextDocument | undefined) =>
   document?.languageId === 'clojure' && !replWindow.isReplWindowDoc(document);
 
@@ -88,9 +126,23 @@ const contextAdapter = {
   sessionKeys: () => sessionRegistry.listSessions().map(({ key }) => key),
 };
 
+function registerEvaluationCommands() {
+  return [
+    vscode.commands.registerCommand('calva.replInput.evaluate', () =>
+      cljsLib.replInputEvaluateFocused()
+    ),
+    vscode.commands.registerCommand('calva.replInput.sendLine', () => cljsLib.replInputSendLine()),
+    vscode.commands.registerCommand('calva.replInput.interrupt', () =>
+      cljsLib.replInputInterruptFocused()
+    ),
+  ];
+}
+
 export function activate(context: vscode.ExtensionContext) {
   cljsLib.initReplInput({
     ...contextAdapter,
+    nsFromText: (code: string) => nsForm.nsFromText(code),
+    evaluate: evaluateCode,
     setContext: (key: string, value: boolean) =>
       void vscode.commands.executeCommand('setContext', key, value),
     document: replInputDocument.stringDocument,
@@ -139,6 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
         cljsLib.replInputRunInFocused(name)
       )
     ),
+    ...registerEvaluationCommands(),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {
         cljsLib.replInputTextEditorFocused();

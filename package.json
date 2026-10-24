@@ -2083,6 +2083,24 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.evaluate",
+        "title": "Evaluate REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.sendLine",
+        "title": "Send Line to stdin from REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.interrupt",
+        "title": "Interrupt REPL Input Evaluation",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3447,7 +3465,7 @@
       {
         "command": "calva.replInput.newLine",
         "key": "enter",
-        "when": "calva:replInputFocused"
+        "when": "calva:replInputFocused && !calva:replInputReadingStdin"
       },
       {
         "command": "calva.replInput.formatCurrentForm",
@@ -3632,6 +3650,26 @@
         "command": "calva.replInput.shrinkSelection",
         "mac": "ctrl+shift+left",
         "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.evaluate",
+        "key": "alt+enter",
+        "when": "calva:replInputFocused && calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.evaluate",
+        "key": "ctrl+alt+c enter",
+        "when": "calva:replInputFocused && calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.interrupt",
+        "key": "ctrl+alt+c ctrl+alt+d",
+        "when": "calva:replInputFocused && calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.sendLine",
+        "key": "enter",
+        "when": "calva:replInputFocused && calva:replInputReadingStdin"
       },
       {
         "command": "paredit.forceDeleteForward",
@@ -4189,6 +4227,18 @@
         },
         {
           "command": "calva.replInput.shrinkSelection",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.evaluate",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.sendLine",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.interrupt",
           "when": "calva:replInputFocused"
         }
       ],

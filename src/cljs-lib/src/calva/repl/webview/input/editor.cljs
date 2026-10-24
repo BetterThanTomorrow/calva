@@ -9,7 +9,7 @@
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
    ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField]]
-   ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
+   ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap placeholder]]))
 
 (defn mount-element
   []
@@ -142,6 +142,8 @@
               (fn [^js event] (.-altKey event))))
        (commands/language-data word-separators)])
 
+(defonce ^:private placeholder-compartment (Compartment.))
+
 (defn- extensions
   [dispatch!]
   #js [theme
@@ -150,6 +152,7 @@
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
        (.of editing-compartment #js [])
+       (.of placeholder-compartment #js [])
        (history)
        commands/extensions
        (drawSelection)
@@ -260,6 +263,16 @@
     (when-let [command (get commands/by-name command-name)]
       (command view))))
 
+(defn- set-evaluation!
+  "Shows the evaluation bar for `evaluation`, and while it reads stdin, says so in the placeholder."
+  [evaluation]
+  (context/set-evaluation! evaluation)
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure placeholder-compartment
+                                                (if (= :reading-stdin evaluation)
+                                                  (placeholder context/reading-stdin-placeholder)
+                                                  #js []))})))
+
 (defn exec-effect!
   [dispatch! [fx-type & args]]
   (case fx-type
@@ -273,4 +286,5 @@
     :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
     :repl-input/fx.set-editing (set-editing! (first args))
     :repl-input/fx.run-command (run-command! (first args))
-    :repl-input/fx.set-context-line (context/set-line! (first args))))
+    :repl-input/fx.set-context-line (context/set-line! (first args))
+    :repl-input/fx.set-evaluation (set-evaluation! (first args))))

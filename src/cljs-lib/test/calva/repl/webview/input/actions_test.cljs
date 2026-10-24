@@ -126,3 +126,13 @@
       (is (= {:uf/db (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))}
              (sut/handle-action (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))
                                 [:repl-input/ax.follow-editor]))))))
+
+(deftest evaluation-test
+  (let [db {:repl-input/id "output-view"}]
+    (testing "shows the evaluation bar the extension posts"
+      (is (= {:uf/db (assoc db :repl-input/evaluation :reading-stdin)
+              :uf/fxs [[:repl-input/fx.set-evaluation :reading-stdin]]}
+             (sut/handle-action db [:repl-input/ax.set-evaluation :reading-stdin]))))
+    (testing "asks the extension to interrupt"
+      (is (= [[:fx/post-to-host {:command "repl-input-interrupt" :repl-input/id "output-view"}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.interrupt])))))))
