@@ -101,6 +101,39 @@ export function structureForRightSexp(
   return structure;
 }
 
+// Matches the `wordPattern` in `language-configuration.json`
+const wordCharacter = /[^\s,#()[\]{}꞉;"\\@]/;
+
+/**
+ * Returns the range of the word that contains or touches `offset`, the way VS Code's
+ * `getWordRangeAtPosition` finds words in Clojure documents, or `undefined` when there is none.
+ */
+export function wordRangeAtOffset(
+  doc: model.EditableDocument,
+  offset: number
+): model.ModelEditRange | undefined {
+  const line = doc.getTokenCursor(offset).line;
+  const lineText = doc.model.getLineText(line);
+  const lineStart = doc.model.getOffsetForLine(line);
+  let start = offset - lineStart;
+  let end = start;
+  while (start > 0 && wordCharacter.test(lineText[start - 1])) {
+    start--;
+  }
+  while (end < lineText.length && wordCharacter.test(lineText[end])) {
+    end++;
+  }
+  return start < end ? [lineStart + start, lineStart + end] : undefined;
+}
+
+/**
+ * Returns the word at `offset` without a leading syntax quote, or an empty string.
+ */
+export function wordAtOffset(doc: model.EditableDocument, offset: number): string {
+  const range = wordRangeAtOffset(doc, offset);
+  return range ? doc.model.getText(...range).replace(/^`/, '') : '';
+}
+
 export function hasMoreThanSingleSexp(doc: model.EditableDocument): boolean {
   const cursor = doc.getTokenCursor(0);
   cursor.forwardWhitespace(true);
