@@ -3,12 +3,14 @@ import * as state from '../state';
 import * as util from '../utilities';
 import * as annotations from './annotations';
 import * as namespace from '../namespace';
+import * as docMirror from '../doc-mirror/index';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as replSession from '../nrepl/repl-session';
 import * as config from '../config';
 import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
 import * as vscodeLanguageclient from 'vscode-languageclient';
 import * as lsp from '../lsp';
+import * as replDefinition from './repl-definition';
 
 const converter = protocolConverter.createConverter(undefined, undefined, true);
 
@@ -24,21 +26,22 @@ async function provideClojureDefinition(
     return;
   }
   if (util.getConnectedState()) {
-    const client = replSession.getSession();
-    if (client?.supports('info')) {
-      const text = util.getWordAtPosition(document, position);
-      const info = await client.info(namespace.getNamespace(document, position)[0], text);
-      if (info.file && info.file.length > 0) {
-        const pos = new vscode.Position(info.line - 1, info.column || 0);
-        try {
-          const uri = vscode.Uri.parse(info.file, true);
-          if (uri.toString() === document.uri.toString()) {
-            return;
-          }
-          return new vscode.Location(uri, pos);
-        } catch (e) {
-          /* ignore */
+    const definition = await replDefinition.replDefinition(
+      replSession.getSession(),
+      namespace.getNamespace(document, position)[0],
+      docMirror.getDocument(document),
+      document.offsetAt(position)
+    );
+    if (definition) {
+      const pos = new vscode.Position(definition.line - 1, definition.column || 0);
+      try {
+        const uri = vscode.Uri.parse(definition.file, true);
+        if (uri.toString() === document.uri.toString()) {
+          return;
         }
+        return new vscode.Location(uri, pos);
+      } catch (e) {
+        /* ignore */
       }
     }
   }
