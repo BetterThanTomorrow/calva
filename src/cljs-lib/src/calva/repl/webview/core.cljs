@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.token-colors :as token-colors]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -347,21 +348,27 @@
 
 (defn set-code-theme!
   "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based
-   on the given color theme kind."
+   on the given color theme kind, with the code colors of the active color theme."
   [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
   (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
         code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)]
     (if code-theme
       (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :code-theme code-theme})
+                                              :code-theme code-theme
+                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)})
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
        color-theme-kind))))
 
+(defn post-code-theme-to-all-views!
+  [context color-theme-kind]
+  (run! #(set-code-theme! context {:color-theme-kind color-theme-kind
+                                   :webview-panel %})
+        @registered-webviews))
+
 (defn create-color-theme-change-listener
-  [{:keys [^js vscode/vscode] :as context}
-   {:keys [webview-panel]}]
+  [{:keys [^js vscode/vscode] :as context}]
   (.. vscode -window
       (onDidChangeActiveColorTheme
        (fn [e]
@@ -370,8 +377,22 @@
          ;; This is probably called more frequently than it needs to be, but if that's problematic we can try to
          ;; figure out how to identify when this event means the output view moved into or out of the main window.
          ;; This event fires for more cases than just that, such as when it's focused or unfocused.
-         (set-code-theme! context {:color-theme-kind (.. e -kind)
-                                   :webview-panel webview-panel})))))
+         (post-code-theme-to-all-views! context (.. e -kind))))))
+
+(defn create-token-color-customizations-change-listener
+  [{:keys [^js vscode/vscode] :as context}]
+  (.. vscode -workspace
+      (onDidChangeConfiguration
+       (fn [^js event]
+         (when (.affectsConfiguration event "editor.tokenColorCustomizations")
+           (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
+
+(defn ^:export init-code-theme!
+  []
+  (let [context {:vscode/vscode @util/vscode}]
+    (when-let [^js vscode-context @util/vscode-context]
+      (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
+      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context))))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}
@@ -387,11 +408,7 @@
   [{vscode-context :vscode/context
     :as context}
    {:keys [webview-panel]}]
-  (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})
-                       (create-view-state-change-listener context {:webview-panel webview-panel})]]
-    (run! (fn [subscription]
-            (.. ^js vscode-context -subscriptions (push subscription)))
-          subscriptions)))
+  (.. ^js vscode-context -subscriptions (push (create-view-state-change-listener context {:webview-panel webview-panel}))))
 
 (defn add-listeners!
   [^js webview-panel]
