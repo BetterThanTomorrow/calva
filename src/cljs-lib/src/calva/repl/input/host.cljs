@@ -7,7 +7,6 @@
    [calva.repl.input.completion :as completion]
    [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
-   [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.focus :as focus]
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
@@ -16,14 +15,10 @@
 
 (def focused-context "calva:replInputFocused")
 
-(def reading-stdin-context "calva:replInputReadingStdin")
-
 (defn- focused-contexts
-  "The context keys that hold only for the focused REPL Input: whether an evaluation from it reads stdin,
-   and whether its completion list is open."
-  [{:repl-input/keys [focused evaluations records settings]}]
-  (merge {reading-stdin-context (some? (evaluations/waiting-for-stdin evaluations focused))}
-         (completion/contexts (get-in records [focused :repl-input/completion-active?]) settings)))
+  "The context keys that hold only for the focused REPL Input: whether its completion list is open."
+  [{:repl-input/keys [focused records settings]}]
+  (completion/contexts (get-in records [focused :repl-input/completion-active?]) settings))
 
 (def initial-state
   {:repl-input/records {}
@@ -118,8 +113,8 @@
         (set-context! k false)))))
 
 (defn apply-focused-contexts!
-  "Sets the context keys that hold only for the focused REPL Input, those that changed: whether an
-   evaluation from it waits for a line from stdin, and whether its completion list is open."
+  "Sets the context keys that hold only for the focused REPL Input, those that changed: whether its
+   completion list is open."
   []
   (let [{:repl-input/keys [applied-focused-contexts] :as state} @!state
         contexts (focused-contexts state)]

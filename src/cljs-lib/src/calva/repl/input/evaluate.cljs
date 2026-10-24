@@ -20,11 +20,11 @@
    :repl-input/evaluation (evaluations/bar (:repl-input/evaluations @host/!state) id)})
 
 (defn update-evaluations!
-  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its evaluation bar."
+  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its evaluation
+   bar and its stdin input."
   [id f & args]
   (apply swap! host/!state update :repl-input/evaluations f id args)
-  (host/post-to-view! id (evaluation-message id))
-  (host/apply-focused-contexts!))
+  (host/post-to-view! id (evaluation-message id)))
 
 (defn- read-stdin+
   "Returns a promise of the line sent from the REPL Input `id` to the evaluation `evaluation-id`."
@@ -152,18 +152,15 @@
   [pick]
   (evaluate-picked-from-focused+ pick evaluate-entered+))
 
-(defn ^:export send-line!
-  "Sends the focused REPL Input's text as the line the evaluation waiting for stdin reads, and clears
-   the REPL Input."
-  []
-  (let [{:repl-input/keys [focused records] :as state} @host/!state
-        evaluation-id (evaluations/waiting-for-stdin (:repl-input/evaluations state) focused)
-        {:repl-input/keys [text version]} (get records focused)]
+(defn send-line!
+  "Sends `line`, from the stdin input of the REPL Input `id`, to the evaluation that waits there for a
+   line from stdin."
+  [id line]
+  (let [evaluation-id (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)]
     (when-let [send (get-in @!running [evaluation-id :send-line])]
       (swap! !running update evaluation-id dissoc :send-line)
-      (update-evaluations! focused evaluations/reading-stdin evaluation-id false)
-      (host/take-edit! focused version host/empty-text)
-      (send (or text "")))))
+      (update-evaluations! id evaluations/reading-stdin evaluation-id false)
+      (send (or line "")))))
 
 (defn- interrupt-evaluation!
   "Interrupts the NReplEvaluation `evaluation`. One that has had no reply yet isn't running to

@@ -1487,7 +1487,7 @@ export class NReplEvaluation {
             });
         } else {
           util
-            .promptForUserInputString('REPL Input:')
+            .promptForUserInputString('stdin')
             .then((input) => {
               if (input !== undefined) {
                 this.session.stdin(`${input}\n`);

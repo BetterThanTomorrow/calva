@@ -2103,12 +2103,6 @@
         "enablement": "calva:replInputFocused"
       },
       {
-        "command": "calva.replInput.sendLine",
-        "title": "Send Line to stdin from REPL Input",
-        "category": "Calva",
-        "enablement": "calva:replInputFocused"
-      },
-      {
         "command": "calva.replInput.interrupt",
         "title": "Interrupt REPL Input Evaluation",
         "category": "Calva",
@@ -3491,7 +3485,7 @@
       {
         "command": "calva.replInput.newLine",
         "key": "enter",
-        "when": "calva:replInputFocused && !calva:replInputReadingStdin && !calva:replInputCompletionAcceptsEnter"
+        "when": "calva:replInputFocused && !calva:replInputCompletionAcceptsEnter"
       },
       {
         "command": "calva.replInput.formatCurrentForm",
@@ -3701,11 +3695,6 @@
         "command": "calva.replInput.revealDefinition",
         "key": "f12",
         "when": "calva:replInputFocused"
-      },
-      {
-        "command": "calva.replInput.sendLine",
-        "key": "enter",
-        "when": "calva:replInputFocused && calva:replInputReadingStdin"
       },
       {
         "command": "paredit.forceDeleteForward",
@@ -4271,10 +4260,6 @@
         },
         {
           "command": "calva.replInput.evaluateTopLevelForm",
-          "when": "calva:replInputFocused"
-        },
-        {
-          "command": "calva.replInput.sendLine",
           "when": "calva:replInputFocused"
         },
         {

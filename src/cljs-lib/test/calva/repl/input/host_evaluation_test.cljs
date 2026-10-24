@@ -197,24 +197,25 @@
         (with-view host
           (fn []
             (mount-focused! "output-view" "(read-line)")
-            (sut/evaluate-focused!)
-            (let [^js options (:options (first @evaluations))
-                  line (.stdin options)]
-              (testing "shows that the evaluation reads stdin, and sets the context for `enter`"
-                (is (= :reading-stdin (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation")))))
-                (is (= ["calva:replInputReadingStdin" true] (last @contexts))))
-              (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 3 :text "Ahoy" :selections [[4 4]]})
-              (sut/send-line!)
-              (-> line
-                  (.then (fn [sent]
-                           (testing "sends the REPL Input's text as the line"
-                             (is (= "Ahoy" sent)))
-                           (testing "clears the REPL Input"
-                             (is (= "" (:text (last (posted-named posted "repl-input-edit"))))))
-                           (testing "shows that the evaluation runs again, and clears the context"
-                             (is (= :running (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation")))))
-                             (is (= ["calva:replInputReadingStdin" false] (last @contexts))))
-                           (done)))))))))))
+            (sut/evaluate-from-focused! (picking #js {:code "(read-line)" :line 0 :column 0}))
+            (-> (after-pick)
+                (.then (fn [_]
+                         (let [^js options (:options (first @evaluations))
+                               line (.stdin options)]
+                           (testing "shows that the evaluation reads stdin"
+                             (is (= :reading-stdin (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation"))))))
+                           (post! {:command "repl-input-send-line" :repl-input/id "output-view" :line "Ahoy"})
+                           line)))
+                (.then (fn [sent]
+                         (testing "sends the line from the stdin input"
+                           (is (= "Ahoy" sent)))
+                         (testing "keeps the REPL Input's text"
+                           (is (= [] (posted-named posted "repl-input-edit"))))
+                         (testing "shows that the evaluation runs again"
+                           (is (= :running (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation"))))))
+                         (testing "leaves the REPL Input's own keys alone"
+                           (is (not-any? #(= "calva:replInputReadingStdin" (first %)) @contexts)))
+                         (done))))))))))
 
 (deftest interrupt-test
   (with-fresh-host

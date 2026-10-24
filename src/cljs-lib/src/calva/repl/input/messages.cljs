@@ -13,8 +13,8 @@
 (def focus-message {:command/name "repl-input-focus"})
 
 (defn- mounted!
-  "Posts the context line and the evaluation bar to the REPL Input `id`, and gives it the focus when an
-   evaluation waits there for a line from stdin."
+  "Posts the context line and the evaluation bar to the REPL Input `id`, and gives its stdin input the
+   focus when an evaluation waits there for a line from stdin."
   [id]
   (host/refresh-context!)
   (host/post-to-view! id (host/context-line-message (:repl-input.context/line @host/!state)))
@@ -39,6 +39,7 @@
       "repl-input-resized" (config/store-height! msg)
       "repl-input-follow-editor" (host/follow-editor!)
       "repl-input-interrupt" (evaluate/interrupt! id)
+      "repl-input-send-line" (evaluate/send-line! id (:line msg))
       "repl-input-walk-history" (recall/walk! id (keyword direction))
       "repl-input-complete" (complete/complete! msg)
       "repl-input-resolve-completion" (complete/resolve! msg)

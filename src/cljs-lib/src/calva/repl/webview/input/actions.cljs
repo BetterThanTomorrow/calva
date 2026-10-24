@@ -27,14 +27,14 @@
      :uf/fxs [[:repl-input/fx.mount {:height (:repl-input/height db)}]]}
 
     :else
-    {:uf/db (assoc db :repl-input/enabled? false)
+    {:uf/db (-> db (assoc :repl-input/enabled? false) (dissoc :repl-input/evaluation))
      :uf/fxs [[:repl-input/fx.unmount]
               (post db "repl-input-unmounted")]}))
 
 (defn- completion-config
-  "The completion settings, with completion off while an evaluation reads stdin."
-  [{:repl-input/keys [completion-settings evaluation]}]
-  (assoc completion-settings :enabled? (and (some? completion-settings) (not= :reading-stdin evaluation))))
+  "The completion settings, with completion on once the extension has posted them."
+  [{:repl-input/keys [completion-settings]}]
+  (assoc completion-settings :enabled? (some? completion-settings)))
 
 (defn- set-editor-settings
   [db settings]
@@ -92,8 +92,20 @@
 
     (handle-definition-action db action)))
 
+(defn- reading-stdin?
+  [evaluation]
+  (= :reading-stdin evaluation))
+
+(defn- stdin-effects
+  "Shows the stdin input when the evaluation goes from `before` to reading stdin, and hides it when it
+   stops reading."
+  [before after]
+  (cond
+    (and (reading-stdin? after) (not (reading-stdin? before))) [[:repl-input/fx.show-stdin]]
+    (and (reading-stdin? before) (not (reading-stdin? after))) [[:repl-input/fx.hide-stdin]]))
+
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, the evaluation bar and the history."
+  "Handles the actions of the context line, the evaluation bar, the stdin input and the history."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -107,18 +119,23 @@
       {:uf/db db})
 
     :repl-input/ax.set-evaluation
-    (let [db (assoc db :repl-input/evaluation payload)]
-      {:uf/db db
-       :uf/fxs [[:repl-input/fx.set-evaluation payload]
-                [:repl-input/fx.set-completion (completion-config db)]]})
+    {:uf/db (assoc db :repl-input/evaluation payload)
+     :uf/fxs (into [[:repl-input/fx.set-evaluation payload]]
+                   (stdin-effects (:repl-input/evaluation db) payload))}
 
     :repl-input/ax.focus
     {:uf/db db
-     :uf/fxs [[:repl-input/fx.focus]]}
+     :uf/fxs [(if (reading-stdin? (:repl-input/evaluation db))
+                [:repl-input/fx.focus-stdin]
+                [:repl-input/fx.focus])]}
 
     :repl-input/ax.interrupt
     {:uf/db db
      :uf/fxs [(post db "repl-input-interrupt")]}
+
+    :repl-input/ax.send-line
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-send-line" :line payload)]}
 
     :repl-input/ax.walk-history
     {:uf/db db

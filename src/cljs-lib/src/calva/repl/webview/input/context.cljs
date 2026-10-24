@@ -1,16 +1,6 @@
 (ns calva.repl.webview.input.context
   "The context line and the evaluation bar above the REPL Input.")
 
-(def reading-stdin-placeholder "(read-line) reads the next line")
-
-(defn bar-text
-  "Returns what the evaluation bar says while an evaluation is `:running` or `:reading-stdin`."
-  [evaluation]
-  (case evaluation
-    :running "Evaluating…"
-    :reading-stdin (str reading-stdin-placeholder " · enter sends it")
-    ""))
-
 (defn- child
   [class-name]
   (some-> (js/document.getElementById "repl-input") (.querySelector (str "." class-name))))
@@ -19,6 +9,11 @@
   [tag class-name]
   (doto (js/document.createElement tag)
     (-> .-className (set! class-name))))
+
+(defn- text-element
+  [class-name text]
+  (doto (element "span" class-name)
+    (-> .-textContent (set! text))))
 
 (defn mount!
   "Adds the context line and the evaluation bar to `parent`. A click on the context line, or on
@@ -31,13 +26,8 @@
     (set! (.-textContent interrupt) "Interrupt")
     (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
     (set! (.-hidden bar) true)
-    (.append bar (element "span" "repl-input-evaluation-text") interrupt)
+    (.append bar (text-element "repl-input-evaluation-text" "Evaluating…") interrupt)
     (.append parent line bar)))
-
-(defn- text-element
-  [class-name text]
-  (doto (element "span" class-name)
-    (-> .-textContent (set! text))))
 
 (defn set-line!
   [{:repl-input.context/keys [ns session hint locked? connected?]}]
@@ -53,10 +43,8 @@
       (.removeAttribute line "role"))))
 
 (defn set-evaluation!
-  "Shows the evaluation bar while an `evaluation` is `:running` or `:reading-stdin`, and hides it when
-   `evaluation` is nil."
+  "Shows the evaluation bar while an `evaluation` is `:running`, and hides it otherwise. The stdin input
+   shows for one that reads stdin."
   [evaluation]
   (when-let [^js bar (child "repl-input-evaluation-bar")]
-    (set! (.-hidden bar) (nil? evaluation))
-    (.. bar -classList (toggle "reading-stdin" (= :reading-stdin evaluation)))
-    (set! (.-textContent (.querySelector bar ".repl-input-evaluation-text")) (bar-text evaluation))))
+    (set! (.-hidden bar) (not= :running evaluation))))

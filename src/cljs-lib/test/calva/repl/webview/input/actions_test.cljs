@@ -131,18 +131,46 @@
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
-    (testing "shows the evaluation bar the extension posts, and turns completion off while it reads stdin"
+    (testing "shows the evaluation bar the extension posts"
+      (is (= {:uf/db (assoc db :repl-input/evaluation :running)
+              :uf/fxs [[:repl-input/fx.set-evaluation :running]]}
+             (sut/handle-action db [:repl-input/ax.set-evaluation :running]))))
+    (testing "shows the stdin input when an evaluation starts reading stdin, and keeps completion on"
       (is (= {:uf/db (assoc db :repl-input/evaluation :reading-stdin)
               :uf/fxs [[:repl-input/fx.set-evaluation :reading-stdin]
-                       [:repl-input/fx.set-completion {:delay 10 :enabled? false}]]}
-             (sut/handle-action db [:repl-input/ax.set-evaluation :reading-stdin]))))
-    (testing "turns completion on again when the evaluation is done"
-      (is (= [:repl-input/fx.set-completion {:delay 10 :enabled? true}]
+                       [:repl-input/fx.show-stdin]]}
+             (sut/handle-action (assoc db :repl-input/evaluation :running) [:repl-input/ax.set-evaluation :reading-stdin]))))
+    (testing "leaves the stdin input be while the evaluation still reads stdin"
+      (is (= [[:repl-input/fx.set-evaluation :reading-stdin]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
+                                         [:repl-input/ax.set-evaluation :reading-stdin])))))
+    (testing "hides the stdin input when the line is sent, or the evaluation ends"
+      (is (= [[:repl-input/fx.set-evaluation :running]
+              [:repl-input/fx.hide-stdin]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
+                                         [:repl-input/ax.set-evaluation :running]))))
+      (is (= [:repl-input/fx.hide-stdin]
              (last (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
                                                [:repl-input/ax.set-evaluation nil]))))))
     (testing "asks the extension to interrupt"
       (is (= [[:fx/post-to-host {:command "repl-input-interrupt" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.interrupt])))))))
+
+(deftest stdin-test
+  (let [db {:repl-input/id "output-sidebar"}]
+    (testing "sends the line from the stdin input to the extension"
+      (is (= [[:fx/post-to-host {:command "repl-input-send-line" :repl-input/id "output-sidebar" :line "Ahoy"}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.send-line "Ahoy"])))))
+    (testing "focuses the stdin input while an evaluation reads stdin, else the REPL Input"
+      (is (= [[:repl-input/fx.focus-stdin]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin) [:repl-input/ax.focus]))))
+      (is (= [[:repl-input/fx.focus]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :running) [:repl-input/ax.focus])))))
+    (testing "forgets the evaluation when turned off, so that turning on again shows the stdin input again"
+      (is (nil? (-> (assoc db :repl-input/enabled? true :repl-input/evaluation :reading-stdin)
+                    (sut/handle-action [:repl-input/ax.set-enabled false])
+                    :uf/db
+                    :repl-input/evaluation))))))
 
 (deftest walk-history-test
   (testing "asks the extension to walk the history"

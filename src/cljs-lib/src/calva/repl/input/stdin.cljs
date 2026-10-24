@@ -1,5 +1,5 @@
 (ns calva.repl.input.stdin
-  "Answers the reads from stdin of evaluations from files in the Output Sidebar's REPL Input: reveals the
+  "Answers the reads from stdin of evaluations from files in the Output Sidebar's stdin input: reveals the
    sidebar, turns its REPL Input on for the session when it is off, and waits there for the line."
   (:require
    [calva.repl.input.core :as core]
@@ -17,7 +17,7 @@
   (evaluate/update-evaluations! view-id evaluations/finished evaluation-id))
 
 (defn- wait!
-  "Shows that the evaluation `evaluation-id` waits for a line in the Output Sidebar's REPL Input, which
+  "Shows that the evaluation `evaluation-id` waits for a line in the Output Sidebar's stdin input, which
    `send-line!` gives to `resolve`."
   [evaluation-id ^js evaluation resolve]
   (swap! evaluate/!running assoc evaluation-id {:evaluation evaluation
@@ -28,7 +28,8 @@
   (evaluate/update-evaluations! view-id evaluations/reading-stdin evaluation-id true))
 
 (defn show-sidebar!
-  "Reveals the Output Sidebar with the focus in its REPL Input, turning it on for the session when it is off."
+  "Reveals the Output Sidebar with the focus in its stdin input, turning its REPL Input on for the session
+   when it is off."
   []
   (when-not (host/enabled? view-id)
     (core/toggle-output-sidebar!))
@@ -36,7 +37,7 @@
       (.then #(host/post-to-view! view-id messages/focus-message))))
 
 (defn ^:export read-line+
-  "Returns a promise of the line that the Output Sidebar's REPL Input sends to `evaluation`, an evaluation
+  "Returns a promise of the line that the Output Sidebar's stdin input sends to `evaluation`, an evaluation
    from a file that reads stdin. The waiting ends with the line, or when the evaluation ends."
   [^js evaluation]
   (js/Promise.

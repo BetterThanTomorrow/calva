@@ -1,6 +1,5 @@
 (ns calva.repl.input.host-stdin-test
   (:require
-   [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host-fixtures :refer [mount-focused! post! posted-named with-fresh-host with-view]]
    [calva.repl.input.stdin :as sut]
    [cljs.test :refer-macros [async deftest testing is]]))
@@ -21,12 +20,11 @@
                   (testing "reveals the Output Sidebar and waits there for the line"
                     (is (= 1 @shown))
                     (is (= :reading-stdin (last (bars posted))))
-                    (is (= ["calva:replInputReadingStdin" true] (last (filter #(= "calva:replInputReadingStdin" (first %)) @contexts)))))
-                  (post! {:command "repl-input-changed" :repl-input/id "output-sidebar" :version 2 :text "Ahoy" :selections [[4 4]]})
-                  (evaluate/send-line!)
+                    (is (not-any? #(= "calva:replInputReadingStdin" (first %)) @contexts)))
+                  (post! {:command "repl-input-send-line" :repl-input/id "output-sidebar" :line "Ahoy"})
                   (-> line+
                       (.then (fn [line]
-                               (testing "answers with the line sent with enter, and stops waiting"
+                               (testing "answers with the line sent from the stdin input, and stops waiting"
                                  (is (= "Ahoy" line))
                                  (is (nil? (last (bars posted)))))
                                (done)))))))))))))

@@ -318,12 +318,6 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    display: none;
 }
 
-.repl-input-evaluation-bar.reading-stdin {
-   color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
-   background-color: var(--vscode-inputValidation-warningBackground);
-   border-left-color: var(--vscode-inputValidation-warningBorder, var(--vscode-editorWarning-foreground));
-}
-
 .repl-input-interrupt {
    padding: 1px 8px;
    font: inherit;
@@ -336,4 +330,61 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
 
 .repl-input-interrupt:hover {
    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.repl-input-stdin {
+   display: flex;
+   align-items: center;
+   gap: 4px;
+   margin-bottom: 6px;
+   font-family: var(--vscode-editor-font-family, monospace);
+   font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
+}
+
+.repl-input-stdin[hidden] {
+   display: none;
+}
+
+.repl-input-stdin input {
+   flex-grow: 1;
+   min-width: 0;
+   padding: 3px 4px;
+   font: inherit;
+   color: var(--vscode-input-foreground);
+   background-color: var(--vscode-input-background);
+   border: 1px solid var(--vscode-input-border, transparent);
+}
+
+.repl-input-stdin input:focus {
+   outline: 1px solid var(--vscode-focusBorder);
+   outline-offset: -1px;
+}
+
+.repl-input-stdin input::placeholder {
+   color: var(--vscode-input-placeholderForeground);
+}
+
+.repl-input-stdin-icon {
+   flex-shrink: 0;
+   width: 16px;
+   height: 16px;
+   fill: currentColor;
+}
+
+.repl-input-stdin-prompt {
+   color: var(--vscode-icon-foreground, var(--vscode-foreground));
+}
+
+.repl-input-stdin-stop {
+   display: flex;
+   padding: 3px;
+   color: var(--vscode-icon-foreground, var(--vscode-foreground));
+   background: none;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+}
+
+.repl-input-stdin-stop:hover {
+   background-color: var(--vscode-toolbar-hoverBackground);
 }

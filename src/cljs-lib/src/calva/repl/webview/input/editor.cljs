@@ -9,10 +9,11 @@
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.input.history :as input-history]
    [calva.repl.webview.input.keys :as input-keys]
+   [calva.repl.webview.input.stdin :as stdin]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
    ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField]]
-   ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap placeholder]]))
+   ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
 
 (defn mount-element
   []
@@ -150,8 +151,6 @@
        (definition/click-extension dispatch! {:multi-cursor-modifier multi-cursor-modifier :mac? mac?})
        (commands/language-data word-separators)])
 
-(defonce ^:private placeholder-compartment (Compartment.))
-
 (defonce ^:private completion-compartment (Compartment.))
 
 (defn- walk-key
@@ -185,7 +184,6 @@
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
        (.of editing-compartment #js [])
-       (.of placeholder-compartment #js [])
        (.of completion-compartment #js [])
        (history)
        commands/extensions
@@ -240,6 +238,7 @@
     (set! (.-className handle) "repl-input-resize-handle")
     (.appendChild element handle)
     (listen-for-drag! handle dispatch!)
+    (stdin/mount! element dispatch!)
     (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
     (set-height! {:height height})
@@ -299,24 +298,23 @@
     (when-let [command (get commands/by-name command-name)]
       (command view))))
 
-(defn- set-evaluation!
-  "Shows the evaluation bar for `evaluation`, and while it reads stdin, says so in the placeholder."
-  [evaluation]
-  (context/set-evaluation! evaluation)
-  (when-let [^js view (editor-view)]
-    (.dispatch view #js {:effects (.reconfigure placeholder-compartment
-                                                (if (= :reading-stdin evaluation)
-                                                  (placeholder context/reading-stdin-placeholder)
-                                                  #js []))})))
+(defn- focus-now-or-later!
+  "Focuses `target` now, or when the view gets the focus, since revealing the view gives it the focus
+   after the extension asks."
+  [^js target]
+  (if (js/document.hasFocus)
+    (.focus target)
+    (js/window.addEventListener "focus" #(.focus target) #js {:once true})))
 
 (defn- focus!
-  "Focuses the REPL Input, now, or when the view gets the focus, since revealing the view gives it the
-   focus after the extension asks."
   []
-  (when-let [^js view (editor-view)]
-    (if (js/document.hasFocus)
-      (.focus view)
-      (js/window.addEventListener "focus" #(.focus view) #js {:once true}))))
+  (some-> (editor-view) focus-now-or-later!))
+
+(defn- hide-stdin!
+  "Hides the stdin input, and gives the focus back to the REPL Input when the stdin input had it."
+  []
+  (when (stdin/hide!)
+    (focus!)))
 
 (defn- set-completion!
   [dispatch! config]
@@ -337,8 +335,11 @@
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args))
-    :repl-input/fx.set-evaluation (set-evaluation! (first args))
+    :repl-input/fx.set-evaluation (context/set-evaluation! (first args))
+    :repl-input/fx.show-stdin (some-> (stdin/show!) focus-now-or-later!)
+    :repl-input/fx.hide-stdin (hide-stdin!)
     :repl-input/fx.focus (focus!)
+    :repl-input/fx.focus-stdin (some-> (stdin/input-element) focus-now-or-later!)
     :repl-input/fx.set-completion (set-completion! dispatch! (first args))
     :repl-input/fx.deliver-completions (completion/deliver! (editor-view) dispatch! (first args))
     :repl-input/fx.deliver-completion-docs (completion/deliver-docs! (first args))))
