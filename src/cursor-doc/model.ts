@@ -247,6 +247,8 @@ export class ModelEditSelection {
 
 export type ModelEditOptions = {
   undoStopBefore?: boolean;
+  /** Defaults to `skipFormat`. Given, the edit goes through the editor, which has the undo stack. */
+  undoStopAfter?: boolean;
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
@@ -343,7 +345,7 @@ export const selectionsAfterEdits = (function () {
       if (delta != 0) {
         retSelections = retSelections.map(function (s: ModelEditSelection) {
           return new ModelEditSelection(
-            bump(s.end, affected),
+            bump(s.anchor, affected),
             bump(s.active, affected),
             bump(s.start, affected),
             bump(s.end, affected)

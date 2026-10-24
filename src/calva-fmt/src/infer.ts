@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as cljsLib from '../../../out/cljs-lib/cljs-lib';
 import _ = require('lodash');
+import * as docMirror from '../../doc-mirror/index';
+import { indent } from './indent';
 
 interface CFEdit {
   edit: string;
@@ -37,60 +39,9 @@ export function inferParensCommand(editor: vscode.TextEditor) {
 }
 
 export function indentCommand(editor: vscode.TextEditor, spacing: string, forward: boolean = true) {
-  const prevPosition: vscode.Position = editor.selections[0].active,
-    document = editor.document;
-  let deletedText = '',
-    doEdit = true;
-
-  void editor
-    .edit(
-      (editBuilder) => {
-        if (forward) {
-          editBuilder.insert(
-            new vscode.Position(prevPosition.line, prevPosition.character),
-            spacing
-          );
-        } else {
-          const startOfLine = new vscode.Position(prevPosition.line, 0),
-            headRange = new vscode.Range(startOfLine, prevPosition),
-            headText = document.getText(headRange),
-            xOfFirstLeadingSpace = headText.search(/ *$/),
-            leadingSpaces =
-              xOfFirstLeadingSpace >= 0 ? prevPosition.character - xOfFirstLeadingSpace : 0;
-          if (leadingSpaces > 0) {
-            const spacingSize = Math.max(spacing.length, 1),
-              deleteRange = new vscode.Range(prevPosition.translate(0, -spacingSize), prevPosition);
-            deletedText = document.getText(deleteRange);
-            editBuilder.delete(deleteRange);
-          } else {
-            doEdit = false;
-          }
-        }
-      },
-      { undoStopAfter: false, undoStopBefore: false }
-    )
-    .then((_onFulfilled: boolean) => {
-      if (doEdit) {
-        const position: vscode.Position = editor.selections[0].active,
-          currentText = document.getText(),
-          r: ResultOptions = cljsLib.inferIndents({
-            text: currentText,
-            line: position.line,
-            character: position.character,
-            'previous-line': prevPosition.line,
-            'previous-character': prevPosition.character,
-            changes: [
-              {
-                line: forward ? prevPosition.line : position.line,
-                character: forward ? prevPosition.character : position.character,
-                'old-text': forward ? '' : deletedText,
-                'new-text': forward ? spacing : '',
-              },
-            ],
-          });
-        applyResults(r, editor);
-      }
-    });
+  indent(docMirror.getDocument(editor.document), spacing, forward).catch((e: Error) => {
+    void vscode.window.showErrorMessage('Calva Formatter Error: ' + e.message);
+  });
 }
 
 function applyResults(r: ResultOptions, editor: vscode.TextEditor) {
