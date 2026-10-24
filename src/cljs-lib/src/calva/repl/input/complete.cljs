@@ -47,7 +47,8 @@
 
 (defn- request!
   "Asks the REPL and clojure-lsp for the candidates at `offset` in `text` of `doc`, for the `request` from the
-   REPL Input `id`. Posts the REPL's candidates when they come first, and then both, merged."
+   REPL Input `id`. Posts the REPL's candidates when there are some and they come first, and then both,
+   merged."
   [{:keys [request offset] :repl-input/keys [id] :as msg} doc]
   (let [context (host/refresh-context!)
         ^js document (get-in @host/!state [:repl-input.context/editor :document])
@@ -58,8 +59,8 @@
         answer {:repl-input/id id :request request :context context :uri (some-> document .-uri)}]
     (swap! !completions assoc :in-flight {:request [id request] :cancel (.-cancel lsp)})
     (.then lsp-items+ #(vreset! !lsp-answered? true))
-    (.then repl+ (fn [repl-items]
-                   (when (and (in-flight? id request) (not @!lsp-answered?))
+    (.then repl+ (fn [^js repl-items]
+                   (when (and (in-flight? id request) (not @!lsp-answered?) (pos? (.-length repl-items)))
                      (answer! answer repl-items false))))
     (.then (js/Promise.all #js [lsp-items+ repl+])
            (fn [[lsp-items repl-items]]
@@ -82,7 +83,7 @@
 (defn- documentation
   [^js item]
   (let [docs (some-> item .-documentation)]
-    (if (string? docs) docs (some-> docs .-value))))
+    (completion/arglists-and-docstring (if (string? docs) docs (some-> docs .-value)))))
 
 (defn- resolve-item+
   [^js adapter ^js item {{:repl-input.context/keys [ns session-key]} :context :keys [uri]}]

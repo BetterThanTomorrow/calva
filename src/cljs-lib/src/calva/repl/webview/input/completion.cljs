@@ -40,13 +40,16 @@
                 (valid-for? (:prefix restart) (subs text from offset)))))
 
 (defn doc-blocks
-  "Splits the markdown `docs` into `[:code text]` for its fenced code blocks and `[:text text]` for the rest."
+  "Splits the markdown `docs` into `[:code text]` for its fenced code blocks and `[:text text]` for each
+   paragraph of the rest."
   [docs]
   (->> (string/split docs #"```")
        (map-indexed (fn [i part]
                       (if (odd? i)
-                        [:code (string/trimr (string/replace-first part #"^[^\n]*\n" ""))]
-                        [:text (string/trim part)])))
+                        [[:code (string/trimr (string/replace-first part #"^[^\n]*\n" ""))]]
+                        (for [paragraph (string/split part #"\n\s*\n")]
+                          [:text (string/trim paragraph)]))))
+       (apply concat)
        (remove (comp string/blank? second))))
 
 (defn open?
@@ -56,7 +59,7 @@
 
 (defonce ^{:private true
            :doc "The request waiting for the extension's answer, the request whose list shows only the REPL's
-                 candidates so far, the final answer that restarts it, and the docs being resolved."}
+                 candidates so far, the final answer that replaces them, and the docs being resolved."}
   !requests (atom {:last 0 :pending {} :shown nil :restart nil :docs {}}))
 
 (defn- docs-element
@@ -91,12 +94,21 @@
     (resolve (docs-element detail documentation))))
 
 (defn- result
+  "CodeMirror's result for the `options` answering `request`. While a final answer waits to replace the
+   options, the result stops being valid, and its update gives the final answer's result. That way the
+   list switches without the pending state that greys it out."
   [dispatch! request {:keys [from prefix]} options]
   #js {:from from
        :options (into-array (for [{:keys [index] :as option} options]
                               (doto (clj->js (dissoc option :index))
                                 (aset "info" (fn [_] (docs+ dispatch! request index))))))
-       :validFor (fn [typed] (valid-for? prefix typed))})
+       :validFor (fn [typed]
+                   (and (not= request (get-in @!requests [:restart :request]))
+                        (valid-for? prefix typed)))
+       :update (fn [_ from _ ^js context]
+                 (let [[{:keys [restart]} _] (swap-vals! !requests assoc :restart nil)]
+                   (when (restart? restart (.. context -state -doc toString) from (.-pos context))
+                     (result dispatch! (:request restart) restart (:options restart)))))})
 
 (defn- request+
   "Asks the extension for the candidates at `offset` in `text`, and returns a promise of CodeMirror's
@@ -119,26 +131,20 @@
                                             :explicit? (boolean explicit?)}])))))
 
 (defn- source
-  "CodeMirror's completion source: the final answer that restarts the list, or a request to the extension
-   when a word ends at the cursor or the list was asked for."
+  "CodeMirror's completion source: a request to the extension when a word ends at the cursor or the list
+   was asked for."
   [dispatch!]
   (fn [^js context]
     (let [text (.. context -state -doc toString)
           offset (.-pos context)
-          from (word-start text offset)
-          {:keys [restart]} @!requests]
-      (cond
-        (restart? restart text from offset)
-        (do (swap! !requests assoc :restart nil)
-            (result dispatch! (:request restart) restart (:options restart)))
-
-        (or (.-explicit context) (< from offset))
+          from (word-start text offset)]
+      (when (or (.-explicit context) (< from offset))
         (request+ dispatch! {:from from :prefix (subs text from offset) :text text :offset offset
                              :explicit? (.-explicit context)})))))
 
 (defn deliver!
   "Gives CodeMirror the extension's answer to `request`. A final answer to a request whose list shows only
-   the REPL's candidates restarts the list with it."
+   the REPL's candidates replaces them, through a transaction that has CodeMirror update the list."
   [^js view dispatch! {:repl-input.completion/keys [request options final?]}]
   (let [{:keys [pending shown]} @!requests]
     (if-let [{:keys [resolve] :as waiting} (get pending request)]
@@ -148,7 +154,7 @@
           (resolve (result dispatch! request waiting options)))
       (when (and final? view (= request (:request shown)) (open? (.-state view)))
         (swap! !requests assoc :shown nil :restart (assoc shown :options options))
-        (startCompletion view)))))
+        (.dispatch view #js {:userEvent "input.type"})))))
 
 (defn- completion-keymap
   "The keys of the completion list. `enter` picks a candidate unless `editor.acceptSuggestionOnEnter` is off."
@@ -187,14 +193,16 @@
                     :color "var(--vscode-editorHoverWidget-foreground)"
                     :border "1px solid var(--vscode-editorHoverWidget-border)"
                     :padding "4px 8px"
-                    :maxWidth "min(500px, 90vw)"}
+                    :fontFamily "var(--vscode-font-family)"
+                    :maxHeight "min(20em, 40vh)"
+                    :overflowY "auto"}
                ".cm-completionInfo pre"
                #js {:margin "0 0 4px 0"
                     :whiteSpace "pre-wrap"
                     :fontFamily "var(--vscode-editor-font-family, monospace)"}
                ".cm-completionInfo p"
                #js {:margin "0 0 4px 0"
-                    :whiteSpace "pre-wrap"}}))
+                    :whiteSpace "normal"}}))
 
 (defn extension
   "CodeMirror's completion for the REPL Input, following the `settings`, or none while it isn't `enabled?`."

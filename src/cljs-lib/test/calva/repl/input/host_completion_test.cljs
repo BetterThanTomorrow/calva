@@ -75,6 +75,32 @@
                            (rest (answers posted)))))
                   (done)))))))))))
 
+(deftest complete-without-repl-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted completions session-keys] :as host}]
+        (with-view host
+          (fn []
+            (reset! session-keys [])
+            (mount-focused! "output-view" "(string/upp)")
+            (host/editor-moved! pirate-core #js {})
+            (post! {:command "repl-input-complete" :repl-input/id "output-view" :request 1 :text "(string/upp)" :offset 11})
+            (testing "without a REPL, asks only clojure-lsp"
+              (is (empty? (calls completions :repl))))
+            (after-promises
+             (fn []
+               (testing "posts nothing before clojure-lsp answers, since the REPL has no candidates"
+                 (is (empty? (answers posted))))
+               ((:resolve (first (calls completions :lsp))) #js [upper-case-lsp])
+               (after-promises
+                (fn []
+                  (testing "posts clojure-lsp's candidates alone"
+                    (is (= [{:repl-input.completion/request 1
+                             :repl-input.completion/options [{:label "string/upper-case" :type "function" :detail "clojure.string/upper-case" :index 0}]
+                             :repl-input.completion/final? true}]
+                           (answers posted))))
+                  (done)))))))))))
+
 (defn- answered!
   "Completes `request` with both sources' items, and calls `f` when it is answered."
   [completions request f]

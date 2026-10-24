@@ -1,6 +1,9 @@
 (ns calva.repl.input.completion
   "The REPL Inputs' completion: the copy that clojure-lsp completes in, when typing asks for candidates,
-   the candidates as CodeMirror shows them, and the context keys that let `tab` and `enter` pick one.")
+   the candidates as CodeMirror shows them, their docs, and the context keys that let `tab` and `enter`
+   pick one."
+  (:require
+   [clojure.string :as string]))
 
 (def active-context "calva:replInputCompletionActive")
 
@@ -89,3 +92,13 @@
    detail when `editor.suggest.showInlineDetails` is on. Snippets are left out."
   [items settings]
   (into [] (keep-indexed (partial option (not (false? (get settings "editor.suggest.showInlineDetails"))))) items))
+
+(def ^:private after-docstring
+  "Where clojure-lsp's docs go on after the docstring: clojuredocs' examples, links and notes, or where the
+   var is defined."
+  #"\n+(?:__Examples:__|__See also:__|__Notes:__|----)\n")
+
+(defn arglists-and-docstring
+  "Returns the markdown `docs` of a candidate up to the end of its docstring."
+  [docs]
+  (some-> docs (string/split after-docstring 2) first string/trimr))

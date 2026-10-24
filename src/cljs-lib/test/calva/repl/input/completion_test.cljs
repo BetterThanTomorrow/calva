@@ -93,3 +93,18 @@
                                "editor.acceptSuggestionOnEnter" "off"
                                "editor.suggest.showIcons" false}))
       "Typing opens the list when quick suggestions are on anywhere"))
+
+(deftest arglists-and-docstring
+  (is (= "```clojure\n(map [f] [f coll])\n```\n\nReturns a lazy sequence."
+         (sut/arglists-and-docstring "```clojure\n(map [f] [f coll])\n```\n\nReturns a lazy sequence.\n\n__Examples:__\n\n```clojure\n(map inc [1 2])\n```\n\n__See also:__\n\n[clojure.core/mapv](https://clojuredocs.org/clojure.core/mapv)\n\n----\n\n*[core.clj](jar:file:///core.clj)*"))
+      "Leaves out clojuredocs' examples and links, and where the var is defined")
+  (is (= "Returns a lazy sequence."
+         (sut/arglists-and-docstring "Returns a lazy sequence.\n\n__Notes:__\n\nA note"))
+      "Leaves out clojuredocs' notes when there are no examples")
+  (is (= "```clojure\n(to-pirate-talk [text language])\n```"
+         (sut/arglists-and-docstring "```clojure\n(to-pirate-talk [text language])\n```\n\n----\n\n*[pirate_lang.clj](file:///pirate_lang.clj)*"))
+      "Leaves out where a var without a docstring is defined")
+  (is (= "Converts string to all upper-case."
+         (sut/arglists-and-docstring "Converts string to all upper-case."))
+      "Keeps docs that have nothing to leave out")
+  (is (nil? (sut/arglists-and-docstring nil))))

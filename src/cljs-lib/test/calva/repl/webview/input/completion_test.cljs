@@ -39,4 +39,7 @@
       "Fenced code, then text")
   (is (= [[:text "Returns its argument."]]
          (sut/doc-blocks "Returns its argument."))
-      "Text without fences"))
+      "Text without fences")
+  (is (= [[:text "Returns a lazy sequence\n  of f applied."] [:text "Returns a transducer\n  without a collection."]]
+         (sut/doc-blocks "Returns a lazy sequence\n  of f applied.\n\n  Returns a transducer\n  without a collection."))
+      "A paragraph for each run of lines between blank lines"))
