@@ -59,8 +59,8 @@
                         :border "1px solid var(--vscode-input-border, transparent)"
                         :fontFamily "var(--vscode-editor-font-family, monospace)"
                         :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
-                        :minHeight "var(--repl-input-min-height, auto)"
-                        :maxHeight "var(--repl-input-max-height, 40vh)"}
+                        :height "var(--repl-input-height, auto)"
+                        :maxHeight "var(--repl-input-height, 40vh)"}
                "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
                ".cm-scroller" #js {:fontFamily "inherit"
                                    :overflow "auto"}
@@ -202,19 +202,17 @@
                                :blur (fn [_ _] (dispatch! [:repl-input/ax.blurred]) false)})])
 
 (defn- set-height!
-  [{:keys [height dragging?]}]
+  "Keeps the REPL Input at `height`, or lets it grow with its text when there is no `height`."
+  [height]
   (let [style (.-style (mount-element))]
     (if height
-      (.setProperty style "--repl-input-max-height" (str height "px"))
-      (.removeProperty style "--repl-input-max-height"))
-    (if dragging?
-      (.setProperty style "--repl-input-min-height" (str height "px"))
-      (.removeProperty style "--repl-input-min-height"))))
+      (.setProperty style "--repl-input-height" (str height "px"))
+      (.removeProperty style "--repl-input-height"))))
 
 (defn- listen-for-drag!
-  [^js handle dispatch!]
+  [^js sash dispatch!]
   (.addEventListener
-   handle "pointerdown"
+   sash "pointerdown"
    (fn [^js down]
      (let [start-y (.-clientY down)
            start-height (some-> (editor-view) .-dom .getBoundingClientRect .-height)
@@ -222,26 +220,28 @@
                   (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
                                                    :view-height js/window.innerHeight}]))]
        (.preventDefault down)
-       (.setPointerCapture handle (.-pointerId down))
-       (.addEventListener handle "pointermove" move)
-       (.addEventListener handle "pointerup"
+       (.setPointerCapture sash (.-pointerId down))
+       (.. sash -classList (add "active"))
+       (.addEventListener sash "pointermove" move)
+       (.addEventListener sash "pointerup"
                           (fn [_]
-                            (.removeEventListener handle "pointermove" move)
+                            (.removeEventListener sash "pointermove" move)
+                            (.. sash -classList (remove "active"))
                             (dispatch! [:repl-input/ax.drag-ended]))
                           #js {:once true})))))
 
 (defn- mount!
   [dispatch! {:keys [height]}]
   (let [element (mount-element)
-        handle (js/document.createElement "div")
+        sash (js/document.createElement "div")
         state (.create EditorState #js {:doc "" :extensions (extensions dispatch!)})]
-    (set! (.-className handle) "repl-input-resize-handle")
-    (.appendChild element handle)
-    (listen-for-drag! handle dispatch!)
+    (set! (.-className sash) (if mac? "repl-input-sash mac" "repl-input-sash"))
+    (.appendChild element sash)
+    (listen-for-drag! sash dispatch!)
     (stdin/mount! element dispatch!)
     (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
-    (set-height! {:height height})
+    (set-height! height)
     (.. js/document -body -classList (add "repl-input-on"))
     (dispatch! [:repl-input/ax.mounted (state-payload state)])))
 

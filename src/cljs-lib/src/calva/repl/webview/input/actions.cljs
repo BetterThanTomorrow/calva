@@ -197,11 +197,10 @@
     :repl-input/ax.drag
     (let [height (clamp-height (:height payload) (:view-height payload))]
       {:uf/db (assoc db :repl-input/height height)
-       :uf/fxs [[:repl-input/fx.set-height {:height height :dragging? true}]]})
+       :uf/fxs [[:repl-input/fx.set-height height]]})
 
     :repl-input/ax.drag-ended
     {:uf/db db
-     :uf/fxs [[:repl-input/fx.set-height {:height (:repl-input/height db) :dragging? false}]
-              (post db "repl-input-resized" :height (:repl-input/height db))]}
+     :uf/fxs [(post db "repl-input-resized" :height (:repl-input/height db))]}
 
     (handle-evaluation-action db action)))

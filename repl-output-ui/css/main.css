@@ -248,11 +248,13 @@ body.repl-input-on #output {
    flex-grow: 1;
 }
 
+/* VS Code draws the border between two views under the right one's webview, along its left edge */
 body.repl-input-on #repl-input {
    position: sticky;
    bottom: 0;
-   margin-inline: calc(-1 * var(--calva-output-inset));
-   padding: 6px var(--calva-output-inset);
+   margin-left: calc(1px - var(--calva-output-inset));
+   margin-right: calc(-1 * var(--calva-output-inset));
+   padding: 6px var(--calva-output-inset) 6px calc(var(--calva-output-inset) - 1px);
    background-color: var(--vscode-editor-background);
    border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
 }
@@ -261,14 +263,38 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
 }
 
-.repl-input-resize-handle {
+.repl-input-sash {
    position: absolute;
-   top: -4px;
+   z-index: 35;
+   top: -3px;
    left: 0;
    right: 0;
-   height: 8px;
+   height: 4px;
    cursor: ns-resize;
    touch-action: none;
+}
+
+.repl-input-sash.mac {
+   cursor: row-resize;
+}
+
+.repl-input-sash::before {
+   content: "";
+   position: absolute;
+   inset: 0;
+   pointer-events: none;
+   background-color: transparent;
+   transition: background-color 0.1s ease-out;
+}
+
+.repl-input-sash:hover::before {
+   background-color: var(--vscode-sash-hoverBorder);
+   transition-delay: 300ms;
+}
+
+.repl-input-sash.active::before {
+   background-color: var(--vscode-sash-hoverBorder);
+   transition-delay: 0s;
 }
 
 .repl-input-context-line {

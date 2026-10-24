@@ -44,17 +44,17 @@
 
 (deftest drag-test
   (let [db {:repl-input/id "output-view" :repl-input/height 100}]
-    (testing "follows the drag while dragging"
+    (testing "sets the height the sash is dragged to"
       (is (= {:uf/db (assoc db :repl-input/height 150)
-              :uf/fxs [[:repl-input/fx.set-height {:height 150 :dragging? true}]]}
+              :uf/fxs [[:repl-input/fx.set-height 150]]}
              (sut/handle-action db [:repl-input/ax.drag {:height 150 :view-height 600}]))))
     (testing "keeps the height between the minimum and the view"
       (is (= sut/min-height (get-in (sut/handle-action db [:repl-input/ax.drag {:height 3 :view-height 600}]) [:uf/db :repl-input/height])))
       (is (= 560 (get-in (sut/handle-action db [:repl-input/ax.drag {:height 900 :view-height 600}]) [:uf/db :repl-input/height]))))
-    (testing "stores the height when the drag ends"
-      (is (= [[:repl-input/fx.set-height {:height 100 :dragging? false}]
-              [:fx/post-to-host {:command "repl-input-resized" :repl-input/id "output-view" :height 100}]]
-             (:uf/fxs (sut/handle-action db [:repl-input/ax.drag-ended])))))))
+    (testing "keeps the height when the drag ends, and stores it"
+      (is (= {:uf/db db
+              :uf/fxs [[:fx/post-to-host {:command "repl-input-resized" :repl-input/id "output-view" :height 100}]]}
+             (sut/handle-action db [:repl-input/ax.drag-ended]))))))
 
 (deftest edit-test
   (let [db {:repl-input/id "output-view" :repl-input/version 2}
