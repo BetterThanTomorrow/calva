@@ -39,25 +39,14 @@
      :repl-input.context/session-key (:repl-input.context/session-key context)}
     lock))
 
-(def following-hint "following the editor · an ns or in-ns form locks the namespace")
-
-(def locked-hint "locked · click to follow the editor")
-
-(defn- session-text
-  [{:repl-input.context/keys [session-key connected?]}]
-  (cond
-    connected? session-key
-    session-key (str session-key " isn't connected")
-    :else "the REPL isn't connected"))
-
 (defn line
-  "Returns what the context line shows for `context`."
-  [{:repl-input.context/keys [ns locked? connected?] :as context}]
-  {:repl-input.context/ns ns
-   :repl-input.context/session (session-text context)
-   :repl-input.context/hint (if locked? locked-hint following-hint)
-   :repl-input.context/locked? locked?
-   :repl-input.context/connected? connected?})
+  "Returns what the context line shows for `context`: its namespace and session, and whether it is
+   locked and connected."
+  [context]
+  (select-keys context [:repl-input.context/ns
+                        :repl-input.context/session-key
+                        :repl-input.context/locked?
+                        :repl-input.context/connected?]))
 
 (defn not-connected-message
   "Returns what evaluating says when no session answers to the session key of `context`."

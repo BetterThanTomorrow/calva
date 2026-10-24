@@ -59,6 +59,7 @@
                              :replInputEvaluateFormFocused calva.repl.input.evaluate/evaluate-form-focused!
                              :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
                              :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!
+                             :replInputFollowEditor calva.repl.input.host/follow-editor!
                              :replInputEvaluationId calva.repl.input.definition/evaluation-id
                              :replInputRevealEvaluation calva.repl.input.reveal/reveal-evaluation+
                              :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location

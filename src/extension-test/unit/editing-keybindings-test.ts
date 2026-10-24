@@ -27,8 +27,6 @@ const PAREDIT_COMMANDS_LEFT_AS_THEY_ARE = [
   'paredit.addRichComment',
   'paredit.deleteForward',
   'paredit.deleteBackward',
-  'paredit.forceDeleteForward',
-  'paredit.forceDeleteBackward',
 ];
 
 const EVALUATION_COMMANDS_LEFT_AS_THEY_ARE = [

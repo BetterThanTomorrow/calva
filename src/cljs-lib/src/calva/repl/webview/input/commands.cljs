@@ -4,9 +4,9 @@
   (:require
    [clojure.string :as string]
    ["@codemirror/autocomplete" :refer [closeCompletion]]
-   ["@codemirror/commands" :refer [addCursorAbove addCursorBelow copyLineDown copyLineUp deleteLine
-                                   indentLess indentMore moveLineDown moveLineUp redo simplifySelection
-                                   standardKeymap toggleLineComment undo]]
+   ["@codemirror/commands" :refer [addCursorAbove addCursorBelow copyLineDown copyLineUp deleteCharBackward
+                                   deleteCharForward deleteLine indentLess indentMore moveLineDown moveLineUp
+                                   redo simplifySelection standardKeymap toggleLineComment undo]]
    ["@codemirror/search" :refer [selectNextOccurrence selectSelectionMatches]]
    ["@codemirror/state" :refer [Annotation EditorSelection EditorState StateField]]))
 
@@ -216,6 +216,8 @@
    "copyLinesUp" copyLineUp
    "copyLinesDown" copyLineDown
    "deleteLines" deleteLine
+   "deleteLeft" deleteCharBackward
+   "deleteRight" deleteCharForward
    "indentLines" indentMore
    "outdentLines" indentLess
    "joinLines" join-lines-command})

@@ -71,7 +71,7 @@
 
 (defn last-context-line [posted]
   (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
-               [:repl-input.context/ns :repl-input.context/session :repl-input.context/locked?]))
+               [:repl-input.context/ns :repl-input.context/session-key :repl-input.context/locked?]))
 
 (defn mount-focused! [id text]
   (post! {:command "repl-input-mounted" :repl-input/id id :version 0 :text "" :selections [[0 0]]})

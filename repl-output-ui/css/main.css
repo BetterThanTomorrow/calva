@@ -297,13 +297,27 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    transition-delay: 0s;
 }
 
+body.repl-input-on .output-greeting-read-only {
+   display: none;
+}
+
 .repl-input-context-line {
    display: flex;
-   flex-wrap: wrap;
    gap: 0 0.4em;
    padding-bottom: 4px;
-   font-size: 0.9em;
+   font-size: calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
+   white-space: nowrap;
    color: var(--vscode-descriptionForeground);
+}
+
+.repl-input-context-ns,
+.repl-input-context-session {
+   flex-shrink: 0;
+}
+
+.repl-input-context-hint {
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .repl-input-context-line > span + span::before {
@@ -334,7 +348,7 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    gap: 0.5em;
    margin-bottom: 4px;
    padding: 2px 6px;
-   font-size: 0.9em;
+   font-size: calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
    color: var(--vscode-foreground);
    background-color: var(--vscode-editorWidget-background);
    border-left: 2px solid var(--vscode-progressBar-background);

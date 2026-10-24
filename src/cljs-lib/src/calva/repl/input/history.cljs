@@ -12,24 +12,18 @@
   [:repl-input.context/ns :repl-input.context/ns-form :repl-input.context/session-key])
 
 (defn entry
-  "Returns the history entry of `code`, evaluated as the evaluation `id` in `context`."
-  [id code context]
-  (merge {:repl-input.history/id id
-          :repl-input.history/code (string/trim code)}
+  "Returns the history entry of `code`, evaluated in `context`."
+  [code context]
+  (merge {:repl-input.history/code (string/trim code)}
          (select-keys context context-keys)))
-
-(defn- same-evaluation?
-  [entry other]
-  (= (dissoc entry :repl-input.history/id) (dissoc other :repl-input.history/id)))
 
 (defn add
   "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry has the same code
-   and context, which then takes the id of `new-entry`."
-  [entries {:repl-input.history/keys [code id] :as new-entry}]
-  (cond
-    (string/blank? code) entries
-    (same-evaluation? (peek entries) new-entry) (assoc-in (vec entries) [(dec (count entries)) :repl-input.history/id] id)
-    :else (conj (vec entries) new-entry)))
+   and context."
+  [entries {:repl-input.history/keys [code] :as new-entry}]
+  (if (or (string/blank? code) (= (peek entries) new-entry))
+    entries
+    (conj (vec entries) new-entry)))
 
 (defn visible
   "Returns the `entries` evaluated in the session `session-key` when `per-session?`, else all of them."
@@ -97,12 +91,14 @@
                :lock (:lock stash))))))
 
 (defn pick-items
-  "Returns the quick pick items for `entries`, newest first: the code as the label, the namespace as the
-   description, and the entry's `index` in `entries`."
+  "Returns the quick pick items for `entries`, newest first: the code as the label, with what VS Code would
+   show as an icon escaped, the namespace as the description, and the entry's `index` in `entries`."
   [entries]
   (->> entries
        (map-indexed (fn [index {:repl-input.history/keys [code] :repl-input.context/keys [ns]}]
-                      {:label (string/replace code #"\s+" " ")
+                      {:label (-> code
+                                  (string/replace #"\s+" " ")
+                                  (string/replace "$(" "\\$("))
                        :description ns
                        :index index}))
        reverse
@@ -111,8 +107,8 @@
 (defn stored
   "Returns `entries` the way `workspaceState` keeps them."
   [entries]
-  (mapv (fn [{:repl-input.history/keys [id code] :repl-input.context/keys [ns ns-form session-key]}]
-          {:id id :code code :ns ns :nsForm ns-form :sessionKey session-key})
+  (mapv (fn [{:repl-input.history/keys [code] :repl-input.context/keys [ns ns-form session-key]}]
+          {:code code :ns ns :nsForm ns-form :sessionKey session-key})
         entries))
 
 (defn from-stored
@@ -120,9 +116,8 @@
   [stored]
   (into []
         (comp (filter (comp string? :code))
-              (map (fn [{:keys [id code ns nsForm sessionKey]}]
-                     {:repl-input.history/id id
-                      :repl-input.history/code code
+              (map (fn [{:keys [code ns nsForm sessionKey]}]
+                     {:repl-input.history/code code
                       :repl-input.context/ns ns
                       :repl-input.context/ns-form nsForm
                       :repl-input.context/session-key sessionKey})))

@@ -110,8 +110,7 @@
 
 (def ^:private locked-line
   {:repl-input.context/ns "pirate.core"
-   :repl-input.context/session "clj"
-   :repl-input.context/hint "locked · click to follow the editor"
+   :repl-input.context/session-key "clj"
    :repl-input.context/locked? true
    :repl-input.context/connected? true})
 

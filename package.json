@@ -2115,6 +2115,12 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.followEditor",
+        "title": "Follow the Editor in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.replInput.revealDefinition",
         "title": "Go to Definition in REPL Input",
         "category": "Calva",
@@ -2605,13 +2611,13 @@
         "category": "Calva Paredit",
         "command": "paredit.forceDeleteForward",
         "title": "Force Delete Forward",
-        "enablement": "editorLangId == clojure"
+        "enablement": "editorLangId == clojure || calva:replInputFocused"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forceDeleteBackward",
         "title": "Force Delete Backward",
-        "enablement": "editorLangId == clojure"
+        "enablement": "editorLangId == clojure || calva:replInputFocused"
       },
       {
         "category": "Calva Paredit",
@@ -3699,12 +3705,12 @@
       {
         "command": "paredit.forceDeleteForward",
         "key": "alt+delete",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
       },
       {
         "command": "paredit.forceDeleteBackward",
         "key": "alt+backspace",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
       },
       {
         "command": "calva-fmt.formatCurrentForm",
@@ -4272,6 +4278,10 @@
         },
         {
           "command": "calva.replInput.searchHistory",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.followEditor",
           "when": "calva:replInputFocused"
         }
       ],

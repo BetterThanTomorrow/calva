@@ -28,13 +28,13 @@
               (-> evaluated
                   (.then (fn [_]
                            (testing "locks the namespace of a successfully evaluated ns form"
-                             (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session "clj" :repl-input.context/locked? true}
+                             (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session-key "clj" :repl-input.context/locked? true}
                                     (last-context-line posted))))
                            (testing "shows that no evaluation runs"
                              (is (nil? (:repl-input/evaluation (last (posted-named posted "repl-input-evaluation"))))))
                            (post! {:command "repl-input-follow-editor" :repl-input/id "output-view"})
                            (testing "follows the editor again on click"
-                             (is (= {:repl-input.context/ns "user" :repl-input.context/session "clj" :repl-input.context/locked? false}
+                             (is (= {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false}
                                     (last-context-line posted))))
                            (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 3 :text "(ns pirate.ui)" :selections [[0 0]]})
                            (let [evaluated (sut/evaluate-focused!)]

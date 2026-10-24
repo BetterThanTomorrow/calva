@@ -149,6 +149,11 @@
     (is (= ";; (a)\n;; (b)" (:text (run-command "commentLine" "(a)\n(b)" [[0 5]])))))
   (testing "join lines joins at every cursor"
     (is (= "a b\nc d" (:text (run-command "joinLines" "a\nb\nc\nd" [[0 0] [4 4]])))))
+  (testing "delete left and right delete one character at every cursor, also a bracket"
+    (is (= {:text "(((a))\n(b" :selections [[6 6] [9 9]]}
+           (select-keys (run-command "deleteLeft" "(((a)))\n(b)" [[7 7] [11 11]]) [:text :selections])))
+    (is (= {:text "(((a))\nb)" :selections [[3 3] [7 7]]}
+           (select-keys (run-command "deleteRight" "((((a))\n(b)" [[3 3] [8 8]]) [:text :selections]))))
   (testing "undo takes back the last change, and redo does it again"
     (let [{:keys [target]} (run-command "joinLines" "a\nb" [[0 0]])]
       (is (= "a b" (.. target -state -doc toString)))

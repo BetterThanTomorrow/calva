@@ -224,11 +224,11 @@
           (reset! sut/!state sut/initial-state)
           (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
           (testing "posts the context line when the REPL Input mounts, in `user` before any Clojure editor"
-            (is (= {:repl-input.context/ns "user" :repl-input.context/session "clj" :repl-input.context/locked? false}
+            (is (= {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false}
                    (last-context-line posted))))
           (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
           (testing "follows the Clojure editor"
-            (is (= {:repl-input.context/ns "pirate.lib" :repl-input.context/session "cljs" :repl-input.context/locked? false}
+            (is (= {:repl-input.context/ns "pirate.lib" :repl-input.context/session-key "cljs" :repl-input.context/locked? false}
                    (last-context-line posted))))
           (let [n (count (posted-named posted "repl-input-context"))]
             (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
@@ -241,5 +241,7 @@
                     (last (posted-named posted "repl-input-context"))))))
           (reset! session-keys ["clj"])
           (sut/routing-changed!)
-          (testing "says that the session isn't connected when routing changes"
-            (is (= "cljs isn't connected" (:repl-input.context/session (last-context-line posted))))))))))
+          (testing "tells that the session isn't connected when routing changes"
+            (is (= {:repl-input.context/session-key "cljs" :repl-input.context/connected? false}
+                   (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
+                                [:repl-input.context/session-key :repl-input.context/connected?])))))))))

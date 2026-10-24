@@ -89,11 +89,10 @@
   "Evaluates `request` from the REPL Input of `record` in `evaluation-context`, adds its code to the
    history, and clears the REPL Input when the code was all of its text."
   [{:repl-input/keys [id text version]} {:keys [code] :as request} evaluation-context]
-  (let [evaluation-id (next-evaluation-id!)]
-    (when (= (string/trim (str text)) (string/trim code))
-      (host/take-edit! id version host/empty-text))
-    (recall/add! id evaluation-id code evaluation-context)
-    (evaluate+ id evaluation-id request evaluation-context)))
+  (when (= (string/trim (str text)) (string/trim code))
+    (host/take-edit! id version host/empty-text))
+  (recall/add! id code evaluation-context)
+  (evaluate+ id (next-evaluation-id!) request evaluation-context))
 
 (defn ^:export evaluate-focused!
   "Evaluates all of the focused REPL Input's text in the context as one evaluation, adds it to the history

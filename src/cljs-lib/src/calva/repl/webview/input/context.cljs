@@ -29,13 +29,25 @@
     (.append bar (text-element "repl-input-evaluation-text" "Evaluating…") interrupt)
     (.append parent line bar)))
 
+(def ^:private following-hint "following the editor · an ns or in-ns form locks the namespace")
+
+(def ^:private locked-hint "locked · click to follow the editor")
+
+(defn- session-text
+  [{:repl-input.context/keys [session-key connected?]}]
+  (cond
+    connected? session-key
+    session-key (str session-key " isn't connected")
+    :else "the REPL isn't connected"))
+
 (defn set-line!
-  [{:repl-input.context/keys [ns session hint locked? connected?]}]
+  "Shows the namespace and session of the `context-line`, and how to change them."
+  [{:repl-input.context/keys [ns locked? connected?] :as context-line}]
   (when-let [^js line (child "repl-input-context-line")]
     (.replaceChildren line
                       (text-element "repl-input-context-ns" ns)
-                      (text-element "repl-input-context-session" session)
-                      (text-element "repl-input-context-hint" hint))
+                      (text-element "repl-input-context-session" (session-text context-line))
+                      (text-element "repl-input-context-hint" (if locked? locked-hint following-hint)))
     (.. line -classList (toggle "locked" (boolean locked?)))
     (.. line -classList (toggle "not-connected" (not connected?)))
     (if locked?

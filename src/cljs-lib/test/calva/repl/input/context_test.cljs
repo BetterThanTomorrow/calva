@@ -104,32 +104,28 @@
 (deftest line-test
   (testing "following the editor"
     (is (= {:repl-input.context/ns "pirate.lib"
-            :repl-input.context/session "cljs"
-            :repl-input.context/hint "following the editor · an ns or in-ns form locks the namespace"
+            :repl-input.context/session-key "cljs"
             :repl-input.context/locked? false
             :repl-input.context/connected? true}
            (sut/line followed))))
 
   (testing "locked"
     (is (= {:repl-input.context/ns "pirate.core"
-            :repl-input.context/session "clj:2"
-            :repl-input.context/hint "locked · click to follow the editor"
+            :repl-input.context/session-key "clj:2"
             :repl-input.context/locked? true
             :repl-input.context/connected? true}
            (sut/line (sut/current {:lock lock :session-keys ["clj:2"]})))))
 
   (testing "locked to a session that isn't connected"
     (is (= {:repl-input.context/ns "pirate.core"
-            :repl-input.context/session "clj:2 isn't connected"
-            :repl-input.context/hint "locked · click to follow the editor"
+            :repl-input.context/session-key "clj:2"
             :repl-input.context/locked? true
             :repl-input.context/connected? false}
            (sut/line (sut/current {:lock lock :session-keys ["cljs"]})))))
 
   (testing "no REPL connected"
     (is (= {:repl-input.context/ns "user"
-            :repl-input.context/session "the REPL isn't connected"
-            :repl-input.context/hint "following the editor · an ns or in-ns form locks the namespace"
+            :repl-input.context/session-key nil
             :repl-input.context/locked? false
             :repl-input.context/connected? false}
            (sut/line (sut/current {}))))))

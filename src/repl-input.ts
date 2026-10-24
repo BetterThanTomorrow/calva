@@ -63,6 +63,11 @@ function editWithOneCursor(f: (doc: model.StringDocument) => unknown) {
   return editFocused((doc) => (doc.selections.length === 1 ? f(doc) : undefined));
 }
 
+/** Runs the REPL Input editor command `name` in the focused REPL Input. */
+export function runInFocused(name: string): void {
+  cljsLib.replInputRunInFocused(name);
+}
+
 function formatAtCursors(doc: model.StringDocument) {
   const { text } = replInputDocument.documentState(doc);
   replInputDocument.applyChanges(doc, format.formatAtCursorsChanges(doc, text));
@@ -227,6 +232,9 @@ function registerEvaluationCommands() {
     vscode.commands.registerCommand('calva.replInput.searchHistory', () =>
       cljsLib.replInputSearchHistoryFocused()
     ),
+    vscode.commands.registerCommand('calva.replInput.followEditor', () => {
+      cljsLib.replInputFollowEditor();
+    }),
   ];
 }
 

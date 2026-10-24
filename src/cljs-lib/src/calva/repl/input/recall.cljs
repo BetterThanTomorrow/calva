@@ -18,12 +18,12 @@
     (update-in [:repl-input/records id] dissoc :repl-input.history/position :repl-input.history/stash)))
 
 (defn add!
-  "Adds `code`, evaluated from the REPL Input `id` as the evaluation `evaluation-id` in `context`, to the
-   history, and ends that REPL Input's walk."
-  [id evaluation-id code context]
+  "Adds `code`, evaluated from the REPL Input `id` in `context`, to the history, and ends that REPL
+   Input's walk."
+  [id code context]
   (let [[before after] (swap-vals! host/!state
                                    #(-> %
-                                        (update :repl-input.history/entries history/add (history/entry evaluation-id code context))
+                                        (update :repl-input.history/entries history/add (history/entry code context))
                                         (stop-walking id)))
         entries (:repl-input.history/entries after)]
     (when (not= entries (:repl-input.history/entries before))

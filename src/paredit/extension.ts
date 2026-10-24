@@ -49,6 +49,20 @@ function multiCursorEnabled(override?: boolean): boolean {
   return override ?? workspace.getConfiguration().get('calva.paredit.multicursor');
 }
 
+/**
+ * Deletes a character without Paredit's checks: with VS Code's `command` in an editor, and with the REPL
+ * Input's own in the focused REPL Input while `doc` has one cursor. With several cursors, the keybinding
+ * holds in VS Code but not in the REPL Input, which then has deleted with CodeMirror's own key.
+ */
+function forceDelete(doc: EditableDocument, command: 'deleteLeft' | 'deleteRight') {
+  if (!replInput.hasFocus()) {
+    return vscode.commands.executeCommand(command);
+  }
+  if (doc.selections.length === 1) {
+    replInput.runInFocused(command);
+  }
+}
+
 // Cache paredit configuration
 let pareditConfigCache: PareditConfig | null = null;
 
@@ -505,15 +519,11 @@ const pareditCommands = [
   },
   {
     command: 'paredit.forceDeleteForward',
-    handler: () => {
-      return vscode.commands.executeCommand('deleteRight');
-    },
+    handler: (doc: EditableDocument) => forceDelete(doc, 'deleteRight'),
   },
   {
     command: 'paredit.forceDeleteBackward',
-    handler: () => {
-      return vscode.commands.executeCommand('deleteLeft');
-    },
+    handler: (doc: EditableDocument) => forceDelete(doc, 'deleteLeft'),
   },
   {
     command: 'paredit.addRichComment',
