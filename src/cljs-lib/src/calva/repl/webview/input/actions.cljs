@@ -38,8 +38,24 @@
             [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles settings))]
             [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]]})
 
-(defn handle-action
+(defn- handle-evaluation-action
+  "Handles the actions of the context line."
   [db [action-type payload]]
+  (case action-type
+    :repl-input/ax.set-context-line
+    {:uf/db (assoc db :repl-input/context-line payload)
+     :uf/fxs [[:repl-input/fx.set-context-line payload]]}
+
+    :repl-input/ax.follow-editor
+    (if (get-in db [:repl-input/context-line :repl-input.context/locked?])
+      {:uf/db db
+       :uf/fxs [(post db "repl-input-follow-editor")]}
+      {:uf/db db})
+
+    {:uf/db db}))
+
+(defn handle-action
+  [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.init
     (let [{:repl-input/keys [id height enabled?]} payload]
@@ -99,4 +115,4 @@
      :uf/fxs [[:repl-input/fx.set-height {:height (:repl-input/height db) :dragging? false}]
               (post db "repl-input-resized" :height (:repl-input/height db))]}
 
-    {:uf/db db}))
+    (handle-evaluation-action db action)))

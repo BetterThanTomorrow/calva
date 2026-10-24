@@ -5,7 +5,11 @@ import * as config from './config';
 import type * as model from './cursor-doc/model';
 import * as paredit from './cursor-doc/paredit';
 import * as formatterConfig from './formatter-config';
+import * as namespace from './namespace';
+import * as replSession from './nrepl/repl-session';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as replInputDocument from './repl-input-document';
+import * as replWindow from './repl-window/repl-window-doc';
 import * as whenContexts from './when-contexts';
 
 const editorFocusSelectionKinds = [
@@ -66,8 +70,27 @@ export function reformatRanges(doc: model.StringDocument, ranges: [number, numbe
   }
 }
 
+const isClojureFile = (document: vscode.TextDocument | undefined) =>
+  document?.languageId === 'clojure' && !replWindow.isReplWindowDoc(document);
+
+function followEditor(editor: vscode.TextEditor | undefined) {
+  if (editor === vscode.window.activeTextEditor && isClojureFile(editor?.document)) {
+    cljsLib.replInputEditorMoved(editor.document, editor.selection.active);
+  }
+}
+
+const contextAdapter = {
+  editorNamespace: (doc: vscode.TextDocument, position: vscode.Position) =>
+    namespace.getNamespace(doc, position),
+  // A null document routes without one, where undefined falls back to the active editor
+  routedSessionKey: (doc: vscode.TextDocument | null) =>
+    replSession.getRoutingInfo(doc)?.sessionKey,
+  sessionKeys: () => sessionRegistry.listSessions().map(({ key }) => key),
+};
+
 export function activate(context: vscode.ExtensionContext) {
   cljsLib.initReplInput({
+    ...contextAdapter,
     setContext: (key: string, value: boolean) =>
       void vscode.commands.executeCommand('setContext', key, value),
     document: replInputDocument.stringDocument,
@@ -120,11 +143,14 @@ export function activate(context: vscode.ExtensionContext) {
       if (editor) {
         cljsLib.replInputTextEditorFocused();
       }
+      followEditor(editor);
     }),
-    vscode.window.onDidChangeTextEditorSelection(({ kind }) => {
+    vscode.window.onDidChangeTextEditorSelection(({ kind, textEditor }) => {
       if (editorFocusSelectionKinds.includes(kind)) {
         cljsLib.replInputTextEditorFocused();
       }
+      followEditor(textEditor);
     })
   );
+  followEditor(vscode.window.activeTextEditor);
 }

@@ -6,13 +6,16 @@
    [cljs.test :refer-macros [async deftest testing is]]
    [clojure.string :as string]))
 
-(defn- fake-adapter [{:keys [contexts restored]}]
+(defn- fake-adapter [{:keys [contexts restored session-keys]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
        :cursorContexts (fn [^js doc] #js {"calva:cursorInComment" (string/starts-with? (.-text doc) ";")})
        :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
-       :restoreEditorCursorContexts (fn [] @restored)})
+       :restoreEditorCursorContexts (fn [] @restored)
+       :editorNamespace (fn [^js document _position] #js [(.-ns document) (str "(ns " (.-ns document) ")")])
+       :routedSessionKey (fn [^js document] (if document (.-sessionKey document) "clj"))
+       :sessionKeys (fn [] (clj->js @session-keys))})
 
 (defn- fake-view [posted]
   #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})
@@ -20,7 +23,8 @@
 (defn- with-fresh-host [f]
   (let [host {:contexts (atom [])
               :restored (atom true)
-              :posted (atom [])}]
+              :posted (atom [])
+              :session-keys (atom ["clj" "cljs"])}]
     (reset! sut/!state sut/initial-state)
     (reset! sut/!adapter (fake-adapter host))
     (reset! sut/!views {})
@@ -240,3 +244,38 @@
           (testing "posts the command to the focused REPL Input"
             (is (= [{:command/name "repl-input-run-command" :repl-input/id "output-view" :repl-input/command "joinLines"}]
                    (posted-named posted "repl-input-run-command")))))))))
+
+(defn- last-context-line [posted]
+  (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
+               [:repl-input.context/ns :repl-input.context/session :repl-input.context/locked?]))
+
+(deftest context-line-test
+  (with-fresh-host
+    (fn [{:keys [posted session-keys] :as host}]
+      (with-view host
+        (fn []
+          (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
+          (testing "posts nothing while no REPL Input is mounted"
+            (is (= [] (posted-named posted "repl-input-context"))))
+          (reset! sut/!state sut/initial-state)
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (testing "posts the context line when the REPL Input mounts, in `user` before any Clojure editor"
+            (is (= {:repl-input.context/ns "user" :repl-input.context/session "clj" :repl-input.context/locked? false}
+                   (last-context-line posted))))
+          (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
+          (testing "follows the Clojure editor"
+            (is (= {:repl-input.context/ns "pirate.lib" :repl-input.context/session "cljs" :repl-input.context/locked? false}
+                   (last-context-line posted))))
+          (let [n (count (posted-named posted "repl-input-context"))]
+            (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
+            (testing "posts nothing when the context line stays the same"
+              (is (= n (count (posted-named posted "repl-input-context"))))))
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (testing "shares the context with the other view's REPL Input"
+            (is (= ["output-sidebar" "pirate.lib"]
+                   ((juxt :repl-input/id (comp :repl-input.context/ns :repl-input/context-line))
+                    (last (posted-named posted "repl-input-context"))))))
+          (reset! session-keys ["clj"])
+          (sut/routing-changed!)
+          (testing "says that the session isn't connected when routing changes"
+            (is (= "cljs isn't connected" (:repl-input.context/session (last-context-line posted))))))))))

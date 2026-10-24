@@ -1,8 +1,10 @@
 (ns calva.repl.input.host
-  "The extension's state for the REPL Inputs in the Output views, and the messages they post."
+  "The extension's state for the REPL Inputs in the Output views, the context they evaluate in, and the
+   messages they post."
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.context :as context]
    [calva.repl.input.focus :as focus]
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
@@ -20,7 +22,10 @@
    :repl-input/overrides {}
    :repl-input/keybindings []
    :repl-input/settings {}
-   :repl-input/applied-cursor-contexts nil})
+   :repl-input/applied-cursor-contexts nil
+   :repl-input.context/lock nil
+   :repl-input.context/editor nil
+   :repl-input.context/line nil})
 
 (defonce !state (atom initial-state))
 
@@ -238,6 +243,64 @@
                    (swap! !state assoc :repl-input/keybindings (command-keys/parsed keybindings))
                    (settings-changed! (read-settings))))))))
 
+(defn- editor-namespace
+  [{:keys [document position]}]
+  (when document
+    (let [[ns ns-form] (.editorNamespace ^js @!adapter document position)]
+      {:repl-input.context/ns ns
+       :repl-input.context/ns-form ns-form})))
+
+(defn- current-context
+  []
+  (let [{:repl-input.context/keys [lock editor]} @!state
+        ^js adapter @!adapter]
+    (context/current {:lock lock
+                      :editor-namespace (editor-namespace editor)
+                      :routed-session-key (.routedSessionKey adapter (:document editor))
+                      :session-keys (.sessionKeys adapter)})))
+
+(defn- context-line-message
+  [line]
+  {:command/name "repl-input-context"
+   :repl-input/context-line line})
+
+(defn- refresh-context!
+  "Works out the context, posts its line to the REPL Inputs when the line changed, and returns the context."
+  []
+  (let [current (current-context)
+        line (context/line current)
+        [before _] (swap-vals! !state assoc :repl-input.context/line line)]
+    (when (not= line (:repl-input.context/line before))
+      (doseq [id (keys (:repl-input/records @!state))]
+        (post-to-view! id (context-line-message line))))
+    current))
+
+(defn- refresh-mounted-context!
+  []
+  (when (and @!adapter (seq (:repl-input/records @!state)))
+    (refresh-context!)))
+
+(defn ^:export editor-moved!
+  "Follows the Clojure editor with `document`, now at `position`."
+  [document position]
+  (swap! !state assoc :repl-input.context/editor {:document document :position position})
+  (refresh-mounted-context!))
+
+(defn ^:export routing-changed!
+  "Updates the context line after sessions connected, disconnected or changed routing."
+  []
+  (refresh-mounted-context!))
+
+(defn- follow-editor!
+  []
+  (swap! !state assoc :repl-input.context/lock nil)
+  (refresh-context!))
+
+(defn- mounted!
+  [id]
+  (refresh-context!)
+  (post-to-view! id (context-line-message (:repl-input.context/line @!state))))
+
 (defn handle-message!
   "Takes a message the REPL Input in `webview-host` posted."
   [^js webview-host ^js message]
@@ -245,6 +308,7 @@
     (case command
       "repl-input-mounted" (do (swap! !views assoc id webview-host)
                                (take-record! records/take-mount msg)
+                               (mounted! id)
                                (load-keybindings!))
       "repl-input-changed" (take-record! records/take-change msg)
       "repl-input-unmounted" (do (update-records! records/remove-record id)
@@ -252,6 +316,7 @@
       "repl-input-focused" (update-focus! [:focus id])
       "repl-input-blurred" (update-focus! [:blur id])
       "repl-input-resized" (store-height! msg)
+      "repl-input-follow-editor" (follow-editor!)
       nil)))
 
 (defn listen-for-messages!

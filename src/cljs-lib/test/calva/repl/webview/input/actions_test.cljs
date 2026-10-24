@@ -105,3 +105,24 @@
     (is (= {:uf/db {:repl-input/id "output-view"}
             :uf/fxs [[:repl-input/fx.run-command "joinLines"]]}
            (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.run-command "joinLines"])))))
+
+(def ^:private locked-line
+  {:repl-input.context/ns "pirate.core"
+   :repl-input.context/session "clj"
+   :repl-input.context/hint "locked · click to follow the editor"
+   :repl-input.context/locked? true
+   :repl-input.context/connected? true})
+
+(deftest context-line-test
+  (let [db {:repl-input/id "output-view"}]
+    (testing "shows the context line the extension posts"
+      (is (= {:uf/db (assoc db :repl-input/context-line locked-line)
+              :uf/fxs [[:repl-input/fx.set-context-line locked-line]]}
+             (sut/handle-action db [:repl-input/ax.set-context-line locked-line]))))
+    (testing "asks the extension to follow the editor on a click while locked"
+      (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/context-line locked-line) [:repl-input/ax.follow-editor])))))
+    (testing "does nothing on a click while following the editor"
+      (is (= {:uf/db (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))}
+             (sut/handle-action (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))
+                                [:repl-input/ax.follow-editor]))))))

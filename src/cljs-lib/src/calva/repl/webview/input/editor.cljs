@@ -2,6 +2,7 @@
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
   (:require
    [calva.repl.webview.input.commands :as commands]
+   [calva.repl.webview.input.context :as context]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.input.keys :as input-keys]
@@ -200,6 +201,7 @@
     (set! (.-className handle) "repl-input-resize-handle")
     (.appendChild element handle)
     (listen-for-drag! handle dispatch!)
+    (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
     (set-height! {:height height})
     (.. js/document -body -classList (add "repl-input-on"))
@@ -270,4 +272,5 @@
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
     :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
     :repl-input/fx.set-editing (set-editing! (first args))
-    :repl-input/fx.run-command (run-command! (first args))))
+    :repl-input/fx.run-command (run-command! (first args))
+    :repl-input/fx.set-context-line (context/set-line! (first args))))

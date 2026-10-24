@@ -266,3 +266,33 @@ body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
    cursor: ns-resize;
    touch-action: none;
 }
+
+.repl-input-context-line {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 0 0.4em;
+   padding-bottom: 4px;
+   font-size: 0.9em;
+   color: var(--vscode-descriptionForeground);
+}
+
+.repl-input-context-line > span + span::before {
+   content: "· ";
+}
+
+.repl-input-context-ns {
+   color: var(--vscode-foreground);
+}
+
+.repl-input-context-line.not-connected .repl-input-context-session {
+   color: var(--vscode-errorForeground);
+}
+
+.repl-input-context-line.locked {
+   cursor: pointer;
+}
+
+.repl-input-context-line.locked:hover .repl-input-context-hint {
+   color: var(--vscode-textLink-activeForeground);
+   text-decoration: underline;
+}
