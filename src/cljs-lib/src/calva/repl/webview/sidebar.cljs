@@ -97,6 +97,14 @@
   [subscription]
   (.. ^js @util/vscode-context -subscriptions (push subscription)))
 
+(defn- output-destinations-changed!
+  "Shows the help or the output log in the Output Sidebar `webview-view` for the changed Output Destinations.
+   Leaves the page as it is while it shows the output log and the sidebar stays a destination."
+  [^js webview-view]
+  (when-not (and @output-sidebar-showing-output-log?
+                 (output-sidebar-in-setting? (current-output-destinations)))
+    (apply-sidebar-help-or-output-log! webview-view)))
+
 (defn create-output-destinations-change-listener
   []
   (.. ^js @util/vscode -workspace
@@ -104,7 +112,7 @@
        (fn [^js event]
          (when (and (.affectsConfiguration event "calva.outputDestinations")
                     @output-sidebar-webview-view)
-           (apply-sidebar-help-or-output-log! @output-sidebar-webview-view))))))
+           (output-destinations-changed! @output-sidebar-webview-view))))))
 
 (defn ^:export create-repl-output-sidebar-provider
   []

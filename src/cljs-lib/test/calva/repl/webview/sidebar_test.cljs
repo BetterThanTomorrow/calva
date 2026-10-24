@@ -227,3 +227,40 @@
         (is (= [] @sut/output-sidebar-log)))
       (testing "titles the view REPL"
         (is (= "REPL" (.-title webview-view)))))))
+
+(deftest output-destinations-change-test
+  (let [on-did-change-configuration-spy (spy/stub "configuration-subscription")
+        webview-view #js {:webview #js {:cspSource "csp-source"}
+                          :visible true
+                          :onDidDispose (constantly "dispose-subscription")
+                          :onDidChangeVisibility (constantly "visibility-subscription")}
+        vscode-stub #js {:workspace #js {:onDidChangeConfiguration
+                                         (test-util/wrap-spy on-did-change-configuration-spy)}
+                         :window #js {:activeColorTheme #js {:kind 1}}}
+        destinations (atom {:evalResults "output-sidebar"})
+        destinations-changed #js {:affectsConfiguration #(= "calva.outputDestinations" %)}
+        set-webview-html!-spy (spy/spy)
+        post-message-to-webview-spy (spy/spy)]
+    (with-redefs [util/vscode (atom vscode-stub)
+                  util/vscode-context (atom #js {:extensionUri "extension-uri" :subscriptions #js []})
+                  sut/current-output-destinations #(deref destinations)
+                  sut/output-sidebar-webview-view (atom nil)
+                  sut/output-sidebar-log (atom [{:command/name "show-stdout" :output "first"}])
+                  sut/output-sidebar-showing-output-log? (atom false)
+                  input-host/enabled? (constantly false)
+                  core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
+                  core/set-code-theme! (constantly nil)
+                  core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+      (let [provider (sut/create-repl-output-sidebar-provider)
+            on-change (ffirst (spy/calls on-did-change-configuration-spy))]
+        (.resolveWebviewView ^js provider webview-view nil nil)
+        (reset! destinations {:evalResults ["terminal" "output-sidebar"]})
+        (on-change destinations-changed)
+        (testing "keeps the page and its output when the sidebar stays a destination"
+          (is (= 1 (count (spy/calls set-webview-html!-spy))))
+          (is (= 1 (count (spy/calls post-message-to-webview-spy)))))
+        (reset! destinations {:evalResults "terminal"})
+        (on-change destinations-changed)
+        (testing "shows the help when the sidebar is no longer a destination"
+          (is (not @sut/output-sidebar-showing-output-log?))
+          (is (re-find #"REPL Output" (.. ^js webview-view -webview -html))))))))
