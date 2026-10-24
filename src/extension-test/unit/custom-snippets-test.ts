@@ -144,6 +144,12 @@ describe('custom REPL commands in the REPL Input', () => {
       .toBe('[(b c (b c) "" (a (b c) d)]');
   });
 
+  it("substitutes the REPL Input's namespace for $editor-ns when the snippet has its own", () => {
+    expectLib
+      .expect(evaluation({ snippet: '[$ns $editor-ns]', ns: 'other.ns' }, '|(x)').code)
+      .toBe('[other.ns my.app]');
+  });
+
   it("evaluates in the snippet's own namespace and session", () => {
     expectLib
       .expect(evaluation({ snippet: '(x)', ns: 'other.ns' }, '|(x)'))

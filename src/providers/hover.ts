@@ -42,7 +42,7 @@ export async function provideHover(
 
       const context = {
         ns,
-        editorNs: ns,
+        editorNS: ns,
         nsForm,
         repl: document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : 'clj',
         hoverText: text,
