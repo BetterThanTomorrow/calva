@@ -1,12 +1,12 @@
 (ns calva.repl.input.complete
-  "Completes in the REPL Inputs from the REPL, resolves a candidate's docs, and sets the context keys while
-   a REPL Input's completion list is open."
+  "Completes in the REPL Inputs from the REPL and from clojure-lsp, resolves a candidate's docs, and sets
+   the context keys while a REPL Input's completion list is open."
   (:require
    [calva.repl.input.completion :as completion]
    [calva.repl.input.host :as host]))
 
-(defonce ^{:doc "The request in flight, as `[id request]`, and the items each REPL Input was last answered
-                 with, with what resolving them needs."}
+(defonce ^{:doc "The request in flight, as `[id request]` with the function that cancels its clojure-lsp part,
+                 and the items each REPL Input was last answered with, with what resolving them needs."}
   !completions (atom {}))
 
 (defn- in-flight?
@@ -38,26 +38,42 @@
     (items+ #(.replCompletions ^js @host/!adapter session-key ns doc offset))
     (js/Promise.resolve #js [])))
 
+(defn- lsp-request
+  "Asks clojure-lsp to complete at `offset` in `text`, in a copy below the followed `document` or the `ns`
+   form of `context`. Returns the adapter's `{items cancel}`."
+  [context ^js document {:keys [text offset]}]
+  (let [{copy-text :text :keys [line character]} (completion/copy context (some-> document .getText) text offset)]
+    (.lspCompletions ^js @host/!adapter (some-> document .-uri) copy-text line character)))
+
 (defn- request!
-  "Asks the REPL for the candidates at `offset` of `doc`, for the `request` from the REPL Input `id`, and
-   posts them."
-  [{:keys [request offset] :repl-input/keys [id]} doc]
+  "Asks the REPL and clojure-lsp for the candidates at `offset` in `text` of `doc`, for the `request` from the
+   REPL Input `id`. Posts the REPL's candidates when they come first, and then both, merged."
+  [{:keys [request offset] :repl-input/keys [id] :as msg} doc]
   (let [context (host/refresh-context!)
-        answer {:repl-input/id id :request request :context context}]
-    (swap! !completions assoc :in-flight {:request [id request]})
-    (.then (repl-items+ context doc offset)
-           (fn [repl-items]
+        ^js document (get-in @host/!state [:repl-input.context/editor :document])
+        ^js lsp (lsp-request context document msg)
+        lsp-items+ (items+ #(.-items lsp))
+        repl+ (repl-items+ context doc offset)
+        !lsp-answered? (volatile! false)
+        answer {:repl-input/id id :request request :context context :uri (some-> document .-uri)}]
+    (swap! !completions assoc :in-flight {:request [id request] :cancel (.-cancel lsp)})
+    (.then lsp-items+ #(vreset! !lsp-answered? true))
+    (.then repl+ (fn [repl-items]
+                   (when (and (in-flight? id request) (not @!lsp-answered?))
+                     (answer! answer repl-items false))))
+    (.then (js/Promise.all #js [lsp-items+ repl+])
+           (fn [[lsp-items repl-items]]
              (when (in-flight? id request)
                (swap! !completions dissoc :in-flight)
-               (answer! answer repl-items true))))))
+               (answer! answer (.mergeCompletions ^js @host/!adapter lsp-items repl-items) true))))))
 
 (defn complete!
-  "Completes at `offset` in `text` of the REPL Input `id`, for its `request`, and drops the answer to the
-   request in flight. A request as you type answers with no candidates where `editor.quickSuggestions` is
-   off."
+  "Completes at `offset` in `text` of the REPL Input `id`, for its `request`, and cancels the request in
+   flight. A request as you type answers with no candidates where `editor.quickSuggestions` is off."
   [{:keys [request text offset explicit?] :repl-input/keys [id] :as msg}]
   (let [doc (host/document {:repl-input/text text :repl-input/selections [[offset offset]]})
         cursor-contexts (js->clj (.cursorContexts ^js @host/!adapter doc))]
+    (some-> (get-in @!completions [:in-flight :cancel]) (apply []))
     (swap! !completions dissoc :in-flight)
     (if (completion/suggests? (:repl-input/settings @host/!state) cursor-contexts explicit?)
       (request! msg doc)
@@ -69,8 +85,10 @@
     (if (string? docs) docs (some-> docs .-value))))
 
 (defn- resolve-item+
-  [^js adapter ^js item {{:repl-input.context/keys [ns session-key]} :context}]
-  (.resolveReplCompletion adapter session-key ns item))
+  [^js adapter ^js item {{:repl-input.context/keys [ns session-key]} :context :keys [uri]}]
+  (if (= "repl" (some-> item .-data .-provider))
+    (.resolveReplCompletion adapter session-key ns item)
+    (.resolveLspCompletion adapter uri item)))
 
 (defn resolve!
   "Posts the docs of the candidate at `index` in the answer to `request` from the REPL Input `id`, or none

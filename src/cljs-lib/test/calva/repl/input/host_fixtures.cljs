@@ -31,8 +31,14 @@
                                   (swap! evaluations conj {:options options :resolve resolve}))))
        :replCompletions (fn [session-key ns ^js doc offset]
                           (pending-completion completions :repl {:session-key session-key :ns ns :text (.-text doc) :offset offset}))
+       :lspCompletions (fn [uri text line character]
+                         #js {:items (pending-completion completions :lsp {:uri uri :text text :line line :character character})
+                              :cancel #(swap! completions conj {:source :cancel :text text})})
+       :mergeCompletions (fn [lsp repl] (.concat lsp repl))
        :resolveReplCompletion (fn [session-key ns item]
-                                (js/Promise.resolve #js {:detail (str ns " in " session-key) :documentation (str "REPL docs for " (.-label item))}))})
+                                (js/Promise.resolve #js {:detail (str ns " in " session-key) :documentation (str "REPL docs for " (.-label item))}))
+       :resolveLspCompletion (fn [_uri item]
+                               (js/Promise.resolve #js {:detail "lsp" :documentation #js {:kind "markdown" :value (str "LSP docs for " (.-label item))}}))})
 
 (defn fake-view [posted]
   #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})

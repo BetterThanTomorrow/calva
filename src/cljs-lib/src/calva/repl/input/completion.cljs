@@ -1,6 +1,6 @@
 (ns calva.repl.input.completion
-  "The REPL Inputs' completion: when typing asks for candidates, the candidates as CodeMirror shows them,
-   and the context keys that let `tab` and `enter` pick one.")
+  "The REPL Inputs' completion: the copy that clojure-lsp completes in, when typing asks for candidates,
+   the candidates as CodeMirror shows them, and the context keys that let `tab` and `enter` pick one.")
 
 (def active-context "calva:replInputCompletionActive")
 
@@ -51,6 +51,17 @@
    :delay (get settings "editor.quickSuggestionsDelay" 10)
    :accept-on-enter? (accepts-enter? settings)
    :icons? (not (false? (get settings "editor.suggest.showIcons")))})
+
+(defn copy
+  "Returns the copy that clojure-lsp completes in, with the cursor at `offset` in `text` as its `:line` and
+   `:character` there. The copy is the followed file's `editor-text`, or the `ns` form of a locked
+   `context` or of a context without a file, and then `text`."
+  [{:repl-input.context/keys [ns-form locked?]} editor-text text offset]
+  (let [prefix (if (and editor-text (not locked?)) editor-text ns-form)
+        before (subs text 0 offset)]
+    {:text (str prefix "\n" text)
+     :line (+ 1 (count (re-seq #"\n" prefix)) (count (re-seq #"\n" before)))
+     :character (- offset (inc (.lastIndexOf before "\n")))}))
 
 (def ^:private kind-types
   "CodeMirror's completion types, which pick the icon, for the LSP completion item kinds."

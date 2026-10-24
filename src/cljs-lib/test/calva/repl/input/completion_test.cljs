@@ -3,6 +3,43 @@
    [calva.repl.input.completion :as sut]
    [cljs.test :refer-macros [deftest testing is]]))
 
+(def following
+  {:repl-input.context/ns "pirate.core"
+   :repl-input.context/ns-form "(ns pirate.core)"
+   :repl-input.context/locked? false})
+
+(def locked
+  {:repl-input.context/ns "pirate.ui"
+   :repl-input.context/ns-form "(in-ns 'pirate.ui)"
+   :repl-input.context/locked? true})
+
+(deftest copy-text
+  (testing "the followed file's text, then the REPL Input's text"
+    (is (= "(ns pirate.core\n  (:require [clojure.string :as string]))\n\n(defn to-pirate-talk [s] s)\n\n(string/upp)"
+           (:text (sut/copy following
+                            "(ns pirate.core\n  (:require [clojure.string :as string]))\n\n(defn to-pirate-talk [s] s)\n"
+                            "(string/upp)"
+                            11)))))
+  (testing "the locked `ns` form, then the REPL Input's text, also while an editor is followed"
+    (is (= "(in-ns 'pirate.ui)\n(render)"
+           (:text (sut/copy locked "(ns pirate.core)" "(render)" 7)))))
+  (testing "the context's `ns` form when no file has been followed"
+    (is (= "(ns pirate.core)\n(to-pir)"
+           (:text (sut/copy following nil "(to-pir)" 7))))))
+
+(deftest copy-cursor-position
+  (testing "the cursor on the REPL Input's first line, below a file"
+    (is (= {:line 4 :character 11}
+           (select-keys (sut/copy following "(ns pirate.core)\n\n(def x 1)\n" "(string/upp)" 11)
+                        [:line :character]))))
+  (testing "the cursor on a later line of the REPL Input, below the locked `ns` form"
+    (is (= {:line 2 :character 8}
+           (select-keys (sut/copy locked nil "(foo\n  (bar ba))" 13)
+                        [:line :character]))))
+  (testing "an empty REPL Input"
+    (is (= {:line 1 :character 0}
+           (select-keys (sut/copy following nil "" 0) [:line :character])))))
+
 (deftest suggests?
   (testing "an explicit request always completes"
     (is (true? (sut/suggests? {"editor.quickSuggestions" false} {} true))))
