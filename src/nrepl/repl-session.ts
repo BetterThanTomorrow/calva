@@ -199,10 +199,12 @@ function resolveCljcWithinConnection(
 /**
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
+ *
+ * @param doc - The document to route (defaults to the active document)
  */
-function getRoutingInfo(): RoutingResult | undefined {
-  const doc = utilities.tryToGetDocument({});
-
+function getRoutingInfo(
+  doc: vscode.TextDocument | undefined = utilities.tryToGetDocument({})
+): RoutingResult | undefined {
   // 1. Pinned session takes priority
   const pinnedSession = sessionRouting.resolvePinnedSession();
   if (pinnedSession && sessionRegistry.getSession(pinnedSession)) {
@@ -305,7 +307,7 @@ function getSessionLabelContext(options?: {
   doc?: vscode.TextDocument;
 }): sessionLabel.SessionLabelContext {
   const { isPinned = false, doc = utilities.tryToGetDocument({}) } = options ?? {};
-  const routingInfo = getRoutingInfo();
+  const routingInfo = getRoutingInfo(doc);
   const fileType = utilities.getFileType(doc);
 
   return sessionLabel.determineSessionLabelContext({
