@@ -1,7 +1,6 @@
 (ns calva.repl.input.core
   "Turns the REPL Input on and off in the Output views, from the setting and the toggle commands."
   (:require
-   [calva.repl.input.brackets :as brackets]
    [calva.repl.input.host :as host]
    [calva.repl.input.setting :as setting]
    [calva.repl.webview.core :as webview]
@@ -49,7 +48,7 @@
            (host/clear-toggles!)
            (set-enabled-context!)
            (apply-to-views!))
-         (when (some #(.affectsConfiguration event %) (cons "calva" brackets/close-settings))
+         (when (some #(.affectsConfiguration event %) (cons "calva" host/clojure-settings))
            (host/settings-changed! (host/read-settings)))))))
 
 (defn ^:export init!

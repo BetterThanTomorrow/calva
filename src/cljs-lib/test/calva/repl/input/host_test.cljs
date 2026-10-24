@@ -212,3 +212,31 @@
             (is (= 2 (:colorCount (:repl-input/brackets (last (posted-named posted "repl-input-brackets"))))))
             (is (= ["\""]
                    (:close-brackets (:repl-input/editor-settings (last (posted-named posted "repl-input-editor-settings"))))))))))))
+
+(deftest editing-settings-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (sut/settings-changed! {"editor.multiCursorModifier" "ctrlCmd"
+                                  "editor.wordSeparators" "()[]"})
+          (testing "posts the multi-cursor modifier and the word separators with the editor settings"
+            (is (= {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]"}
+                   (select-keys (:repl-input/editor-settings (last (posted-named posted "repl-input-editor-settings")))
+                                [:multi-cursor-modifier :word-separators])))))))))
+
+(deftest run-in-focused!-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (sut/run-in-focused! "joinLines")
+          (testing "runs nothing when no REPL Input has focus"
+            (is (= [] (posted-named posted "repl-input-run-command"))))
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (sut/run-in-focused! "joinLines")
+          (testing "posts the command to the focused REPL Input"
+            (is (= [{:command/name "repl-input-run-command" :repl-input/id "output-view" :repl-input/command "joinLines"}]
+                   (posted-named posted "repl-input-run-command")))))))))

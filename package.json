@@ -1957,6 +1957,132 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.undo",
+        "title": "Undo in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.redo",
+        "title": "Redo in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.cursorUndo",
+        "title": "Cursor Undo in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.addSelectionToNextFindMatch",
+        "title": "Add Selection to Next Find Match in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.selectHighlights",
+        "title": "Select All Occurrences of Find Match in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorAbove",
+        "title": "Add Cursor Above in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorBelow",
+        "title": "Add Cursor Below in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorAtEndOfEachLineSelected",
+        "title": "Add Cursors to Line Ends in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.commentLine",
+        "title": "Toggle Line Comment in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.moveLinesUp",
+        "title": "Move Line Up in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.moveLinesDown",
+        "title": "Move Line Down in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.copyLinesUp",
+        "title": "Copy Line Up in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.copyLinesDown",
+        "title": "Copy Line Down in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.deleteLines",
+        "title": "Delete Line in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertLineAfter",
+        "title": "Insert Line Below in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertLineBefore",
+        "title": "Insert Line Above in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.indentLines",
+        "title": "Indent Line in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.outdentLines",
+        "title": "Outdent Line in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.joinLines",
+        "title": "Join Lines in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.expandSelection",
+        "title": "Expand Selection in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.shrinkSelection",
+        "title": "Shrink Selection in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3329,6 +3455,185 @@
         "when": "calva:keybindingsEnabled && calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.undo",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.redo",
+        "mac": "shift+cmd+z",
+        "win": "ctrl+y",
+        "linux": "ctrl+shift+z",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.redo",
+        "win": "ctrl+shift+z",
+        "linux": "ctrl+y",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.cursorUndo",
+        "key": "ctrl+u",
+        "mac": "cmd+u",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.addSelectionToNextFindMatch",
+        "key": "ctrl+d",
+        "mac": "cmd+d",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.selectHighlights",
+        "key": "ctrl+shift+l",
+        "mac": "shift+cmd+l",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorAbove",
+        "mac": "alt+cmd+up",
+        "linux": "shift+alt+up",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorAbove",
+        "win": "ctrl+alt+up",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/)"
+      },
+      {
+        "command": "calva.replInput.insertCursorBelow",
+        "mac": "alt+cmd+down",
+        "linux": "shift+alt+down",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertCursorBelow",
+        "win": "ctrl+alt+down",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/)"
+      },
+      {
+        "command": "calva.replInput.insertCursorAtEndOfEachLineSelected",
+        "key": "shift+alt+i",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.commentLine",
+        "key": "ctrl+/",
+        "mac": "cmd+/",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && config.calva.paredit.hijackVSCodeDefaults)"
+      },
+      {
+        "command": "calva.replInput.moveLinesUp",
+        "key": "alt+up",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment)"
+      },
+      {
+        "command": "calva.replInput.moveLinesDown",
+        "key": "alt+down",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment)"
+      },
+      {
+        "command": "calva.replInput.copyLinesUp",
+        "mac": "shift+alt+up",
+        "win": "shift+alt+up",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.copyLinesUp",
+        "linux": "ctrl+shift+alt+up",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/)"
+      },
+      {
+        "command": "calva.replInput.copyLinesDown",
+        "mac": "shift+alt+down",
+        "win": "shift+alt+down",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.copyLinesDown",
+        "linux": "ctrl+shift+alt+down",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/)"
+      },
+      {
+        "command": "calva.replInput.deleteLines",
+        "key": "ctrl+shift+k",
+        "mac": "shift+cmd+k",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertLineAfter",
+        "mac": "cmd+enter",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertLineAfter",
+        "win": "ctrl+enter",
+        "linux": "ctrl+enter",
+        "when": "calva:replInputFocused && !calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.insertLineBefore",
+        "mac": "shift+cmd+enter",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.insertLineBefore",
+        "win": "ctrl+shift+enter",
+        "linux": "ctrl+shift+enter",
+        "when": "calva:replInputFocused && !calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.indentLines",
+        "key": "ctrl+]",
+        "mac": "cmd+]",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.outdentLines",
+        "key": "ctrl+[",
+        "mac": "cmd+[",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.joinLines",
+        "mac": "ctrl+j",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.expandSelection",
+        "mac": "ctrl+shift+cmd+right",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.expandSelection",
+        "win": "shift+alt+right",
+        "linux": "shift+alt+right",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment)"
+      },
+      {
+        "command": "calva.replInput.expandSelection",
+        "mac": "ctrl+shift+right",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.shrinkSelection",
+        "mac": "ctrl+shift+cmd+left",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.shrinkSelection",
+        "win": "shift+alt+left",
+        "linux": "shift+alt+left",
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment)"
+      },
+      {
+        "command": "calva.replInput.shrinkSelection",
+        "mac": "ctrl+shift+left",
+        "when": "calva:replInputFocused"
+      },
+      {
         "command": "paredit.forceDeleteForward",
         "key": "alt+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
@@ -3801,6 +4106,90 @@
         {
           "command": "calva.replInput.formatCurrentForm",
           "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.undo",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.redo",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.cursorUndo",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.addSelectionToNextFindMatch",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.selectHighlights",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.insertCursorAbove",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.insertCursorBelow",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.insertCursorAtEndOfEachLineSelected",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.commentLine",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.moveLinesUp",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.moveLinesDown",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.copyLinesUp",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.copyLinesDown",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.deleteLines",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.insertLineAfter",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.insertLineBefore",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.indentLines",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.outdentLines",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.joinLines",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.expandSelection",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.shrinkSelection",
+          "when": "calva:replInputFocused"
         }
       ],
       "editor/title": [
@@ -4103,6 +4492,7 @@
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
+    "@codemirror/search": "^6.7.2",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
     "@vscode/debugadapter": "^1.64.0",

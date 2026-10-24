@@ -65,6 +65,9 @@
 (when-not (.-body js/document)
   (set! (.-body js/document) (create-element "body")))
 
+(when-not (.-documentElement js/document)
+  (set! (.-documentElement js/document) (create-element "html")))
+
 (when-not (fn? (.-querySelectorAll js/document))
   (set! (.-querySelectorAll js/document)
         (fn [_sel]

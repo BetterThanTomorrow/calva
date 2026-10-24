@@ -675,6 +675,7 @@
          "repl-input-command-keys" (dispatch! [:repl-input/ax.set-command-keys (:repl-input/command-keys message-data)])
          "repl-input-brackets"  (dispatch! [:repl-input/ax.set-brackets message-data])
          "repl-input-editor-settings" (dispatch! [:repl-input/ax.set-editor-settings (:repl-input/editor-settings message-data)])
+         "repl-input-run-command" (dispatch! [:repl-input/ax.run-command (:repl-input/command message-data)])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

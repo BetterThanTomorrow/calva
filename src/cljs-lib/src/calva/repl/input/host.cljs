@@ -7,6 +7,7 @@
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
    [calva.util :as util]
+   [clojure.set :as set]
    ["jsonc-parser" :as jsonc]))
 
 (def focused-context "calva:replInputFocused")
@@ -137,6 +138,19 @@
   (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
            :keywordize-keys true))
 
+(def ^:private editing-settings
+  {"editor.multiCursorModifier" :multi-cursor-modifier
+   "editor.wordSeparators" :word-separators})
+
+(def clojure-settings
+  "The settings read for Clojure, since they can be set per language."
+  (concat brackets/close-settings (keys editing-settings)))
+
+(defn- editor-settings
+  [settings]
+  (merge (brackets/editor-settings settings)
+         (set/rename-keys (select-keys settings (keys editing-settings)) editing-settings)))
+
 (defn- derive-record!
   "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
    `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
@@ -148,7 +162,7 @@
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
           derived (assoc with-contexts
                          :repl-input/command-keys (command-keys-for state with-contexts)
-                         :repl-input/editor-settings (brackets/editor-settings settings)
+                         :repl-input/editor-settings (editor-settings settings)
                          :repl-input/brackets (document-brackets settings doc))]
       (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
@@ -180,7 +194,7 @@
   (derive-records!))
 
 (defn read-settings
-  "The settings the command keys and the brackets depend on, as a map from setting keys to values."
+  "The settings the command keys, the brackets and the editing depend on, as a map from setting keys to values."
   []
   (let [workspace (.-workspace ^js @util/vscode)
         read (fn [^js config ks]
@@ -190,7 +204,7 @@
                          [command-keys/user-keys-setting]
                          brackets/highlight-settings))
            (read (.getConfiguration workspace js/undefined #js {:languageId "clojure"})
-                 brackets/close-settings))))
+                 clojure-settings))))
 
 (def ^:private resolved-keybindings-uri "vscode://defaultsettings/keybindings.json")
 
@@ -276,6 +290,13 @@
                              :text text
                              :selections selections})
           (derive-record! id))))))
+
+(defn ^:export run-in-focused!
+  "Runs the REPL Input's editor command named `command-name` in the focused REPL Input."
+  [command-name]
+  (when-let [focused (:repl-input/focused @!state)]
+    (post-to-view! focused {:command/name "repl-input-run-command"
+                            :repl-input/command command-name})))
 
 (defn ^:export edit-focused!
   "Runs `f` on a document with the focused REPL Input's text and selections, and posts what `f` made of

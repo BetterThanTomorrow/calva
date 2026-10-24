@@ -31,6 +31,13 @@
      :uf/fxs [[:repl-input/fx.unmount]
               (post db "repl-input-unmounted")]}))
 
+(defn- set-editor-settings
+  [db settings]
+  {:uf/db db
+   :uf/fxs [[:repl-input/fx.set-close-brackets (:close-brackets settings)]
+            [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles settings))]
+            [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]]})
+
 (defn handle-action
   [db [action-type payload]]
   (case action-type
@@ -63,14 +70,16 @@
       {:uf/db db})
 
     :repl-input/ax.set-editor-settings
-    {:uf/db db
-     :uf/fxs [[:repl-input/fx.set-close-brackets (:close-brackets payload)]
-              [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles payload))]]}
+    (set-editor-settings db payload)
 
     :repl-input/ax.set-command-keys
     (let [command-keys (input-keys/command-keys payload)]
       {:uf/db (assoc db :repl-input/command-keys command-keys)
        :uf/fxs [[:repl-input/fx.set-command-keys command-keys]]})
+
+    :repl-input/ax.run-command
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.run-command payload]]}
 
     :repl-input/ax.focused
     {:uf/db db

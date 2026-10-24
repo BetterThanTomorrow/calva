@@ -21,6 +21,26 @@ export function editFocused(f: (doc: model.StringDocument) => unknown): Promise<
   return cljsLib.replInputEditFocused(f);
 }
 
+const editorCommands = [
+  'undo',
+  'redo',
+  'cursorUndo',
+  'addSelectionToNextFindMatch',
+  'selectHighlights',
+  'insertCursorAbove',
+  'insertCursorBelow',
+  'insertCursorAtEndOfEachLineSelected',
+  'commentLine',
+  'moveLinesUp',
+  'moveLinesDown',
+  'copyLinesUp',
+  'copyLinesDown',
+  'deleteLines',
+  'indentLines',
+  'outdentLines',
+  'joinLines',
+];
+
 function editWithOneCursor(f: (doc: model.StringDocument) => unknown) {
   return editFocused((doc) => (doc.selections.length === 1 ? f(doc) : undefined));
 }
@@ -78,6 +98,23 @@ export function activate(context: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand('calva.replInput.formatCurrentForm', () =>
       editFocused(formatAtCursors)
+    ),
+    vscode.commands.registerCommand('calva.replInput.insertLineAfter', () =>
+      editFocused((doc) => replInputDocument.insertLineAfter(doc, formatterConfig.getConfigNow()))
+    ),
+    vscode.commands.registerCommand('calva.replInput.insertLineBefore', () =>
+      editFocused((doc) => replInputDocument.insertLineBefore(doc, formatterConfig.getConfigNow()))
+    ),
+    vscode.commands.registerCommand('calva.replInput.expandSelection', () =>
+      vscode.commands.executeCommand('paredit.sexpRangeExpansion')
+    ),
+    vscode.commands.registerCommand('calva.replInput.shrinkSelection', () =>
+      vscode.commands.executeCommand('paredit.sexpRangeContraction')
+    ),
+    ...editorCommands.map((name) =>
+      vscode.commands.registerCommand(`calva.replInput.${name}`, () =>
+        cljsLib.replInputRunInFocused(name)
+      )
     ),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {

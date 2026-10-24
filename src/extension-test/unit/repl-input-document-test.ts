@@ -83,6 +83,65 @@ describe('REPL Input document', () => {
     });
   });
 
+  describe('insert line', () => {
+    const cases: {
+      name: string;
+      insert: typeof replInputDocument.insertLineAfter;
+      text: string;
+      selections: replInputDocument.Selections;
+      expected: Partial<replInputDocument.DocumentState>;
+    }[] = [
+      {
+        name: 'inserts an indented line after the line of each cursor',
+        insert: replInputDocument.insertLineAfter,
+        text: '(defn f [x]\n  x)\n(a)',
+        selections: [
+          [3, 3],
+          [18, 18],
+        ],
+        expected: {
+          text: '(defn f [x]\n  \n  x)\n(a)\n',
+          selections: [
+            [14, 14],
+            [24, 24],
+          ],
+        },
+      },
+      {
+        name: 'inserts one line for cursors on the same line',
+        insert: replInputDocument.insertLineAfter,
+        text: 'a b',
+        selections: [
+          [0, 0],
+          [2, 2],
+        ],
+        expected: { text: 'a b\n' },
+      },
+      {
+        name: 'inserts an indented line before the line of each cursor',
+        insert: replInputDocument.insertLineBefore,
+        text: '(defn f [x]\n  x)',
+        selections: [[15, 15]],
+        expected: { text: '(defn f [x]\n  \n  x)', selections: [[14, 14]] },
+      },
+      {
+        name: 'inserts an empty first line before the first line',
+        insert: replInputDocument.insertLineBefore,
+        text: '(a)',
+        selections: [[2, 2]],
+        expected: { text: '\n(a)', selections: [[0, 0]] },
+      },
+    ];
+
+    cases.forEach(({ name, insert, text, selections, expected }) => {
+      it(name, () => {
+        const doc = replInputDocument.stringDocument(text, selections);
+        insert(doc);
+        expectLib.expect(replInputDocument.documentState(doc)).toMatchObject(expected);
+      });
+    });
+  });
+
   describe('changes', () => {
     it('applies changes given last first, and the cursor moves with the text', () => {
       const doc = replInputDocument.stringDocument('(a\nb   c)', [[3, 3]]);

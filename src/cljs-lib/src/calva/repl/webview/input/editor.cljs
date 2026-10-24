@@ -1,11 +1,12 @@
 (ns calva.repl.webview.input.editor
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
   (:require
+   [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.input.keys :as input-keys]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
-   ["@codemirror/commands" :refer [defaultKeymap history historyKeymap isolateHistory]]
+   ["@codemirror/commands" :refer [history isolateHistory]]
    ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField]]
    ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
 
@@ -126,6 +127,20 @@
               (fn [_ _ _] #js [#js {:closeBrackets #js {:brackets (clj->js brackets)}}]))]
     #js []))
 
+(defonce ^:private editing-compartment (Compartment.))
+
+(def ^:private mac? (boolean (re-find #"Mac" js/navigator.platform)))
+
+(defn- editing-extension
+  "Adds a cursor on click with the `multi-cursor-modifier` of `editor.multiCursorModifier`, and reads
+   words by the `word-separators` of `editor.wordSeparators`."
+  [{:keys [multi-cursor-modifier word-separators]}]
+  #js [(.of (.-clickAddsSelectionRange EditorView)
+            (if (= "ctrlCmd" multi-cursor-modifier)
+              (fn [^js event] (if mac? (.-metaKey event) (.-ctrlKey event)))
+              (fn [^js event] (.-altKey event))))
+       (commands/language-data word-separators)])
+
 (defn- extensions
   [dispatch!]
   #js [theme
@@ -133,9 +148,11 @@
        bracket-marks
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
+       (.of editing-compartment #js [])
        (history)
+       commands/extensions
        (drawSelection)
-       (.of keymap (.concat defaultKeymap historyKeymap))
+       (.of keymap commands/keymap)
        (.-lineWrapping EditorView)
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
        (.of (.-updateListener EditorView)
@@ -230,6 +247,17 @@
                         (reset! !bracket-sheet sheet)))]
     (.replaceSync sheet css)))
 
+(defn- set-editing!
+  [settings]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure editing-compartment (editing-extension settings))})))
+
+(defn- run-command!
+  [command-name]
+  (when-let [^js view (editor-view)]
+    (when-let [command (get commands/by-name command-name)]
+      (command view))))
+
 (defn exec-effect!
   [dispatch! [fx-type & args]]
   (case fx-type
@@ -240,4 +268,6 @@
     :repl-input/fx.apply-edit (apply-edit! (first args))
     :repl-input/fx.set-brackets (set-bracket-marks! (first args))
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
-    :repl-input/fx.set-bracket-css (set-bracket-css! (first args))))
+    :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
+    :repl-input/fx.set-editing (set-editing! (first args))
+    :repl-input/fx.run-command (run-command! (first args))))

@@ -88,11 +88,20 @@
              (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.set-brackets message]))))))
 
 (deftest set-editor-settings-test
-  (testing "hands the closing brackets and the bracket stylesheet to the editor"
+  (testing "hands the closing brackets, the bracket stylesheet, and the editing settings to the editor"
     (let [{:uf/keys [fxs]} (sut/handle-action {:repl-input/id "output-view"}
                                               [:repl-input/ax.set-editor-settings
                                                {:close-brackets ["(" "\""]
-                                                :bracket-styles {:bracket-colors ["#0098e6"]}}])]
+                                                :bracket-styles {:bracket-colors ["#0098e6"]}
+                                                :multi-cursor-modifier "ctrlCmd"
+                                                :word-separators "()[]{}"}])]
       (is (= [[:repl-input/fx.set-close-brackets ["(" "\""]]
-              [:repl-input/fx.set-bracket-css ".repl-input-bracket-0 { color: #0098e6; }\n"]]
+              [:repl-input/fx.set-bracket-css ".repl-input-bracket-0 { color: #0098e6; }\n"]
+              [:repl-input/fx.set-editing {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]{}"}]]
              fxs)))))
+
+(deftest run-command-test
+  (testing "runs the command the extension names in the editor"
+    (is (= {:uf/db {:repl-input/id "output-view"}
+            :uf/fxs [[:repl-input/fx.run-command "joinLines"]]}
+           (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.run-command "joinLines"])))))

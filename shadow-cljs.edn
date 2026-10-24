@@ -50,7 +50,8 @@
                              :toggleOutputSidebarReplInput calva.repl.input.core/toggle-output-sidebar!
                              :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
                              :replInputFocused calva.repl.input.host/focused?
-                             :replInputEditFocused calva.repl.input.host/edit-focused!}
+                             :replInputEditFocused calva.repl.input.host/edit-focused!
+                             :replInputRunInFocused calva.repl.input.host/run-in-focused!}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

@@ -42,26 +42,71 @@ export function documentState(doc: model.StringDocument): DocumentState {
   };
 }
 
-/** Breaks the line at every selection, indenting the new line the way Calva indents. */
-export function newLine(doc: model.StringDocument, config?: FormatterConfig) {
-  const breaks = doc.selections
-    .map(({ start, end }) => ({
-      start,
-      end,
-      text: '\n' + ' '.repeat(indent.getIndent(doc.model, start, config)),
-    }))
-    .sort((a, b) => a.start - b.start);
+type LineBreak = { start: number; end: number; text: string; cursor: number };
+
+function insertLineBreaks(doc: model.StringDocument, lineBreaks: LineBreak[]) {
+  const sorted = [...lineBreaks].sort((a, b) => a.start - b.start);
   let shift = 0;
-  const cursors = breaks.map(({ start, end, text }) => {
-    const cursor = new model.ModelEditSelection(start + shift + text.length);
+  const cursors = sorted.map(({ start, end, text, cursor }) => {
+    const selection = new model.ModelEditSelection(start + shift + cursor);
     shift += text.length - (end - start);
-    return cursor;
+    return selection;
   });
   doc.model.editNow(
-    breaks
+    sorted
       .reverse()
       .map(({ start, end, text }) => new model.ModelEdit('changeRange', [start, end, text])),
     { selections: cursors }
+  );
+}
+
+function indentedLineBreak(
+  doc: model.StringDocument,
+  start: number,
+  end: number,
+  config?: FormatterConfig
+): LineBreak {
+  const text = '\n' + ' '.repeat(indent.getIndent(doc.model, start, config));
+  return { start, end, text, cursor: text.length };
+}
+
+/** Breaks the line at every selection, indenting the new line the way Calva indents. */
+export function newLine(doc: model.StringDocument, config?: FormatterConfig) {
+  insertLineBreaks(
+    doc,
+    doc.selections.map(({ start, end }) => indentedLineBreak(doc, start, end, config))
+  );
+}
+
+const cursorLines = (doc: model.StringDocument) => [
+  ...new Set(doc.selections.map(({ active }) => doc.model.getRowCol(active)[0])),
+];
+
+const lineEnd = (doc: model.StringDocument, line: number) =>
+  doc.model.getOffsetForLine(line) + doc.model.getLineText(line).length;
+
+/** Inserts a line after the line of every cursor, indented the way Calva indents, as VS Code's `editor.action.insertLineAfter` does. */
+export function insertLineAfter(doc: model.StringDocument, config?: FormatterConfig) {
+  insertLineBreaks(
+    doc,
+    cursorLines(doc).map((line) => {
+      const end = lineEnd(doc, line);
+      return indentedLineBreak(doc, end, end, config);
+    })
+  );
+}
+
+/** Inserts a line before the line of every cursor, indented the way Calva indents, as VS Code's `editor.action.insertLineBefore` does. */
+export function insertLineBefore(doc: model.StringDocument, config?: FormatterConfig) {
+  insertLineBreaks(
+    doc,
+    cursorLines(doc).map((line) => {
+      if (line === 0) {
+        return { start: 0, end: 0, text: '\n', cursor: 0 };
+      }
+      const end = lineEnd(doc, line - 1);
+      return indentedLineBreak(doc, end, end, config);
+    })
   );
 }
 
