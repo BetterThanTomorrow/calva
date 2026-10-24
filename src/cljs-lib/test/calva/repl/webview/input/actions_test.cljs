@@ -181,3 +181,10 @@
       (is (= [[:fx/post-to-host {:command "repl-input-evaluation-revealed" :repl-input/id "output-sidebar"
                                  :request 3 :found? true}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.evaluation-revealed {:request 3 :found? true}])))))))
+
+(deftest reveal-definition-test
+  (testing "a go to definition click asks the extension for the definition at its offset in its text"
+    (is (= [[:fx/post-to-host {:command "repl-input-reveal-definition" :repl-input/id "output-sidebar"
+                               :text "(f 1)" :offset 1}]]
+           (:uf/fxs (sut/handle-action {:repl-input/id "output-sidebar"}
+                                       [:repl-input/ax.reveal-definition {:text "(f 1)" :offset 1}]))))))

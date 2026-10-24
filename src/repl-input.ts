@@ -18,6 +18,7 @@ import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as pareditExtension from './paredit/extension';
 import * as replInputCompletion from './repl-input-completion';
+import * as replInputDefinition from './repl-input-definition';
 import * as replInputDocument from './repl-input-document';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
@@ -193,7 +194,9 @@ export function runningSnippetWhenFocused(
 }
 
 const isClojureFile = (document: vscode.TextDocument | undefined) =>
-  document?.languageId === 'clojure' && !replWindow.isReplWindowDoc(document);
+  document?.languageId === 'clojure' &&
+  document.uri.scheme !== replInputDefinition.evaluationScheme &&
+  !replWindow.isReplWindowDoc(document);
 
 function followEditor(editor: vscode.TextEditor | undefined) {
   if (editor === vscode.window.activeTextEditor && isClojureFile(editor?.document)) {
@@ -248,6 +251,7 @@ function initReplInput() {
     restoreEditorCursorContexts: () =>
       whenContexts.setCursorContextIfChanged(vscode.window.activeTextEditor),
     ...replInputCompletion.completionAdapter,
+    ...replInputDefinition.definitionAdapter,
   });
 }
 
@@ -284,6 +288,7 @@ export function activate(context: vscode.ExtensionContext) {
       )
     ),
     ...registerEvaluationCommands(),
+    ...replInputDefinition.register(),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {
         cljsLib.replInputTextEditorFocused();

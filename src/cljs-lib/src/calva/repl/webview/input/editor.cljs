@@ -4,6 +4,7 @@
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.completion :as completion]
    [calva.repl.webview.input.context :as context]
+   [calva.repl.webview.input.definition :as definition]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.input.history :as input-history]
@@ -138,13 +139,15 @@
 (def ^:private mac? (boolean (re-find #"Mac" js/navigator.platform)))
 
 (defn- editing-extension
-  "Adds a cursor on click with the `multi-cursor-modifier` of `editor.multiCursorModifier`, and reads
-   words by the `word-separators` of `editor.wordSeparators`."
-  [{:keys [multi-cursor-modifier word-separators]}]
+  "Adds a cursor on click with the `multi-cursor-modifier` of `editor.multiCursorModifier`, goes to the
+   definition on click with the other modifier, and reads words by the `word-separators` of
+   `editor.wordSeparators`."
+  [dispatch! {:keys [multi-cursor-modifier word-separators]}]
   #js [(.of (.-clickAddsSelectionRange EditorView)
             (if (= "ctrlCmd" multi-cursor-modifier)
               (fn [^js event] (if mac? (.-metaKey event) (.-ctrlKey event)))
               (fn [^js event] (.-altKey event))))
+       (definition/click-extension dispatch! {:multi-cursor-modifier multi-cursor-modifier :mac? mac?})
        (commands/language-data word-separators)])
 
 (defonce ^:private placeholder-compartment (Compartment.))
@@ -286,9 +289,9 @@
     (.replaceSync sheet css)))
 
 (defn- set-editing!
-  [settings]
+  [dispatch! settings]
   (when-let [^js view (editor-view)]
-    (.dispatch view #js {:effects (.reconfigure editing-compartment (editing-extension settings))})))
+    (.dispatch view #js {:effects (.reconfigure editing-compartment (editing-extension dispatch! settings))})))
 
 (defn- run-command!
   [command-name]
@@ -322,7 +325,7 @@
     :repl-input/fx.set-brackets (set-bracket-marks! (first args))
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
     :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
-    :repl-input/fx.set-editing (set-editing! (first args))
+    :repl-input/fx.set-editing (set-editing! dispatch! (first args))
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args))
     :repl-input/fx.set-evaluation (set-evaluation! (first args))

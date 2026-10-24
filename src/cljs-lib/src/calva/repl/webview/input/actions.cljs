@@ -46,9 +46,13 @@
               [:repl-input/fx.set-completion (completion-config db)]]}))
 
 (defn- handle-definition-action
-  "Handles the actions that reveal an evaluated code block for go to definition."
+  "Handles the actions of go to definition and the evaluated code blocks it reveals."
   [db [action-type payload]]
   (case action-type
+    :repl-input/ax.reveal-definition
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-reveal-definition" :text (:text payload) :offset (:offset payload))]}
+
     :repl-input/ax.reveal-evaluation
     {:uf/db db
      :uf/fxs [[:fx/reveal-evaluated-code payload]]}

@@ -15,23 +15,19 @@ function copyUri(client: vscodeLsp.LanguageClient): string | undefined {
   return root && vscode.Uri.joinPath(root, ...copySegments).toString();
 }
 
-type Copy = { uri: string; text: string; position: vscodeLsp.Position };
+type CopyRequest<T> = (uri: string) => Promise<T>;
 
-async function completeInCopy(
+async function requestInCopy<T>(
   client: vscodeLsp.LanguageClient,
-  { uri, text, position }: Copy,
-  token: vscode.CancellationToken
-): Promise<vscodeLsp.CompletionItem[]> {
+  uri: string,
+  text: string,
+  request: CopyRequest<T>
+): Promise<T> {
   await client.sendNotification(vscodeLsp.DidOpenTextDocumentNotification.type, {
     textDocument: { uri, languageId: 'clojure', version: 1, text },
   });
   try {
-    const result = await client.sendRequest(
-      vscodeLsp.CompletionRequest.type,
-      { textDocument: { uri }, position },
-      token
-    );
-    return Array.isArray(result) ? result : result?.items ?? [];
+    return await request(uri);
   } finally {
     await client.sendNotification(vscodeLsp.DidCloseTextDocumentNotification.type, {
       textDocument: { uri },
@@ -44,25 +40,88 @@ async function completeInCopy(
 
 let lastCycle: Promise<unknown> = Promise.resolve();
 
+type Copy = { text: string; token: vscode.CancellationToken };
+
 /**
- * Completes at `position` in a copy with `text`, which clojure-lsp gets as a file under `client`'s
- * root that isn't on disk: opens it, completes, closes it, and tells clojure-lsp it is deleted, so
- * that its definitions leave clojure-lsp's analysis. A cycle waits for the one before it, so one
- * copy is open at a time.
+ * Sends `request` about a copy with `text`, which clojure-lsp gets as a file under `client`'s root
+ * that isn't on disk: opens it, sends the request, closes it, and tells clojure-lsp it is deleted, so
+ * that its definitions leave clojure-lsp's analysis. A cycle waits for the one before it, so one copy
+ * is open at a time. Returns `none` without a root, or when `token` is cancelled before the cycle.
  */
+function inCopy<T>(
+  client: vscodeLsp.LanguageClient,
+  { text, token }: Copy,
+  request: CopyRequest<T>,
+  none: T
+): Promise<T> {
+  const uri = copyUri(client);
+  if (!uri) {
+    return Promise.resolve(none);
+  }
+  const cycle = lastCycle.then(() =>
+    token.isCancellationRequested ? none : requestInCopy(client, uri, text, request)
+  );
+  lastCycle = cycle.catch(() => undefined);
+  return cycle;
+}
+
+/** Completes at `position` in a copy with `text`. */
 export function complete(
   client: vscodeLsp.LanguageClient,
   text: string,
   position: vscodeLsp.Position,
   token: vscode.CancellationToken
 ): Promise<vscodeLsp.CompletionItem[]> {
-  const uri = copyUri(client);
-  if (!uri) {
-    return Promise.resolve([]);
-  }
-  const cycle = lastCycle.then(() =>
-    token.isCancellationRequested ? [] : completeInCopy(client, { uri, text, position }, token)
+  return inCopy(
+    client,
+    { text, token },
+    async (uri) => {
+      const result = await client.sendRequest(
+        vscodeLsp.CompletionRequest.type,
+        { textDocument: { uri }, position },
+        token
+      );
+      return Array.isArray(result) ? result : result?.items ?? [];
+    },
+    []
   );
-  lastCycle = cycle.catch(() => undefined);
-  return cycle;
+}
+
+/** A definition clojure-lsp reports: its uri, its zero-based line and character, and whether it is in the copy. */
+export type CopyDefinition = { uri: string; line: number; character: number; inCopy: boolean };
+
+function firstDefinition(
+  result: vscodeLsp.Definition | vscodeLsp.LocationLink[] | null,
+  copy: string
+): CopyDefinition | undefined {
+  const first = Array.isArray(result) ? result[0] : result;
+  if (!first) {
+    return undefined;
+  }
+  const [uri, range] =
+    'targetUri' in first ? [first.targetUri, first.targetSelectionRange] : [first.uri, first.range];
+  return { uri, line: range.start.line, character: range.start.character, inCopy: uri === copy };
+}
+
+/** Finds the definition at `position` in a copy with `text`. */
+export function definition(
+  client: vscodeLsp.LanguageClient,
+  text: string,
+  position: vscodeLsp.Position,
+  token: vscode.CancellationToken
+): Promise<CopyDefinition | undefined> {
+  return inCopy(
+    client,
+    { text, token },
+    async (uri) =>
+      firstDefinition(
+        await client.sendRequest(
+          vscodeLsp.DefinitionRequest.type,
+          { textDocument: { uri }, position },
+          token
+        ),
+        uri
+      ),
+    undefined
+  );
 }

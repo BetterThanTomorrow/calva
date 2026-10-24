@@ -24,11 +24,12 @@
 
 (defn add
   "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry has the same code
-   and context."
-  [entries {:repl-input.history/keys [code] :as new-entry}]
-  (if (or (string/blank? code) (same-evaluation? (peek entries) new-entry))
-    entries
-    (conj (vec entries) new-entry)))
+   and context, which then takes the id of `new-entry`."
+  [entries {:repl-input.history/keys [code id] :as new-entry}]
+  (cond
+    (string/blank? code) entries
+    (same-evaluation? (peek entries) new-entry) (assoc-in (vec entries) [(dec (count entries)) :repl-input.history/id] id)
+    :else (conj (vec entries) new-entry)))
 
 (defn visible
   "Returns the `entries` evaluated in the session `session-key` when `per-session?`, else all of them."

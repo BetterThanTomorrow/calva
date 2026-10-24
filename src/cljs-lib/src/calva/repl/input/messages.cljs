@@ -6,7 +6,8 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
-   [calva.repl.input.records :as records]))
+   [calva.repl.input.records :as records]
+   [calva.repl.input.reveal :as reveal]))
 
 (defn- mounted!
   [id]
@@ -35,6 +36,7 @@
       "repl-input-complete" (complete/complete! msg)
       "repl-input-resolve-completion" (complete/resolve! msg)
       "repl-input-completion-active" (complete/active-changed! msg)
+      "repl-input-reveal-definition" (reveal/reveal-definition! msg)
       nil)))
 
 (defn listen-for-messages!

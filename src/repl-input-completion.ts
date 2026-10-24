@@ -11,7 +11,8 @@ import * as replCompletion from './providers/repl-completion';
 
 type MergeableItems = Parameters<typeof completionUtil.mergeCompletions>[0];
 
-function lspClient(uri: vscode.Uri | undefined) {
+/** The clojure-lsp client for the followed file at `uri`, or for the first workspace folder. */
+export function lspClient(uri: vscode.Uri | undefined) {
   const clientUri = uri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
   return clientUri && lspState.getClientProvider().getClientForDocumentUri(clientUri);
 }

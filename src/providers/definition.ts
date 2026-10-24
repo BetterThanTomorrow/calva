@@ -11,10 +11,55 @@ import * as protocolConverter from 'vscode-languageclient/lib/common/protocolCon
 import * as vscodeLanguageclient from 'vscode-languageclient';
 import * as lsp from '../lsp';
 import * as replDefinition from './repl-definition';
+import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 
 const converter = protocolConverter.createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
+
+/** What a provider returns when it has revealed the definition in an Output view, and VS Code has nothing to open. */
+const revealedInOutputView = Symbol('revealedInOutputView');
+
+/** Returns the location of a definition the REPL reports in a file, or `undefined` when its file isn't a uri. */
+export function replLocation(definition: replDefinition.ReplDefinition) {
+  const pos = new vscode.Position(definition.line - 1, definition.column || 0);
+  try {
+    return new vscode.Location(vscode.Uri.parse(definition.file, true), pos);
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+// Go to definition asks with the cursor's position; hovering with the modifier asks with the mouse's
+function isAtCursor(document: vscode.TextDocument, position: vscode.Position) {
+  const editor = vscode.window.activeTextEditor;
+  return editor?.document === document && editor.selection.active.isEqual(position);
+}
+
+/**
+ * Reveals the code block of the REPL Input evaluation `evaluationId` that made the definition, when
+ * going to it, or returns the definition's location in the evaluation's read-only history entry.
+ */
+async function replInputEvaluationDefinition(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  evaluationId: number,
+  { line, column }: replDefinition.ReplDefinition
+) {
+  if (
+    isAtCursor(document, position) &&
+    (await cljsLib.replInputRevealEvaluation(evaluationId, line, column))
+  ) {
+    return revealedInOutputView;
+  }
+  const entry = cljsLib.replInputEvaluationLocation(evaluationId, line, column);
+  return entry
+    ? new vscode.Location(
+        vscode.Uri.parse(entry.uri),
+        new vscode.Position(entry.line, entry.character)
+      )
+    : undefined;
+}
 
 async function provideClojureDefinition(
   clientProvider: lsp.ClientProvider,
@@ -33,15 +78,13 @@ async function provideClojureDefinition(
       document.offsetAt(position)
     );
     if (definition) {
-      const pos = new vscode.Position(definition.line - 1, definition.column || 0);
-      try {
-        const uri = vscode.Uri.parse(definition.file, true);
-        if (uri.toString() === document.uri.toString()) {
-          return;
-        }
-        return new vscode.Location(uri, pos);
-      } catch (e) {
-        /* ignore */
+      const evaluationId = cljsLib.replInputEvaluationId(definition.file);
+      if (evaluationId) {
+        return replInputEvaluationDefinition(document, position, evaluationId, definition);
+      }
+      const location = replLocation(definition);
+      if (location && location.uri.toString() !== document.uri.toString()) {
+        return location;
       }
     }
   }
@@ -59,6 +102,13 @@ function lspDefinition(
     client?.code2ProtocolConverter.asTextDocumentPositionParams(document, position),
     token
   );
+}
+
+function asLocation(definition) {
+  if (definition === revealedInOutputView) {
+    return null;
+  }
+  return definition instanceof vscode.Location ? definition : converter.asLocation(definition);
 }
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
@@ -86,10 +136,7 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
           );
         });
         if (definition) {
-          if (definition instanceof vscode.Location) {
-            return definition;
-          }
-          return converter.asLocation(definition);
+          return asLocation(definition);
         }
       } else {
         void vscode.window.showErrorMessage(

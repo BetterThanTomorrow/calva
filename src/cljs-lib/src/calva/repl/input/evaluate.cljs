@@ -3,6 +3,7 @@
    the evaluations' reads from stdin and interrupts them."
   (:require
    [calva.repl.input.context :as context]
+   [calva.repl.input.definition :as definition]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
@@ -58,7 +59,7 @@
                                 :ns ns
                                 :nsForm ns-form
                                 :sessionKey session-key
-                                :filePath (str "calva-repl-input/" evaluation-id ".clj")
+                                :filePath (definition/evaluation-file evaluation-id)
                                 :evaluationId evaluation-id
                                 :line (or line 0)
                                 :column (or column 0)

@@ -58,7 +58,12 @@
                              :replInputEvaluateFromFocused calva.repl.input.evaluate/evaluate-from-focused!
                              :replInputSendLine calva.repl.input.evaluate/send-line!
                              :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
-                             :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!}
+                             :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!
+                             :replInputEvaluationId calva.repl.input.definition/evaluation-id
+                             :replInputRevealEvaluation calva.repl.input.reveal/reveal-evaluation+
+                             :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
+                             :replInputEvaluationCode calva.repl.input.reveal/evaluation-code
+                             :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

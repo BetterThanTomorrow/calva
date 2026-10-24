@@ -38,6 +38,12 @@
                         (sut/add (sut/entry 1 "(def a 1)" user))
                         (sut/add (sut/entry 2 "(def a 1)" pirate))))))))
 
+(deftest add-repeat-id-test
+  (testing "a repeat of the last entry gives it the id of the repeat, the evaluation that defined last"
+    (is (= [2] (mapv :repl-input.history/id (-> []
+                                                (sut/add (sut/entry 1 "(def a 1)" user))
+                                                (sut/add (sut/entry 2 "(def a 1)" user))))))))
+
 (deftest visible-test
   (testing "filters by the session the REPL Input evaluates in when the setting says so"
     (is (= [3] (mapv :repl-input.history/id (sut/visible entries "cljs" true))))

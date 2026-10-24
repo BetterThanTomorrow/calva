@@ -2115,6 +2115,12 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.revealDefinition",
+        "title": "Go to Definition in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3686,6 +3692,11 @@
         "when": "calva:replInputFocused && calva:keybindingsEnabled"
       },
       {
+        "command": "calva.replInput.revealDefinition",
+        "key": "f12",
+        "when": "calva:replInputFocused"
+      },
+      {
         "command": "calva.replInput.sendLine",
         "key": "enter",
         "when": "calva:replInputFocused && calva:replInputReadingStdin"
@@ -4258,6 +4269,10 @@
         },
         {
           "command": "calva.replInput.interrupt",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.revealDefinition",
           "when": "calva:replInputFocused"
         }
       ],

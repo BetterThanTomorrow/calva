@@ -40,6 +40,12 @@
     (is (= {:line 1 :character 0}
            (select-keys (sut/copy following nil "" 0) [:line :character])))))
 
+(deftest copy-text-line
+  (testing "the REPL Input's text starts on the line after the followed file"
+    (is (= 4 (:text-line (sut/copy following "(ns pirate.core)\n\n(def x 1)\n" "(string/upp)" 11)))))
+  (testing "the REPL Input's text starts on the line after the ns form"
+    (is (= 1 (:text-line (sut/copy locked nil "(foo)" 0))))))
+
 (deftest suggests?
   (testing "an explicit request always completes"
     (is (true? (sut/suggests? {"editor.quickSuggestions" false} {} true))))

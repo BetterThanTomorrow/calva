@@ -4,6 +4,7 @@
    [calva.repl.input.config :as config]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
+   [calva.repl.input.reveal :as reveal]
    [calva.repl.input.setting :as setting]
    [calva.repl.webview.core :as webview]
    [calva.repl.webview.sidebar :as sidebar]
@@ -53,10 +54,18 @@
          (when (some #(.affectsConfiguration event %) (cons "calva" config/clojure-settings))
            (host/settings-changed! (host/read-settings)))))))
 
+(def ^:private output-views
+  "The Output views that go to definition reveals evaluated code blocks in."
+  {"output-view" {:view #(deref webview/output-view-webview-panel)
+                  :show! webview/show-repl-output-webview-panel}
+   "output-sidebar" {:view #(when @sidebar/output-sidebar-showing-output-log? @sidebar/output-sidebar-webview-view)
+                     :show! sidebar/show-repl-output-sidebar}})
+
 (defn ^:export init!
   "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
   (host/set-adapter! adapter)
+  (reveal/set-output-views! output-views)
   (set-enabled-context!)
   (recall/load-history!)
   (host/load-keybindings!)

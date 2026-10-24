@@ -54,13 +54,15 @@
 
 (defn copy
   "Returns the copy that clojure-lsp completes in, with the cursor at `offset` in `text` as its `:line` and
-   `:character` there. The copy is the followed file's `editor-text`, or the `ns` form of a locked
-   `context` or of a context without a file, and then `text`."
+   `:character` there, and the line where `text` starts as `:text-line`. The copy is the followed file's
+   `editor-text`, or the `ns` form of a locked `context` or of a context without a file, and then `text`."
   [{:repl-input.context/keys [ns-form locked?]} editor-text text offset]
   (let [prefix (if (and editor-text (not locked?)) editor-text ns-form)
-        before (subs text 0 offset)]
+        before (subs text 0 offset)
+        text-line (inc (count (re-seq #"\n" prefix)))]
     {:text (str prefix "\n" text)
-     :line (+ 1 (count (re-seq #"\n" prefix)) (count (re-seq #"\n" before)))
+     :text-line text-line
+     :line (+ text-line (count (re-seq #"\n" before)))
      :character (- offset (inc (.lastIndexOf before "\n")))}))
 
 (def ^:private kind-types
