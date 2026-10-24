@@ -7,6 +7,9 @@ import * as mocha from 'mocha';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
+import * as evaluate from '../../../evaluate';
+import * as replSession from '../../../nrepl/repl-session';
+import * as calvaConfig from '../../../config';
 import * as testUtil from './util';
 
 suite('File Output Destination Test', () => {
@@ -202,5 +205,51 @@ suite('File Output Destination Test', () => {
 
     const matches = content.match(/nil/g) || [];
     assert.ok(matches.length >= 2, `Expected at least 2 "nil" in file, got ${matches.length}`);
+  });
+
+  test('shared evaluation sends result, stdout and error to the destinations', async function () {
+    this.timeout(120_000);
+    await jackInWithTerminal();
+
+    const resultsFile = path.join(tmpDir, 'shared-eval-results.txt');
+    const outputFile = path.join(tmpDir, 'shared-eval-output.txt');
+    await setOutputDestinations({
+      evalResults: ['terminal', resultsFile],
+      evalOutput: ['terminal', outputFile],
+      otherOutput: 'terminal',
+    });
+
+    const session = replSession.getSession();
+    const evaluationFile = 'calva-repl-input/shared-eval-test.clj';
+    const evaluationOptions = {
+      session,
+      ns: 'user',
+      filePath: evaluationFile,
+      line: 4,
+      column: 2,
+      pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
+      echoDestinations: [],
+    };
+
+    const evaluation = await evaluate.evaluateToOutputDestinations({
+      ...evaluationOptions,
+      code: '(def shared-eval-probe (do (println "shared-eval-stdout") :probed))',
+    });
+    assert.deepStrictEqual(evaluation, { value: "#'user/shared-eval-probe", ns: 'user' });
+    await waitForFileContent(resultsFile, (c) => c.includes("#'user/shared-eval-probe"));
+    await waitForFileContent(outputFile, (c) => c.includes('shared-eval-stdout'));
+
+    const location = await session.eval(
+      "(select-keys (meta #'user/shared-eval-probe) [:file :line :column])",
+      'user'
+    ).value;
+    assert.strictEqual(location, `{:file "${evaluationFile}", :line 5, :column 3}`);
+
+    const failed = await evaluate.evaluateToOutputDestinations({
+      ...evaluationOptions,
+      code: '(throw (ex-info "shared-eval-boom" {}))',
+    });
+    assert.ok('error' in failed, `Expected an error, got: ${JSON.stringify(failed)}`);
+    await waitForFileContent(outputFile, (c) => c.includes('shared-eval-boom'));
   });
 });
