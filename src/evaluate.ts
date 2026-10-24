@@ -141,7 +141,300 @@ async function addAsComment(
   highlightExtension.highlight(editor);
 }
 
-// TODO: Clean up this mess
+type EvaluationOptions = {
+  code: string;
+  session: nrepl.NReplSession;
+  ns: string;
+  filePath: string;
+  // Zero-based, as in a vscode.Position
+  line: number;
+  column: number;
+  pprintOptions: printerTypes.PrettyPrintingOptions;
+  // Empty sends the code only to the output subscribers
+  echoDestinations: outputDestinations.OutputDestinationValue[];
+  showResult?: boolean;
+  showErrorMessage?: boolean;
+  who?: string;
+};
+
+type EvaluationHooks = {
+  onResultAppended?: (value: string) => unknown;
+  // The error hooks return true when they have written the error to the eval output destinations
+  onStderrAfterResult?: (message: string, stacktrace: any) => boolean;
+  onFailure?: (message: string, stacktrace: Promise<any>) => boolean;
+  evaluateFlareCode?: (code: string) => Promise<string | null>;
+};
+
+type Evaluation = { ns: string } & (
+  | { value: string }
+  | { error: string; stacktrace?: Promise<any> }
+);
+
+function valueOf(evaluation: Evaluation): string | null {
+  return 'value' in evaluation ? evaluation.value : null;
+}
+
+function appendStacktraceToWebviewEvalOutput(stacktrace: Promise<any>) {
+  const webviewDestinations = outputDestinations
+    .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+    .filter(outputDestinations.isWebviewOutputDestination);
+  if (webviewDestinations.length) {
+    void stacktrace.then((stacktrace) => {
+      if (stacktrace) {
+        output.appendStackTraceToWebviewDestinations(webviewDestinations, stacktrace);
+      }
+    });
+  }
+}
+
+function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: string, who: string) {
+  sessionRegistry.updateSessionActivity(sessionKey);
+  whoTracking.recordEvaluation(sessionKey, who);
+  whoTracking.setCurrentWho(session.sessionId, who);
+
+  const runtimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+  if (runtimeId !== undefined) {
+    shadowCljsRuntime.recordRuntimeActivity(runtimeId);
+  }
+}
+
+function sendEvaluation(options: EvaluationOptions) {
+  const { code, session, ns, filePath, line, column, pprintOptions, who = 'ui' } = options;
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
+  const outputOptions = { ns, replSessionType: sessionKey, who, ...getShadowInfo(session) };
+  const err: string[] = [];
+
+  const evaluation: nrepl.NReplEvaluation = session.eval(code, ns, {
+    file: filePath,
+    line: line + 1,
+    column: column + 1,
+    stdout: (m) => output.appendEvalOut(m, outputOptions),
+    stderr: (m) => err.push(m),
+    pprintOptions,
+  });
+  recordEvaluationActivity(session, sessionKey, who);
+
+  return { evaluation, err, outputOptions };
+}
+
+function echoEvaluatedCode(
+  code: string,
+  echoDestinations: outputDestinations.OutputDestinationValue[],
+  outputOptions: output.AppendClojureOptions
+) {
+  const evalResultsDestination = output.getDestinationConfiguration().evalResults;
+  const [echoDestination = evalResultsDestination, ...additionalEchoDestinations] =
+    echoDestinations;
+  output.appendEvaluatedCode(code, {
+    destination: echoDestination,
+    additionalDestinations: additionalEchoDestinations,
+    sinkDestination: evalResultsDestination,
+    writeVisible: echoDestinations.length > 0,
+    visibleOutputCategory: 'evaluatedCode',
+    ...outputOptions,
+  });
+}
+
+function flareEvaluator(options: EvaluationOptions, hooks: EvaluationHooks) {
+  return (
+    hooks.evaluateFlareCode ??
+    ((code: string) => evaluateToOutputDestinations({ ...options, code }, hooks).then(valueOf))
+  );
+}
+
+function appendResult(
+  value: string,
+  outputOptions: output.AppendClojureOptions,
+  hooks: EvaluationHooks
+) {
+  const { ns, replSessionType } = outputOptions;
+  inspectorDataProvider.addItem(value, false, `[${replSessionType}] ${ns}`);
+  output.appendClojureEval(
+    value,
+    outputOptions,
+    hooks.onResultAppended && (() => hooks.onResultAppended(value))
+  );
+}
+
+function appendStderrAfterResult(
+  err: string[],
+  stacktrace: any,
+  outputOptions: output.AppendClojureOptions,
+  hooks: EvaluationHooks
+) {
+  if (err.length > 0) {
+    const message = err.join('\n');
+    if (!hooks.onStderrAfterResult?.(message, stacktrace)) {
+      output.appendEvalErr(message, outputOptions);
+    }
+  }
+}
+
+function appendFailure(
+  message: string,
+  session: nrepl.NReplSession,
+  outputOptions: output.AppendClojureOptions,
+  hooks: EvaluationHooks
+): Promise<any> {
+  const stacktrace = session.stacktrace().then(
+    (response) => response?.stacktrace,
+    (e) => console.error(`Failed fetching stacktrace: ${e.message}`)
+  );
+  if (!hooks.onFailure?.(message, stacktrace)) {
+    output.appendEvalErr(message, outputOptions);
+    appendStacktraceToWebviewEvalOutput(stacktrace);
+  }
+  return stacktrace;
+}
+
+async function outputOutcome(
+  { evaluation, err, outputOptions }: ReturnType<typeof sendEvaluation>,
+  options: EvaluationOptions,
+  hooks: EvaluationHooks
+) {
+  const { code, session, echoDestinations, showResult = true, showErrorMessage = true } = options;
+  try {
+    echoEvaluatedCode(code, echoDestinations, outputOptions);
+    const rawValue = await evaluation.value;
+    const value = util.stripAnsi(evaluation.pprintOut || rawValue);
+    flareHandler.inspect(value, flareEvaluator(options, hooks));
+    if (showResult) {
+      appendResult(value, outputOptions, hooks);
+      appendStderrAfterResult(err, evaluation.stacktrace, outputOptions, hooks);
+    }
+    return { value };
+  } catch (e) {
+    const message: string = err.length ? err.join('\n') : e;
+    if (!showErrorMessage) {
+      return { error: message };
+    }
+    return { error: message, stacktrace: appendFailure(message, session, outputOptions, hooks) };
+  }
+}
+
+async function evaluateToOutputDestinations(
+  options: EvaluationOptions,
+  hooks: EvaluationHooks = {}
+): Promise<Evaluation> {
+  const sent = sendEvaluation(options);
+  const outcome = await outputOutcome(sent, options, hooks);
+  return { ...outcome, ns: sent.evaluation.ns || options.ns };
+}
+
+function evalOutputIncludesReplWindow() {
+  return outputDestinations
+    .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
+    .includes('repl-window');
+}
+
+function replWindowEchoDestinations(): outputDestinations.OutputDestinationValue[] {
+  const evalResultsDestination = output.getDestinationConfiguration().evalResults;
+  return outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
+    ? ['repl-window']
+    : ['repl-window', evalResultsDestination];
+}
+
+type UiContext = {
+  editor: vscode.TextEditor;
+  selection?: vscode.Selection;
+  options;
+};
+
+function isFileEditor(editor: vscode.TextEditor) {
+  return !!editor?.document && !replWindow.isReplWindowDoc(editor.document);
+}
+
+function decorateFileEditor(
+  text: string,
+  status: annotations.AnnotationStatus,
+  cursorPosition: vscode.Position,
+  { editor, selection, options }: UiContext
+) {
+  if (!isFileEditor(editor)) {
+    return;
+  }
+  annotations.decorateSelection(text, selection, editor, cursorPosition, status);
+  if (!options.comment) {
+    annotations.decorateResults(
+      text,
+      status === annotations.AnnotationStatus.ERROR,
+      selection,
+      editor
+    );
+  }
+}
+
+function replaceSelectionWithResult(
+  value: string,
+  editor: vscode.TextEditor,
+  selection: vscode.Selection
+) {
+  const indent = `${' '.repeat(selection.start.character)}`,
+    edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
+    wsEdit = new vscode.WorkspaceEdit();
+  wsEdit.set(editor.document.uri, [edit]);
+  void vscode.workspace.applyEdit(wsEdit);
+}
+
+async function updateUiWithResult(value: string, ui: UiContext) {
+  const { editor, selection, options } = ui;
+  if (editor && replWindow.isReplWindowDoc(editor.document)) {
+    replWindow.maybePrintResultsInOtherDestinationMessage();
+  }
+  if (!selection || !editor) {
+    return;
+  }
+  if (options.replace) {
+    replaceSelectionWithResult(value, editor, selection);
+    return;
+  }
+  if (options.comment) {
+    await addAsComment(value, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  decorateFileEditor(value, annotations.AnnotationStatus.SUCCESS, editor.selections[0].active, ui);
+}
+
+async function updateEditorWithError(editorError: string, ui: UiContext) {
+  const { editor, selection, options } = ui;
+  const currentCursorPos = editor.selections[0].active;
+  if (options.comment) {
+    await addAsComment(editorError, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  decorateFileEditor(editorError, annotations.AnnotationStatus.ERROR, currentCursorPos, ui);
+}
+
+function appendStderrToReplWindow(message: string, stacktrace: any) {
+  if (!stacktrace) {
+    return false;
+  }
+  replWindow.saveStacktrace(stacktrace);
+  replWindow.appendLine(
+    resultsOutputUtil.formatAsLineComments(message),
+    (_, afterResultLocation) => {
+      replWindow.markLastStacktraceRange(afterResultLocation);
+    }
+  );
+  return evalOutputIncludesReplWindow();
+}
+
+function appendFailureToReplWindow(message: string, stacktrace: Promise<any>, ui: UiContext) {
+  replWindow.appendLine(
+    resultsOutputUtil.formatAsLineComments(message),
+    async (_, afterResultLocation) => {
+      if (ui.selection) {
+        await updateEditorWithError(util.stripAnsi(message), ui);
+      }
+      void stacktrace.then((stacktrace) => {
+        if (stacktrace) {
+          replWindow.markLastStacktraceRange(afterResultLocation);
+          replWindow.saveStacktrace(stacktrace);
+        }
+      });
+    }
+  );
+  return evalOutputIncludesReplWindow();
+}
+
 async function evaluateCodeUpdatingUI(
   code: string,
   options,
@@ -157,14 +450,7 @@ async function evaluateCodeUpdatingUI(
     (options.addToHistory === undefined || options.addToHistory === true) &&
     (evaluationSendCodeToOutputWindow ||
       state.extensionContext.workspaceState.get('outputWindowActive'));
-  const showErrorMessage =
-    options.showErrorMessage === undefined || options.showErrorMessage === true;
-  const showResult = options.showResult === undefined || options.showResult === true;
-  const line = options.line;
-  const column = options.column;
-  const filePath = options.filePath;
   const session: nrepl.NReplSession = options.session;
-  const sessionKey = sessionRegistry.resolveSessionKey(session);
   const ns = options.ns;
   let editor: vscode.TextEditor;
   try {
@@ -172,227 +458,45 @@ async function evaluateCodeUpdatingUI(
   } catch (error) {
     console.log('No active editor');
   }
-  let result = null;
 
-  if (code.length > 0) {
-    if (addToHistory) {
-      replHistory.addToReplHistory(sessionKey, code);
-      replHistory.resetState();
-    }
-
-    const err: string[] = [];
-
-    if (replWindow.getNs() !== ns) {
-      await session.evaluateInNs(options.nsForm, replWindow.getNs());
-    }
-
-    const shadowInfo = getShadowInfo(session);
-
-    const context: nrepl.NReplEvaluation = session.eval(code, ns, {
-      file: filePath,
-      line: line + 1,
-      column: column + 1,
-      stdout: (m) => {
-        output.appendEvalOut(m, { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo });
-      },
-      stderr: (m) => err.push(m),
-      pprintOptions: pprintOptions,
-    });
-
-    sessionRegistry.updateSessionActivity(sessionKey);
-    whoTracking.recordEvaluation(sessionKey, 'ui');
-    whoTracking.setCurrentWho(session.sessionId, 'ui');
-
-    // Track runtime activity for the effective runtime
-    const uiRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
-    if (uiRuntimeId !== undefined) {
-      shadowCljsRuntime.recordRuntimeActivity(uiRuntimeId);
-    }
-
-    try {
-      const evalResultsDestination = output.getDestinationConfiguration().evalResults;
-      const shouldWriteVisibleEvaluatedCode =
-        evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
-
-      output.appendEvaluatedCode(code, {
-        destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
-        additionalDestinations:
-          shouldWriteVisibleEvaluatedCode &&
-          !outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
-            ? [evalResultsDestination]
-            : [],
-        sinkDestination: evalResultsDestination,
-        writeVisible: shouldWriteVisibleEvaluatedCode,
-        ns,
-        replSessionType: sessionKey,
-        visibleOutputCategory: 'evaluatedCode',
-        who: 'ui',
-        ...shadowInfo,
-      });
-
-      let value = await context.value;
-      value = util.stripAnsi(context.pprintOut || value);
-
-      result = value;
-
-      flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
-
-      if (showResult) {
-        inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-        output.appendClojureEval(
-          value,
-          { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
-          async () => {
-            if (editor && replWindow.isReplWindowDoc(editor.document)) {
-              replWindow.maybePrintResultsInOtherDestinationMessage();
-            }
-            if (selection) {
-              const c = selection.start.character;
-              if (editor && options.replace) {
-                const indent = `${' '.repeat(c)}`,
-                  edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
-                  wsEdit = new vscode.WorkspaceEdit();
-                wsEdit.set(editor.document.uri, [edit]);
-                void vscode.workspace.applyEdit(wsEdit);
-              } else {
-                if (editor && options.comment) {
-                  await addAsComment(
-                    value,
-                    selection,
-                    editor,
-                    editor.selections[0],
-                    options.commentStyle
-                  );
-                }
-                if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-                  annotations.decorateSelection(
-                    value,
-                    selection,
-                    editor,
-                    editor.selections[0].active,
-                    annotations.AnnotationStatus.SUCCESS
-                  );
-                  if (!options.comment) {
-                    annotations.decorateResults(value, false, selection, editor);
-                  }
-                }
-              }
-            }
-          }
-        );
-        // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
-        if (err.length > 0) {
-          const errMsg = err.join('\n');
-          if (context.stacktrace) {
-            replWindow.saveStacktrace(context.stacktrace);
-            replWindow.appendLine(
-              resultsOutputUtil.formatAsLineComments(errMsg),
-              (_, afterResultLocation) => {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-              }
-            );
-            if (
-              !outputDestinations
-                .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-                .includes('repl-window')
-            ) {
-              output.appendEvalErr(errMsg, {
-                ns,
-                replSessionType: sessionKey,
-                who: 'ui',
-                ...shadowInfo,
-              });
-            }
-          } else {
-            output.appendEvalErr(errMsg, {
-              ns,
-              replSessionType: sessionKey,
-              who: 'ui',
-              ...shadowInfo,
-            });
-          }
-        }
-      }
-    } catch (e) {
-      if (showErrorMessage) {
-        const outputWindowError = err.length
-          ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
-          : resultsOutputUtil.formatAsLineComments(e);
-        replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
-          if (selection) {
-            const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selections[0].active;
-            if (editor && options.comment) {
-              await addAsComment(
-                editorError,
-                selection,
-                editor,
-                editor.selections[0],
-                options.commentStyle
-              );
-            }
-            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-              annotations.decorateSelection(
-                editorError,
-                selection,
-                editor,
-                currentCursorPos,
-                annotations.AnnotationStatus.ERROR
-              );
-              if (!options.comment) {
-                annotations.decorateResults(editorError, true, selection, editor);
-              }
-            }
-          }
-          session
-            .stacktrace()
-            .then((stacktrace) => {
-              if (stacktrace && stacktrace.stacktrace) {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-                replWindow.saveStacktrace(stacktrace.stacktrace);
-              }
-            })
-            .catch((e) => {
-              console.error(`Failed fetching stacktrace: ${e.message}`);
-            });
-        });
-        if (
-          !outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .includes('repl-window')
-        ) {
-          output.appendEvalErr(err.length ? err.join('\n') : e, {
-            ns,
-            replSessionType: sessionKey,
-            who: 'ui',
-            ...shadowInfo,
-          });
-          const webviewDestinations = outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .filter(outputDestinations.isWebviewOutputDestination);
-          if (webviewDestinations.length) {
-            session
-              .stacktrace()
-              .then((stacktrace) => {
-                if (stacktrace && stacktrace.stacktrace) {
-                  output.appendStackTraceToWebviewDestinations(
-                    webviewDestinations,
-                    stacktrace.stacktrace
-                  );
-                }
-              })
-              .catch((e) => {
-                console.error(`Failed fetching stacktrace: ${e.message}`);
-              });
-          }
-        }
-      }
-    }
-    replWindow.setSession(session, context.ns || ns);
-    replSession.updateReplSessionType();
+  if (code.length === 0) {
+    return null;
+  }
+  if (addToHistory) {
+    replHistory.addToReplHistory(sessionRegistry.resolveSessionKey(session), code);
+    replHistory.resetState();
+  }
+  if (replWindow.getNs() !== ns) {
+    await session.evaluateInNs(options.nsForm, replWindow.getNs());
   }
 
-  return result;
+  const ui: UiContext = { editor, selection, options };
+  const echoCode =
+    evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
+  const evaluation = await evaluateToOutputDestinations(
+    {
+      code,
+      session,
+      ns,
+      filePath: options.filePath,
+      line: options.line,
+      column: options.column,
+      pprintOptions,
+      echoDestinations: echoCode ? replWindowEchoDestinations() : [],
+      showResult: options.showResult === undefined || options.showResult === true,
+      showErrorMessage: options.showErrorMessage === undefined || options.showErrorMessage === true,
+    },
+    {
+      onResultAppended: (value) => updateUiWithResult(value, ui),
+      onStderrAfterResult: appendStderrToReplWindow,
+      onFailure: (message, stacktrace) => appendFailureToReplWindow(message, stacktrace, ui),
+      evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
+    }
+  );
+  replWindow.setSession(session, evaluation.ns);
+  replSession.updateReplSessionType();
+
+  return valueOf(evaluation);
 }
 
 async function evaluateSelection(document = {}, options) {
@@ -1002,6 +1106,7 @@ async function evaluateInCurrentEditor(
 }
 
 export {
+  evaluateToOutputDestinations,
   interruptAllEvaluations,
   loadDocument,
   loadFileCommand,
