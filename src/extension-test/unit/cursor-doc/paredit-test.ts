@@ -2753,6 +2753,14 @@ describe('paredit', () => {
           .expect(textNotation.textAndSelection(a))
           .toEqual(textNotation.textAndSelection(b));
       });
+      it('Inserts a quote at the start of a selection, keeping the selection', async () => {
+        const a = textNotation.docFromTextNotation('(|a b|)');
+        const b = textNotation.docFromTextNotation('(|"a |b)');
+        await paredit.stringQuote(a);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+      });
     });
 
     describe('Rewrap', () => {

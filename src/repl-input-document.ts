@@ -26,11 +26,6 @@ export function stringDocument(
   const doc = new model.StringDocument(text);
   doc.selections = modelSelections(selections);
   doc.selectionsStack = selectionsStack.map(modelSelections);
-  doc.insertString = (s: string) =>
-    doc.model.editNow([new model.ModelEdit('insertString', [doc.selections[0].anchor, s])], {
-      selections: doc.selections,
-    });
-  doc.getSelectionText = () => doc.model.getText(doc.selections[0].start, doc.selections[0].end);
   return doc;
 }
 
