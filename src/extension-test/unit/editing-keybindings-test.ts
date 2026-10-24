@@ -290,4 +290,15 @@ describe('Calva editing keybindings and the REPL Input', () => {
       .map(({ command, key }) => `${command} ${key}`);
     expect(unfocused).toEqual([]);
   });
+
+  it("the REPL Input's own commands are in the command palette only while it has focus", () => {
+    const paletteWhen = new Map<string, string>(
+      manifest.contributes.menus.commandPalette.map(({ command, when }) => [command, when])
+    );
+    const ungated = commands
+      .filter(({ command }) => isReplInputCommand(command))
+      .filter(({ command }) => paletteWhen.get(command) !== REPL_INPUT_FOCUSED)
+      .map(({ command }) => command);
+    expect(ungated).toEqual([]);
+  });
 });
