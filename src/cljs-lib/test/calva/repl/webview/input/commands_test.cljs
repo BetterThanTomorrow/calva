@@ -156,6 +156,6 @@
            (select-keys (run-command "deleteRight" "((((a))\n(b)" [[3 3] [8 8]]) [:text :selections]))))
   (testing "undo takes back the last change, and redo does it again"
     (let [{:keys [target]} (run-command "joinLines" "a\nb" [[0 0]])]
-      (is (= "a b" (.. target -state -doc toString)))
+      (is (= "a b" (.. ^js target -state -doc toString)))
       (is (= "a\nb" (:text (run-command "undo" target))))
       (is (= "a b" (:text (run-command "redo" target)))))))
