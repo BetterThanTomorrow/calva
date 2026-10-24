@@ -4,21 +4,19 @@
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.focus :as focus]
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
+   [calva.state :as state]
    [calva.util :as util]
-   [clojure.set :as set]
-   [clojure.string :as string]
-   ["jsonc-parser" :as jsonc]))
+   [clojure.string :as string]))
 
 (def focused-context "calva:replInputFocused")
 
 (def reading-stdin-context "calva:replInputReadingStdin")
-
-(def heights-key "calva.replInput.heights")
 
 (def initial-state
   {:repl-input/records {}
@@ -30,6 +28,7 @@
    :repl-input/evaluations {}
    :repl-input/last-evaluation-id nil
    :repl-input/applied-reading-stdin? false
+   :repl-input/connected? false
    :repl-input.context/lock nil
    :repl-input.context/editor nil
    :repl-input.context/line nil})
@@ -52,19 +51,14 @@
   [k value]
   (some-> ^js @!adapter (.setContext k value)))
 
-(defn current-setting
-  []
-  (when-let [vscode @util/vscode]
-    (js->clj (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.replInput")))))
-
 (defn enabled?
   "True when the REPL Input is on for `view-id`."
   [view-id]
-  (setting/enabled? (current-setting) (:repl-input/overrides @!state) view-id))
+  (setting/enabled? (config/current-setting) (:repl-input/overrides @!state) view-id))
 
 (defn toggle!
   [view-id]
-  (swap! !state update :repl-input/overrides #(setting/toggle (current-setting) % view-id)))
+  (swap! !state update :repl-input/overrides #(setting/toggle (config/current-setting) % view-id)))
 
 (defn clear-toggles!
   []
@@ -74,21 +68,12 @@
   [view-id]
   (if (enabled? view-id) "REPL" "REPL Output"))
 
-(defn- heights
-  []
-  (when-let [vscode-context @util/vscode-context]
-    (js->clj (.. ^js vscode-context -globalState (get heights-key)))))
-
-(defn- store-height!
-  [{:keys [height] :repl-input/keys [id]}]
-  (.. ^js @util/vscode-context -globalState (update heights-key (clj->js (assoc (heights) id height)))))
-
 (defn html-state
   "What the Output view's page needs to mount the REPL Input for `view-id`."
   [view-id]
   {:repl-input/id view-id
    :repl-input/enabled? (enabled? view-id)
-   :repl-input/height (get (heights) view-id)})
+   :repl-input/height (get (config/heights) view-id)})
 
 (defn- post-to-view!
   [id message]
@@ -148,9 +133,9 @@
     (apply-reading-stdin-context!)))
 
 (defn- command-keys-for
-  [{:repl-input/keys [keybindings settings]} record]
+  [{:repl-input/keys [keybindings settings] :as state} record]
   (command-keys/command-keys keybindings
-                             (command-keys/context settings record)
+                             (command-keys/context state record)
                              (get settings command-keys/user-keys-setting)))
 
 (def ^:private derived-messages
@@ -164,19 +149,6 @@
   (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
            :keywordize-keys true))
 
-(def ^:private editing-settings
-  {"editor.multiCursorModifier" :multi-cursor-modifier
-   "editor.wordSeparators" :word-separators})
-
-(def clojure-settings
-  "The settings read for Clojure, since they can be set per language."
-  (concat brackets/close-settings (keys editing-settings)))
-
-(defn- editor-settings
-  [settings]
-  (merge (brackets/editor-settings settings)
-         (set/rename-keys (select-keys settings (keys editing-settings)) editing-settings)))
-
 (defn- derive-record!
   "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
    `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
@@ -188,7 +160,7 @@
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
           derived (assoc with-contexts
                          :repl-input/command-keys (command-keys-for state with-contexts)
-                         :repl-input/editor-settings (editor-settings settings)
+                         :repl-input/editor-settings (config/editor-settings settings)
                          :repl-input/brackets (document-brackets settings doc))]
       (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
@@ -222,47 +194,17 @@
 (defn read-settings
   "The settings the command keys, the brackets and the editing depend on, as a map from setting keys to values."
   []
-  (let [workspace (.-workspace ^js @util/vscode)
-        read (fn [^js config ks]
-               (into {} (map (fn [k] [k (js->clj (.get config k))])) ks))]
-    (merge (read (.getConfiguration workspace)
-                 (concat (command-keys/setting-keys (:repl-input/keybindings @!state))
-                         [command-keys/user-keys-setting]
-                         brackets/highlight-settings))
-           (read (.getConfiguration workspace js/undefined #js {:languageId "clojure"})
-                 clojure-settings))))
-
-(def ^:private resolved-keybindings-uri "vscode://defaultsettings/keybindings.json")
-
-(defn- platform
-  []
-  (case js/process.platform
-    "darwin" "mac"
-    "win32" "win"
-    "linux"))
-
-(defn- read-resolved-keybindings+
-  []
-  (let [^js vscode @util/vscode]
-    (-> (.. vscode -workspace (openTextDocument (.. vscode -Uri (parse resolved-keybindings-uri))))
-        (.then (fn [^js doc]
-                 (js->clj (jsonc/parse (.getText doc)) :keywordize-keys true))))))
+  (config/read-settings (:repl-input/keybindings @!state)))
 
 (defn load-keybindings!
   "Reads the keys VS Code resolved for Calva's keybindings with the current keyboard layout, falling back
    on the manifest's keys for the platform, and derives the REPL Inputs' command keys from them."
   []
-  (when-let [^js vscode-context @util/vscode-context]
-    (let [manifest (js->clj (.. vscode-context -extension -packageJSON -contributes -keybindings) :keywordize-keys true)
-          fallback #(command-keys/platform-keybindings manifest (platform))]
-      (-> (read-resolved-keybindings+)
-          (.then (fn [resolved]
-                   (let [keybindings (command-keys/calva-keybindings manifest resolved)]
-                     (if (seq keybindings) keybindings (fallback)))))
-          (.catch fallback)
-          (.then (fn [keybindings]
-                   (swap! !state assoc :repl-input/keybindings (command-keys/parsed keybindings))
-                   (settings-changed! (read-settings))))))))
+  (when-let [vscode-context @util/vscode-context]
+    (.then (config/read-keybindings+ vscode-context)
+           (fn [keybindings]
+             (swap! !state assoc :repl-input/keybindings (command-keys/parsed keybindings))
+             (settings-changed! (read-settings))))))
 
 (defn- editor-namespace
   [{:keys [document position]}]
@@ -308,8 +250,13 @@
   (refresh-mounted-context!))
 
 (defn ^:export routing-changed!
-  "Updates the context line after sessions connected, disconnected or changed routing."
+  "Updates the context line after sessions connected, disconnected or changed routing, and the command
+   keys when the REPL connected or disconnected."
   []
+  (let [connected? (boolean (state/get-state-value "connected"))
+        [before _] (swap-vals! !state assoc :repl-input/connected? connected?)]
+    (when (not= connected? (:repl-input/connected? before))
+      (derive-records!)))
   (refresh-mounted-context!))
 
 (defn- follow-editor!
@@ -365,8 +312,10 @@
   (refresh-context!))
 
 (defn- evaluate+
-  "Evaluates `code` from the REPL Input `id` in `evaluation-context`. Returns a promise of when it is done."
-  [id code {:repl-input.context/keys [ns ns-form session-key] :as evaluation-context}]
+  "Evaluates the `code` of `request` from the REPL Input `id` in `evaluation-context`, as starting at
+   `line` and `column`, sending the code to the output unless `send-code?` is false. Returns a promise of
+   when it is done."
+  [id {:keys [code line column send-code?]} {:repl-input.context/keys [ns ns-form session-key] :as evaluation-context}]
   (let [^js adapter @!adapter
         evaluation-id (:repl-input/last-evaluation-id
                        (swap! !state update :repl-input/last-evaluation-id evaluations/next-id (js/Date.now)))
@@ -380,6 +329,9 @@
                                 :nsForm ns-form
                                 :sessionKey session-key
                                 :filePath (str "calva-repl-input/" evaluation-id ".clj")
+                                :line (or line 0)
+                                :column (or column 0)
+                                :sendCode (not (false? send-code?))
                                 :stdin #(read-stdin+ id evaluation-id)
                                 :onSent #(swap! !running assoc-in [evaluation-id :evaluation] %)})
         (.then (fn [^js outcome] (.-succeeded outcome))
@@ -389,6 +341,10 @@
 (defn- show-message!
   [message]
   (some-> ^js @util/vscode .-window (.showInformationMessage message)))
+
+(defn- not-connected+
+  [evaluation-context]
+  (js/Promise.resolve (show-message! (context/not-connected-message evaluation-context))))
 
 (defn ^:export evaluate-focused!
   "Evaluates the focused REPL Input's text in the context and clears the REPL Input, or says that no
@@ -401,8 +357,38 @@
       (let [evaluation-context (refresh-context!)]
         (if (:repl-input.context/connected? evaluation-context)
           (do (take-edit! focused version empty-text)
-              (evaluate+ focused text evaluation-context))
-          (js/Promise.resolve (show-message! (context/not-connected-message evaluation-context))))))))
+              (evaluate+ focused {:code text} evaluation-context))
+          (not-connected+ evaluation-context))))))
+
+(defn- picked-evaluation
+  "Returns `[request overrides]` for what a pick returned: the evaluation request, and the context it names."
+  [^js picked]
+  (let [{:keys [code line column ns nsForm sessionKey sendCode]} (js->clj picked :keywordize-keys true)]
+    [{:code code :line line :column column :send-code? sendCode}
+     {:repl-input.context/ns ns
+      :repl-input.context/ns-form nsForm
+      :repl-input.context/session-key sessionKey}]))
+
+(defn- evaluate-picked+
+  [id evaluation-context picked]
+  (let [[request overrides] (picked-evaluation picked)
+        picked-context (context/evaluation-context evaluation-context overrides (.sessionKeys ^js @!adapter))]
+    (if (:repl-input.context/connected? picked-context)
+      (evaluate+ id request picked-context)
+      (not-connected+ picked-context))))
+
+(defn ^:export evaluate-from-focused!
+  "Evaluates what `pick` takes from a document with the focused REPL Input's text and selections, in the
+   context, and keeps the text. `pick` gets the document and the context as `{ns nsForm sessionKey}`, and
+   returns, or promises, `{code line column}` with the `ns`, `nsForm`, `sessionKey` and `sendCode` it
+   changes, or nothing. Returns a promise of when the evaluation is done."
+  [pick]
+  (let [{:repl-input/keys [focused records]} @!state]
+    (if-let [record (get records focused)]
+      (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (refresh-context!)]
+        (-> (js/Promise.resolve (pick (document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
+            (.then #(when % (evaluate-picked+ focused evaluation-context %)))))
+      (js/Promise.resolve nil))))
 
 (defn ^:export send-line!
   "Sends the focused REPL Input's text as the line the evaluation waiting for stdin reads, and clears
@@ -450,7 +436,7 @@
                                  (update-focus! [:unmount id]))
       "repl-input-focused" (update-focus! [:focus id])
       "repl-input-blurred" (update-focus! [:blur id])
-      "repl-input-resized" (store-height! msg)
+      "repl-input-resized" (config/store-height! msg)
       "repl-input-follow-editor" (follow-editor!)
       "repl-input-interrupt" (interrupt! id)
       nil)))

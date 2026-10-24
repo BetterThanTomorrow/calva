@@ -52,6 +52,7 @@ import * as sessionRegistry from './nrepl/session-registry';
 import * as shadowRuntime from './shadow-cljs-runtime';
 import * as outputSidebar from './results-output/output-sidebar';
 import * as replInput from './repl-input';
+import * as cursorGetText from './util/cursor-get-text';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -253,6 +254,10 @@ async function activate(context: vscode.ExtensionContext) {
   void vscode.commands.executeCommand('setContext', 'calva:connecting', false);
   setKeybindingsEnabledContext();
 
+  const runCustomREPLCommand = replInput.runningSnippetWhenFocused(
+    snippets.evaluateCustomCodeSnippetCommand
+  );
+
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
@@ -283,17 +288,38 @@ async function activate(context: vscode.ExtensionContext) {
     'debug.instrument': evaluate.instrumentTopLevelForm,
     'diagnostics.toggleNreplLoggingEnabled': nreplLogging.toggleEnabled,
     disconnect: jackIn.calvaDisconnect,
-    evaluateCurrentTopLevelForm: evaluate.evaluateTopLevelForm,
-    evaluateEnclosingForm: evaluate.evaluateEnclosingForm,
+    evaluateCurrentTopLevelForm: replInput.evaluatingWhenFocused(
+      cursorGetText.currentTopLevelForm,
+      evaluate.evaluateTopLevelForm
+    ),
+    evaluateEnclosingForm: replInput.evaluatingWhenFocused(
+      cursorGetText.currentEnclosingForm,
+      evaluate.evaluateEnclosingForm
+    ),
     evaluateReplWindowForm: evaluate.evaluateReplWindowForm,
-    evaluateSelection: evaluate.evaluateCurrentForm,
+    evaluateSelection: replInput.evaluatingWhenFocused(
+      cursorGetText.selectionElseCurrentForm,
+      evaluate.evaluateCurrentForm
+    ),
     evaluateSelectionAsComment: evaluate.evaluateSelectionAsComment,
     evaluateSelectionReplace: evaluate.evaluateSelectionReplace,
-    evaluateSelectionToSelectionEnd: evaluate.evaluateToCursor,
-    evaluateStartOfFileToCursor: evaluate.evaluateStartOfFileToCursor,
-    evaluateToCursor: evaluate.evaluateToCursor,
+    evaluateSelectionToSelectionEnd: replInput.evaluatingWhenFocused(
+      cursorGetText.enclosingFormOrSelectionToCursor,
+      evaluate.evaluateToCursor
+    ),
+    evaluateStartOfFileToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.startOfFileToCursor,
+      evaluate.evaluateStartOfFileToCursor
+    ),
+    evaluateToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.enclosingFormOrSelectionToCursor,
+      evaluate.evaluateToCursor
+    ),
     evaluateTopLevelFormAsComment: evaluate.evaluateTopLevelFormAsComment,
-    evaluateTopLevelFormToCursor: evaluate.evaluateTopLevelFormToCursor,
+    evaluateTopLevelFormToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.currentTopLevelFormToCursor,
+      evaluate.evaluateTopLevelFormToCursor
+    ),
     evaluateUser: evaluate.evaluateUser,
     interruptAllEvaluations: evaluate.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
@@ -319,7 +345,7 @@ async function activate(context: vscode.ExtensionContext) {
     rereadUserConfigEdn: config.updateCalvaConfigFromUserConfigEdn,
     rerunTests: () => testRunner.rerunTestsCommand(testController),
     runAllTests: () => testRunner.runAllTestsCommand(testController),
-    runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
+    runCustomREPLCommand,
     runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
     loadTestFileForCurrentNamespace: testRunner.loadTestNS,
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
@@ -364,9 +390,8 @@ async function activate(context: vscode.ExtensionContext) {
     },
     switchCljsBuild: connector.switchCljsBuild,
     selectShadowCljsRuntime: shadowRuntime.selectShadowCljsRuntimeCommand,
-    tapCurrentTopLevelForm: () =>
-      snippets.evaluateCustomCodeSnippetCommand('(tap> $top-level-form)'),
-    tapSelection: () => snippets.evaluateCustomCodeSnippetCommand('(tap> $current-form)'),
+    tapCurrentTopLevelForm: () => runCustomREPLCommand('(tap> $top-level-form)'),
+    tapSelection: () => runCustomREPLCommand('(tap> $current-form)'),
     toggleBetweenImplAndTest: () => {
       return fileSwitcher.toggleBetweenImplAndTest();
     },

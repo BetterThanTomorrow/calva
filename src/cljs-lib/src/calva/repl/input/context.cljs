@@ -6,6 +6,12 @@
   {:repl-input.context/ns "user"
    :repl-input.context/ns-form "(in-ns 'user)"})
 
+(defn- with-connection
+  "Returns `context`, connected when one of the `session-keys` is its session key."
+  [context session-keys]
+  (assoc context
+         :repl-input.context/connected? (contains? (set session-keys) (:repl-input.context/session-key context))))
+
 (defn current
   "Returns the context with the `lock` when there is one. Else the `editor-namespace` of the last active
    Clojure editor at its cursor, or `user` before any, in the `routed-session-key`. It is connected when
@@ -14,9 +20,13 @@
   (let [context (or lock
                     (assoc (or editor-namespace user-namespace)
                            :repl-input.context/session-key routed-session-key))]
-    (assoc context
-           :repl-input.context/locked? (some? lock)
-           :repl-input.context/connected? (contains? (set session-keys) (:repl-input.context/session-key context)))))
+    (with-connection (assoc context :repl-input.context/locked? (some? lock)) session-keys)))
+
+(defn evaluation-context
+  "Returns `context` with the namespace, `ns` form and session key that `overrides` names, connected
+   when one of the `session-keys` is its session key."
+  [context overrides session-keys]
+  (with-connection (merge context (into {} (remove (comp nil? val)) overrides)) session-keys))
 
 (defn lock-after
   "Returns the lock after code was evaluated in `context`: the namespace of the code's `ns` or `in-ns`

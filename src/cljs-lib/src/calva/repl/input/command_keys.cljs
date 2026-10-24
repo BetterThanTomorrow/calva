@@ -43,12 +43,14 @@
         keybindings))
 
 (defn context
-  "The context while the REPL Input of `record` has focus, under `settings`, a map from setting keys to values."
-  [settings {:repl-input/keys [cursor-contexts selections]}]
+  "The context while the REPL Input of `record` has focus, under the `settings`, a map from setting keys to
+   values, and while the REPL is `connected?`."
+  [{:repl-input/keys [settings connected?]} {:repl-input/keys [cursor-contexts selections]}]
   (merge (update-keys settings #(str "config." %))
          (update-vals context-settings settings)
          cursor-contexts
          {"calva:replInputFocused" true
+          "calva:connected" (boolean connected?)
           "editorHasMultipleSelections" (< 1 (count selections))}))
 
 (defn command-keys

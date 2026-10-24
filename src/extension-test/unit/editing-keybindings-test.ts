@@ -31,6 +31,14 @@ const PAREDIT_COMMANDS_LEFT_AS_THEY_ARE = [
   'paredit.forceDeleteBackward',
 ];
 
+const EVALUATION_COMMANDS_LEFT_AS_THEY_ARE = [
+  'calva.evaluateCurrentTopLevelForm',
+  'calva.evaluateSelectionReplace',
+  'calva.evaluateSelectionAsComment',
+  'calva.evaluateTopLevelFormAsComment',
+  'calva.evaluateReplWindowForm',
+];
+
 const isReplInputCommand = (command: string) => command.startsWith('calva.replInput.');
 
 function isEditingCommand(command: string) {
@@ -39,6 +47,12 @@ function isEditingCommand(command: string) {
     (command.startsWith('paredit.') && !PAREDIT_COMMANDS_LEFT_AS_THEY_ARE.includes(command))
   );
 }
+
+const isEvaluationCommand = (command: string) =>
+  /^calva\.(evaluate|tap)/.test(command) && !EVALUATION_COMMANDS_LEFT_AS_THEY_ARE.includes(command);
+
+const reachesReplInput = (command: string) =>
+  isEditingCommand(command) || isEvaluationCommand(command);
 
 type WhenExpr =
   | { op: 'atom'; name: string }
@@ -149,6 +163,17 @@ function disagreementsWithoutReplInput(clause: string, editorOnlyClause: string)
     .map((context) => Object.fromEntries(context));
 }
 
+/** True when some context with the REPL Input focused has both clauses hold */
+function holdTogetherInReplInput(clause: string, otherClause: string) {
+  const exprs = [parseWhen(clause), parseWhen(otherClause)];
+  const atoms = [...new Set(exprs.flatMap((expr) => [...atomsOf(expr)]))].filter(
+    (atom) => atom !== REPL_INPUT_FOCUSED
+  );
+  return contexts(atoms)
+    .map((context) => context.set(REPL_INPUT_FOCUSED, true))
+    .some((context) => exprs.every((expr) => evaluate(expr, context)));
+}
+
 function occurrences(s: string, sub: string) {
   return s.split(sub).length - 1;
 }
@@ -157,7 +182,7 @@ const requiresEditorTextFocus = (when: string) => atomsOf(parseWhen(when)).has('
 
 describe('Calva editing keybindings and the REPL Input', () => {
   const editingBindings = keybindings.filter(
-    ({ command, when }) => isEditingCommand(command) && when && requiresEditorTextFocus(when)
+    ({ command, when }) => reachesReplInput(command) && when && requiresEditorTextFocus(when)
   );
   const replInputBindings = keybindings.filter(
     ({ command, when }) => !isReplInputCommand(command) && when?.includes(REPL_INPUT_FOCUSED)
@@ -174,7 +199,7 @@ describe('Calva editing keybindings and the REPL Input', () => {
     expect(evaluate(expr, ctx(['c =~ /x|y/', 'e == f']))).toBe(true);
   });
 
-  it('every keybinding of a Calva editing command that requires editorTextFocus holds for the REPL Input', () => {
+  it('every keybinding of a Calva editing or evaluation command that requires editorTextFocus holds for the REPL Input', () => {
     expect(editingBindings.length).toBeGreaterThan(50);
     const missing = editingBindings
       .filter(({ when }) => occurrences(when, REPL_INPUT_CLAUSE) !== 1)
@@ -182,11 +207,11 @@ describe('Calva editing keybindings and the REPL Input', () => {
     expect(missing).toEqual([]);
   });
 
-  it('only Calva editing commands are bound for the REPL Input, and only through the clause', () => {
+  it('only Calva editing and evaluation commands are bound for the REPL Input, and only through the clause', () => {
     const elsewhere = replInputBindings
       .filter(
         ({ command, when }) =>
-          !isEditingCommand(command) ||
+          !reachesReplInput(command) ||
           occurrences(when, REPL_INPUT_FOCUSED) !== occurrences(when, REPL_INPUT_CLAUSE)
       )
       .map(({ command, key, mac }) => `${command} ${mac ?? key}`);
@@ -229,6 +254,26 @@ describe('Calva editing keybindings and the REPL Input', () => {
       )
       .map(({ command }) => command);
     expect(others).toEqual([]);
+  });
+
+  it("the REPL Input's own keys and the Calva commands that reach it never hold together on a key", () => {
+    const keyOn = (binding: typeof keybindings[number], platform: string) =>
+      binding[platform] ?? binding.key;
+    const collisions = ['mac', 'win', 'linux'].flatMap((platform) =>
+      keybindings
+        .filter(({ command }) => isReplInputCommand(command))
+        .flatMap((own) =>
+          replInputBindings
+            .filter(
+              (other) =>
+                keyOn(own, platform) &&
+                keyOn(own, platform) === keyOn(other, platform) &&
+                holdTogetherInReplInput(own.when, other.when)
+            )
+            .map((other) => `${platform} ${keyOn(own, platform)}: ${own.command} ${other.command}`)
+        )
+    );
+    expect(collisions).toEqual([]);
   });
 
   it("the REPL Input's own commands are bound only while it has focus", () => {

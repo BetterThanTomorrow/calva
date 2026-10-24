@@ -12,6 +12,7 @@ import {
   buildSnippetCatalog,
   resolveCustomSnippetDefinition,
   type CustomREPLCommandSnippet,
+  type SnippetDefinition,
   type SnippetQuickPickItem,
 } from './custom-snippets-catalog';
 
@@ -21,13 +22,6 @@ export {
   resolveCustomSnippetDefinition,
   withEditorDefaults,
 } from './custom-snippets-catalog';
-
-type SnippetDefinition = {
-  snippet: string;
-  ns?: string;
-  repl?: string;
-  evaluationSendCodeToOutputWindow?: boolean;
-};
 
 export function evaluateCustomCodeSnippetCommand(codeOrKeyOrSnippet?: string | SnippetDefinition) {
   evaluateCodeOrKeyOrSnippet(codeOrKeyOrSnippet).catch((err) => {
@@ -96,7 +90,7 @@ async function evaluateCodeInContext(
   return result;
 }
 
-async function getSnippetDefinition(
+export async function getSnippetDefinition(
   codeOrKey?: string,
   editorNS?: string,
   editorRepl?: string

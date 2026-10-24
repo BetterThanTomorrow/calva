@@ -1,5 +1,6 @@
 import * as expectLib from 'expect';
 import * as catalog from '../../custom-snippets-catalog';
+import * as textNotation from './common/text-notation';
 
 describe('customREPLCommandSnippets resolution (#3283)', () => {
   const editorNS = 'my.app.core';
@@ -103,5 +104,58 @@ describe('customREPLCommandSnippets resolution (#3283)', () => {
       menuSnippetDefinition: snippetsMenuItems[0].snippetDefinition,
     }) as catalog.CustomREPLCommandSnippet;
     expectLib.expect(fromMenu.ns).toBe('user');
+  });
+});
+
+describe('custom REPL commands in the REPL Input', () => {
+  const context = { ns: 'my.app', nsForm: '(ns my.app)', sessionKey: 'clj' };
+  const evaluation = (snippet: catalog.SnippetDefinition, notation: string) =>
+    catalog.replInputSnippetEvaluation(
+      snippet,
+      textNotation.docFromTextNotation(notation),
+      context
+    );
+
+  it("substitutes the forms, the cursor and the namespace from the REPL Input's text and context", () => {
+    expectLib
+      .expect(
+        evaluation(
+          { snippet: '[$current-form $enclosing-form $top-level-form $ns $repl $line $column]' },
+          '(def a 1)•(foo (bar |b) [x y])'
+        )
+      )
+      .toEqual({
+        code: '[b (bar b) (foo (bar b) [x y]) my.app clj 1 10]',
+        ns: 'my.app',
+        nsForm: '(ns my.app)',
+        sessionKey: 'clj',
+        sendCode: true,
+      });
+  });
+
+  it('substitutes the selection, and the REPL Input text for the file text, and no file', () => {
+    expectLib
+      .expect(
+        evaluation(
+          { snippet: '[$selection $selection-closing-brackets "$file" $file-text]' },
+          '(a |(b c|) d)'
+        ).code
+      )
+      .toBe('[(b c (b c) "" (a (b c) d)]');
+  });
+
+  it("evaluates in the snippet's own namespace and session", () => {
+    expectLib
+      .expect(evaluation({ snippet: '(x)', ns: 'other.ns' }, '|(x)'))
+      .toMatchObject({ ns: 'other.ns', nsForm: "(in-ns 'other.ns)", sessionKey: 'clj' });
+    expectLib
+      .expect(evaluation({ snippet: '(x)', repl: 'cljs' }, '|(x)'))
+      .toMatchObject({ ns: undefined, nsForm: undefined, sessionKey: 'cljs' });
+  });
+
+  it('leaves the code out of the output when the snippet says so', () => {
+    expectLib
+      .expect(evaluation({ snippet: '(x)', evaluationSendCodeToOutputWindow: false }, '|(x)'))
+      .toMatchObject({ sendCode: false });
   });
 });

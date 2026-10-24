@@ -4,15 +4,23 @@ import * as format from './calva-fmt/src/format';
 import * as config from './config';
 import type * as model from './cursor-doc/model';
 import * as paredit from './cursor-doc/paredit';
+import * as snippets from './custom-snippets';
+import {
+  replInputSnippetEvaluation,
+  type ReplInputContext,
+  type SnippetDefinition,
+} from './custom-snippets-catalog';
 import * as evaluate from './evaluate';
 import * as formatterConfig from './formatter-config';
 import * as namespace from './namespace';
 import type * as nrepl from './nrepl';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
+import * as pareditExtension from './paredit/extension';
 import * as replInputDocument from './repl-input-document';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
+import * as cursorGetText from './util/cursor-get-text';
 import * as nsForm from './util/ns-form';
 import * as whenContexts from './when-contexts';
 
@@ -80,12 +88,26 @@ type Evaluation = {
   nsForm: string;
   sessionKey: string;
   filePath: string;
+  line: number;
+  column: number;
+  sendCode: boolean;
   stdin: () => Promise<string>;
   onSent: (evaluation: nrepl.NReplEvaluation) => unknown;
 };
 
-/** Evaluates REPL Input code to the Output Destinations, echoing it to the result destinations per `calva.evaluationSendCodeToOutputWindow`. */
-async function evaluateCode({ code, ns, nsForm, sessionKey, filePath, stdin, onSent }: Evaluation) {
+/** Evaluates REPL Input code to the Output Destinations, echoing it to the result destinations when `sendCode` and `calva.evaluationSendCodeToOutputWindow` say so. */
+async function evaluateCode({
+  code,
+  ns,
+  nsForm,
+  sessionKey,
+  filePath,
+  line,
+  column,
+  sendCode,
+  stdin,
+  onSent,
+}: Evaluation) {
   const session = sessionRegistry.getSession(sessionKey);
   const { evaluationSendCodeToOutputWindow, prettyPrintingOptions } = config.getConfig();
   await namespace.createNamespaceIfNotExists(session, ns, nsForm);
@@ -95,17 +117,75 @@ async function evaluateCode({ code, ns, nsForm, sessionKey, filePath, stdin, onS
       session,
       ns,
       filePath,
-      line: 0,
-      column: 0,
+      line,
+      column,
       pprintOptions: prettyPrintingOptions,
-      echoDestinations: evaluationSendCodeToOutputWindow
-        ? [output.getDestinationConfiguration().evalResults]
-        : [],
+      echoDestinations:
+        sendCode && evaluationSendCodeToOutputWindow
+          ? [output.getDestinationConfiguration().evalResults]
+          : [],
       stdin,
     },
     { onEvaluationSent: onSent }
   );
   return { succeeded: 'value' in evaluation };
+}
+
+type Pick = (doc: model.EditableDocument) => cursorGetText.RangeAndText;
+
+/** Returns the code `pick` takes from a REPL Input document, as `evaluateSelection` takes it from an editor, with the line and column where it starts. */
+function pickedCode(pick: Pick) {
+  return (doc: model.StringDocument) => {
+    const [range, picked] = pick(doc);
+    const { start, end } = doc.selections[0];
+    const code = start === end ? evaluate.withoutIgnoreMarker(picked) : picked;
+    if (range && code.length > 0) {
+      const [line, column] = doc.model.getRowCol(range[0]);
+      return { code, line, column };
+    }
+  };
+}
+
+/** Returns `evaluateFromEditor`, which evaluates what `pick` takes from the REPL Input instead, while a REPL Input has focus. */
+export function evaluatingWhenFocused<Args extends unknown[]>(
+  pick: Pick,
+  evaluateFromEditor: (...args: Args) => unknown
+) {
+  return (...args: Args) =>
+    hasFocus()
+      ? cljsLib.replInputEvaluateFromFocused(pickedCode(pick))
+      : evaluateFromEditor(...args);
+}
+
+async function snippetEvaluation(
+  codeOrKeyOrSnippet: string | SnippetDefinition | undefined,
+  doc: model.StringDocument,
+  context: ReplInputContext
+) {
+  const definition =
+    typeof codeOrKeyOrSnippet === 'object'
+      ? codeOrKeyOrSnippet
+      : await snippets.getSnippetDefinition(codeOrKeyOrSnippet, context.ns, context.sessionKey);
+  return (
+    definition &&
+    replInputSnippetEvaluation(definition, doc, context, pareditExtension.getPareditConfig())
+  );
+}
+
+/** Returns `runSnippet`, which runs the custom REPL command in the REPL Input instead, while a REPL Input has focus. */
+export function runningSnippetWhenFocused(
+  runSnippet: (codeOrKeyOrSnippet?: string | SnippetDefinition) => unknown
+) {
+  return (codeOrKeyOrSnippet?: string | SnippetDefinition) =>
+    hasFocus()
+      ? cljsLib
+          .replInputEvaluateFromFocused((doc: model.StringDocument, context: ReplInputContext) =>
+            snippetEvaluation(codeOrKeyOrSnippet, doc, context)
+          )
+          .catch((err: Error) =>
+            vscode.window.showErrorMessage('Failed to run snippet. ' + err.message)
+          )
+      : runSnippet(codeOrKeyOrSnippet);
 }
 
 const isClojureFile = (document: vscode.TextDocument | undefined) =>

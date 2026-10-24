@@ -31,7 +31,10 @@
     :when "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !suggestWidgetVisible"}
    {:command "calva.jackIn"
     :key "ctrl+alt+c ctrl+alt+j"
-    :when "calva:keybindingsEnabled"}])
+    :when "calva:keybindingsEnabled"}
+   {:command "calva.runCustomREPLCommand"
+    :key "ctrl+alt+space a"
+    :when "calva:connected && calva:keybindingsEnabled"}])
 
 (def resolved-keybindings
   [{:command "calva.toggleLineComment"
@@ -60,7 +63,7 @@
 (defn- keys-for
   ([settings] (keys-for settings record))
   ([settings record]
-   (sut/command-keys mac-keybindings (sut/context settings record) [])))
+   (sut/command-keys mac-keybindings (sut/context {:repl-input/settings settings} record) [])))
 
 (deftest command-keys-test
   (testing "keys bound to Calva commands whose when clauses hold while the REPL Input has focus"
@@ -78,9 +81,15 @@
            (:keys (keys-for settings (assoc-in record [:repl-input/cursor-contexts "calva:cursorInComment"] true)))))
     (is (= #{"cmd+/" "ctrl+w" "alt+right" "ctrl+alt+c"}
            (:keys (keys-for settings (assoc record :repl-input/selections [[1 1] [3 3]]))))))
+  (testing "follows the REPL connection"
+    (is (= {:keys #{"cmd+/" "ctrl+w" "alt+right" "backspace" "ctrl+alt+c" "ctrl+alt+space"}
+            :chords #{"ctrl+alt+c" "ctrl+alt+space"}}
+           (sut/command-keys mac-keybindings
+                             (sut/context {:repl-input/settings settings :repl-input/connected? true} record)
+                             []))))
   (testing "the user's own keys are always left to VS Code"
     (is (= {:keys #{"ctrl+j" "ctrl+k"} :chords #{"ctrl+k"}}
-           (sut/command-keys [] (sut/context settings record) ["ctrl+j" "ctrl+k ctrl+l"])))))
+           (sut/command-keys [] (sut/context {:repl-input/settings settings} record) ["ctrl+j" "ctrl+k ctrl+l"])))))
 
 (deftest calva-keybindings-test
   (testing "VS Code's resolved keybindings for the manifest's commands, with the keys resolved for the keyboard layout"
@@ -89,14 +98,14 @@
   (testing "resolved when clauses evaluate as the manifest's do"
     (is (= #{"shift+cmd+7"}
            (:keys (sut/command-keys (sut/parsed (sut/calva-keybindings manifest-keybindings resolved-keybindings))
-                                    (sut/context settings record)
+                                    (sut/context {:repl-input/settings settings} record)
                                     []))))))
 
 (deftest platform-keybindings-test
   (testing "the manifest's keys for the platform, for when VS Code's resolved keybindings can't be read"
-    (is (= ["cmd+/" "ctrl+w" "ctrl+right" "alt+right" "backspace" "ctrl+enter" "ctrl+alt+c ctrl+alt+j"]
+    (is (= ["cmd+/" "ctrl+w" "ctrl+right" "alt+right" "backspace" "ctrl+enter" "ctrl+alt+c ctrl+alt+j" "ctrl+alt+space a"]
            (map :key (sut/platform-keybindings manifest-keybindings "mac"))))
-    (is (= ["ctrl+/" "shift+alt+right" "alt+right" "ctrl+right" "backspace" "ctrl+enter" "ctrl+alt+c ctrl+alt+j"]
+    (is (= ["ctrl+/" "shift+alt+right" "alt+right" "ctrl+right" "backspace" "ctrl+enter" "ctrl+alt+c ctrl+alt+j" "ctrl+alt+space a"]
            (map :key (sut/platform-keybindings manifest-keybindings "linux"))))))
 
 (deftest setting-keys-test

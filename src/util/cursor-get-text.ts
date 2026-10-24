@@ -3,8 +3,61 @@
  */
 
 import * as model from '../cursor-doc/model';
+import * as paredit from '../cursor-doc/paredit';
+import type { PareditConfig } from '../cursor-doc/paredit-config';
 
 export type RangeAndText = [[number, number], string] | [undefined, ''];
+
+function rangeAndText(doc: model.EditableDocument, range?: [number, number]): RangeAndText {
+  return range ? [range, doc.model.getText(...range)] : [undefined, ''];
+}
+
+const hasSelection = (doc: model.EditableDocument) =>
+  doc.selections[0].start !== doc.selections[0].end;
+
+export function currentForm(doc: model.EditableDocument): RangeAndText {
+  const active = doc.selections[0].active;
+  return rangeAndText(doc, doc.getTokenCursor(active).rangeForCurrentForm(active));
+}
+
+export function selectionText(doc: model.EditableDocument): RangeAndText {
+  const { start, end } = doc.selections[0];
+  return rangeAndText(doc, [start, end]);
+}
+
+export function selectionElseCurrentForm(doc: model.EditableDocument): RangeAndText {
+  return hasSelection(doc) ? selectionText(doc) : currentForm(doc);
+}
+
+export function currentEnclosingForm(doc: model.EditableDocument): RangeAndText {
+  const cursor = doc.getTokenCursor(doc.selections[0].active);
+  if (cursor.backwardList()) {
+    cursor.backwardUpList();
+    const start = cursor.offsetStart;
+    if (cursor.forwardSexp()) {
+      return rangeAndText(doc, [start, cursor.offsetStart]);
+    }
+  }
+  return [undefined, ''];
+}
+
+export function currentPair(doc: model.EditableDocument, config?: PareditConfig): RangeAndText {
+  const active = doc.selections[0].active;
+  const cursor = doc.getTokenCursor(active);
+  return paredit.isInPairsList(cursor, config)
+    ? rangeAndText(doc, paredit.currentSexpsRange(doc, cursor, active, true, config))
+    : [undefined, ''];
+}
+
+export function currentFunction(doc: model.EditableDocument, topLevel = false): RangeAndText {
+  const active = doc.selections[0].active;
+  const cursor = doc.getTokenCursor(active);
+  if (topLevel) {
+    cursor.set(doc.getTokenCursor(cursor.rangeForDefun(active)[1] - 1));
+  }
+  const [start, end] = cursor.getFunctionSexpRange();
+  return start && end ? rangeAndText(doc, [start, end]) : [undefined, ''];
+}
 
 export function currentTopLevelDefined(
   doc: model.EditableDocument,
@@ -87,4 +140,24 @@ export function selectionAddingBrackets(doc: model.EditableDocument): RangeAndTe
   cursor.forwardSexp(true, true, true);
   const rangeEnd = cursor.offsetStart;
   return rangeToCursor(doc, [left, rangeEnd], left, right);
+}
+
+/** The selection adding brackets when there is one, else the enclosing form to the cursor, as the evaluate to cursor command takes them. */
+export function enclosingFormOrSelectionToCursor(doc: model.EditableDocument): RangeAndText {
+  return hasSelection(doc) ? selectionAddingBrackets(doc) : currentEnclosingFormToCursor(doc);
+}
+
+/** The forms around the cursor of `doc`, by the names custom REPL commands substitute them by. */
+export function currentClojureContext(doc: model.EditableDocument, config?: PareditConfig) {
+  return {
+    currentForm: currentForm(doc),
+    currentPair: currentPair(doc, config),
+    enclosingForm: currentEnclosingForm(doc),
+    topLevelForm: currentTopLevelForm(doc),
+    currentFn: currentFunction(doc),
+    topLevelDefinedForm: currentTopLevelDefined(doc),
+    topLevelFn: currentFunction(doc, true),
+    head: rangeAndText(doc, paredit.rangeToBackwardList(doc)),
+    tail: rangeAndText(doc, paredit.rangeToForwardList(doc)),
+  };
 }

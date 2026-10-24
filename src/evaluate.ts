@@ -504,6 +504,11 @@ async function evaluateCodeUpdatingUI(
   return valueOf(evaluation);
 }
 
+/** Returns `code` without a leading `#_` and the whitespace after it, so that `#_(form)` at the cursor evaluates `(form)`. */
+function withoutIgnoreMarker(code: string) {
+  return code.replace(/^#_\s*/, '');
+}
+
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
 
@@ -517,11 +522,8 @@ async function evaluateSelection(document = {}, options) {
     let code = selection[1];
     [codeSelection, code]; //TODO: What's this doing here?
 
-    // Strip leading #_ and optional whitespace so that
-    // evaluating with the cursor at the end of #_(form) sends just (form)
-    // to the REPL instead of the silently-discarded #_(form).
     if (editor.selections[0].isEmpty) {
-      code = code.replace(/^#_\s*/, '');
+      code = withoutIgnoreMarker(code);
     }
     const doc = util.getDocument(document);
     if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
@@ -1112,6 +1114,7 @@ async function evaluateInCurrentEditor(
 
 export {
   evaluateToOutputDestinations,
+  withoutIgnoreMarker,
   interruptAllEvaluations,
   loadDocument,
   loadFileCommand,

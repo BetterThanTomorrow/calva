@@ -80,6 +80,27 @@
     (is (nil? (sut/lock-after nil followed nil true)))
     (is (= lock (sut/lock-after lock followed nil true)))))
 
+(deftest evaluation-context-test
+  (let [context (assoc lock :repl-input.context/locked? true :repl-input.context/connected? true)]
+    (testing "keeps the context where the overrides name nothing"
+      (is (= context
+             (sut/evaluation-context context
+                                     {:repl-input.context/ns nil
+                                      :repl-input.context/ns-form nil
+                                      :repl-input.context/session-key nil}
+                                     ["clj:2"]))))
+    (testing "takes the namespace and session the overrides name, connected by the session keys"
+      (is (= (assoc context
+                    :repl-input.context/ns "pirate.util"
+                    :repl-input.context/ns-form "(in-ns 'pirate.util)"
+                    :repl-input.context/session-key "cljs"
+                    :repl-input.context/connected? false)
+             (sut/evaluation-context context
+                                     {:repl-input.context/ns "pirate.util"
+                                      :repl-input.context/ns-form "(in-ns 'pirate.util)"
+                                      :repl-input.context/session-key "cljs"}
+                                     ["clj:2"]))))))
+
 (deftest line-test
   (testing "following the editor"
     (is (= {:repl-input.context/ns "pirate.lib"
