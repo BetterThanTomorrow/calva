@@ -43,6 +43,18 @@
                              (is (false? (:repl-input.context/locked? (last-context-line posted)))))
                            (done)))))))))))
 
+(deftest evaluate-focused!-evaluation-id-test
+  (with-fresh-host
+    (fn [{:keys [evaluations] :as host}]
+      (with-view host
+        (fn []
+          (mount-focused! "output-view" "(def a 1)")
+          (sut/evaluate-focused!)
+          (let [{:keys [^js options]} (first @evaluations)]
+            (testing "gives the evaluation's id for its echoed code block, the id in its file name"
+              (is (number? (.-evaluationId options)))
+              (is (= (str "calva-repl-input/" (.-evaluationId options) ".clj") (.-filePath options))))))))))
+
 (deftest evaluate-focused!-not-connected-test
   (async done
     (with-fresh-host

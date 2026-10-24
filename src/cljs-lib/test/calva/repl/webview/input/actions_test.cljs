@@ -170,3 +170,14 @@
         (is (= [[:fx/post-to-host {:command "repl-input-completion-active" :repl-input/id "output-view" :active? false}]]
                (:uf/fxs (sut/handle-action opened [:repl-input/ax.completion-active false]))))
         (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.completion-active false])))))))
+
+(deftest reveal-evaluation-test
+  (let [db {:repl-input/id "output-sidebar"}]
+    (testing "reveals the evaluated code block the extension asks for"
+      (let [payload {:request 3 :repl-input.evaluation/id 41 :line 2 :column 3}]
+        (is (= [[:fx/reveal-evaluated-code payload]]
+               (:uf/fxs (sut/handle-action db [:repl-input/ax.reveal-evaluation payload]))))))
+    (testing "tells the extension whether the view has the block"
+      (is (= [[:fx/post-to-host {:command "repl-input-evaluation-revealed" :repl-input/id "output-sidebar"
+                                 :request 3 :found? true}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.evaluation-revealed {:request 3 :found? true}])))))))

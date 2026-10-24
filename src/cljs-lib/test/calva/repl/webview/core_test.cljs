@@ -647,6 +647,23 @@
                :error
                "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\"")))))))
 
+(deftest append-evaluated-code-block-test
+  (testing "the evaluated code of a REPL Input evaluation carries the evaluation's id and where its code starts"
+    (let [options (clj->js {:outputCategory "evaluatedCode"
+                            :evaluation {:id 41 :line 2 :column 4}})
+          post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                    sut/output-view-webview-panel (atom "webview-panel-stub")]
+        (sut/append options "(defn f [])")
+        (is (spy/called-once-with? post-message-to-webview-spy
+                                   "webview-panel-stub"
+                                   {:command/name "show-evaluated-code"
+                                    :output-category "evaluatedCode"
+                                    :output "(defn f [])"
+                                    :repl-input.evaluation/id 41
+                                    :repl-input.evaluation/line 2
+                                    :repl-input.evaluation/column 4}))))))
+
 (deftest stacktrace->message-test
   (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
     (let [stacktrace [{:class "clojure.lang.Numbers",

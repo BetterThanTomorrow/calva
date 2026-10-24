@@ -58,6 +58,9 @@ export type OutputCategory =
   | 'otherOut'
   | 'otherErr';
 
+/** A REPL Input evaluation whose code is echoed: its id, and the zero-based line and column where its code starts. */
+export type EvaluatedCodeBlock = { id: number; line: number; column: number };
+
 type AppendOptions = {
   destination: string;
   outputCategory: OutputCategory;
@@ -67,6 +70,7 @@ type AppendOptions = {
   replSessionKey?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  evaluation?: EvaluatedCodeBlock;
 };
 
 export type AppendClojureOptions = {
@@ -90,6 +94,7 @@ export type AppendEvaluatedCodeOptions = {
   who?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  evaluation?: EvaluatedCodeBlock;
 };
 
 const lightTheme = {

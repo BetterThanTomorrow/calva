@@ -115,6 +115,20 @@
                         :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
 
+(deftest append-evaluated-code-block-test
+  (testing "the logged evaluated code of a REPL Input evaluation carries the evaluation's id"
+    (with-redefs [sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
+                  sut/output-sidebar-webview-view (atom nil)
+                  sut/output-sidebar-log (atom [])]
+      (sut/append (clj->js {:outputCategory "evaluatedCode" :evaluation {:id 41 :line 0 :column 0}}) "(def a 1)")
+      (is (= [{:command/name "show-evaluated-code"
+               :output-category "evaluatedCode"
+               :output "(def a 1)"
+               :repl-input.evaluation/id 41
+               :repl-input.evaluation/line 0
+               :repl-input.evaluation/column 0}]
+             @sut/output-sidebar-log)))))
+
 (deftest append-stacktrace-test
   (let [post-message-to-webview-spy (spy/spy)
         webview-view #js {:webview #js {}}]

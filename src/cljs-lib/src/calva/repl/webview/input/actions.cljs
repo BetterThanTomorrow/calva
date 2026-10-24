@@ -45,9 +45,23 @@
               [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]
               [:repl-input/fx.set-completion (completion-config db)]]}))
 
+(defn- handle-definition-action
+  "Handles the actions that reveal an evaluated code block for go to definition."
+  [db [action-type payload]]
+  (case action-type
+    :repl-input/ax.reveal-evaluation
+    {:uf/db db
+     :uf/fxs [[:fx/reveal-evaluated-code payload]]}
+
+    :repl-input/ax.evaluation-revealed
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-evaluation-revealed" :request (:request payload) :found? (:found? payload))]}
+
+    {:uf/db db}))
+
 (defn- handle-completion-action
   "Handles the actions of the completion list and its docs."
-  [db [action-type payload]]
+  [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.complete
     (let [{:keys [request text offset explicit?]} payload]
@@ -72,7 +86,7 @@
       {:uf/db (assoc db :repl-input/completion-active? (boolean payload))
        :uf/fxs [(post db "repl-input-completion-active" :active? (boolean payload))]})
 
-    {:uf/db db}))
+    (handle-definition-action db action)))
 
 (defn- handle-evaluation-action
   "Handles the actions of the context line, the evaluation bar and the history."

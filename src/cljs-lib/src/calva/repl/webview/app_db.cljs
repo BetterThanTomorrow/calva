@@ -34,14 +34,20 @@
                                         meta (assoc :meta meta))]]
       [[:fx/append-result output]])))
 
+(def ^:private evaluation-keys
+  "The keys of the id of the REPL Input evaluation whose code a message shows, and where its code starts."
+  [:repl-input.evaluation/id :repl-input.evaluation/line :repl-input.evaluation/column])
+
 (defn- message-fxs
-  [command-name output category meta]
+  [{command-name :command/name :keys [output meta] :as payload} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
     "show-result" (result-fxs output meta)
-    "show-evaluated-code" [[:fx/append-evaluated-code output]]
+    "show-evaluated-code" (let [evaluation (select-keys payload evaluation-keys)]
+                            [(cond-> [:fx/append-evaluated-code output]
+                               (seq evaluation) (conj evaluation))])
     []))
 
 (defn- meta-context-key
@@ -55,11 +61,11 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- handle-output
-  [db {:keys [command/name output meta output-category]}]
+  [db {:keys [meta output-category] :as payload}]
   (let [context-key (meta-context-key meta)
         context-changed? (and context-key (not= context-key (:output/last-context db)))
         category (or output-category "evalOut")
-        fxs (message-fxs name output category meta)]
+        fxs (message-fxs payload category)]
     {:uf/db (cond-> db
               context-changed? (assoc :output/last-context context-key))
      :uf/fxs (cond-> []

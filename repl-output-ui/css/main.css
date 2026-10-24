@@ -71,6 +71,10 @@ body.word-wrap code.hljs {
    margin-top: 30px;
 }
 
+::highlight(repl-input-definition) {
+   background-color: var(--vscode-editor-wordHighlightStrongBackground, var(--vscode-editor-findMatchHighlightBackground));
+}
+
 .border-text {
    display: block;
    float: left;

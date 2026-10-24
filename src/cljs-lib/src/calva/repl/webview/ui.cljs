@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.evaluated-code :as evaluated-code]
    [calva.repl.webview.images :as images]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -74,8 +75,8 @@
   (.. hljs (highlightElement code-element)))
 
 (defn append-evaluated-code
-  "Appends evaluated code to the given dom element."
-  [^js dom-element output]
+  "Appends evaluated code to the given dom element, with the id of its REPL Input `evaluation`, if any."
+  [^js dom-element output evaluation]
   (let [div (js/document.createElement "div")
         span (js/document.createElement "span")
         span-text-node (js/document.createTextNode "Evaluated code")
@@ -83,6 +84,8 @@
     (.. span -classList (add "border-text"))
     (.. span (appendChild span-text-node))
     (.. div -classList (add "evaluated-code-container"))
+    (when evaluation
+      (evaluated-code/set-evaluation-id! div evaluation))
     (.. div (appendChild span))
     (.. div (appendChild container-element))
     (.. dom-element (appendChild div))
@@ -623,7 +626,10 @@
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
     :fx/append-result (append-eval-result output-dom-element (first args))
-    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args) (second args))
+    :fx/reveal-evaluated-code (dispatch! [:repl-input/ax.evaluation-revealed
+                                          {:request (:request (first args))
+                                           :found? (evaluated-code/reveal! output-dom-element (first args))}])
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
@@ -680,6 +686,7 @@
          "repl-input-evaluation" (dispatch! [:repl-input/ax.set-evaluation (:repl-input/evaluation message-data)])
          "repl-input-completions" (dispatch! [:repl-input/ax.completions message-data])
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
+         "repl-input-reveal-evaluation" (dispatch! [:repl-input/ax.reveal-evaluation message-data])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

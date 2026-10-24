@@ -59,6 +59,7 @@
                                 :nsForm ns-form
                                 :sessionKey session-key
                                 :filePath (str "calva-repl-input/" evaluation-id ".clj")
+                                :evaluationId evaluation-id
                                 :line (or line 0)
                                 :column (or column 0)
                                 :sendCode (not (false? send-code?))

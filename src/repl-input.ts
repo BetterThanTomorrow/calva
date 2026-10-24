@@ -89,6 +89,7 @@ type Evaluation = {
   nsForm: string;
   sessionKey: string;
   filePath: string;
+  evaluationId: number;
   line: number;
   column: number;
   sendCode: boolean;
@@ -103,6 +104,7 @@ async function evaluateCode({
   nsForm,
   sessionKey,
   filePath,
+  evaluationId,
   line,
   column,
   sendCode,
@@ -118,6 +120,7 @@ async function evaluateCode({
       session,
       ns,
       filePath,
+      evaluationId,
       line,
       column,
       pprintOptions: prettyPrintingOptions,

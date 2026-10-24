@@ -157,6 +157,8 @@ type EvaluationOptions = {
   who?: string;
   // Without it, the evaluation reads stdin from an input box
   stdin?: () => Promise<string>;
+  // A REPL Input evaluation's id, which its echoed code block carries
+  evaluationId?: number;
 };
 
 type EvaluationHooks = {
@@ -222,8 +224,7 @@ function sendEvaluation(options: EvaluationOptions) {
 }
 
 function echoEvaluatedCode(
-  code: string,
-  echoDestinations: outputDestinations.OutputDestinationValue[],
+  { code, echoDestinations, evaluationId, line, column }: EvaluationOptions,
   outputOptions: output.AppendClojureOptions
 ) {
   const evalResultsDestination = output.getDestinationConfiguration().evalResults;
@@ -235,6 +236,7 @@ function echoEvaluatedCode(
     sinkDestination: evalResultsDestination,
     writeVisible: echoDestinations.length > 0,
     visibleOutputCategory: 'evaluatedCode',
+    evaluation: evaluationId === undefined ? undefined : { id: evaluationId, line, column },
     ...outputOptions,
   });
 }
@@ -296,9 +298,9 @@ async function outputOutcome(
   options: EvaluationOptions,
   hooks: EvaluationHooks
 ) {
-  const { code, session, echoDestinations, showResult = true, showErrorMessage = true } = options;
+  const { code, session, showResult = true, showErrorMessage = true } = options;
   try {
-    echoEvaluatedCode(code, echoDestinations, outputOptions);
+    echoEvaluatedCode(options, outputOptions);
     const rawValue = await evaluation.value;
     const value = util.stripAnsi(evaluation.pprintOut || rawValue);
     flareHandler.inspect(value, flareEvaluator(options, hooks));
