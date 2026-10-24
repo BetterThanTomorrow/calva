@@ -1,6 +1,6 @@
 (ns calva.repl.input.host-evaluation-test
   (:require
-   [calva.repl.input.host :as sut]
+   [calva.repl.input.evaluate :as sut]
    [calva.repl.input.host-fixtures :refer [last-context-line mount-focused! post! posted-named with-fresh-host with-view]]
    [cljs.test :refer-macros [async deftest testing is]]))
 

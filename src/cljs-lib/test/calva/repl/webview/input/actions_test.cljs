@@ -136,3 +136,8 @@
     (testing "asks the extension to interrupt"
       (is (= [[:fx/post-to-host {:command "repl-input-interrupt" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.interrupt])))))))
+
+(deftest walk-history-test
+  (testing "asks the extension to walk the history"
+    (is (= [[:fx/post-to-host {:command "repl-input-walk-history" :repl-input/id "output-view" :direction "back"}]]
+           (:uf/fxs (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.walk-history :back]))))))

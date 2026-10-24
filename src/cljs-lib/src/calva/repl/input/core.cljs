@@ -3,6 +3,7 @@
   (:require
    [calva.repl.input.config :as config]
    [calva.repl.input.host :as host]
+   [calva.repl.input.recall :as recall]
    [calva.repl.input.setting :as setting]
    [calva.repl.webview.core :as webview]
    [calva.repl.webview.sidebar :as sidebar]
@@ -57,6 +58,7 @@
   [^js adapter]
   (host/set-adapter! adapter)
   (set-enabled-context!)
+  (recall/load-history!)
   (host/load-keybindings!)
   (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener))))
 

@@ -5,6 +5,7 @@
    [calva.repl.webview.input.context :as context]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.input.history :as input-history]
    [calva.repl.webview.input.keys :as input-keys]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
@@ -144,6 +145,34 @@
 
 (defonce ^:private placeholder-compartment (Compartment.))
 
+(defn- completion-open?
+  "True while the completion list is open, where `up` and `down` move in the list."
+  [^js _state]
+  false)
+
+(defn- walk-key
+  [^js state k]
+  (let [doc (.-doc state)
+        selection (.-selection state)]
+    {:key k
+     :cursors (.. selection -ranges -length)
+     :cursor-line (.-number (.lineAt doc (.. selection -main -head)))
+     :line-count (.-lines doc)
+     :completion-open? (completion-open? state)}))
+
+(defn- history-keymap
+  "Walks the history with `up` on the first line and `down` on the last line."
+  [dispatch!]
+  (.high Prec
+         (.of keymap
+              (clj->js (for [[key-name k] [["ArrowUp" :up] ["ArrowDown" :down]]]
+                         {:key key-name
+                          :run (fn [^js view]
+                                 (if-let [direction (input-history/walk-direction (walk-key (.-state view) k))]
+                                   (do (dispatch! [:repl-input/ax.walk-history direction])
+                                       true)
+                                   false))})))))
+
 (defn- extensions
   [dispatch!]
   #js [theme
@@ -156,6 +185,7 @@
        (history)
        commands/extensions
        (drawSelection)
+       (history-keymap dispatch!)
        (.of keymap commands/keymap)
        (.-lineWrapping EditorView)
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))

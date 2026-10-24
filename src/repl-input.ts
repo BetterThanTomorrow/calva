@@ -215,6 +215,9 @@ function registerEvaluationCommands() {
     vscode.commands.registerCommand('calva.replInput.interrupt', () =>
       cljsLib.replInputInterruptFocused()
     ),
+    vscode.commands.registerCommand('calva.replInput.searchHistory', () =>
+      cljsLib.replInputSearchHistoryFocused()
+    ),
   ];
 }
 

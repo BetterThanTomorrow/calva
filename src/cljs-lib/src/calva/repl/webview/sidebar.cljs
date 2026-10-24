@@ -1,6 +1,7 @@
 (ns calva.repl.webview.sidebar
   (:require
    [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
@@ -113,7 +114,7 @@
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
                (image-host/listen-for-webview-messages! webview-view)
-               (input-host/listen-for-messages! webview-view)
+               (input-messages/listen-for-messages! webview-view)
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)

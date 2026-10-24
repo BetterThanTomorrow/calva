@@ -1,9 +1,10 @@
 (ns calva.repl.input.config
   "Reads what the REPL Inputs depend on from VS Code: the settings, the keys VS Code resolved for Calva's
-   keybindings, and the REPL Inputs' heights."
+   keybindings, the REPL Inputs' heights, and the history."
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.history :as history]
    [calva.util :as util]
    [clojure.set :as set]
    ["jsonc-parser" :as jsonc]))
@@ -29,15 +30,15 @@
          (set/rename-keys (select-keys settings (keys editing-settings)) editing-settings)))
 
 (defn read-settings
-  "The settings that the parsed `keybindings`, the brackets and the editing depend on, as a map from
-   setting keys to values."
+  "The settings that the parsed `keybindings`, the brackets, the editing and the history depend on, as a
+   map from setting keys to values."
   [keybindings]
   (let [workspace (.-workspace ^js @util/vscode)
         read (fn [^js config ks]
                (into {} (map (fn [k] [k (js->clj (.get config k))])) ks))]
     (merge (read (.getConfiguration workspace)
                  (concat (command-keys/setting-keys keybindings)
-                         [command-keys/user-keys-setting]
+                         [command-keys/user-keys-setting history/per-session-setting]
                          brackets/highlight-settings))
            (read (.getConfiguration workspace js/undefined #js {:languageId "clojure"})
                  clojure-settings))))
@@ -78,3 +79,15 @@
 (defn store-height!
   [{:keys [height] :repl-input/keys [id]}]
   (.. ^js @util/vscode-context -globalState (update heights-key (clj->js (assoc (heights) id height)))))
+
+(def history-key "calva.replInput.history")
+
+(defn history
+  "Returns the history as `workspaceState` keeps it."
+  []
+  (when-let [vscode-context @util/vscode-context]
+    (js->clj (.. ^js vscode-context -workspaceState (get history-key #js [])) :keywordize-keys true)))
+
+(defn store-history!
+  [stored]
+  (some-> ^js @util/vscode-context .-workspaceState (.update history-key (clj->js stored))))

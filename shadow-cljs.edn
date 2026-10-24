@@ -54,10 +54,11 @@
                              :replInputRunInFocused calva.repl.input.host/run-in-focused!
                              :replInputEditorMoved calva.repl.input.host/editor-moved!
                              :replInputRoutingChanged calva.repl.input.host/routing-changed!
-                             :replInputEvaluateFocused calva.repl.input.host/evaluate-focused!
-                             :replInputEvaluateFromFocused calva.repl.input.host/evaluate-from-focused!
-                             :replInputSendLine calva.repl.input.host/send-line!
-                             :replInputInterruptFocused calva.repl.input.host/interrupt-focused!}
+                             :replInputEvaluateFocused calva.repl.input.evaluate/evaluate-focused!
+                             :replInputEvaluateFromFocused calva.repl.input.evaluate/evaluate-from-focused!
+                             :replInputSendLine calva.repl.input.evaluate/send-line!
+                             :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
+                             :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

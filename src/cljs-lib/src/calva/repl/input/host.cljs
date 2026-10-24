@@ -1,6 +1,6 @@
 (ns calva.repl.input.host
-  "The extension's state for the REPL Inputs in the Output views, the context they evaluate in, their
-   evaluations, and the messages they post."
+  "The extension's state for the REPL Inputs in the Output views: their records, their focus, what the
+   extension derives for them and posts to them, and the context they evaluate in."
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
@@ -11,8 +11,7 @@
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
    [calva.state :as state]
-   [calva.util :as util]
-   [clojure.string :as string]))
+   [calva.util :as util]))
 
 (def focused-context "calva:replInputFocused")
 
@@ -31,16 +30,14 @@
    :repl-input/connected? false
    :repl-input.context/lock nil
    :repl-input.context/editor nil
-   :repl-input.context/line nil})
+   :repl-input.context/line nil
+   :repl-input.history/entries []})
 
 (defonce !state (atom initial-state))
 
 (defonce !adapter (atom nil))
 
 (defonce !views (atom {}))
-
-(defonce ^{:doc "The NReplEvaluation and the stdin reply of each running evaluation, by evaluation id."}
-  !running (atom {}))
 
 (defn set-adapter!
   "Sets the adapter with the functions that call Calva's TypeScript code."
@@ -75,12 +72,12 @@
    :repl-input/enabled? (enabled? view-id)
    :repl-input/height (get (config/heights) view-id)})
 
-(defn- post-to-view!
+(defn post-to-view!
   [id message]
   (when-let [^js view (get @!views id)]
     (.. view -webview (postMessage (pr-str (assoc message :repl-input/id id))))))
 
-(defn- document
+(defn document
   [{:repl-input/keys [text selections selections-stack]}]
   (.document ^js @!adapter text (clj->js selections) (clj->js (or selections-stack []))))
 
@@ -111,7 +108,7 @@
               :when v]
         (set-context! k false)))))
 
-(defn- apply-reading-stdin-context!
+(defn apply-reading-stdin-context!
   "Sets `calva:replInputReadingStdin` to whether an evaluation from the focused REPL Input waits for a
    line from stdin, when that changed."
   []
@@ -121,7 +118,7 @@
       (swap! !state assoc :repl-input/applied-reading-stdin? reading?)
       (set-context! reading-stdin-context reading?))))
 
-(defn- update-focus!
+(defn update-focus!
   [event]
   (let [[before after] (swap-vals! !state update :repl-input/focused focus/focused-after event)
         focused? (some? (:repl-input/focused after))]
@@ -175,11 +172,11 @@
   []
   (run! derive-record! (keys (:repl-input/records @!state))))
 
-(defn- update-records!
+(defn update-records!
   [f & args]
   (apply swap! !state update :repl-input/records f args))
 
-(defn- take-record!
+(defn take-record!
   [f {:repl-input/keys [id] :as msg}]
   (let [[before after] (swap-vals! !state update :repl-input/records f msg)]
     (when (not= (get-in before [:repl-input/records id]) (get-in after [:repl-input/records id]))
@@ -222,12 +219,12 @@
                       :routed-session-key (.routedSessionKey adapter (:document editor))
                       :session-keys (.sessionKeys adapter)})))
 
-(defn- context-line-message
+(defn context-line-message
   [line]
   {:command/name "repl-input-context"
    :repl-input/context-line line})
 
-(defn- refresh-context!
+(defn refresh-context!
   "Works out the context, posts its line to the REPL Inputs when the line changed, and returns the context."
   []
   (let [current (current-context)
@@ -259,28 +256,17 @@
       (derive-records!)))
   (refresh-mounted-context!))
 
-(defn- follow-editor!
+(defn follow-editor!
   []
   (swap! !state assoc :repl-input.context/lock nil)
   (refresh-context!))
 
-(defn- evaluation-message
-  [id]
-  {:command/name "repl-input-evaluation"
-   :repl-input/evaluation (evaluations/bar (:repl-input/evaluations @!state) id)})
-
-(defn- mounted!
-  [id]
-  (refresh-context!)
-  (post-to-view! id (context-line-message (:repl-input.context/line @!state)))
-  (post-to-view! id (evaluation-message id)))
-
-(def ^:private empty-text
+(def empty-text
   {:text "" :selections [[0 0]] :selections-stack []})
 
-(defn- take-edit!
+(defn take-edit!
   "Takes `after`, an edit the extension made from `version` of the REPL Input `id`, and posts it to that
-   REPL Input."
+   REPL Input. Returns true when the REPL Input was still at `version`."
   [id version {:keys [text selections] :as after}]
   (let [[old new] (swap-vals! !state update :repl-input/records records/take-edit id version after)]
     (when (not= old new)
@@ -288,164 +274,8 @@
                          :repl-input/version version
                          :text text
                          :selections selections})
-      (derive-record! id))))
-
-(defn- update-evaluations!
-  [id f & args]
-  (apply swap! !state update :repl-input/evaluations f id args)
-  (post-to-view! id (evaluation-message id))
-  (apply-reading-stdin-context!))
-
-(defn- read-stdin+
-  "Returns a promise of the line sent from the REPL Input `id` to the evaluation `evaluation-id`."
-  [id evaluation-id]
-  (js/Promise.
-   (fn [resolve _]
-     (swap! !running assoc-in [evaluation-id :send-line] resolve)
-     (update-evaluations! id evaluations/reading-stdin evaluation-id true))))
-
-(defn- evaluated!
-  [{:keys [id evaluation-id evaluation-context code-namespace]} succeeded?]
-  (swap! !running dissoc evaluation-id)
-  (swap! !state update :repl-input.context/lock context/lock-after evaluation-context code-namespace succeeded?)
-  (update-evaluations! id evaluations/finished evaluation-id)
-  (refresh-context!))
-
-(defn- evaluate+
-  "Evaluates the `code` of `request` from the REPL Input `id` in `evaluation-context`, as starting at
-   `line` and `column`, sending the code to the output unless `send-code?` is false. Returns a promise of
-   when it is done."
-  [id {:keys [code line column send-code?]} {:repl-input.context/keys [ns ns-form session-key] :as evaluation-context}]
-  (let [^js adapter @!adapter
-        evaluation-id (:repl-input/last-evaluation-id
-                       (swap! !state update :repl-input/last-evaluation-id evaluations/next-id (js/Date.now)))
-        evaluation {:id id
-                    :evaluation-id evaluation-id
-                    :evaluation-context evaluation-context
-                    :code-namespace (js->clj (.nsFromText adapter code))}]
-    (update-evaluations! id evaluations/started evaluation-id)
-    (-> (.evaluate adapter #js {:code code
-                                :ns ns
-                                :nsForm ns-form
-                                :sessionKey session-key
-                                :filePath (str "calva-repl-input/" evaluation-id ".clj")
-                                :line (or line 0)
-                                :column (or column 0)
-                                :sendCode (not (false? send-code?))
-                                :stdin #(read-stdin+ id evaluation-id)
-                                :onSent #(swap! !running assoc-in [evaluation-id :evaluation] %)})
-        (.then (fn [^js outcome] (.-succeeded outcome))
-               (constantly false))
-        (.then #(evaluated! evaluation %)))))
-
-(defn- show-message!
-  [message]
-  (some-> ^js @util/vscode .-window (.showInformationMessage message)))
-
-(defn- not-connected+
-  [evaluation-context]
-  (js/Promise.resolve (show-message! (context/not-connected-message evaluation-context))))
-
-(defn ^:export evaluate-focused!
-  "Evaluates the focused REPL Input's text in the context and clears the REPL Input, or says that no
-   session answers to the context's session key. Returns a promise of when the evaluation is done."
-  []
-  (let [{:repl-input/keys [focused records]} @!state
-        {:repl-input/keys [text version]} (get records focused)]
-    (if (string/blank? text)
-      (js/Promise.resolve nil)
-      (let [evaluation-context (refresh-context!)]
-        (if (:repl-input.context/connected? evaluation-context)
-          (do (take-edit! focused version empty-text)
-              (evaluate+ focused {:code text} evaluation-context))
-          (not-connected+ evaluation-context))))))
-
-(defn- picked-evaluation
-  "Returns `[request overrides]` for what a pick returned: the evaluation request, and the context it names."
-  [^js picked]
-  (let [{:keys [code line column ns nsForm sessionKey sendCode]} (js->clj picked :keywordize-keys true)]
-    [{:code code :line line :column column :send-code? sendCode}
-     {:repl-input.context/ns ns
-      :repl-input.context/ns-form nsForm
-      :repl-input.context/session-key sessionKey}]))
-
-(defn- evaluate-picked+
-  [id evaluation-context picked]
-  (let [[request overrides] (picked-evaluation picked)
-        picked-context (context/evaluation-context evaluation-context overrides (.sessionKeys ^js @!adapter))]
-    (if (:repl-input.context/connected? picked-context)
-      (evaluate+ id request picked-context)
-      (not-connected+ picked-context))))
-
-(defn ^:export evaluate-from-focused!
-  "Evaluates what `pick` takes from a document with the focused REPL Input's text and selections, in the
-   context, and keeps the text. `pick` gets the document and the context as `{ns nsForm sessionKey}`, and
-   returns, or promises, `{code line column}` with the `ns`, `nsForm`, `sessionKey` and `sendCode` it
-   changes, or nothing. Returns a promise of when the evaluation is done."
-  [pick]
-  (let [{:repl-input/keys [focused records]} @!state]
-    (if-let [record (get records focused)]
-      (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (refresh-context!)]
-        (-> (js/Promise.resolve (pick (document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
-            (.then #(when % (evaluate-picked+ focused evaluation-context %)))))
-      (js/Promise.resolve nil))))
-
-(defn ^:export send-line!
-  "Sends the focused REPL Input's text as the line the evaluation waiting for stdin reads, and clears
-   the REPL Input."
-  []
-  (let [{:repl-input/keys [focused records] :as state} @!state
-        evaluation-id (evaluations/waiting-for-stdin (:repl-input/evaluations state) focused)
-        {:repl-input/keys [text version]} (get records focused)]
-    (when-let [send (get-in @!running [evaluation-id :send-line])]
-      (swap! !running update evaluation-id dissoc :send-line)
-      (update-evaluations! focused evaluations/reading-stdin evaluation-id false)
-      (take-edit! focused version empty-text)
-      (send (or text "")))))
-
-(defn- interrupt-evaluation!
-  "Interrupts the NReplEvaluation `evaluation`. One that has had no reply yet isn't running to
-   NReplEvaluation, so its session interrupts it."
-  [^js evaluation]
-  (if (.-running evaluation)
-    (.interrupt evaluation)
-    (-> (.. evaluation -session (interrupt (.-id evaluation)))
-        (.catch #(js/console.error "Failed interrupting the REPL Input evaluation:" %)))))
-
-(defn- interrupt!
-  [id]
-  (doseq [evaluation-id (keys (get-in @!state [:repl-input/evaluations id]))]
-    (some-> (get-in @!running [evaluation-id :evaluation]) interrupt-evaluation!)))
-
-(defn ^:export interrupt-focused!
-  "Interrupts the evaluations running from the focused REPL Input."
-  []
-  (some-> (:repl-input/focused @!state) interrupt!))
-
-(defn handle-message!
-  "Takes a message the REPL Input in `webview-host` posted."
-  [^js webview-host ^js message]
-  (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
-    (case command
-      "repl-input-mounted" (do (swap! !views assoc id webview-host)
-                               (take-record! records/take-mount msg)
-                               (mounted! id)
-                               (load-keybindings!))
-      "repl-input-changed" (take-record! records/take-change msg)
-      "repl-input-unmounted" (do (update-records! records/remove-record id)
-                                 (update-focus! [:unmount id]))
-      "repl-input-focused" (update-focus! [:focus id])
-      "repl-input-blurred" (update-focus! [:blur id])
-      "repl-input-resized" (config/store-height! msg)
-      "repl-input-follow-editor" (follow-editor!)
-      "repl-input-interrupt" (interrupt! id)
-      nil)))
-
-(defn listen-for-messages!
-  [^js webview-host]
-  (when-let [webview (some-> webview-host .-webview)]
-    (when (fn? (.-onDidReceiveMessage webview))
-      (.onDidReceiveMessage webview #(handle-message! webview-host %)))))
+      (derive-record! id)
+      true)))
 
 (defn view-disposed!
   [view-id]

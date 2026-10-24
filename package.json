@@ -391,6 +391,14 @@
             ],
             "markdownDescription": "Keys you have bound to Calva commands in your own `keybindings.json`, written the same way, e.g. `ctrl+alt+j` or `ctrl+k ctrl+j`. The REPL Input leaves these keys to VS Code, so the commands run instead of the REPL Input's own handling of the keys. Calva's default keybindings are left to VS Code without being listed here."
           },
+          "calva.outputViews.replInputHistoryPerSession": {
+            "type": "boolean",
+            "default": false,
+            "tags": [
+              "experimental"
+            ],
+            "markdownDescription": "Whether `up`, `down` and `ctrl+r` in the REPL Input go through only what was evaluated in the session the REPL Input evaluates in, as the REPL window's history does. Off, they go through everything evaluated in the REPL Input."
+          },
           "calva.outputViewImageDisplay": {
             "type": "string",
             "enum": [
@@ -2101,6 +2109,12 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.searchHistory",
+        "title": "Search REPL Input History",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3664,6 +3678,11 @@
       {
         "command": "calva.replInput.interrupt",
         "key": "ctrl+alt+c ctrl+alt+d",
+        "when": "calva:replInputFocused && calva:keybindingsEnabled"
+      },
+      {
+        "command": "calva.replInput.searchHistory",
+        "key": "ctrl+r",
         "when": "calva:replInputFocused && calva:keybindingsEnabled"
       },
       {

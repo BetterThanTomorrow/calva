@@ -1,6 +1,7 @@
 (ns calva.repl.webview.core
   (:require
    [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
    [calva.repl.webview.token-colors :as token-colors]
@@ -437,7 +438,7 @@
   [context ^js webview-panel]
   (register-webview! webview-panel)
   (image-host/listen-for-webview-messages! webview-panel)
-  (input-host/listen-for-messages! webview-panel)
+  (input-messages/listen-for-messages! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})

@@ -1,7 +1,9 @@
 (ns calva.repl.input.host-fixtures
   "A host with a fake adapter and fake views, for testing `calva.repl.input.host`."
   (:require
+   [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as messages]
    [cljs.reader :as reader]
    [clojure.string :as string]))
 
@@ -32,13 +34,13 @@
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})
-    (reset! input-host/!running {})
+    (reset! evaluate/!running {})
     (f host)))
 
 (def !view (atom nil))
 
 (defn post! [m]
-  (input-host/handle-message! @!view (clj->js m :keyword-fn #(subs (str %) 1))))
+  (messages/handle-message! @!view (clj->js m :keyword-fn #(subs (str %) 1))))
 
 (defn with-view [{:keys [posted]} f]
   (reset! !view (fake-view posted))
