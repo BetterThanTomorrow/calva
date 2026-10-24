@@ -108,3 +108,19 @@ export function hasMoreThanSingleSexp(doc: model.EditableDocument): boolean {
   cursor.forwardWhitespace(false);
   return !cursor.atEnd();
 }
+
+export function lineStartOffsets(lines: string[], lineEndingLength: number): number[] {
+  const starts = [0];
+  for (let i = 1; i < lines.length; i++) {
+    starts.push(starts[i - 1] + lines[i - 1].length + lineEndingLength);
+  }
+  return starts;
+}
+
+export function rowColAt(lineStarts: number[], offset: number): [row: number, col: number] {
+  let row = lineStarts.length - 1;
+  while (row > 0 && lineStarts[row] > offset) {
+    row--;
+  }
+  return [row, offset - lineStarts[row]];
+}
