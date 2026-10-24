@@ -17,9 +17,6 @@ const converter = protocolConverter.createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
-/** What a provider returns when it has revealed the definition in an Output view, and VS Code has nothing to open. */
-const revealedInOutputView = Symbol('revealedInOutputView');
-
 /** Returns the location of a definition the REPL reports in a file, or `undefined` when its file isn't a uri. */
 export function replLocation(definition: replDefinition.ReplDefinition) {
   const pos = new vscode.Position(definition.line - 1, definition.column || 0);
@@ -37,8 +34,8 @@ function isAtCursor(document: vscode.TextDocument, position: vscode.Position) {
 }
 
 /**
- * Reveals the code block of the REPL Input evaluation `evaluationId` that made the definition, when
- * going to it, or returns the definition's location in the evaluation's read-only history entry.
+ * Returns the definition's location in the read-only entry of the REPL Input evaluation `evaluationId`
+ * that made it, and, when going to it, also reveals the evaluation's code block in an Output view.
  */
 async function replInputEvaluationDefinition(
   document: vscode.TextDocument,
@@ -46,11 +43,8 @@ async function replInputEvaluationDefinition(
   evaluationId: number,
   { line, column }: replDefinition.ReplDefinition
 ) {
-  if (
-    isAtCursor(document, position) &&
-    (await cljsLib.replInputRevealEvaluation(evaluationId, line, column))
-  ) {
-    return revealedInOutputView;
+  if (isAtCursor(document, position)) {
+    await cljsLib.replInputRevealEvaluation(evaluationId, line, column);
   }
   const entry = cljsLib.replInputEvaluationLocation(evaluationId, line, column);
   return entry
@@ -105,9 +99,6 @@ function lspDefinition(
 }
 
 function asLocation(definition) {
-  if (definition === revealedInOutputView) {
-    return null;
-  }
   return definition instanceof vscode.Location ? definition : converter.asLocation(definition);
 }
 

@@ -2097,6 +2097,12 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.evaluateTopLevelForm",
+        "title": "Evaluate Top Level Form in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.replInput.sendLine",
         "title": "Send Line to stdin from REPL Input",
         "category": "Calva",
@@ -3672,7 +3678,7 @@
         "when": "calva:replInputFocused"
       },
       {
-        "command": "calva.replInput.evaluate",
+        "command": "calva.replInput.evaluateTopLevelForm",
         "key": "alt+enter",
         "when": "calva:replInputFocused && calva:keybindingsEnabled"
       },
@@ -4261,6 +4267,10 @@
         },
         {
           "command": "calva.replInput.evaluate",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.evaluateTopLevelForm",
           "when": "calva:replInputFocused"
         },
         {

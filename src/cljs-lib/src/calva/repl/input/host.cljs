@@ -34,6 +34,7 @@
    :repl-input/applied-cursor-contexts nil
    :repl-input/evaluations {}
    :repl-input/last-evaluation-id nil
+   :repl-input/evaluated-code []
    :repl-input/applied-focused-contexts (focused-contexts {})
    :repl-input/connected? false
    :repl-input.context/lock nil

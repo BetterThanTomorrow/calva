@@ -218,6 +218,9 @@ function registerEvaluationCommands() {
     vscode.commands.registerCommand('calva.replInput.evaluate', () =>
       cljsLib.replInputEvaluateFocused()
     ),
+    vscode.commands.registerCommand('calva.replInput.evaluateTopLevelForm', () =>
+      cljsLib.replInputEvaluateFormFocused(pickedCode(cursorGetText.currentTopLevelForm))
+    ),
     vscode.commands.registerCommand('calva.replInput.sendLine', () => cljsLib.replInputSendLine()),
     vscode.commands.registerCommand('calva.replInput.interrupt', () =>
       cljsLib.replInputInterruptFocused()

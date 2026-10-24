@@ -1,6 +1,6 @@
 (ns calva.repl.input.config
   "Reads what the REPL Inputs depend on from VS Code: the settings, the keys VS Code resolved for Calva's
-   keybindings, the REPL Inputs' heights, and the history."
+   keybindings, the REPL Inputs' heights, the history, and the code of the latest evaluations."
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
@@ -93,3 +93,15 @@
 (defn store-history!
   [stored]
   (some-> ^js @util/vscode-context .-workspaceState (.update history-key (clj->js stored))))
+
+(def evaluated-code-key "calva.replInput.evaluatedCode")
+
+(defn evaluated-code
+  "Returns the code the latest REPL Input evaluations kept, as `workspaceState` keeps it."
+  []
+  (when-let [vscode-context @util/vscode-context]
+    (js->clj (.. ^js vscode-context -workspaceState (get evaluated-code-key #js [])) :keywordize-keys true)))
+
+(defn store-evaluated-code!
+  [stored]
+  (some-> ^js @util/vscode-context .-workspaceState (.update evaluated-code-key (clj->js stored))))

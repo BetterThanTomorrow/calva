@@ -1,8 +1,10 @@
 (ns calva.repl.input.reveal
   "Goes to definitions from the REPL Inputs, and from files to definitions that REPL Input evaluations
-   made: reveals the evaluation's code block in an Output view, or opens its history entry read-only."
+   made: keeps the code of the latest evaluations, reveals an evaluation's code block in an Output view,
+   or opens its read-only entry."
   (:require
    [calva.repl.input.completion :as completion]
+   [calva.repl.input.config :as config]
    [calva.repl.input.definition :as definition]
    [calva.repl.input.host :as host]
    [calva.util :as util]))
@@ -18,6 +20,18 @@
 (defn set-output-views!
   [output-views]
   (reset! !output-views output-views))
+
+(defn load-evaluated-code!
+  []
+  (swap! host/!state assoc :repl-input/evaluated-code (definition/from-stored (config/evaluated-code))))
+
+(defn keep-code!
+  "Keeps `code`, evaluated as the evaluation `id` from the zero-based `line` and `column` of a REPL Input,
+   with the code of the latest evaluations."
+  [id code line column]
+  (let [{:repl-input/keys [evaluated-code]}
+        (swap! host/!state update :repl-input/evaluated-code definition/add-evaluation (definition/evaluation id code line column))]
+    (config/store-evaluated-code! (definition/stored evaluated-code))))
 
 (defn- answered-found?
   "Returns whether `msg`, posted by an Output view, says that it has the block of `request`, or nil when
@@ -67,18 +81,18 @@
 
 (defn- entry-location
   [id line column]
-  (definition/entry-location (:repl-input.history/entries @host/!state) id {:line line :column column}))
+  (definition/entry-location (:repl-input/evaluated-code @host/!state) id {:line line :column column}))
 
 (defn ^:export evaluation-location
   "Returns where the definition at `line` and `column`, as the REPL reports them, is in the read-only
-   editor of the history entry of the evaluation `id`, as `{uri line character}`, or nil."
+   entry of the evaluation `id`, as `{uri line character}`, or nil."
   [id line column]
   (clj->js (entry-location id line column)))
 
 (defn ^:export evaluation-code
-  "Returns the code of the history entry that `path`, the path of a read-only editor's uri, names."
+  "Returns the code of the evaluation that `path`, the path of a read-only entry's uri, names."
   [path]
-  (or (definition/entry-code (:repl-input.history/entries @host/!state) path) ""))
+  (or (definition/entry-code (:repl-input/evaluated-code @host/!state) path) ""))
 
 (defn- target+
   "Returns a promise of what `f` promises, or of nil when it fails."

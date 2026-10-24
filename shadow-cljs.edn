@@ -56,6 +56,7 @@
                              :replInputRoutingChanged calva.repl.input.host/routing-changed!
                              :replInputEvaluateFocused calva.repl.input.evaluate/evaluate-focused!
                              :replInputEvaluateFromFocused calva.repl.input.evaluate/evaluate-from-focused!
+                             :replInputEvaluateFormFocused calva.repl.input.evaluate/evaluate-form-focused!
                              :replInputSendLine calva.repl.input.evaluate/send-line!
                              :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
                              :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!

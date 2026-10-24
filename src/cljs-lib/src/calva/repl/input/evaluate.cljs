@@ -7,6 +7,7 @@
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
+   [calva.repl.input.reveal :as reveal]
    [calva.util :as util]
    [clojure.string :as string]))
 
@@ -48,13 +49,14 @@
 (defn- evaluate+
   "Evaluates the `code` of `request` from the REPL Input `id` as the evaluation `evaluation-id` in
    `evaluation-context`, as starting at `line` and `column`, sending the code to the output unless
-   `send-code?` is false. Returns a promise of when it is done."
+   `send-code?` is false, and keeps the code by the evaluation's id. Returns a promise of when it is done."
   [id evaluation-id {:keys [code line column send-code?]} {:repl-input.context/keys [ns ns-form session-key] :as evaluation-context}]
   (let [^js adapter @host/!adapter
         evaluation {:id id
                     :evaluation-id evaluation-id
                     :evaluation-context evaluation-context
                     :code-namespace (js->clj (.nsFromText adapter code))}]
+    (reveal/keep-code! evaluation-id code line column)
     (update-evaluations! id evaluations/started evaluation-id)
     (-> (.evaluate adapter #js {:code code
                                 :ns ns
@@ -79,21 +81,32 @@
   [evaluation-context]
   (js/Promise.resolve (show-message! (context/not-connected-message evaluation-context))))
 
+(defn- evaluate-keeping-text+
+  [{:repl-input/keys [id]} request evaluation-context]
+  (evaluate+ id (next-evaluation-id!) request evaluation-context))
+
+(defn- evaluate-entered+
+  "Evaluates `request` from the REPL Input of `record` in `evaluation-context`, adds its code to the
+   history, and clears the REPL Input when the code was all of its text."
+  [{:repl-input/keys [id text version]} {:keys [code] :as request} evaluation-context]
+  (let [evaluation-id (next-evaluation-id!)]
+    (when (= (string/trim (str text)) (string/trim code))
+      (host/take-edit! id version host/empty-text))
+    (recall/add! id evaluation-id code evaluation-context)
+    (evaluate+ id evaluation-id request evaluation-context)))
+
 (defn ^:export evaluate-focused!
-  "Evaluates the focused REPL Input's text in the context, adds it to the history and clears the REPL
-   Input, or says that no session answers to the context's session key. Returns a promise of when the
-   evaluation is done."
+  "Evaluates all of the focused REPL Input's text in the context as one evaluation, adds it to the history
+   and clears the REPL Input, or says that no session answers to the context's session key. Returns a
+   promise of when the evaluation is done."
   []
   (let [{:repl-input/keys [focused records]} @host/!state
-        {:repl-input/keys [text version]} (get records focused)]
+        {:repl-input/keys [text] :as record} (get records focused)]
     (if (string/blank? text)
       (js/Promise.resolve nil)
       (let [evaluation-context (host/refresh-context!)]
         (if (:repl-input.context/connected? evaluation-context)
-          (let [evaluation-id (next-evaluation-id!)]
-            (host/take-edit! focused version host/empty-text)
-            (recall/add! focused evaluation-id text evaluation-context)
-            (evaluate+ focused evaluation-id {:code text} evaluation-context))
+          (evaluate-entered+ record {:code text} evaluation-context)
           (not-connected+ evaluation-context))))))
 
 (defn- picked-evaluation
@@ -106,12 +119,23 @@
       :repl-input.context/session-key sessionKey}]))
 
 (defn- evaluate-picked+
-  [id evaluation-context picked]
+  [evaluate-request+ record evaluation-context picked]
   (let [[request overrides] (picked-evaluation picked)
         picked-context (context/evaluation-context evaluation-context overrides (.sessionKeys ^js @host/!adapter))]
     (if (:repl-input.context/connected? picked-context)
-      (evaluate+ id (next-evaluation-id!) request picked-context)
+      (evaluate-request+ record request picked-context)
       (not-connected+ picked-context))))
+
+(defn- evaluate-picked-from-focused+
+  "Evaluates what `pick` takes from the focused REPL Input with `evaluate-request+`, which gets the REPL
+   Input's record, the request and the context."
+  [pick evaluate-request+]
+  (let [{:repl-input/keys [focused records]} @host/!state]
+    (if-let [record (get records focused)]
+      (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (host/refresh-context!)]
+        (-> (js/Promise.resolve (pick (host/document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
+            (.then #(when % (evaluate-picked+ evaluate-request+ record evaluation-context %)))))
+      (js/Promise.resolve nil))))
 
 (defn ^:export evaluate-from-focused!
   "Evaluates what `pick` takes from a document with the focused REPL Input's text and selections, in the
@@ -119,12 +143,14 @@
    returns, or promises, `{code line column}` with the `ns`, `nsForm`, `sessionKey` and `sendCode` it
    changes, or nothing. Returns a promise of when the evaluation is done."
   [pick]
-  (let [{:repl-input/keys [focused records]} @host/!state]
-    (if-let [record (get records focused)]
-      (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (host/refresh-context!)]
-        (-> (js/Promise.resolve (pick (host/document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
-            (.then #(when % (evaluate-picked+ focused evaluation-context %)))))
-      (js/Promise.resolve nil))))
+  (evaluate-picked-from-focused+ pick evaluate-keeping-text+))
+
+(defn ^:export evaluate-form-focused!
+  "Evaluates the form that `pick` takes from the focused REPL Input, as `evaluate-from-focused!` does, adds
+   it to the history, and clears the REPL Input when the form was all of its text. Returns a promise of
+   when the evaluation is done."
+  [pick]
+  (evaluate-picked-from-focused+ pick evaluate-entered+))
 
 (defn ^:export send-line!
   "Sends the focused REPL Input's text as the line the evaluation waiting for stdin reads, and clears
