@@ -63,7 +63,8 @@
                              :replInputRevealEvaluation calva.repl.input.reveal/reveal-evaluation+
                              :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
                              :replInputEvaluationCode calva.repl.input.reveal/evaluation-code
-                             :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!}
+                             :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!
+                             :replInputReadLine calva.repl.input.stdin/read-line+}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

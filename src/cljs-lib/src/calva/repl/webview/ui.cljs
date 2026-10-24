@@ -684,6 +684,7 @@
          "repl-input-run-command" (dispatch! [:repl-input/ax.run-command (:repl-input/command message-data)])
          "repl-input-context"   (dispatch! [:repl-input/ax.set-context-line (:repl-input/context-line message-data)])
          "repl-input-evaluation" (dispatch! [:repl-input/ax.set-evaluation (:repl-input/evaluation message-data)])
+         "repl-input-focus"     (dispatch! [:repl-input/ax.focus])
          "repl-input-completions" (dispatch! [:repl-input/ax.completions message-data])
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
          "repl-input-reveal-evaluation" (dispatch! [:repl-input/ax.reveal-evaluation message-data])

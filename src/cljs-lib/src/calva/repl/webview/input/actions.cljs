@@ -112,6 +112,10 @@
        :uf/fxs [[:repl-input/fx.set-evaluation payload]
                 [:repl-input/fx.set-completion (completion-config db)]]})
 
+    :repl-input/ax.focus
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.focus]]}
+
     :repl-input/ax.interrupt
     {:uf/db db
      :uf/fxs [(post db "repl-input-interrupt")]}

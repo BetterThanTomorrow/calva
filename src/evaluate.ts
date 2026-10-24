@@ -26,6 +26,7 @@ import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as clientRegistry from './nrepl/client-registry';
+import * as replInputStdin from './repl-input-stdin';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -442,6 +443,18 @@ function appendFailureToReplWindow(message: string, stacktrace: Promise<any>, ui
   return evalOutputIncludesReplWindow();
 }
 
+/** Returns the stdin of an evaluation from `editor`: the Output Sidebar's REPL Input while the setting has the REPL Input on for a view, else the input box. */
+function stdinFor(
+  editor: vscode.TextEditor | undefined,
+  sentEvaluation: () => nrepl.NReplEvaluation
+) {
+  return replInputStdin.editorStdin(
+    vscode.workspace.getConfiguration('calva').get('outputViews.replInput'),
+    replWindow.isReplWindowDoc(editor?.document),
+    () => cljsLib.replInputReadLine(sentEvaluation())
+  );
+}
+
 async function evaluateCodeUpdatingUI(
   code: string,
   options,
@@ -480,6 +493,7 @@ async function evaluateCodeUpdatingUI(
   const ui: UiContext = { editor, selection, options };
   const echoCode =
     evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
+  let sentEvaluation: nrepl.NReplEvaluation;
   const evaluation = await evaluateToOutputDestinations(
     {
       code,
@@ -492,12 +506,16 @@ async function evaluateCodeUpdatingUI(
       echoDestinations: echoCode ? replWindowEchoDestinations() : [],
       showResult: options.showResult === undefined || options.showResult === true,
       showErrorMessage: options.showErrorMessage === undefined || options.showErrorMessage === true,
+      stdin: stdinFor(editor, () => sentEvaluation),
     },
     {
       onResultAppended: (value) => updateUiWithResult(value, ui),
       onStderrAfterResult: appendStderrToReplWindow,
       onFailure: (message, stacktrace) => appendFailureToReplWindow(message, stacktrace, ui),
       evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
+      onEvaluationSent: (sent) => {
+        sentEvaluation = sent;
+      },
     }
   );
   replWindow.setSession(session, evaluation.ns);

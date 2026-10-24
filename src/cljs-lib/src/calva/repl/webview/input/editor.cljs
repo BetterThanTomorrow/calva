@@ -309,6 +309,15 @@
                                                   (placeholder context/reading-stdin-placeholder)
                                                   #js []))})))
 
+(defn- focus!
+  "Focuses the REPL Input, now, or when the view gets the focus, since revealing the view gives it the
+   focus after the extension asks."
+  []
+  (when-let [^js view (editor-view)]
+    (if (js/document.hasFocus)
+      (.focus view)
+      (js/window.addEventListener "focus" #(.focus view) #js {:once true}))))
+
 (defn- set-completion!
   [dispatch! config]
   (when-let [^js view (editor-view)]
@@ -329,6 +338,7 @@
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args))
     :repl-input/fx.set-evaluation (set-evaluation! (first args))
+    :repl-input/fx.focus (focus!)
     :repl-input/fx.set-completion (set-completion! dispatch! (first args))
     :repl-input/fx.deliver-completions (completion/deliver! (editor-view) dispatch! (first args))
     :repl-input/fx.deliver-completion-docs (completion/deliver-docs! (first args))))

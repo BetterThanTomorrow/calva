@@ -4,16 +4,23 @@
    [calva.repl.input.complete :as complete]
    [calva.repl.input.config :as config]
    [calva.repl.input.evaluate :as evaluate]
+   [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]))
 
+(def focus-message {:command/name "repl-input-focus"})
+
 (defn- mounted!
+  "Posts the context line and the evaluation bar to the REPL Input `id`, and gives it the focus when an
+   evaluation waits there for a line from stdin."
   [id]
   (host/refresh-context!)
   (host/post-to-view! id (host/context-line-message (:repl-input.context/line @host/!state)))
-  (host/post-to-view! id (evaluate/evaluation-message id)))
+  (host/post-to-view! id (evaluate/evaluation-message id))
+  (when (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)
+    (host/post-to-view! id focus-message)))
 
 (defn handle-message!
   "Takes a message the REPL Input in `webview-host` posted."

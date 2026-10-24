@@ -188,3 +188,8 @@
                                :text "(f 1)" :offset 1}]]
            (:uf/fxs (sut/handle-action {:repl-input/id "output-sidebar"}
                                        [:repl-input/ax.reveal-definition {:text "(f 1)" :offset 1}]))))))
+
+(deftest take-focus-test
+  (testing "takes the focus when the extension asks, as when an evaluation from a file waits for a line"
+    (is (= [[:repl-input/fx.focus]]
+           (:uf/fxs (sut/handle-action {:repl-input/id "output-sidebar"} [:repl-input/ax.focus]))))))

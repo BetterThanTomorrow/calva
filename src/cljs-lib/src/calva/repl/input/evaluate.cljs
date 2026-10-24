@@ -18,7 +18,8 @@
   {:command/name "repl-input-evaluation"
    :repl-input/evaluation (evaluations/bar (:repl-input/evaluations @host/!state) id)})
 
-(defn- update-evaluations!
+(defn update-evaluations!
+  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its evaluation bar."
   [id f & args]
   (apply swap! host/!state update :repl-input/evaluations f id args)
   (host/post-to-view! id (evaluation-message id))
@@ -39,7 +40,7 @@
   (update-evaluations! id evaluations/finished evaluation-id)
   (host/refresh-context!))
 
-(defn- next-evaluation-id!
+(defn next-evaluation-id!
   []
   (:repl-input/last-evaluation-id
    (swap! host/!state update :repl-input/last-evaluation-id evaluations/next-id (js/Date.now))))
