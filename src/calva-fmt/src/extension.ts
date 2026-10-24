@@ -3,6 +3,7 @@ import * as ontypeFormatter from './providers/ontype_formatter';
 import * as rangeFormatter from './providers/range_formatter';
 import * as formatter from './format';
 import * as inferer from './infer';
+import { indent } from './indent';
 import * as docmirror from '../../doc-mirror/index';
 import * as config from '../../formatter-config';
 import * as calvaConfig from '../../config';
@@ -70,9 +71,12 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => {
-      if (!replInput.hasFocus()) {
-        inferer.indentCommand(e, ' ', false);
+    vscode.commands.registerCommand('calva-fmt.tabDedent', () => {
+      const editor = vscode.window.activeTextEditor;
+      if (replInput.hasFocus()) {
+        void replInput.editFocused((doc) => indent(doc, ' ', false));
+      } else if (editor) {
+        inferer.indentCommand(editor, ' ', false);
       }
     })
   );

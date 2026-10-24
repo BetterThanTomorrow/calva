@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as format from './calva-fmt/src/format';
+import * as config from './config';
 import type * as model from './cursor-doc/model';
 import * as paredit from './cursor-doc/paredit';
 import * as formatterConfig from './formatter-config';
@@ -15,12 +17,33 @@ export function hasFocus(): boolean {
   return cljsLib.replInputFocused();
 }
 
-export function editFocused(f: (doc: model.EditableDocument) => unknown): Promise<void> {
+export function editFocused(f: (doc: model.StringDocument) => unknown): Promise<void> {
   return cljsLib.replInputEditFocused(f);
 }
 
-function editWithOneCursor(f: (doc: model.EditableDocument) => unknown) {
+function editWithOneCursor(f: (doc: model.StringDocument) => unknown) {
   return editFocused((doc) => (doc.selections.length === 1 ? f(doc) : undefined));
+}
+
+function formatAtCursors(doc: model.StringDocument) {
+  const { text } = replInputDocument.documentState(doc);
+  replInputDocument.applyChanges(doc, format.formatAtCursorsChanges(doc, text));
+}
+
+/** Reformats `ranges` of a REPL Input document one at a time, as `reformatRanges` in `edit.ts` does in an editor. */
+export function reformatRanges(doc: model.StringDocument, ranges: [number, number][]) {
+  for (const [start, end] of ranges) {
+    const { text } = replInputDocument.documentState(doc);
+    replInputDocument.applyChanges(
+      doc,
+      format.documentRangeReformatChanges(doc, vscode.EndOfLine.LF, {
+        startIndex: start,
+        startColumn: doc.model.getRowCol(start)[1],
+        originalText: text.substring(start, end),
+        fullDocument: start === 0 && end === text.length,
+      })
+    );
+  }
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -30,6 +53,16 @@ export function activate(context: vscode.ExtensionContext) {
     document: replInputDocument.stringDocument,
     documentState: replInputDocument.documentState,
     cursorContexts: replInputDocument.cursorContexts,
+    brackets: (
+      doc: model.StringDocument,
+      options: { colorCount: number; cycleBracketColors: boolean }
+    ) => {
+      const { customCommentForms, aliasMap } = config.getConfig();
+      return replInputDocument.brackets(doc, {
+        ...options,
+        commentFormConfig: { customCommentForms, aliasMap },
+      });
+    },
     restoreEditorCursorContexts: () =>
       whenContexts.setCursorContextIfChanged(vscode.window.activeTextEditor),
   });
@@ -39,6 +72,12 @@ export function activate(context: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand('calva.replInput.deleteForward', () =>
       editWithOneCursor((doc) => paredit.deleteForward(doc))
+    ),
+    vscode.commands.registerCommand('calva.replInput.newLine', () =>
+      editFocused((doc) => replInputDocument.newLine(doc, formatterConfig.getConfigNow()))
+    ),
+    vscode.commands.registerCommand('calva.replInput.formatCurrentForm', () =>
+      editFocused(formatAtCursors)
     ),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {

@@ -27,3 +27,14 @@
       (is (every? (fn [[from to]] (<= 0 from to (count text))) ranges))))
   (testing "finds nothing in empty text"
     (is (= [] (sut/highlight-ranges "")))))
+
+(deftest typed-quote-test
+  (let [text "(str \"ab \\\" cd\" x)"]
+    (testing "steps over the quote that closes the string"
+      (is (= :step-over (sut/typed-quote text 14))))
+    (testing "inserts the quote alone elsewhere in a string"
+      (is (= :insert (sut/typed-quote text 6)))
+      (is (= :insert (sut/typed-quote text 9))))
+    (testing "leaves quotes outside strings to bracket closing"
+      (is (nil? (sut/typed-quote text 15)))
+      (is (nil? (sut/typed-quote text 1))))))

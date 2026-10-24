@@ -103,9 +103,22 @@ async function reformatRangesEndingUndoStep(editor: vscode.TextEditor, ranges: O
  * See `toggleComment.toggleLineComment` for the behaviors.
  */
 export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavior) {
-  if (replInput.hasFocus()) {
-    return;
+  if (behaviorArg !== undefined && !toggleComment.isToggleCommentBehavior(behaviorArg)) {
+    throw new Error(`Invalid argument for toggleLineComment: ${behaviorArg}`);
   }
+  const behavior =
+    behaviorArg ??
+    vscode.workspace
+      .getConfiguration('calva.paredit')
+      .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreParentForm');
+  if (replInput.hasFocus()) {
+    return replInput.editFocused((doc) =>
+      toggleComment.toggleLineComment(doc, behavior, (ranges) =>
+        Promise.resolve(replInput.reformatRanges(doc, ranges))
+      )
+    );
+  }
+
   const document = util.tryToGetDocument({});
   if (!document || document.languageId !== 'clojure') {
     return;
@@ -116,14 +129,6 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
     return;
   }
 
-  if (behaviorArg !== undefined && !toggleComment.isToggleCommentBehavior(behaviorArg)) {
-    throw new Error(`Invalid argument for toggleLineComment: ${behaviorArg}`);
-  }
-  const behavior =
-    behaviorArg ??
-    vscode.workspace
-      .getConfiguration('calva.paredit')
-      .get<ToggleCommentBehavior>('toggleCommentBehavior', 'ignoreParentForm');
   return toggleComment.toggleLineComment(docMirror.getDocument(document), behavior, (ranges) =>
     reformatRangesEndingUndoStep(editor, ranges)
   );

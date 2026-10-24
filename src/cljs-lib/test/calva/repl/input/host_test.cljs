@@ -11,6 +11,7 @@
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
        :cursorContexts (fn [^js doc] #js {"calva:cursorInComment" (string/starts-with? (.-text doc) ";")})
+       :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
        :restoreEditorCursorContexts (fn [] @restored)})
 
 (defn- fake-view [posted]
@@ -131,19 +132,20 @@
           (testing "posts the command keys to the REPL Input when it mounts"
             (is (= [{:command/name "repl-input-command-keys"
                      :repl-input/id "output-view"
+                     :repl-input/version 0
                      :repl-input/command-keys {:keys #{"backspace" "ctrl+j"} :chords #{}}}]
-                   @posted)))
+                   (posted-named posted "repl-input-command-keys"))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 1 :text "a" :selections [[1 1]]})
           (testing "posts nothing when the keys stay the same"
-            (is (= 1 (count @posted))))
+            (is (= 1 (count (posted-named posted "repl-input-command-keys")))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 2 :text "; a" :selections [[3 3]]})
           (testing "posts the keys when the REPL Input's cursor contexts change them"
             (is (= {:keys #{"ctrl+j"} :chords #{}}
-                   (:repl-input/command-keys (last @posted)))))
+                   (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys"))))))
           (sut/settings-changed! {command-keys/user-keys-setting []})
           (testing "posts the keys when the settings change them"
             (is (= {:keys #{} :chords #{}}
-                   (:repl-input/command-keys (last @posted))))))))))
+                   (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys")))))))))))
 
 (deftest edit-focused!-test
   (async done
@@ -180,3 +182,33 @@
                          (testing "posts nothing when the command changed nothing"
                            (is (= 1 (count (posted-named posted "repl-input-edit")))))
                          (done))))))))))
+
+(deftest brackets-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "(a)" :selections [[3 3]]})
+          (testing "posts the brackets of the REPL Input's text, for its version, when it mounts"
+            (is (= [{:command/name "repl-input-brackets"
+                     :repl-input/id "output-view"
+                     :repl-input/version 0
+                     :repl-input/brackets {:text "(a)" :colorCount 1}}]
+                   (posted-named posted "repl-input-brackets"))))
+          (testing "posts the closing brackets and the bracket styles when it mounts"
+            (is (= [["(" "[" "{" "\""]]
+                   (map (comp :close-brackets :repl-input/editor-settings)
+                        (posted-named posted "repl-input-editor-settings")))))
+          (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 1 :text "(a)" :selections [[0 0]]})
+          (testing "posts nothing when the brackets stay the same"
+            (is (= 1 (count (posted-named posted "repl-input-brackets")))))
+          (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 2 :text "(a b)" :selections [[5 5]]})
+          (testing "posts the brackets when the text changes"
+            (is (= [2 {:text "(a b)" :colorCount 1}]
+                   ((juxt :repl-input/version :repl-input/brackets) (last (posted-named posted "repl-input-brackets"))))))
+          (sut/settings-changed! {"editor.autoClosingBrackets" "never"
+                                  "calva.highlight.bracketColors" ["#111" "#222"]})
+          (testing "posts the brackets and the editor settings when the settings change them"
+            (is (= 2 (:colorCount (:repl-input/brackets (last (posted-named posted "repl-input-brackets"))))))
+            (is (= ["\""]
+                   (:close-brackets (:repl-input/editor-settings (last (posted-named posted "repl-input-editor-settings"))))))))))))

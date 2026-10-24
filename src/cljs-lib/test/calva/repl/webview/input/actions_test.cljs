@@ -73,3 +73,26 @@
                                                  [:repl-input/ax.set-command-keys {:keys #{"shift+cmd+7"} :chords #{}}])]
       (is (= {:keys #{"shift+meta+7"} :chords #{}} (:repl-input/command-keys db)))
       (is (= [[:repl-input/fx.set-command-keys {:keys #{"shift+meta+7"} :chords #{}}]] fxs)))))
+
+(deftest set-brackets-test
+  (let [db {:repl-input/id "output-view" :repl-input/version 2}
+        message {:repl-input/version 2 :repl-input/brackets {:brackets [[0 1 0] [2 3 0]] :matched [[0 1]]}}]
+    (testing "marks the brackets computed for the REPL Input's version"
+      (is (= {:uf/db db
+              :uf/fxs [[:repl-input/fx.set-brackets [[0 1 "repl-input-bracket-0"]
+                                                     [2 3 "repl-input-bracket-0"]
+                                                     [0 1 "repl-input-matched-bracket"]]]]}
+             (sut/handle-action db [:repl-input/ax.set-brackets message]))))
+    (testing "drops brackets computed for another version"
+      (is (= {:uf/db (assoc db :repl-input/version 3)}
+             (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.set-brackets message]))))))
+
+(deftest set-editor-settings-test
+  (testing "hands the closing brackets and the bracket stylesheet to the editor"
+    (let [{:uf/keys [fxs]} (sut/handle-action {:repl-input/id "output-view"}
+                                              [:repl-input/ax.set-editor-settings
+                                               {:close-brackets ["(" "\""]
+                                                :bracket-styles {:bracket-colors ["#0098e6"]}}])]
+      (is (= [[:repl-input/fx.set-close-brackets ["(" "\""]]
+              [:repl-input/fx.set-bracket-css ".repl-input-bracket-0 { color: #0098e6; }\n"]]
+             fxs)))))

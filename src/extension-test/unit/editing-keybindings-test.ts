@@ -234,14 +234,13 @@ describe('Calva editing keybindings and the REPL Input', () => {
   it("the REPL Input's own commands are bound only while it has focus", () => {
     const ownBindings = keybindings.filter(({ command }) => isReplInputCommand(command));
     expect(ownBindings.length).toBeGreaterThan(0);
+    const isFocusAtom = (expr: WhenExpr) => expr.op === 'atom' && expr.name === REPL_INPUT_FOCUSED;
+    const requiresFocus = (expr: WhenExpr) =>
+      isFocusAtom(expr) || (expr.op === 'and' && expr.args.some(isFocusAtom));
     const unfocused = ownBindings
       .filter(({ when }) => {
         const expr = parseWhen(when);
-        return (
-          expr.op !== 'and' ||
-          !expr.args.some((arg) => arg.op === 'atom' && arg.name === REPL_INPUT_FOCUSED) ||
-          atomsOf(expr).has('editorTextFocus')
-        );
+        return !requiresFocus(expr) || atomsOf(expr).has('editorTextFocus');
       })
       .map(({ command, key }) => `${command} ${key}`);
     expect(unfocused).toEqual([]);

@@ -1,6 +1,7 @@
 (ns calva.repl.input.host
   "The extension's state for the REPL Inputs in the Output views, and the messages they post."
   (:require
+   [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.focus :as focus]
    [calva.repl.input.records :as records]
@@ -125,20 +126,38 @@
                              (command-keys/context settings record)
                              (get settings command-keys/user-keys-setting)))
 
+(def ^:private derived-messages
+  "The messages that post what the extension derives for a REPL Input, by the record key that holds it."
+  {:repl-input/command-keys "repl-input-command-keys"
+   :repl-input/editor-settings "repl-input-editor-settings"
+   :repl-input/brackets "repl-input-brackets"})
+
+(defn- document-brackets
+  [settings doc]
+  (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
+           :keywordize-keys true))
+
 (defn- derive-record!
-  "Derives the cursor contexts and the command keys of the REPL Input `id` from its record, sets the
-   cursor contexts when it has focus, and posts the command keys to it when they changed."
+  "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
+   `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
+   what changed."
   [id]
-  (when-let [{:repl-input/keys [command-keys] :as record} (get-in @!state [:repl-input/records id])]
-    (let [record (assoc record :repl-input/cursor-contexts
-                        (js->clj (.cursorContexts ^js @!adapter (document record))))
-          new-command-keys (command-keys-for @!state record)]
-      (swap! !state assoc-in [:repl-input/records id] (assoc record :repl-input/command-keys new-command-keys))
+  (when-let [record (get-in @!state [:repl-input/records id])]
+    (let [{:repl-input/keys [settings] :as state} @!state
+          doc (document record)
+          with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
+          derived (assoc with-contexts
+                         :repl-input/command-keys (command-keys-for state with-contexts)
+                         :repl-input/editor-settings (brackets/editor-settings settings)
+                         :repl-input/brackets (document-brackets settings doc))]
+      (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
         (apply-cursor-contexts!))
-      (when (not= command-keys new-command-keys)
-        (post-to-view! id {:command/name "repl-input-command-keys"
-                           :repl-input/command-keys new-command-keys})))))
+      (doseq [[k command-name] derived-messages
+              :when (not= (get record k) (get derived k))]
+        (post-to-view! id {:command/name command-name
+                           :repl-input/version (:repl-input/version record)
+                           k (get derived k)})))))
 
 (defn- derive-records!
   []
@@ -161,13 +180,17 @@
   (derive-records!))
 
 (defn read-settings
-  "The settings the command keys depend on, as a map from setting keys to values."
+  "The settings the command keys and the brackets depend on, as a map from setting keys to values."
   []
-  (let [config (.. ^js @util/vscode -workspace getConfiguration)]
-    (into {}
-          (map (fn [k] [k (js->clj (.get config k))]))
-          (conj (command-keys/setting-keys (:repl-input/keybindings @!state))
-                command-keys/user-keys-setting))))
+  (let [workspace (.-workspace ^js @util/vscode)
+        read (fn [^js config ks]
+               (into {} (map (fn [k] [k (js->clj (.get config k))])) ks))]
+    (merge (read (.getConfiguration workspace)
+                 (concat (command-keys/setting-keys (:repl-input/keybindings @!state))
+                         [command-keys/user-keys-setting]
+                         brackets/highlight-settings))
+           (read (.getConfiguration workspace js/undefined #js {:languageId "clojure"})
+                 brackets/close-settings))))
 
 (def ^:private resolved-keybindings-uri "vscode://defaultsettings/keybindings.json")
 

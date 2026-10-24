@@ -1,6 +1,7 @@
 (ns calva.repl.webview.input.actions
   "The REPL Input's actions in the Output view's page."
   (:require
+   [calva.repl.webview.input.brackets :as brackets]
    [calva.repl.webview.input.keys :as input-keys]))
 
 (def min-height 40)
@@ -54,6 +55,17 @@
       {:uf/db db
        :uf/fxs [[:repl-input/fx.apply-edit (select-keys payload [:text :selections])]]}
       {:uf/db db})
+
+    :repl-input/ax.set-brackets
+    (if (= (:repl-input/version payload) (:repl-input/version db))
+      {:uf/db db
+       :uf/fxs [[:repl-input/fx.set-brackets (brackets/mark-ranges (:repl-input/brackets payload))]]}
+      {:uf/db db})
+
+    :repl-input/ax.set-editor-settings
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.set-close-brackets (:close-brackets payload)]
+              [:repl-input/fx.set-bracket-css (brackets/css (:bracket-styles payload))]]}
 
     :repl-input/ax.set-command-keys
     (let [command-keys (input-keys/command-keys payload)]

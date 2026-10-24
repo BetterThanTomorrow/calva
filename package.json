@@ -1945,6 +1945,18 @@
         "enablement": "calva:replInputFocused"
       },
       {
+        "command": "calva.replInput.newLine",
+        "title": "New Line in REPL Input",
+        "category": "Calva",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.formatCurrentForm",
+        "title": "Format Current Form in REPL Input",
+        "category": "Calva Format",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3307,6 +3319,16 @@
         "when": "calva:keybindingsEnabled && calva:replInputFocused && paredit:keyMap == strict && !editorHasMultipleSelections && !calva:cursorInComment"
       },
       {
+        "command": "calva.replInput.newLine",
+        "key": "enter",
+        "when": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.formatCurrentForm",
+        "key": "tab",
+        "when": "calva:keybindingsEnabled && calva:replInputFocused"
+      },
+      {
         "command": "paredit.forceDeleteForward",
         "key": "alt+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
@@ -3771,6 +3793,14 @@
         {
           "command": "calva.replInput.deleteForward",
           "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.newLine",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.formatCurrentForm",
+          "when": "calva:replInputFocused"
         }
       ],
       "editor/title": [
@@ -4071,6 +4101,7 @@
     "publish": "bb scripts/publish.clj"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",

@@ -22,23 +22,22 @@
         "false" [:literal false]
         [:key token]))))
 
+(defn- parse-chain
+  "Parses operands with `parse-operand` while `operator` joins them, as `[op & exprs]` when there
+   are several. Returns the expression and the tokens left."
+  [parse-operand operator op ts]
+  (let [[expr ts] (parse-operand ts)]
+    (loop [exprs [expr] ts ts]
+      (if (= operator (first ts))
+        (let [[expr ts] (parse-operand (rest ts))]
+          (recur (conj exprs expr) ts))
+        [(if (next exprs) (into [op] exprs) expr) ts]))))
+
 (defn parse
   "Returns `clause` as an expression for `holds?`, or nil when `clause` is empty."
   [clause]
-  (letfn [(parse-or [ts]
-            (let [[expr ts] (parse-and ts)]
-              (loop [exprs [expr] ts ts]
-                (if (= "||" (first ts))
-                  (let [[expr ts] (parse-and (rest ts))]
-                    (recur (conj exprs expr) ts))
-                  [(if (next exprs) (into [:or] exprs) expr) ts]))))
-          (parse-and [ts]
-            (let [[expr ts] (parse-not ts)]
-              (loop [exprs [expr] ts ts]
-                (if (= "&&" (first ts))
-                  (let [[expr ts] (parse-not (rest ts))]
-                    (recur (conj exprs expr) ts))
-                  [(if (next exprs) (into [:and] exprs) expr) ts]))))
+  (letfn [(parse-or [ts] (parse-chain parse-and "||" :or ts))
+          (parse-and [ts] (parse-chain parse-not "&&" :and ts))
           (parse-not [ts]
             (case (first ts)
               "!" (let [[expr ts] (parse-not (rest ts))]

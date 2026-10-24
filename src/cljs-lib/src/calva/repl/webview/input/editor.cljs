@@ -4,8 +4,9 @@
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.input.keys :as input-keys]
+   ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [defaultKeymap history historyKeymap isolateHistory]]
-   ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateField]]
+   ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField]]
    ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
 
 (defn mount-element
@@ -31,6 +32,18 @@
                           (if (.-docChanged transaction)
                             (mark-decorations (highlight/highlight-ranges (.. transaction -state -doc toString)))
                             decorations))
+                :provide (fn [field] (.from (.-decorations EditorView) field))}))
+
+(def ^:private set-bracket-marks (.define StateEffect))
+
+(def ^:private bracket-marks
+  (.define StateField
+           #js {:create (fn [_] (.-none Decoration))
+                :update (fn [^js decorations ^js transaction]
+                          (reduce (fn [decorations ^js effect]
+                                    (if (.is effect set-bracket-marks) (.-value effect) decorations))
+                                  (.map decorations (.-changes transaction))
+                                  (.-effects transaction)))
                 :provide (fn [field] (.from (.-decorations EditorView) field))}))
 
 (def theme
@@ -60,7 +73,7 @@
   {:text (.. state -doc toString)
    :selections (selections state)})
 
-(def ^:private command-keys-compartment (Compartment.))
+(defonce ^:private command-keys-compartment (Compartment.))
 
 (defn- keydown-event
   [^js event]
@@ -86,11 +99,40 @@
                                                      (.preventDefault event))
                                                    cancel?))}))))
 
+(defonce ^:private close-brackets-compartment (Compartment.))
+
+(def ^:private quotes-in-strings
+  "Types a quote inside a string as Clojure files do: alone, or over the quote that closes the string."
+  (.high Prec
+         (.of (.-inputHandler EditorView)
+              (fn [^js view from to text]
+                (when (and (= "\"" text) (= from to))
+                  (when-let [typed (highlight/typed-quote (.. view -state -doc toString) from)]
+                    (.dispatch view (if (= :step-over typed)
+                                      #js {:selection #js {:anchor (inc from)}}
+                                      #js {:changes #js {:from from :insert text}
+                                           :selection #js {:anchor (inc from)}
+                                           :userEvent "input.type"}))
+                    true))))))
+
+(defn- close-brackets-extension
+  "Closes the `brackets` as they are typed, and skips over a closing bracket it inserted."
+  [brackets]
+  (if (seq brackets)
+    #js [quotes-in-strings
+         (closeBrackets)
+         (.of keymap closeBracketsKeymap)
+         (.of (.-languageData EditorState)
+              (fn [_ _ _] #js [#js {:closeBrackets #js {:brackets (clj->js brackets)}}]))]
+    #js []))
+
 (defn- extensions
   [dispatch!]
   #js [theme
        highlighting
+       bracket-marks
        (.of command-keys-compartment #js [])
+       (.of close-brackets-compartment #js [])
        (history)
        (drawSelection)
        (.of keymap (.concat defaultKeymap historyKeymap))
@@ -168,6 +210,26 @@
                                         :annotations (.of isolateHistory "full")}
                                  change (assoc :changes change)))))))
 
+(defn- set-bracket-marks!
+  [ranges]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.of set-bracket-marks (mark-decorations ranges))})))
+
+(defn- set-close-brackets!
+  [brackets]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure close-brackets-compartment (close-brackets-extension brackets))})))
+
+(defonce ^:private !bracket-sheet (atom nil))
+
+(defn- set-bracket-css!
+  [css]
+  (let [^js sheet (or @!bracket-sheet
+                      (let [sheet (js/CSSStyleSheet.)]
+                        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
+                        (reset! !bracket-sheet sheet)))]
+    (.replaceSync sheet css)))
+
 (defn exec-effect!
   [dispatch! [fx-type & args]]
   (case fx-type
@@ -175,4 +237,7 @@
     :repl-input/fx.unmount (unmount!)
     :repl-input/fx.set-height (set-height! (first args))
     :repl-input/fx.set-command-keys (set-command-keys! (first args))
-    :repl-input/fx.apply-edit (apply-edit! (first args))))
+    :repl-input/fx.apply-edit (apply-edit! (first args))
+    :repl-input/fx.set-brackets (set-bracket-marks! (first args))
+    :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
+    :repl-input/fx.set-bracket-css (set-bracket-css! (first args))))

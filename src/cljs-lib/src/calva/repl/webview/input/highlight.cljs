@@ -28,3 +28,15 @@
                       (and scope (< offset end)) (conj [offset end (scope-class scope)]))
                     end])))]
     (first (walk [] root 0))))
+
+(defn typed-quote
+  "Returns `:step-over` when a quote typed at `offset` lands on the quote that closes a string in
+   `text`, `:insert` when it lands elsewhere in a string, and nil outside strings."
+  [text offset]
+  (when-let [string-end (some (fn [[from to class-name]]
+                                (when (and (= "hljs-string" class-name) (< from offset to))
+                                  to))
+                              (highlight-ranges text))]
+    (if (and (= offset (dec string-end)) (= "\"" (get text offset)))
+      :step-over
+      :insert)))
