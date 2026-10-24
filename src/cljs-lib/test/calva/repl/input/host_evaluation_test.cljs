@@ -226,24 +226,18 @@
           (sut/evaluate-focused!)
           (let [interrupted (atom [])]
             ((.-onSent ^js (:options (first @evaluations)))
-             #js {:id "7"
-                  :running false
-                  :interrupt #(swap! interrupted conj :evaluation)
-                  :session #js {:interrupt (fn [id]
-                                             (swap! interrupted conj [:session id])
-                                             (js/Promise.resolve))}})
+             #js {:interrupt #(swap! interrupted conj :evaluation)})
             (post! {:command "repl-input-interrupt" :repl-input/id "output-sidebar"})
             (testing "leaves the evaluations of the other view's REPL Input running"
               (is (= [] @interrupted)))
             (post! {:command "repl-input-interrupt" :repl-input/id "output-view"})
-            (testing "interrupts an evaluation that has had no reply yet through its session"
-              (is (= [[:session "7"]] @interrupted))))
+            (testing "interrupts the view's REPL Input evaluation"
+              (is (= [:evaluation] @interrupted))))
           (mount-focused! "output-view" "(Thread/sleep 10000)")
           (sut/evaluate-focused!)
           (let [interrupted (atom [])]
             ((.-onSent ^js (:options (second @evaluations)))
-             #js {:running true
-                  :interrupt #(swap! interrupted conj :evaluation)})
+             #js {:interrupt #(swap! interrupted conj :evaluation)})
             (sut/interrupt-focused!)
             (testing "interrupts the focused REPL Input's running evaluation"
               (is (= [:evaluation] @interrupted)))))))))

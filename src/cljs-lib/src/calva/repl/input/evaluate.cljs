@@ -161,19 +161,11 @@
       (update-evaluations! id evaluations/reading-stdin evaluation-id false)
       (send (or line "")))))
 
-(defn- interrupt-evaluation!
-  "Interrupts the NReplEvaluation `evaluation`. One that has had no reply yet isn't running to
-   NReplEvaluation, so its session interrupts it."
-  [^js evaluation]
-  (if (.-running evaluation)
-    (.interrupt evaluation)
-    (-> (.. evaluation -session (interrupt (.-id evaluation)))
-        (.catch #(js/console.error "Failed interrupting the REPL Input evaluation:" %)))))
-
 (defn interrupt!
   [id]
   (doseq [evaluation-id (keys (get-in @host/!state [:repl-input/evaluations id]))]
-    (some-> (get-in @!running [evaluation-id :evaluation]) interrupt-evaluation!)))
+    (when-let [^js evaluation (get-in @!running [evaluation-id :evaluation])]
+      (.interrupt evaluation))))
 
 (defn ^:export interrupt-focused!
   "Interrupts the evaluations running from the focused REPL Input."

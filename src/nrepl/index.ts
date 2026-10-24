@@ -474,7 +474,7 @@ export class NReplSession {
     return NReplSession.Instances;
   }
 
-  private addRunningID(id: string) {
+  addRunningID(id: string) {
     if (id) {
       if (!this._runningIds.includes(id)) {
         this._runningIds.push(id);
@@ -715,31 +715,12 @@ export class NReplSession {
       ...cleanedOpts,
     });
 
-    const evaluation = new NReplEvaluation(
-      opMsg.id,
-      this,
-      opts.stderr,
-      opts.stdout,
-      opts.stdin,
-      new Promise((resolve, reject) => {
-        if (this.supports(opMsg.op)) {
-          this.messageHandlers[opMsg.id] = (msg) => {
-            evaluation.setHandlers(resolve, reject);
-            if (opts.line && opts.column && opts.file) {
-              debugDecorations.triggerUpdateAndRenderDecorations();
-            }
-            if (evaluation.onMessage(msg, pprintOptions)) {
-              return true;
-            }
-          };
-          this.addRunningID(opMsg.id);
-          this.client.write(opMsg);
-        } else {
-          log(opMsg, Direction.ClientToServerNotSupported);
-          resolve(undefined);
-        }
-      })
-    );
+    const evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin);
+    evaluation.send(opMsg, pprintOptions, () => {
+      if (opts.line && opts.column && opts.file) {
+        debugDecorations.triggerUpdateAndRenderDecorations();
+      }
+    });
 
     return evaluation;
   }
@@ -798,38 +779,20 @@ export class NReplSession {
     delete opts.pprintOptions;
     const extraOpts = getServerSidePrinter(pprintOptions);
     const { stderr, stdout, ...optsLessOut } = opts;
-    const evaluation = new NReplEvaluation(
-      id,
-      this,
-      stderr,
-      stdout,
-      null,
-      new Promise((resolve, reject) => {
-        const msg = {
-          ...extraOpts,
-          ...optsLessOut,
-          op: 'load-file',
-          session: this.sessionId,
-          file,
-          id,
-          'file-name': opts.fileName,
-          'file-path': opts.filePath,
-        };
-        if (this.supports(msg.op)) {
-          this.messageHandlers[id] = (msg) => {
-            evaluation.setHandlers(resolve, reject);
-            debugDecorations.triggerUpdateAndRenderDecorations();
-            if (evaluation.onMessage(msg, pprintOptions)) {
-              return true;
-            }
-          };
-          this.addRunningID(id);
-          this.client.write(msg);
-        } else {
-          log(msg, Direction.ClientToServerNotSupported);
-          resolve(undefined);
-        }
-      })
+    const evaluation = new NReplEvaluation(id, this, stderr, stdout, null);
+    evaluation.send(
+      {
+        ...extraOpts,
+        ...optsLessOut,
+        op: 'load-file',
+        session: this.sessionId,
+        file,
+        id,
+        'file-name': opts.fileName,
+        'file-path': opts.filePath,
+      },
+      pprintOptions,
+      () => debugDecorations.triggerUpdateAndRenderDecorations()
     );
 
     return evaluation;
@@ -1306,14 +1269,45 @@ export class NReplEvaluation {
 
   private __reject: (reason?: any) => void;
 
+  readonly value: Promise<any>;
+
   constructor(
     public id: string,
     public session: NReplSession,
     public stderr: (x: string) => void,
     public stdout: (x: string) => void,
-    public stdin: () => Promise<string>,
-    public value: Promise<any>
-  ) {}
+    public stdin: () => Promise<string>
+  ) {
+    this.value = new Promise((resolve, reject) => {
+      this._resolve = resolve;
+      this.__reject = reject;
+    });
+  }
+
+  /**
+   * Sends `message` in the session. The evaluation runs from then until its reply is done, and
+   * calls `onReply` for each reply message. Resolves to `undefined` when the server doesn't support
+   * the message's op.
+   */
+  send(
+    message: { op: string; [key: string]: unknown },
+    pprintOptions: PrettyPrintingOptions,
+    onReply: () => void
+  ) {
+    if (!this.session.supports(message.op)) {
+      log(message, Direction.ClientToServerNotSupported);
+      this.doResolve(undefined);
+      return;
+    }
+    this.session.messageHandlers[this.id] = (msg) => {
+      onReply();
+      return this.onMessage(msg, pprintOptions);
+    };
+    this._running = true;
+    this.add();
+    this.session.addRunningID(this.id);
+    this.session.client.write(message);
+  }
 
   private add(): void {
     if (!NReplEvaluation.Instances.includes(this)) {
@@ -1439,14 +1433,7 @@ export class NReplEvaluation {
     }
   }
 
-  setHandlers(resolve: (reason?: any) => void, reject: (reason?: any) => void) {
-    this._resolve = resolve;
-    this.__reject = reject;
-  }
-
   onMessage(msg: any, pprintOptions: PrettyPrintingOptions): boolean {
-    this._running = true;
-    this.add();
     if (msg) {
       this._msgs.push(msg);
       if (msg.out) {
