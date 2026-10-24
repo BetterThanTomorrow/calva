@@ -671,6 +671,8 @@
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
          "repl-input-enabled"   (dispatch! [:repl-input/ax.set-enabled (:repl-input/enabled? message-data)])
+         "repl-input-edit"      (dispatch! [:repl-input/ax.edit message-data])
+         "repl-input-command-keys" (dispatch! [:repl-input/ax.set-command-keys (:repl-input/command-keys message-data)])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

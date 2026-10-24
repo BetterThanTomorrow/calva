@@ -1,9 +1,11 @@
 (ns calva.repl.webview.input.editor
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
   (:require
+   [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
-   ["@codemirror/commands" :refer [defaultKeymap history historyKeymap]]
-   ["@codemirror/state" :refer [EditorState StateField]]
+   [calva.repl.webview.input.keys :as input-keys]
+   ["@codemirror/commands" :refer [defaultKeymap history historyKeymap isolateHistory]]
+   ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateField]]
    ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
 
 (defn mount-element
@@ -58,10 +60,37 @@
   {:text (.. state -doc toString)
    :selections (selections state)})
 
+(def ^:private command-keys-compartment (Compartment.))
+
+(defn- keydown-event
+  [^js event]
+  {:key (.-key event)
+   :code (.-code event)
+   :ctrl? (.-ctrlKey event)
+   :shift? (.-shiftKey event)
+   :alt? (.-altKey event)
+   :meta? (.-metaKey event)
+   :composing? (.-isComposing event)})
+
+(defn- command-keys-handler
+  "Leaves the `command-keys` to VS Code, before CodeMirror's keymap sees them."
+  [command-keys]
+  (let [!pending-chord? (volatile! false)]
+    (.highest Prec
+              (.domEventHandlers EditorView
+                                 #js {:keydown (fn [^js event _view]
+                                                 (let [{:keys [cancel? pending-chord?]}
+                                                       (input-keys/keydown command-keys @!pending-chord? (keydown-event event))]
+                                                   (vreset! !pending-chord? pending-chord?)
+                                                   (when cancel?
+                                                     (.preventDefault event))
+                                                   cancel?))}))))
+
 (defn- extensions
   [dispatch!]
   #js [theme
        highlighting
+       (.of command-keys-compartment #js [])
        (history)
        (drawSelection)
        (.of keymap (.concat defaultKeymap historyKeymap))
@@ -123,9 +152,27 @@
   (set! (.-textContent (mount-element)) "")
   (.. js/document -body -classList (remove "repl-input-on")))
 
+(defn- set-command-keys!
+  [command-keys]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure command-keys-compartment (command-keys-handler command-keys))})))
+
+(defn- apply-edit!
+  [{:keys [text selections]}]
+  (when-let [^js view (editor-view)]
+    (let [change (edit/text-change (.. view -state -doc toString) text)]
+      (.dispatch view (clj->js (cond-> {:selection (.create EditorSelection
+                                                            (into-array (for [[anchor head] selections]
+                                                                          (.range EditorSelection anchor head))))
+                                        :scrollIntoView true
+                                        :annotations (.of isolateHistory "full")}
+                                 change (assoc :changes change)))))))
+
 (defn exec-effect!
   [dispatch! [fx-type & args]]
   (case fx-type
     :repl-input/fx.mount (mount! dispatch! (first args))
     :repl-input/fx.unmount (unmount!)
-    :repl-input/fx.set-height (set-height! (first args))))
+    :repl-input/fx.set-height (set-height! (first args))
+    :repl-input/fx.set-command-keys (set-command-keys! (first args))
+    :repl-input/fx.apply-edit (apply-edit! (first args))))

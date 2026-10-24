@@ -11,14 +11,28 @@
 (defn- stale?
   [{:repl-input/keys [version]} change]
   (and version
-       (<= (:version change) version)))
+       (< (:version change) version)))
 
 (defn take-change
-  "Returns `records` with the REPL Input's record from `change`, unless `change` is older than the record."
+  "Returns `records` with the REPL Input's record from `change`, unless `change` is older than the record.
+   A change at the record's version replaces what `take-edit` expected of that version."
   [records {:repl-input/keys [id] :as change}]
   (if (stale? (get records id) change)
     records
-    (assoc records id (message->record change))))
+    (update records id merge (message->record change))))
+
+(defn take-edit
+  "Returns `records` with the REPL Input's record at the version after `version`, with the `text`,
+   `selections` and `selections-stack` of an edit made from `version`. The edit is dropped when the
+   record is no longer at `version`."
+  [records id version {:keys [text selections selections-stack]}]
+  (if (= version (get-in records [id :repl-input/version]))
+    (update records id assoc
+            :repl-input/version (inc version)
+            :repl-input/text text
+            :repl-input/selections selections
+            :repl-input/selections-stack selections-stack)
+    records))
 
 (defn take-mount
   "Returns `records` with the REPL Input's record replaced by the freshly mounted one."

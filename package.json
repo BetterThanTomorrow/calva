@@ -380,6 +380,17 @@
             ],
             "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input below the output. **Calva: Toggle REPL Input in Output View** and **Calva: Toggle REPL Input in Output Sidebar** switch it for the session. The REPL Input is being built and does not evaluate yet."
           },
+          "calva.outputViews.replInputCommandKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "tags": [
+              "experimental"
+            ],
+            "markdownDescription": "Keys you have bound to Calva commands in your own `keybindings.json`, written the same way, e.g. `ctrl+alt+j` or `ctrl+k ctrl+j`. The REPL Input leaves these keys to VS Code, so the commands run instead of the REPL Input's own handling of the keys. Calva's default keybindings are left to VS Code without being listed here."
+          },
           "calva.outputViewImageDisplay": {
             "type": "string",
             "enum": [
@@ -1922,6 +1933,18 @@
         "icon": "$(edit)"
       },
       {
+        "command": "calva.replInput.deleteBackward",
+        "title": "Delete Backward in REPL Input",
+        "category": "Calva Paredit",
+        "enablement": "calva:replInputFocused"
+      },
+      {
+        "command": "calva.replInput.deleteForward",
+        "title": "Delete Forward in REPL Input",
+        "category": "Calva Paredit",
+        "enablement": "calva:replInputFocused"
+      },
+      {
         "command": "calva.interruptAllEvaluations",
         "title": "Interrupt Running Evaluations",
         "enablement": "calva:connected",
@@ -3274,6 +3297,16 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
       },
       {
+        "command": "calva.replInput.deleteForward",
+        "key": "delete",
+        "when": "calva:keybindingsEnabled && calva:replInputFocused && paredit:keyMap == strict && !editorHasMultipleSelections && !calva:cursorInComment"
+      },
+      {
+        "command": "calva.replInput.deleteBackward",
+        "key": "backspace",
+        "when": "calva:keybindingsEnabled && calva:replInputFocused && paredit:keyMap == strict && !editorHasMultipleSelections && !calva:cursorInComment"
+      },
+      {
         "command": "paredit.forceDeleteForward",
         "key": "alt+delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
@@ -3730,6 +3763,14 @@
         {
           "command": "calva.toggleOutputSidebarReplInput",
           "when": "calva:replInputEnabled"
+        },
+        {
+          "command": "calva.replInput.deleteBackward",
+          "when": "calva:replInputFocused"
+        },
+        {
+          "command": "calva.replInput.deleteForward",
+          "when": "calva:replInputFocused"
         }
       ],
       "editor/title": [

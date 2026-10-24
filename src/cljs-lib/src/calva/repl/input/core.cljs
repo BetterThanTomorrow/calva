@@ -47,13 +47,16 @@
          (when (.affectsConfiguration event "calva.outputViews.replInput")
            (host/clear-toggles!)
            (set-enabled-context!)
-           (apply-to-views!))))))
+           (apply-to-views!))
+         (when (.affectsConfiguration event "calva")
+           (host/settings-changed! (host/read-settings)))))))
 
 (defn ^:export init!
-  "Starts the REPL Input with the adapter's `setContext` function."
+  "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
-  (host/set-set-context-fn! (.-setContext adapter))
+  (host/set-adapter! adapter)
   (set-enabled-context!)
+  (host/load-keybindings!)
   (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener))))
 
 (defn ^:export toggle-output-view!

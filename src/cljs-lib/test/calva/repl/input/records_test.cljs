@@ -39,12 +39,13 @@
                                      :text "(foo) bar"
                                      :selections [[0 0]]}))))
 
-  (testing "the version the record already has is dropped"
-    (is (= records
-           (sut/take-change records {:repl-input/id "output-view"
-                                     :version 41
-                                     :text "something else"
-                                     :selections [[0 0]]}))))
+  (testing "a change at the record's version replaces the record's prediction of an edit"
+    (is (= "something else"
+           (get-in (sut/take-change records {:repl-input/id "output-view"
+                                             :version 41
+                                             :text "something else"
+                                             :selections [[0 0]]})
+                   ["output-view" :repl-input/text]))))
 
   (testing "a change leaves the other REPL Inputs' records alone"
     (is (= record-41
@@ -53,6 +54,33 @@
                                           :text "x"
                                           :selections [[1 1]]})
                 "output-view")))))
+
+(deftest take-change-keeps-derived-test
+  (testing "a change keeps what the extension derived for the record"
+    (is (= {"calva:cursorInComment" true}
+           (get-in (sut/take-change (assoc-in records ["output-view" :repl-input/cursor-contexts] {"calva:cursorInComment" true})
+                                    {:repl-input/id "output-view"
+                                     :version 42
+                                     :text "(foo) bar baz"
+                                     :selections [[5 5]]})
+                   ["output-view" :repl-input/cursor-contexts])))))
+
+(deftest take-edit-test
+  (testing "an edit of the record's version gives the record the next version, with the edit's text, selections and selection history"
+    (is (= {"output-view" {:repl-input/id "output-view"
+                           :repl-input/version 42
+                           :repl-input/text "(foo bar baz)"
+                           :repl-input/selections [[1 4]]
+                           :repl-input/selections-stack [[[4 4]] [[1 4]]]}}
+           (sut/take-edit records "output-view" 41 {:text "(foo bar baz)"
+                                                    :selections [[1 4]]
+                                                    :selections-stack [[[4 4]] [[1 4]]]}))))
+  (testing "an edit of an older version is dropped, since the REPL Input changed while the command ran"
+    (is (= records
+           (sut/take-edit records "output-view" 40 {:text "(foo bar baz)" :selections [[4 4]]}))))
+  (testing "an edit for a REPL Input without a record is dropped"
+    (is (= records
+           (sut/take-edit records "output-sidebar" 0 {:text "x" :selections [[1 1]]})))))
 
 (deftest take-mount-test
   (testing "a mount replaces the record whatever its version, since a mounted REPL Input starts over"

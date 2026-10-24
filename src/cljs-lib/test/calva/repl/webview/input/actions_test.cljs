@@ -55,3 +55,21 @@
       (is (= [[:repl-input/fx.set-height {:height 100 :dragging? false}]
               [:fx/post-to-host {:command "repl-input-resized" :repl-input/id "output-view" :height 100}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.drag-ended])))))))
+
+(deftest edit-test
+  (let [db {:repl-input/id "output-view" :repl-input/version 2}
+        edit {:repl-input/version 2 :text "(a b)" :selections [[4 4]]}]
+    (testing "applies an edit of the REPL Input's version"
+      (is (= {:uf/db db
+              :uf/fxs [[:repl-input/fx.apply-edit {:text "(a b)" :selections [[4 4]]}]]}
+             (sut/handle-action db [:repl-input/ax.edit edit]))))
+    (testing "drops an edit of an older version, since the text changed after the command read it"
+      (is (= {:uf/db (assoc db :repl-input/version 3)}
+             (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.edit edit]))))))
+
+(deftest set-command-keys-test
+  (testing "keeps the command keys in comparable form and hands them to the editor"
+    (let [{:uf/keys [db fxs]} (sut/handle-action {:repl-input/id "output-view"}
+                                                 [:repl-input/ax.set-command-keys {:keys #{"shift+cmd+7"} :chords #{}}])]
+      (is (= {:keys #{"shift+meta+7"} :chords #{}} (:repl-input/command-keys db)))
+      (is (= [[:repl-input/fx.set-command-keys {:keys #{"shift+meta+7"} :chords #{}}]] fxs)))))

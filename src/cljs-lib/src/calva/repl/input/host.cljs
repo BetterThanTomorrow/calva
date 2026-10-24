@@ -1,29 +1,39 @@
 (ns calva.repl.input.host
   "The extension's state for the REPL Inputs in the Output views, and the messages they post."
   (:require
+   [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.focus :as focus]
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
-   [calva.util :as util]))
+   [calva.util :as util]
+   ["jsonc-parser" :as jsonc]))
 
 (def focused-context "calva:replInputFocused")
 
 (def heights-key "calva.replInput.heights")
 
-(defonce !state (atom {:repl-input/records {}
-                       :repl-input/focused nil
-                       :repl-input/overrides {}}))
+(def initial-state
+  {:repl-input/records {}
+   :repl-input/focused nil
+   :repl-input/overrides {}
+   :repl-input/keybindings []
+   :repl-input/settings {}
+   :repl-input/applied-cursor-contexts nil})
 
-(defonce !set-context (atom (fn [_key _value])))
+(defonce !state (atom initial-state))
 
-(defn set-set-context-fn!
-  "Sets the function that sets a VS Code context key to a value."
-  [f]
-  (reset! !set-context f))
+(defonce !adapter (atom nil))
+
+(defonce !views (atom {}))
+
+(defn set-adapter!
+  "Sets the adapter with the functions that call Calva's TypeScript code."
+  [adapter]
+  (reset! !adapter adapter))
 
 (defn set-context!
   [k value]
-  (@!set-context k value))
+  (some-> ^js @!adapter (.setContext k value)))
 
 (defn current-setting
   []
@@ -63,24 +73,143 @@
    :repl-input/enabled? (enabled? view-id)
    :repl-input/height (get (heights) view-id)})
 
+(defn- post-to-view!
+  [id message]
+  (when-let [^js view (get @!views id)]
+    (.. view -webview (postMessage (pr-str (assoc message :repl-input/id id))))))
+
+(defn- document
+  [{:repl-input/keys [text selections selections-stack]}]
+  (.document ^js @!adapter text (clj->js selections) (clj->js (or selections-stack []))))
+
+(defn- document-state
+  [doc]
+  (let [{:keys [text selections selectionsStack]} (js->clj (.documentState ^js @!adapter doc) :keywordize-keys true)]
+    {:text text
+     :selections selections
+     :selections-stack selectionsStack}))
+
+(defn- apply-cursor-contexts!
+  "Sets the focused REPL Input's cursor contexts that differ from the ones last set."
+  []
+  (let [{:repl-input/keys [focused records applied-cursor-contexts]} @!state]
+    (when-let [contexts (get-in records [focused :repl-input/cursor-contexts])]
+      (doseq [[k v] contexts
+              :when (not= v (get applied-cursor-contexts k))]
+        (set-context! k v))
+      (swap! !state assoc :repl-input/applied-cursor-contexts contexts))))
+
+(defn- release-cursor-contexts!
+  "Gives the cursor contexts back to the active text editor, or clears them when no text editor takes them."
+  []
+  (when-let [applied (:repl-input/applied-cursor-contexts @!state)]
+    (swap! !state assoc :repl-input/applied-cursor-contexts nil)
+    (when-not (.restoreEditorCursorContexts ^js @!adapter)
+      (doseq [[k v] applied
+              :when v]
+        (set-context! k false)))))
+
 (defn- update-focus!
   [event]
   (let [[before after] (swap-vals! !state update :repl-input/focused focus/focused-after event)
         focused? (some? (:repl-input/focused after))]
     (when (not= (some? (:repl-input/focused before)) focused?)
-      (set-context! focused-context focused?))))
+      (set-context! focused-context focused?))
+    (if focused?
+      (apply-cursor-contexts!)
+      (release-cursor-contexts!))))
+
+(defn- command-keys-for
+  [{:repl-input/keys [keybindings settings]} record]
+  (command-keys/command-keys keybindings
+                             (command-keys/context settings record)
+                             (get settings command-keys/user-keys-setting)))
+
+(defn- derive-record!
+  "Derives the cursor contexts and the command keys of the REPL Input `id` from its record, sets the
+   cursor contexts when it has focus, and posts the command keys to it when they changed."
+  [id]
+  (when-let [{:repl-input/keys [command-keys] :as record} (get-in @!state [:repl-input/records id])]
+    (let [record (assoc record :repl-input/cursor-contexts
+                        (js->clj (.cursorContexts ^js @!adapter (document record))))
+          new-command-keys (command-keys-for @!state record)]
+      (swap! !state assoc-in [:repl-input/records id] (assoc record :repl-input/command-keys new-command-keys))
+      (when (= id (:repl-input/focused @!state))
+        (apply-cursor-contexts!))
+      (when (not= command-keys new-command-keys)
+        (post-to-view! id {:command/name "repl-input-command-keys"
+                           :repl-input/command-keys new-command-keys})))))
+
+(defn- derive-records!
+  []
+  (run! derive-record! (keys (:repl-input/records @!state))))
 
 (defn- update-records!
   [f & args]
   (apply swap! !state update :repl-input/records f args))
 
+(defn- take-record!
+  [f {:repl-input/keys [id] :as msg}]
+  (let [[before after] (swap-vals! !state update :repl-input/records f msg)]
+    (when (not= (get-in before [:repl-input/records id]) (get-in after [:repl-input/records id]))
+      (derive-record! id))))
+
+(defn settings-changed!
+  "Takes `settings`, a map from setting keys to values, and derives the REPL Inputs' command keys anew."
+  [settings]
+  (swap! !state assoc :repl-input/settings settings)
+  (derive-records!))
+
+(defn read-settings
+  "The settings the command keys depend on, as a map from setting keys to values."
+  []
+  (let [config (.. ^js @util/vscode -workspace getConfiguration)]
+    (into {}
+          (map (fn [k] [k (js->clj (.get config k))]))
+          (conj (command-keys/setting-keys (:repl-input/keybindings @!state))
+                command-keys/user-keys-setting))))
+
+(def ^:private resolved-keybindings-uri "vscode://defaultsettings/keybindings.json")
+
+(defn- platform
+  []
+  (case js/process.platform
+    "darwin" "mac"
+    "win32" "win"
+    "linux"))
+
+(defn- read-resolved-keybindings+
+  []
+  (let [^js vscode @util/vscode]
+    (-> (.. vscode -workspace (openTextDocument (.. vscode -Uri (parse resolved-keybindings-uri))))
+        (.then (fn [^js doc]
+                 (js->clj (jsonc/parse (.getText doc)) :keywordize-keys true))))))
+
+(defn load-keybindings!
+  "Reads the keys VS Code resolved for Calva's keybindings with the current keyboard layout, falling back
+   on the manifest's keys for the platform, and derives the REPL Inputs' command keys from them."
+  []
+  (when-let [^js vscode-context @util/vscode-context]
+    (let [manifest (js->clj (.. vscode-context -extension -packageJSON -contributes -keybindings) :keywordize-keys true)
+          fallback #(command-keys/platform-keybindings manifest (platform))]
+      (-> (read-resolved-keybindings+)
+          (.then (fn [resolved]
+                   (let [keybindings (command-keys/calva-keybindings manifest resolved)]
+                     (if (seq keybindings) keybindings (fallback)))))
+          (.catch fallback)
+          (.then (fn [keybindings]
+                   (swap! !state assoc :repl-input/keybindings (command-keys/parsed keybindings))
+                   (settings-changed! (read-settings))))))))
+
 (defn handle-message!
-  "Takes a message a REPL Input posted."
-  [^js message]
+  "Takes a message the REPL Input in `webview-host` posted."
+  [^js webview-host ^js message]
   (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
     (case command
-      "repl-input-mounted" (update-records! records/take-mount msg)
-      "repl-input-changed" (update-records! records/take-change msg)
+      "repl-input-mounted" (do (swap! !views assoc id webview-host)
+                               (take-record! records/take-mount msg)
+                               (load-keybindings!))
+      "repl-input-changed" (take-record! records/take-change msg)
       "repl-input-unmounted" (do (update-records! records/remove-record id)
                                  (update-focus! [:unmount id]))
       "repl-input-focused" (update-focus! [:focus id])
@@ -92,10 +221,11 @@
   [^js webview-host]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
-      (.onDidReceiveMessage webview handle-message!))))
+      (.onDidReceiveMessage webview #(handle-message! webview-host %)))))
 
 (defn view-disposed!
   [view-id]
+  (swap! !views dissoc view-id)
   (update-records! records/remove-record view-id)
   (update-focus! [:dispose view-id]))
 
@@ -111,3 +241,27 @@
 (defn ^:export text-editor-focused!
   []
   (update-focus! [:text-editor-focus]))
+
+(defn- edited!
+  [id version before doc]
+  (let [{:keys [text selections] :as after} (document-state doc)]
+    (when (not= (dissoc before :selections-stack) (dissoc after :selections-stack))
+      (let [[old new] (swap-vals! !state update :repl-input/records records/take-edit id version after)]
+        (when (not= old new)
+          (post-to-view! id {:command/name "repl-input-edit"
+                             :repl-input/version version
+                             :text text
+                             :selections selections})
+          (derive-record! id))))))
+
+(defn ^:export edit-focused!
+  "Runs `f` on a document with the focused REPL Input's text and selections, and posts what `f` made of
+   them to that REPL Input. Returns a promise of when that is done."
+  [f]
+  (let [{:repl-input/keys [focused records]} @!state]
+    (if-let [{:repl-input/keys [version] :as record} (get records focused)]
+      (let [doc (document record)
+            before (document-state doc)]
+        (-> (js/Promise.resolve (f doc))
+            (.then (fn [_] (edited! focused version before doc)))))
+      (js/Promise.resolve nil))))

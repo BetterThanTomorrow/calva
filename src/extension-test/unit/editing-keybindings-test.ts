@@ -31,6 +31,8 @@ const PAREDIT_COMMANDS_LEFT_AS_THEY_ARE = [
   'paredit.forceDeleteBackward',
 ];
 
+const isReplInputCommand = (command: string) => command.startsWith('calva.replInput.');
+
 function isEditingCommand(command: string) {
   return (
     NAMED_EDITING_COMMANDS.includes(command) ||
@@ -157,7 +159,9 @@ describe('Calva editing keybindings and the REPL Input', () => {
   const editingBindings = keybindings.filter(
     ({ command, when }) => isEditingCommand(command) && when && requiresEditorTextFocus(when)
   );
-  const replInputBindings = keybindings.filter(({ when }) => when?.includes(REPL_INPUT_FOCUSED));
+  const replInputBindings = keybindings.filter(
+    ({ command, when }) => !isReplInputCommand(command) && when?.includes(REPL_INPUT_FOCUSED)
+  );
 
   it('parses when clauses with VS Code precedence', () => {
     const expr = parseWhen('a && !b || c =~ /x|y/ && (d || e == f)');
@@ -219,9 +223,27 @@ describe('Calva editing keybindings and the REPL Input', () => {
     const others = commands
       .filter(
         ({ command, enablement }) =>
-          !isEditingCommand(command) && enablement?.includes(REPL_INPUT_FOCUSED)
+          !isEditingCommand(command) &&
+          !isReplInputCommand(command) &&
+          enablement?.includes(REPL_INPUT_FOCUSED)
       )
       .map(({ command }) => command);
     expect(others).toEqual([]);
+  });
+
+  it("the REPL Input's own commands are bound only while it has focus", () => {
+    const ownBindings = keybindings.filter(({ command }) => isReplInputCommand(command));
+    expect(ownBindings.length).toBeGreaterThan(0);
+    const unfocused = ownBindings
+      .filter(({ when }) => {
+        const expr = parseWhen(when);
+        return (
+          expr.op !== 'and' ||
+          !expr.args.some((arg) => arg.op === 'atom' && arg.name === REPL_INPUT_FOCUSED) ||
+          atomsOf(expr).has('editorTextFocus')
+        );
+      })
+      .map(({ command, key }) => `${command} ${key}`);
+    expect(unfocused).toEqual([]);
   });
 });

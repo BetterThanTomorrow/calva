@@ -1,5 +1,7 @@
 (ns calva.repl.webview.input.actions
-  "The REPL Input's actions in the Output view's page.")
+  "The REPL Input's actions in the Output view's page."
+  (:require
+   [calva.repl.webview.input.keys :as input-keys]))
 
 (def min-height 40)
 
@@ -46,6 +48,17 @@
     (let [version (inc (:repl-input/version db))]
       {:uf/db (assoc db :repl-input/version version)
        :uf/fxs [(post db "repl-input-changed" :version version :text (:text payload) :selections (:selections payload))]})
+
+    :repl-input/ax.edit
+    (if (= (:repl-input/version payload) (:repl-input/version db))
+      {:uf/db db
+       :uf/fxs [[:repl-input/fx.apply-edit (select-keys payload [:text :selections])]]}
+      {:uf/db db})
+
+    :repl-input/ax.set-command-keys
+    (let [command-keys (input-keys/command-keys payload)]
+      {:uf/db (assoc db :repl-input/command-keys command-keys)
+       :uf/fxs [[:repl-input/fx.set-command-keys command-keys]]})
 
     :repl-input/ax.focused
     {:uf/db db
