@@ -140,6 +140,32 @@ suite('CLJC Routing suite', function () {
     assert.strictEqual(routingInfo?.sessionKey, 'clj', '.cljc should route to clj (primary)');
   });
 
+  test('Routes a document that is not the active editor the way it routes it when it is', async function () {
+    testUtil.log(suiteName, 'Testing: Routing for a given document');
+
+    const cljcEditor = await testUtil.openFile(cljcFile);
+    const routingWhenActive = replSession.getRoutingInfo();
+
+    await testUtil.openFile(cljsFile);
+    const routingWhenNotActive = replSession.getRoutingInfo(cljcEditor.document);
+    testUtil.log(
+      suiteName,
+      'Routing for the .cljc document from a .cljs editor:',
+      routingWhenNotActive
+    );
+
+    assert.deepStrictEqual(
+      routingWhenNotActive,
+      routingWhenActive,
+      'The .cljc document should route the same with a .cljs editor active'
+    );
+    assert.strictEqual(
+      replSession.getRoutingInfo()?.sessionKey,
+      'cljs',
+      'Without a document, routing follows the active .cljs editor'
+    );
+  });
+
   test('Toggle command switches cljc routing between clj and cljs', async function () {
     testUtil.log(suiteName, 'Testing: Toggle cljc target switches routing');
 
