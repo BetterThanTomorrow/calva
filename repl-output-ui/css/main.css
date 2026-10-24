@@ -232,3 +232,37 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    object-fit: contain;
    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
 }
+
+body.repl-input-on {
+   display: flex;
+   flex-direction: column;
+   box-sizing: border-box;
+   min-height: 100vh;
+}
+
+body.repl-input-on #output {
+   flex-grow: 1;
+}
+
+body.repl-input-on #repl-input {
+   position: sticky;
+   bottom: 0;
+   margin-inline: calc(-1 * var(--calva-output-inset));
+   padding: 6px var(--calva-output-inset);
+   background-color: var(--vscode-editor-background);
+   border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+}
+
+body.repl-input-on #repl-input[data-repl-input-id="output-sidebar"] {
+   background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+.repl-input-resize-handle {
+   position: absolute;
+   top: -4px;
+   left: 0;
+   right: 0;
+   height: 8px;
+   cursor: ns-resize;
+   touch-action: none;
+}

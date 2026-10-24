@@ -1,5 +1,6 @@
 (ns calva.repl.webview.sidebar-test
   (:require
+   [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.sidebar :as sut]
    [cljs.test :refer-macros [deftest testing is]]
@@ -34,6 +35,8 @@
         on-did-change-configuration-spy (spy/stub "configuration-subscription")
         register-webview!-spy (spy/spy)
         unregister-webview!-spy (spy/spy)
+        view-disposed!-spy (spy/spy)
+        view-hidden!-spy (spy/spy)
         webview-view #js {:webview #js {:cspSource "csp-source"}
                           :visible false
                           :onDidDispose (test-util/wrap-spy on-did-dispose-spy)
@@ -47,6 +50,9 @@
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly destinations)
                   sut/output-sidebar-webview-view (atom nil)
+                  input-host/enabled? (constantly false)
+                  input-host/view-disposed! (test-util/wrap-spy view-disposed!-spy)
+                  input-host/view-hidden! (test-util/wrap-spy view-hidden!-spy)
                   core/register-webview! (test-util/wrap-spy register-webview!-spy)
                   core/unregister-webview! (test-util/wrap-spy unregister-webview!-spy)]
       (let [provider (sut/create-repl-output-sidebar-provider)]
@@ -54,6 +60,7 @@
         (is (= webview-view @sut/output-sidebar-webview-view))
         (is (spy/called-once-with? register-webview!-spy webview-view))
         (is (re-find #"REPL Output" (.. ^js webview-view -webview -html)))
+        (is (= "REPL Output" (.-title webview-view)))
         (testing "should register a configuration-change callback"
           (let [calls (spy/calls on-did-change-configuration-spy)]
             (is (= 1 (count calls)))
@@ -62,9 +69,14 @@
           (let [calls (spy/calls on-did-change-visibility-spy)]
             (is (= 1 (count calls)))
             (is (fn? (type (first (first calls)))))))
+        (testing "should tell the REPL Input host when the view is hidden"
+          ((ffirst (spy/calls on-did-change-visibility-spy)))
+          (is (spy/called-once-with? view-hidden!-spy "output-sidebar")))
         ((ffirst (spy/calls on-did-dispose-spy)))
         (is (nil? @sut/output-sidebar-webview-view))
-        (is (spy/called-once-with? unregister-webview!-spy webview-view))))))
+        (is (spy/called-once-with? unregister-webview!-spy webview-view))
+        (testing "should drop the REPL Input's record when the page is set and when the view is disposed"
+          (is (= [["output-sidebar"] ["output-sidebar"]] (spy/calls view-disposed!-spy))))))))
 
 (deftest show-repl-output-sidebar-test
   (let [show-spy (spy/spy)
@@ -163,6 +175,7 @@
                   sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
                   sut/output-sidebar-webview-view (atom nil)
                   sut/output-sidebar-log (atom output-log)
+                  input-host/enabled? (constantly false)
                   core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
                   core/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
@@ -177,3 +190,26 @@
                (-> (spy/calls set-webview-html!-spy) first second :view-kind)))
         (is (= ["first" "second" "first" "second"]
                (map #(-> % second :output) (spy/calls post-message-to-webview-spy))))))))
+
+(deftest apply-sidebar-help-or-output-log!-repl-input-test
+  (let [webview-view #js {:webview #js {:cspSource "csp-source"}}
+        vscode-stub #js {:window #js {:activeColorTheme #js {:kind 1}}}
+        set-webview-html!-spy (spy/spy)]
+    (with-redefs [util/vscode (atom vscode-stub)
+                  util/vscode-context (atom #js {})
+                  sut/current-output-destinations (constantly {:evalResults "terminal"})
+                  sut/output-sidebar-webview-view (atom webview-view)
+                  sut/output-sidebar-log (atom [{:command/name "show-stdout" :output "stale"}])
+                  sut/output-sidebar-showing-output-log? (atom false)
+                  input-host/enabled? (constantly true)
+                  core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
+                  core/set-code-theme! (constantly nil)
+                  core/post-message-to-webview (constantly nil)]
+      (sut/apply-sidebar-help-or-output-log! webview-view)
+      (testing "shows the output page when the REPL Input is on, without the sidebar as destination"
+        (is (= :output-sidebar (-> (spy/calls set-webview-html!-spy) first second :view-kind)))
+        (is @sut/output-sidebar-showing-output-log?))
+      (testing "keeps no output log when the sidebar is not a destination"
+        (is (= [] @sut/output-sidebar-log)))
+      (testing "titles the view REPL"
+        (is (= "REPL" (.-title webview-view)))))))

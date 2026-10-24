@@ -358,6 +358,28 @@
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
+          "calva.outputViews.replInput": {
+            "type": "object",
+            "properties": {
+              "output-view": {
+                "type": "boolean",
+                "default": false
+              },
+              "output-sidebar": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "additionalProperties": false,
+            "default": {
+              "output-view": false,
+              "output-sidebar": false
+            },
+            "tags": [
+              "experimental"
+            ],
+            "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input below the output. **Calva: Toggle REPL Input in Output View** and **Calva: Toggle REPL Input in Output Sidebar** switch it for the session. The REPL Input is being built and does not evaluate yet."
+          },
           "calva.outputViewImageDisplay": {
             "type": "string",
             "enum": [
@@ -1886,6 +1908,18 @@
         "command": "calva.resetOutputViewFontSize",
         "title": "Reset Output View Font Size",
         "category": "Calva"
+      },
+      {
+        "command": "calva.toggleOutputViewReplInput",
+        "title": "Toggle REPL Input in Output View",
+        "category": "Calva",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "calva.toggleOutputSidebarReplInput",
+        "title": "Toggle REPL Input in Output Sidebar",
+        "category": "Calva",
+        "icon": "$(edit)"
       },
       {
         "command": "calva.interruptAllEvaluations",
@@ -3688,9 +3722,22 @@
         {
           "command": "calva.toggleBetweenImplAndTest",
           "when": "editorLangId == clojure"
+        },
+        {
+          "command": "calva.toggleOutputViewReplInput",
+          "when": "calva:replInputEnabled"
+        },
+        {
+          "command": "calva.toggleOutputSidebarReplInput",
+          "when": "calva:replInputEnabled"
         }
       ],
       "editor/title": [
+        {
+          "command": "calva.toggleOutputViewReplInput",
+          "when": "activeWebviewPanelId == 'calva.output-view' && calva:replInputEnabled",
+          "group": "navigation"
+        },
         {
           "enablement": "editorLangId == clojure  && calva:connected",
           "command": "calva.loadFile",
@@ -3849,6 +3896,11 @@
           "command": "calva.clearReplOutputSidebar",
           "when": "view == calva.output-sidebar",
           "group": "navigation@5"
+        },
+        {
+          "command": "calva.toggleOutputSidebarReplInput",
+          "when": "view == calva.output-sidebar && calva:replInputEnabled",
+          "group": "navigation@6"
         },
         {
           "command": "calva.pasteAsInspectorItem",

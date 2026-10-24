@@ -10,6 +10,7 @@ import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
 import * as pareditConfig from '../cursor-doc/paredit-config';
+import * as replInput from '../repl-input';
 
 type EditableDocument = model.EditableDocument;
 type PareditConfig = pareditConfig.PareditConfig;
@@ -533,6 +534,9 @@ const pareditCommands = [
 function wrapPareditCommand<C extends PareditCommand>(command: C) {
   return async (arg: CommandArgOf<C>) => {
     try {
+      if (replInput.hasFocus()) {
+        return;
+      }
       const textEditor = window.activeTextEditor;
 
       utilities.assertIsDefined(textEditor, 'Expected window to have an activeTextEditor!');

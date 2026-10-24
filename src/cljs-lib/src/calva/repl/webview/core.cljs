@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.input.host :as input-host]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
    [calva.repl.webview.token-colors :as token-colors]
@@ -265,8 +266,14 @@
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 
+(defn repl-input-html
+  [{:repl-input/keys [id enabled? height]}]
+  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\""
+       (when height (str " data-repl-input-height=\"" height "\""))
+       "></div>"))
+
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -283,7 +290,7 @@
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
                               https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
                               https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
-                              " csp-source ";
+                              " csp-source " 'nonce-" script-nonce "';
                     script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
@@ -305,6 +312,7 @@
   <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
+    " (when repl-input (repl-input-html repl-input)) "
 
     <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
   </body>
@@ -343,7 +351,8 @@
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)
                                                 :font-scale (get-output-views-font-scale-setting)
-                                                :image-display (image-display)})]
+                                                :image-display (image-display)
+                                                :repl-input (input-host/html-state (name view-kind))})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -400,6 +409,8 @@
   (.. webview-panel
       (onDidChangeViewState
        (fn [^js _event]
+         (when-not (.-visible webview-panel)
+           (input-host/view-hidden! "output-view"))
          (set-code-theme! context
                           {:color-theme-kind (.. ^js vscode -window -activeColorTheme -kind)
                            :webview-panel webview-panel})))))
@@ -419,12 +430,14 @@
            (when ws-folders-disposable
              (.dispose ^js ws-folders-disposable))
            (dispose-repl-output-webview-panel output-view-webview-panel)
-           (unregister-webview! webview-panel))))))
+           (unregister-webview! webview-panel)
+           (input-host/view-disposed! "output-view"))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]
   (register-webview! webview-panel)
   (image-host/listen-for-webview-messages! webview-panel)
+  (input-host/listen-for-messages! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -435,7 +448,7 @@
   (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
                            "calva.output-view"
-                           "REPL Output"
+                           (input-host/view-title "output-view")
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
                            (let [^js opts (image-host/webview-options "calva.showReplOutputView")]

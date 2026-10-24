@@ -1,5 +1,6 @@
 (ns calva.repl.webview.sidebar
   (:require
+   [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
@@ -73,12 +74,15 @@
 
 (defn apply-sidebar-help-or-output-log!
   [^js webview-view]
-  (if (output-sidebar-in-setting? (current-output-destinations))
-    (do
-      (show-sidebar-output-log! webview-view)
-      (post-output-sidebar-log!))
-    (do
-      (set-sidebar-help! webview-view)
+  (let [destination? (output-sidebar-in-setting? (current-output-destinations))]
+    (input-host/view-disposed! "output-sidebar")
+    (set! (.-title webview-view) (input-host/view-title "output-sidebar"))
+    (if (or destination? (input-host/enabled? "output-sidebar"))
+      (do
+        (show-sidebar-output-log! webview-view)
+        (post-output-sidebar-log!))
+      (set-sidebar-help! webview-view))
+    (when-not destination?
       (reset! output-sidebar-log []))))
 
 (defn add-output-sidebar-message!
@@ -109,6 +113,7 @@
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
                (image-host/listen-for-webview-messages! webview-view)
+               (input-host/listen-for-messages! webview-view)
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
@@ -119,13 +124,17 @@
                                       (when ws-folders-disposable
                                         (.dispose ^js ws-folders-disposable))
                                       (reset! output-sidebar-webview-view nil)
-                                      (core/unregister-webview! webview-view))))))
+                                      (core/unregister-webview! webview-view)
+                                      (input-host/view-disposed! "output-sidebar"))))))
                (add-context-subscription!
                 (.. webview-view
                     (onDidChangeVisibility
                      (fn []
-                       (when (and (.. webview-view -visible)
-                                  (output-sidebar-in-setting? (current-output-destinations)))
+                       (cond
+                         (not (.. webview-view -visible))
+                         (input-host/view-hidden! "output-sidebar")
+
+                         @output-sidebar-showing-output-log?
                          (core/set-code-theme! (sidebar-context)
                                                {:color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)
                                                 :webview-panel webview-view})))))))}]

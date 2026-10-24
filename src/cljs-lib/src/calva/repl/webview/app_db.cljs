@@ -1,6 +1,7 @@
 (ns calva.repl.webview.app-db
   (:require
-   [calva.repl.webview.images :as images]))
+   [calva.repl.webview.images :as images]
+   [calva.repl.webview.input.actions :as input-actions]))
 
 (def initial-db
   {:output/last-context nil
@@ -66,7 +67,7 @@
                :always (into fxs))}))
 
 (defn handle-action
-  [db [action-type payload]]
+  [db [action-type payload :as action]]
   (case action-type
     :msg/clear-output-view
     {:uf/db  (assoc db :output/last-context nil)
@@ -113,4 +114,6 @@
     {:uf/db db
      :uf/fxs [[:fx/scroll-to payload]]}
 
-    {:uf/db db}))
+    (if (= "repl-input" (namespace action-type))
+      (input-actions/handle-action db action)
+      {:uf/db db})))

@@ -1,0 +1,131 @@
+(ns calva.repl.webview.input.editor
+  "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
+  (:require
+   [calva.repl.webview.input.highlight :as highlight]
+   ["@codemirror/commands" :refer [defaultKeymap history historyKeymap]]
+   ["@codemirror/state" :refer [EditorState StateField]]
+   ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
+
+(defn mount-element
+  []
+  (js/document.getElementById "repl-input"))
+
+(defn- editor-view
+  []
+  (when-let [dom (some-> (mount-element) (.querySelector ".cm-editor"))]
+    (.findFromDOM EditorView dom)))
+
+(defn- mark-decorations
+  [ranges]
+  (.set Decoration
+        (into-array (for [[from to class-name] ranges]
+                      (.range (.mark Decoration #js {:class class-name}) from to)))
+        true))
+
+(def highlighting
+  (.define StateField
+           #js {:create (fn [^js state] (mark-decorations (highlight/highlight-ranges (.. state -doc toString))))
+                :update (fn [decorations ^js transaction]
+                          (if (.-docChanged transaction)
+                            (mark-decorations (highlight/highlight-ranges (.. transaction -state -doc toString)))
+                            decorations))
+                :provide (fn [field] (.from (.-decorations EditorView) field))}))
+
+(def theme
+  (.theme EditorView
+          #js {"&" #js {:color "var(--vscode-input-foreground)"
+                        :backgroundColor "var(--vscode-input-background)"
+                        :border "1px solid var(--vscode-input-border, transparent)"
+                        :fontFamily "var(--vscode-editor-font-family, monospace)"
+                        :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                        :minHeight "var(--repl-input-min-height, auto)"
+                        :maxHeight "var(--repl-input-max-height, 40vh)"}
+               "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
+               ".cm-scroller" #js {:fontFamily "inherit"
+                                   :overflow "auto"}
+               ".cm-content" #js {:caretColor "var(--vscode-editorCursor-foreground)"
+                                  :padding "4px 0"}
+               ".cm-cursor, .cm-dropCursor" #js {:borderLeftColor "var(--vscode-editorCursor-foreground)"}
+               "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground"
+               #js {:backgroundColor "var(--vscode-editor-selectionBackground)"}}))
+
+(defn- selections
+  [^js state]
+  (mapv (fn [^js r] [(.-anchor r) (.-head r)]) (.. state -selection -ranges)))
+
+(defn- state-payload
+  [^js state]
+  {:text (.. state -doc toString)
+   :selections (selections state)})
+
+(defn- extensions
+  [dispatch!]
+  #js [theme
+       highlighting
+       (history)
+       (drawSelection)
+       (.of keymap (.concat defaultKeymap historyKeymap))
+       (.-lineWrapping EditorView)
+       (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
+       (.of (.-updateListener EditorView)
+            (fn [^js update]
+              (when (or (.-docChanged update) (.-selectionSet update))
+                (dispatch! [:repl-input/ax.changed (state-payload (.-state update))]))))
+       (.domEventHandlers EditorView
+                          #js {:focus (fn [_ _] (dispatch! [:repl-input/ax.focused]) false)
+                               :blur (fn [_ _] (dispatch! [:repl-input/ax.blurred]) false)})])
+
+(defn- set-height!
+  [{:keys [height dragging?]}]
+  (let [style (.-style (mount-element))]
+    (if height
+      (.setProperty style "--repl-input-max-height" (str height "px"))
+      (.removeProperty style "--repl-input-max-height"))
+    (if dragging?
+      (.setProperty style "--repl-input-min-height" (str height "px"))
+      (.removeProperty style "--repl-input-min-height"))))
+
+(defn- listen-for-drag!
+  [^js handle dispatch!]
+  (.addEventListener
+   handle "pointerdown"
+   (fn [^js down]
+     (let [start-y (.-clientY down)
+           start-height (some-> (editor-view) .-dom .getBoundingClientRect .-height)
+           move (fn [^js e]
+                  (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
+                                                   :view-height js/window.innerHeight}]))]
+       (.preventDefault down)
+       (.setPointerCapture handle (.-pointerId down))
+       (.addEventListener handle "pointermove" move)
+       (.addEventListener handle "pointerup"
+                          (fn [_]
+                            (.removeEventListener handle "pointermove" move)
+                            (dispatch! [:repl-input/ax.drag-ended]))
+                          #js {:once true})))))
+
+(defn- mount!
+  [dispatch! {:keys [height]}]
+  (let [element (mount-element)
+        handle (js/document.createElement "div")
+        state (.create EditorState #js {:doc "" :extensions (extensions dispatch!)})]
+    (set! (.-className handle) "repl-input-resize-handle")
+    (.appendChild element handle)
+    (listen-for-drag! handle dispatch!)
+    (EditorView. #js {:state state :parent element})
+    (set-height! {:height height})
+    (.. js/document -body -classList (add "repl-input-on"))
+    (dispatch! [:repl-input/ax.mounted (state-payload state)])))
+
+(defn- unmount!
+  []
+  (some-> (editor-view) .destroy)
+  (set! (.-textContent (mount-element)) "")
+  (.. js/document -body -classList (remove "repl-input-on")))
+
+(defn exec-effect!
+  [dispatch! [fx-type & args]]
+  (case fx-type
+    :repl-input/fx.mount (mount! dispatch! (first args))
+    :repl-input/fx.unmount (unmount!)
+    :repl-input/fx.set-height (set-height! (first args))))

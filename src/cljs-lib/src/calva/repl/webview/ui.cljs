@@ -169,7 +169,7 @@
 (defn post-to-host!
   [message]
   (when vscode-api
-    (.postMessage vscode-api (clj->js message))))
+    (.postMessage vscode-api (clj->js message :keyword-fn #(subs (str %) 1)))))
 
 (defn- host-request-id
   []
@@ -608,8 +608,18 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(defonce !effect-handlers (atom {}))
+
+(defn register-effect-handler!
+  "Registers `handler` for the effects with the keyword namespace `effect-ns`. It is called with
+   `dispatch!` and the effect."
+  [effect-ns handler]
+  (swap! !effect-handlers assoc effect-ns handler))
+
+(declare dispatch!)
+
 (defn exec-effect!
-  [^js output-dom-element [fx-type & args]]
+  [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
     :fx/append-result (append-eval-result output-dom-element (first args))
@@ -622,7 +632,11 @@
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
-    :fx/scroll-to (scroll-to (first args))))
+    :fx/scroll-to (scroll-to (first args))
+    :fx/post-to-host (post-to-host! (first args))
+    (if-let [handler (get @!effect-handlers (namespace fx-type))]
+      (handler dispatch! effect)
+      (js/console.error "No handler for effect" (str fx-type)))))
 
 (defn dispatch!
   [action]
@@ -656,6 +670,7 @@
          "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
+         "repl-input-enabled"   (dispatch! [:repl-input/ax.set-enabled (:repl-input/enabled? message-data)])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

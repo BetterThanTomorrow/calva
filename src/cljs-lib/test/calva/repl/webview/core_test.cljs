@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core-test
   (:require
+   [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.token-colors :as token-colors]
@@ -186,17 +187,32 @@
                                         :script-nonce "n"})))))
 
 (deftest get-webview-html-csp-nonce-test
-  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source"
+  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source and allows the same nonce"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
                                                               :csp-source "csp-source"
                                                               :script-nonce "abc-123"})]
       (is (re-find #"script-src 'nonce-abc-123'" result))
       (is (re-find #"<script nonce=\"abc-123\" src=\"js-source\"></script>" result))
-      (is (re-find #"style-src[\s\S]*csp-source;" result))
+      (is (re-find #"style-src[\s\S]*csp-source 'nonce-abc-123';" result))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (nil? (re-find #"script-src js-source" result)))
       (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
+
+(deftest get-webview-html-repl-input-test
+  (testing "renders the REPL Input mount after the output, with its state"
+    (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\" data-repl-input-height=\"120\"></div>"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:repl-input {:repl-input/id "output-view"
+                                                     :repl-input/enabled? true
+                                                     :repl-input/height 120}}))))
+  (testing "leaves out the height when there is none"
+    (is (re-find #"<div id=\"repl-input\" data-repl-input-id=\"output-sidebar\" data-repl-input-enabled=\"false\"></div>"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:repl-input {:repl-input/id "output-sidebar"
+                                                     :repl-input/enabled? false}}))))
+  (testing "renders no REPL Input mount without REPL Input state"
+    (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {}))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -247,6 +263,7 @@
                       sut/word-wrap? (constantly true)
                       sut/get-output-views-font-scale-setting (constantly 1.5)
                       sut/image-display (constantly "raw")
+                      input-host/html-state (fn [view-id] {:repl-input/id view-id})
                       sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
@@ -264,7 +281,8 @@
                                                                      :greeting-html "some-greeting"
                                                                      :word-wrap? true
                                                                      :font-scale 1.5
-                                                                     :image-display "raw"})))
+                                                                     :image-display "raw"
+                                                                     :repl-input {:repl-input/id "output-view"}})))
           (testing "should set webview html to result of call to get-webview-html"
             (is (= "some-html" (.. webview-panel -webview -html)))))
         (finally

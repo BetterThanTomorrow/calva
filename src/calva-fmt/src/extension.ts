@@ -6,6 +6,7 @@ import * as inferer from './infer';
 import * as docmirror from '../../doc-mirror/index';
 import * as config from '../../formatter-config';
 import * as calvaConfig from '../../config';
+import * as replInput from '../../repl-input';
 
 function isOldIndentEngineInPlay(): boolean {
   return (
@@ -70,7 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => {
-      inferer.indentCommand(e, ' ', false);
+      if (!replInput.hasFocus()) {
+        inferer.indentCommand(e, ' ', false);
+      }
     })
   );
   context.subscriptions.push(

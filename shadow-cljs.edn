@@ -44,7 +44,12 @@
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
                              :appendStackTraceToReplOutputSidebar calva.repl.webview.sidebar/append-stacktrace
-                             :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar}
+                             :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar
+                             :initReplInput calva.repl.input.core/init!
+                             :toggleOutputViewReplInput calva.repl.input.core/toggle-output-view!
+                             :toggleOutputSidebarReplInput calva.repl.input.core/toggle-output-sidebar!
+                             :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
+                             :replInputFocused calva.repl.input.host/focused?}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

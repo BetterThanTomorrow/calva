@@ -7,6 +7,7 @@ import * as printer from './printer';
 import * as format from './calva-fmt/src/format';
 import * as toggleComment from './toggle-comment';
 import { isTextEditor } from './util/editor-utils';
+import * as replInput from './repl-input';
 
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
@@ -102,6 +103,9 @@ async function reformatRangesEndingUndoStep(editor: vscode.TextEditor, ranges: O
  * See `toggleComment.toggleLineComment` for the behaviors.
  */
 export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavior) {
+  if (replInput.hasFocus()) {
+    return;
+  }
   const document = util.tryToGetDocument({});
   if (!document || document.languageId !== 'clojure') {
     return;
