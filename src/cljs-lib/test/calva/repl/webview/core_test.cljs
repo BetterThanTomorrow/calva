@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
    [matcher-combinators.test]
@@ -283,28 +284,32 @@
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "dark"})))))
+                                                                                  :code-theme "dark"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "light"})))))
+                                                                                  :code-theme "light"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast"})))))
+                                                                                  :code-theme "high-contrast"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast-light"})))))
+                                                                                  :code-theme "high-contrast-light"
+                                                                                  :token-colors nil})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
@@ -317,15 +322,79 @@
                  "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
                  color-theme-kind))))))))
 
+(deftest set-code-theme!-token-colors-test
+  (testing "sends the active color theme's code colors with the code theme"
+    (let [dark 0
+          context {:vscode/vscode (clj->js {:ColorThemeKind {:Dark dark}})}
+          webview-panel {:some "mock-webview-panel"}
+          post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                    token-colors/active-theme-hljs-colors (fn [kind]
+                                                            (when (= dark kind)
+                                                              {"keyword" "#ff7b72"}))]
+        (sut/set-code-theme! context {:color-theme-kind dark
+                                      :webview-panel webview-panel})
+        (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                              :code-theme "dark"
+                                                                              :token-colors {"keyword" "#ff7b72"}}))))))
+
+(deftest post-code-theme-to-all-views!-test
+  (testing "sets the code theme of every registered webview"
+    (let [set-code-theme-spy (spy/spy)
+          webview-a #js {}
+          webview-b #js {}
+          context {:vscode/vscode #js {}}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme-spy)]
+        (sut/post-code-theme-to-all-views! context 2)
+        (is (spy/called-with? set-code-theme-spy context {:color-theme-kind 2 :webview-panel webview-a}))
+        (is (spy/called-with? set-code-theme-spy context {:color-theme-kind 2 :webview-panel webview-b}))
+        (is (spy/called-n-times? set-code-theme-spy 2))))))
+
 (deftest create-color-theme-change-listener-test
-  (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"
-    (let [on-did-change-active-color-theme-spy (spy/spy)
-          context {:vscode/vscode (clj->js {:window {:onDidChangeActiveColorTheme
-                                                     (test-util/wrap-spy on-did-change-active-color-theme-spy)}})}]
-      (sut/create-color-theme-change-listener context {:webview-panel {:some "webview-panel"}})
-      (let [calls (spy/calls on-did-change-active-color-theme-spy)]
-        (is (= 1 (count calls)))
-        (is (fn? (type (ffirst calls))))))))
+  (testing "posts the code theme of the new color theme kind to all views"
+    (let [captured-handler (atom nil)
+          post-spy (spy/spy)
+          context {:vscode/vscode #js {:window #js {:onDidChangeActiveColorTheme (fn [handler]
+                                                                                    (reset! captured-handler handler)
+                                                                                    "some-listener")}}}]
+      (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+        (is (= "some-listener" (sut/create-color-theme-change-listener context)))
+        (@captured-handler #js {:kind 1})
+        (is (spy/called-once-with? post-spy context 1))))))
+
+(deftest create-token-color-customizations-change-listener-test
+  (let [captured-handler (atom nil)
+        context {:vscode/vscode #js {:window #js {:activeColorTheme #js {:kind 2}}
+                                     :workspace #js {:onDidChangeConfiguration (fn [handler]
+                                                                                 (reset! captured-handler handler)
+                                                                                 "some-listener")}}}
+        event-for (fn [affected-section]
+                    #js {:affectsConfiguration #(= affected-section %)})]
+    (testing "posts the code theme to all views when editor.tokenColorCustomizations changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+          (is (= "some-listener" (sut/create-token-color-customizations-change-listener context)))
+          (@captured-handler (event-for "editor.tokenColorCustomizations"))
+          (is (spy/called-once-with? post-spy context 2)))))
+    (testing "ignores other configuration changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+          (sut/create-token-color-customizations-change-listener context)
+          (@captured-handler (event-for "editor.wordWrap"))
+          (is (spy/not-called? post-spy)))))))
+
+(deftest init-code-theme!-test
+  (testing "registers the color theme and the token color customizations listeners as subscriptions"
+    (let [push-spy (spy/spy)
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [util/vscode (atom #js {})
+                    util/vscode-context (atom vscode-context-stub)
+                    sut/create-color-theme-change-listener (constantly "color-theme-listener")
+                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")]
+        (sut/init-code-theme!)
+        (is (spy/called-with? push-spy "color-theme-listener"))
+        (is (spy/called-with? push-spy "customizations-listener"))))))
 
 (deftest create-view-state-change-listener-test
   (testing "Given a context and a webview panel, should call onDidChangeViewState and pass it a function"

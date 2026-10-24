@@ -121,6 +121,7 @@ async function activate(context: vscode.ExtensionContext) {
   });
   cljsLib.initReplOutputWordWrap();
   cljsLib.initOutputViewImageDisplay();
+  cljsLib.initOutputViewsCodeTheme();
   cljsLib.initReplOutputFontSizeScale();
 
   initializeState();

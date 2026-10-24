@@ -42,11 +42,6 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
 
-  (testing ":msg/set-code-theme"
-    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"}])]
-      (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-code-theme "dark"]] (:uf/fxs result)))))
-
   (testing ":msg/set-word-wrap"
     (let [result (sut/handle-action sut/initial-db [:msg/set-word-wrap {:word-wrap true}])]
       (is (= sut/initial-db (:uf/db result)))
@@ -56,6 +51,22 @@
     (let [result (sut/handle-action sut/initial-db [:msg/scroll-to {:x 0 :y 100}])]
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/scroll-to {:x 0 :y 100}]] (:uf/fxs result))))))
+
+(deftest handle-action-set-code-theme-test
+  (testing ":msg/set-code-theme"
+    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"
+                                                                         :token-colors {"keyword" "#ff7b72"}}])]
+      (is (= sut/initial-db (:uf/db result)))
+      (is (= [[:fx/set-code-theme "dark"]
+              [:fx/set-token-colors {"keyword" "#ff7b72"}]]
+             (:uf/fxs result))
+          "The theme's code colors go over the code theme")))
+
+  (testing ":msg/set-code-theme without token colors"
+    (is (= [[:fx/set-code-theme "dark"]
+            [:fx/set-token-colors nil]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"}])))
+        "Colors from an earlier theme go, and the code theme's colors show")))
 
 (def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 

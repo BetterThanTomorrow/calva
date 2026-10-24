@@ -547,6 +547,25 @@
     ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
     (js/setTimeout update-theme-of-copy-buttons 100)))
 
+(defn token-colors-css
+  "Returns CSS that gives each highlight.js scope in `colors` its color, over the code theme's."
+  [colors]
+  (apply str (for [[scope color] colors]
+               (str ":root .hljs-" scope " { color: " color "; }\n"))))
+
+(defonce !token-colors-sheet (atom nil))
+
+(defn- token-colors-sheet
+  []
+  (or @!token-colors-sheet
+      (let [sheet (js/CSSStyleSheet.)]
+        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
+        (reset! !token-colors-sheet sheet))))
+
+(defn set-token-colors!
+  [colors]
+  (.replaceSync ^js (token-colors-sheet) (token-colors-css colors)))
+
 (defn set-word-wrap!
   [word-wrap]
   (let [body js/document.body]
@@ -599,6 +618,7 @@
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
+    :fx/set-token-colors (set-token-colors! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))

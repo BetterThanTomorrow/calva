@@ -81,7 +81,8 @@
 
     :msg/set-code-theme
     {:uf/db db
-     :uf/fxs [[:fx/set-code-theme (:code-theme payload)]]}
+     :uf/fxs [[:fx/set-code-theme (:code-theme payload)]
+              [:fx/set-token-colors (:token-colors payload)]]}
 
     :msg/set-word-wrap
     {:uf/db db
