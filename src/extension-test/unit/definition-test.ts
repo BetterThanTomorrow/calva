@@ -57,3 +57,19 @@ describe('REPL definitions from text', () => {
       .toBeUndefined();
   });
 });
+
+describe('REPL definition positions', () => {
+  it('gives the zero-based line and character of the one-based line and column the REPL reports', () => {
+    expectLib
+      .expect(replDefinition.definitionPosition({ file: 'file:/src/foo.clj', line: 2, column: 1 }))
+      .toEqual({ line: 1, character: 0 });
+    expectLib
+      .expect(replDefinition.definitionPosition({ file: 'file:/src/foo.clj', line: 3, column: 7 }))
+      .toEqual({ line: 2, character: 6 });
+  });
+  it('gives the start of the line when the REPL reports no column', () => {
+    expectLib
+      .expect(replDefinition.definitionPosition({ file: 'file:/src/foo.clj', line: 2 }))
+      .toEqual({ line: 1, character: 0 });
+  });
+});

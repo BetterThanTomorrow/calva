@@ -19,7 +19,8 @@ const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition
 
 /** Returns the location of a definition the REPL reports in a file, or `undefined` when its file isn't a uri. */
 export function replLocation(definition: replDefinition.ReplDefinition) {
-  const pos = new vscode.Position(definition.line - 1, definition.column || 0);
+  const { line, character } = replDefinition.definitionPosition(definition);
+  const pos = new vscode.Position(line, character);
   try {
     return new vscode.Location(vscode.Uri.parse(definition.file, true), pos);
   } catch (e) {

@@ -4,6 +4,11 @@ import * as cursorDocUtil from '../cursor-doc/utilities';
 
 export type ReplDefinition = { file: string; line: number; column?: number };
 
+/** Returns the zero-based line and character of `definition`, whose line and column the REPL reports one-based. */
+export function definitionPosition({ line, column }: ReplDefinition) {
+  return { line: Math.max(0, line - 1), character: Math.max(0, (column ?? 1) - 1) };
+}
+
 /**
  * Asks `session` for info on the word at `offset` in `doc`, in namespace `ns`. Returns the
  * file, line and column the REPL reports for it, or `undefined` when it reports no file.
