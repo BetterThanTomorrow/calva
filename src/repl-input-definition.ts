@@ -9,7 +9,7 @@ import * as replDefinition from './providers/repl-definition';
 import { lspClient } from './repl-input-completion';
 
 /** The scheme of the read-only editors that show what a REPL Input evaluated. */
-export const evaluationScheme = 'calva-repl-input';
+export const evaluationScheme: string = cljsLib.replInputEvaluationScheme;
 
 function openAt(uri: vscode.Uri, position: vscode.Position) {
   return vscode.window.showTextDocument(uri, { selection: new vscode.Range(position, position) });

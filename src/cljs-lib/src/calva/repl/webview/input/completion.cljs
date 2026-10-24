@@ -2,6 +2,7 @@
   "The REPL Input's completion list and docs panel, in the suggest widget's colors, with the candidates and
    the docs the extension answers with."
   (:require
+   [calva.words :as words]
    [clojure.string :as string]
    ["@codemirror/autocomplete" :refer [acceptCompletion autocompletion completionStatus moveCompletionSelection
                                        startCompletion]]
@@ -9,15 +10,11 @@
    ["@codemirror/view" :refer [EditorView keymap]]
    ["highlight.js/lib/core" :as hljs]))
 
-(def ^:private word-character
-  "The characters of a word, as Calva finds words in Clojure files."
-  #"[^\s,#()\[\]{}꞉;\"\\@]")
-
 (defn word-start
   "Returns where the word that ends at `offset` in `text` starts, after a leading syntax quote."
   [text offset]
   (let [start (loop [i offset]
-                (if (and (pos? i) (re-matches word-character (nth text (dec i))))
+                (if (and (pos? i) (re-matches words/word-character (nth text (dec i))))
                   (recur (dec i))
                   i))]
     (if (and (< start offset) (= "`" (nth text start)))

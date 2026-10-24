@@ -26,6 +26,7 @@
                              :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge
                              :interpolateVariables calva.interpolate/interpolate-variables
                              :initializeCljs calva.util/initialize-cljs
+                             :wordCharacter calva.words/word-character
                              :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
                              :appendToReplOutputWebview calva.repl.webview.core/append
                              :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
@@ -61,6 +62,7 @@
                              :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!
                              :replInputFollowEditor calva.repl.input.host/follow-editor!
                              :replInputEvaluationId calva.repl.input.definition/evaluation-id
+                             :replInputEvaluationScheme calva.repl.input.definition/scheme
                              :replInputRevealEvaluation calva.repl.input.reveal/reveal-evaluation+
                              :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
                              :replInputEvaluationCode calva.repl.input.reveal/evaluation-code

@@ -1,3 +1,4 @@
+import * as cljsLib from '../../out/cljs-lib/cljs-lib.js';
 import * as model from './model';
 import type * as tokenCursor from './token-cursor';
 
@@ -101,8 +102,7 @@ export function structureForRightSexp(
   return structure;
 }
 
-// Matches the `wordPattern` in `language-configuration.json`
-const wordCharacter = /[^\s,#()[\]{}꞉;"\\@]/;
+const wordCharacter: RegExp = cljsLib.wordCharacter;
 
 /**
  * Returns the range of the word that contains or touches `offset`, the way VS Code's
