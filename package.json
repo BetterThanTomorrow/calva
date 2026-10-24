@@ -3978,6 +3978,9 @@
     "publish": "bb scripts/publish.clj"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@vscode/debugadapter": "^1.64.0",
     "ansi-regex": "^5.0.1",
     "axios": "^1.4.0",

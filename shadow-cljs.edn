@@ -55,6 +55,6 @@
                 {:target :browser
                  :asset-path "js"
                  :output-dir "repl-output-ui/js"
-                 :modules {:main {:init-fn calva.repl.webview.ui/main}}
+                 :modules {:main {:init-fn calva.repl.webview.main/main}}
                  :devtools {:loader-mode :eval
                             :use-document-host false}}}}
