@@ -87,7 +87,8 @@
 
     :msg/set-word-wrap
     {:uf/db db
-     :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]]}
+     :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]
+              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]]}
 
     :msg/set-base-font-scale
     (let [new-db (assoc db :output/base-font-scale (:scale payload 1.0))

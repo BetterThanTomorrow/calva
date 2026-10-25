@@ -176,6 +176,18 @@
                                        true)
                                    false))})))))
 
+(defonce ^:private line-wrapping-compartment (Compartment.))
+
+(defn- line-wrapping
+  "Wraps the lines when `wrap?`."
+  [wrap?]
+  (if wrap? (.-lineWrapping EditorView) #js []))
+
+(defn- output-word-wrap?
+  "True while the Output view wraps its output."
+  []
+  (.. js/document -body -classList (contains "word-wrap")))
+
 (defn- extensions
   [dispatch!]
   #js [theme
@@ -190,7 +202,7 @@
        (drawSelection)
        (history-keymap dispatch!)
        (.of keymap commands/keymap)
-       (.-lineWrapping EditorView)
+       (.of line-wrapping-compartment (line-wrapping (output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
        (.of (.-updateListener EditorView)
             (fn [^js update]
@@ -287,6 +299,11 @@
                         (reset! !bracket-sheet sheet)))]
     (.replaceSync sheet css)))
 
+(defn- set-line-wrapping!
+  [wrap?]
+  (when-let [^js view (editor-view)]
+    (.dispatch view #js {:effects (.reconfigure line-wrapping-compartment (line-wrapping wrap?))})))
+
 (defn- set-editing!
   [dispatch! settings]
   (when-let [^js view (editor-view)]
@@ -333,6 +350,7 @@
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
     :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))
+    :repl-input/fx.set-line-wrapping (set-line-wrapping! (first args))
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args) (second args))
     :repl-input/fx.set-evaluation (context/set-evaluation! (first args))

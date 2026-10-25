@@ -128,7 +128,11 @@
              (sut/handle-action (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))
                                 [:repl-input/ax.follow-editor]))))
     (testing "locks nothing when no entry from another context shows"
-      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.lock-entry]))))))
+      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.lock-entry]))))
+    (testing "asks the extension to connect a REPL on a click on the connect link"
+      (is (= {:uf/db db
+              :uf/fxs [[:fx/post-to-host {:command "repl-input-connect" :repl-input/id "output-view"}]]}
+             (sut/handle-action db [:repl-input/ax.connect]))))))
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]

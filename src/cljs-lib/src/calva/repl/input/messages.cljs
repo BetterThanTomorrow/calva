@@ -7,7 +7,8 @@
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
    [calva.repl.input.records :as records]
-   [calva.repl.input.reveal :as reveal]))
+   [calva.repl.input.reveal :as reveal]
+   [calva.util :as util]))
 
 (def focus-message {:command/name "repl-input-focus"})
 
@@ -41,6 +42,7 @@
       "repl-input-blurred" (host/update-focus! [:blur id])
       "repl-input-resized" (config/store-height! msg)
       "repl-input-follow-editor" (host/follow-editor!)
+      "repl-input-connect" (.. ^js @util/vscode -commands (executeCommand "calva.showReplMenu"))
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-send-line" (evaluate/send-line! id (:line msg))
       "repl-input-lock" (host/lock! (:lock msg))

@@ -3,6 +3,7 @@
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.host :as sut]
    [calva.repl.input.host-fixtures :refer [last-context-line post! posted-named with-fresh-host with-view]]
+   [calva.util :as util]
    [cljs.test :refer-macros [async deftest testing is]]))
 
 (deftest handle-message!-records-test
@@ -245,3 +246,14 @@
             (is (= {:repl-input.context/session-key "cljs" :repl-input.context/connected? false}
                    (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
                                 [:repl-input.context/session-key :repl-input.context/connected?])))))))))
+
+(deftest connect-test
+  (with-fresh-host
+    (fn [host]
+      (with-view host
+        (fn []
+          (let [executed (atom [])]
+            (with-redefs [util/vscode (atom #js {:commands #js {:executeCommand (fn [command] (swap! executed conj command))}})]
+              (post! {:command "repl-input-connect" :repl-input/id "output-sidebar"}))
+            (testing "opens the menu of the status bar's REPL button"
+              (is (= ["calva.showReplMenu"] @executed)))))))))

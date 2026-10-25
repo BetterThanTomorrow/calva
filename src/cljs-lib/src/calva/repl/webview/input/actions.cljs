@@ -147,6 +147,10 @@
        :uf/fxs [(post db "repl-input-follow-editor")]}
       {:uf/db db})
 
+    :repl-input/ax.connect
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-connect")]}
+
     :repl-input/ax.set-evaluation
     {:uf/db (assoc db :repl-input/evaluation payload)
      :uf/fxs (into [[:repl-input/fx.set-evaluation payload]]

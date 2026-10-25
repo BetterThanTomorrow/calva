@@ -324,10 +324,6 @@ body.repl-input-on .output-greeting-read-only {
    color: var(--vscode-foreground);
 }
 
-.repl-input-context-line.not-connected .repl-input-context-session {
-   color: var(--vscode-errorForeground);
-}
-
 .repl-input-context-line.locked {
    cursor: pointer;
 }
@@ -337,18 +333,21 @@ body.repl-input-on .output-greeting-read-only {
    text-decoration: underline;
 }
 
+.repl-input-context-connect,
 .repl-input-context-lock {
    flex-shrink: 0;
    cursor: pointer;
    color: var(--vscode-textLink-foreground);
 }
 
+.repl-input-context-connect::before,
 .repl-input-context-lock::before {
    display: inline-block;
    white-space: pre;
    color: var(--vscode-descriptionForeground);
 }
 
+.repl-input-context-connect:hover,
 .repl-input-context-lock:hover {
    color: var(--vscode-textLink-activeForeground);
    text-decoration: underline;
