@@ -162,6 +162,10 @@
                 [:repl-input/fx.focus-stdin]
                 [:repl-input/fx.focus])]}
 
+    :repl-input/ax.not-last-focused
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.forget-focus]]}
+
     :repl-input/ax.interrupt
     {:uf/db db
      :uf/fxs [(post db "repl-input-interrupt")]}

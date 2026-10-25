@@ -158,6 +158,14 @@
   (when (not= (some? before) (some? after))
     (set-context! k (some? after))))
 
+(defn- tell-other-views-not-last-focused!
+  "Tells the REPL Inputs other than the last focused one, so that only it takes the focus back when its
+   view gets the focus."
+  [{:repl-input/keys [records last-focused]}]
+  (doseq [id (keys records)
+          :when (not= id last-focused)]
+    (post-to-view! id {:command/name "repl-input-not-last-focused"})))
+
 (defn update-focus!
   [event]
   (let [[before after] (swap-vals! !state #(-> %
@@ -166,6 +174,9 @@
         focused? (some? (:repl-input/focused after))]
     (set-context-on-change! focused-context (:repl-input/focused before) (:repl-input/focused after))
     (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
+    (when (and (:repl-input/last-focused after)
+               (not= (:repl-input/last-focused before) (:repl-input/last-focused after)))
+      (tell-other-views-not-last-focused! after))
     (if focused?
       (apply-cursor-contexts!)
       (release-cursor-contexts!))

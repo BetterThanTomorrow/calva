@@ -42,6 +42,11 @@
     (is (= [[:fx/post-to-host {:command "repl-input-blurred" :repl-input/id "output-view"}]]
            (:uf/fxs (sut/handle-action db [:repl-input/ax.blurred]))))))
 
+(deftest not-last-focused-test
+  (is (= [[:repl-input/fx.forget-focus]]
+         (:uf/fxs (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.not-last-focused])))
+      "forgets which element had the focus, so the view doesn't take the focus back for it"))
+
 (deftest drag-test
   (let [db {:repl-input/id "output-view" :repl-input/height 100}]
     (testing "sets the height the sash is dragged to"

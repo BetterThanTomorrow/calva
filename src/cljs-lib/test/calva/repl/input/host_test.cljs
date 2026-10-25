@@ -91,6 +91,25 @@
           (testing "ends it when its view goes inactive, as when another editor gets the focus"
             (is (= [true false true false] (context-values contexts "calva:replInputLastFocused")))))))))
 
+(deftest not-last-focused-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (testing "tells the other REPL Inputs when one becomes the last focused place"
+            (is (= ["output-sidebar"] (mapv :repl-input/id (posted-named posted "repl-input-not-last-focused")))))
+          (post! {:command "repl-input-blurred" :repl-input/id "output-view"})
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (testing "tells nothing new while the same REPL Input stays the last focused place"
+            (is (= 1 (count (posted-named posted "repl-input-not-last-focused")))))
+          (post! {:command "repl-input-focused" :repl-input/id "output-sidebar"})
+          (testing "tells the REPL Input that was the last focused place, when another one takes over"
+            (is (= ["output-sidebar" "output-view"]
+                   (mapv :repl-input/id (posted-named posted "repl-input-not-last-focused"))))))))))
+
 (deftest cursor-contexts-test
   (with-fresh-host
     (fn [{:keys [contexts restored] :as host}]

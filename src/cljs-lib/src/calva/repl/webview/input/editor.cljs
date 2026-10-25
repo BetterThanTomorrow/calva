@@ -242,6 +242,47 @@
                             (dispatch! [:repl-input/ax.drag-ended]))
                           #js {:once true})))))
 
+(defonce ^:private !window-focus (atom {:listening? false :last-focused nil :pointer-down-at 0}))
+
+(defn- in-repl-input?
+  [^js element]
+  (boolean (some-> (mount-element) (.contains element))))
+
+(defn- remember-focus!
+  [^js event]
+  (swap! !window-focus assoc :last-focused (when (in-repl-input? (.-target event)) (.-target event))))
+
+(defn- forget-focus-moved-within-page!
+  "Forgets the REPL Input's element when the focus left it for another place in the page. When the window
+   lost the focus, the element is kept, since the window gets the focus back without it."
+  [^js event]
+  (when (in-repl-input? (.-target event))
+    (js/setTimeout #(when (and (js/document.hasFocus)
+                               (not (in-repl-input? js/document.activeElement)))
+                      (swap! !window-focus assoc :last-focused nil))
+                   0)))
+
+(defn- restore-focus!
+  "Gives the focus back to the REPL Input's element that had it before the window lost the focus. After
+   the command palette closes, VS Code focuses the view, and the page's body gets the focus. A pointer press
+   focuses the window too, and then the press decides where the focus goes."
+  []
+  (let [{:keys [^js last-focused pointer-down-at]} @!window-focus]
+    (when (and last-focused
+               (.-isConnected last-focused)
+               (< 500 (- (js/performance.now) pointer-down-at))
+               (contains? #{nil js/document.body} js/document.activeElement))
+      (.focus last-focused))))
+
+(defn- listen-for-window-focus!
+  []
+  (when-not (:listening? @!window-focus)
+    (swap! !window-focus assoc :listening? true)
+    (js/window.addEventListener "pointerdown" #(swap! !window-focus assoc :pointer-down-at (js/performance.now)) true)
+    (js/document.addEventListener "focusin" remember-focus!)
+    (js/document.addEventListener "focusout" forget-focus-moved-within-page!)
+    (js/window.addEventListener "focus" restore-focus!)))
+
 (defn- mount!
   [dispatch! {:keys [height]}]
   (let [element (mount-element)
@@ -250,6 +291,7 @@
     (set! (.-className sash) (if mac? "repl-input-sash mac" "repl-input-sash"))
     (.appendChild element sash)
     (listen-for-drag! sash dispatch!)
+    (listen-for-window-focus!)
     (stdin/mount! element dispatch!)
     (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
@@ -357,6 +399,7 @@
     :repl-input/fx.show-stdin (some-> (stdin/show!) focus-now-or-later!)
     :repl-input/fx.hide-stdin (hide-stdin!)
     :repl-input/fx.focus (focus!)
+    :repl-input/fx.forget-focus (swap! !window-focus assoc :last-focused nil)
     :repl-input/fx.focus-stdin (some-> (stdin/input-element) focus-now-or-later!)
     :repl-input/fx.set-completion (set-completion! dispatch! (first args))
     :repl-input/fx.deliver-completions (completion/deliver! (editor-view) dispatch! (first args))
