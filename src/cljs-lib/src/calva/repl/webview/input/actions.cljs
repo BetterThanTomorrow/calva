@@ -146,6 +146,14 @@
     :else
     {:uf/db db}))
 
+(defn- evaluate
+  "Asks the extension to evaluate the REPL Input while a session answers to the context."
+  [db]
+  (if (get-in db [:repl-input/context-line :repl-input.context/connected?])
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-evaluate")]}
+    {:uf/db db}))
+
 (defn- handle-evaluation-action
   "Handles the actions of the context line, its mode and play buttons, the evaluation bar and the stdin
    input."
@@ -164,8 +172,7 @@
      :uf/fxs [(post db "repl-input-connect")]}
 
     :repl-input/ax.evaluate
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-evaluate")]}
+    (evaluate db)
 
     :repl-input/ax.set-evaluation
     {:uf/db (assoc db :repl-input/evaluation payload)

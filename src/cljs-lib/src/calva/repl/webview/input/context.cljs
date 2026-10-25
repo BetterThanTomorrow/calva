@@ -27,6 +27,8 @@
 
 (def ^:private evaluate-title "Evaluate REPL Input")
 
+(def ^:private connect-title "Connect a REPL to enable evaluations")
+
 (def ^:private play-path
   "The codicon `play`."
   "M4.74514 3.06414C4.41183 2.87665 4 3.11751 4 3.49993V12.5002C4 12.8826 4.41182 13.1235 4.74512 12.936L12.7454 8.43601C13.0852 8.24486 13.0852 7.75559 12.7454 7.56443L4.74514 3.06414ZM3 3.49993C3 2.35268 4.2355 1.63011 5.23541 2.19257L13.2357 6.69286C14.2551 7.26633 14.2551 8.73415 13.2356 9.30759L5.23537 13.8076C4.23546 14.37 3 13.6474 3 12.5002V3.49993Z")
@@ -68,6 +70,13 @@
   (.. button -classList (toggle "entry" entry?))
   (.replaceChildren button (stdin/icon "repl-input-context-icon" (icon-paths icon))))
 
+(defn- set-play-button!
+  "Shows the play button `button` as disabled, with a tooltip that says to connect a REPL, unless
+   `connected?`."
+  [^js button connected?]
+  (.setAttribute button "aria-disabled" (str (not connected?)))
+  (tooltip/set-text! button (if connected? evaluate-title connect-title)))
+
 (defn- context-button
   "Returns a button of the class `class-name` on the context line, which dispatches `action` when clicked
    and keeps the focus where it is."
@@ -93,15 +102,16 @@
     (.append row
              line
              mode
-             (tooltip/element mode "repl-input-mode-tooltip" following-title)
+             (tooltip/element mode "repl-input-mode-tooltip" "")
              play
-             (tooltip/element play "repl-input-evaluate-tooltip" evaluate-title))
-    (set-mode-button! mode (mode-button nil nil))
+             (tooltip/element play "repl-input-evaluate-tooltip" ""))
     (set! (.-textContent interrupt) "Interrupt")
     (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
     (set! (.-hidden bar) true)
     (.append bar (text-element "repl-input-evaluation-text" "Evaluating…") interrupt)
-    (.append parent row bar)))
+    (.append parent row bar)
+    (set-mode-button! mode (mode-button nil nil))
+    (set-play-button! play false)))
 
 (defn- connect-link-element
   []
@@ -117,14 +127,16 @@
 
 (defn set-line!
   "Shows the namespace and session of the `context-line`, a link that connects a REPL while no session
-   answers to its key, and the mode button for the line and the `entry-lock`, the lock of a shown history
-   entry from another context."
-  [{:repl-input.context/keys [ns] :as context-line} entry-lock]
+   answers to its key, the mode button for the line and the `entry-lock`, the lock of a shown history
+   entry from another context, and the play button, disabled while no session answers."
+  [{:repl-input.context/keys [ns connected?] :as context-line} entry-lock]
   (when-let [^js line (child "repl-input-context-line")]
     (.replaceChildren line (text-element "repl-input-context-ns" ns))
     (run! #(.append line %) (session-elements context-line)))
   (when-let [^js button (child "repl-input-mode")]
-    (set-mode-button! button (mode-button context-line entry-lock))))
+    (set-mode-button! button (mode-button context-line entry-lock)))
+  (when-let [^js button (child "repl-input-evaluate")]
+    (set-play-button! button connected?)))
 
 (defn set-evaluation!
   "Shows the evaluation bar while an `evaluation` is `:running`, and hides it otherwise. The stdin input

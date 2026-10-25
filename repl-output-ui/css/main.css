@@ -351,6 +351,15 @@ body.repl-input-on .output-greeting-read-only {
    color: var(--vscode-debugIcon-startForeground);
 }
 
+.repl-input-context-button[aria-disabled="true"] {
+   opacity: 0.4;
+   cursor: default;
+}
+
+.repl-input-context-button[aria-disabled="true"]:hover {
+   background: none;
+}
+
 .repl-input-context-ns,
 .repl-input-context-session {
    flex-shrink: 0;

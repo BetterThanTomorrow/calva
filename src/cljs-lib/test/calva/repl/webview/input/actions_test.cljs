@@ -149,11 +149,16 @@
       (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.toggle-lock]))))))
 
 (deftest evaluate-test
-  (testing "asks the extension to evaluate this REPL Input on a click on the play button"
-    (let [db {:repl-input/id "output-sidebar"}]
+  (let [db {:repl-input/id "output-sidebar" :repl-input/context-line locked-line}]
+    (testing "asks the extension to evaluate this REPL Input on a click on the play button"
       (is (= {:uf/db db
               :uf/fxs [[:fx/post-to-host {:command "repl-input-evaluate" :repl-input/id "output-sidebar"}]]}
-             (sut/handle-action db [:repl-input/ax.evaluate]))))))
+             (sut/handle-action db [:repl-input/ax.evaluate]))))
+    (testing "does nothing while no session answers to the context, or before the extension has posted the context line"
+      (let [not-connected (assoc-in db [:repl-input/context-line :repl-input.context/connected?] false)
+            no-line (dissoc db :repl-input/context-line)]
+        (is (= {:uf/db not-connected} (sut/handle-action not-connected [:repl-input/ax.evaluate])))
+        (is (= {:uf/db no-line} (sut/handle-action no-line [:repl-input/ax.evaluate])))))))
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
