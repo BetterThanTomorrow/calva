@@ -681,6 +681,8 @@
          "repl-input-focus"     (dispatch! [:repl-input/ax.focus])
          "repl-input-completions" (dispatch! [:repl-input/ax.completions message-data])
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
+         "repl-input-history"   (dispatch! [:repl-input/ax.set-history (:repl-input.history/entries message-data)])
+         "repl-input-recall"    (dispatch! [:repl-input/ax.recall (:repl-input.history/position message-data)])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data]))))))
 

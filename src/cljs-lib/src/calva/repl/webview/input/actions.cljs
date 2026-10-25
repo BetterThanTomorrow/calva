@@ -2,6 +2,7 @@
   "The REPL Input's actions in the Output view's page."
   (:require
    [calva.repl.webview.input.brackets :as brackets]
+   [calva.repl.webview.input.history :as history]
    [calva.repl.webview.input.keys :as input-keys]))
 
 (def min-height 40)
@@ -23,7 +24,9 @@
     {:uf/db db}
 
     enabled?
-    {:uf/db (assoc db :repl-input/enabled? true :repl-input/version 0)
+    {:uf/db (-> db
+                (assoc :repl-input/enabled? true :repl-input/version 0)
+                (dissoc :repl-input.history/position :repl-input.history/stash))
      :uf/fxs [[:repl-input/fx.mount {:height (:repl-input/height db)}]]}
 
     :else
@@ -90,13 +93,53 @@
     (and (reading-stdin? after) (not (reading-stdin? before))) [[:repl-input/fx.show-stdin]]
     (and (reading-stdin? before) (not (reading-stdin? after))) [[:repl-input/fx.hide-stdin]]))
 
+(defn- context-line-fx
+  "Shows the context line, with the lock link for the history entry that `db` shows."
+  [db]
+  [:repl-input/fx.set-context-line (:repl-input/context-line db) (history/lock-link db)])
+
+(defn- show-history
+  "Shows what walking or recalling the history `walked` to, or does nothing when it went nowhere."
+  [db walked]
+  (if-let [{walked-db :db :keys [shown]} walked]
+    {:uf/db walked-db
+     :uf/fxs [[:repl-input/fx.apply-edit shown]
+              (context-line-fx walked-db)]}
+    {:uf/db db}))
+
+(defn- handle-history-action
+  "Handles the actions of the history, and of the context line's lock link."
+  [db [action-type payload :as action]]
+  (case action-type
+    :repl-input/ax.set-history
+    (let [walk-ended (-> db
+                         (assoc :repl-input.history/entries payload)
+                         (dissoc :repl-input.history/position :repl-input.history/stash))]
+      {:uf/db walk-ended
+       :uf/fxs [(context-line-fx walk-ended)]})
+
+    :repl-input/ax.walk-history
+    (show-history db (history/walked db payload))
+
+    :repl-input/ax.recall
+    (show-history db (history/recalled db payload))
+
+    :repl-input/ax.lock-entry
+    (if-let [lock (history/lock-link db)]
+      {:uf/db db
+       :uf/fxs [(post db "repl-input-lock" :lock lock)]}
+      {:uf/db db})
+
+    (handle-completion-action db action)))
+
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, the evaluation bar, the stdin input and the history."
+  "Handles the actions of the context line, the evaluation bar and the stdin input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
-    {:uf/db (assoc db :repl-input/context-line payload)
-     :uf/fxs [[:repl-input/fx.set-context-line payload]]}
+    (let [with-line (assoc db :repl-input/context-line payload)]
+      {:uf/db with-line
+       :uf/fxs [(context-line-fx with-line)]})
 
     :repl-input/ax.follow-editor
     (if (get-in db [:repl-input/context-line :repl-input.context/locked?])
@@ -123,11 +166,7 @@
     {:uf/db db
      :uf/fxs [(post db "repl-input-send-line" :line payload)]}
 
-    :repl-input/ax.walk-history
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-walk-history" :direction (name payload))]}
-
-    (handle-completion-action db action)))
+    (handle-history-action db action)))
 
 (defn handle-action
   [db [action-type payload :as action]]
@@ -140,12 +179,12 @@
     (set-enabled db payload)
 
     :repl-input/ax.mounted
-    {:uf/db db
+    {:uf/db (assoc db :repl-input/text (:text payload) :repl-input/selections (:selections payload))
      :uf/fxs [(post db "repl-input-mounted" :version (:repl-input/version db) :text (:text payload) :selections (:selections payload))]}
 
     :repl-input/ax.changed
     (let [version (inc (:repl-input/version db))]
-      {:uf/db (assoc db :repl-input/version version)
+      {:uf/db (assoc db :repl-input/version version :repl-input/text (:text payload) :repl-input/selections (:selections payload))
        :uf/fxs [(post db "repl-input-changed" :version version :text (:text payload) :selections (:selections payload))]})
 
     :repl-input/ax.edit

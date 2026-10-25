@@ -8,6 +8,7 @@
    [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
    [calva.repl.input.focus :as focus]
+   [calva.repl.input.history :as history]
    [calva.repl.input.records :as records]
    [calva.repl.input.setting :as setting]
    [calva.state :as state]
@@ -35,7 +36,8 @@
    :repl-input.context/lock nil
    :repl-input.context/editor nil
    :repl-input.context/line nil
-   :repl-input.history/entries []})
+   :repl-input.history/entries []
+   :repl-input.history/walked []})
 
 (defonce !state (atom initial-state))
 
@@ -80,6 +82,28 @@
   [id message]
   (when-let [^js view (get @!views id)]
     (.. view -webview (postMessage (pr-str (assoc message :repl-input/id id))))))
+
+(defn history-message
+  [entries]
+  {:command/name "repl-input-history"
+   :repl-input.history/entries entries})
+
+(defn- walked-history
+  "Returns the history entries that the REPL Inputs walk: those evaluated in the context line's session
+   when the history is kept per session, else all of them."
+  [{:repl-input.history/keys [entries] :repl-input/keys [settings] :repl-input.context/keys [line]}]
+  (history/visible entries (:repl-input.context/session-key line) (get settings history/per-session-setting)))
+
+(defn refresh-history!
+  "Posts the history entries that the REPL Inputs walk to them when the entries changed. Returns true when
+   it posted them."
+  []
+  (let [walked (walked-history @!state)
+        [before _] (swap-vals! !state assoc :repl-input.history/walked walked)]
+    (when (not= walked (:repl-input.history/walked before))
+      (doseq [id (keys (:repl-input/records @!state))]
+        (post-to-view! id (history-message walked)))
+      true)))
 
 (defn document
   [{:repl-input/keys [text selections selections-stack]}]
@@ -193,10 +217,12 @@
       (derive-record! id))))
 
 (defn settings-changed!
-  "Takes `settings`, a map from setting keys to values, and derives the REPL Inputs' command keys anew."
+  "Takes `settings`, a map from setting keys to values, and derives the REPL Inputs' command keys and
+   history anew."
   [settings]
   (swap! !state assoc :repl-input/settings settings)
-  (derive-records!))
+  (derive-records!)
+  (refresh-history!))
 
 (defn read-settings
   "The settings the command keys, the brackets and the editing depend on, as a map from setting keys to values."
@@ -235,14 +261,16 @@
    :repl-input/context-line line})
 
 (defn refresh-context!
-  "Works out the context, posts its line to the REPL Inputs when the line changed, and returns the context."
+  "Works out the context, posts its line, and the history in its session, to the REPL Inputs when the line
+   changed, and returns the context."
   []
   (let [current (current-context)
         line (context/line current)
         [before _] (swap-vals! !state assoc :repl-input.context/line line)]
     (when (not= line (:repl-input.context/line before))
       (doseq [id (keys (:repl-input/records @!state))]
-        (post-to-view! id (context-line-message line))))
+        (post-to-view! id (context-line-message line)))
+      (refresh-history!))
     current))
 
 (defn- refresh-mounted-context!
@@ -269,6 +297,14 @@
 (defn follow-editor!
   []
   (swap! !state assoc :repl-input.context/lock nil)
+  (refresh-context!))
+
+(defn lock!
+  "Locks the namespace, `ns` form and session of `context`."
+  [context]
+  (swap! !state assoc :repl-input.context/lock (select-keys context [:repl-input.context/ns
+                                                                      :repl-input.context/ns-form
+                                                                      :repl-input.context/session-key]))
   (refresh-context!))
 
 (def empty-text

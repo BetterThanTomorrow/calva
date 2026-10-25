@@ -6,26 +6,29 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
-   [calva.repl.input.recall :as recall]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]))
 
 (def focus-message {:command/name "repl-input-focus"})
 
 (defn- mounted!
-  "Posts the context line and the evaluation bar to the REPL Input `id`, and gives its stdin input the
-   focus when an evaluation waits there for a line from stdin."
+  "Posts the context line, the history and the evaluation bar to the REPL Input `id`, and gives its stdin
+   input the focus when an evaluation waits there for a line from stdin. Refreshing the context already
+   posts a history that changed."
   [id]
-  (host/refresh-context!)
-  (host/post-to-view! id (host/context-line-message (:repl-input.context/line @host/!state)))
-  (host/post-to-view! id (evaluate/evaluation-message id))
-  (when (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)
-    (host/post-to-view! id focus-message)))
+  (let [walked (:repl-input.history/walked @host/!state)]
+    (host/refresh-context!)
+    (host/post-to-view! id (host/context-line-message (:repl-input.context/line @host/!state)))
+    (when (= walked (:repl-input.history/walked @host/!state))
+      (host/post-to-view! id (host/history-message walked)))
+    (host/post-to-view! id (evaluate/evaluation-message id))
+    (when (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)
+      (host/post-to-view! id focus-message))))
 
 (defn handle-message!
   "Takes a message the REPL Input in `webview-host` posted."
   [^js webview-host ^js message]
-  (let [{:keys [command direction] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
+  (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
     (case command
       "repl-input-mounted" (do (swap! host/!views assoc id webview-host)
                                (host/take-record! records/take-mount msg)
@@ -40,7 +43,7 @@
       "repl-input-follow-editor" (host/follow-editor!)
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-send-line" (evaluate/send-line! id (:line msg))
-      "repl-input-walk-history" (recall/walk! id (keyword direction))
+      "repl-input-lock" (host/lock! (:lock msg))
       "repl-input-complete" (complete/complete! msg)
       "repl-input-resolve-completion" (complete/resolve! msg)
       "repl-input-completion-active" (complete/active-changed! msg)

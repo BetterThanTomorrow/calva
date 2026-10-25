@@ -118,7 +118,7 @@
   (let [db {:repl-input/id "output-view"}]
     (testing "shows the context line the extension posts"
       (is (= {:uf/db (assoc db :repl-input/context-line locked-line)
-              :uf/fxs [[:repl-input/fx.set-context-line locked-line]]}
+              :uf/fxs [[:repl-input/fx.set-context-line locked-line nil]]}
              (sut/handle-action db [:repl-input/ax.set-context-line locked-line]))))
     (testing "asks the extension to follow the editor on a click while locked"
       (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
@@ -126,7 +126,9 @@
     (testing "does nothing on a click while following the editor"
       (is (= {:uf/db (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))}
              (sut/handle-action (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))
-                                [:repl-input/ax.follow-editor]))))))
+                                [:repl-input/ax.follow-editor]))))
+    (testing "locks nothing when no entry from another context shows"
+      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.lock-entry]))))))
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
@@ -171,10 +173,45 @@
                     :uf/db
                     :repl-input/evaluation))))))
 
+(def ^:private pirate-entry
+  {:repl-input.history/code "(def a 1)"
+   :repl-input.context/ns "pirate.core"
+   :repl-input.context/ns-form "(ns pirate.core)"
+   :repl-input.context/session-key "clj"})
+
+(def ^:private following-line
+  {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false})
+
 (deftest walk-history-test
-  (testing "asks the extension to walk the history"
-    (is (= [[:fx/post-to-host {:command "repl-input-walk-history" :repl-input/id "output-view" :direction "back"}]]
-           (:uf/fxs (sut/handle-action {:repl-input/id "output-view"} [:repl-input/ax.walk-history :back]))))))
+  (let [db {:repl-input/id "output-view"
+            :repl-input/text "(draft"
+            :repl-input/selections [[6 6]]
+            :repl-input/context-line following-line
+            :repl-input.history/entries [pirate-entry]}
+        {walked :uf/db fxs :uf/fxs} (sut/handle-action db [:repl-input/ax.walk-history :back])
+        lock-link (dissoc pirate-entry :repl-input.history/code)]
+    (testing "walks the history in the page, showing the entry and asking the extension for nothing"
+      (is (= [[:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[9 9]]}]
+              [:repl-input/fx.set-context-line following-line lock-link]]
+             fxs)))
+    (testing "keeps the context line, and offers to lock the shown entry's context"
+      (is (= following-line (:repl-input/context-line walked))))
+    (testing "locks the shown entry's namespace and session on a click on the lock link"
+      (is (= [[:fx/post-to-host {:command "repl-input-lock" :repl-input/id "output-view" :lock lock-link}]]
+             (:uf/fxs (sut/handle-action walked [:repl-input/ax.lock-entry])))))
+    (testing "walking past the newest entry brings back the text, and the line without the lock link"
+      (is (= [[:repl-input/fx.apply-edit {:text "(draft" :selections [[6 6]]}]
+              [:repl-input/fx.set-context-line following-line nil]]
+             (:uf/fxs (sut/handle-action walked [:repl-input/ax.walk-history :forward])))))
+    (testing "does nothing where there is nowhere to walk"
+      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.walk-history :forward]))))
+    (testing "a new history from the extension ends the walk"
+      (let [{new-db :uf/db new-fxs :uf/fxs} (sut/handle-action walked [:repl-input/ax.set-history [pirate-entry pirate-entry]])]
+        (is (nil? (:repl-input.history/position new-db)))
+        (is (= [[:repl-input/fx.set-context-line following-line nil]] new-fxs))))
+    (testing "shows the entry that the history search picked"
+      (is (= [:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[9 9]]}]
+             (first (:uf/fxs (sut/handle-action db [:repl-input/ax.recall 0]))))))))
 
 (deftest completion-test
   (let [db {:repl-input/id "output-view"}]
