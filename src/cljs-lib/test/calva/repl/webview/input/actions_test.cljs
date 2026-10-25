@@ -139,6 +139,17 @@
               :uf/fxs [[:fx/post-to-host {:command "repl-input-connect" :repl-input/id "output-view"}]]}
              (sut/handle-action db [:repl-input/ax.connect]))))))
 
+(deftest evaluate-test
+  (let [db {:repl-input/id "output-sidebar"}]
+    (testing "asks the extension to evaluate this REPL Input on a click on the play button"
+      (is (= {:uf/db db
+              :uf/fxs [[:fx/post-to-host {:command "repl-input-evaluate" :repl-input/id "output-sidebar"}]]}
+             (sut/handle-action db [:repl-input/ax.evaluate]))))
+    (testing "shows the key the extension posts for evaluating the REPL Input on the play button"
+      (is (= {:uf/db db
+              :uf/fxs [[:repl-input/fx.set-evaluate-key "ctrl+alt+c enter"]]}
+             (sut/handle-action db [:repl-input/ax.set-evaluate-key "ctrl+alt+c enter"]))))))
+
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
     (testing "shows the evaluation bar the extension posts"

@@ -61,6 +61,25 @@
                            (is (= [] (posted-named posted "repl-input-edit"))))
                          (done))))))))))
 
+(deftest evaluate-message-test
+  (with-fresh-host
+    (fn [{:keys [posted evaluations session-keys] :as host}]
+      (with-view host
+        (fn []
+          (mount-focused! "output-view" "(def a 1)")
+          (mount-focused! "output-sidebar" "(def b 2)")
+          (post! {:command "repl-input-evaluate" :repl-input/id "output-view"})
+          (testing "evaluates all of the text of the REPL Input that posted, not the focused one"
+            (is (= ["(def a 1)"] (mapv #(.-code ^js (:options %)) @evaluations))))
+          (testing "adds the text to the history and clears that REPL Input"
+            (is (= ["(def a 1)"] (mapv :repl-input.history/code (:repl-input.history/entries @input-host/!state))))
+            (is (= ["output-view"] (mapv :repl-input/id (posted-named posted "repl-input-edit")))))
+          (reset! session-keys [])
+          (post! {:command "repl-input-evaluate" :repl-input/id "output-sidebar"})
+          (testing "evaluates nothing and keeps the text when no session answers"
+            (is (= 1 (count @evaluations)))
+            (is (= 1 (count (posted-named posted "repl-input-edit"))))))))))
+
 (defn- evaluation-options [{:keys [^js options]}]
   {:code (.-code options) :line (.-line options) :column (.-column options) :send-code (.-sendCode options)
    :ns (.-ns options) :ns-form (.-nsForm options) :session-key (.-sessionKey options)})

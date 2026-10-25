@@ -14,7 +14,8 @@
   "The codicon `debug-stop`."
   "M12.5 3.5V12.5H3.5V3.5H12.5ZM12.5 2H3.5C2.672 2 2 2.672 2 3.5V12.5C2 13.328 2.672 14 3.5 14H12.5C13.328 14 14 13.328 14 12.5V3.5C14 2.672 13.328 2 12.5 2Z")
 
-(defn- icon
+(defn icon
+  "Returns an `svg` element of the class `class-name` that draws the codicon with `path-data`."
   [class-name path-data]
   (let [svg (js/document.createElementNS svg-namespace "svg")
         path (js/document.createElementNS svg-namespace "path")]

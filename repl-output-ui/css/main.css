@@ -297,13 +297,49 @@ body.repl-input-on .output-greeting-read-only {
    display: none;
 }
 
-.repl-input-context-line {
+.repl-input-context {
    display: flex;
-   gap: 0 0.4em;
+   align-items: center;
+   gap: 0.4em;
    padding-bottom: 4px;
    font-size: calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
+}
+
+.repl-input-context-line {
+   display: flex;
+   flex-grow: 1;
+   min-width: 0;
+   overflow: hidden;
+   gap: 0 0.4em;
    white-space: nowrap;
    color: var(--vscode-descriptionForeground);
+}
+
+.repl-input-evaluate {
+   display: flex;
+   flex-shrink: 0;
+   margin: -3px 0;
+   padding: 2px;
+   color: var(--vscode-icon-foreground, var(--vscode-foreground));
+   background: none;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+}
+
+.repl-input-evaluate:hover {
+   background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.repl-input-evaluate:focus-visible {
+   outline: 1px solid var(--vscode-focusBorder);
+   outline-offset: -1px;
+}
+
+.repl-input-evaluate-icon {
+   width: 16px;
+   height: 16px;
+   fill: currentColor;
 }
 
 .repl-input-context-ns,

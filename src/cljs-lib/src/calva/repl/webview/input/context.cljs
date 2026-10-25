@@ -1,5 +1,7 @@
 (ns calva.repl.webview.input.context
-  "The context line and the evaluation bar above the REPL Input.")
+  "The context line, with its play button, and the evaluation bar above the REPL Input."
+  (:require
+   [calva.repl.webview.input.stdin :as stdin]))
 
 (defn- child
   [class-name]
@@ -24,19 +26,45 @@
     (.closest target ".repl-input-context-lock") [:repl-input/ax.lock-entry]
     :else [:repl-input/ax.follow-editor]))
 
+(def ^:private evaluate-title "Evaluate REPL Input")
+
+(def ^:private play-path
+  "The codicon `play`."
+  "M4.74514 3.06414C4.41183 2.87665 4 3.11751 4 3.49993V12.5002C4 12.8826 4.41182 13.1235 4.74512 12.936L12.7454 8.43601C13.0852 8.24486 13.0852 7.75559 12.7454 7.56443L4.74514 3.06414ZM3 3.49993C3 2.35268 4.2355 1.63011 5.23541 2.19257L13.2357 6.69286C14.2551 7.26633 14.2551 8.73415 13.2356 9.30759L5.23537 13.8076C4.23546 14.37 3 13.6474 3 12.5002V3.49993Z")
+
+(defn- play-button
+  "Returns the play button, which keeps the focus where it is when clicked."
+  [dispatch!]
+  (doto (element "button" "repl-input-evaluate")
+    (-> .-title (set! evaluate-title))
+    (.setAttribute "aria-label" evaluate-title)
+    (.append (stdin/icon "repl-input-evaluate-icon" play-path))
+    (.addEventListener "mousedown" #(.preventDefault ^js %))
+    (.addEventListener "click" #(dispatch! [:repl-input/ax.evaluate]))))
+
 (defn mount!
-  "Adds the context line and the evaluation bar to `parent`. A click on the context line, on its connect
-   or lock link, or on Interrupt, dispatches its action."
+  "Adds the context line with its play button, and the evaluation bar, to `parent`. A click on the context
+   line, on its connect or lock link, on the play button, or on Interrupt, dispatches its action."
   [^js parent dispatch!]
-  (let [line (element "div" "repl-input-context-line")
+  (let [row (element "div" "repl-input-context")
+        line (element "div" "repl-input-context-line")
         bar (element "div" "repl-input-evaluation-bar")
         interrupt (element "button" "repl-input-interrupt")]
     (.addEventListener line "click" #(dispatch! (click-action (.-target ^js %))))
+    (.append row line (play-button dispatch!))
     (set! (.-textContent interrupt) "Interrupt")
     (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
     (set! (.-hidden bar) true)
     (.append bar (text-element "repl-input-evaluation-text" "Evaluating…") interrupt)
-    (.append parent line bar)))
+    (.append parent row bar)))
+
+(defn set-evaluate-key!
+  "Shows `evaluate-key`, the key of Evaluate REPL Input, in the play button's tooltip, or no key when it
+   is nil."
+  [evaluate-key]
+  (when-let [^js button (child "repl-input-evaluate")]
+    (set! (.-title button) (cond-> evaluate-title
+                             evaluate-key (str " (" evaluate-key ")")))))
 
 (def ^:private following "following the editor")
 

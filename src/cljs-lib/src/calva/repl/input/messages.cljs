@@ -41,6 +41,7 @@
       "repl-input-resized" (config/store-height! msg)
       "repl-input-follow-editor" (host/follow-editor!)
       "repl-input-connect" (.. ^js @util/vscode -commands (executeCommand "calva.showReplMenu"))
+      "repl-input-evaluate" (evaluate/evaluate! id)
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-send-line" (evaluate/send-line! id (:line msg))
       "repl-input-lock" (host/lock! (:lock msg))

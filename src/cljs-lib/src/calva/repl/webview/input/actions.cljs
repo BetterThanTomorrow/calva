@@ -133,7 +133,7 @@
     (handle-completion-action db action)))
 
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, the evaluation bar and the stdin input."
+  "Handles the actions of the context line, its play button, the evaluation bar and the stdin input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -150,6 +150,14 @@
     :repl-input/ax.connect
     {:uf/db db
      :uf/fxs [(post db "repl-input-connect")]}
+
+    :repl-input/ax.evaluate
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-evaluate")]}
+
+    :repl-input/ax.set-evaluate-key
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.set-evaluate-key payload]]}
 
     :repl-input/ax.set-evaluation
     {:uf/db (assoc db :repl-input/evaluation payload)

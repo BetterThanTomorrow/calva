@@ -193,9 +193,15 @@
                                                                    (merge context (completion/contexts true settings))
                                                                    user-keys)))))
 
+(defn- evaluate-key
+  "The key of Evaluate REPL Input that holds while the REPL Input of `record` has focus, or nil."
+  [{:repl-input/keys [keybindings] :as state} record]
+  (command-keys/command-key keybindings (command-keys/context state record) "calva.replInput.evaluate"))
+
 (def ^:private derived-messages
   "The messages that post what the extension derives for a REPL Input, by the record key that holds it."
   {:repl-input/command-keys "repl-input-command-keys"
+   :repl-input/evaluate-key "repl-input-evaluate-key"
    :repl-input/editor-settings "repl-input-editor-settings"
    :repl-input/brackets "repl-input-brackets"})
 
@@ -205,9 +211,9 @@
            :keywordize-keys true))
 
 (defn- derive-record!
-  "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
-   `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
-   what changed."
+  "Derives the cursor contexts, the command keys, the key of Evaluate REPL Input, the editor settings and
+   the brackets of the REPL Input `id` from its record and the settings, sets the cursor contexts when it
+   has focus, and posts to it what changed."
   [id]
   (when-let [record (get-in @!state [:repl-input/records id])]
     (let [{:repl-input/keys [settings] :as state} @!state
@@ -215,6 +221,7 @@
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
           derived (assoc with-contexts
                          :repl-input/command-keys (command-keys-for state with-contexts)
+                         :repl-input/evaluate-key (evaluate-key state with-contexts)
                          :repl-input/editor-settings (config/editor-settings settings)
                          :repl-input/brackets (document-brackets settings doc))]
       (swap! !state assoc-in [:repl-input/records id] derived)

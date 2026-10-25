@@ -93,18 +93,23 @@
   (recall/add! id code evaluation-context)
   (evaluate+ id (next-evaluation-id!) request evaluation-context))
 
-(defn ^:export evaluate-focused!
-  "Evaluates all of the text of the REPL Input that Calva's commands reach in the context as one
-   evaluation, adds it to the history and clears the REPL Input, or says that no session answers to the
-   context's session key. Returns a promise of when the evaluation is done."
-  []
-  (let [{:repl-input/keys [text] :as record} (get-in @host/!state [:repl-input/records (host/command-target!)])]
+(defn evaluate!
+  "Evaluates all of the text of the REPL Input `id` in the context as one evaluation, adds it to the
+   history and clears the REPL Input, or says that no session answers to the context's session key.
+   Returns a promise of when the evaluation is done."
+  [id]
+  (let [{:repl-input/keys [text] :as record} (get-in @host/!state [:repl-input/records id])]
     (if (string/blank? text)
       (js/Promise.resolve nil)
       (let [evaluation-context (host/refresh-context!)]
         (if (:repl-input.context/connected? evaluation-context)
           (evaluate-entered+ record {:code text} evaluation-context)
           (not-connected+ evaluation-context))))))
+
+(defn ^:export evaluate-focused!
+  "Evaluates the REPL Input that Calva's commands reach, as `evaluate!` does."
+  []
+  (evaluate! (host/command-target!)))
 
 (defn- picked-evaluation
   "Returns `[request overrides]` for what a pick returned: the evaluation request, and the context it names."
