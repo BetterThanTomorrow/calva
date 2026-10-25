@@ -2,6 +2,7 @@
   "The context line, with its mode and play buttons, and the evaluation bar above the REPL Input."
   (:require
    [calva.repl.webview.input.stdin :as stdin]
+   [calva.repl.webview.input.tooltip :as tooltip]
    [clojure.string :as string]))
 
 (defn- child
@@ -62,7 +63,7 @@
 (defn- set-mode-button!
   "Shows the icon and the tooltip of the `mode-button` on `button`."
   [^js button {:repl-input.mode/keys [icon entry? title]}]
-  (set! (.-title button) title)
+  (tooltip/set-text! button title)
   (.setAttribute button "aria-label" title)
   (.. button -classList (toggle "entry" entry?))
   (.replaceChildren button (stdin/icon "repl-input-context-icon" (icon-paths icon))))
@@ -86,12 +87,16 @@
         bar (element "div" "repl-input-evaluation-bar")
         interrupt (element "button" "repl-input-interrupt")]
     (.addEventListener line "click" #(some-> (click-action (.-target ^js %)) dispatch!))
-    (set-mode-button! mode (mode-button nil nil))
     (doto play
-      (-> .-title (set! evaluate-title))
       (.setAttribute "aria-label" evaluate-title)
       (.append (stdin/icon "repl-input-context-icon" play-path)))
-    (.append row line mode play)
+    (.append row
+             line
+             mode
+             (tooltip/element mode "repl-input-mode-tooltip" following-title)
+             play
+             (tooltip/element play "repl-input-evaluate-tooltip" evaluate-title))
+    (set-mode-button! mode (mode-button nil nil))
     (set! (.-textContent interrupt) "Interrupt")
     (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
     (set! (.-hidden bar) true)

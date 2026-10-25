@@ -1,6 +1,8 @@
 (ns calva.repl.webview.input.stdin
   "The stdin input between the output and the REPL Input, where an evaluation that reads stdin gets its
-   line.")
+   line."
+  (:require
+   [calva.repl.webview.input.tooltip :as tooltip]))
 
 (def placeholder "(read-line) reads the next line · enter sends it")
 
@@ -51,7 +53,6 @@
   [dispatch!]
   (doto (js/document.createElement "button")
     (-> .-className (set! "repl-input-stdin-stop"))
-    (-> .-title (set! "Interrupt (escape)"))
     (.setAttribute "aria-label" "Interrupt")
     (.append (icon "repl-input-stdin-icon" debug-stop-path))
     (.addEventListener "click" #(dispatch! [:repl-input/ax.interrupt]))))
@@ -65,10 +66,15 @@
                 (-> .-placeholder (set! placeholder))
                 (-> .-spellcheck (set! false))
                 (.setAttribute "aria-label" "stdin")
-                (.addEventListener "keydown" #(on-keydown dispatch! %)))]
+                (.addEventListener "keydown" #(on-keydown dispatch! %)))
+        stop (stop-button dispatch!)]
     (set! (.-className stdin-row) "repl-input-stdin")
     (set! (.-hidden stdin-row) true)
-    (.append stdin-row (icon "repl-input-stdin-icon repl-input-stdin-prompt" chevron-right-path) input (stop-button dispatch!))
+    (.append stdin-row
+             (icon "repl-input-stdin-icon repl-input-stdin-prompt" chevron-right-path)
+             input
+             stop
+             (tooltip/element stop "repl-input-stdin-stop-tooltip" "Interrupt (escape)"))
     (.append parent stdin-row)))
 
 (defn show!

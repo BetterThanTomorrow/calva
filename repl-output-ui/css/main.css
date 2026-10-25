@@ -468,3 +468,28 @@ body.repl-input-on .output-greeting-read-only {
 .repl-input-stdin-stop:hover {
    background-color: var(--vscode-toolbar-hoverBackground);
 }
+
+#repl-input [interestfor] {
+   interest-delay-start: 500ms;
+   interest-delay-end: 100ms;
+}
+
+.repl-input-tooltip {
+   position-area: top;
+   position-try-fallbacks: bottom;
+   inset: auto;
+   width: max-content;
+   max-width: calc(100vw - 8px);
+   margin: 4px;
+   padding: 4px 8px;
+   box-sizing: border-box;
+   font-family: var(--vscode-font-family);
+   font-size: calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
+   line-height: 1.4;
+   white-space: normal;
+   color: var(--vscode-editorHoverWidget-foreground);
+   background-color: var(--vscode-editorHoverWidget-background);
+   border: 1px solid var(--vscode-editorHoverWidget-border);
+   border-radius: 3px;
+   box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+}
