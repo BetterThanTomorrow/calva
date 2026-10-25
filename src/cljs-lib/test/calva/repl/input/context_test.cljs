@@ -102,8 +102,9 @@
                                      ["clj:2"]))))))
 
 (deftest line-test
-  (testing "following the editor"
+  (testing "following the editor, with the ns form that a click on the mode button locks"
     (is (= {:repl-input.context/ns "pirate.lib"
+            :repl-input.context/ns-form "(ns pirate.lib)"
             :repl-input.context/session-key "cljs"
             :repl-input.context/locked? false
             :repl-input.context/connected? true}
@@ -111,6 +112,7 @@
 
   (testing "locked"
     (is (= {:repl-input.context/ns "pirate.core"
+            :repl-input.context/ns-form "(in-ns 'pirate.core)"
             :repl-input.context/session-key "clj:2"
             :repl-input.context/locked? true
             :repl-input.context/connected? true}
@@ -118,6 +120,7 @@
 
   (testing "locked to a session that isn't connected"
     (is (= {:repl-input.context/ns "pirate.core"
+            :repl-input.context/ns-form "(in-ns 'pirate.core)"
             :repl-input.context/session-key "clj:2"
             :repl-input.context/locked? true
             :repl-input.context/connected? false}
@@ -125,6 +128,7 @@
 
   (testing "no REPL connected"
     (is (= {:repl-input.context/ns "user"
+            :repl-input.context/ns-form "(in-ns 'user)"
             :repl-input.context/session-key nil
             :repl-input.context/locked? false
             :repl-input.context/connected? false}

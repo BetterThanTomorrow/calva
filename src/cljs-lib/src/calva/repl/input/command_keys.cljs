@@ -64,12 +64,3 @@
         chords (map #(string/split (string/trim %) #"\s+") held)]
     {:keys (into #{} (map first) chords)
      :chords (into #{} (keep #(when (next %) (first %))) chords)}))
-
-(defn command-key
-  "Returns the key of the first of the parsed `keybindings` that binds `command-id` and holds in `context`,
-   or nil."
-  [keybindings context command-id]
-  (some (fn [{:keys [command key] :when-clause/keys [expr]}]
-          (when (and (= command-id command) (when-clause/holds? expr context))
-            key))
-        keybindings))

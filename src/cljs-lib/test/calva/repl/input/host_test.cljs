@@ -174,28 +174,6 @@
             (is (= {:keys #{"tab"} :chords #{} :completion-list-keys #{}}
                    (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys")))))))))))
 
-(deftest evaluate-key-test
-  (with-fresh-host
-    (fn [{:keys [posted] :as host}]
-      (with-view host
-        (fn []
-          (swap! sut/!state assoc
-                 :repl-input/keybindings (command-keys/parsed [{:command "calva.replInput.evaluate"
-                                                                :key "ctrl+alt+c enter"
-                                                                :when "calva:replInputFocused && calva:keybindingsEnabled"}])
-                 :repl-input/settings {"calva.keybindingsEnabled" true})
-          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
-          (testing "posts the key of Evaluate REPL Input to the REPL Input when it mounts"
-            (is (= [{:command/name "repl-input-evaluate-key"
-                     :repl-input/id "output-view"
-                     :repl-input/version 0
-                     :repl-input/evaluate-key "ctrl+alt+c enter"}]
-                   (posted-named posted "repl-input-evaluate-key"))))
-          (sut/settings-changed! {"calva.keybindingsEnabled" false})
-          (testing "posts no key when the keybinding doesn't hold"
-            (is (= 2 (count (posted-named posted "repl-input-evaluate-key"))))
-            (is (nil? (:repl-input/evaluate-key (last (posted-named posted "repl-input-evaluate-key")))))))))))
-
 (deftest edit-focused!-test
   (async done
     (with-fresh-host

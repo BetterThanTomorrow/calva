@@ -62,7 +62,7 @@
                   :lock {:repl-input.context/ns "pirate.core"
                          :repl-input.context/ns-form "(ns pirate.core)"
                          :repl-input.context/session-key "cljs"}})
-          (testing "locks the namespace and session of the entry the lock link offers"
+          (testing "locks the namespace, ns form and session that a click on the mode button posts"
             (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session-key "cljs" :repl-input.context/locked? true}
                    (last-context-line posted)))
             (is (= "(ns pirate.core)" (:repl-input.context/ns-form (:repl-input.context/lock @host/!state))))))))))

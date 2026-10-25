@@ -40,10 +40,11 @@
     lock))
 
 (defn line
-  "Returns what the context line shows for `context`: its namespace and session, and whether it is
-   locked and connected."
+  "Returns what the context line shows for `context`: its namespace, `ns` form and session, and whether it
+   is locked and connected."
   [context]
   (select-keys context [:repl-input.context/ns
+                        :repl-input.context/ns-form
                         :repl-input.context/session-key
                         :repl-input.context/locked?
                         :repl-input.context/connected?]))

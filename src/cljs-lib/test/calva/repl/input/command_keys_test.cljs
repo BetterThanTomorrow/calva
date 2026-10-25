@@ -91,20 +91,6 @@
     (is (= {:keys #{"ctrl+j" "ctrl+k"} :chords #{"ctrl+k"}}
            (sut/command-keys [] (sut/context {:repl-input/settings settings} record) ["ctrl+j" "ctrl+k ctrl+l"])))))
 
-(deftest command-key-test
-  (testing "the key of the first of the command's keybindings that holds while the REPL Input has focus"
-    (is (= "alt+right"
-           (sut/command-key mac-keybindings (sut/context {:repl-input/settings settings} record) "paredit.forwardSexp")))
-    (is (= "ctrl+right"
-           (sut/command-key mac-keybindings
-                            (sut/context {:repl-input/settings (assoc settings "calva.paredit.hijackVSCodeDefaults" false)} record)
-                            "paredit.forwardSexp"))))
-  (testing "no key when none of the command's keybindings hold"
-    (is (nil? (sut/command-key mac-keybindings
-                               (sut/context {:repl-input/settings (assoc settings "calva.keybindingsEnabled" false)} record)
-                               "calva.jackIn")))
-    (is (nil? (sut/command-key mac-keybindings (sut/context {:repl-input/settings settings} record) "calva.connect")))))
-
 (deftest calva-keybindings-test
   (testing "VS Code's resolved keybindings for the manifest's commands, with the keys resolved for the keyboard layout"
     (is (= [(first resolved-keybindings)]

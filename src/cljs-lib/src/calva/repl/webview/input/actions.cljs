@@ -94,9 +94,9 @@
     (and (reading-stdin? before) (not (reading-stdin? after))) [[:repl-input/fx.hide-stdin]]))
 
 (defn- context-line-fx
-  "Shows the context line, with the lock link for the history entry that `db` shows."
+  "Shows the context line, with the lock of the history entry that `db` shows."
   [db]
-  [:repl-input/fx.set-context-line (:repl-input/context-line db) (history/lock-link db)])
+  [:repl-input/fx.set-context-line (:repl-input/context-line db) (history/entry-lock db)])
 
 (defn- show-history
   "Shows what walking or recalling the history `walked` to, or does nothing when it went nowhere."
@@ -108,7 +108,7 @@
     {:uf/db db}))
 
 (defn- handle-history-action
-  "Handles the actions of the history, and of the context line's lock link."
+  "Handles the actions of the history."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-history
@@ -124,16 +124,31 @@
     :repl-input/ax.recall
     (show-history db (history/recalled db payload))
 
-    :repl-input/ax.lock-entry
-    (if-let [lock (history/lock-link db)]
-      {:uf/db db
-       :uf/fxs [(post db "repl-input-lock" :lock lock)]}
-      {:uf/db db})
-
     (handle-completion-action db action)))
 
+(defn- toggle-lock
+  "Follows the editor while locked. Else locks the context of the history entry that `db` shows, or the
+   followed one."
+  [{:repl-input/keys [context-line] :as db}]
+  (cond
+    (:repl-input.context/locked? context-line)
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-follow-editor")]}
+
+    context-line
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-lock"
+                    :lock (or (history/entry-lock db)
+                              (select-keys context-line [:repl-input.context/ns
+                                                         :repl-input.context/ns-form
+                                                         :repl-input.context/session-key])))]}
+
+    :else
+    {:uf/db db}))
+
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, its play button, the evaluation bar and the stdin input."
+  "Handles the actions of the context line, its mode and play buttons, the evaluation bar and the stdin
+   input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -141,11 +156,8 @@
       {:uf/db with-line
        :uf/fxs [(context-line-fx with-line)]})
 
-    :repl-input/ax.follow-editor
-    (if (get-in db [:repl-input/context-line :repl-input.context/locked?])
-      {:uf/db db
-       :uf/fxs [(post db "repl-input-follow-editor")]}
-      {:uf/db db})
+    :repl-input/ax.toggle-lock
+    (toggle-lock db)
 
     :repl-input/ax.connect
     {:uf/db db
@@ -154,10 +166,6 @@
     :repl-input/ax.evaluate
     {:uf/db db
      :uf/fxs [(post db "repl-input-evaluate")]}
-
-    :repl-input/ax.set-evaluate-key
-    {:uf/db db
-     :uf/fxs [[:repl-input/fx.set-evaluate-key payload]]}
 
     :repl-input/ax.set-evaluation
     {:uf/db (assoc db :repl-input/evaluation payload)

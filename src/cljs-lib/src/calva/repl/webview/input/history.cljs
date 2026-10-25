@@ -1,9 +1,7 @@
 (ns calva.repl.webview.input.history
   "The REPL Input walks its copy of the history in the Output view's page: when `up` and `down` walk it
-   instead of moving the cursor, what walking shows, and the lock link the context line offers while an
-   entry from another context shows."
-  (:require
-   [clojure.string :as string]))
+   instead of moving the cursor, what walking shows, and the lock the mode button offers while an entry
+   from another context shows.")
 
 (defn walk-direction
   "Returns `:back` for `up` on the first line and `:forward` for `down` on the last line, while there is
@@ -31,25 +29,22 @@
                  :else {:position nil}))))
 
 (defn- shown-text
-  "Returns `text` with the cursor where walking `direction` leaves it: at the end of the first line after
-   walking back, so that `up` walks on, and at the end of the text after walking forward."
-  [text direction]
-  (let [end (if (= :back direction)
-              (or (string/index-of text "\n") (count text))
-              (count text))]
-    {:text text :selections [[end end]]}))
+  "Returns `text` with the cursor at its start when `at-start?`, else at its end."
+  [text at-start?]
+  (let [cursor (if at-start? 0 (count text))]
+    {:text text :selections [[cursor cursor]]}))
 
 (defn- land
   "Returns `:db` showing the history entry at `position`, or the text from before the walk when `position`
-   is nil, which ends the walk, and the `:shown` text and selections. The stash keeps the text from before
-   the walk."
-  [{:repl-input/keys [text selections] :repl-input.history/keys [entries stash] :as db} position direction]
-  (let [stash (or stash {:text text :selections selections})]
+   is nil, which ends the walk, and the `:shown` text and selections. The cursor is at the start of an entry
+   walked back to, and else at the end of the text. The stash keeps the text from before the walk."
+  [{:repl-input/keys [text] :repl-input.history/keys [entries stash] :as db} position direction]
+  (let [stash (or stash text)]
     (if position
       {:db (assoc db :repl-input.history/position position :repl-input.history/stash stash)
-       :shown (shown-text (:repl-input.history/code (get entries position)) direction)}
+       :shown (shown-text (:repl-input.history/code (get entries position)) (= :back direction))}
       {:db (dissoc db :repl-input.history/position :repl-input.history/stash)
-       :shown stash})))
+       :shown (shown-text stash false)})))
 
 (defn walked
   "Returns what walking the history `direction`, `:back` or `:forward`, does to `db`, as `land` does, or nil
@@ -69,7 +64,7 @@
   [context entry]
   (every? #(= (get context %) (get entry %)) [:repl-input.context/ns :repl-input.context/session-key]))
 
-(defn lock-link
+(defn entry-lock
   "Returns the namespace, `ns` form and session of the history entry that `db` shows, when its namespace
    or session differs from the context line's. Else nil."
   [{:repl-input.history/keys [entries position] :repl-input/keys [context-line]}]

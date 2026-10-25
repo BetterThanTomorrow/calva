@@ -115,6 +115,7 @@
 
 (def ^:private locked-line
   {:repl-input.context/ns "pirate.core"
+   :repl-input.context/ns-form "(ns pirate.core)"
    :repl-input.context/session-key "clj"
    :repl-input.context/locked? true
    :repl-input.context/connected? true})
@@ -125,30 +126,34 @@
       (is (= {:uf/db (assoc db :repl-input/context-line locked-line)
               :uf/fxs [[:repl-input/fx.set-context-line locked-line nil]]}
              (sut/handle-action db [:repl-input/ax.set-context-line locked-line]))))
-    (testing "asks the extension to follow the editor on a click while locked"
-      (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
-             (:uf/fxs (sut/handle-action (assoc db :repl-input/context-line locked-line) [:repl-input/ax.follow-editor])))))
-    (testing "does nothing on a click while following the editor"
-      (is (= {:uf/db (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))}
-             (sut/handle-action (assoc db :repl-input/context-line (assoc locked-line :repl-input.context/locked? false))
-                                [:repl-input/ax.follow-editor]))))
-    (testing "locks nothing when no entry from another context shows"
-      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.lock-entry]))))
     (testing "asks the extension to connect a REPL on a click on the connect link"
       (is (= {:uf/db db
               :uf/fxs [[:fx/post-to-host {:command "repl-input-connect" :repl-input/id "output-view"}]]}
              (sut/handle-action db [:repl-input/ax.connect]))))))
 
+(deftest toggle-lock-test
+  (let [db {:repl-input/id "output-view"}
+        following-line (assoc locked-line :repl-input.context/locked? false)]
+    (testing "asks the extension to follow the editor on a click on the mode button while locked"
+      (is (= {:uf/db (assoc db :repl-input/context-line locked-line)
+              :uf/fxs [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]}
+             (sut/handle-action (assoc db :repl-input/context-line locked-line) [:repl-input/ax.toggle-lock]))))
+    (testing "asks the extension to lock the followed namespace, its ns form and the session on a click while following the editor"
+      (is (= [[:fx/post-to-host {:command "repl-input-lock"
+                                 :repl-input/id "output-view"
+                                 :lock {:repl-input.context/ns "pirate.core"
+                                        :repl-input.context/ns-form "(ns pirate.core)"
+                                        :repl-input.context/session-key "clj"}}]]
+             (:uf/fxs (sut/handle-action (assoc db :repl-input/context-line following-line) [:repl-input/ax.toggle-lock])))))
+    (testing "locks nothing before the extension has posted the context line"
+      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.toggle-lock]))))))
+
 (deftest evaluate-test
-  (let [db {:repl-input/id "output-sidebar"}]
-    (testing "asks the extension to evaluate this REPL Input on a click on the play button"
+  (testing "asks the extension to evaluate this REPL Input on a click on the play button"
+    (let [db {:repl-input/id "output-sidebar"}]
       (is (= {:uf/db db
               :uf/fxs [[:fx/post-to-host {:command "repl-input-evaluate" :repl-input/id "output-sidebar"}]]}
-             (sut/handle-action db [:repl-input/ax.evaluate]))))
-    (testing "shows the key the extension posts for evaluating the REPL Input on the play button"
-      (is (= {:uf/db db
-              :uf/fxs [[:repl-input/fx.set-evaluate-key "ctrl+alt+c enter"]]}
-             (sut/handle-action db [:repl-input/ax.set-evaluate-key "ctrl+alt+c enter"]))))))
+             (sut/handle-action db [:repl-input/ax.evaluate]))))))
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
@@ -200,26 +205,29 @@
    :repl-input.context/session-key "clj"})
 
 (def ^:private following-line
-  {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false})
+  {:repl-input.context/ns "user"
+   :repl-input.context/ns-form "(in-ns 'user)"
+   :repl-input.context/session-key "clj"
+   :repl-input.context/locked? false})
 
 (deftest walk-history-test
   (let [db {:repl-input/id "output-view"
             :repl-input/text "(draft"
-            :repl-input/selections [[6 6]]
+            :repl-input/selections [[2 2]]
             :repl-input/context-line following-line
             :repl-input.history/entries [pirate-entry]}
         {walked :uf/db fxs :uf/fxs} (sut/handle-action db [:repl-input/ax.walk-history :back])
-        lock-link (dissoc pirate-entry :repl-input.history/code)]
-    (testing "walks the history in the page, showing the entry and asking the extension for nothing"
-      (is (= [[:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[9 9]]}]
-              [:repl-input/fx.set-context-line following-line lock-link]]
+        entry-lock (dissoc pirate-entry :repl-input.history/code)]
+    (testing "walks the history in the page, showing the entry with the cursor at its start, and asking the extension for nothing"
+      (is (= [[:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[0 0]]}]
+              [:repl-input/fx.set-context-line following-line entry-lock]]
              fxs)))
     (testing "keeps the context line, and offers to lock the shown entry's context"
       (is (= following-line (:repl-input/context-line walked))))
-    (testing "locks the shown entry's namespace and session on a click on the lock link"
-      (is (= [[:fx/post-to-host {:command "repl-input-lock" :repl-input/id "output-view" :lock lock-link}]]
-             (:uf/fxs (sut/handle-action walked [:repl-input/ax.lock-entry])))))
-    (testing "walking past the newest entry brings back the text, and the line without the lock link"
+    (testing "locks the shown entry's namespace and session on a click on the mode button"
+      (is (= [[:fx/post-to-host {:command "repl-input-lock" :repl-input/id "output-view" :lock entry-lock}]]
+             (:uf/fxs (sut/handle-action walked [:repl-input/ax.toggle-lock])))))
+    (testing "walking past the newest entry brings back the text, with the cursor at its end, and the line without the entry's lock"
       (is (= [[:repl-input/fx.apply-edit {:text "(draft" :selections [[6 6]]}]
               [:repl-input/fx.set-context-line following-line nil]]
              (:uf/fxs (sut/handle-action walked [:repl-input/ax.walk-history :forward])))))

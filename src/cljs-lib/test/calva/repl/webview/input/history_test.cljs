@@ -34,7 +34,7 @@
 
 (def ^:private following-user
   {:repl-input/text "(draft"
-   :repl-input/selections [[6 6]]
+   :repl-input/selections [[1 1]]
    :repl-input.history/entries entries
    :repl-input/context-line {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false}})
 
@@ -46,18 +46,18 @@
   (let [[newest at-newest] (walk-from following-user :back)
         [middle at-middle] (walk-from at-newest :back)
         [oldest at-oldest] (walk-from at-middle :back)]
-    (testing "walks back from the newest entry, with the cursor at the end of the first line"
-      (is (= {:text "(js/alert 1)" :selections [[12 12]]} newest))
-      (is (= {:text "(inc a)\n(dec a)" :selections [[7 7]]} middle))
+    (testing "walks back from the newest entry, with the cursor at the start of the entry"
+      (is (= {:text "(js/alert 1)" :selections [[0 0]]} newest))
+      (is (= {:text "(inc a)\n(dec a)" :selections [[0 0]]} middle))
       (is (= "(def a 1)" (:text oldest))))
     (testing "changes only the text and the walk, not the context line"
       (is (= (:repl-input/context-line following-user) (:repl-input/context-line at-oldest))))
     (testing "goes nowhere back from the oldest entry, and forward when not walking"
       (is (nil? (sut/walked at-oldest :back)))
       (is (nil? (sut/walked following-user :forward))))
-    (testing "walks forward, with the cursor at the end of the text"
+    (testing "walks forward, with the cursor at the end of the entry"
       (is (= {:text "(inc a)\n(dec a)" :selections [[15 15]]} (first (walk-from at-oldest :forward)))))
-    (testing "walking past the newest entry brings back the text from before the walk, and ends the walk"
+    (testing "walking past the newest entry brings back the text from before the walk, with the cursor at its end, and ends the walk"
       (let [[shown past] (walk-from at-newest :forward)]
         (is (= {:text "(draft" :selections [[6 6]]} shown))
         (is (nil? (:repl-input.history/position past)))
@@ -75,15 +75,15 @@
   (testing "shows nothing for an entry the history doesn't have"
     (is (nil? (sut/recalled following-user 3)))))
 
-(deftest lock-link-test
+(deftest entry-lock-test
   (let [[_ at-newest] (walk-from following-user :back)
         [_ at-middle] (walk-from at-newest :back)]
     (testing "offers to lock the namespace and session of a shown entry from another context"
-      (is (= pirate-ui (sut/lock-link at-newest))))
+      (is (= pirate-ui (sut/entry-lock at-newest))))
     (testing "offers nothing at an entry from the current context, or at the user's own text"
-      (is (nil? (sut/lock-link at-middle)))
-      (is (nil? (sut/lock-link following-user))))
+      (is (nil? (sut/entry-lock at-middle)))
+      (is (nil? (sut/entry-lock following-user))))
     (testing "offers nothing once the context is the entry's"
-      (is (nil? (sut/lock-link (assoc at-newest :repl-input/context-line {:repl-input.context/ns "pirate.ui"
-                                                                          :repl-input.context/session-key "cljs"
-                                                                          :repl-input.context/locked? true})))))))
+      (is (nil? (sut/entry-lock (assoc at-newest :repl-input/context-line {:repl-input.context/ns "pirate.ui"
+                                                                           :repl-input.context/session-key "cljs"
+                                                                           :repl-input.context/locked? true})))))))

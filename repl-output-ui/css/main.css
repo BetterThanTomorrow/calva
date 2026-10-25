@@ -315,7 +315,7 @@ body.repl-input-on .output-greeting-read-only {
    color: var(--vscode-descriptionForeground);
 }
 
-.repl-input-evaluate {
+.repl-input-context-button {
    display: flex;
    flex-shrink: 0;
    margin: -3px 0;
@@ -327,29 +327,33 @@ body.repl-input-on .output-greeting-read-only {
    cursor: pointer;
 }
 
-.repl-input-evaluate:hover {
+.repl-input-context-button:hover {
    background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-.repl-input-evaluate:focus-visible {
+.repl-input-context-button:focus-visible {
    outline: 1px solid var(--vscode-focusBorder);
    outline-offset: -1px;
 }
 
-.repl-input-evaluate-icon {
+.repl-input-context-icon {
    width: 16px;
    height: 16px;
    fill: currentColor;
+   fill-rule: evenodd;
+}
+
+.repl-input-mode.entry {
+   color: var(--vscode-charts-blue);
+}
+
+.repl-input-evaluate {
+   color: var(--vscode-debugIcon-startForeground);
 }
 
 .repl-input-context-ns,
 .repl-input-context-session {
    flex-shrink: 0;
-}
-
-.repl-input-context-hint {
-   overflow: hidden;
-   text-overflow: ellipsis;
 }
 
 .repl-input-context-line > span + span::before {
@@ -360,31 +364,19 @@ body.repl-input-on .output-greeting-read-only {
    color: var(--vscode-foreground);
 }
 
-.repl-input-context-line.locked {
-   cursor: pointer;
-}
-
-.repl-input-context-line.locked:hover .repl-input-context-hint {
-   color: var(--vscode-textLink-activeForeground);
-   text-decoration: underline;
-}
-
-.repl-input-context-connect,
-.repl-input-context-lock {
+.repl-input-context-connect {
    flex-shrink: 0;
    cursor: pointer;
    color: var(--vscode-textLink-foreground);
 }
 
-.repl-input-context-connect::before,
-.repl-input-context-lock::before {
+.repl-input-context-connect::before {
    display: inline-block;
    white-space: pre;
    color: var(--vscode-descriptionForeground);
 }
 
-.repl-input-context-connect:hover,
-.repl-input-context-lock:hover {
+.repl-input-context-connect:hover {
    color: var(--vscode-textLink-activeForeground);
    text-decoration: underline;
 }
