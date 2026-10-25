@@ -7,26 +7,24 @@
   {:repl-input.context/ns "user"
    :repl-input.context/ns-form "(in-ns 'user)"
    :repl-input.context/session-key "clj"
-   :repl-input.context/locked? false})
+   :repl-input.context/locked? false
+   :repl-input.context/editor-ns "user"})
 
 (def ^:private pirate-lock
   {:repl-input.context/ns "pirate.ui"
    :repl-input.context/ns-form "(ns pirate.ui)"
    :repl-input.context/session-key "cljs"})
 
-(deftest mode-button-test
-  (testing "shows the link while following the editor, and says that a click, or an ns or in-ns form, locks"
-    (is (= {:repl-input.mode/icon :link
-            :repl-input.mode/entry? false
-            :repl-input.mode/title "Following the editor. Click to lock the namespace and session. Evaluating an ns or in-ns form locks too."}
-           (sut/mode-button following-line nil))))
-  (testing "shows the link for a history entry from another context, and names the entry's namespace and session"
-    (is (= {:repl-input.mode/icon :link
-            :repl-input.mode/entry? true
-            :repl-input.mode/title "Following the editor. Click to lock the history entry's namespace and session: pirate.ui · cljs"}
-           (sut/mode-button following-line pirate-lock))))
-  (testing "shows the lock while locked, and says that a click follows the editor"
-    (is (= {:repl-input.mode/icon :lock
-            :repl-input.mode/entry? false
-            :repl-input.mode/title "Locked. Click to follow the editor."}
-           (sut/mode-button (assoc following-line :repl-input.context/locked? true) nil)))))
+(deftest indicator-test
+  (testing "follows the editor, with the followed namespace"
+    (is (= {:repl-input.indicator/mode :following :repl-input.indicator/ns "user"}
+           (sut/indicator following-line nil))))
+  (testing "is locked, with the locked namespace"
+    (is (= {:repl-input.indicator/mode :locked :repl-input.indicator/ns "pirate.ui"}
+           (sut/indicator (assoc pirate-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user") nil))))
+  (testing "is a selector while locked by a recalled history entry, between the entry's namespace and the editor's"
+    (is (= {:repl-input.indicator/mode :selector
+            :repl-input.indicator/ns "pirate.ui"
+            :repl-input.indicator/choices [{:repl-input.choice/mode :locked :repl-input.choice/ns "pirate.ui"}
+                                           {:repl-input.choice/mode :following :repl-input.choice/ns "user"}]}
+           (sut/indicator (assoc pirate-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user") pirate-lock)))))

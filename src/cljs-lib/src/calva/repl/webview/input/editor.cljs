@@ -395,6 +395,7 @@
     :repl-input/fx.set-line-wrapping (set-line-wrapping! (first args))
     :repl-input/fx.run-command (run-command! (first args))
     :repl-input/fx.set-context-line (context/set-line! (first args) (second args))
+    :repl-input/fx.toggle-namespace-menu (context/toggle-menu!)
     :repl-input/fx.set-evaluation (context/set-evaluation! (first args))
     :repl-input/fx.show-stdin (some-> (stdin/show!) focus-now-or-later!)
     :repl-input/fx.hide-stdin (hide-stdin!)

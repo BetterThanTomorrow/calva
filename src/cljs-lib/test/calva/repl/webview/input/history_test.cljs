@@ -75,15 +75,43 @@
   (testing "shows nothing for an entry the history doesn't have"
     (is (nil? (sut/recalled following-user 3)))))
 
-(deftest entry-lock-test
+(defn- locked-to [db lock]
+  (assoc db :repl-input/context-line (assoc lock :repl-input.context/locked? true)))
+
+(def ^:private pirate-core
+  {:repl-input.context/ns "pirate.core"
+   :repl-input.context/ns-form "(ns pirate.core)"
+   :repl-input.context/session-key "clj"})
+
+(deftest walk-mode-test
   (let [[_ at-newest] (walk-from following-user :back)
         [_ at-middle] (walk-from at-newest :back)]
-    (testing "offers to lock the namespace and session of a shown entry from another context"
-      (is (= pirate-ui (sut/entry-lock at-newest))))
-    (testing "offers nothing at an entry from the current context, or at the user's own text"
-      (is (nil? (sut/entry-lock at-middle)))
-      (is (nil? (sut/entry-lock following-user))))
-    (testing "offers nothing once the context is the entry's"
-      (is (nil? (sut/entry-lock (assoc at-newest :repl-input/context-line {:repl-input.context/ns "pirate.ui"
-                                                                           :repl-input.context/session-key "cljs"
-                                                                           :repl-input.context/locked? true})))))))
+    (testing "asks to lock the namespace and session of an entry from another context than the one before the walk"
+      (is (= [:locked pirate-ui] (:mode-change (sut/walked following-user :back)))))
+    (testing "asks to follow the editor again at an entry from the context before the walk, before the context line has caught up with the lock"
+      (is (= [:following] (:mode-change (sut/walked at-newest :back)))))
+    (testing "asks for nothing between entries from the context before the walk"
+      (is (nil? (:mode-change (sut/walked at-middle :back)))))
+    (testing "walking past the newest entry asks for the mode from before the walk: following the editor"
+      (is (= [:following] (:mode-change (sut/walked (locked-to at-newest pirate-ui) :forward)))))
+    (testing "walking past the newest entry asks for the mode from before the walk: the lock it had"
+      (let [[_ at-ui] (walk-from (locked-to following-user pirate-core) :back)]
+        (is (= [:locked pirate-ui] (:mode-change (sut/walked (locked-to following-user pirate-core) :back))))
+        (is (= [:locked pirate-core] (:mode-change (sut/walked (locked-to at-ui pirate-ui) :forward))))))
+    (testing "asks for nothing at an entry from the context the walk began locked to"
+      (is (nil? (:mode-change (sut/walked (locked-to following-user pirate-ui) :back)))))
+    (testing "recalling an entry from the history search asks for its lock too"
+      (is (= [:locked pirate-ui] (:mode-change (sut/recalled following-user 2)))))))
+
+(deftest recalled-lock-test
+  (let [[_ at-newest] (walk-from following-user :back)
+        caught-up (locked-to at-newest pirate-ui)]
+    (testing "is the lock of the shown entry from another context, once the context line is locked to it"
+      (is (= pirate-ui (sut/recalled-lock caught-up))))
+    (testing "is nil before the context line is locked to the entry, as after following the editor again"
+      (is (nil? (sut/recalled-lock at-newest))))
+    (testing "is nil at an entry from the context before the walk, and at the user's own text"
+      (is (nil? (sut/recalled-lock (second (walk-from caught-up :back)))))
+      (is (nil? (sut/recalled-lock following-user))))
+    (testing "is nil when the walk began locked to the entry's context"
+      (is (nil? (sut/recalled-lock (second (walk-from (locked-to following-user pirate-ui) :back))))))))
