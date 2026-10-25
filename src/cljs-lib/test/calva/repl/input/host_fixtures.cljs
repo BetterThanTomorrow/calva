@@ -15,7 +15,7 @@
   (js/Promise. (fn [resolve _]
                  (swap! completions conj (assoc args :source source :resolve resolve)))))
 
-(defn fake-adapter [{:keys [contexts restored session-keys evaluations completions]}]
+(defn fake-adapter [{:keys [contexts restored session-keys evaluations completions definition opened]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
@@ -38,7 +38,10 @@
        :resolveReplCompletion (fn [session-key ns item]
                                 (js/Promise.resolve #js {:detail (str ns " in " session-key) :documentation (str "REPL docs for " (.-label item))}))
        :resolveLspCompletion (fn [_uri item]
-                               (js/Promise.resolve #js {:detail "lsp" :documentation #js {:kind "markdown" :value (str "LSP docs for " (.-label item))}}))})
+                               (js/Promise.resolve #js {:detail "lsp" :documentation #js {:kind "markdown" :value (str "LSP docs for " (.-label item))}}))
+       :definitionPriority (fn [] #js ["repl"])
+       :replDefinition (fn [_session-key _ns _doc _offset] (js/Promise.resolve (clj->js @definition)))
+       :openLocation (fn [uri line character] (swap! opened conj [uri line character]))})
 
 (defn fake-view [posted]
   #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})
@@ -49,7 +52,9 @@
               :posted (atom [])
               :session-keys (atom ["clj" "cljs"])
               :evaluations (atom [])
-              :completions (atom [])}]
+              :completions (atom [])
+              :definition (atom nil)
+              :opened (atom [])}]
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})

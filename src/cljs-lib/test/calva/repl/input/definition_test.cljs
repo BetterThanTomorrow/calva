@@ -57,18 +57,6 @@
   (testing "no definition leads nowhere"
     (is (nil? (sut/lsp-target copy nil)))))
 
-(deftest revealing-view-test
-  (testing "reveals a visible view that has the block, before one that is hidden"
-    (is (= "output-sidebar"
-           (sut/revealing-view [{:view-id "output-view" :found? true :visible? false}
-                                {:view-id "output-sidebar" :found? true :visible? true}]))))
-  (testing "reveals a hidden view that has the block"
-    (is (= "output-view"
-           (sut/revealing-view [{:view-id "output-view" :found? true :visible? false}
-                                {:view-id "output-sidebar" :found? false :visible? true}]))))
-  (testing "reveals nothing when no view has the block"
-    (is (nil? (sut/revealing-view [{:view-id "output-view" :found? false :visible? true}])))))
-
 (deftest add-evaluation-test
   (testing "keeps the code of the latest evaluations, newest last"
     (let [added (reduce sut/add-evaluation [] (map #(sut/evaluation % (str "(def a " % ")") 0 0) (range (+ 2 sut/kept-count))))]
@@ -80,11 +68,3 @@
     (is (= evaluations (sut/from-stored (sut/stored evaluations)))))
   (testing "skips what isn't an evaluation"
     (is (= [] (sut/from-stored [{:id 1} "(def a 1)"])))))
-
-(deftest reveal-column-test
-  (testing "reveals a hidden Output View beside the editor when it is in the editor's group"
-    (is (= :beside (sut/reveal-column {:visible? false :view-column 1 :editor-column 1}))))
-  (testing "reveals the Output View where it is when that keeps the editor showing"
-    (is (nil? (sut/reveal-column {:visible? false :view-column 2 :editor-column 1})))
-    (is (nil? (sut/reveal-column {:visible? true :view-column 1 :editor-column 1})))
-    (is (nil? (sut/reveal-column {:visible? false :view-column 1 :editor-column nil})))))

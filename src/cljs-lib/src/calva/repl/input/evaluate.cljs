@@ -63,7 +63,6 @@
                                 :nsForm ns-form
                                 :sessionKey session-key
                                 :filePath (definition/evaluation-file evaluation-id)
-                                :evaluationId evaluation-id
                                 :line (or line 0)
                                 :column (or column 0)
                                 :sendCode (not (false? send-code?))

@@ -28,25 +28,11 @@ export function replLocation(definition: replDefinition.ReplDefinition) {
   }
 }
 
-// Go to definition asks with the cursor's position; hovering with the modifier asks with the mouse's
-function isAtCursor(document: vscode.TextDocument, position: vscode.Position) {
-  const editor = vscode.window.activeTextEditor;
-  return editor?.document === document && editor.selection.active.isEqual(position);
-}
-
-/**
- * Returns the definition's location in the read-only entry of the REPL Input evaluation `evaluationId`
- * that made it, and, when going to it, also reveals the evaluation's code block in an Output view.
- */
-async function replInputEvaluationDefinition(
-  document: vscode.TextDocument,
-  position: vscode.Position,
+/** Returns the definition's location in the read-only entry of the REPL Input evaluation `evaluationId` that made it. */
+function replInputEvaluationDefinition(
   evaluationId: number,
   { line, column }: replDefinition.ReplDefinition
 ) {
-  if (isAtCursor(document, position)) {
-    await cljsLib.replInputRevealEvaluation(evaluationId, line, column);
-  }
   const entry = cljsLib.replInputEvaluationLocation(evaluationId, line, column);
   return entry
     ? new vscode.Location(
@@ -75,7 +61,7 @@ async function provideClojureDefinition(
     if (definition) {
       const evaluationId = cljsLib.replInputEvaluationId(definition.file);
       if (evaluationId) {
-        return replInputEvaluationDefinition(document, position, evaluationId, definition);
+        return replInputEvaluationDefinition(evaluationId, definition);
       }
       const location = replLocation(definition);
       if (location && location.uri.toString() !== document.uri.toString()) {

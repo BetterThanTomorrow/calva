@@ -249,16 +249,3 @@
         (is (= [] (:images payload))))
       (finally
         (reset! images/!max-result-data-url-payload-chars nil)))))
-
-(deftest evaluated-code-block-test
-  (testing "evaluated code from a REPL Input evaluation is appended with the evaluation's id and where its code starts"
-    (let [payload {:command/name "show-evaluated-code"
-                   :output "(defn f [])"
-                   :repl-input.evaluation/id 41
-                   :repl-input.evaluation/line 2
-                   :repl-input.evaluation/column 4}
-          result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-evaluated-code "(defn f [])" {:repl-input.evaluation/id 41
-                                                      :repl-input.evaluation/line 2
-                                                      :repl-input.evaluation/column 4}]]
-             (:uf/fxs result))))))

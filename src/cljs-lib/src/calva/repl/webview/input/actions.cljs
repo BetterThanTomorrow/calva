@@ -45,27 +45,9 @@
               [:repl-input/fx.set-editing (select-keys settings [:multi-cursor-modifier :word-separators])]
               [:repl-input/fx.set-completion (completion-config db)]]}))
 
-(defn- handle-definition-action
-  "Handles the actions of go to definition and the evaluated code blocks it reveals."
-  [db [action-type payload]]
-  (case action-type
-    :repl-input/ax.reveal-definition
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-reveal-definition" :text (:text payload) :offset (:offset payload))]}
-
-    :repl-input/ax.reveal-evaluation
-    {:uf/db db
-     :uf/fxs [[:fx/reveal-evaluated-code payload]]}
-
-    :repl-input/ax.evaluation-revealed
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-evaluation-revealed" :request (:request payload) :found? (:found? payload))]}
-
-    {:uf/db db}))
-
 (defn- handle-completion-action
-  "Handles the actions of the completion list and its docs."
-  [db [action-type payload :as action]]
+  "Handles the actions of the completion list and its docs, and of go to definition."
+  [db [action-type payload]]
   (case action-type
     :repl-input/ax.complete
     (let [{:keys [request text offset explicit?]} payload]
@@ -90,7 +72,11 @@
       {:uf/db (assoc db :repl-input/completion-active? (boolean payload))
        :uf/fxs [(post db "repl-input-completion-active" :active? (boolean payload))]})
 
-    (handle-definition-action db action)))
+    :repl-input/ax.reveal-definition
+    {:uf/db db
+     :uf/fxs [(post db "repl-input-reveal-definition" :text (:text payload) :offset (:offset payload))]}
+
+    {:uf/db db}))
 
 (defn- reading-stdin?
   [evaluation]

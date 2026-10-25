@@ -63,7 +63,6 @@
                              :replInputFollowEditor calva.repl.input.host/follow-editor!
                              :replInputEvaluationId calva.repl.input.definition/evaluation-id
                              :replInputEvaluationScheme calva.repl.input.definition/scheme
-                             :replInputRevealEvaluation calva.repl.input.reveal/reveal-evaluation+
                              :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
                              :replInputEvaluationCode calva.repl.input.reveal/evaluation-code
                              :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!

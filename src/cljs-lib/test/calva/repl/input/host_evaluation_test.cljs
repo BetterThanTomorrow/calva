@@ -1,5 +1,6 @@
 (ns calva.repl.input.host-evaluation-test
   (:require
+   [calva.repl.input.definition :as definition]
    [calva.repl.input.evaluate :as sut]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.host-fixtures :refer [last-context-line mount-focused! post! posted-named with-fresh-host with-view]]
@@ -44,18 +45,6 @@
                            (testing "keeps following the editor when the evaluation fails"
                              (is (false? (:repl-input.context/locked? (last-context-line posted)))))
                            (done)))))))))))
-
-(deftest evaluate-focused!-evaluation-id-test
-  (with-fresh-host
-    (fn [{:keys [evaluations] :as host}]
-      (with-view host
-        (fn []
-          (mount-focused! "output-view" "(def a 1)")
-          (sut/evaluate-focused!)
-          (let [{:keys [^js options]} (first @evaluations)]
-            (testing "gives the evaluation's id for its echoed code block, the id in its file name"
-              (is (number? (.-evaluationId options)))
-              (is (= (str "calva-repl-input/" (.-evaluationId options) ".clj") (.-filePath options))))))))))
 
 (deftest evaluate-focused!-not-connected-test
   (async done
@@ -132,6 +121,9 @@
                            (is (= ["(def a 1)\n(def b 2)"] (history-codes))))
                          (done))))))))))
 
+(defn- evaluation-id [evaluations]
+  (definition/evaluation-id (.-filePath ^js (:options (last @evaluations)))))
+
 (deftest kept-code-test
   (async done
     (with-fresh-host
@@ -142,13 +134,34 @@
             (sut/evaluate-from-focused! (picking #js {:code "(defn f [])" :line 2 :column 3}))
             (-> (after-pick)
                 (.then (fn [_]
-                         (let [id (.-evaluationId ^js (:options (last @evaluations)))]
+                         (let [id (evaluation-id evaluations)]
                            (testing "keeps the code of an evaluation without a history entry by its id"
                              (is (= "(defn f [])" (reveal/evaluation-code (str "/" id ".clj")))))
                            (testing "finds the definition in it where the REPL reports it"
                              (is (= {:uri (str "calva-repl-input:/" id ".clj") :line 0 :character 0}
                                     (js->clj (reveal/evaluation-location id 3 4) :keywordize-keys true)))))
                          (done))))))))))
+
+(deftest reveal-definition!-evaluation-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [evaluations definition opened posted] :as host}]
+        (with-view host
+          (fn []
+            (mount-focused! "output-view" "(f)")
+            (sut/evaluate-from-focused! (picking #js {:code "(defn f [])" :line 2 :column 3}))
+            (let [!posted-before (atom 0)]
+              (-> (after-pick)
+                  (.then (fn [_]
+                           (reset! definition {:file (str "calva-repl-input/" (evaluation-id evaluations) ".clj") :line 3 :column 4})
+                           (reset! !posted-before (count @posted))
+                           (reveal/reveal-definition! {:text "(f)" :offset 1})))
+                  (.then (fn [_]
+                           (testing "opens the read-only entry of the evaluation that defined it, at the definition"
+                             (is (= [[(str "calva-repl-input:/" (evaluation-id evaluations) ".clj") 0 0]] @opened)))
+                           (testing "posts nothing to the Output views"
+                             (is (empty? (remove #(= "repl-input-context" (:command/name %)) (drop @!posted-before @posted)))))
+                           (done)))))))))))
 
 (deftest evaluate-from-focused!-test
   (async done

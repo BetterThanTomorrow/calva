@@ -158,8 +158,6 @@ type EvaluationOptions = {
   who?: string;
   // Without it, the evaluation reads stdin from an input box
   stdin?: () => Promise<string>;
-  // A REPL Input evaluation's id, which its echoed code block carries
-  evaluationId?: number;
 };
 
 type EvaluationHooks = {
@@ -225,7 +223,7 @@ function sendEvaluation(options: EvaluationOptions) {
 }
 
 function echoEvaluatedCode(
-  { code, echoDestinations, evaluationId, line, column }: EvaluationOptions,
+  { code, echoDestinations }: EvaluationOptions,
   outputOptions: output.AppendClojureOptions
 ) {
   const evalResultsDestination = output.getDestinationConfiguration().evalResults;
@@ -237,7 +235,6 @@ function echoEvaluatedCode(
     sinkDestination: evalResultsDestination,
     writeVisible: echoDestinations.length > 0,
     visibleOutputCategory: 'evaluatedCode',
-    evaluation: evaluationId === undefined ? undefined : { id: evaluationId, line, column },
     ...outputOptions,
   });
 }

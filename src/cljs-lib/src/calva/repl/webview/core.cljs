@@ -522,26 +522,14 @@
         shadow-build (assoc :meta/shadow-build shadow-build)
         (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
 
-(defn- evaluation-block
-  "Returns the id of the REPL Input evaluation whose code `options` echo, and the zero-based line and
-   column where its code starts, or nil for other output."
-  [options]
-  (when-let [{:keys [id line column]} (if (map? options)
-                                        (:evaluation options)
-                                        (some-> ^js options .-evaluation (js->clj :keywordize-keys true)))]
-    {:repl-input.evaluation/id id
-     :repl-input.evaluation/line line
-     :repl-input.evaluation/column column}))
-
 (defn output-message
   "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`."
   [options command-name output-category message]
   (let [meta-data (options->meta options)]
-    (merge (cond-> {:command/name command-name
-                    :output-category output-category
-                    :output message}
-             (seq meta-data) (assoc :meta meta-data))
-           (evaluation-block options))))
+    (cond-> {:command/name command-name
+             :output-category output-category
+             :output message}
+      (seq meta-data) (assoc :meta meta-data))))
 
 (defn ^:export append
   [^js options message]

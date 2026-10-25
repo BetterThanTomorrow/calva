@@ -95,22 +95,3 @@
     (nil? reported) nil
     (not inCopy) {:target :location :uri uri :line line :character character}
     (and document-uri (< line text-line)) {:target :location :uri document-uri :line line :character character}))
-
-(defn revealing-view
-  "Returns the id of the Output view to reveal among `answers`, those that have the evaluated code block,
-   a visible one first."
-  [answers]
-  (->> answers
-       (filter :found?)
-       (sort-by (complement :visible?))
-       first
-       :view-id))
-
-(defn reveal-column
-  "Returns where to reveal the Output View so that it doesn't cover the active editor: `:beside` when it is
-   hidden in the editor group of the active editor at `editor-column`, else nil, where it is."
-  [{:keys [visible? view-column editor-column]}]
-  (when (and (not visible?)
-             editor-column
-             (= view-column editor-column))
-    :beside))

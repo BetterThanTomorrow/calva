@@ -2,7 +2,6 @@
   "Turns the REPL Input on and off in the Output views, from the setting and the toggle commands."
   (:require
    [calva.repl.input.config :as config]
-   [calva.repl.input.definition :as definition]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
    [calva.repl.input.reveal :as reveal]
@@ -55,29 +54,10 @@
          (when (some #(.affectsConfiguration event %) (cons "calva" config/clojure-settings))
            (host/settings-changed! (host/read-settings)))))))
 
-(defn- show-output-view-for-definition!
-  "Reveals the Output View, beside the active editor when revealing it where it is would cover that editor."
-  [preserve-focus?]
-  (let [^js vscode @util/vscode
-        ^js panel @webview/output-view-webview-panel
-        ^js editor (.. vscode -window -activeTextEditor)
-        column (definition/reveal-column {:visible? (.-visible panel)
-                                          :view-column (.-viewColumn panel)
-                                          :editor-column (when editor (.-viewColumn editor))})]
-    (.reveal panel (when (= :beside column) (.. vscode -ViewColumn -Beside)) preserve-focus?)))
-
-(def ^:private output-views
-  "The Output views that go to definition reveals evaluated code blocks in."
-  {"output-view" {:view #(deref webview/output-view-webview-panel)
-                  :show! show-output-view-for-definition!}
-   "output-sidebar" {:view #(when @sidebar/output-sidebar-showing-output-log? @sidebar/output-sidebar-webview-view)
-                     :show! sidebar/show-repl-output-sidebar}})
-
 (defn ^:export init!
   "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
   (host/set-adapter! adapter)
-  (reveal/set-output-views! output-views)
   (set-enabled-context!)
   (recall/load-history!)
   (reveal/load-evaluated-code!)

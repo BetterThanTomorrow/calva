@@ -34,20 +34,14 @@
                                         meta (assoc :meta meta))]]
       [[:fx/append-result output]])))
 
-(def ^:private evaluation-keys
-  "The keys of the id of the REPL Input evaluation whose code a message shows, and where its code starts."
-  [:repl-input.evaluation/id :repl-input.evaluation/line :repl-input.evaluation/column])
-
 (defn- message-fxs
-  [{command-name :command/name :keys [output meta] :as payload} category]
+  [{command-name :command/name :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
     "show-result" (result-fxs output meta)
-    "show-evaluated-code" (let [evaluation (select-keys payload evaluation-keys)]
-                            [(cond-> [:fx/append-evaluated-code output]
-                               (seq evaluation) (conj evaluation))])
+    "show-evaluated-code" [[:fx/append-evaluated-code output]]
     []))
 
 (defn- meta-context-key

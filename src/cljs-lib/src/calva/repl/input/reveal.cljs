@@ -1,25 +1,12 @@
 (ns calva.repl.input.reveal
   "Goes to definitions from the REPL Inputs, and from files to definitions that REPL Input evaluations
-   made: keeps the code of the latest evaluations, reveals an evaluation's code block in an Output view,
-   or opens its read-only entry."
+   made: keeps the code of the latest evaluations, and opens an evaluation's read-only entry."
   (:require
    [calva.repl.input.completion :as completion]
    [calva.repl.input.config :as config]
    [calva.repl.input.definition :as definition]
    [calva.repl.input.host :as host]
    [calva.util :as util]))
-
-(defonce ^{:doc "The Output views by view id, each with `:view`, which returns its webview view while it shows
-                 output, and `:show!`, which reveals it, keeping the focus where it is when given true."}
-  !output-views (atom {}))
-
-(defonce ^:private !last-request (atom 0))
-
-(def ^:private answer-timeout-ms 500)
-
-(defn set-output-views!
-  [output-views]
-  (reset! !output-views output-views))
 
 (defn load-evaluated-code!
   []
@@ -32,52 +19,6 @@
   (let [{:repl-input/keys [evaluated-code]}
         (swap! host/!state update :repl-input/evaluated-code definition/add-evaluation (definition/evaluation id code line column))]
     (config/store-evaluated-code! (definition/stored evaluated-code))))
-
-(defn- answered-found?
-  "Returns whether `msg`, posted by an Output view, says that it has the block of `request`, or nil when
-   `msg` answers something else."
-  [request ^js msg]
-  (let [{:keys [command found?] answered :request} (js->clj msg :keywordize-keys true)]
-    (when (and (= "repl-input-evaluation-revealed" command) (= request answered))
-      (boolean found?))))
-
-(defn- ask-view+
-  "Posts `message` to the webview view `view`, and returns a promise of whether the view has the block it
-   asks for, or of false when the view doesn't answer in time."
-  [^js view {:keys [request] :as message}]
-  (js/Promise.
-   (fn [resolve _]
-     (let [!listener (atom nil)
-           answer! (fn [found?]
-                     (some-> ^js @!listener .dispose)
-                     (resolve found?))]
-       (reset! !listener (.. view -webview (onDidReceiveMessage #(some-> (answered-found? request %) answer!))))
-       (js/setTimeout #(answer! false) answer-timeout-ms)
-       (.. view -webview (postMessage (pr-str message)))))))
-
-(defn- showing-views
-  []
-  (keep (fn [[view-id {:keys [view]}]]
-          (when-let [^js webview-view (view)]
-            {:view-id view-id :view webview-view :visible? (.-visible webview-view)}))
-        @!output-views))
-
-(defn ^:export reveal-evaluation+
-  "Reveals the code block of the evaluation `id` in an Output view that has it, with the definition at
-   `line` and `column`, as the REPL reports them, marked. Returns a promise of whether a view has it."
-  [id line column]
-  (let [message {:command/name "repl-input-reveal-evaluation"
-                 :request (swap! !last-request inc)
-                 :repl-input.evaluation/id id
-                 :line line
-                 :column column}
-        views (showing-views)]
-    (-> (js/Promise.all (into-array (map #(ask-view+ (:view %) message) views)))
-        (.then (fn [found]
-                 (when-let [view-id (definition/revealing-view (map #(assoc %1 :found? %2) views found))]
-                   ((get-in @!output-views [view-id :show!]) true)
-                   true)))
-        (.then boolean))))
 
 (defn- entry-location
   [id line column]
@@ -141,8 +82,7 @@
   [{:keys [target id line column definition uri character]}]
   (let [^js adapter @host/!adapter]
     (case target
-      :evaluation (.then (reveal-evaluation+ id line column)
-                         #(when-not % (open-entry! id line column)))
+      :evaluation (open-entry! id line column)
       :repl-file (.openReplDefinition adapter (clj->js definition))
       :location (.openLocation adapter uri line character)
       (no-definition!))))
