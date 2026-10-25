@@ -94,12 +94,11 @@
   (evaluate+ id (next-evaluation-id!) request evaluation-context))
 
 (defn ^:export evaluate-focused!
-  "Evaluates all of the focused REPL Input's text in the context as one evaluation, adds it to the history
-   and clears the REPL Input, or says that no session answers to the context's session key. Returns a
-   promise of when the evaluation is done."
+  "Evaluates all of the text of the REPL Input that Calva's commands reach in the context as one
+   evaluation, adds it to the history and clears the REPL Input, or says that no session answers to the
+   context's session key. Returns a promise of when the evaluation is done."
   []
-  (let [{:repl-input/keys [focused records]} @host/!state
-        {:repl-input/keys [text] :as record} (get records focused)]
+  (let [{:repl-input/keys [text] :as record} (get-in @host/!state [:repl-input/records (host/command-target!)])]
     (if (string/blank? text)
       (js/Promise.resolve nil)
       (let [evaluation-context (host/refresh-context!)]
@@ -125,15 +124,14 @@
       (not-connected+ picked-context))))
 
 (defn- evaluate-picked-from-focused+
-  "Evaluates what `pick` takes from the focused REPL Input with `evaluate-request+`, which gets the REPL
-   Input's record, the request and the context."
+  "Evaluates what `pick` takes from the REPL Input that Calva's commands reach with `evaluate-request+`,
+   which gets the REPL Input's record, the request and the context."
   [pick evaluate-request+]
-  (let [{:repl-input/keys [focused records]} @host/!state]
-    (if-let [record (get records focused)]
-      (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (host/refresh-context!)]
-        (-> (js/Promise.resolve (pick (host/document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
-            (.then #(when % (evaluate-picked+ evaluate-request+ record evaluation-context %)))))
-      (js/Promise.resolve nil))))
+  (if-let [record (get-in @host/!state [:repl-input/records (host/command-target!)])]
+    (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (host/refresh-context!)]
+      (-> (js/Promise.resolve (pick (host/document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
+          (.then #(when % (evaluate-picked+ evaluate-request+ record evaluation-context %)))))
+    (js/Promise.resolve nil)))
 
 (defn ^:export evaluate-from-focused!
   "Evaluates what `pick` takes from a document with the focused REPL Input's text and selections, in the
@@ -167,6 +165,6 @@
       (.interrupt evaluation))))
 
 (defn ^:export interrupt-focused!
-  "Interrupts the evaluations running from the focused REPL Input."
+  "Interrupts the evaluations running from the REPL Input that Calva's commands reach."
   []
-  (some-> (:repl-input/focused @host/!state) interrupt!))
+  (some-> (host/command-target!) interrupt!))

@@ -29,15 +29,15 @@
                           :repl-input.history/position position}))
 
 (defn ^:export search-focused!
-  "Searches the history in a quick pick, newest first, and shows the picked entry in the focused REPL
-   Input. Returns a promise of when that is done."
+  "Searches the history in a quick pick, newest first, and shows the picked entry in the REPL Input that
+   Calva's commands reach. Returns a promise of when that is done."
   []
-  (if-let [focused (:repl-input/focused @host/!state)]
+  (if-let [target (host/command-target @host/!state)]
     (do
       (host/refresh-context!)
       (-> (.. ^js @util/vscode -window
               (showQuickPick (clj->js (history/pick-items (:repl-input.history/walked @host/!state)))
                              #js {:placeHolder "Search the REPL Input history"
                                   :matchOnDescription true}))
-          (.then #(some->> % .-index (recall! focused)))))
+          (.then #(some->> % .-index (recall! target)))))
     (js/Promise.resolve nil)))

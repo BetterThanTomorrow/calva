@@ -101,10 +101,12 @@
         (.then go-to+))))
 
 (defn ^:export reveal-definition-focused!
-  "Goes to the definition at the cursor of the focused REPL Input. Returns a promise of when that is done."
+  "Goes to the definition at the cursor of the REPL Input that Calva's commands reach. Returns a promise
+   of when that is done."
   []
-  (let [{:repl-input/keys [focused records]} @host/!state
-        {:repl-input/keys [text selections]} (get records focused)]
-    (if focused
+  (let [{:repl-input/keys [records] :as state} @host/!state
+        target (host/command-target state)
+        {:repl-input/keys [text selections]} (get records target)]
+    (if target
       (reveal-definition! {:text (or text "") :offset (second (first selections))})
       (js/Promise.resolve nil))))

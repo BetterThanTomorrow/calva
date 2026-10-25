@@ -44,7 +44,8 @@
        :openLocation (fn [uri line character] (swap! opened conj [uri line character]))})
 
 (defn fake-view [posted]
-  #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}})
+  #js {:webview #js {:postMessage (fn [s] (swap! posted conj (reader/read-string s)))}
+       :show (fn [_preserve-focus?])})
 
 (defn with-fresh-host [f]
   (let [host {:contexts (atom [])

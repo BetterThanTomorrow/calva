@@ -10,8 +10,6 @@
    [calva.repl.input.reveal :as reveal]
    [calva.util :as util]))
 
-(def focus-message {:command/name "repl-input-focus"})
-
 (defn- mounted!
   "Posts the context line, the history and the evaluation bar to the REPL Input `id`, and gives its stdin
    input the focus when an evaluation waits there for a line from stdin. Refreshing the context already
@@ -24,7 +22,7 @@
       (host/post-to-view! id (host/history-message walked)))
     (host/post-to-view! id (evaluate/evaluation-message id))
     (when (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)
-      (host/post-to-view! id focus-message))))
+      (host/post-to-view! id host/focus-message))))
 
 (defn handle-message!
   "Takes a message the REPL Input in `webview-host` posted."

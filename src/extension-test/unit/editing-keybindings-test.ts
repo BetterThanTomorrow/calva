@@ -12,10 +12,14 @@ const keybindings: { command: string; key?: string; mac?: string; when?: string 
 const commands: { command: string; enablement?: string }[] = manifest.contributes.commands;
 
 const REPL_INPUT_FOCUSED = 'calva:replInputFocused';
+const REPL_INPUT_LAST_FOCUSED = 'calva:replInputLastFocused';
+const IN_QUICK_OPEN = 'inQuickOpen';
 const EDITOR_CLAUSE = 'editorLangId == clojure && editorTextFocus';
 const REPL_INPUT_CLAUSE = `(${EDITOR_CLAUSE} || ${REPL_INPUT_FOCUSED})`;
 const EDITOR_ENABLEMENT = 'editorLangId == clojure';
-const REPL_INPUT_ENABLEMENT = `${EDITOR_ENABLEMENT} || ${REPL_INPUT_FOCUSED}`;
+const REPL_INPUT_PALETTE_CLAUSE = `${REPL_INPUT_FOCUSED} || ${REPL_INPUT_LAST_FOCUSED} && ${IN_QUICK_OPEN}`;
+const REPL_INPUT_ENABLEMENT = `${EDITOR_ENABLEMENT} || ${REPL_INPUT_PALETTE_CLAUSE}`;
+const REPL_INPUT_ATOMS = [REPL_INPUT_FOCUSED, REPL_INPUT_LAST_FOCUSED];
 
 const NAMED_EDITING_COMMANDS = [
   'calva.toggleLineComment',
@@ -148,15 +152,17 @@ function contexts(atoms: string[]): Map<string, boolean>[] {
   );
 }
 
-/** The contexts, with the REPL Input unfocused, where the two clauses disagree */
+/** The contexts, with the REPL Input neither focused nor the last focused place, where the two clauses disagree */
 function disagreementsWithoutReplInput(clause: string, editorOnlyClause: string) {
   const expr = parseWhen(clause);
   const editorOnlyExpr = parseWhen(editorOnlyClause);
   const atoms = [...new Set([...atomsOf(expr), ...atomsOf(editorOnlyExpr)])].filter(
-    (atom) => atom !== REPL_INPUT_FOCUSED
+    (atom) => !REPL_INPUT_ATOMS.includes(atom)
   );
   return contexts(atoms)
-    .map((context) => context.set(REPL_INPUT_FOCUSED, false))
+    .map(
+      (context) => new Map([...context, ...REPL_INPUT_ATOMS.map((atom) => [atom, false] as const)])
+    )
     .filter((context) => evaluate(expr, context) !== evaluate(editorOnlyExpr, context))
     .map((context) => Object.fromEntries(context));
 }
@@ -248,10 +254,39 @@ describe('Calva editing keybindings and the REPL Input', () => {
         ({ command, enablement }) =>
           !isEditingCommand(command) &&
           !isReplInputCommand(command) &&
-          enablement?.includes(REPL_INPUT_FOCUSED)
+          REPL_INPUT_ATOMS.some((atom) => enablement?.includes(atom))
       )
       .map(({ command }) => command);
     expect(others).toEqual([]);
+  });
+
+  it('the command palette enables Calva editing commands and the REPL Input commands while the REPL Input is the last focused place', () => {
+    const paletteWhen = new Map<string, string>(
+      manifest.contributes.menus.commandPalette.map(({ command, when }) => [command, when])
+    );
+    const clauses = commands
+      .filter(
+        ({ command, enablement }) =>
+          isReplInputCommand(command) || (isEditingCommand(command) && enablement)
+      )
+      .flatMap(({ command, enablement }) => [
+        [`${command} enablement`, enablement],
+        ...(paletteWhen.has(command) ? [[`${command} palette`, paletteWhen.get(command)]] : []),
+      ]);
+    expect(clauses.length).toBeGreaterThan(100);
+    const wrong = clauses
+      .filter(([, clause]) => {
+        const expr = parseWhen(clause);
+        const lastFocused = new Map([...atomsOf(expr)].map((atom) => [atom, false])).set(
+          REPL_INPUT_LAST_FOCUSED,
+          true
+        );
+        const inPalette = evaluate(expr, new Map(lastFocused).set(IN_QUICK_OPEN, true));
+        const outsidePalette = evaluate(expr, new Map(lastFocused).set(IN_QUICK_OPEN, false));
+        return !inPalette || outsidePalette;
+      })
+      .map(([label]) => label);
+    expect(wrong).toEqual([]);
   });
 
   it("the REPL Input's own keys and the Calva commands that reach it never hold together on a key", () => {
@@ -289,13 +324,13 @@ describe('Calva editing keybindings and the REPL Input', () => {
     expect(unfocused).toEqual([]);
   });
 
-  it("the REPL Input's own commands are in the command palette only while it has focus", () => {
+  it("the REPL Input's own commands are in the command palette only while it has focus, or is the last focused place", () => {
     const paletteWhen = new Map<string, string>(
       manifest.contributes.menus.commandPalette.map(({ command, when }) => [command, when])
     );
     const ungated = commands
       .filter(({ command }) => isReplInputCommand(command))
-      .filter(({ command }) => paletteWhen.get(command) !== REPL_INPUT_FOCUSED)
+      .filter(({ command }) => paletteWhen.get(command) !== REPL_INPUT_PALETTE_CLAUSE)
       .map(({ command }) => command);
     expect(ungated).toEqual([]);
   });

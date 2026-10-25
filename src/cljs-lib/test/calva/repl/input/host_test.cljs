@@ -22,24 +22,28 @@
           (testing "drops the record when the REPL Input unmounts"
             (is (= {} (:repl-input/records @sut/!state)))))))))
 
+(defn- context-values
+  [contexts k]
+  (mapv second (filter #(= k (first %)) @contexts)))
+
 (deftest handle-message!-focus-test
   (with-fresh-host
     (fn [{:keys [contexts] :as host}]
       (with-view host
         (fn []
           (post! {:command "repl-input-focused" :repl-input/id "output-sidebar"})
-          (testing "sets the focus context when a REPL Input gets focus"
-            (is (= [["calva:replInputFocused" true]] @contexts))
+          (testing "sets the focus contexts when a REPL Input gets focus"
+            (is (= [["calva:replInputFocused" true] ["calva:replInputLastFocused" true]] @contexts))
             (is (sut/focused?)))
           (post! {:command "repl-input-focused" :repl-input/id "output-view"})
-          (testing "leaves the context as it is when focus moves between REPL Inputs"
-            (is (= [["calva:replInputFocused" true]] @contexts)))
+          (testing "leaves the contexts as they are when focus moves between REPL Inputs"
+            (is (= 2 (count @contexts))))
           (post! {:command "repl-input-blurred" :repl-input/id "output-sidebar"})
           (testing "ignores a late blur from the REPL Input that lost focus earlier"
-            (is (= 1 (count @contexts))))
+            (is (= 2 (count @contexts))))
           (sut/text-editor-focused!)
-          (testing "clears the context when a text editor gets focus"
-            (is (= ["calva:replInputFocused" false] (last @contexts)))
+          (testing "clears the contexts when a text editor gets focus"
+            (is (= [["calva:replInputFocused" false] ["calva:replInputLastFocused" false]] (take-last 2 @contexts)))
             (is (not (sut/focused?)))))))))
 
 (deftest view-lifecycle-focus-test
@@ -49,13 +53,43 @@
         (fn []
           (post! {:command "repl-input-focused" :repl-input/id "output-view"})
           (sut/view-hidden! "output-view")
-          (testing "clears the context when the view is hidden"
-            (is (= ["calva:replInputFocused" false] (last @contexts))))
+          (testing "clears the contexts when the view is hidden"
+            (is (= [true false] (context-values contexts "calva:replInputFocused")))
+            (is (= [true false] (context-values contexts "calva:replInputLastFocused"))))
           (post! {:command "repl-input-focused" :repl-input/id "output-view"})
           (sut/view-disposed! "output-view")
-          (testing "clears the context when the view is disposed"
-            (is (= ["calva:replInputFocused" false] (last @contexts)))
-            (is (= 4 (count @contexts)))))))))
+          (testing "clears the contexts when the view is disposed"
+            (is (= [true false true false] (context-values contexts "calva:replInputFocused")))
+            (is (= [true false true false] (context-values contexts "calva:replInputLastFocused")))))))))
+
+(deftest last-focused-test
+  (with-fresh-host
+    (fn [{:keys [contexts posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (post! {:command "repl-input-blurred" :repl-input/id "output-view"})
+          (testing "keeps the REPL Input the last focused place when it loses the focus, as to the command palette"
+            (is (= [true false] (context-values contexts "calva:replInputFocused")))
+            (is (= [true] (context-values contexts "calva:replInputLastFocused")))
+            (is (sut/focused?)))
+          (sut/run-in-focused! "joinLines")
+          (testing "runs Calva's commands in the last focused REPL Input, and gives it the focus back"
+            (is (= ["output-view"] (mapv :repl-input/id (posted-named posted "repl-input-run-command"))))
+            (is (= ["output-view"] (mapv :repl-input/id (posted-named posted "repl-input-focus")))))
+          (sut/terminal-focused!)
+          (testing "ends it when a terminal gets the focus"
+            (is (= [true false] (context-values contexts "calva:replInputLastFocused")))
+            (is (not (sut/focused?))))
+          (sut/run-in-focused! "joinLines")
+          (testing "runs nothing when no REPL Input is the last focused place"
+            (is (= 1 (count (posted-named posted "repl-input-run-command")))))
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (post! {:command "repl-input-blurred" :repl-input/id "output-view"})
+          (sut/view-state-changed! "output-view" true false)
+          (testing "ends it when its view goes inactive, as when another editor gets the focus"
+            (is (= [true false true false] (context-values contexts "calva:replInputLastFocused")))))))))
 
 (deftest cursor-contexts-test
   (with-fresh-host
@@ -67,10 +101,11 @@
             (is (= [] @contexts)))
           (post! {:command "repl-input-focused" :repl-input/id "output-view"})
           (testing "sets the cursor contexts from the REPL Input's document when it gets focus"
-            (is (= #{["calva:replInputFocused" true] ["calva:cursorInComment" true]} (set @contexts))))
+            (is (= #{["calva:replInputFocused" true] ["calva:replInputLastFocused" true] ["calva:cursorInComment" true]}
+                   (set @contexts))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 1 :text "; ab" :selections [[4 4]]})
           (testing "sets only the contexts that change"
-            (is (= 2 (count @contexts))))
+            (is (= 3 (count @contexts))))
           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 2 :text "a" :selections [[1 1]]})
           (testing "follows the REPL Input's cursor"
             (is (= ["calva:cursorInComment" false] (last @contexts))))

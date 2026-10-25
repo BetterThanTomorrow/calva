@@ -16,6 +16,8 @@
 
 (def focused-context "calva:replInputFocused")
 
+(def last-focused-context "calva:replInputLastFocused")
+
 (defn- focused-contexts
   "The context keys that hold only for the focused REPL Input: whether its completion list is open."
   [{:repl-input/keys [focused records settings]}]
@@ -24,6 +26,7 @@
 (def initial-state
   {:repl-input/records {}
    :repl-input/focused nil
+   :repl-input/last-focused nil
    :repl-input/overrides {}
    :repl-input/keybindings []
    :repl-input/settings {}
@@ -82,6 +85,8 @@
   [id message]
   (when-let [^js view (get @!views id)]
     (.. view -webview (postMessage (pr-str (assoc message :repl-input/id id))))))
+
+(def focus-message {:command/name "repl-input-focus"})
 
 (defn history-message
   [entries]
@@ -147,12 +152,20 @@
       (set-context! k v))
     (swap! !state assoc :repl-input/applied-focused-contexts contexts)))
 
+(defn- set-context-on-change!
+  "Sets the context key `k` to whether there is a REPL Input id `after`, when that differs from `before`."
+  [k before after]
+  (when (not= (some? before) (some? after))
+    (set-context! k (some? after))))
+
 (defn update-focus!
   [event]
-  (let [[before after] (swap-vals! !state update :repl-input/focused focus/focused-after event)
+  (let [[before after] (swap-vals! !state #(-> %
+                                               (update :repl-input/focused focus/focused-after event)
+                                               (update :repl-input/last-focused focus/last-focused-after event)))
         focused? (some? (:repl-input/focused after))]
-    (when (not= (some? (:repl-input/focused before)) focused?)
-      (set-context! focused-context focused?))
+    (set-context-on-change! focused-context (:repl-input/focused before) (:repl-input/focused after))
+    (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
     (if focused?
       (apply-cursor-contexts!)
       (release-cursor-contexts!))
@@ -333,10 +346,46 @@
   [view-id]
   (update-focus! [:hide view-id]))
 
-(defn ^:export focused?
-  "True while a REPL Input has focus."
+(defn view-state-changed!
+  "Takes whether the view `view-id` is `visible?` and `active?`."
+  [view-id visible? active?]
+  (cond
+    (not visible?) (update-focus! [:hide view-id])
+    (not active?) (update-focus! [:deactivate view-id])))
+
+(defn command-target
+  "Returns the id of the REPL Input that Calva's commands reach in `state`: the focused one, or else the
+   last focused place, as while the command palette has the focus."
+  [{:repl-input/keys [focused last-focused]}]
+  (or focused last-focused))
+
+(defn- focus-view!
+  "Gives the focus to the REPL Input `id` in its view."
+  [id]
+  (when-let [^js view (get @!views id)]
+    (if (fn? (.-reveal view))
+      (.reveal view js/undefined false)
+      (.show view false))
+    (post-to-view! id focus-message)))
+
+(defn command-target!
+  "Returns the id of the REPL Input that Calva's commands reach, and gives the focus back to it when it is
+   the last focused place."
   []
-  (some? (:repl-input/focused @!state)))
+  (let [{:repl-input/keys [focused] :as state} @!state
+        target (command-target state)]
+    (when (and target (not focused))
+      (focus-view! target))
+    target))
+
+(defn ^:export focused?
+  "True while Calva's commands reach a REPL Input: while one has focus, or is the last focused place."
+  []
+  (some? (command-target @!state)))
+
+(defn terminal-focused!
+  []
+  (update-focus! [:terminal-focus]))
 
 (defn ^:export text-editor-focused!
   []
@@ -349,20 +398,20 @@
       (take-edit! id version after))))
 
 (defn ^:export run-in-focused!
-  "Runs the REPL Input's editor command named `command-name` in the focused REPL Input."
+  "Runs the REPL Input's editor command named `command-name` in the REPL Input that Calva's commands reach."
   [command-name]
-  (when-let [focused (:repl-input/focused @!state)]
-    (post-to-view! focused {:command/name "repl-input-run-command"
-                            :repl-input/command command-name})))
+  (when-let [target (command-target!)]
+    (post-to-view! target {:command/name "repl-input-run-command"
+                           :repl-input/command command-name})))
 
 (defn ^:export edit-focused!
-  "Runs `f` on a document with the focused REPL Input's text and selections, and posts what `f` made of
-   them to that REPL Input. Returns a promise of when that is done."
+  "Runs `f` on a document with the text and selections of the REPL Input that Calva's commands reach, and
+   posts what `f` made of them to that REPL Input. Returns a promise of when that is done."
   [f]
-  (let [{:repl-input/keys [focused records]} @!state]
-    (if-let [{:repl-input/keys [version] :as record} (get records focused)]
+  (let [target (command-target!)]
+    (if-let [{:repl-input/keys [version] :as record} (get-in @!state [:repl-input/records target])]
       (let [doc (document record)
             before (document-state doc)]
         (-> (js/Promise.resolve (f doc))
-            (.then (fn [_] (edited! focused version before doc)))))
+            (.then (fn [_] (edited! target version before doc)))))
       (js/Promise.resolve nil))))

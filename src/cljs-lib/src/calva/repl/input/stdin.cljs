@@ -6,7 +6,6 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
-   [calva.repl.input.messages :as messages]
    [calva.util :as util]))
 
 (def view-id "output-sidebar")
@@ -34,7 +33,7 @@
   (when-not (host/enabled? view-id)
     (core/toggle-output-sidebar!))
   (-> (.. ^js @util/vscode -commands (executeCommand "calva.output-sidebar.focus"))
-      (.then #(host/post-to-view! view-id messages/focus-message))))
+      (.then #(host/post-to-view! view-id host/focus-message))))
 
 (defn ^:export read-line+
   "Returns a promise of the line that the Output Sidebar's stdin input sends to `evaluation`, an evaluation

@@ -54,6 +54,11 @@
          (when (some #(.affectsConfiguration event %) (cons "calva" config/clojure-settings))
            (host/settings-changed! (host/read-settings)))))))
 
+(defn- create-terminal-focus-listener
+  []
+  (.. ^js @util/vscode -window
+      (onDidChangeActiveTerminal #(when % (host/terminal-focused!)))))
+
 (defn ^:export init!
   "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
@@ -62,7 +67,8 @@
   (recall/load-history!)
   (reveal/load-evaluated-code!)
   (host/load-keybindings!)
-  (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener))))
+  (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener)))
+  (.. ^js @util/vscode-context -subscriptions (push (create-terminal-focus-listener))))
 
 (defn ^:export toggle-output-view!
   []

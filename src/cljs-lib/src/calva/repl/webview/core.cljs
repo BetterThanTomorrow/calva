@@ -410,8 +410,7 @@
   (.. webview-panel
       (onDidChangeViewState
        (fn [^js _event]
-         (when-not (.-visible webview-panel)
-           (input-host/view-hidden! "output-view"))
+         (input-host/view-state-changed! "output-view" (.-visible webview-panel) (.-active webview-panel))
          (set-code-theme! context
                           {:color-theme-kind (.. ^js vscode -window -activeColorTheme -kind)
                            :webview-panel webview-panel})))))

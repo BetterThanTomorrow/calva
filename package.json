@@ -1944,187 +1944,187 @@
         "command": "calva.replInput.deleteBackward",
         "title": "Delete Backward in REPL Input",
         "category": "Calva Paredit",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.deleteForward",
         "title": "Delete Forward in REPL Input",
         "category": "Calva Paredit",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.newLine",
         "title": "New Line in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.formatCurrentForm",
         "title": "Format Current Form in REPL Input",
         "category": "Calva Format",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.undo",
         "title": "Undo in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.redo",
         "title": "Redo in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.cursorUndo",
         "title": "Cursor Undo in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.addSelectionToNextFindMatch",
         "title": "Add Selection to Next Find Match in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.selectHighlights",
         "title": "Select All Occurrences of Find Match in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.insertCursorAbove",
         "title": "Add Cursor Above in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.insertCursorBelow",
         "title": "Add Cursor Below in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.insertCursorAtEndOfEachLineSelected",
         "title": "Add Cursors to Line Ends in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.commentLine",
         "title": "Toggle Line Comment in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.moveLinesUp",
         "title": "Move Line Up in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.moveLinesDown",
         "title": "Move Line Down in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.copyLinesUp",
         "title": "Copy Line Up in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.copyLinesDown",
         "title": "Copy Line Down in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.deleteLines",
         "title": "Delete Line in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.insertLineAfter",
         "title": "Insert Line Below in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.insertLineBefore",
         "title": "Insert Line Above in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.indentLines",
         "title": "Indent Line in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.outdentLines",
         "title": "Outdent Line in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.joinLines",
         "title": "Join Lines in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.expandSelection",
         "title": "Expand Selection in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.shrinkSelection",
         "title": "Shrink Selection in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.evaluate",
         "title": "Evaluate REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.evaluateTopLevelForm",
         "title": "Evaluate Top Level Form in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.interrupt",
         "title": "Interrupt REPL Input Evaluation",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.searchHistory",
         "title": "Search REPL Input History",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.followEditor",
         "title": "Follow the Editor in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.replInput.revealDefinition",
         "title": "Go to Definition in REPL Input",
         "category": "Calva",
-        "enablement": "calva:replInputFocused"
+        "enablement": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva.interruptAllEvaluations",
@@ -2305,295 +2305,295 @@
         "category": "Calva Paredit",
         "command": "paredit.forwardSexp",
         "title": "Move Cursor Forward Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexp",
         "title": "Move Cursor Backward Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardSexpOrUp",
         "title": "Move Cursor Forward or Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexpOrUp",
         "title": "Move Cursor Backward or Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardDownSexp",
         "title": "Move Cursor Forward Down Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardDownSexp",
         "title": "Move Cursor Backward Down Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardUpSexp",
         "title": "Move Cursor Backward Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardUpSexp",
         "title": "Move Cursor Forward Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.closeList",
         "title": "Move Cursor Forward to List End/Close",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.openList",
         "title": "Backward to List Start/Open",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "calva.selectCurrentForm",
         "title": "Select Current Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardSexp",
         "title": "Select Forward Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectRight",
         "title": "Select Right",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardSexp",
         "title": "Select Backward Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardDownSexp",
         "title": "Select Forward Down Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardDownSexp",
         "title": "Select Backward Down Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardUpSexp",
         "title": "Select Backward Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardUpSexp",
         "title": "Select Forward Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardSexpOrUp",
         "title": "Select Backward Or Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardSexpOrUp",
         "title": "Select Forward Or Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectCloseList",
         "title": "Select Forward to List End/Close",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectOpenList",
         "title": "Select Backward to List Start/Open",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rangeForDefun",
         "title": "Select Current Top Level (aka defun) Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.sexpRangeExpansion",
         "title": "Expand Selection",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.sexpRangeContraction",
         "title": "Shrink Selection",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.slurpSexpForward",
         "title": "Slurp Sexp Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.slurpSexpBackward",
         "title": "Slurp Sexp Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.barfSexpForward",
         "title": "Barf Sexp Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.barfSexpBackward",
         "title": "Barf Sexp Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.spliceSexp",
         "title": "Splice Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.splitSexp",
         "title": "Split Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.joinSexp",
         "title": "Join Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.raiseSexp",
         "title": "Raise Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.transpose",
         "title": "Transpose (Swap) the two Sexps Around the Cursor",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprBackward",
         "title": "Drag Sexp Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprForward",
         "title": "Drag Sexp Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprBackwardUp",
         "title": "Drag Sexp Backward Up",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprForwardDown",
         "title": "Drag Sexp Forward Down",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprForwardUp",
         "title": "Drag Sexp Forward Up",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.dragSexprBackwardDown",
         "title": "Drag Sexp Backward Down",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.convolute",
         "title": "Convolute Sexp ¯\\_(ツ)_/¯",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killRight",
         "title": "Kill/Delete Right",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killLeft",
         "title": "Kill/Delete Left",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killSexpForward",
         "title": "Kill/Delete Sexp Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killSexpBackward",
         "title": "Kill/Delete Sexp Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killListForward",
         "title": "Kill/Delete Forward to End of List",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.killListBackward",
         "title": "Kill/Delete Backward to Start of List",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.spliceSexpKillForward",
         "title": "Splice & Kill/Delete Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.spliceSexpKillBackward",
         "title": "Splice & Kill/Delete Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
@@ -2611,73 +2611,73 @@
         "category": "Calva Paredit",
         "command": "paredit.forceDeleteForward",
         "title": "Force Delete Forward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forceDeleteBackward",
         "title": "Force Delete Backward",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.wrapAroundParens",
         "title": "Wrap Around ()",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.wrapAroundSquare",
         "title": "Wrap Around []",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.wrapAroundCurly",
         "title": "Wrap Around {}",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.wrapAroundSet",
         "title": "Wrap Around #{}",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.wrapAroundQuote",
         "title": "Wrap Around \"\"",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rewrapParens",
         "title": "Rewrap ()",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rewrapSquare",
         "title": "Rewrap []",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rewrapCurly",
         "title": "Rewrap {}",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rewrapSet",
         "title": "Rewrap #{}",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rewrapQuote",
         "title": "Rewrap \"\"",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva-fmt.formatCurrentForm",
@@ -2713,7 +2713,7 @@
         "command": "calva-fmt.tabDedent",
         "title": "Dedent Line",
         "category": "Calva Format",
-        "enablement": "editorLangId == clojure || calva:replInputFocused"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "category": "Calva",
@@ -4162,127 +4162,127 @@
         },
         {
           "command": "calva.replInput.deleteBackward",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.deleteForward",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.newLine",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.formatCurrentForm",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.undo",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.redo",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.cursorUndo",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.addSelectionToNextFindMatch",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.selectHighlights",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.insertCursorAbove",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.insertCursorBelow",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.insertCursorAtEndOfEachLineSelected",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.commentLine",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.moveLinesUp",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.moveLinesDown",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.copyLinesUp",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.copyLinesDown",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.deleteLines",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.insertLineAfter",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.insertLineBefore",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.indentLines",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.outdentLines",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.joinLines",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.expandSelection",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.shrinkSelection",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.evaluate",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.evaluateTopLevelForm",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.interrupt",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.revealDefinition",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.searchHistory",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
         {
           "command": "calva.replInput.followEditor",
-          "when": "calva:replInputFocused"
+          "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         }
       ],
       "editor/title": [
