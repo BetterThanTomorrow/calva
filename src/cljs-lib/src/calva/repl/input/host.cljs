@@ -282,14 +282,20 @@
   [^js document]
   (some-> document .-uri str))
 
+(defn- session-build
+  "Returns the build of the ClojureScript session `session-key`, or nil."
+  [session-key]
+  (.sessionBuild ^js @!adapter session-key))
+
 (defn- current-context
   []
   (let [{:repl-input.context/keys [lock editor]} @!state]
-    (context/current {:lock lock
-                      :editor-namespace (editor-namespace editor)
-                      :editor-file (source-file (:document editor))
-                      :route route
-                      :session-keys (.sessionKeys ^js @!adapter)})))
+    (-> (context/current {:lock lock
+                          :editor-namespace (editor-namespace editor)
+                          :editor-file (source-file (:document editor))
+                          :route route
+                          :session-keys (.sessionKeys ^js @!adapter)})
+        (context/with-builds session-build))))
 
 (defn context-line-message
   [line]

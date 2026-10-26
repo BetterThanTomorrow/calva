@@ -214,6 +214,11 @@ const contextAdapter = {
     replSession.getRoutingInfoForUri(sourceFile ? vscode.Uri.parse(sourceFile) : undefined)
       ?.sessionKey,
   sessionKeys: () => sessionRegistry.listSessions().map(({ key }) => key),
+  // The build belongs to the connection, and only its ClojureScript session runs in it
+  sessionBuild: (sessionKey: string | undefined) =>
+    (sessionKey && sessionRegistry.isSessionSecondary(sessionKey)
+      ? sessionRegistry.getConnectionStateForSession(sessionKey)?.cljsBuild
+      : null) ?? null,
 };
 
 function registerEvaluationCommands() {

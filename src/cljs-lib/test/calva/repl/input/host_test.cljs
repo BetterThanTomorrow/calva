@@ -310,6 +310,22 @@
                    (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
                                 [:repl-input.context/session-key :repl-input.context/connected?])))))))))
 
+(deftest build-test
+  (with-fresh-host
+    (fn [{:keys [posted builds] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (sut/editor-moved! #js {:ns "pirate.ui" :uri "file:///pirate/src/pirate/ui.cljs"} #js {})
+          (testing "shows no build for a session without one"
+            (is (nil? (:repl-input.context/build (:repl-input/context-line (last (posted-named posted "repl-input-context")))))))
+          (reset! builds {"cljs" ":app"})
+          (sut/routing-changed!)
+          (testing "shows the build of the session, and of the editor's session, after a build switch"
+            (is (= [":app" ":app"]
+                   ((juxt :repl-input.context/build :repl-input.context/editor-build)
+                    (:repl-input/context-line (last (posted-named posted "repl-input-context"))))))))))))
+
 (deftest connect-test
   (with-fresh-host
     (fn [host]

@@ -67,18 +67,27 @@
                     :repl-input.context/source-file (:repl-input.context/source-file context)))
     lock))
 
+(defn with-builds
+  "Returns `context` with the build that `build` gives for its session, and for the editor's session."
+  [{:repl-input.context/keys [session-key editor-session-key] :as context} build]
+  (assoc context
+         :repl-input.context/build (build session-key)
+         :repl-input.context/editor-build (build editor-session-key)))
+
 (defn line
-  "Returns what the context line shows for `context`: its namespace, `ns` form, source file and session,
-   whether it is locked and connected, and the editor's namespace and session."
+  "Returns what the context line shows for `context`: its namespace, `ns` form, source file, session and
+   build, whether it is locked and connected, and the editor's namespace, session and build."
   [context]
   (select-keys context [:repl-input.context/ns
                         :repl-input.context/ns-form
                         :repl-input.context/source-file
                         :repl-input.context/session-key
+                        :repl-input.context/build
                         :repl-input.context/locked?
                         :repl-input.context/connected?
                         :repl-input.context/editor-ns
-                        :repl-input.context/editor-session-key]))
+                        :repl-input.context/editor-session-key
+                        :repl-input.context/editor-build]))
 
 (defn not-connected-message
   "Returns what evaluating says when no session answers to the session key of `context`."

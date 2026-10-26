@@ -62,19 +62,35 @@
   {:locked {:icon lock-path :detail "from the history"}
    :following {:icon link-path :detail "following the editor"}})
 
+(defn session-label
+  "Returns how a choice of the namespace menu shows the session `session-key`, with its `build` after it."
+  [session-key build]
+  (cond-> session-key
+    build (str " · " build)))
+
+(defn- with-sessions
+  "Returns the `choices` of the namespace menu with the session that each is in, from `sessions`, when they
+   differ."
+  [choices sessions]
+  (if (apply = sessions)
+    choices
+    (mapv #(assoc %1 :repl-input.choice/session (apply session-label %2)) choices sessions)))
+
 (defn indicator
   "Returns what the namespace indicator shows for the `context-line` and the `recalled-lock`, the lock of a
    recalled history entry from another context: its mode, `:following`, `:locked`, or `:selector` while the
    recalled entry locks the context, and the namespace. A selector has the choices of its menu: the entry's
-   namespace, locked, and the editor's, followed."
-  [{:repl-input.context/keys [ns editor-ns locked?]} recalled-lock]
+   namespace, locked, and the editor's, followed, each with its session when the two differ."
+  [{:repl-input.context/keys [ns editor-ns locked? session-key build editor-session-key editor-build]} recalled-lock]
   (cond
     recalled-lock {:repl-input.indicator/mode :selector
                    :repl-input.indicator/ns ns
-                   :repl-input.indicator/choices [{:repl-input.choice/mode :locked
-                                                   :repl-input.choice/ns (:repl-input.context/ns recalled-lock)}
-                                                  {:repl-input.choice/mode :following
-                                                   :repl-input.choice/ns editor-ns}]}
+                   :repl-input.indicator/choices (with-sessions
+                                                   [{:repl-input.choice/mode :locked
+                                                     :repl-input.choice/ns (:repl-input.context/ns recalled-lock)}
+                                                    {:repl-input.choice/mode :following
+                                                     :repl-input.choice/ns editor-ns}]
+                                                   [[session-key build] [editor-session-key editor-build]])}
     locked? {:repl-input.indicator/mode :locked :repl-input.indicator/ns ns}
     :else {:repl-input.indicator/mode :following :repl-input.indicator/ns ns}))
 
@@ -103,6 +119,7 @@
       (.setAttribute "data-choice" (name mode))
       (.append (stdin/icon "repl-input-context-icon" icon)
                (text-element "repl-input-menu-ns" "")
+               (text-element "repl-input-menu-session" "")
                (text-element "repl-input-menu-detail" detail))
       (.addEventListener "click" on-click))))
 
@@ -173,11 +190,13 @@
         (.removeAttribute "aria-expanded")))))
 
 (defn- set-menu!
-  "Shows the namespaces of the `choices` in the namespace `menu`, and closes it when there are none."
+  "Shows the namespaces and sessions of the `choices` in the namespace `menu`, and closes it when there are
+   none."
   [^js menu choices]
-  (doseq [{:repl-input.choice/keys [mode ns]} choices]
-    (some-> (.querySelector menu (str "[data-choice=" (name mode) "] .repl-input-menu-ns"))
-            (-> .-textContent (set! ns))))
+  (doseq [{:repl-input.choice/keys [mode ns session]} choices
+          :let [item (.querySelector menu (str "[data-choice=" (name mode) "]"))]]
+    (some-> item (.querySelector ".repl-input-menu-ns") (-> .-textContent (set! ns)))
+    (some-> item (.querySelector ".repl-input-menu-session") (-> .-textContent (set! (or session "")))))
   (when (and (empty? choices) (.matches menu ":popover-open"))
     (.hidePopover menu)))
 
@@ -187,10 +206,12 @@
     (.setAttribute "role" "button")))
 
 (defn- session-elements
-  "Returns the session key of the `context-line`, and the connect link while no session answers to it."
-  [{:repl-input.context/keys [session-key connected?]}]
+  "Returns the session key of the `context-line` and its build, and the connect link while no session
+   answers to it."
+  [{:repl-input.context/keys [session-key build connected?]}]
   (cond-> []
     session-key (conj (text-element "repl-input-context-session" session-key))
+    (and session-key build) (conj (text-element "repl-input-context-build" build))
     (not connected?) (conj (connect-link-element))))
 
 (defn set-line!

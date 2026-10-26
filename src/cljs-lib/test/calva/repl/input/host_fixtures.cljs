@@ -21,7 +21,7 @@
   [routes source-file]
   (get routes source-file (if (and source-file (string/ends-with? source-file ".cljs")) "cljs" "clj")))
 
-(defn fake-adapter [{:keys [contexts restored session-keys routes evaluations completions definition opened]}]
+(defn fake-adapter [{:keys [contexts restored session-keys routes builds evaluations completions definition opened]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
@@ -30,6 +30,7 @@
        :restoreEditorCursorContexts (fn [] @restored)
        :editorNamespace (fn [^js document _position] #js [(.-ns document) (str "(ns " (.-ns document) ")")])
        :routedSessionKey (fn [source-file] (fake-route @routes source-file))
+       :sessionBuild (fn [session-key] (get @builds session-key))
        :sessionKeys (fn [] (clj->js @session-keys))
        :nsFromText (fn [code] (when-let [[form ns] (re-find #"^\(ns ([\w.]+)\)" code)] #js [ns form]))
        :evaluate (fn [options]
@@ -59,6 +60,7 @@
               :posted (atom [])
               :session-keys (atom ["clj" "cljs"])
               :routes (atom {})
+              :builds (atom {})
               :evaluations (atom [])
               :completions (atom [])
               :definition (atom nil)

@@ -384,7 +384,8 @@ body.repl-input-on .output-greeting-read-only {
    background: none;
 }
 
-.repl-input-context-session {
+.repl-input-context-session,
+.repl-input-context-build {
    flex-shrink: 0;
 }
 
@@ -573,7 +574,12 @@ body.repl-input-on .output-greeting-read-only {
    text-overflow: ellipsis;
 }
 
+.repl-input-menu-session,
 .repl-input-menu-detail {
    flex-shrink: 0;
    opacity: 0.7;
+}
+
+.repl-input-menu-session:empty {
+   display: none;
 }

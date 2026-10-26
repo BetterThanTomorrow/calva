@@ -217,6 +217,20 @@
             :repl-input.context/editor-session-key nil}
            (sut/line (sut/current {:route {}}))))))
 
+(deftest with-builds-test
+  (let [build {"cljs" ":app" "cljs:2" ":test"}
+        locked (sut/current {:lock (assoc lock :repl-input.context/source-file lib-file)
+                             :editor-file core-file :route route :session-keys ["cljs"]})]
+    (testing "gives the context the build of its session and of the editor's session"
+      (is (= [":app" nil]
+             ((juxt :repl-input.context/build :repl-input.context/editor-build) (sut/with-builds locked build)))))
+    (testing "the context line shows them"
+      (is (= {:repl-input.context/build ":app" :repl-input.context/editor-build nil}
+             (select-keys (sut/line (sut/with-builds locked build))
+                          [:repl-input.context/build :repl-input.context/editor-build]))))
+    (testing "has no build without a session"
+      (is (nil? (:repl-input.context/build (sut/with-builds (sut/current {:route {}}) build)))))))
+
 (deftest not-connected-message-test
   (testing "names the session that isn't connected"
     (is (= "Not evaluated: the REPL session clj:2 isn't connected"
