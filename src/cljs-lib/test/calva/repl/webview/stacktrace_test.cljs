@@ -77,3 +77,27 @@
     (is (= "clojure.lang.ExceptionInfo: No message"
            (sut/cause-heading {:class "clojure.lang.ExceptionInfo" :message nil}))
         "A cause without a message says so")))
+
+(def outer-frames (:stacktrace (first runtime-causes)))
+
+(deftest frame-filtering
+  (let [entry (sut/error-entry {:id "e1" :error/causes runtime-causes})]
+    (is (= :filtered (:error/frame-filter entry))
+        "A new error shows the filtered frames")
+    (is (= #{"tooling" "dup"} (:error/hidden-flags entry))
+        "A new error hides tooling and duplicate frames")
+    (is (= [#{"project" "clj"} #{"repl" "clj"}]
+           (map :flags (sut/visible-frames entry outer-frames)))
+        "Tooling and duplicate frames are hidden")
+    (is (= 3 (sut/hidden-count entry outer-frames)))
+    (is (= outer-frames (sut/visible-frames (assoc entry :error/frame-filter :all) outer-frames))
+        "All frames shows every frame")
+    (is (= [#{"project" "clj"} #{"dup" "project" "clj"}]
+           (map :flags (sut/visible-frames (assoc entry :error/frame-filter :project) outer-frames)))
+        "Project only shows the project's frames, duplicates included")
+    (is (= [#{"project" "clj"} #{"repl" "clj"} #{"tooling" "java"} #{"dependency" "tooling" "clj"}]
+           (map :flags (sut/visible-frames (sut/toggle-flag entry "tooling") outer-frames)))
+        "Turning a filter off shows its frames again")
+    (is (= [#{"project" "clj"}]
+           (map :flags (sut/visible-frames (sut/toggle-flag entry "repl") outer-frames)))
+        "Turning a filter on hides its frames")))

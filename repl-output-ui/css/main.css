@@ -347,3 +347,47 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
 .output-error .output-error-frame-link:hover .output-error-frame-location {
    text-decoration: underline;
 }
+
+.output-error-filters {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 4px 12px;
+   margin-block: 4px 2px;
+   font-family: var(--vscode-font-family, sans-serif);
+   font-size: calc(var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
+}
+
+.output-error-filter-group {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 2px;
+}
+
+.output-error .output-error-filter {
+   display: inline-flex;
+   width: auto;
+   padding: 1px 6px;
+   border: 1px solid transparent;
+   border-radius: 3px;
+   color: var(--vscode-foreground, #cccccc);
+}
+
+.output-error .output-error-filter:hover:not(:disabled) {
+   background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.output-error .output-error-filter[aria-pressed="true"] {
+   background-color: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.4));
+   border-color: var(--vscode-inputOption-activeBorder, #007acc);
+   color: var(--vscode-inputOption-activeForeground, #ffffff);
+}
+
+.output-error .output-error-filter:disabled {
+   cursor: default;
+   opacity: 0.5;
+}
+
+.output-error-hidden-count {
+   color: var(--vscode-descriptionForeground, #858585);
+}

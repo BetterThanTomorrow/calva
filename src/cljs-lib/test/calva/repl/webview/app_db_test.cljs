@@ -308,3 +308,16 @@
 (deftest clear-output-view-forgets-errors-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
     (is (empty? (:output/errors (:uf/db (sut/handle-action db [:msg/clear-output-view])))))))
+
+(deftest error-filters-test
+  (let [db (:uf/db (show-error (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
+                               {:id "e2" :error/causes runtime-causes}))
+        {flag-db :uf/db flag-fxs :uf/fxs} (sut/handle-action db [:error/ax.toggle-flag {:error/id "e1" :frame/flag "repl"}])
+        {choice-db :uf/db} (sut/handle-action db [:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :project}])]
+    (is (= #{"tooling" "dup" "repl"} (get-in flag-db [:output/errors "e1" :error/hidden-flags])))
+    (is (= [[:fx/render-error (get-in flag-db [:output/errors "e1"])]] flag-fxs)
+        "Redraws the error")
+    (is (= #{"tooling" "dup"} (get-in flag-db [:output/errors "e2" :error/hidden-flags]))
+        "Other errors keep their filters")
+    (is (= :project (get-in choice-db [:output/errors "e1" :error/frame-filter])))
+    (is (= :filtered (get-in choice-db [:output/errors "e2" :error/frame-filter])))))

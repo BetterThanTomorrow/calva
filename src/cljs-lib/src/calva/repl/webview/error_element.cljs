@@ -64,16 +64,49 @@
                     (apply str (for [{:keys [val predicate]} problems]
                                  (str val " - failed: " predicate "\n"))))))
 
+(defn- pressable-button
+  [{:keys [control label title pressed? disabled? on-click]}]
+  (let [button (create-element "button" "output-error-filter" label)]
+    (set! (.-type button) "button")
+    (set! (.-title button) title)
+    (set! (.-disabled button) (boolean disabled?))
+    (.. button (setAttribute "aria-pressed" (str (boolean pressed?))))
+    (.. button (setAttribute "data-control" control))
+    (.. button (addEventListener "click" on-click))
+    button))
+
+(defn- filter-bar
+  [dispatch {:error/keys [id causes frame-filter hidden-flags] :as error}]
+  (let [hidden (reduce + (map #(stacktrace/hidden-count error (:stacktrace %)) causes))]
+    (create-element "div" "output-error-filters"
+                    (apply create-element "span" "output-error-filter-group"
+                           (for [{:filter/keys [label flag]} stacktrace/frame-filters]
+                             (pressable-button {:control (str "flag-" flag)
+                                                :label label
+                                                :title (str "Hide " label " frames")
+                                                :pressed? (contains? hidden-flags flag)
+                                                :disabled? (not= :filtered frame-filter)
+                                                :on-click #(dispatch [:error/ax.toggle-flag {:error/id id :frame/flag flag}])})))
+                    (apply create-element "span" "output-error-filter-group"
+                           (for [{:choice/keys [label] choice :choice/frame-filter} stacktrace/frame-filter-choices]
+                             (pressable-button {:control (str "choice-" (name choice))
+                                                :label label
+                                                :title (str "Show " label)
+                                                :pressed? (= choice frame-filter)
+                                                :on-click #(dispatch [:error/ax.set-frame-filter {:error/id id :error/frame-filter choice}])})))
+                    (create-element "span" "output-error-hidden-count" (str hidden " frames hidden")))))
+
 (defn- cause-element
-  [dispatch {:error/keys [id unfolded-causes]} index {:keys [triage spec data stacktrace] :as cause}]
-  (let [frames-unfolded? (contains? unfolded-causes index)]
+  [dispatch {:error/keys [id unfolded-causes] :as error} index {:keys [triage spec data stacktrace] :as cause}]
+  (let [frames-unfolded? (contains? unfolded-causes index)
+        frames (stacktrace/visible-frames error stacktrace)]
     (create-element "div" "output-error-cause"
                     (toggle-button {:class-name "output-error-cause-toggle"
                                     :control (str "cause-" index)
                                     :expanded? frames-unfolded?
                                     :on-click #(dispatch [:error/ax.toggle-cause {:error/id id :cause/index index}])}
                                    (create-element "span" "output-error-cause-heading" (stacktrace/cause-heading cause))
-                                   (create-element "span" "output-error-frame-count" (str (count stacktrace) " frames")))
+                                   (create-element "span" "output-error-frame-count" (str (count frames) " frames")))
                     (when triage
                       (create-element "pre" "output-error-detail" triage))
                     (when-not triage
@@ -81,7 +114,7 @@
                     (when data
                       (create-element "pre" "output-error-detail" data))
                     (when frames-unfolded?
-                      (apply create-element "ol" "output-error-frames" (map #(frame-element dispatch %) stacktrace))))))
+                      (apply create-element "ol" "output-error-frames" (map #(frame-element dispatch %) frames))))))
 
 (defn create
   "Returns the element for `error`. Its controls dispatch actions with `dispatch`."
@@ -94,6 +127,7 @@
                                                (create-element "pre" "output-error-text" text))
                                 (when unfolded?
                                   (apply create-element "div" "output-error-causes"
+                                         (filter-bar dispatch error)
                                          (map-indexed #(cause-element dispatch error %1 %2) causes))))]
     (.. element (setAttribute "data-output-element-type" "error"))
     (.. element (setAttribute "data-error-id" id))
