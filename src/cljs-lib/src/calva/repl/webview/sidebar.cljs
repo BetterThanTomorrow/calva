@@ -155,12 +155,9 @@
        :error
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
 
-(defn ^:export append-stacktrace
-  [^js stacktrace]
-  (add-output-sidebar-message!
-   {:command/name "show-stdout"
-    :output-category "evalErr"
-    :output (core/stacktrace->message (js->clj stacktrace :keywordize-keys true))}))
+(defn ^:export append-error
+  [^js options text ^js causes]
+  (add-output-sidebar-message! (core/error-message options text causes)))
 
 (defn ^:export clear-output-sidebar
   []

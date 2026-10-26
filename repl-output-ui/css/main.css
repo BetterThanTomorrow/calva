@@ -232,3 +232,118 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    object-fit: contain;
    border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
 }
+
+.output-error {
+   font-family: var(--vscode-editor-font-family, monospace);
+   font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
+   margin-block: 4px;
+}
+
+.output-error button {
+   display: flex;
+   align-items: flex-start;
+   gap: 2px;
+   width: 100%;
+   padding: 0;
+   border: none;
+   background: transparent;
+   color: inherit;
+   font: inherit;
+   text-align: start;
+   cursor: pointer;
+}
+
+.output-error button:focus-visible {
+   outline: 1px solid var(--vscode-focusBorder, #007fd4);
+   outline-offset: 1px;
+}
+
+.output-error-chevron {
+   flex: none;
+   width: 16px;
+   height: 1.4em;
+   fill: var(--vscode-icon-foreground, #c5c5c5);
+   transition: transform 0.1s ease-out;
+}
+
+.output-error button[aria-expanded="true"] > .output-error-chevron {
+   transform: rotate(90deg);
+}
+
+.output-error-text {
+   margin: 0;
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+   font: inherit;
+}
+
+.output-error[data-error-category="evalErr"] .output-error-text,
+.output-error[data-error-category="otherErr"] .output-error-text {
+   color: var(--vscode-errorForeground, #f48771);
+}
+
+.output-error[data-error-category="otherOut"] .output-error-text {
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+.output-error-causes {
+   margin-inline-start: 18px;
+   padding-block: 2px 6px;
+}
+
+.output-error-cause {
+   margin-block-start: 6px;
+}
+
+.output-error-cause-heading {
+   overflow-wrap: anywhere;
+}
+
+.output-error-frame-count {
+   flex: none;
+   margin-inline-start: 1ch;
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+.output-error-detail {
+   margin: 2px 0 2px 18px;
+   white-space: pre-wrap;
+   overflow-wrap: anywhere;
+   font: inherit;
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+.output-error-frames {
+   margin: 2px 0 0 18px;
+   padding: 0;
+   list-style: none;
+}
+
+.output-error-frame {
+   line-height: 1.4;
+}
+
+.output-error-frame span {
+   overflow-wrap: anywhere;
+}
+
+.output-error-frame-location {
+   display: inline-block;
+   min-width: 24ch;
+   margin-inline-end: 1ch;
+   white-space: nowrap;
+}
+
+.output-error-frame-qualifier {
+   color: var(--vscode-descriptionForeground, #858585);
+}
+
+.output-error .output-error-frame-link {
+   display: inline;
+   width: auto;
+   color: var(--vscode-textLink-foreground, #3794ff);
+}
+
+.output-error .output-error-frame-link:hover .output-error-frame-location {
+   text-decoration: underline;
+}

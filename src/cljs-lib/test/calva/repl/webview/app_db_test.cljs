@@ -2,6 +2,8 @@
   (:require
    [calva.repl.webview.app-db :as sut]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.stacktrace-fixtures :as fixtures]
    [cljs.test :refer-macros [deftest testing is]]))
 
 (deftest initial-db-test
@@ -249,3 +251,60 @@
         (is (= [] (:images payload))))
       (finally
         (reset! images/!max-result-data-url-payload-chars nil)))))
+
+(def runtime-causes (mapv stacktrace/cause-data fixtures/runtime-chain))
+
+(defn- show-error
+  [db message]
+  (sut/handle-action db [:msg/error (merge {:command/name "show-error"
+                                            :id "e1"
+                                            :error/text "Execution error"
+                                            :error/category "evalErr"}
+                                           message)]))
+
+(deftest error-with-frames-test
+  (let [meta {:meta/who "ui" :meta/ns "my.ns" :meta/repl-session-key "clj"}
+        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes runtime-causes :meta meta})
+        error (get-in db [:output/errors "e1"])]
+    (is (= ["ui" "clj" nil nil "my.ns"] (:output/last-context db))
+        "An error changes the context like other output")
+    (is (= [[:fx/append-ns-info meta]
+            [:fx/render-error error]]
+           fxs)
+        "Draws the error after the context")
+    (is (false? (:error/unfolded? error))
+        "The error arrives folded")
+    (is (= runtime-causes (:error/causes error)))))
+
+(deftest error-without-frames-test
+  (let [causes [{:class "clojure.lang.ExceptionInfo" :message "cljs error" :stacktrace []}]
+        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes causes})]
+    (is (= [[:fx/append-stdout "Execution error" "evalErr"]] fxs)
+        "An error without frames shows as text")
+    (is (empty? (:output/errors db))
+        "There is nothing to unfold, so nothing is kept")))
+
+(deftest error-toggling-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
+        {unfolded-db :uf/db fxs :uf/fxs} (sut/handle-action db [:error/ax.toggle "e1"])
+        unfolded (get-in unfolded-db [:output/errors "e1"])]
+    (is (true? (:error/unfolded? unfolded)))
+    (is (= [[:fx/render-error unfolded]] fxs)
+        "Redraws the error")
+    (is (= #{0 2} (get-in (sut/handle-action unfolded-db [:error/ax.toggle-cause {:error/id "e1" :cause/index 0}])
+                          [:uf/db :output/errors "e1" :error/unfolded-causes]))
+        "Unfolds the frames of one cause")
+    (is (= {:uf/db db} (sut/handle-action db [:error/ax.toggle "no-such-error"]))
+        "An unknown error changes nothing")))
+
+(deftest open-frame-test
+  (is (= [[:fx/post-to-host {:command "open-frame"
+                             :fileUrl "file:/Users/me/myproj/src/myproj/core.clj"
+                             :line 16}]]
+         (:uf/fxs (sut/handle-action sut/initial-db
+                                     [:error/ax.open-frame {:frame/file-url "file:/Users/me/myproj/src/myproj/core.clj"
+                                                            :frame/line 16}])))))
+
+(deftest clear-output-view-forgets-errors-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
+    (is (empty? (:output/errors (:uf/db (sut/handle-action db [:msg/clear-output-view])))))))
