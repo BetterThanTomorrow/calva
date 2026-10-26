@@ -26,7 +26,7 @@
     enabled?
     {:uf/db (-> db
                 (assoc :repl-input/enabled? true :repl-input/version 0)
-                (dissoc :repl-input.history/position :repl-input.history/stash :repl-input.history/stashed-line))
+                history/walk-ended)
      :uf/fxs [[:repl-input/fx.mount {:height (:repl-input/height db)}]]}
 
     :else
@@ -99,12 +99,18 @@
   [:repl-input/fx.set-context-line (:repl-input/context-line db) (history/recalled-lock db)])
 
 (defn- mode-fx
-  "Asks the extension for the `mode-change` that walking the history asks for: a lock, or following the
-   editor."
+  "Asks the extension for the `mode-change` that the history asks for: a lock, or following the editor."
   [db [mode lock]]
   (case mode
     :locked (post db "repl-input-lock" :lock lock)
     :following (post db "repl-input-follow-editor")))
+
+(defn- mode-fxs
+  "Returns the effects that show the context line of `db`, and ask the extension for the `mode-change` that
+   the history asks for, when there is one."
+  [db mode-change]
+  (cond-> [(context-line-fx db)]
+    mode-change (conj (mode-fx db mode-change))))
 
 (defn- show-history
   "Shows what walking or recalling the history `walked` to, and asks for the mode change it asks for, or
@@ -112,9 +118,8 @@
   [db walked]
   (if-let [{walked-db :db :keys [shown mode-change]} walked]
     {:uf/db walked-db
-     :uf/fxs (cond-> [[:repl-input/fx.apply-edit shown]
-                      (context-line-fx walked-db)]
-               mode-change (conj (mode-fx walked-db mode-change)))}
+     :uf/fxs (into [[:repl-input/fx.apply-edit shown]]
+                   (mode-fxs walked-db mode-change))}
     {:uf/db db}))
 
 (defn- handle-history-action
@@ -124,7 +129,7 @@
     :repl-input/ax.set-history
     (let [walk-ended (-> db
                          (assoc :repl-input.history/entries payload)
-                         (dissoc :repl-input.history/position :repl-input.history/stash :repl-input.history/stashed-line))]
+                         history/walk-ended)]
       {:uf/db walk-ended
        :uf/fxs [(context-line-fx walk-ended)]})
 
@@ -137,21 +142,25 @@
     (handle-completion-action db action)))
 
 (defn- follow-editor
-  "Asks the extension to follow the editor while locked."
+  "Asks the extension to follow the editor while locked. The shown history entry keeps the mode from then
+   on."
   [db]
-  (if (get-in db [:repl-input/context-line :repl-input.context/locked?])
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-follow-editor")]}
-    {:uf/db db}))
+  (let [chosen (history/chosen db)]
+    (if (get-in chosen [:repl-input/context-line :repl-input.context/locked?])
+      {:uf/db chosen
+       :uf/fxs [(post chosen "repl-input-follow-editor")]}
+      {:uf/db chosen})))
 
 (defn- click-namespace-indicator
   "Opens or closes the namespace menu while a recalled history entry locks the context, follows the editor
-   while otherwise locked, and does nothing while following the editor."
+   while otherwise locked, and does nothing while following the editor. The shown history entry keeps the
+   mode from then on."
   [db]
-  (if (history/recalled-lock db)
-    {:uf/db db
-     :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
-    (follow-editor db)))
+  (let [chosen (history/chosen db)]
+    (if (history/recalled-lock chosen)
+      {:uf/db chosen
+       :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
+      (follow-editor chosen))))
 
 (defn- evaluate
   "Asks the extension to evaluate the REPL Input while a session answers to the context."
@@ -167,9 +176,9 @@
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
-    (let [with-line (assoc db :repl-input/context-line payload)]
+    (let [{with-line :db :keys [mode-change]} (history/with-context-line db payload)]
       {:uf/db with-line
-       :uf/fxs [(context-line-fx with-line)]})
+       :uf/fxs (mode-fxs with-line mode-change)})
 
     :repl-input/ax.click-namespace-indicator
     (click-namespace-indicator db)
@@ -185,7 +194,8 @@
     (evaluate db)
 
     :repl-input/ax.set-evaluation
-    {:uf/db (assoc db :repl-input/evaluation payload)
+    {:uf/db (cond-> (assoc db :repl-input/evaluation payload)
+              (= :running payload) history/chosen)
      :uf/fxs (into [[:repl-input/fx.set-evaluation payload]]
                    (stdin-effects (:repl-input/evaluation db) payload))}
 

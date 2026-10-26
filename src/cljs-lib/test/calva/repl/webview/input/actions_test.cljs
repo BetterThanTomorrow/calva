@@ -206,7 +206,8 @@
   {:repl-input.context/ns "user"
    :repl-input.context/ns-form "(in-ns 'user)"
    :repl-input.context/session-key "clj"
-   :repl-input.context/locked? false})
+   :repl-input.context/locked? false
+   :repl-input.context/editor-ns "user"})
 
 (deftest walk-history-test
   (let [db {:repl-input/id "output-view"
@@ -264,6 +265,41 @@
              (:uf/fxs (sut/handle-action recalled [:repl-input/ax.click-namespace-indicator]))))
       (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action recalled [:repl-input/ax.follow-editor])))))))
+
+(deftest editor-change-test
+  (let [db {:repl-input/id "output-view"
+            :repl-input/text ""
+            :repl-input/version 0
+            :repl-input/context-line following-line
+            :repl-input.history/entries [pirate-entry]}
+        entry-lock (dissoc pirate-entry :repl-input.history/code)
+        entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user")
+        recalled (-> (sut/handle-action db [:repl-input/ax.walk-history :back])
+                     :uf/db
+                     (sut/handle-action [:repl-input/ax.set-context-line entry-line])
+                     :uf/db)
+        in-entry-ns (assoc entry-line :repl-input.context/editor-ns "pirate.core")
+        follow-post [:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
+    (testing "follows the editor when the editor has the shown entry's namespace"
+      (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]
+              follow-post]
+             (:uf/fxs (sut/handle-action recalled [:repl-input/ax.set-context-line in-entry-ns])))))
+    (testing "keeps following the editor when typing in the entry"
+      (let [typed (:uf/db (sut/handle-action recalled [:repl-input/ax.changed {:text "(def a 2)" :selections [[8 8]]}]))]
+        (is (= follow-post (last (:uf/fxs (sut/handle-action typed [:repl-input/ax.set-context-line in-entry-ns])))))))
+    (testing "changes nothing on an editor change after a click on the namespace indicator, as when picking from its menu"
+      (let [clicked (:uf/db (sut/handle-action recalled [:repl-input/ax.click-namespace-indicator]))]
+        (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]]
+               (:uf/fxs (sut/handle-action clicked [:repl-input/ax.set-context-line in-entry-ns]))))))
+    (testing "changes nothing on an editor change after following the editor from the menu"
+      (let [followed (:uf/db (sut/handle-action recalled [:repl-input/ax.follow-editor]))
+            following-elsewhere (assoc following-line :repl-input.context/ns "pirate.ui" :repl-input.context/editor-ns "pirate.ui")]
+        (is (= [[:repl-input/fx.set-context-line following-elsewhere nil]]
+               (:uf/fxs (sut/handle-action followed [:repl-input/ax.set-context-line following-elsewhere]))))))
+    (testing "changes nothing on an editor change once an evaluation has started"
+      (let [evaluating (:uf/db (sut/handle-action recalled [:repl-input/ax.set-evaluation :running]))]
+        (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]]
+               (:uf/fxs (sut/handle-action evaluating [:repl-input/ax.set-context-line in-entry-ns]))))))))
 
 (deftest completion-test
   (let [db {:repl-input/id "output-view"}]
