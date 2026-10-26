@@ -58,14 +58,16 @@
             :frame/qualifier "myproj.core"
             :frame/name "start!"
             :frame/file-url "file:/Users/me/myproj/src/myproj/core.clj"
-            :frame/line 16}
+            :frame/line 16
+            :frame/java? false}
            (sut/frame-parts clj-frame))
         "A Clojure frame shows its namespace and function, and links to its file")
     (is (= {:frame/location "Compiler.java:7757"
             :frame/qualifier "clojure.lang.Compiler"
             :frame/name "eval"
             :frame/file-url nil
-            :frame/line 7757}
+            :frame/line 7757
+            :frame/java? true}
            (sut/frame-parts java-frame))
         "A Java frame shows its class and method")
     (is (nil? (:frame/file-url (sut/frame-parts repl-frame)))
@@ -101,3 +103,35 @@
     (is (= [#{"project" "clj"}]
            (map :flags (sut/visible-frames (sut/toggle-flag entry "repl") outer-frames)))
         "Turning a filter on hides its frames")))
+
+(def compile-causes (mapv sut/cause-data fixtures/compile-unresolved))
+
+(deftest compile-errors
+  (is (= {:location/label "NO_SOURCE_PATH:1:1"
+          :location/file-url nil
+          :location/line 1
+          :location/column 1}
+         (sut/compile-location compile-causes))
+      "A compile error at the REPL has a location without a file")
+  (is (= {:location/label "src/myproj/broken.clj:3:5"
+          :location/file-url "file:/Users/me/myproj/src/myproj/broken.clj"
+          :location/line 3
+          :location/column 5}
+         (sut/compile-location [{:phase "compilation" :path "src/myproj/broken.clj" :file "/Users/me/myproj/src/myproj/broken.clj"
+                                 :file-url "file:/Users/me/myproj/src/myproj/broken.clj" :line 3 :column 5}]))
+      "A compile error in a file links to the file")
+  (is (nil? (sut/compile-location runtime-causes))
+      "A runtime error has no compile location")
+  (is (= #{} (:error/unfolded-causes (sut/error-entry {:id "e1" :error/causes compile-causes})))
+      "A compile error's frames start folded, since they are all tooling"))
+
+(deftest java-frames
+  (let [java-frame (some #(when (= "java" (:type %)) %) outer-frames)]
+    (is (true? (:frame/java? (sut/frame-parts java-frame))))
+    (is (false? (:frame/java? (sut/frame-parts (first outer-frames)))))))
+
+(deftest session-key
+  (is (= "clj" (:error/session-key (sut/error-entry {:id "e1"
+                                                    :error/causes runtime-causes
+                                                    :meta {:meta/repl-session-key "clj"}})))
+      "The error remembers its session, for looking up Java sources"))

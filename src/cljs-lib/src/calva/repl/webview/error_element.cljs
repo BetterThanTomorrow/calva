@@ -42,20 +42,40 @@
     (.. button (addEventListener "click" on-click))
     button))
 
+(defn- link-button
+  [class-name title action & children]
+  (let [link (apply create-element "button" class-name children)]
+    (set! (.-type link) "button")
+    (set! (.-title link) title)
+    (.. link (addEventListener "click" action))
+    link))
+
 (defn- frame-element
-  [dispatch frame]
-  (let [{:frame/keys [location qualifier name file-url] :as parts} (stacktrace/frame-parts frame)
+  [dispatch {:error/keys [session-key]} frame]
+  (let [{:frame/keys [location qualifier name file-url java?] :as parts} (stacktrace/frame-parts frame)
         label [(create-element "span" "output-error-frame-location" location)
                (create-element "span" "output-error-frame-qualifier" (str qualifier "/"))
                (create-element "span" "output-error-frame-name" name)]]
     (create-element "li" "output-error-frame"
-                    (if file-url
-                      (let [link (apply create-element "button" "output-error-frame-link" label)]
-                        (set! (.-type link) "button")
-                        (set! (.-title link) (str "Open " location))
-                        (.. link (addEventListener "click" #(dispatch [:error/ax.open-frame parts])))
-                        link)
+                    (cond
+                      file-url
+                      (apply link-button "output-error-frame-link" (str "Open " location)
+                             #(dispatch [:error/ax.open-frame parts]) label)
+
+                      java?
+                      (apply link-button "output-error-frame-link" (str "Look up the source of " qualifier)
+                             #(dispatch [:error/ax.open-java-frame (assoc parts :error/session-key session-key)]) label)
+
+                      :else
                       (apply create-element "span" nil label)))))
+
+(defn- location-element
+  [dispatch {:location/keys [label file-url line column]}]
+  (if file-url
+    (link-button "output-error-location" (str "Open " label)
+                 #(dispatch [:error/ax.open-frame {:frame/file-url file-url :frame/line line :frame/column column}])
+                 label)
+    (create-element "div" "output-error-location" label)))
 
 (defn- spec-problems
   [{:keys [problems]}]
@@ -114,7 +134,7 @@
                     (when data
                       (create-element "pre" "output-error-detail" data))
                     (when frames-unfolded?
-                      (apply create-element "ol" "output-error-frames" (map #(frame-element dispatch %) frames))))))
+                      (apply create-element "ol" "output-error-frames" (map #(frame-element dispatch error %) frames))))))
 
 (defn create
   "Returns the element for `error`. Its controls dispatch actions with `dispatch`."
@@ -127,6 +147,7 @@
                                                (create-element "pre" "output-error-text" text))
                                 (when unfolded?
                                   (apply create-element "div" "output-error-causes"
+                                         (some->> (stacktrace/compile-location causes) (location-element dispatch))
                                          (filter-bar dispatch error)
                                          (map-indexed #(cause-element dispatch error %1 %2) causes))))]
     (.. element (setAttribute "data-output-element-type" "error"))

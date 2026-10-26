@@ -869,12 +869,19 @@ export class NReplSession {
   }
 
   info(ns: string, symbol: string) {
+    return this.sendInfo({ ns, symbol: symbol.replace(/^'/, '') });
+  }
+
+  javaMemberInfo(className: string, member: string) {
+    return this.sendInfo({ class: className, member });
+  }
+
+  private sendInfo(params: object) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'info',
-        ns,
-        symbol: symbol.replace(/^'/, ''),
+        ...params,
         id,
         session: this.sessionId,
       };

@@ -35,6 +35,14 @@ function initInspectorDataProvider() {
   return inspectorDataProvider;
 }
 
+// Asks for the causes of the session's last error. A failed request gives no causes.
+function lastErrorCauses(session: nrepl.NReplSession) {
+  return session.stacktrace().catch((e) => {
+    console.error(`Failed fetching stacktrace: ${e.message}`);
+    return undefined;
+  });
+}
+
 function getShadowInfo(session: any) {
   if (session?.replType !== 'cljs' && !session?.isSecondary) {
     return {};
@@ -316,10 +324,7 @@ async function evaluateCodeUpdatingUI(
       }
     } catch (e) {
       if (showErrorMessage) {
-        const causes = session.stacktrace().catch((e) => {
-          console.error(`Failed fetching stacktrace: ${e.message}`);
-          return undefined;
-        });
+        const causes = lastErrorCauses(session);
         const outputWindowError = err.length
           ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
           : resultsOutputUtil.formatAsLineComments(e);
@@ -794,10 +799,12 @@ async function loadFile(
         .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
         .includes('repl-window')
     ) {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, {
-        who,
-        ...shadowInfo,
-      });
+      output.appendLineOtherErr(
+        `Evaluation of file ${fileName} failed: ${e}`,
+        { who, ...shadowInfo },
+        undefined,
+        lastErrorCauses(session)
+      );
     }
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);

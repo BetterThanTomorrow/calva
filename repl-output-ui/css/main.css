@@ -391,3 +391,17 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
 .output-error-hidden-count {
    color: var(--vscode-descriptionForeground, #858585);
 }
+
+.output-error-location {
+   margin-block: 2px 4px;
+}
+
+.output-error .output-error-location {
+   display: inline;
+   width: auto;
+   color: var(--vscode-textLink-foreground, #3794ff);
+}
+
+.output-error .output-error-location:hover {
+   text-decoration: underline;
+}

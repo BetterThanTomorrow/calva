@@ -35,16 +35,30 @@
    {:choice/label "Filtered" :choice/frame-filter :filtered}
    {:choice/label "Project only" :choice/frame-filter :project}])
 
+(def ^:private compile-phases
+  #{"read-source" "macro-syntax-check" "macroexpansion" "compile-syntax-check" "compilation"})
+
+(defn compile-location
+  "Returns where a compile error happened, from its outermost cause, or nil for other errors."
+  [[{:keys [phase path file file-url line column]}]]
+  (when (contains? compile-phases phase)
+    {:location/label (str (or path file) ":" line ":" column)
+     :location/file-url file-url
+     :location/line line
+     :location/column column}))
+
 (defn error-entry
   "Returns the entry an Output view keeps for an error with `causes`. It starts folded unless
-   `unfolded?`, the root cause shows its frames, and tooling and duplicate frames are hidden."
-  [{:keys [id] :error/keys [text category causes unfolded?]}]
+   `unfolded?`, and tooling and duplicate frames are hidden. The root cause shows its frames,
+   unless it is a compile error, where all frames are tooling."
+  [{:keys [id meta] :error/keys [text category causes unfolded?]}]
   {:error/id id
    :error/text text
    :error/category category
    :error/causes causes
+   :error/session-key (:meta/repl-session-key meta)
    :error/unfolded? (boolean unfolded?)
-   :error/unfolded-causes #{(dec (count causes))}
+   :error/unfolded-causes (if (compile-location causes) #{} #{(dec (count causes))})
    :error/frame-filter :filtered
    :error/hidden-flags #{"tooling" "dup"}})
 
@@ -80,13 +94,15 @@
 
 (defn frame-parts
   "Returns what an Output view shows for `frame`: file and line, then namespace and function for
-   Clojure frames, or class and method for Java frames, and the file to open, if any."
-  [{:keys [file line ns fn class method file-url]}]
+   Clojure frames, or class and method for Java frames, and the file to open, if any. A Java
+   frame's file is looked up when it is clicked."
+  [{:keys [type file line ns fn class method file-url]}]
   {:frame/location (str file ":" line)
    :frame/qualifier (or ns class)
    :frame/name (if ns fn method)
    :frame/file-url file-url
-   :frame/line line})
+   :frame/line line
+   :frame/java? (= "java" type)})
 
 (defn cause-heading
   [{:keys [class message]}]

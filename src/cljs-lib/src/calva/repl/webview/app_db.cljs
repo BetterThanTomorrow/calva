@@ -107,9 +107,18 @@
       (update-error db id assoc :error/frame-filter frame-filter))
 
     :error/ax.open-frame
-    (let [{:frame/keys [file-url line]} payload]
+    (let [{:frame/keys [file-url line column]} payload]
       {:uf/db db
-       :uf/fxs [[:fx/post-to-host {:command "open-frame" :fileUrl file-url :line line}]]})))
+       :uf/fxs [[:fx/post-to-host {:command "open-frame" :fileUrl file-url :line line :column column}]]})
+
+    :error/ax.open-java-frame
+    (let [{:frame/keys [qualifier line] member :frame/name :error/keys [session-key]} payload]
+      {:uf/db db
+       :uf/fxs [[:fx/post-to-host {:command "open-java-frame"
+                                   :className qualifier
+                                   :member member
+                                   :line line
+                                   :sessionKey session-key}]]})))
 
 (defn handle-action
   [db [action-type payload]]
@@ -126,7 +135,8 @@
     :msg/error
     (handle-error db payload)
 
-    (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter :error/ax.open-frame)
+    (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter
+     :error/ax.open-frame :error/ax.open-java-frame)
     (handle-error-action db action-type payload)
 
     :msg/set-image-display
