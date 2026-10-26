@@ -5,6 +5,7 @@ import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
 import * as printer from '../printer';
+import * as serverSidePrinter from '../server-side-printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import * as debugDecorations from '../debugger/decorations';
@@ -26,7 +27,6 @@ type ReplSessionType = config.ReplSessionType;
 const BEncoderStream = bencode.BEncoderStream;
 const BDecoderStream = bencode.BDecoderStream;
 const disabledPrettyPrinter = printer.disabledPrettyPrinter;
-const getServerSidePrinter = printer.getServerSidePrinter;
 const prettyPrint = printer.prettyPrint;
 const formatAsLineComments = resultsOutputUtil.formatAsLineComments;
 const getStateValue = cljsLib.getStateValue;
@@ -492,6 +492,10 @@ export class NReplSession {
     return this.client.describe && !!this.client.describe.ops[op];
   }
 
+  ciderNreplVersion(): serverSidePrinter.CiderNreplVersion | undefined {
+    return this.client.describe?.aux?.['cider-version'];
+  }
+
   close() {
     const msg = { op: 'close', session: this.sessionId };
     try {
@@ -708,7 +712,10 @@ export class NReplSession {
     const pprintOptions = opts.pprintOptions;
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
-    const extraOpts = getServerSidePrinter(pprintOptions);
+    const extraOpts = serverSidePrinter.getServerSidePrinter(
+      pprintOptions,
+      this.ciderNreplVersion()
+    );
     const { stdout, stderr, stdin, ...cleanedOpts } = opts;
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
@@ -796,7 +803,10 @@ export class NReplSession {
     const pprintOptions = opts.pprintOptions;
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
-    const extraOpts = getServerSidePrinter(pprintOptions);
+    const extraOpts = serverSidePrinter.getServerSidePrinter(
+      pprintOptions,
+      this.ciderNreplVersion()
+    );
     const { stderr, stdout, ...optsLessOut } = opts;
     const evaluation = new NReplEvaluation(
       id,
