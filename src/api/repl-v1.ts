@@ -188,7 +188,7 @@ export const evaluate = async (
   } catch (evalError) {
     let stacktrace;
     try {
-      stacktrace = await session.stacktrace();
+      [stacktrace] = (await session.stacktrace()) ?? [];
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {
@@ -327,7 +327,7 @@ export const evaluateCode = async (
   } catch (evalError) {
     let stacktrace;
     try {
-      stacktrace = await session.stacktrace();
+      [stacktrace] = (await session.stacktrace()) ?? [];
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {

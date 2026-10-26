@@ -59,6 +59,61 @@ export interface TestResults {
   'gen-input': unknown;
 }
 
+// A frame from orchard's stacktrace analyzer. bencode sends nil as [].
+export interface StacktraceFrame {
+  name: string;
+  file: string;
+  line: number;
+  class: string;
+  method: string;
+  type: string;
+  flags: string[];
+  ns?: string;
+  fn?: string;
+  var?: string;
+  'file-url'?: string | [];
+}
+
+// https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
+export interface StacktraceCause {
+  class: string;
+  message: string | [];
+  phase: string | [];
+  stacktrace: StacktraceFrame[];
+  data?: string;
+  spec?: unknown;
+  triage?: string;
+  location?: object;
+}
+
+// `analyze-last-stacktrace` and `test-stacktrace` reply with one message per cause, outermost first,
+// then `done`. Other messages for the same id, like track-state's, have no `class`.
+export function stacktraceCausesHandler(
+  resolve: (causes: StacktraceCause[]) => void,
+  reject: (reason: string) => void
+) {
+  const causes: StacktraceCause[] = [];
+  return (msg: any): boolean => {
+    const status: string[] = msg.status ?? [];
+    if (status.includes('unknown-op')) {
+      reject(`The server does not recognize or cannot perform the '${msg.op}' operation`);
+      return true;
+    }
+    if (msg.class !== undefined) {
+      causes.push(msg);
+    }
+    if (status.includes('done')) {
+      resolve(causes);
+      return true;
+    }
+    return false;
+  };
+}
+
+export function outermostCauseFrames(causes?: StacktraceCause[]): StacktraceFrame[] | undefined {
+  return causes?.[0]?.stacktrace;
+}
+
 function stripTrailingNewlines(s: string): string {
   return s.replace(/\r?\n$/, '');
 }
