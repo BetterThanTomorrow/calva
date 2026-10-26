@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Regression: exceptions abbreviated in REPL output view](https://github.com/BetterThanTomorrow/calva/issues/3265)
+- Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
 
 ## [2.0.604] - 2026-10-26
 
