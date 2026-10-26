@@ -9,6 +9,7 @@ import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
+import * as cider from '../nrepl/cider';
 import * as evaluatedCode from './evaluated-code';
 import { isWebviewOutputDestination } from './output-destinations';
 
@@ -1264,9 +1265,10 @@ export function printLastStacktrace() {
   const session = replSession.getSession();
   session
     .stacktrace()
-    .then((stacktrace) => {
-      if (stacktrace.stacktrace) {
-        printStackTrace(stacktrace.stacktrace);
+    .then((causes) => {
+      const frames = cider.outermostCauseFrames(causes);
+      if (frames) {
+        printStackTrace(frames);
       }
     })
     .catch((e) => {

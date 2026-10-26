@@ -221,9 +221,10 @@ async function reportTests(
           const message = cider.detailedMessage(resultsForTest);
 
           if (resultsForTest.type === 'error') {
-            const stacktrace = await session.testStacktrace(ns, test, resultsForTest.index);
+            const causes = await session.testStacktrace(ns, test, resultsForTest.index);
+            const frames = cider.outermostCauseFrames(causes);
 
-            outputWindow.saveStacktrace(stacktrace.stacktrace);
+            outputWindow.saveStacktrace(frames);
             outputWindow.appendLine(message, (_, afterResultLocation) => {
               outputWindow.markLastStacktraceRange(afterResultLocation);
             });
@@ -240,10 +241,7 @@ async function reportTests(
                 .normalizeDestinations(otherOutputDestination)
                 .filter(outputDestinations.isWebviewOutputDestination);
               if (webviewDestinations.length) {
-                output.appendStackTraceToWebviewDestinations(
-                  webviewDestinations,
-                  stacktrace.stacktrace
-                );
+                output.appendStackTraceToWebviewDestinations(webviewDestinations, frames);
               }
             }
           } else if (message) {

@@ -628,7 +628,7 @@ export class NReplSession {
 
   stacktrace() {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
-    return new Promise<any>((resolve, reject) => {
+    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'analyze-last-stacktrace',
@@ -636,7 +636,7 @@ export class NReplSession {
         session: this.sessionId,
       };
       if (this.supports(msg.op)) {
-        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.messageHandlers[id] = cider.stacktraceCausesHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
@@ -938,7 +938,7 @@ export class NReplSession {
   }
 
   testStacktrace(ns: string, test: string, index: number) {
-    return new Promise<any>((resolve, reject) => {
+    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'test-stacktrace',
@@ -949,10 +949,7 @@ export class NReplSession {
         index: index,
       };
       if (this.supports(msg.op)) {
-        this.messageHandlers[id] = (msg) => {
-          resolve(msg);
-          return true;
-        };
+        this.messageHandlers[id] = cider.stacktraceCausesHandler(resolve, reject);
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);

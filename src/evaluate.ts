@@ -4,6 +4,7 @@ import * as annotations from './providers/annotations';
 import * as path from 'path';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
+import * as cider from './nrepl/cider';
 import * as statusbar from './statusbar';
 import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
@@ -346,10 +347,11 @@ async function evaluateCodeUpdatingUI(
           }
           session
             .stacktrace()
-            .then((stacktrace) => {
-              if (stacktrace && stacktrace.stacktrace) {
+            .then((causes) => {
+              const frames = cider.outermostCauseFrames(causes);
+              if (frames) {
                 replWindow.markLastStacktraceRange(afterResultLocation);
-                replWindow.saveStacktrace(stacktrace.stacktrace);
+                replWindow.saveStacktrace(frames);
               }
             })
             .catch((e) => {
@@ -373,12 +375,10 @@ async function evaluateCodeUpdatingUI(
           if (webviewDestinations.length) {
             session
               .stacktrace()
-              .then((stacktrace) => {
-                if (stacktrace && stacktrace.stacktrace) {
-                  output.appendStackTraceToWebviewDestinations(
-                    webviewDestinations,
-                    stacktrace.stacktrace
-                  );
+              .then((causes) => {
+                const frames = cider.outermostCauseFrames(causes);
+                if (frames) {
+                  output.appendStackTraceToWebviewDestinations(webviewDestinations, frames);
                 }
               })
               .catch((e) => {
