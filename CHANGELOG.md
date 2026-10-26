@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.604] - 2026-10-26
+
 - [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
 
 ## [2.0.603] - 2026-10-23
