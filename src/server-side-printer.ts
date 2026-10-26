@@ -2,7 +2,7 @@ import type * as printer from './printer';
 
 export type CiderNreplVersion = { major: number; minor: number };
 
-type ServerPrinter = printer.PrintFnOptions & { extraOptions?: object };
+type ServerPrinter = printer.PrintFnOptions & { extraOptions?: Record<string, unknown> };
 
 const zprintExtraOptions = {
   // Can't do this, because `bencode` translates `false` to 0, and `zprint` does not approve (yet, Kim is looking into relaxing this)
@@ -65,7 +65,7 @@ function printerOptions(
   pprintOptions: printer.PrettyPrintingOptions,
   { maxWidthArgument, seqLimitArgument, maxDepthArgument, extraOptions = {} }: ServerPrinter
 ) {
-  const options = { ...extraOptions };
+  const options: Record<string, unknown> = { ...extraOptions };
   if (maxWidthArgument !== undefined) {
     options[maxWidthArgument] = pprintOptions.width;
   }
