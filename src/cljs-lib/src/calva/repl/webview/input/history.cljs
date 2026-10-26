@@ -35,15 +35,15 @@
     {:text text :selections [[cursor cursor]]}))
 
 (def ^:private lock-keys
-  [:repl-input.context/ns :repl-input.context/ns-form :repl-input.context/session-key])
+  [:repl-input.context/ns :repl-input.context/ns-form :repl-input.context/session-key :repl-input.context/source-file])
 
 (defn- same-context?
   [context entry]
   (every? #(= (get context %) (get entry %)) [:repl-input.context/ns :repl-input.context/session-key]))
 
 (defn- line-mode
-  "Returns the mode of `context-line`: `[:locked lock]` with its namespace, `ns` form and session, or
-   `[:following]`."
+  "Returns the mode of `context-line`: `[:locked lock]` with its namespace, `ns` form, session and source
+   file, or `[:following]`."
   [{:repl-input.context/keys [locked?] :as context-line}]
   (if locked?
     [:locked (select-keys context-line lock-keys)]
@@ -55,20 +55,21 @@
        (or (= :following mode) (same-context? lock other-lock))))
 
 (defn- entry-mode
-  "Returns the mode that showing `entry` asks for while following the editor gives `editor-ns`: following
-   the editor when the entry has that namespace, else locked to the entry's namespace, `ns` form and
-   session."
-  [entry editor-ns]
-  (if (= editor-ns (:repl-input.context/ns entry))
+  "Returns the mode that showing `entry` asks for while following the editor gives `editor-ns` in
+   `editor-session-key`: following the editor when the entry has that namespace and routes to that session,
+   else locked to the entry's namespace, `ns` form, session and source file."
+  [entry {:repl-input.context/keys [editor-ns editor-session-key]}]
+  (if (and (= editor-ns (:repl-input.context/ns entry))
+           (= editor-session-key (:repl-input.context/session-key entry)))
     [:following]
     [:locked (select-keys entry lock-keys)]))
 
 (defn- landing-mode
   "Returns the mode that landing at `position` asks for: the mode of its entry against the editor's
-   namespace on the context line, or past the newest entry the mode from before the walk."
+   namespace and session on the context line, or past the newest entry the mode from before the walk."
   [{:repl-input.history/keys [entries stashed-line] :repl-input/keys [context-line]} position]
   (if-let [entry (some->> position (get entries))]
-    (entry-mode entry (:repl-input.context/editor-ns context-line))
+    (entry-mode entry context-line)
     (line-mode (or stashed-line context-line))))
 
 (defn- mode-change
@@ -126,19 +127,47 @@
   (when (contains? entries position)
     (land db position :forward)))
 
+(defn- kept-up
+  "Returns `:db` with the mode that the history entry `db` shows asks for now, and the `:mode-change` to
+   it, until the user has chosen a mode. Else `:db` is `db`."
+  [{:repl-input.history/keys [position chosen?] :as db}]
+  (if (and position (not chosen?))
+    (let [mode (landing-mode db position)]
+      {:db (assoc db :repl-input.history/mode mode)
+       :mode-change (mode-change db mode)})
+    {:db db}))
+
+(defn- following
+  "Returns the namespace and session that following the editor gives on `context-line`."
+  [context-line]
+  (select-keys context-line [:repl-input.context/editor-ns :repl-input.context/editor-session-key]))
+
 (defn with-context-line
   "Returns what the context line `line` arriving does to `db`: `:db` with the line, and the `:mode-change`
-   that the shown history entry asks for when following the editor gives another namespace than before,
-   until the user has chosen a mode."
-  [{:repl-input/keys [context-line] :repl-input.history/keys [position chosen?] :as db} line]
+   that the shown history entry asks for when following the editor gives another namespace or session
+   than before, until the user has chosen a mode."
+  [{:repl-input/keys [context-line] :as db} line]
   (let [with-line (assoc db :repl-input/context-line line)]
-    (if (and position
-             (not chosen?)
-             (not= (:repl-input.context/editor-ns context-line) (:repl-input.context/editor-ns line)))
-      (let [mode (landing-mode with-line position)]
-        {:db (assoc with-line :repl-input.history/mode mode)
-         :mode-change (mode-change with-line mode)})
-      {:db with-line})))
+    (if (= (following context-line) (following line))
+      {:db with-line}
+      (kept-up with-line))))
+
+(defn- rerouted?
+  "True when `entries` are the `walked` entries, in other sessions."
+  [walked entries]
+  (let [unrouted #(map (fn [entry] (dissoc entry :repl-input.context/session-key)) %)]
+    (and (not= walked entries)
+         (= (unrouted walked) (unrouted entries)))))
+
+(defn with-entries
+  "Returns what the history `entries` arriving does to `db`: `:db` with them, and without the walk. When
+   they are the walked entries in other sessions, the walk goes on, with the `:mode-change` that the shown
+   entry asks for now, until the user has chosen a mode."
+  [{:repl-input.history/keys [position] walked :repl-input.history/entries :as db} entries]
+  (let [with-history (assoc db :repl-input.history/entries entries)]
+    (if (and position (rerouted? walked entries))
+      (kept-up with-history)
+      {:db (walk-ended with-history)})))
 
 (defn chosen
   "Returns `db` with the mode of the shown history entry as the user has chosen it, so that it stays when

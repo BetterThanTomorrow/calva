@@ -166,6 +166,27 @@ suite('CLJC Routing suite', function () {
     );
   });
 
+  test('Routes a file by its URI, without opening it, the way it routes its document', async function () {
+    testUtil.log(suiteName, 'Testing: Routing for a file URI');
+
+    for (const target of ['primary', 'secondary'] as const) {
+      clientRegistry.setCljcTargetForConnection(clientKey, target);
+      for (const file of [cljcFile, cljsFile, ednFile, outsideCljcFile]) {
+        const editor = await testUtil.openFile(file);
+        assert.deepStrictEqual(
+          replSession.getRoutingInfoForUri(vscode.Uri.file(file)),
+          replSession.getRoutingInfo(editor.document),
+          `${path.basename(file)} should route the same by its URI with the cljc target ${target}`
+        );
+      }
+    }
+    assert.deepStrictEqual(
+      replSession.getRoutingInfoForUri(undefined),
+      replSession.getRoutingInfo(null),
+      'Without a URI, routing is the routing without a document'
+    );
+  });
+
   test('Toggle command switches cljc routing between clj and cljs', async function () {
     testUtil.log(suiteName, 'Testing: Toggle cljc target switches routing');
 

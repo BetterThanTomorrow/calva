@@ -127,11 +127,9 @@
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-history
-    (let [walk-ended (-> db
-                         (assoc :repl-input.history/entries payload)
-                         history/walk-ended)]
-      {:uf/db walk-ended
-       :uf/fxs [(context-line-fx walk-ended)]})
+    (let [{with-history :db :keys [mode-change]} (history/with-entries db payload)]
+      {:uf/db with-history
+       :uf/fxs (mode-fxs with-history mode-change)})
 
     :repl-input/ax.walk-history
     (show-history db (history/walked db payload))

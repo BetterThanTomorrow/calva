@@ -270,10 +270,10 @@
 
 (deftest context-line-test
   (with-fresh-host
-    (fn [{:keys [posted session-keys] :as host}]
+    (fn [{:keys [posted session-keys routes] :as host}]
       (with-view host
         (fn []
-          (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
+          (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljs"} #js {})
           (testing "posts nothing while no REPL Input is mounted"
             (is (= [] (posted-named posted "repl-input-context"))))
           (reset! sut/!state sut/initial-state)
@@ -281,12 +281,16 @@
           (testing "posts the context line when the REPL Input mounts, in `user` before any Clojure editor"
             (is (= {:repl-input.context/ns "user" :repl-input.context/session-key "clj" :repl-input.context/locked? false}
                    (last-context-line posted))))
-          (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
-          (testing "follows the Clojure editor"
+          (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljs"} #js {})
+          (testing "follows the Clojure editor, in the session that routing its file gives"
             (is (= {:repl-input.context/ns "pirate.lib" :repl-input.context/session-key "cljs" :repl-input.context/locked? false}
                    (last-context-line posted))))
+          (testing "carries the editor's file and its session"
+            (is (= ["file:///pirate/src/pirate/lib.cljs" "cljs"]
+                   ((juxt :repl-input.context/source-file :repl-input.context/editor-session-key)
+                    (:repl-input/context-line (last (posted-named posted "repl-input-context")))))))
           (let [n (count (posted-named posted "repl-input-context"))]
-            (sut/editor-moved! #js {:ns "pirate.lib" :sessionKey "cljs"} #js {})
+            (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljs"} #js {})
             (testing "posts nothing when the context line stays the same"
               (is (= n (count (posted-named posted "repl-input-context"))))))
           (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
@@ -294,6 +298,11 @@
             (is (= ["output-sidebar" "pirate.lib"]
                    ((juxt :repl-input/id (comp :repl-input.context/ns :repl-input/context-line))
                     (last (posted-named posted "repl-input-context"))))))
+          (swap! routes assoc "file:///pirate/src/pirate/lib.cljs" "cljs:2")
+          (sut/routing-changed!)
+          (testing "routes the editor's file again when routing changes"
+            (is (= "cljs:2" (:repl-input.context/session-key (last-context-line posted)))))
+          (reset! routes {})
           (reset! session-keys ["clj"])
           (sut/routing-changed!)
           (testing "tells that the session isn't connected when routing changes"

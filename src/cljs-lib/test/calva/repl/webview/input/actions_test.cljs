@@ -207,7 +207,8 @@
    :repl-input.context/ns-form "(in-ns 'user)"
    :repl-input.context/session-key "clj"
    :repl-input.context/locked? false
-   :repl-input.context/editor-ns "user"})
+   :repl-input.context/editor-ns "user"
+   :repl-input.context/editor-session-key "clj"})
 
 (deftest walk-history-test
   (let [db {:repl-input/id "output-view"
@@ -217,7 +218,7 @@
             :repl-input.history/entries [pirate-entry]}
         {walked :uf/db fxs :uf/fxs} (sut/handle-action db [:repl-input/ax.walk-history :back])
         entry-lock (dissoc pirate-entry :repl-input.history/code)
-        entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user")
+        entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user" :repl-input.context/editor-session-key "clj")
         caught-up (assoc walked :repl-input/context-line entry-line)]
     (testing "walks the history in the page, showing the entry with the cursor at its start, and locks the namespace and session of an entry from another context"
       (is (= [[:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[0 0]]}]
@@ -273,7 +274,7 @@
             :repl-input/context-line following-line
             :repl-input.history/entries [pirate-entry]}
         entry-lock (dissoc pirate-entry :repl-input.history/code)
-        entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user")
+        entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user" :repl-input.context/editor-session-key "clj")
         recalled (-> (sut/handle-action db [:repl-input/ax.walk-history :back])
                      :uf/db
                      (sut/handle-action [:repl-input/ax.set-context-line entry-line])

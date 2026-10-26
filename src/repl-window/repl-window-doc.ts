@@ -173,10 +173,14 @@ export function setSession(session: nrepl.NReplSession, newNs?: string, sessionK
 }
 
 export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
-  if (!doc || !_docUri) {
+  return isReplWindowUri(doc?.uri);
+}
+
+export function isReplWindowUri(uri?: vscode.Uri): boolean {
+  if (!uri || !_docUri) {
     return false;
   }
-  return doc.uri.toString() === _docUri.toString();
+  return uri.toString() === _docUri.toString();
 }
 
 /**

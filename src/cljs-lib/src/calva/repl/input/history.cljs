@@ -2,20 +2,21 @@
   "What the REPL Inputs evaluated, oldest first: adding to it, the entries the REPL Inputs walk, the
    quick pick that searches them, and the entries the way `workspaceState` keeps them."
   (:require
+   [calva.repl.input.context :as context]
    [clojure.string :as string]))
 
 (def per-session-setting
   "The setting that keeps the history to the session the REPL Input evaluates in."
   "calva.outputViews.replInputHistoryPerSession")
 
-(def ^:private context-keys
-  [:repl-input.context/ns :repl-input.context/ns-form :repl-input.context/session-key])
-
 (defn entry
-  "Returns the history entry of `code`, evaluated in `context`."
-  [code context]
-  (merge {:repl-input.history/code (string/trim code)}
-         (select-keys context context-keys)))
+  "Returns the history entry of `code`, evaluated in `context`, with the context's source file."
+  [code {:repl-input.context/keys [ns ns-form session-key source-file]}]
+  {:repl-input.history/code (string/trim code)
+   :repl-input.context/ns ns
+   :repl-input.context/ns-form ns-form
+   :repl-input.context/session-key session-key
+   :repl-input.context/source-file source-file})
 
 (defn add
   "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry has the same code
@@ -26,7 +27,7 @@
     (conj (vec entries) new-entry)))
 
 (defn visible
-  "Returns the `entries` evaluated in the session `session-key` when `per-session?`, else all of them."
+  "Returns the `entries` in the session `session-key` when `per-session?`, else all of them."
   [entries session-key per-session?]
   (if per-session?
     (filterv #(= session-key (:repl-input.context/session-key %)) entries)
@@ -49,8 +50,8 @@
 (defn stored
   "Returns `entries` the way `workspaceState` keeps them."
   [entries]
-  (mapv (fn [{:repl-input.history/keys [code] :repl-input.context/keys [ns ns-form session-key]}]
-          {:code code :ns ns :nsForm ns-form :sessionKey session-key})
+  (mapv (fn [{:repl-input.history/keys [code] :repl-input.context/keys [ns ns-form session-key source-file]}]
+          {:code code :ns ns :nsForm ns-form :sessionKey session-key :sourceFile source-file})
         entries))
 
 (defn from-stored
@@ -58,9 +59,17 @@
   [stored]
   (into []
         (comp (filter (comp string? :code))
-              (map (fn [{:keys [code ns nsForm sessionKey]}]
+              (map (fn [{:keys [code ns nsForm sessionKey sourceFile]}]
                      {:repl-input.history/code code
                       :repl-input.context/ns ns
                       :repl-input.context/ns-form nsForm
-                      :repl-input.context/session-key sessionKey})))
+                      :repl-input.context/session-key sessionKey
+                      :repl-input.context/source-file sourceFile})))
         stored))
+
+(defn routed
+  "Returns `entries` with the session key that `route` gives each now, as
+   `calva.repl.input.context/routed-session-key` says, routing each source file once."
+  [entries route]
+  (let [route-once (memoize route)]
+    (mapv #(assoc % :repl-input.context/session-key (context/routed-session-key route-once %)) entries)))

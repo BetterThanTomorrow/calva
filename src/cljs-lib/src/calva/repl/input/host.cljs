@@ -93,11 +93,18 @@
   {:command/name "repl-input-history"
    :repl-input.history/entries entries})
 
+(defn- route
+  "Returns the session key that routing `source-file` gives, or routing without a document when it is nil."
+  [source-file]
+  (.routedSessionKey ^js @!adapter source-file))
+
 (defn- walked-history
-  "Returns the history entries that the REPL Inputs walk: those evaluated in the context line's session
-   when the history is kept per session, else all of them."
+  "Returns the history entries that the REPL Inputs walk, each in the session that routing it gives now:
+   those in the context line's session when the history is kept per session, else all of them."
   [{:repl-input.history/keys [entries] :repl-input/keys [settings] :repl-input.context/keys [line]}]
-  (history/visible entries (:repl-input.context/session-key line) (get settings history/per-session-setting)))
+  (history/visible (history/routed entries route)
+                   (:repl-input.context/session-key line)
+                   (get settings history/per-session-setting)))
 
 (defn refresh-history!
   "Posts the history entries that the REPL Inputs walk to them when the entries changed. Returns true when
@@ -270,14 +277,19 @@
       {:repl-input.context/ns ns
        :repl-input.context/ns-form ns-form})))
 
+(defn- source-file
+  "Returns the URI of `document` as a string, the source file of a context that follows it."
+  [^js document]
+  (some-> document .-uri str))
+
 (defn- current-context
   []
-  (let [{:repl-input.context/keys [lock editor]} @!state
-        ^js adapter @!adapter]
+  (let [{:repl-input.context/keys [lock editor]} @!state]
     (context/current {:lock lock
                       :editor-namespace (editor-namespace editor)
-                      :routed-session-key (.routedSessionKey adapter (:document editor))
-                      :session-keys (.sessionKeys adapter)})))
+                      :editor-file (source-file (:document editor))
+                      :route route
+                      :session-keys (.sessionKeys ^js @!adapter)})))
 
 (defn context-line-message
   [line]
@@ -309,14 +321,15 @@
   (refresh-mounted-context!))
 
 (defn ^:export routing-changed!
-  "Updates the context line after sessions connected, disconnected or changed routing, and the command
-   keys when the REPL connected or disconnected."
+  "Updates the context line and the history's sessions after sessions connected, disconnected or changed
+   routing, and the command keys when the REPL connected or disconnected."
   []
   (let [connected? (boolean (state/get-state-value "connected"))
         [before _] (swap-vals! !state assoc :repl-input/connected? connected?)]
     (when (not= connected? (:repl-input/connected? before))
       (derive-records!)))
-  (refresh-mounted-context!))
+  (when (refresh-mounted-context!)
+    (refresh-history!)))
 
 (defn follow-editor!
   []
@@ -324,11 +337,9 @@
   (refresh-context!))
 
 (defn lock!
-  "Locks the namespace, `ns` form and session of `context`."
-  [context]
-  (swap! !state assoc :repl-input.context/lock (select-keys context [:repl-input.context/ns
-                                                                      :repl-input.context/ns-form
-                                                                      :repl-input.context/session-key]))
+  "Locks the namespace and `ns` form of `linked`, a context or a history entry, with its source file."
+  [linked]
+  (swap! !state assoc :repl-input.context/lock (context/as-lock linked))
   (refresh-context!))
 
 (def empty-text

@@ -209,9 +209,9 @@ function followEditor(editor: vscode.TextEditor | undefined) {
 const contextAdapter = {
   editorNamespace: (doc: vscode.TextDocument, position: vscode.Position) =>
     namespace.getNamespace(doc, position),
-  // A null document routes without one, where undefined falls back to the active editor
-  routedSessionKey: (doc: vscode.TextDocument | null) =>
-    replSession.getRoutingInfo(doc)?.sessionKey,
+  routedSessionKey: (sourceFile: string | null) =>
+    replSession.getRoutingInfoForUri(sourceFile ? vscode.Uri.parse(sourceFile) : undefined)
+      ?.sessionKey,
   sessionKeys: () => sessionRegistry.listSessions().map(({ key }) => key),
 };
 

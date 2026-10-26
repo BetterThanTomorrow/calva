@@ -6,7 +6,6 @@
 
 (def pirate-core
   #js {:ns "pirate.core"
-       :sessionKey "clj"
        :uri "file:///pirate/src/pirate/core.clj"
        :getText (fn [] "(ns pirate.core\n  (:require [clojure.string :as string]))\n")})
 

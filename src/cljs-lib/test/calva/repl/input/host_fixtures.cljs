@@ -15,7 +15,13 @@
   (js/Promise. (fn [resolve _]
                  (swap! completions conj (assoc args :source source :resolve resolve)))))
 
-(defn fake-adapter [{:keys [contexts restored session-keys evaluations completions definition opened]}]
+(defn- fake-route
+  "Routes `source-file` the way `routes` says, else a `.cljs` file to `cljs`, and other files, and routing
+   without a file, to `clj`."
+  [routes source-file]
+  (get routes source-file (if (and source-file (string/ends-with? source-file ".cljs")) "cljs" "clj")))
+
+(defn fake-adapter [{:keys [contexts restored session-keys routes evaluations completions definition opened]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
@@ -23,7 +29,7 @@
        :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
        :restoreEditorCursorContexts (fn [] @restored)
        :editorNamespace (fn [^js document _position] #js [(.-ns document) (str "(ns " (.-ns document) ")")])
-       :routedSessionKey (fn [^js document] (if document (.-sessionKey document) "clj"))
+       :routedSessionKey (fn [source-file] (fake-route @routes source-file))
        :sessionKeys (fn [] (clj->js @session-keys))
        :nsFromText (fn [code] (when-let [[form ns] (re-find #"^\(ns ([\w.]+)\)" code)] #js [ns form]))
        :evaluate (fn [options]
@@ -52,6 +58,7 @@
               :restored (atom true)
               :posted (atom [])
               :session-keys (atom ["clj" "cljs"])
+              :routes (atom {})
               :evaluations (atom [])
               :completions (atom [])
               :definition (atom nil)

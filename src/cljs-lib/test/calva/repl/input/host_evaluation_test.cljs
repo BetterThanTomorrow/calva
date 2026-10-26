@@ -140,6 +140,45 @@
                            (is (= ["(def a 1)\n(def b 2)"] (history-codes))))
                          (done))))))))))
 
+(def ^:private ui-file "file:///pirate/src/pirate/ui.cljs")
+
+(deftest source-file-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted evaluations routes session-keys] :as host}]
+        (with-view host
+          (fn []
+            (mount-focused! "output-view" "(ns pirate.ui)")
+            (input-host/editor-moved! #js {:ns "pirate.lib" :uri ui-file} #js {})
+            (let [evaluated (sut/evaluate-focused!)]
+              ((:resolve (last @evaluations)) #js {:succeeded true})
+              (-> evaluated
+                  (.then (fn [_]
+                           (testing "keeps the followed editor's file as the source file of the history entry"
+                             (is (= [ui-file "cljs"]
+                                    ((juxt :repl-input.context/source-file :repl-input.context/session-key)
+                                     (last (:repl-input.history/entries @input-host/!state))))))
+                           (testing "keeps it as the source file of the lock that an evaluated ns form makes"
+                             (is (= ui-file (:repl-input.context/source-file (:repl-input.context/lock @input-host/!state)))))
+                           (input-host/editor-moved! #js {:ns "pirate.core" :uri "file:///pirate/src/pirate/core.clj"} #js {})
+                           (testing "stays in the session that routing the lock's source file gives when the editor moves to a file in another session"
+                             (is (= {:repl-input.context/ns "pirate.ui" :repl-input.context/session-key "cljs" :repl-input.context/locked? true}
+                                    (last-context-line posted))))
+                           (swap! session-keys conj "cljs:2")
+                           (swap! routes assoc ui-file "cljs:2")
+                           (input-host/routing-changed!)
+                           (post! {:command "repl-input-changed" :repl-input/id "output-view" :version 3 :text "(inc 1)" :selections [[0 0]]})
+                           (let [evaluated (sut/evaluate-focused!)]
+                             ((:resolve (last @evaluations)) #js {:succeeded true})
+                             evaluated)))
+                  (.then (fn [_]
+                           (testing "evaluates where routing the lock's source file gives now"
+                             (is (= ["pirate.ui" "cljs:2"]
+                                    ((juxt :ns :session-key) (evaluation-options (last @evaluations))))))
+                           (testing "keeps the lock's source file in the history entry"
+                             (is (= ui-file (:repl-input.context/source-file (last (:repl-input.history/entries @input-host/!state))))))
+                           (done)))))))))))
+
 (defn- evaluation-id [evaluations]
   (definition/evaluation-id (.-filePath ^js (:options (last @evaluations)))))
 
