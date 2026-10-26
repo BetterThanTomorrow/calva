@@ -4,11 +4,15 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.604] - 2026-10-26
+
+- [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
+
 ## [2.0.603] - 2026-10-23
 
-- [Calva Development QOL: Remove stateful project root]([text](https://github.com/BetterThanTomorrow/calva/issues/3295))
+- [Calva Development QOL: Remove stateful project root](https://github.com/BetterThanTomorrow/calva/issues/3295)
   - Not just for Calva Development... A host of race conditions and misbehavior gets fixed too
-  - Closes [Fix duplicate findProjectRootUri functions]([text](https://github.com/BetterThanTomorrow/calva/issues/1557))
+  - Closes [Fix duplicate findProjectRootUri functions](https://github.com/BetterThanTomorrow/calva/issues/1557)
 
 ## [2.0.602] - 2026-10-23
 
