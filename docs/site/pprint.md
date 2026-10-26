@@ -46,11 +46,15 @@ Print Engine | Client or Server Side | Comments
 --------------------- | --------------------- | --------
 `calva`             | client                | The nREPL server will plain print the results, and then Calva will pretty it (using `zprint`).
 [**`pprint`**](https://clojure.github.io/clojure/clojure.pprint-api.html) | server | **Current Calva default.** `clojure.core/pprint` is a bit basic, but it's tried and tested, and doesn't suffer from the issues with the other server side printing options, mentioned below.
+[`orchard`]() | server | faster than `pprint`, doesn't mix a lazy seq's printing into the result, doesn't pretty-print exceptions.
 [`fipp`](https://github.com/brandonbloom/fipp) | server |
 [`puget`](https://github.com/greglook/puget) | server | Lacks `maxDepth` option.
 [`zprint`](https://github.com/kkinnear/zprint) | server | A very good option. However, it will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies. (If you are not using Jack-in, you'll need to supply this dependency yourself.)
 
 These particular server side functions were chosen because they have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
+
+!!! Note "`pprint` and `cider-nrepl` >= 0.61"
+    With `cider-nrepl` versions from `0.61`, Calva uses `clojure.pprint` though `cider.nrepl.pprint/clojure-pprint`, because [calva#3265](https://github.com/BetterThanTomorrow/calva/issues/3265).
 
 #### Or configure `printFn`
 
