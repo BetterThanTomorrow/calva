@@ -1160,11 +1160,14 @@ export function appendLineOtherOut(
  * (e.g. out of band messages)
  * @param message The message to append
  * @param after Optional callback to run after the append
+ * @param causes The causes of the error the message is about. The Output views show the message
+ * and the causes as one error.
  */
 export function appendLineOtherErr(
   message: string,
   options: AppendClojureOptions = {},
-  after?: AfterAppendCallback
+  after?: AfterAppendCallback,
+  causes?: Promise<cider.StacktraceCause[] | undefined>
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
@@ -1201,6 +1204,7 @@ export function appendLineOtherErr(
         replSessionKey: options.replSessionType,
         shadowBuild: options.shadowBuild,
         shadowRuntimeId: options.shadowRuntimeId,
+        causes,
       },
       coloredMessage,
       isLast ? after : undefined

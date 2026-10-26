@@ -44,6 +44,7 @@
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
                              :appendErrorToReplOutputSidebar calva.repl.webview.sidebar/append-error
+                             :setJavaSourceLookup calva.repl.webview.frame-host/set-java-source-lookup!
                              :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test

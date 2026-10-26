@@ -300,10 +300,12 @@
 (deftest open-frame-test
   (is (= [[:fx/post-to-host {:command "open-frame"
                              :fileUrl "file:/Users/me/myproj/src/myproj/core.clj"
-                             :line 16}]]
+                             :line 16
+                             :column 5}]]
          (:uf/fxs (sut/handle-action sut/initial-db
                                      [:error/ax.open-frame {:frame/file-url "file:/Users/me/myproj/src/myproj/core.clj"
-                                                            :frame/line 16}])))))
+                                                            :frame/line 16
+                                                            :frame/column 5}])))))
 
 (deftest clear-output-view-forgets-errors-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
@@ -321,3 +323,15 @@
         "Other errors keep their filters")
     (is (= :project (get-in choice-db [:output/errors "e1" :error/frame-filter])))
     (is (= :filtered (get-in choice-db [:output/errors "e2" :error/frame-filter])))))
+
+(deftest open-java-frame-test
+  (is (= [[:fx/post-to-host {:command "open-java-frame"
+                             :className "java.lang.Integer"
+                             :member "parseInt"
+                             :line 662
+                             :sessionKey "clj"}]]
+         (:uf/fxs (sut/handle-action sut/initial-db
+                                     [:error/ax.open-java-frame {:frame/qualifier "java.lang.Integer"
+                                                                 :frame/name "parseInt"
+                                                                 :frame/line 662
+                                                                 :error/session-key "clj"}])))))

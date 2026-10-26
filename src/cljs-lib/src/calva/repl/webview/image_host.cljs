@@ -351,7 +351,10 @@
       (fetch-image-for-copy-message! post! (.-url message))
 
       "open-frame"
-      (frame-host/open-frame! (.-fileUrl message) (.-line message))
+      (frame-host/open-frame! (.-fileUrl message) (.-line message) (.-column message))
+
+      "open-java-frame"
+      (frame-host/open-java-frame! (.-sessionKey message) (.-className message) (.-member message) (.-line message))
 
       nil)))
 
