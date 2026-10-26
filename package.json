@@ -447,6 +447,7 @@
                 "enum": [
                   "calva",
                   "pprint",
+                  "orchard",
                   "fipp",
                   "puget",
                   "zprint"
