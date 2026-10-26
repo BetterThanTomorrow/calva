@@ -98,6 +98,14 @@
     (let [{:error/keys [id] :cause/keys [index]} payload]
       (update-error db id stacktrace/toggle-cause index))
 
+    :error/ax.toggle-flag
+    (let [{:error/keys [id] :frame/keys [flag]} payload]
+      (update-error db id stacktrace/toggle-flag flag))
+
+    :error/ax.set-frame-filter
+    (let [{:error/keys [id frame-filter]} payload]
+      (update-error db id assoc :error/frame-filter frame-filter))
+
     :error/ax.open-frame
     (let [{:frame/keys [file-url line]} payload]
       {:uf/db db
@@ -118,7 +126,7 @@
     :msg/error
     (handle-error db payload)
 
-    (:error/ax.toggle :error/ax.toggle-cause :error/ax.open-frame)
+    (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter :error/ax.open-frame)
     (handle-error-action db action-type payload)
 
     :msg/set-image-display

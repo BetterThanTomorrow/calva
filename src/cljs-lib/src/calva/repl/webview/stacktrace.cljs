@@ -22,16 +22,35 @@
   [causes]
   (boolean (some (comp seq :stacktrace) causes)))
 
+(def frame-filters
+  "The filters that hide frames with a flag, as an Output view names them."
+  [{:filter/label "Clojure" :filter/flag "clj"}
+   {:filter/label "Java" :filter/flag "java"}
+   {:filter/label "REPL" :filter/flag "repl"}
+   {:filter/label "Tooling" :filter/flag "tooling"}
+   {:filter/label "Duplicates" :filter/flag "dup"}])
+
+(def frame-filter-choices
+  [{:choice/label "All frames" :choice/frame-filter :all}
+   {:choice/label "Filtered" :choice/frame-filter :filtered}
+   {:choice/label "Project only" :choice/frame-filter :project}])
+
 (defn error-entry
   "Returns the entry an Output view keeps for an error with `causes`. It starts folded unless
-   `unfolded?`, and the root cause shows its frames."
+   `unfolded?`, the root cause shows its frames, and tooling and duplicate frames are hidden."
   [{:keys [id] :error/keys [text category causes unfolded?]}]
   {:error/id id
    :error/text text
    :error/category category
    :error/causes causes
    :error/unfolded? (boolean unfolded?)
-   :error/unfolded-causes #{(dec (count causes))}})
+   :error/unfolded-causes #{(dec (count causes))}
+   :error/frame-filter :filtered
+   :error/hidden-flags #{"tooling" "dup"}})
+
+(defn- toggle-member
+  [s x]
+  (if (contains? s x) (disj s x) (conj s x)))
 
 (defn toggle-unfolded
   [error]
@@ -40,7 +59,24 @@
 (defn toggle-cause
   "Shows or hides the frames of the cause at `index`."
   [error index]
-  (update error :error/unfolded-causes #(if (contains? % index) (disj % index) (conj % index))))
+  (update error :error/unfolded-causes toggle-member index))
+
+(defn toggle-flag
+  "Hides or shows the frames with `flag`."
+  [error flag]
+  (update error :error/hidden-flags toggle-member flag))
+
+(defn visible-frames
+  "Returns the `frames` that the error's frame filter shows."
+  [{:error/keys [frame-filter hidden-flags]} frames]
+  (case frame-filter
+    :all frames
+    :project (filterv #(contains? (:flags %) "project") frames)
+    (filterv #(not-any? hidden-flags (:flags %)) frames)))
+
+(defn hidden-count
+  [error frames]
+  (- (count frames) (count (visible-frames error frames))))
 
 (defn frame-parts
   "Returns what an Output view shows for `frame`: file and line, then namespace and function for
