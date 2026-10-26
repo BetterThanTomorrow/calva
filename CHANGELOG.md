@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Regression: exceptions abbreviated in REPL output view](https://github.com/BetterThanTomorrow/calva/issues/3265)
+
 ## [2.0.604] - 2026-10-26
 
 - [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
