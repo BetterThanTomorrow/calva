@@ -316,6 +316,10 @@ async function evaluateCodeUpdatingUI(
       }
     } catch (e) {
       if (showErrorMessage) {
+        const causes = session.stacktrace().catch((e) => {
+          console.error(`Failed fetching stacktrace: ${e.message}`);
+          return undefined;
+        });
         const outputWindowError = err.length
           ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
           : resultsOutputUtil.formatAsLineComments(e);
@@ -345,46 +349,30 @@ async function evaluateCodeUpdatingUI(
               }
             }
           }
-          session
-            .stacktrace()
-            .then((causes) => {
-              const frames = cider.outermostCauseFrames(causes);
-              if (frames) {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-                replWindow.saveStacktrace(frames);
-              }
-            })
-            .catch((e) => {
-              console.error(`Failed fetching stacktrace: ${e.message}`);
-            });
+          void causes.then((causes) => {
+            const frames = cider.outermostCauseFrames(causes);
+            if (frames) {
+              replWindow.markLastStacktraceRange(afterResultLocation);
+              replWindow.saveStacktrace(frames);
+            }
+          });
         });
         if (
           !outputDestinations
             .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
             .includes('repl-window')
         ) {
-          output.appendEvalErr(err.length ? err.join('\n') : e, {
-            ns,
-            replSessionType: sessionKey,
-            who: 'ui',
-            ...shadowInfo,
-          });
-          const webviewDestinations = outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .filter(outputDestinations.isWebviewOutputDestination);
-          if (webviewDestinations.length) {
-            session
-              .stacktrace()
-              .then((causes) => {
-                const frames = cider.outermostCauseFrames(causes);
-                if (frames) {
-                  output.appendStackTraceToWebviewDestinations(webviewDestinations, frames);
-                }
-              })
-              .catch((e) => {
-                console.error(`Failed fetching stacktrace: ${e.message}`);
-              });
-          }
+          output.appendEvalErr(
+            err.length ? err.join('\n') : e,
+            {
+              ns,
+              replSessionType: sessionKey,
+              who: 'ui',
+              ...shadowInfo,
+            },
+            undefined,
+            causes
+          );
         }
       }
     }

@@ -629,108 +629,50 @@
                :error
                "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\"")))))))
 
-(deftest stacktrace->message-test
-  (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
-    (let [stacktrace [{:class "clojure.lang.Numbers",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["java"],
-                       :line 190,
-                       :method "divide",
-                       :name "clojure.lang.Numbers/divide",
-                       :type "java"}
-                      {:fn "eval12684",
-                       :method "invokeStatic",
-                       :ns "core",
-                       :name "core$eval12684/invokeStatic",
-                       :file "NO_SOURCE_FILE",
-                       :type "clj",
-                       :file-url "",
-                       :line 99,
-                       :var "core/eval12684",
-                       :class "core$eval12684",
-                       :flags ["project" "repl" "clj"]}]]
-      (with-redefs [sut/stacktrace-classes-to-ignore #{}]
-        (is (= "clojure.lang.Numbers/divide (Numbers.java:190)\ncore/eval12684 (NO_SOURCE_FILE:99)"
-               (sut/stacktrace->message stacktrace))))))
-  (testing "Given a stacktrace with duplicate flags and classes to ignore,"
-    (let [stacktrace [{:class "some-class-to-ignore",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["java"],
-                       :line 190,
-                       :method "divide",
-                       :name "frame-with-class-to-ignore",
-                       :type "java"}
-                      {:class "clojure.lang.Numbers",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["dup" "java"],
-                       :line 3915,
-                       :method "divide",
-                       :name "duplicate-frame",
-                       :type "java"}
-                      {:fn "eval12684",
-                       :method "invokeStatic",
-                       :ns "core",
-                       :name "core$eval12684/invokeStatic",
-                       :file "NO_SOURCE_FILE",
-                       :type "clj",
-                       :file-url "",
-                       :line 99,
-                       :var "core/eval12684",
-                       :class "core$eval12684",
-                       :flags ["project" "repl" "clj"]}]]
-      (with-redefs [sut/stacktrace-classes-to-ignore #{"some-class-to-ignore"}]
-        (testing "should return a message with no stacktrace frames that include duplicate flags or classes to ignore"
-          (is (= "core/eval12684 (NO_SOURCE_FILE:99)" (sut/stacktrace->message stacktrace)))))))
-  (testing "Given a stacktrace, should return entries separated by newline characters"
-    (with-redefs [sut/stacktrace-entry->string (constantly "some-entry")]
-      (is (= "some-entry\nsome-entry\nsome-entry"
-             ;; We redefed stacktrace-entry->string to always return "some-entry", so the stacktrace data doesn't
-             ;; matter here, aside from the number of entries.
-             (sut/stacktrace->message ["entry1" "entry2" "entry3"]))))))
+(deftest error-message-test
+  (testing "Given options, the error text and JS cause messages,"
+    (let [causes (clj->js [{:class "clojure.lang.ExceptionInfo"
+                            :message "Could not start"
+                            :phase []
+                            :id "7"
+                            :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
+                                          :file-url []
+                                          :flags ["project" "clj"]}]}])]
+      (testing "should return one show-error message with the causes as data"
+        (is (= {:command/name "show-error"
+                :error/text "Execution error"
+                :error/category "evalErr"
+                :error/causes [{:class "clojure.lang.ExceptionInfo"
+                                :message "Could not start"
+                                :phase nil
+                                :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
+                                              :file-url nil
+                                              :flags #{"project" "clj"}}]}]
+                :error/unfolded? false
+                :meta {:meta/ns "user"}}
+               (sut/error-message (clj->js {:outputCategory "evalErr" :ns "user"})
+                                  "Execution error"
+                                  causes))))
+      (testing "should start unfolded when the options say so"
+        (is (true? (:error/unfolded? (sut/error-message (clj->js {:outputCategory "evalErr" :unfolded true})
+                                                        "Execution error"
+                                                        causes)))))))
+  (testing "Given no causes, should return a message without causes"
+    (is (= [] (:error/causes (sut/error-message (clj->js {:outputCategory "evalErr"}) "Execution error" js/undefined))))))
 
-(deftest append-stacktrace-test
-  (testing "Given a JS stacktrace,"
-    (let [stacktrace->message-spy (spy/stub "some-message")
-          post-message-to-webview-spy (spy/spy)
-          clj-stacktrace [{:class "clojure.lang.Numbers",
-                           :file "Numbers.java"}
-                          {:file "NO_SOURCE_FILE",
-                           :class "core$eval12684"}]
-          js-stacktrace (clj->js clj-stacktrace)]
-      (with-redefs [sut/stacktrace->message (test-util/wrap-spy stacktrace->message-spy)
-                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+(deftest append-error-test
+  (testing "when the webview panel exists, should post the error message to it"
+    (let [post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                     sut/output-view-webview-panel (atom "webview-panel-stub")]
-        (sut/append-stacktrace js-stacktrace)
-        (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace))
+        (sut/append-error (clj->js {:outputCategory "evalErr"}) "Execution error" (clj->js []))
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
-                                   {:command/name "show-stdout"
-                                    :output-category "evalErr"
-                                    :output "some-message"})))))
-  (testing "when the webview panel does not exist, should create it before posting"
-    (let [create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
-          set-code-theme!-spy (spy/spy)
-          post-message-to-webview-spy (spy/spy)
-          vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
-      (with-redefs [util/vscode (atom vscode-stub)
-                    util/vscode-context (atom "vscode-context")
-                    sut/output-view-webview-panel (atom nil)
-                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
-                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
-                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-        (sut/append-stacktrace (clj->js []))
-        (is (spy/called-once-with? create-repl-output-webview-panel-spy
-                                   {:env/is-debug (:is-debug util/env)
-                                    :vscode/vscode vscode-stub
-                                    :vscode/context "vscode-context"}))
-        (is (spy/called-once-with? post-message-to-webview-spy
-                                   "created-webview-panel"
-                                   {:command/name "show-stdout"
-                                    :output-category "evalErr"
-                                    :output ""}))))))
+                                   {:command/name "show-error"
+                                    :error/text "Execution error"
+                                    :error/category "evalErr"
+                                    :error/causes []
+                                    :error/unfolded? false}))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"

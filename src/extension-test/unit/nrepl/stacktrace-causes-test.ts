@@ -66,6 +66,17 @@ describe('stacktraceCausesHandler', () => {
     expectLib.expect(cider.outermostCauseFrames(undefined)).toBeUndefined();
   });
 
+  it('heads a cause with its class and message, or says there is no message', () => {
+    expectLib
+      .expect(cider.causeHeading(rootCause as unknown as cider.StacktraceCause))
+      .toBe('java.lang.NumberFormatException: For input string: "abc"');
+    expectLib
+      .expect(
+        cider.causeHeading({ ...outerCause, message: [] } as unknown as cider.StacktraceCause)
+      )
+      .toBe('clojure.lang.ExceptionInfo: No message');
+  });
+
   it('rejects when the server does not know the op', () => {
     const { resolved, rejected, handled } = feed([
       { id: '7', op: 'analyze-last-stacktrace', status: ['unknown-op', 'done'] },

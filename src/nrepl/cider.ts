@@ -114,6 +114,10 @@ export function outermostCauseFrames(causes?: StacktraceCause[]): StacktraceFram
   return causes?.[0]?.stacktrace;
 }
 
+export function causeHeading({ class: className, message }: StacktraceCause): string {
+  return `${className}: ${typeof message === 'string' ? message : 'No message'}`;
+}
+
 function stripTrailingNewlines(s: string): string {
   return s.replace(/\r?\n$/, '');
 }

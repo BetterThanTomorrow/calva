@@ -236,13 +236,12 @@ async function reportTests(
             ) {
               // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
               // This is just a quick fix to avoid refactoring for now.
-              output.appendLineOtherOut(message.replace(/; /gi, ''));
-              const webviewDestinations = outputDestinations
-                .normalizeDestinations(otherOutputDestination)
-                .filter(outputDestinations.isWebviewOutputDestination);
-              if (webviewDestinations.length) {
-                output.appendStackTraceToWebviewDestinations(webviewDestinations, frames);
-              }
+              output.appendLineOtherOut(
+                message.replace(/; /gi, ''),
+                {},
+                undefined,
+                Promise.resolve(causes)
+              );
             }
           } else if (message) {
             output.appendClojureOther(message);

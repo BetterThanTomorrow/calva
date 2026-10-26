@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.images :as images]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -608,6 +609,26 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(defn- focused-control
+  [^js element]
+  (when (and element (.contains element js/document.activeElement))
+    (.. js/document -activeElement (getAttribute "data-control"))))
+
+(defn render-error!
+  "Draws `error`, in place of its earlier element if there is one, keeping focus on the control
+   that had it."
+  [^js dom-element dispatch {:error/keys [id] :as error}]
+  (let [new-element (error-element/create error dispatch)
+        ^js existing (.querySelector dom-element (str "[data-error-id=\"" id "\"]"))]
+    (if existing
+      (let [control (focused-control existing)]
+        (.replaceWith existing new-element)
+        (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
+      (do (.. dom-element (appendChild new-element))
+          (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
+
+(declare dispatch!)
+
 (defn exec-effect!
   [^js output-dom-element [fx-type & args]]
   (case fx-type
@@ -616,6 +637,8 @@
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
+    :fx/render-error (render-error! output-dom-element dispatch! (first args))
+    :fx/post-to-host (post-to-host! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-token-colors (set-token-colors! (first args))
@@ -657,7 +680,8 @@
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
          ("show-result" "show-evaluated-code" "show-stdout")
-         (dispatch! [:msg/output message-data]))))))
+         (dispatch! [:msg/output message-data])
+         "show-error"           (dispatch! [:msg/error message-data]))))))
 
 (defn handle-output-appended
   [^js _event]

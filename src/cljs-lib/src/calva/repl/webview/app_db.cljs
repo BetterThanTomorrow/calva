@@ -1,6 +1,7 @@
 (ns calva.repl.webview.app-db
   (:require
-   [calva.repl.webview.images :as images]))
+   [calva.repl.webview.images :as images]
+   [calva.repl.webview.stacktrace :as stacktrace]))
 
 (def initial-db
   {:output/last-context nil
@@ -53,27 +54,72 @@
         shadow-runtime-id (or shadow-runtime-id (:shadow-runtime-id meta))]
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
+(defn- with-context
+  "Returns `db` with the context of `meta`, and the effects that show the context when it changed."
+  [db meta]
+  (let [context-key (meta-context-key meta)]
+    (if (and context-key (not= context-key (:output/last-context db)))
+      [(assoc db :output/last-context context-key) [[:fx/append-ns-info meta]]]
+      [db []])))
+
 (defn- handle-output
   [db {:keys [command/name output meta output-category]}]
-  (let [context-key (meta-context-key meta)
-        context-changed? (and context-key (not= context-key (:output/last-context db)))
-        category (or output-category "evalOut")
-        fxs (message-fxs name output category meta)]
-    {:uf/db (cond-> db
-              context-changed? (assoc :output/last-context context-key))
-     :uf/fxs (cond-> []
-               context-changed? (conj [:fx/append-ns-info meta])
-               :always (into fxs))}))
+  (let [[db context-fxs] (with-context db meta)
+        category (or output-category "evalOut")]
+    {:uf/db db
+     :uf/fxs (into context-fxs (message-fxs name output category meta))}))
+
+(defn- handle-error
+  [db {:keys [meta] :error/keys [text category causes] :as message}]
+  (let [[db context-fxs] (with-context db meta)]
+    (if (stacktrace/has-frames? causes)
+      (let [{:error/keys [id] :as error} (stacktrace/error-entry message)]
+        {:uf/db (assoc-in db [:output/errors id] error)
+         :uf/fxs (conj context-fxs [:fx/render-error error])})
+      {:uf/db db
+       :uf/fxs (cond-> context-fxs
+                 (seq text) (conj [:fx/append-stdout text (or category "evalErr")]))})))
+
+(defn- update-error
+  [db id f & args]
+  (if-let [error (get-in db [:output/errors id])]
+    (let [error (apply f error args)]
+      {:uf/db (assoc-in db [:output/errors id] error)
+       :uf/fxs [[:fx/render-error error]]})
+    {:uf/db db}))
+
+(defn- handle-error-action
+  [db action-type payload]
+  (case action-type
+    :error/ax.toggle
+    (update-error db payload stacktrace/toggle-unfolded)
+
+    :error/ax.toggle-cause
+    (let [{:error/keys [id] :cause/keys [index]} payload]
+      (update-error db id stacktrace/toggle-cause index))
+
+    :error/ax.open-frame
+    (let [{:frame/keys [file-url line]} payload]
+      {:uf/db db
+       :uf/fxs [[:fx/post-to-host {:command "open-frame" :fileUrl file-url :line line}]]})))
 
 (defn handle-action
   [db [action-type payload]]
   (case action-type
     :msg/clear-output-view
-    {:uf/db  (assoc db :output/last-context nil)
+    {:uf/db  (-> db
+                 (assoc :output/last-context nil)
+                 (dissoc :output/errors))
      :uf/fxs [[:fx/clear-dom]]}
 
     :msg/output
     (handle-output db payload)
+
+    :msg/error
+    (handle-error db payload)
+
+    (:error/ax.toggle :error/ax.toggle-cause :error/ax.open-frame)
+    (handle-error-action db action-type payload)
 
     :msg/set-image-display
     {:uf/db db
