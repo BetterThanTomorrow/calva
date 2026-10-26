@@ -53,4 +53,50 @@ describe('jack-in port detection', () => {
       });
     });
   });
+
+  describe('parsePortInUse', () => {
+    it('parses the Jetty bind failure', () => {
+      expectLib
+        .expect(
+          jackInPortDetection.parsePortInUse(
+            'Caused by: java.io.IOException: Failed to bind to /127.0.0.1:4242'
+          )
+        )
+        .toBe(4242);
+    });
+
+    it('parses the Node.js EADDRINUSE error', () => {
+      expectLib
+        .expect(
+          jackInPortDetection.parsePortInUse(
+            'Error: listen EADDRINUSE: address already in use :::8280'
+          )
+        )
+        .toBe(8280);
+    });
+
+    it('parses the port already in use message', () => {
+      expectLib
+        .expect(jackInPortDetection.parsePortInUse('Port 9630 is already in use.'))
+        .toBe(9630);
+    });
+
+    it('ignores a bind failure without a port', () => {
+      expectLib
+        .expect(
+          jackInPortDetection.parsePortInUse('java.net.BindException: Address already in use')
+        )
+        .toBeUndefined();
+    });
+
+    it('ignores regular output', () => {
+      expectLib
+        .expect(
+          jackInPortDetection.parsePortInUse(
+            'nREPL server started on port 61419 on host localhost - nrepl://localhost:61419'
+          )
+        )
+        .toBeUndefined();
+    });
+  });
 });

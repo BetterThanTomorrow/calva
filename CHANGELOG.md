@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Jack-in silently misses project servers when their port is already in use](https://github.com/BetterThanTomorrow/calva/issues/3312)
+
 ## [2.0.604] - 2026-10-26
 
 - [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)

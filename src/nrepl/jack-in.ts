@@ -9,6 +9,7 @@ import * as connectSequenceInheritance from './connect-sequence-inheritance';
 import * as projectTypes from './project-types';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as jackInTerminal from './jack-in-terminal';
+import * as jackInFreePorts from './jack-in-free-ports';
 import * as liveShareSupport from '../live-share';
 import * as config from '../config';
 import * as joyride from '../joyride';
@@ -265,6 +266,7 @@ async function executeJackInTask(
   terminalOptions: jackInTerminal.JackInPTYOptions,
   connectSequence: connectSequences.ReplConnectSequence,
   projectRootUri: vscode.Uri,
+  onPortInUse: (port: number) => void,
   cb?: () => unknown
 ) {
   utilities.setLaunchingState(connectSequence.name);
@@ -328,7 +330,8 @@ async function executeJackInTask(
                   }
                 });
               resolve();
-            }
+            },
+            onPortInUse
           );
         } catch (exception) {
           console.error('Failed executing task: ', exception.message);
@@ -552,10 +555,32 @@ async function getProjectConnectSequence(
   }
 }
 
+async function freePortAndJackInAgain(
+  port: number,
+  connectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri,
+  retriedPorts: Set<number>,
+  cb?: () => unknown
+) {
+  if (retriedPorts.has(port)) {
+    output.appendLineOtherErr(
+      `Port ${port} is still in use after jacking in again. Not retrying a second time.`
+    );
+    return;
+  }
+  retriedPorts.add(port);
+  output.appendLineOtherOut(
+    `The project could not bind port ${port} because it is already in use. Freeing it and jacking in again.`
+  );
+  await jackInFreePorts.freePort(port, (message) => output.appendLineOtherOut(message));
+  await executeJackIn(connectSequence, undefined, projectRootUri, retriedPorts, cb);
+}
+
 async function executeJackIn(
   connectSequence: connectSequences.ReplConnectSequence,
   autoSelected: connectSequences.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri,
+  retriedPorts: Set<number>,
   cb?: () => unknown
 ) {
   void state.analytics().logGA4Pageview('/connect-initiated');
@@ -608,7 +633,21 @@ async function executeJackIn(
           rootUri
         );
         if (terminalJackInOptions) {
-          void executeJackInTask(terminalJackInOptions, projectConnectSequence, rootUri, cb);
+          const onPortInUse = (port: number) =>
+            void freePortAndJackInAgain(
+              port,
+              projectConnectSequence,
+              projectRootUri,
+              retriedPorts,
+              cb
+            );
+          void executeJackInTask(
+            terminalJackInOptions,
+            projectConnectSequence,
+            rootUri,
+            onPortInUse,
+            cb
+          );
         }
       } catch (e) {
         void vscode.window.showErrorMessage(`Error creating jack-in command line: ${e}`, 'OK');
@@ -630,7 +669,7 @@ export function jackIn(
   projectRootUri: vscode.Uri,
   cb?: () => unknown
 ): Promise<unknown> {
-  return executeJackIn(connectSequence, autoSelected, projectRootUri, cb);
+  return executeJackIn(connectSequence, autoSelected, projectRootUri, new Set(), cb);
 }
 
 export function jackOutCommand() {

@@ -70,6 +70,10 @@ Because reasons, Calva can't yet read the `stdout` of the shell command it has i
 
 When the port file is created, Calva picks up the port number from it and connects to the nREPL server. At this point you have a Clojure REPL backing your Calva session, providing all sorts of nice IDE help for you.
 
+### Ports Already in Use
+
+If the project fails to bind a port during Jack-in, because a previous REPL or another project is still listening on it, Calva notices it in the Jack-in output (`Failed to bind to …:4242`, `EADDRINUSE …:8280`, `Port 9630 is already in use`). It then reports which process holds the port, stops that process, and jacks in again. This is retried once per Jack-in; if the port is still busy after that, Calva reports it and leaves it alone.
+
 
 ## Starting Your Clojure App
 
