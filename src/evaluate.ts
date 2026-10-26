@@ -452,6 +452,24 @@ function stdinFor(
   );
 }
 
+type EvaluationNamespace = { session: nrepl.NReplSession; ns: string; nsForm: string };
+
+/**
+ * Runs `evaluate`, after evaluating `nsForm` in `session` when the REPL window's namespace differs
+ * from `ns`, and leaves the REPL window in `session` and the namespace the evaluation ended in.
+ */
+async function evaluateInNamespace<E extends { ns?: string }>(
+  { session, ns, nsForm }: EvaluationNamespace,
+  evaluate: () => Promise<E>
+): Promise<E> {
+  if (replWindow.getNs() !== ns) {
+    await session.evaluateInNs(nsForm, replWindow.getNs());
+  }
+  const evaluation = await evaluate();
+  replWindow.setSession(session, evaluation.ns);
+  return evaluation;
+}
+
 async function evaluateCodeUpdatingUI(
   code: string,
   options,
@@ -483,39 +501,38 @@ async function evaluateCodeUpdatingUI(
     replHistory.addToReplHistory(sessionRegistry.resolveSessionKey(session), code);
     replHistory.resetState();
   }
-  if (replWindow.getNs() !== ns) {
-    await session.evaluateInNs(options.nsForm, replWindow.getNs());
-  }
 
   const ui: UiContext = { editor, selection, options };
   const echoCode =
     evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
   let sentEvaluation: nrepl.NReplEvaluation;
-  const evaluation = await evaluateToOutputDestinations(
-    {
-      code,
-      session,
-      ns,
-      filePath: options.filePath,
-      line: options.line,
-      column: options.column,
-      pprintOptions,
-      echoDestinations: echoCode ? replWindowEchoDestinations() : [],
-      showResult: options.showResult === undefined || options.showResult === true,
-      showErrorMessage: options.showErrorMessage === undefined || options.showErrorMessage === true,
-      stdin: stdinFor(editor, () => sentEvaluation),
-    },
-    {
-      onResultAppended: (value) => updateUiWithResult(value, ui),
-      onStderrAfterResult: appendStderrToReplWindow,
-      onFailure: (message, stacktrace) => appendFailureToReplWindow(message, stacktrace, ui),
-      evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
-      onEvaluationSent: (sent) => {
-        sentEvaluation = sent;
+  const evaluation = await evaluateInNamespace({ session, ns, nsForm: options.nsForm }, () =>
+    evaluateToOutputDestinations(
+      {
+        code,
+        session,
+        ns,
+        filePath: options.filePath,
+        line: options.line,
+        column: options.column,
+        pprintOptions,
+        echoDestinations: echoCode ? replWindowEchoDestinations() : [],
+        showResult: options.showResult === undefined || options.showResult === true,
+        showErrorMessage:
+          options.showErrorMessage === undefined || options.showErrorMessage === true,
+        stdin: stdinFor(editor, () => sentEvaluation),
       },
-    }
+      {
+        onResultAppended: (value) => updateUiWithResult(value, ui),
+        onStderrAfterResult: appendStderrToReplWindow,
+        onFailure: (message, stacktrace) => appendFailureToReplWindow(message, stacktrace, ui),
+        evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
+        onEvaluationSent: (sent) => {
+          sentEvaluation = sent;
+        },
+      }
+    )
   );
-  replWindow.setSession(session, evaluation.ns);
   replSession.updateReplSessionType();
 
   return valueOf(evaluation);
@@ -1131,6 +1148,7 @@ async function evaluateInCurrentEditor(
 
 export {
   evaluateToOutputDestinations,
+  evaluateInNamespace,
   withoutIgnoreMarker,
   interruptAllEvaluations,
   loadDocument,

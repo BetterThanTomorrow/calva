@@ -1,5 +1,7 @@
 import * as assert from 'assert';
+import * as evaluate from '../../../evaluate';
 import * as nrepl from '../../../nrepl';
+import * as replWindow from '../../../repl-window/repl-window-doc';
 
 type Written = { op: string; id?: string; 'interrupt-id'?: string };
 
@@ -60,6 +62,67 @@ suite('NReplEvaluation interrupts', () => {
       await rejection(evaluation.value),
       'Evaluation was interrupted',
       'The evaluation ends as interrupted'
+    );
+  });
+});
+
+suite('Evaluating in a namespace, as files do', () => {
+  let before: { session: nrepl.NReplSession; sessionType: string; ns: string };
+
+  setup(() => {
+    before = {
+      session: replWindow.getSession(),
+      sessionType: replWindow.getSessionType(),
+      ns: replWindow.getNs(),
+    };
+  });
+
+  teardown(() => {
+    replWindow.setSession(before.session, before.ns, before.sessionType);
+  });
+
+  test('evaluates the ns form first when the REPL window namespace differs, and leaves the REPL window in the namespace the evaluation ended in', async () => {
+    const nsFormsEvaluated: [string, string][] = [];
+    const session = {
+      _calvaSessionMetadata: { key: 'evaluating-in-a-namespace-test' },
+      evaluateInNs: (nsForm: string, ns: string) => {
+        nsFormsEvaluated.push([nsForm, ns]);
+        return Promise.resolve();
+      },
+    } as unknown as nrepl.NReplSession;
+    const endingIn = (ns: string) => () => Promise.resolve({ ns, value: 'nil' });
+    replWindow.setSession(session, 'user');
+
+    await evaluate.evaluateInNamespace(
+      { session, ns: 'pirate.core', nsForm: '(ns pirate.core)' },
+      endingIn('pirate.core')
+    );
+    assert.deepStrictEqual(
+      nsFormsEvaluated,
+      [['(ns pirate.core)', 'user']],
+      'The ns form is evaluated in the REPL window namespace, which differs'
+    );
+    assert.strictEqual(replWindow.getNs(), 'pirate.core', 'The REPL window is in the namespace');
+
+    await evaluate.evaluateInNamespace(
+      { session, ns: 'pirate.core', nsForm: '(ns pirate.core (:require [clojure.string]))' },
+      endingIn('pirate.core')
+    );
+    assert.strictEqual(
+      nsFormsEvaluated.length,
+      1,
+      'The ns form is not evaluated while the REPL window has the namespace'
+    );
+
+    await evaluate.evaluateInNamespace(
+      { session, ns: 'pirate.ui', nsForm: '(ns pirate.ui)' },
+      endingIn('pirate.lib')
+    );
+    assert.deepStrictEqual(nsFormsEvaluated[1], ['(ns pirate.ui)', 'pirate.core']);
+    assert.strictEqual(
+      replWindow.getNs(),
+      'pirate.lib',
+      'The REPL window is in the namespace the evaluation ended in'
     );
   });
 });

@@ -102,7 +102,7 @@ type Evaluation = {
   onSent: (evaluation: nrepl.NReplEvaluation) => unknown;
 };
 
-/** Evaluates REPL Input code to the Output Destinations, echoing it to the result destinations when `sendCode` and `calva.evaluationSendCodeToOutputWindow` say so. */
+/** Evaluates REPL Input code to the Output Destinations, in its namespace as files evaluate in theirs, echoing it to the result destinations when `sendCode` and `calva.evaluationSendCodeToOutputWindow` say so. */
 async function evaluateCode({
   code,
   ns,
@@ -117,23 +117,24 @@ async function evaluateCode({
 }: Evaluation) {
   const session = sessionRegistry.getSession(sessionKey);
   const { evaluationSendCodeToOutputWindow, prettyPrintingOptions } = config.getConfig();
-  await namespace.createNamespaceIfNotExists(session, ns, nsForm);
-  const evaluation = await evaluate.evaluateToOutputDestinations(
-    {
-      code,
-      session,
-      ns,
-      filePath,
-      line,
-      column,
-      pprintOptions: prettyPrintingOptions,
-      echoDestinations:
-        sendCode && evaluationSendCodeToOutputWindow
-          ? [output.getDestinationConfiguration().evalResults]
-          : [],
-      stdin,
-    },
-    { onEvaluationSent: onSent }
+  const evaluation = await evaluate.evaluateInNamespace({ session, ns, nsForm }, () =>
+    evaluate.evaluateToOutputDestinations(
+      {
+        code,
+        session,
+        ns,
+        filePath,
+        line,
+        column,
+        pprintOptions: prettyPrintingOptions,
+        echoDestinations:
+          sendCode && evaluationSendCodeToOutputWindow
+            ? [output.getDestinationConfiguration().evalResults]
+            : [],
+        stdin,
+      },
+      { onEvaluationSent: onSent }
+    )
   );
   return { succeeded: 'value' in evaluation };
 }
