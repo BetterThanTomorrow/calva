@@ -72,7 +72,14 @@ When the port file is created, Calva picks up the port number from it and connec
 
 ### Ports Already in Use
 
-If the project fails to bind a port during Jack-in, because a previous REPL or another project is still listening on it, Calva notices it in the Jack-in output (`Failed to bind to …:4242`, `EADDRINUSE …:8280`, `Port 9630 is already in use`). It then reports which process holds the port, stops that process, and jacks in again. This is retried once per Jack-in; if the port is still busy after that, Calva reports it and leaves it alone.
+If the project fails to bind a port, because a previous REPL or another program is still listening on it, Calva notices it in the Jack-in output (`Failed to bind to …:4242`, `EADDRINUSE …:8280`, `Port 9630 is already in use`) and shows an error message with the process that holds the port. Calva never stops that process on its own. The message has a **Stop and Jack-in Again** button, which stops the process and jacks in again when you click it.
+
+The button is not offered when:
+
+* The port is held by the Jack-in REPL itself, for instance when you evaluate code that starts a server that is already running. Stopping it would stop your REPL.
+* Calva cannot find which process holds the port. This happens when `lsof` is not installed, when the process belongs to another user, or when it runs outside the environment VS Code runs in (such as the Windows side of WSL).
+
+Check the process in the message before clicking the button. It can be something you want to keep running, such as Docker Desktop (`com.docker.backend`) or an SSH tunnel.
 
 
 ## Starting Your Clojure App

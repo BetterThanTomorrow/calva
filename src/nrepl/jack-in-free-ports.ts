@@ -6,8 +6,26 @@ const isWin = process.platform === 'win32';
 const pollIntervalMs = 250;
 const terminateTimeoutMs = 5000;
 const forceKillTimeoutMs = 2000;
+const maxDescriptionChars = 120;
+const windowsProcessParentsScript =
+  'Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.ParentProcessId)" }';
 
 type Log = (message: string) => void;
+
+export type PortHolder = {
+  pid: number;
+  description: string;
+};
+
+export type ProcessParent = {
+  pid: number;
+  parentPid: number;
+};
+
+export type DescendantPidsRequest = {
+  parents: ProcessParent[];
+  rootPid: number;
+};
 
 function uniquePids(pids: number[]): number[] {
   return [...new Set(pids.filter((pid) => Number.isInteger(pid) && pid > 0))];
@@ -30,6 +48,31 @@ export function parseNetstatListeningPids(stdout: string, port: number): number[
   );
 }
 
+export function parseProcessParents(stdout: string): ProcessParent[] {
+  return stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim().split(/\s+/).map(Number))
+    .filter(([pid, parentPid]) => Number.isInteger(pid) && Number.isInteger(parentPid))
+    .map(([pid, parentPid]) => ({ pid, parentPid }));
+}
+
+export function descendantPids({ parents, rootPid }: DescendantPidsRequest): Set<number> {
+  const childrenByParent = new Map<number, number[]>();
+  for (const { pid, parentPid } of parents) {
+    childrenByParent.set(parentPid, [...(childrenByParent.get(parentPid) ?? []), pid]);
+  }
+  const descendants = new Set<number>();
+  const pending = [rootPid];
+  while (pending.length > 0) {
+    const pid = pending.pop();
+    if (!descendants.has(pid)) {
+      descendants.add(pid);
+      pending.push(...(childrenByParent.get(pid) ?? []));
+    }
+  }
+  return descendants;
+}
+
 async function stdoutOf(command: string, args: string[]): Promise<string> {
   try {
     return (await execFile(command, args)).stdout;
@@ -48,7 +91,30 @@ async function processDescription(pid: number): Promise<string> {
   const stdout = isWin
     ? await stdoutOf('tasklist', ['/FI', `PID eq ${pid}`, '/FO', 'CSV', '/NH'])
     : await stdoutOf('ps', ['-o', 'command=', '-p', `${pid}`]);
-  return stdout.trim() || 'unknown process';
+  const description = stdout.trim() || 'unknown process';
+  return description.length > maxDescriptionChars
+    ? `${description.slice(0, maxDescriptionChars)}...`
+    : description;
+}
+
+export async function portHolders(port: number): Promise<PortHolder[]> {
+  const pids = await listeningPids(port);
+  return Promise.all(
+    pids.map(async (pid) => ({ pid, description: await processDescription(pid) }))
+  );
+}
+
+export async function processParents(): Promise<ProcessParent[]> {
+  return parseProcessParents(
+    isWin
+      ? await stdoutOf('powershell.exe', [
+          '-NoProfile',
+          '-NonInteractive',
+          '-Command',
+          windowsProcessParentsScript,
+        ])
+      : await stdoutOf('ps', ['-A', '-o', 'pid=,ppid='])
+  );
 }
 
 async function signal(pid: number, unixSignal: NodeJS.Signals): Promise<void> {

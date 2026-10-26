@@ -100,11 +100,15 @@ export class JackInPTY implements vscode.Pseudoterminal {
     return this.process && !this.process.killed;
   }
 
+  public processId(): number | undefined {
+    return this.process?.pid;
+  }
+
   public async startClojureProgram(
     options: JackInPTYOptions,
     whenREPLStarted: (p: child.ChildProcess, host: string, port: string) => void,
     whenJackInInterrupted: (status: number) => void,
-    whenPortInUse?: (port: number) => void
+    whenPortInUse: (port: number) => void
   ): Promise<child.ChildProcess> {
     output.appendLineOtherOut(`Starting Jack-in: ${createCommandLine(options)}`);
     return new Promise<child.ChildProcess>(() => {
@@ -112,7 +116,7 @@ export class JackInPTY implements vscode.Pseudoterminal {
       const reportedPortsInUse = new Set<number>();
       const reportPortInUse = (rawMsg: string) => {
         const port = jackInPortDetection.parsePortInUse(rawMsg);
-        if (whenPortInUse && port && !reportedPortsInUse.has(port)) {
+        if (port && !reportedPortsInUse.has(port)) {
           reportedPortsInUse.add(port);
           whenPortInUse(port);
         }

@@ -51,6 +51,22 @@ type JackInProcessEntry = {
   projectRootUri: string;
 };
 
+type PortInUse = {
+  port: number;
+  jackInProcess: JackInProcessEntry;
+};
+
+type PortInUseHandling = PortInUse & {
+  jackInAgain: () => Promise<void>;
+};
+
+type PortHolderOwner = {
+  holder: jackInFreePorts.PortHolder;
+  jackInProcess?: JackInProcessEntry;
+};
+
+const STOP_AND_JACK_IN_AGAIN = 'Stop and Jack-in Again';
+
 const activeJackInProcesses = new Map<number, JackInProcessEntry>();
 let nextJackInProcessId = 1;
 
@@ -266,7 +282,7 @@ async function executeJackInTask(
   terminalOptions: jackInTerminal.JackInPTYOptions,
   connectSequence: connectSequences.ReplConnectSequence,
   projectRootUri: vscode.Uri,
-  onPortInUse: (port: number) => void,
+  onPortInUse: (portInUse: PortInUse) => void,
   cb?: () => unknown
 ) {
   utilities.setLaunchingState(connectSequence.name);
@@ -331,7 +347,7 @@ async function executeJackInTask(
                 });
               resolve();
             },
-            onPortInUse
+            (port: number) => onPortInUse({ port, jackInProcess })
           );
         } catch (exception) {
           console.error('Failed executing task: ', exception.message);
@@ -555,32 +571,70 @@ async function getProjectConnectSequence(
   }
 }
 
-async function freePortAndJackInAgain(
-  port: number,
-  connectSequence: connectSequences.ReplConnectSequence,
-  projectRootUri: vscode.Uri,
-  retriedPorts: Set<number>,
-  cb?: () => unknown
-) {
-  if (retriedPorts.has(port)) {
-    output.appendLineOtherErr(
-      `Port ${port} is still in use after jacking in again. Not retrying a second time.`
-    );
+async function portHolderOwners(holders: jackInFreePorts.PortHolder[]): Promise<PortHolderOwner[]> {
+  const parents = await jackInFreePorts.processParents();
+  const jackInTrees = listJackInProcesses()
+    .filter((entry) => entry.pty.processId() !== undefined)
+    .map((entry) => ({
+      entry,
+      pids: jackInFreePorts.descendantPids({ parents, rootPid: entry.pty.processId() }),
+    }));
+  return holders.map((holder) => ({
+    holder,
+    jackInProcess: jackInTrees.find((tree) => tree.pids.has(holder.pid))?.entry,
+  }));
+}
+
+function describePortHolderOwner({ holder, jackInProcess }: PortHolderOwner): string {
+  return jackInProcess
+    ? `the Jack-in REPL "${jackInProcess.connectSequence.name}" (PID ${holder.pid})`
+    : `PID ${holder.pid} (${holder.description})`;
+}
+
+function showPortInUse(message: string, ...actions: string[]): Thenable<string | undefined> {
+  output.appendLineOtherErr(message);
+  return vscode.window.showErrorMessage(message, ...actions);
+}
+
+async function stopPortHolderOwners(port: number, owners: PortHolderOwner[]): Promise<void> {
+  const jackInProcesses = [
+    ...new Set(owners.map((owner) => owner.jackInProcess).filter((entry) => entry)),
+  ];
+  await stopJackInProcesses(jackInProcesses);
+  await jackInFreePorts.freePort(port, (message) => output.appendLineOtherOut(message));
+}
+
+async function handlePortInUse({
+  port,
+  jackInProcess,
+  jackInAgain,
+}: PortInUseHandling): Promise<void> {
+  const notBound = `The project could not bind port ${port} because it is already in use`;
+  const holders = await jackInFreePorts.portHolders(port);
+  if (holders.length === 0) {
+    void showPortInUse(`${notBound}. Calva could not find which process holds it.`);
     return;
   }
-  retriedPorts.add(port);
-  output.appendLineOtherOut(
-    `The project could not bind port ${port} because it is already in use. Freeing it and jacking in again.`
+  const owners = await portHolderOwners(holders);
+  if (owners.some((owner) => owner.jackInProcess === jackInProcess)) {
+    void showPortInUse(`${notBound} by this Jack-in REPL itself.`);
+    return;
+  }
+  const choice = await showPortInUse(
+    `${notBound} by ${owners.map(describePortHolderOwner).join(', ')}.`,
+    STOP_AND_JACK_IN_AGAIN
   );
-  await jackInFreePorts.freePort(port, (message) => output.appendLineOtherOut(message));
-  await executeJackIn(connectSequence, undefined, projectRootUri, retriedPorts, cb);
+  if (choice !== STOP_AND_JACK_IN_AGAIN) {
+    return;
+  }
+  await stopPortHolderOwners(port, owners);
+  await jackInAgain();
 }
 
 async function executeJackIn(
   connectSequence: connectSequences.ReplConnectSequence,
   autoSelected: connectSequences.ReplConnectSequence | undefined,
   projectRootUri: vscode.Uri,
-  retriedPorts: Set<number>,
   cb?: () => unknown
 ) {
   void state.analytics().logGA4Pageview('/connect-initiated');
@@ -633,14 +687,12 @@ async function executeJackIn(
           rootUri
         );
         if (terminalJackInOptions) {
-          const onPortInUse = (port: number) =>
-            void freePortAndJackInAgain(
-              port,
-              projectConnectSequence,
-              projectRootUri,
-              retriedPorts,
-              cb
-            );
+          const onPortInUse = (portInUse: PortInUse) =>
+            void handlePortInUse({
+              ...portInUse,
+              jackInAgain: () =>
+                executeJackIn(projectConnectSequence, undefined, projectRootUri, cb),
+            });
           void executeJackInTask(
             terminalJackInOptions,
             projectConnectSequence,
@@ -669,7 +721,7 @@ export function jackIn(
   projectRootUri: vscode.Uri,
   cb?: () => unknown
 ): Promise<unknown> {
-  return executeJackIn(connectSequence, autoSelected, projectRootUri, new Set(), cb);
+  return executeJackIn(connectSequence, autoSelected, projectRootUri, cb);
 }
 
 export function jackOutCommand() {

@@ -37,4 +37,48 @@ describe('jack-in free ports', () => {
         .toStrictEqual([]);
     });
   });
+
+  describe('parseProcessParents', () => {
+    it('parses pid and parent pid pairs from ps and PowerShell output', () => {
+      expectLib
+        .expect(jackInFreePorts.parseProcessParents('    1     0\n  412     1\r\n 5120  412\n'))
+        .toStrictEqual([
+          { pid: 1, parentPid: 0 },
+          { pid: 412, parentPid: 1 },
+          { pid: 5120, parentPid: 412 },
+        ]);
+    });
+
+    it('drops lines that are not pid pairs', () => {
+      expectLib.expect(jackInFreePorts.parseProcessParents('\nPID PPID\n')).toStrictEqual([]);
+    });
+  });
+
+  describe('descendantPids', () => {
+    const parents = [
+      { pid: 1, parentPid: 0 },
+      { pid: 100, parentPid: 1 },
+      { pid: 101, parentPid: 100 },
+      { pid: 102, parentPid: 101 },
+      { pid: 200, parentPid: 1 },
+    ];
+
+    it('includes the root and all its descendants', () => {
+      expectLib
+        .expect(jackInFreePorts.descendantPids({ parents, rootPid: 100 }))
+        .toStrictEqual(new Set([100, 101, 102]));
+    });
+
+    it('excludes processes outside the tree', () => {
+      expectLib
+        .expect(jackInFreePorts.descendantPids({ parents, rootPid: 100 }).has(200))
+        .toBe(false);
+    });
+
+    it('returns only the root when it has no children', () => {
+      expectLib
+        .expect(jackInFreePorts.descendantPids({ parents, rootPid: 999 }))
+        .toStrictEqual(new Set([999]));
+    });
+  });
 });
