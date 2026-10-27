@@ -16,6 +16,11 @@ Familiarity with the most relevant documenation relating to this feature is a re
 * [Connect](../../docs/site/connect.md)
 * [Connect Sequences](../../docs/site/connect-sequences.md)
 
+## Related architecture docs
+
+* [Output Views Architecture](output-views-architecture.md): the Output View and the Output Sidebar
+* [REPL Input Architecture](repl-input-architecture.md): the REPL Input, which routes through the file it follows
+
 ## Document Structure
 
 - [Core Concepts](#core-concepts) - Key terminology and relationships
@@ -129,7 +134,7 @@ The **REPL window** is a special `.calva-repl` file that serves as an interactiv
 | **REPL window targeting** | Which session the REPL window sends evaluations to. Changed via "Select REPL Window Session" command. |
 | **Session pinning** | User override that forces ALL evaluations (from any file) to use a specific session. Independent of REPL window targeting. |
 
-The REPL window's targeted session is used during routing only when the active editor is the REPL window itself.
+The REPL window's targeted session is used during routing only when the file being routed is the REPL window itself.
 
 ### Session Name Resolution
 
@@ -498,7 +503,7 @@ This section describes how various Calva features interact with the session syst
 4. Code is sent to the resolved session via nREPL `eval` op
 5. Results displayed inline and/or in output destination
 
-**Design principle:** The routing logic uses the current editor context (active document, results window state) to determine the appropriate session. Callers don't need to specify file types.
+**Design principle:** The routing logic routes the document a feature was asked about, such as hover or completion, or else the current file (`currentFileUri` in `src/current-file.ts`): the active editor, the last active one while a webview has the focus, or the REPL Input's source file while it is the current editor. Callers don't need to specify file types.
 
 ### ClojureDocs Lookup
 
@@ -626,7 +631,7 @@ The `getSessionKey()` function checks in this order:
 1. Pinned Session (user override)
    └─► sessionRouting.resolvePinnedSession() returns pinned key if mode is 'pinned'
 
-2. REPL Window Session (when active editor is REPL window)
+2. REPL Window Session (when the routed file is the REPL window)
    └─► outputWindow.getSessionType() - the explicitly targeted session for the REPL window
 
 3. Glob Pattern Matching (CLJC target only applied for project-fallback tier)
@@ -952,7 +957,7 @@ sequenceDiagram
 flowchart TD
     A[Request Session for File] --> B{Pinned Session?}
     B -- Yes --> C[Return Pinned Session]
-    B -- No --> D{Active Editor is REPL Window?}
+    B -- No --> D{Routed File is REPL Window?}
     D -- Yes --> E[Return REPL Window Session]
     D -- No --> F[Glob Pattern Match]
     F --> G{Found 'always-claim' match?}
