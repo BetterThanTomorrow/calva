@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.605] - 2026-10-27
+
 - Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
 - [Add clickable stack traces](https://github.com/BetterThanTomorrow/calva/issues/2853)
 - Fix: [Go to definition only sometimes works for Java sources](https://github.com/BetterThanTomorrow/calva/issues/1436)
