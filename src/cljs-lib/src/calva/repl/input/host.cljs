@@ -380,6 +380,13 @@
   (update-records! records/remove-record view-id)
   (update-focus! [:dispose view-id]))
 
+(defn view-page-set!
+  "Forgets the view `view-id` while its page is set again, and keeps the record of its REPL Input, so that
+   the REPL Input gets its text back when it mounts in the new page."
+  [view-id]
+  (swap! !views dissoc view-id)
+  (update-focus! [:dispose view-id]))
+
 (defn view-hidden!
   [view-id]
   (update-focus! [:hide view-id]))

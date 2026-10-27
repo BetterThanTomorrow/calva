@@ -134,7 +134,7 @@ Setting the HTML again reloads the page and loses what it showed. The Output Vie
 | Visibility and focus events | `onDidChangeViewState`: visible and active | `onDidChangeVisibility`: visible |
 | Title | "REPL" while the REPL Input is on for it, else "REPL Output" | Same |
 
-`output-sidebar-log` keeps what goes through `add-output-sidebar-message!`, output and errors, since the last clear, and only while the sidebar is an Output Destination. Settings, `set-code-theme`, the font size commands and the `repl-input-*` messages are posted to the view directly and aren't replayed. When the sidebar's page is set again, the HTML brings the current word wrap, image display and base font scale, `show-sidebar-output-log!` posts the code theme again, the log is replayed, and the REPL Input mounts again, empty. The font size adjustments are lost.
+`output-sidebar-log` keeps what goes through `add-output-sidebar-message!`, output and errors, since the last clear, and only while the sidebar is an Output Destination. Settings, `set-code-theme`, the font size commands and the `repl-input-*` messages are posted to the view directly and aren't replayed. When the sidebar's page is set again, the HTML brings the current word wrap, image display and base font scale, `show-sidebar-output-log!` posts the code theme again, the log is replayed, and the REPL Input mounts again, with its text. The font size adjustments are lost.
 
 ## Errors and stacktraces
 

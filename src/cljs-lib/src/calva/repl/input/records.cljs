@@ -34,6 +34,13 @@
             :repl-input/selections-stack selections-stack)
     records))
 
+(defn restored
+  "Returns the text and selections that `record` keeps from before its REPL Input mounted again, for the
+   REPL Input to get back, or nil when the record has no text."
+  [{:repl-input/keys [text selections]}]
+  (when (seq text)
+    {:text text :selections selections}))
+
 (defn take-mount
   "Returns `records` with the REPL Input's record replaced by the freshly mounted one."
   [records {:repl-input/keys [id] :as mount}]

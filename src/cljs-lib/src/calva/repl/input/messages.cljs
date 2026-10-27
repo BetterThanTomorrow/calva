@@ -24,15 +24,23 @@
     (when (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)
       (host/post-to-view! id host/focus-message))))
 
+(defn- take-mount!
+  "Takes the mount of the REPL Input `id` in `webview-host`, and gives it back the text that its record kept
+   from before, as when its page was set again."
+  [^js webview-host {:keys [version] :repl-input/keys [id] :as msg}]
+  (let [restored (records/restored (get-in @host/!state [:repl-input/records id]))]
+    (swap! host/!views assoc id webview-host)
+    (host/take-record! records/take-mount msg)
+    (some->> restored (host/take-edit! id version))
+    (mounted! id)
+    (host/load-keybindings!)))
+
 (defn handle-message!
   "Takes a message the REPL Input in `webview-host` posted."
   [^js webview-host ^js message]
   (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
     (case command
-      "repl-input-mounted" (do (swap! host/!views assoc id webview-host)
-                               (host/take-record! records/take-mount msg)
-                               (mounted! id)
-                               (host/load-keybindings!))
+      "repl-input-mounted" (take-mount! webview-host msg)
       "repl-input-changed" (host/take-record! records/take-change msg)
       "repl-input-unmounted" (do (host/update-records! records/remove-record id)
                                  (host/update-focus! [:unmount id]))

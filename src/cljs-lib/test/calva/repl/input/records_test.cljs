@@ -98,3 +98,11 @@
     (is (= {"output-view" record-41}
            (sut/remove-record (assoc records "output-sidebar" {:repl-input/id "output-sidebar"})
                               "output-sidebar")))))
+
+(deftest restored-test
+  (testing "gives back the text and selections a record keeps"
+    (is (= {:text "(foo) bar baz" :selections [[4 4]]}
+           (sut/restored {:repl-input/text "(foo) bar baz" :repl-input/selections [[4 4]] :repl-input/version 41}))))
+  (testing "gives back nothing for an empty record, or none"
+    (is (nil? (sut/restored {:repl-input/text "" :repl-input/selections [[0 0]]})))
+    (is (nil? (sut/restored nil)))))

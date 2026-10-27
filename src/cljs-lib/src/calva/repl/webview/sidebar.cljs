@@ -76,7 +76,7 @@
 (defn apply-sidebar-help-or-output-log!
   [^js webview-view]
   (let [destination? (output-sidebar-in-setting? (current-output-destinations))]
-    (input-host/view-disposed! "output-sidebar")
+    (input-host/view-page-set! "output-sidebar")
     (set! (.-title webview-view) (input-host/view-title "output-sidebar"))
     (if (or destination? (input-host/enabled? "output-sidebar"))
       (do

@@ -35,7 +35,7 @@
         on-did-change-configuration-spy (spy/stub "configuration-subscription")
         register-webview!-spy (spy/spy)
         unregister-webview!-spy (spy/spy)
-        view-disposed!-spy (spy/spy)
+        forgotten (atom [])
         view-hidden!-spy (spy/spy)
         webview-view #js {:webview #js {:cspSource "csp-source"}
                           :visible false
@@ -51,7 +51,8 @@
                   sut/current-output-destinations (constantly destinations)
                   sut/output-sidebar-webview-view (atom nil)
                   input-host/enabled? (constantly false)
-                  input-host/view-disposed! (test-util/wrap-spy view-disposed!-spy)
+                  input-host/view-page-set! #(swap! forgotten conj [:page-set %])
+                  input-host/view-disposed! #(swap! forgotten conj [:disposed %])
                   input-host/view-hidden! (test-util/wrap-spy view-hidden!-spy)
                   core/register-webview! (test-util/wrap-spy register-webview!-spy)
                   core/unregister-webview! (test-util/wrap-spy unregister-webview!-spy)]
@@ -75,8 +76,8 @@
         ((ffirst (spy/calls on-did-dispose-spy)))
         (is (nil? @sut/output-sidebar-webview-view))
         (is (spy/called-once-with? unregister-webview!-spy webview-view))
-        (testing "should drop the REPL Input's record when the page is set and when the view is disposed"
-          (is (= [["output-sidebar"] ["output-sidebar"]] (spy/calls view-disposed!-spy))))))))
+        (testing "should tell the REPL Input host when the page is set, and drop the REPL Input's record when the view is disposed"
+          (is (= [[:page-set "output-sidebar"] [:disposed "output-sidebar"]] @forgotten)))))))
 
 (deftest show-repl-output-sidebar-test
   (let [show-spy (spy/spy)

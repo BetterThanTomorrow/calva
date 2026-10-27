@@ -2,7 +2,7 @@
   (:require
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.host :as sut]
-   [calva.repl.input.host-fixtures :refer [last-context-line post! posted-named with-fresh-host with-view]]
+   [calva.repl.input.host-fixtures :refer [last-context-line mount-focused! post! posted-named with-fresh-host with-view]]
    [calva.util :as util]
    [cljs.test :refer-macros [async deftest testing is]]))
 
@@ -397,3 +397,24 @@
                       :repl-input.context/session-key "cljs"})
           (testing "keeps no session key for a lock with a source file, which routes the file"
             (is (nil? (sut/context-kept-session-key)))))))))
+
+(deftest page-set-again-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (mount-focused! "output-sidebar" "(def treasure :gold)")
+          (post! {:command "repl-input-changed" :repl-input/id "output-sidebar" :version 2 :text "(def treasure :gold)" :selections [[5 5]]})
+          (sut/view-page-set! "output-sidebar")
+          (reset! posted [])
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (testing "gives a REPL Input that mounts again in a page set again its text and selections back"
+            (is (= [{:command/name "repl-input-edit" :repl-input/id "output-sidebar" :repl-input/version 0
+                     :text "(def treasure :gold)" :selections [[5 5]]}]
+                   (posted-named posted "repl-input-edit")))
+            (is (= "(def treasure :gold)" (get-in @sut/!state [:repl-input/records "output-sidebar" :repl-input/text]))))
+          (sut/view-disposed! "output-sidebar")
+          (reset! posted [])
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (testing "starts a REPL Input empty in a view that was disposed"
+            (is (= [] (posted-named posted "repl-input-edit")))))))))

@@ -90,7 +90,7 @@ In the webview, the REPL Input's state is in the Output view's db, under `:repl-
 2. `main.cljs` dispatches `:repl-input/ax.init`. When it is on, `:repl-input/fx.mount` creates the `EditorView`, and `:repl-input/ax.mounted` posts `repl-input-mounted`.
 3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluation bar, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
 
-A toggle posts `repl-input-enabled`, which mounts or unmounts the editor in the page as it is. For the Output Sidebar that holds while it is an Output Destination; otherwise `apply-to-output-sidebar!` sets its page again, the help page or the REPL Input alone. Setting the page's HTML again, as the Output Sidebar does when it switches to or from its help page, drops the REPL Input and its text: `host/view-disposed!` forgets the view first.
+A change of the setting posts `repl-input-enabled`, which mounts or unmounts the editor in the page as it is. For the Output Sidebar that holds while it is an Output Destination; otherwise `apply-to-output-sidebar!` sets its page again, the help page or the REPL Input alone. Setting the page's HTML again, as the Output Sidebar does when it switches to or from its help page, mounts a new REPL Input. `host/view-page-set!` forgets the view first and keeps its record, and when the new REPL Input mounts, `messages/take-mount!` gives it the record's text and selections back with a `repl-input-edit`. A disposed view, `host/view-disposed!`, drops the record, so its REPL Input starts empty.
 
 ## Editing
 
