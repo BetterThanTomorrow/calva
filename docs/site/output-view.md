@@ -56,6 +56,12 @@ The command: **Calva: Cycle Output View Image Display** cycles in-session betwee
 
 The output window, output file and terminal always show the raw text.
 
+## Errors and Stacktraces
+
+When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace: the chain of causes, each with its message and any ex-data, and their frames. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames.
+
+Click a frame to open its file at that line. This works for Java frames too. If a library's Java sources aren't on your machine, Calva asks cider-nrepl to download them first (this happens once per library).
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.
