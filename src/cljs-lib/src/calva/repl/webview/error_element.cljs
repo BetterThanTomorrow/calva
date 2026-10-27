@@ -194,25 +194,18 @@
       text-element)))
 
 (defn- copy-button
-  [dispatch {:error/keys [id]} kind label]
-  (let [button (create-element "button" "output-error-copy")]
-    (.. button -classList (add (str "output-error-copy-" (name kind))))
+  "The button that copies the error with the frames its filter shows."
+  [dispatch {:error/keys [id]}]
+  (let [button (create-element "button" "output-copy-button")]
+    (.. button -classList (add "output-error-copy"))
     (set! (.-type button) "button")
-    (set! (.-title button) label)
-    (doseq [[k v] {"aria-label" label
-                   "data-copy-label" label
-                   "data-control" (str "copy-" (name kind))}]
+    (set! (.-title button) "Copy error")
+    (doseq [[k v] {"aria-label" "Copy error"
+                   "data-copy-label" "Copy error"
+                   "data-control" "copy"}]
       (.. button (setAttribute k v)))
-    (.. button (addEventListener "click" #(dispatch [:error/ax.copy {:error/id id :copy/kind kind}])))
+    (.. button (addEventListener "click" #(dispatch [:error/ax.copy {:error/id id}])))
     button))
-
-(defn- copy-buttons
-  "The buttons that copy the error with its stacktrace. They show while the pointer is over the
-   error, or one of them has focus."
-  [dispatch error]
-  (create-element "div" "output-error-copy-buttons"
-                  (copy-button dispatch error :filtered "Copy filtered")
-                  (copy-button dispatch error :whole "Copy whole stacktrace")))
 
 (defn create
   "Returns the element for `error`. Its controls dispatch actions with `dispatch`. An error whose
@@ -221,7 +214,7 @@
   (let [element (create-element "div" "output-error"
                                 (error-heading dispatch error)
                                 (when (stacktrace/has-frames? causes)
-                                  (copy-buttons dispatch error))
+                                  (copy-button dispatch error))
                                 (when (and unfolded? (stacktrace/has-frames? causes))
                                   (apply create-element "div" "output-error-causes"
                                          (some->> (stacktrace/compile-location causes) (location-element dispatch))

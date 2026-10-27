@@ -108,12 +108,10 @@
        :uf/fxs [[:fx/post-to-host {:command "open-frame" :fileUrl file-url :line line :column column}]]})
 
     :error/ax.copy
-    (let [{:error/keys [id] :copy/keys [kind]} payload
-          text-of (if (= :whole kind) stacktrace/whole-text stacktrace/filtered-text)]
+    (let [{:error/keys [id]} payload]
       {:uf/db db
        :uf/fxs [[:fx/copy-error-text {:error/id id
-                                      :copy/kind kind
-                                      :copy/text (text-of (get-in db [:output/errors id]))}]]})
+                                      :copy/text (stacktrace/filtered-text (get-in db [:output/errors id]))}]]})
 
     :error/ax.open-java-frame
     (let [{:frame/keys [qualifier line] member :frame/name :error/keys [session-key]} payload]

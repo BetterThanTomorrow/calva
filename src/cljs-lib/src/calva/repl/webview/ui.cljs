@@ -223,27 +223,6 @@
         (.then #(show-copied! button))
         (.catch #(js/console.error "Cannot copy the image to the clipboard:" %)))))
 
-(def svg-namespace "http://www.w3.org/2000/svg")
-
-(defn create-icon-element
-  "A 16x16 codicon-style icon from one SVG `path-data`."
-  [icon path-data]
-  (let [svg (js/document.createElementNS svg-namespace "svg")
-        path (js/document.createElementNS svg-namespace "path")]
-    (doseq [[k v] {"class" (str "output-image-copy-icon output-image-copy-icon-" icon)
-                   "viewBox" "0 0 16 16"
-                   "aria-hidden" "true"}]
-      (.. svg (setAttribute k v)))
-    (.. path (setAttribute "d" path-data))
-    (.. svg (appendChild path))
-    svg))
-
-(def copy-icon-path
-  "M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H5v10h8V7zM3 1L2 2v10l1 1V2h6.414l-1-1H3z")
-
-(def check-icon-path
-  "M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z")
-
 (defn- includes-remote-urls?
   []
   (= "images-including-remote-urls"
@@ -361,7 +340,8 @@
   (let [label (images/label image)
         thumbnail (create-element "div" "output-image-thumbnail" nil)
         img (create-element "img" "output-image" nil)
-        button (create-element "button" "output-image-copy" nil)]
+        button (create-element "button" "output-copy-button" nil)]
+    (.. button -classList (add "output-image-copy"))
     (set! (.-alt img) label)
     (set! (.-title img) label)
     (when kind
@@ -371,8 +351,6 @@
     (set! (.-title button) "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
     (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
-    (.. button (appendChild (create-icon-element "copy" copy-icon-path)))
-    (.. button (appendChild (create-icon-element "check" check-icon-path)))
     (.. button (addEventListener "click" #(copy-image! button img image)))
     (.. thumbnail (appendChild img))
     (.. thumbnail (appendChild button))
@@ -628,10 +606,10 @@
           (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
 (defn- copy-error-text!
-  "Writes `text` to the clipboard and marks the error's copy button for `kind` as copied. Runs in
-   the click's dispatch: the clipboard write needs the user activation."
-  [^js dom-element {:error/keys [id] :copy/keys [kind text]}]
-  (let [button (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy-" (name kind) "\"]"))]
+  "Writes `text` to the clipboard and marks the error's copy button as copied. Runs in the click's
+   dispatch: the clipboard write needs the user activation."
+  [^js dom-element {:error/keys [id] :copy/keys [text]}]
+  (let [button (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy\"]"))]
     (-> (.. js/navigator -clipboard (writeText text))
         (.then #(some-> button show-copied!))
         (.catch #(js/console.error "Cannot copy the error to the clipboard:" %)))))

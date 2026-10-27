@@ -143,8 +143,3 @@
   (str/join "\n" (concat [text]
                          (some-> (compile-location causes) :location/label vector)
                          (mapcat #(cause-lines error %1 %2) (range) causes))))
-
-(defn whole-text
-  "Returns `error` as text with its whole stacktrace: every cause with all its frames."
-  [error]
-  (filtered-text (assoc error :error/frame-filter :all)))
