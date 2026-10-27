@@ -42,10 +42,18 @@
                         (sut/add (sut/entry "(def a 1)" user))
                         (sut/add (sut/entry "(def a 1)" user))
                         (sut/add (sut/entry "  " user)))))))
+  (testing "skips the same code in the same namespace and source file in another session, as after a cljc target switch"
+    (is (= 1 (count (-> []
+                        (sut/add (sut/entry "(inc a)" pirate))
+                        (sut/add (sut/entry "(inc a)" (assoc pirate :repl-input.context/session-key "cljs"))))))))
   (testing "keeps the same code evaluated in another context"
     (is (= 2 (count (-> []
                         (sut/add (sut/entry "(def a 1)" user))
-                        (sut/add (sut/entry "(def a 1)" pirate))))))))
+                        (sut/add (sut/entry "(def a 1)" pirate))))))
+    (is (= 2 (count (-> []
+                        (sut/add (sut/entry "(def a 1)" user))
+                        (sut/add (sut/entry "(def a 1)" (assoc user :repl-input.context/session-key "cljs"))))))
+        "Without a source file, another session is another context")))
 
 (deftest visible-test
   (testing "filters by the session the REPL Input evaluates in when the setting says so"

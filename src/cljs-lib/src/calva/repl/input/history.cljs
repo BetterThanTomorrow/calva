@@ -18,11 +18,20 @@
    :repl-input.context/session-key session-key
    :repl-input.context/source-file source-file})
 
+(defn- same-entry?
+  "True when `entry` and `other` have the same code, namespace and source file, and, when `entry` has no
+   source file, the same session key."
+  [entry other]
+  (let [identity-keys (cond-> [:repl-input.history/code
+                               :repl-input.context/ns
+                               :repl-input.context/source-file]
+                        (not (:repl-input.context/source-file entry)) (conj :repl-input.context/session-key))]
+    (= (select-keys entry identity-keys) (select-keys other identity-keys))))
+
 (defn add
-  "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry has the same code
-   and context."
+  "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry is the same entry."
   [entries {:repl-input.history/keys [code] :as new-entry}]
-  (if (or (string/blank? code) (= (peek entries) new-entry))
+  (if (or (string/blank? code) (same-entry? new-entry (peek entries)))
     entries
     (conj (vec entries) new-entry)))
 
