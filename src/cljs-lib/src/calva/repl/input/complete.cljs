@@ -87,9 +87,10 @@
 
 (defn- resolve-item+
   [^js adapter ^js item {{:repl-input.context/keys [ns session-key]} :context :keys [uri]}]
-  (if (= "repl" (some-> item .-data .-provider))
-    (.resolveReplCompletion adapter session-key ns item)
-    (.resolveLspCompletion adapter uri item)))
+  (let [^js data (.-data item)]
+    (if (and data (= "repl" (.-provider data)))
+      (.resolveReplCompletion adapter session-key ns item)
+      (.resolveLspCompletion adapter uri item))))
 
 (defn resolve!
   "Posts the docs of the candidate at `index` in the answer to `request` from the REPL Input `id`, or none
