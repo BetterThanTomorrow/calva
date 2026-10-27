@@ -46,6 +46,7 @@ import * as clojureDocs from './clojuredocs';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as currentFile from './current-file';
 import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
@@ -113,6 +114,7 @@ async function activate(context: vscode.ExtensionContext) {
   initializeState();
   output.registerOutputTerminalLifecycle(context);
   state.setExtensionContext(context);
+  currentFile.activate(context);
   state.initDepsEdnJackInExecutable();
   const isDramStart = await drams.dramStartConfigExists();
   void drams.refreshDramConfigs();
