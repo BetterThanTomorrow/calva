@@ -22,6 +22,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `images.cljs`, `image_refs.cljs` | Finds image data URLs, image URLs and image file paths in results |
 | | `input/*.cljs` | The REPL Input |
 | | `repl-output-ui/css/main.css` | The stylesheet of both views. The build writes `repl-output-ui/js/main.js` |
+| | `repl-output-ui/css/vendor/` | The highlight.js theme stylesheets and the copy button plugin's stylesheet, copied from their npm packages, with their licenses |
 | Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page HTML, turns output into messages, posts settings to every view |
 | | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page, and the log it replays |
 | | `image_host.cljs` | Webview options, local image lookups, fetching remote images for Copy image |
@@ -112,8 +113,8 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 `core/get-webview-html` builds the page for both views:
 
-- A Content-Security-Policy with a nonce for the script and the stylesheets. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
-- The highlight.js stylesheets from cdnjs, one per color theme kind, with all but the current one disabled, and the copy button plugin's stylesheet from unpkg. Offline, these stylesheets don't load.
+- A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the stylesheets. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
+- The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
 - The greeting, `#output`, and the `#repl-input` element with the view id, whether the REPL Input is on for the view, and its stored height.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
 

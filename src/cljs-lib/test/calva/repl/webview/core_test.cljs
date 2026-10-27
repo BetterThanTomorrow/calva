@@ -199,6 +199,22 @@
       (is (nil? (re-find #"script-src js-source" result)))
       (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
 
+(deftest get-webview-html-stylesheets-test
+  (let [result (sut/get-webview-html {:env/is-debug false}
+                                     {:csp-source "csp-source"
+                                      :script-nonce "n"
+                                      :code-theme "light"
+                                      :code-theme-stylesheets [["dark" "dark-href"] ["light" "light-href"]]
+                                      :copy-button-css-href "copy-href"})]
+    (is (re-find #"href=\"dark-href\"\s*data-code-theme=\"dark\"\s*disabled" result)
+        "The code theme stylesheets of other theme kinds are disabled")
+    (is (re-find #"href=\"light-href\"\s*data-code-theme=\"light\"\s*/>" result)
+        "The code theme stylesheet of the current theme kind is enabled")
+    (is (re-find #"href=\"copy-href\"" result)
+        "The copy button stylesheet is linked")
+    (is (re-find #"style-src csp-source 'nonce-n';" result)
+        "Stylesheets load from the webview's own source only")))
+
 (deftest get-webview-html-repl-input-test
   (testing "renders the REPL Input mount after the output, with its state"
     (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\" data-repl-input-height=\"120\"></div>"
@@ -236,7 +252,7 @@
           extension-uri "extension-uri"
           context {:vscode/context (clj->js {:extensionUri extension-uri})
                    :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
-          result (sut/get-css-path context)]
+          result (sut/get-css-path context ["main.css"])]
       (testing "should call joinPath with expected args"
         (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
       (testing "should return the result of joinPath"
@@ -268,13 +284,17 @@
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
             (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-          (testing "should call get-css-path with expected args"
-            (is (spy/called-once-with? get-css-path-spy context)))
-          (testing "should call asWebviewUri once for the CSS"
-            (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
+          (testing "should call get-css-path for main.css and for each stylesheet shipped with the extension"
+            (is (spy/called-with? get-css-path-spy context ["main.css"]))
+            (is (spy/called-with? get-css-path-spy context ["vendor" "highlight.js" "github-dark.min.css"]))
+            (is (spy/called-with? get-css-path-spy context sut/copy-button-stylesheet))
+            (is (= 6 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
           (testing "should call get-webview-html with expected args including a script nonce"
             (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
                                                                      :css-href "some-css-href"
+                                                                     :code-theme-stylesheets (mapv (fn [[theme]] [theme "some-css-href"])
+                                                                                                   sut/highlight-js-code-theme-stylesheet-data)
+                                                                     :copy-button-css-href "some-css-href"
                                                                      :csp-source "some-csp-source"
                                                                      :script-nonce fixed-nonce
                                                                      :code-theme nil
@@ -403,7 +423,7 @@
           (is (spy/not-called? post-spy)))))))
 
 (deftest init-code-theme!-test
-  (testing "registers the color theme and the token color customizations listeners as subscriptions"
+  (testing "registers the color theme, the token color customizations and the extensions listeners as subscriptions"
     (let [push-spy (spy/spy)
           vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
       (with-redefs [util/vscode (atom #js {})

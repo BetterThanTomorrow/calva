@@ -228,10 +228,15 @@
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def highlight-js-code-theme-stylesheet-data
-  [["dark" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"]
-   ["light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"]
-   ["high-contrast" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css"]
-   ["high-contrast-light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css"]])
+  "The highlight.js stylesheet of each code theme, as its path under `repl-output-ui/css`."
+  [["dark" ["vendor" "highlight.js" "github-dark.min.css"]]
+   ["light" ["vendor" "highlight.js" "github.min.css"]]
+   ["high-contrast" ["vendor" "highlight.js" "base16" "windows-high-contrast.min.css"]]
+   ["high-contrast-light" ["vendor" "highlight.js" "base16" "windows-high-contrast-light.min.css"]]])
+
+(def copy-button-stylesheet
+  "The path under `repl-output-ui/css` of the highlight.js copy button plugin's stylesheet."
+  ["vendor" "highlightjs-copy" "highlightjs-copy.min.css"])
 
 (defn highlight-js-code-theme-stylesheet-link
   [code-theme [theme href]]
@@ -246,9 +251,9 @@
     />"))
 
 (defn highlight-js-code-theme-stylesheet-links
-  [code-theme]
+  [code-theme code-theme-stylesheets]
   (str/join "\n" (map #(highlight-js-code-theme-stylesheet-link code-theme %)
-                       highlight-js-code-theme-stylesheet-data)))
+                       code-theme-stylesheets)))
 
 (defn code-theme-for-kind
   [^js color-theme-kind-enum color-theme-kind]
@@ -275,7 +280,7 @@
        "></div>"))
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -287,12 +292,7 @@
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
                     img-src data: https: http: " csp-source ";
-                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
-                              https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
-                              " csp-source " 'nonce-" script-nonce "';
+                    style-src " csp-source " 'nonce-" script-nonce "';
                     script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
@@ -302,12 +302,11 @@
 
     <link rel=\"stylesheet\" href=\"" css-href "\" />
 
-    <!-- Should these stylesheets and scripts be saved and referenced locally so that if users are offline the webview still functions as expected? -->
-" (highlight-js-code-theme-stylesheet-links code-theme) "
+" (highlight-js-code-theme-stylesheet-links code-theme code-theme-stylesheets) "
 
     <link
       rel=\"stylesheet\"
-      href=\"https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css\"
+      href=\"" copy-button-css-href "\"
     />
 
   </head>
@@ -329,24 +328,34 @@
     (.. ^js webview-panel -webview (asWebviewUri js-path))))
 
 (defn get-css-path
+  "Returns the uri of the stylesheet at the path `stylesheet` under `repl-output-ui/css`."
   [{:keys [vscode/vscode]
-    vscode-context :vscode/context}]
-  (let [extension-uri (.. ^js vscode-context -extensionUri)]
-    (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))))
+    vscode-context :vscode/context}
+   stylesheet]
+  (let [^js uri (.-Uri ^js vscode)]
+    (.apply (.-joinPath uri) uri (into-array (concat [(.-extensionUri ^js vscode-context) "repl-output-ui" "css"]
+                                                     stylesheet)))))
+
+(defn- stylesheet-href
+  [context ^js webview-panel stylesheet]
+  (.. webview-panel -webview (asWebviewUri (get-css-path context stylesheet))))
 
 (defn set-webview-html!
   [context
    {:keys [^js webview-panel view-kind]
     :or {view-kind :output-view}}]
   (let [js-source (get-js-source context {:webview-panel webview-panel})
-        css-path (get-css-path context)
-        css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
+        css-href (stylesheet-href context webview-panel ["main.css"])
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
                                                 :css-href css-href
+                                                :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
+                                                                                [theme (stylesheet-href context webview-panel stylesheet)])
+                                                                              highlight-js-code-theme-stylesheet-data)
+                                                :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
                                                 :csp-source csp-source
                                                 :script-nonce script-nonce
                                                 :code-theme (code-theme-from-context context)
