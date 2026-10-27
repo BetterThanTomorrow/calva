@@ -44,7 +44,7 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.
 
-To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
+To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear in the top right corner of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
 
 How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
 
@@ -74,7 +74,7 @@ The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the edit
 
 ## Copy Code Snippets
 
-To copy code in the output views, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.
+To copy code or printed output in the output views, hover your cursor over the code snippet or output you want to copy. A "copy" button will appear in its top right corner. Click it to copy the text to your clipboard.
 
 ![Copy button appearing and being clicked, then changing to Copied](images/output-view/copy-button.gif)
 
