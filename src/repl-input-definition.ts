@@ -19,9 +19,7 @@ function openAt(uri: vscode.Uri, position: vscode.Position) {
 export const definitionAdapter = {
   definitionPriority: (): string[] => config.getConfig().definitionProviderPriority,
   replDefinition: (sessionKey: string, ns: string, doc: model.EditableDocument, offset: number) =>
-    replDefinition.replDefinition(sessionRegistry.getSession(sessionKey), ns, doc, offset, {
-      downloadSourcesJar: true,
-    }),
+    replDefinition.replDefinition(sessionRegistry.getSession(sessionKey), ns, doc, offset),
   lspDefinition: (uri: vscode.Uri | undefined, text: string, line: number, character: number) => {
     const client = lspClient(uri);
     return client

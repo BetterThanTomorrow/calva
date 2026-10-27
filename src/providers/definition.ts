@@ -66,8 +66,7 @@ async function provideClojureDefinition(
         replSession.getSession(document),
         namespace.getNamespace(document, position)[0],
         docMirror.getDocument(document),
-        document.offsetAt(position),
-        { downloadSourcesJar: true }
+        document.offsetAt(position)
       ),
       token
     );

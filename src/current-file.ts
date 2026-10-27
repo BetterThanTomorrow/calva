@@ -77,8 +77,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       lastActiveUri = decideCurrentFileUri(editor?.document, lastActiveUri);
     }),
-    vscode.window.tabGroups.onDidChangeTabs(({ closed }) => {
-      if (closed.length > 0 && lastActiveUri && !isInATab(lastActiveUri)) {
+    vscode.window.tabGroups.onDidChangeTabs(() => {
+      if (lastActiveUri && !isInATab(lastActiveUri)) {
         lastActiveUri = undefined;
       }
     })

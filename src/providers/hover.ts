@@ -10,6 +10,65 @@ import * as getText from '../util/get-text';
 import * as lsp from '../lsp';
 import _ = require('lodash');
 
+/**
+ * Returns the hovers of the custom REPL hover snippets for the word at `position` in `document`.
+ * The snippets evaluate through the active text editor, so without one there are none.
+ */
+async function customSnippetHovers(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  ns: string,
+  nsForm: string
+): Promise<vscode.MarkdownString[]> {
+  const editor = util.tryToGetActiveTextEditor();
+  if (!editor) {
+    return [];
+  }
+  const context = {
+    ns,
+    editorNS: ns,
+    nsForm,
+    repl: document.languageId === 'clojure' ? replSession.getSessionKey(document) : 'clj',
+    hoverText: util.getWordAtPosition(document, position),
+    hoverLine: position.line + 1,
+    hoverColumn: position.character + 1,
+    hoverFilename: document.fileName,
+    currentLine: editor.selections[0].active.line,
+    currentColumn: editor.selections[0].active.character,
+    currentFilename: editor.document.fileName,
+    selection: editor.document.getText(editor.selections[0]),
+    currentFileText: getText.currentFileText(editor.document),
+    ...(editor.document.languageId === 'clojure'
+      ? getText.currentClojureContext(editor.document, editor.selections[0].active)
+      : {}),
+    ...getText.currentClojureContext(document, position, 'hover'),
+  };
+  const hovers: vscode.MarkdownString[] = [];
+
+  await Promise.all(
+    config.getConfig().customREPLHoverSnippets.map(async (snippet) => {
+      try {
+        const text = await customSnippets.evaluateSnippet(editor, snippet.snippet, context, {
+          evaluationSendCodeToOutputWindow: false,
+          showErrorMessage: false,
+          showResult: false,
+        });
+
+        if (text) {
+          const hover = new vscode.MarkdownString();
+          hover.isTrusted = true;
+          const hoverText = text.replace(/^"|"$/g, '').replace(/\\n/g, '\n').replace(/\\"/g, '"');
+          hover.appendMarkdown(hoverText);
+          hovers.push(hover);
+        }
+      } catch (error) {
+        console.log('custom hover exploded', error);
+      }
+    })
+  );
+  return hovers;
+}
+
 export async function provideHover(
   clientProvider: lsp.ClientProvider,
   document: vscode.TextDocument,
@@ -22,7 +81,6 @@ export async function provideHover(
     if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);
-      const customREPLHoverSnippets = config.getConfig().customREPLHoverSnippets;
       const hovers: vscode.MarkdownString[] = [];
       if (!res.status.includes('error') && !res.status.includes('no-info')) {
         const docsMd = infoparser.getHover(res);
@@ -38,54 +96,7 @@ export async function provideHover(
           hovers.push(clojureDocsMd);
         }
       }
-      const editor = util.tryToGetActiveTextEditor();
-
-      if (editor) {
-        const context = {
-          ns,
-          editorNS: ns,
-          nsForm,
-          repl: document.languageId === 'clojure' ? replSession.getSessionKey(document) : 'clj',
-          hoverText: text,
-          hoverLine: position.line + 1,
-          hoverColumn: position.character + 1,
-          hoverFilename: document.fileName,
-          currentLine: editor.selections[0].active.line,
-          currentColumn: editor.selections[0].active.character,
-          currentFilename: editor.document.fileName,
-          selection: editor.document.getText(editor.selections[0]),
-          currentFileText: getText.currentFileText(editor.document),
-          ...(editor.document.languageId === 'clojure'
-            ? getText.currentClojureContext(editor.document, editor.selections[0].active)
-            : {}),
-          ...getText.currentClojureContext(document, position, 'hover'),
-        };
-
-        await Promise.all(
-          customREPLHoverSnippets.map(async (snippet) => {
-            try {
-              const text = await customSnippets.evaluateSnippet(editor, snippet.snippet, context, {
-                evaluationSendCodeToOutputWindow: false,
-                showErrorMessage: false,
-                showResult: false,
-              });
-
-              if (text) {
-                const hover = new vscode.MarkdownString();
-                hover.isTrusted = true;
-                const hoverText = text
-                  .replace(/^"|"$/g, '')
-                  .replace(/\\n/g, '\n')
-                  .replace(/\\"/g, '"');
-                hover.appendMarkdown(hoverText);
-                hovers.push(hover);
-              }
-            } catch (error) {
-              console.log('custom hover exploded', error);
-            }
-          })
-        );
-      }
+      hovers.push(...(await customSnippetHovers(document, position, ns, nsForm)));
       if (hovers.length) {
         return new vscode.Hover(hovers);
       }

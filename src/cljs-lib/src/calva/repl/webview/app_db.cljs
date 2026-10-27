@@ -123,6 +123,21 @@
                                    :line line
                                    :sessionKey session-key}]]})))
 
+(defn- handle-font-action
+  [db action-type payload]
+  (let [new-db (case action-type
+                 :msg/set-base-font-scale
+                 (assoc db :output/base-font-scale (:scale payload 1.0))
+
+                 :msg/adjust-font-size
+                 (assoc db :output/font-size-adjustment (+ (or (:output/font-size-adjustment db) 0.0)
+                                                           (:delta payload 0.1)))
+
+                 :msg/reset-font-size
+                 (assoc db :output/font-size-adjustment 0.0))]
+    {:uf/db new-db
+     :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -159,26 +174,8 @@
      :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]
               [:repl-input/fx.set-line-wrapping (:word-wrap payload)]]}
 
-    :msg/set-base-font-scale
-    (let [new-db (assoc db :output/base-font-scale (:scale payload 1.0))
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
-
-    :msg/adjust-font-size
-    (let [delta (:delta payload 0.1)
-          current-adj (or (:output/font-size-adjustment db) 0.0)
-          new-adj (+ current-adj delta)
-          new-db (assoc db :output/font-size-adjustment new-adj)
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
-
-    :msg/reset-font-size
-    (let [new-db (assoc db :output/font-size-adjustment 0.0)
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
+    (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
+    (handle-font-action db action-type payload)
 
     :msg/scroll-to
     {:uf/db db
