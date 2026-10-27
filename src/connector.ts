@@ -617,7 +617,7 @@ async function connectToHost(
         );
       }
       if (useSecondarySession && isShadowCljsConnector(connectSequence.cljsType)) {
-        await shadowCljsRuntime.initializeShadowRemoteNotifications();
+        await shadowCljsRuntime.initializeShadowRemoteNotifications(localClient.clientKey);
       }
     } catch (e) {
       output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
