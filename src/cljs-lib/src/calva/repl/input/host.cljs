@@ -433,11 +433,6 @@
   []
   (get-in @!state [:repl-input.context/line :repl-input.context/source-file]))
 
-(defn ^:export context-kept-session-key
-  "Returns the session key that the lock keeps, which a lock without a source file does, or nil."
-  []
-  (get-in @!state [:repl-input.context/lock :repl-input.context/session-key]))
-
 (defn terminal-focused!
   []
   (update-focus! [:terminal-focus]))

@@ -13,27 +13,19 @@
   (assoc context
          :repl-input.context/connected? (contains? (set session-keys) (:repl-input.context/session-key context))))
 
-(defn routed-session-key
-  "Returns the session key that `route` gives for the source file of `linked`, a lock or a history entry.
-   Without a source file, returns the session key it keeps, or else what `route` gives without a file."
-  [route {:repl-input.context/keys [source-file session-key]}]
-  (if (or source-file (nil? session-key))
-    (route source-file)
-    session-key))
-
 (defn current
   "Returns the context with the `lock` when there is one. Else the `editor-namespace` of the last active
    Clojure editor at its cursor, or `user` before any, with the editor's `editor-file` as the source file.
-   Its session key is what `route` gives for its source file, as `routed-session-key` says. It is connected
-   when one of the `session-keys` is its session key, and its `editor-ns` and `editor-session-key` are
-   what following the editor gives."
+   Its session key is what `route` gives for its source file, or without one what `route` gives without
+   a file. It is connected when one of the `session-keys` is its session key, and its `editor-ns` and
+   `editor-session-key` are what following the editor gives."
   [{:keys [lock editor-namespace editor-file route session-keys]}]
   (let [editor-session-key (route editor-file)
         followed (assoc (or editor-namespace user-namespace)
                         :repl-input.context/source-file editor-file
                         :repl-input.context/session-key editor-session-key)
         context (if lock
-                  (assoc lock :repl-input.context/session-key (routed-session-key route lock))
+                  (assoc lock :repl-input.context/session-key (route (:repl-input.context/source-file lock)))
                   followed)]
     (with-connection (assoc context
                             :repl-input.context/locked? (some? lock)
@@ -48,17 +40,17 @@
   (with-connection (merge context (into {} (remove (comp nil? val)) overrides)) session-keys))
 
 (defn as-lock
-  "Returns the lock that keeps the namespace and `ns` form of `linked`, a context or a history entry, and
-   its source file, or without one the session key it has."
-  [{:repl-input.context/keys [source-file] :as linked}]
-  (select-keys linked [:repl-input.context/ns
-                       :repl-input.context/ns-form
-                       (if source-file :repl-input.context/source-file :repl-input.context/session-key)]))
+  "Returns the lock that keeps the namespace, `ns` form and source file of `linked`, a context or a
+   history entry. A lock without a source file routes as a file-less evaluation does."
+  [linked]
+  (into {} (remove (comp nil? val)) (select-keys linked [:repl-input.context/ns
+                                                         :repl-input.context/ns-form
+                                                         :repl-input.context/source-file])))
 
 (defn lock-after
   "Returns the lock after code was evaluated in `context`: the namespace of the code's `ns` or `in-ns`
    form, `code-namespace` as `[ns ns-form]`, with the context's source file, when the evaluation
-   `succeeded?`. Without a source file, it keeps the session key of `lock`, if any. Else `lock`."
+   `succeeded?`. Else `lock`."
   [lock context code-namespace succeeded?]
   (if-let [[ns ns-form] (when succeeded? code-namespace)]
     (as-lock (assoc lock

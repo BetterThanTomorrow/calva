@@ -146,7 +146,7 @@
             (host/editor-moved! pirate-core #js {})
             (swap! host/!state assoc :repl-input.context/lock {:repl-input.context/ns "pirate.ui"
                                                                :repl-input.context/ns-form "(in-ns 'pirate.ui)"
-                                                               :repl-input.context/session-key "cljs"})
+                                                               :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs"})
             (post! {:command "repl-input-complete" :repl-input/id "output-view" :request 1 :text "(render)" :offset 7})
             (testing "a locked context completes in its namespace and session, below its `ns` form"
               (is (= [["pirate.ui" "cljs"]] (mapv (juxt :ns :session-key) (calls completions :repl))))

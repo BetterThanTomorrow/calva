@@ -77,25 +77,13 @@
            ((juxt :repl-input.context/session-key :repl-input.context/connected?)
             (sut/current {:lock lock :route route :session-keys ["cljs" "clj:2"]})))))
 
-  (testing "a lock without a source file is in the session key it keeps, and without one in the session routing gives without a document"
-    (is (= "cljs:3"
+  (testing "a lock without a source file is in the session routing gives without a file, whatever session key it has"
+    (is (= "clj"
            (:repl-input.context/session-key
             (sut/current {:lock (-> lock
                                     (dissoc :repl-input.context/source-file)
                                     (assoc :repl-input.context/session-key "cljs:3"))
-                          :route route}))))
-    (is (= "clj"
-           (:repl-input.context/session-key
-            (sut/current {:lock (dissoc lock :repl-input.context/source-file) :route route}))))))
-
-(deftest routed-session-key-test
-  (testing "routes the source file of a lock or a history entry now, over the session key it keeps"
-    (is (= "clj:2" (sut/routed-session-key route {:repl-input.context/source-file core-file
-                                                    :repl-input.context/session-key "cljs"}))))
-  (testing "is the session key it keeps without a source file, as for entries kept before"
-    (is (= "cljs" (sut/routed-session-key route {:repl-input.context/session-key "cljs"}))))
-  (testing "routes without a document with neither"
-    (is (= "clj" (sut/routed-session-key route {})))))
+                          :route route}))))))
 
 (def ^:private followed
   (sut/current {:editor-namespace editor-namespace :editor-file lib-file :route route :session-keys ["cljs"]}))
@@ -122,14 +110,6 @@
             :repl-input.context/ns-form "(ns pirate.core)"}
            (sut/lock-after nil (sut/current {:route route}) ["pirate.core" "(ns pirate.core)"] true))))
 
-  (testing "keeps the session key of a lock without a source file, as one from a history entry kept before"
-    (let [kept-lock (-> lock
-                        (dissoc :repl-input.context/source-file)
-                        (assoc :repl-input.context/session-key "cljs:3"))]
-      (is (= "cljs:3"
-             (:repl-input.context/session-key
-              (sut/lock-after kept-lock (sut/current {:lock kept-lock :route route}) ["pirate.ui" "(ns pirate.ui)"] true))))))
-
   (testing "keeps the lock as it was when the evaluation fails"
     (is (nil? (sut/lock-after nil followed ["pirate.core" "(ns pirate.core)"] false)))
     (is (= lock (sut/lock-after lock followed ["pirate.ui" "(ns pirate.ui)"] false))))
@@ -144,10 +124,9 @@
                                     :repl-input.history/code "(inc 1)"
                                     :repl-input.context/session-key "cljs")))))
 
-  (testing "keeps the session key of an entry without a source file"
+  (testing "keeps no session key for an entry without a source file, which routes without a file"
     (is (= {:repl-input.context/ns "pirate.core"
-            :repl-input.context/ns-form "(in-ns 'pirate.core)"
-            :repl-input.context/session-key "cljs"}
+            :repl-input.context/ns-form "(in-ns 'pirate.core)"}
            (sut/as-lock (-> lock
                             (dissoc :repl-input.context/source-file)
                             (assoc :repl-input.context/session-key "cljs")))))))

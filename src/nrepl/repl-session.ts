@@ -18,7 +18,6 @@ export { formatSessionLabel, type SessionLabelContext } from './session-label';
  * Describes why a particular session was selected by the routing algorithm.
  */
 export type RoutingReason =
-  | { type: 'repl-input' }
   | { type: 'pinned' }
   | { type: 'repl-window' }
   | { type: 'glob-match'; tier: globs.SessionGlobTier; matchingPattern?: string }
@@ -198,19 +197,10 @@ function resolveCljcWithinConnection(winningSessionKey: string): string | undefi
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
  *
- * @param doc - The document to route (defaults to the current file, or the session the REPL Input
- * keeps while it is the current editor)
+ * @param doc - The document to route (defaults to the current file)
  */
 function getRoutingInfo(doc?: vscode.TextDocument): RoutingResult | undefined {
-  return doc
-    ? getRoutingInfoForUri(doc.uri)
-    : replInputRouting() ?? getRoutingInfoForUri(currentFile.currentFileUri());
-}
-
-// The session that a REPL Input's lock without a source file keeps, as evaluating from it does, pin or not
-function replInputRouting(): RoutingResult | undefined {
-  const sessionKey = connectedSessionKey(currentFile.currentReplInputSessionKey());
-  return sessionKey ? { sessionKey, reason: { type: 'repl-input' } } : undefined;
+  return getRoutingInfoForUri(doc?.uri ?? currentFile.currentFileUri());
 }
 
 /**

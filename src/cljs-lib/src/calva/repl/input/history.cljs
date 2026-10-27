@@ -2,7 +2,6 @@
   "What the REPL Inputs evaluated, oldest first: adding to it, the entries the REPL Inputs walk, the
    quick pick that searches them, and the entries the way `workspaceState` keeps them."
   (:require
-   [calva.repl.input.context :as context]
    [clojure.string :as string]))
 
 (defn entry
@@ -72,8 +71,8 @@
         stored))
 
 (defn routed
-  "Returns `entries` with the session key that `route` gives each now, as
-   `calva.repl.input.context/routed-session-key` says, routing each source file once."
+  "Returns `entries` with the session key that `route` gives each source file now, or without one what
+   `route` gives without a file, routing each source file once."
   [entries route]
   (let [route-once (memoize route)]
-    (mapv #(assoc % :repl-input.context/session-key (context/routed-session-key route-once %)) entries)))
+    (mapv #(assoc % :repl-input.context/session-key (route-once (:repl-input.context/source-file %))) entries)))

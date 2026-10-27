@@ -62,8 +62,8 @@
                   :lock {:repl-input.context/ns "pirate.ui"
                          :repl-input.context/ns-form "(ns pirate.ui)"
                          :repl-input.context/session-key "cljs:2"}})
-          (testing "locks in the session key of an entry without a source file"
-            (is (= {:repl-input.context/ns "pirate.ui" :repl-input.context/session-key "cljs:2" :repl-input.context/locked? true}
+          (testing "locks an entry without a source file in the session routing gives without a file"
+            (is (= {:repl-input.context/ns "pirate.ui" :repl-input.context/session-key "clj" :repl-input.context/locked? true}
                    (last-context-line posted)))))))))
 
 (defn- posted-session-keys [posted]
@@ -79,12 +79,12 @@
                                                :repl-input.context/source-file "file:///pirate/src/pirate/core.cljc"}
                                               {:repl-input.history/code "(js/alert 1)" :repl-input.context/ns "user" :repl-input.context/session-key "cljs:2"}])
           (mount-focused! "output-view" "")
-          (testing "gives the REPL Inputs the entries in the sessions that routing their source files gives now, and in their session keys without one"
-            (is (= [["clj" "cljs:2"]] (posted-session-keys posted))))
+          (testing "gives the REPL Inputs the entries in the sessions that routing their source files gives now, and without one, routing without a file"
+            (is (= [["clj" "clj"]] (posted-session-keys posted))))
           (swap! routes assoc "file:///pirate/src/pirate/core.cljc" "cljs")
           (host/routing-changed!)
           (testing "gives them the entries again when routing changes"
-            (is (= [["clj" "cljs:2"] ["cljs" "cljs:2"]] (posted-session-keys posted))))
+            (is (= [["clj" "clj"] ["cljs" "clj"]] (posted-session-keys posted))))
           (host/routing-changed!)
           (testing "posts nothing when routing gives the entries the sessions they had"
             (is (= 2 (count (posted-session-keys posted)))))

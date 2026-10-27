@@ -98,10 +98,10 @@
         routed (sut/routed (conj entries (second entries) kept-before) route)]
     (testing "gives each entry the session key that routing its source file gives now"
       (is (= ["clj:2" "cljs" "clj:2"] (mapv :repl-input.context/session-key (take 3 (rest routed))))))
-    (testing "keeps the session key of an entry without a source file"
-      (is (= ["clj" "cljs:3"] (mapv :repl-input.context/session-key [(first routed) (last routed)]))))
+    (testing "gives an entry without a source file what routing without a file gives now"
+      (is (= ["clj" "clj"] (mapv :repl-input.context/session-key [(first routed) (last routed)]))))
     (testing "routes each source file once"
-      (is (= [core-file ui-file] @routed-files)))
+      (is (= [nil core-file ui-file] @routed-files)))
     (testing "keeps the rest of the entries"
       (is (= (map #(dissoc % :repl-input.context/session-key) entries)
              (map #(dissoc % :repl-input.context/session-key) (take 3 routed)))))))

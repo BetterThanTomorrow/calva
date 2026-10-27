@@ -36,14 +36,6 @@ export function currentFileUri(): vscode.Uri | undefined {
 }
 
 /**
- * Returns the session key that the REPL Input's lock keeps while the REPL Input is the current
- * editor, which a lock without a source file does. Evaluating from the REPL Input goes there.
- */
-export function currentReplInputSessionKey(): string | undefined {
-  return (cljsLib.replInputFocused() && cljsLib.replInputKeptSessionKey()) || undefined;
-}
-
-/**
  * Returns the document of the file the user is in, when it is open.
  */
 export function currentFileDocument(): vscode.TextDocument | undefined {

@@ -183,7 +183,6 @@ function formatRoutingReasonPrefix(reason: replSession.RoutingReason): string {
   switch (reason.type) {
     case 'pinned':
       return '$(pin)';
-    case 'repl-input':
     case 'repl-window':
     case 'glob-match':
     case 'cljc-within-connection':
