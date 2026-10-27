@@ -2,6 +2,7 @@
   "Extension-host helpers for output-view images: webview roots, local file URIs, and fetching
    remote bytes for Copy image."
   (:require
+   [calva.repl.webview.frame-host :as frame-host]
    [calva.repl.webview.image-refs :as image-refs]
    [calva.util :as util]
    [clojure.string :as str]))
@@ -332,7 +333,7 @@
     (post! {:command/name "image-bytes-missing"})))
 
 (defn handle-webview-message!
-  "Answers resolve-local-image and fetch-image-for-copy from a webview."
+  "Answers resolve-local-image and fetch-image-for-copy from a webview, and opens clicked stacktrace frames."
   [^js webview-host ^js message]
   (let [command (.-command message)
         id (.-id message)
@@ -348,6 +349,12 @@
 
       "fetch-image-for-copy"
       (fetch-image-for-copy-message! post! (.-url message))
+
+      "open-frame"
+      (frame-host/open-frame! (.-fileUrl message) (.-line message) (.-column message))
+
+      "open-java-frame"
+      (frame-host/open-java-frame! (.-sessionKey message) (.-className message) (.-member message) (.-line message))
 
       nil)))
 
