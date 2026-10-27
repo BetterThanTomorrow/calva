@@ -409,10 +409,12 @@
       (with-redefs [util/vscode (atom #js {})
                     util/vscode-context (atom vscode-context-stub)
                     sut/create-color-theme-change-listener (constantly "color-theme-listener")
-                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")]
+                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")
+                    sut/create-extensions-change-listener (constantly "extensions-listener")]
         (sut/init-code-theme!)
         (is (spy/called-with? push-spy "color-theme-listener"))
-        (is (spy/called-with? push-spy "customizations-listener"))))))
+        (is (spy/called-with? push-spy "customizations-listener"))
+        (is (spy/called-with? push-spy "extensions-listener"))))))
 
 (deftest create-view-state-change-listener-test
   (testing "Given a context and a webview panel, should call onDidChangeViewState and pass it a function"

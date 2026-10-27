@@ -398,12 +398,17 @@
          (when (.affectsConfiguration event "editor.tokenColorCustomizations")
            (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
 
+(defn create-extensions-change-listener
+  [{:keys [^js vscode/vscode]}]
+  (.. vscode -extensions (onDidChange (fn [_] (token-colors/clear-theme-token-colors!)))))
+
 (defn ^:export init-code-theme!
   []
   (let [context {:vscode/vscode @util/vscode}]
     (when-let [^js vscode-context @util/vscode-context]
       (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
-      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context))))))
+      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context)))
+      (.. vscode-context -subscriptions (push (create-extensions-change-listener context))))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}

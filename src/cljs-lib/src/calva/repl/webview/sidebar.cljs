@@ -8,8 +8,20 @@
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
-(defonce output-sidebar-log (atom []))
+(defonce output-sidebar-log (atom #queue []))
 (defonce output-sidebar-showing-output-log? (atom false))
+
+(def log-kept-count
+  "How many of the latest messages `output-sidebar-log` keeps."
+  5000)
+
+(defn add-to-log
+  "Returns `log`, a queue, with `message` last, keeping the latest `log-kept-count`."
+  [log message]
+  (let [added (conj log message)]
+    (if (> (count added) log-kept-count)
+      (pop added)
+      added)))
 
 (defn current-output-destinations
   []
@@ -84,12 +96,12 @@
         (post-output-sidebar-log!))
       (set-sidebar-help! webview-view))
     (when-not destination?
-      (reset! output-sidebar-log []))))
+      (reset! output-sidebar-log #queue []))))
 
 (defn add-output-sidebar-message!
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log conj message)
+    (swap! output-sidebar-log add-to-log message)
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
@@ -179,6 +191,6 @@
 
 (defn ^:export clear-output-sidebar
   []
-  (reset! output-sidebar-log [])
+  (reset! output-sidebar-log #queue [])
   (when @output-sidebar-webview-view
     (core/post-message-to-webview @output-sidebar-webview-view {:command/name "clear-output-view"})))

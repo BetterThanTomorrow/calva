@@ -80,7 +80,7 @@ Beside it are atoms for things that aren't data: `host/!adapter` (the TS functio
 
 The view ids are those of the Output Destinations, `"output-view"` and `"output-sidebar"`. Each view has its own record, with its text, selections, version and history position. Both share one context, so a lock made in one view holds in the other.
 
-VS Code keeps the history (`calva.replInput.history`) and the code of the latest 500 evaluations (`calva.replInput.evaluatedCode`) in `workspaceState`, and the dragged heights (`calva.replInput.heights`) in `globalState`.
+VS Code keeps the latest 500 history entries (`calva.replInput.history`) and the code of the latest 500 evaluations (`calva.replInput.evaluatedCode`) in `workspaceState`, and the dragged heights (`calva.replInput.heights`) in `globalState`.
 
 In the webview, the REPL Input's state is in the Output view's db, under `:repl-input/*` and `:repl-input.history/*`. CodeMirror's `EditorState` holds the text and the undo history.
 
@@ -170,6 +170,7 @@ The other evaluation commands from files work on the REPL Input while it has the
 
 - An entry is the code with the context's namespace, `ns` form, source file and session key. `alt+enter` and evaluating all the text add one. The other evaluation commands don't.
 - An entry is the same as the last one when the code, the namespace and the source file are the same, and, for an entry without a source file, the session key. Then it isn't added again. This matching is `same-entry?` and `add` in `input/history.cljs`, tested in `test/calva/repl/input/history_test.cljs`.
+- The history keeps the latest 500 entries (`history/kept-count`). `add` drops the oldest.
 - `host/refresh-history!` routes each entry's source file again (`history/routed`), and posts `repl-input-history` when the walked entries changed.
 - The webview walks its copy, with no round trip: `up` on the first line and `down` on the last, with one cursor and the completion list closed. It keeps the user's own text, and the context line, for walking back past the newest entry.
 - A shown entry asks for a mode: following the editor when its namespace and routed session are the editor's, else locked to the entry. The webview posts `repl-input-lock` or `repl-input-follow-editor`, and keeps the mode up to date as the editor changes, until the user picks from the namespace menu, clicks the indicator, evaluates or walks on. This matching is `same-context?` and `entry-mode` in `webview/input/history.cljs`, tested in `test/calva/repl/webview/input/history_test.cljs`.

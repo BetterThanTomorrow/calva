@@ -55,6 +55,14 @@
                         (sut/add (sut/entry "(def a 1)" (assoc user :repl-input.context/session-key "cljs"))))))
         "Without a source file, another session is another context")))
 
+(deftest add-keeps-the-latest-test
+  (let [added (reduce sut/add [] (map #(sut/entry (str "(inc " % ")") user) (range (+ 2 sut/kept-count))))]
+    (is (= sut/kept-count (count added))
+        "Keeps `kept-count` entries")
+    (is (= ["(inc 2)" (str "(inc " (inc sut/kept-count) ")")]
+           (map :repl-input.history/code [(first added) (peek added)]))
+        "Drops the oldest")))
+
 (deftest pick-items-test
   (testing "newest first, the code on one line as the label, the namespace as the description"
     (is (= [{:label "(js/alert 1)" :description "pirate.ui" :index 2}

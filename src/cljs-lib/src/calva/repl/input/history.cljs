@@ -24,12 +24,18 @@
                         (not (:repl-input.context/source-file entry)) (conj :repl-input.context/session-key))]
     (= (select-keys entry identity-keys) (select-keys other identity-keys))))
 
+(def kept-count
+  "How many of the latest entries the history keeps."
+  500)
+
 (defn add
-  "Returns `entries` with `new-entry` last, unless its code is blank, or the last entry is the same entry."
+  "Returns `entries` with `new-entry` last, keeping the latest `kept-count`, unless its code is blank, or the
+   last entry is the same entry."
   [entries {:repl-input.history/keys [code] :as new-entry}]
   (if (or (string/blank? code) (same-entry? new-entry (peek entries)))
     entries
-    (conj (vec entries) new-entry)))
+    (let [added (conj (vec entries) new-entry)]
+      (subvec added (max 0 (- (count added) kept-count))))))
 
 (defn pick-items
   "Returns the quick pick items for `entries`, newest first: the code as the label, with what VS Code would

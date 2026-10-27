@@ -116,6 +116,13 @@
                         :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
 
+(deftest add-to-log-test
+  (let [log (reduce sut/add-to-log #queue [] (range (+ 2 sut/log-kept-count)))]
+    (is (= sut/log-kept-count (count log))
+        "Keeps `log-kept-count` messages")
+    (is (= [2 (inc sut/log-kept-count)] [(first log) (last log)])
+        "Drops the oldest")))
+
 (deftest append-error-test
   (let [post-message-to-webview-spy (spy/spy)
         webview-view #js {:webview #js {}}
