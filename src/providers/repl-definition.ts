@@ -17,10 +17,11 @@ export async function replDefinition(
   session: Pick<NReplSession, 'supports' | 'info'> | undefined,
   ns: string,
   doc: model.EditableDocument,
-  offset: number
+  offset: number,
+  infoOptions: { downloadSourcesJar?: boolean } = {}
 ): Promise<ReplDefinition | undefined> {
   if (session?.supports('info')) {
-    const info = await session.info(ns, cursorDocUtil.wordAtOffset(doc, offset));
+    const info = await session.info(ns, cursorDocUtil.wordAtOffset(doc, offset), infoOptions);
     if (info.file && info.file.length > 0) {
       return { file: info.file, line: info.line, column: info.column };
     }

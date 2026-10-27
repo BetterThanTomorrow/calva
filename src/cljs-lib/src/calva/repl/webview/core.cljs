@@ -4,6 +4,7 @@
    [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.token-colors :as token-colors]
    [calva.util :as util]
    [clojure.string :as str]))
@@ -540,32 +541,41 @@
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
-(def stacktrace-classes-to-ignore
-  #{"clojure.lang.RestFn"
-    "clojure.lang.AFn"})
+(defn- causes-data
+  [^js causes]
+  (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true)))
 
-(defn stacktrace-entry->string
-  [{:keys [var name file line]}]
-  (let [name (or var name)]
-    (str name " (" file ":" line ")")))
+(defn error-message
+  "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause
+   messages or nil when they come later, as the Output view entry `error-id`. `options` are those
+   of `append`, plus `unfolded`."
+  [^js options text ^js causes error-id]
+  (let [category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        unfolded? (if (map? options) (:unfolded options) (.-unfolded options))
+        meta-data (options->meta options)]
+    (cond-> {:command/name "show-error"
+             :error/text text
+             :error/category category
+             :error/causes (causes-data causes)
+             :error/unfolded? (boolean unfolded?)}
+      error-id (assoc :id error-id)
+      (seq meta-data) (assoc :meta meta-data))))
 
-(defn stacktrace->message
-  "Takes a clojurefied stacktrace and returns a string representation of it for printing."
-  [stacktrace]
-  (->> stacktrace
-       (filter (fn [{:keys [flags class]}]
-                 (and (not (some #{"dup"} flags))
-                      (not (contains? stacktrace-classes-to-ignore class)))))
-       (map stacktrace-entry->string)
-       (str/join "\n")))
+(defn causes-message
+  "Returns the message that gives the Output view entry `error-id` its `causes`."
+  [error-id ^js causes]
+  {:command/name "show-error-causes"
+   :error/id error-id
+   :error/causes (causes-data causes)})
 
-(defn ^:export append-stacktrace
-  [^js stacktrace]
-  (let [stacktrace (js->clj stacktrace :keywordize-keys true)
-        stacktrace-message (stacktrace->message stacktrace)]
-    (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
-                                                         :output-category "evalErr"
-                                                         :output stacktrace-message})))
+(defn ^:export append-error
+  [^js options text ^js causes error-id]
+  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
+  [error-id ^js causes]
+  (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
 
 (defn ^:export clear-output-view
   []

@@ -9,7 +9,6 @@ import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
-import * as resultsOutputUtil from './results-output/util';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
@@ -33,6 +32,28 @@ let inspectorDataProvider: inspector.InspectorDataProvider;
 function initInspectorDataProvider() {
   inspectorDataProvider = new inspector.InspectorDataProvider();
   return inspectorDataProvider;
+}
+
+// Asks for the causes of the session's last error. A failed request gives no causes.
+function lastErrorCauses(session: nrepl.NReplSession) {
+  return session.stacktrace().catch((e) => {
+    console.error(`Failed fetching stacktrace: ${e.message}`);
+    return undefined;
+  });
+}
+
+// The causes the debugger reported with the evaluation, none for an interrupted evaluation, whose
+// `*e` is an older error, else the session's last error
+function evaluationErrorCauses(evaluation: nrepl.NReplEvaluation, session: nrepl.NReplSession) {
+  if (evaluation.interrupted) {
+    return undefined;
+  }
+  return evaluation.causes ?? lastErrorCauses(session);
+}
+
+function asErrorLine(error: unknown) {
+  const text = String(error);
+  return text.endsWith('\n') ? text : `${text}\n`;
 }
 
 function getShadowInfo(session: any) {
@@ -162,33 +183,16 @@ type EvaluationOptions = {
 
 type EvaluationHooks = {
   onResultAppended?: (value: string) => unknown;
-  // The error hooks return true when they have written the error to the eval output destinations
-  onStderrAfterResult?: (message: string, stacktrace: any) => boolean;
-  onFailure?: (message: string, stacktrace: Promise<any>) => boolean;
+  // Called after a failed evaluation's error is written to the eval output destinations
+  onFailure?: (message: string) => unknown;
   evaluateFlareCode?: (code: string) => Promise<string | null>;
   onEvaluationSent?: (evaluation: nrepl.NReplEvaluation) => unknown;
 };
 
-type Evaluation = { ns: string } & (
-  | { value: string }
-  | { error: string; stacktrace?: Promise<any> }
-);
+type Evaluation = { ns: string } & ({ value: string } | { error: string });
 
 function valueOf(evaluation: Evaluation): string | null {
   return 'value' in evaluation ? evaluation.value : null;
-}
-
-function appendStacktraceToWebviewEvalOutput(stacktrace: Promise<any>) {
-  const webviewDestinations = outputDestinations
-    .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-    .filter(outputDestinations.isWebviewOutputDestination);
-  if (webviewDestinations.length) {
-    void stacktrace.then((stacktrace) => {
-      if (stacktrace) {
-        output.appendStackTraceToWebviewDestinations(webviewDestinations, stacktrace);
-      }
-    });
-  }
 }
 
 function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: string, who: string) {
@@ -262,33 +266,28 @@ function appendResult(
 
 function appendStderrAfterResult(
   err: string[],
-  stacktrace: any,
-  outputOptions: output.AppendClojureOptions,
-  hooks: EvaluationHooks
+  evaluation: nrepl.NReplEvaluation,
+  outputOptions: output.AppendClojureOptions
 ) {
   if (err.length > 0) {
-    const message = err.join('\n');
-    if (!hooks.onStderrAfterResult?.(message, stacktrace)) {
-      output.appendEvalErr(message, outputOptions);
-    }
+    output.appendEvalErr(err.join('\n'), outputOptions, undefined, evaluation.causes);
   }
 }
 
 function appendFailure(
   message: string,
+  evaluation: nrepl.NReplEvaluation,
   session: nrepl.NReplSession,
   outputOptions: output.AppendClojureOptions,
   hooks: EvaluationHooks
-): Promise<any> {
-  const stacktrace = session.stacktrace().then(
-    (response) => response?.stacktrace,
-    (e) => console.error(`Failed fetching stacktrace: ${e.message}`)
+) {
+  output.appendEvalErr(
+    asErrorLine(message),
+    outputOptions,
+    undefined,
+    evaluationErrorCauses(evaluation, session)
   );
-  if (!hooks.onFailure?.(message, stacktrace)) {
-    output.appendEvalErr(message, outputOptions);
-    appendStacktraceToWebviewEvalOutput(stacktrace);
-  }
-  return stacktrace;
+  hooks.onFailure?.(message);
 }
 
 async function outputOutcome(
@@ -304,15 +303,15 @@ async function outputOutcome(
     flareHandler.inspect(value, flareEvaluator(options, hooks));
     if (showResult) {
       appendResult(value, outputOptions, hooks);
-      appendStderrAfterResult(err, evaluation.stacktrace, outputOptions, hooks);
+      appendStderrAfterResult(err, evaluation, outputOptions);
     }
     return { value };
   } catch (e) {
-    const message: string = err.length ? err.join('\n') : e;
-    if (!showErrorMessage) {
-      return { error: message };
+    const message: string = err.length ? err.join('\n') : String(e);
+    if (showErrorMessage) {
+      appendFailure(message, evaluation, session, outputOptions, hooks);
     }
-    return { error: message, stacktrace: appendFailure(message, session, outputOptions, hooks) };
+    return { error: message };
   }
 }
 
@@ -324,12 +323,6 @@ async function evaluateToOutputDestinations(
   hooks.onEvaluationSent?.(sent.evaluation);
   const outcome = await outputOutcome(sent, options, hooks);
   return { ...outcome, ns: sent.evaluation.ns || options.ns };
-}
-
-function evalOutputIncludesReplWindow() {
-  return outputDestinations
-    .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-    .includes('repl-window');
 }
 
 function replWindowEchoDestinations(): outputDestinations.OutputDestinationValue[] {
@@ -406,38 +399,6 @@ async function updateEditorWithError(editorError: string, ui: UiContext) {
     await addAsComment(editorError, selection, editor, editor.selections[0], options.commentStyle);
   }
   decorateFileEditor(editorError, annotations.AnnotationStatus.ERROR, currentCursorPos, ui);
-}
-
-function appendStderrToReplWindow(message: string, stacktrace: any) {
-  if (!stacktrace) {
-    return false;
-  }
-  replWindow.saveStacktrace(stacktrace);
-  replWindow.appendLine(
-    resultsOutputUtil.formatAsLineComments(message),
-    (_, afterResultLocation) => {
-      replWindow.markLastStacktraceRange(afterResultLocation);
-    }
-  );
-  return evalOutputIncludesReplWindow();
-}
-
-function appendFailureToReplWindow(message: string, stacktrace: Promise<any>, ui: UiContext) {
-  replWindow.appendLine(
-    resultsOutputUtil.formatAsLineComments(message),
-    async (_, afterResultLocation) => {
-      if (ui.selection) {
-        await updateEditorWithError(util.stripAnsi(message), ui);
-      }
-      void stacktrace.then((stacktrace) => {
-        if (stacktrace) {
-          replWindow.markLastStacktraceRange(afterResultLocation);
-          replWindow.saveStacktrace(stacktrace);
-        }
-      });
-    }
-  );
-  return evalOutputIncludesReplWindow();
 }
 
 /** Returns the stdin of an evaluation from `editor`: the Output Sidebar's REPL Input while the setting has the REPL Input on for a view, else the input box. */
@@ -524,8 +485,11 @@ async function evaluateCodeUpdatingUI(
       },
       {
         onResultAppended: (value) => updateUiWithResult(value, ui),
-        onStderrAfterResult: appendStderrToReplWindow,
-        onFailure: (message, stacktrace) => appendFailureToReplWindow(message, stacktrace, ui),
+        onFailure: (message) => {
+          if (ui.selection && ui.editor) {
+            void updateEditorWithError(util.stripAnsi(message), ui);
+          }
+        },
         evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
         onEvaluationSent: (sent) => {
           sentEvaluation = sent;
@@ -937,25 +901,12 @@ async function loadFile(
     }
     return value;
   } catch (e) {
-    replWindow.appendLine(
-      `; Evaluation of file ${fileName} failed: ${e}`,
-      (_location, nextLocation) => {
-        if (res.stacktrace) {
-          replWindow.saveStacktrace(res.stacktrace.stacktrace);
-          replWindow.markLastStacktraceRange(nextLocation);
-        }
-      }
+    output.appendLineOtherErr(
+      `Evaluation of file ${fileName} failed: ${e}`,
+      { who, ...shadowInfo },
+      undefined,
+      evaluationErrorCauses(res, session)
     );
-    if (
-      !outputDestinations
-        .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-        .includes('repl-window')
-    ) {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, {
-        who,
-        ...shadowInfo,
-      });
-    }
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
     }

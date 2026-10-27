@@ -9,7 +9,6 @@ import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
-import * as outputDestinations from './results-output/output-destinations';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -221,31 +220,9 @@ async function reportTests(
           const message = cider.detailedMessage(resultsForTest);
 
           if (resultsForTest.type === 'error') {
-            const stacktrace = await session.testStacktrace(ns, test, resultsForTest.index);
-
-            outputWindow.saveStacktrace(stacktrace.stacktrace);
-            outputWindow.appendLine(message, (_, afterResultLocation) => {
-              outputWindow.markLastStacktraceRange(afterResultLocation);
-            });
-            const otherOutputDestination = output.getDestinationConfiguration().otherOutput;
-            if (
-              !outputDestinations
-                .normalizeDestinations(otherOutputDestination)
-                .includes('repl-window')
-            ) {
-              // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
-              // This is just a quick fix to avoid refactoring for now.
-              output.appendLineOtherOut(message.replace(/; /gi, ''));
-              const webviewDestinations = outputDestinations
-                .normalizeDestinations(otherOutputDestination)
-                .filter(outputDestinations.isWebviewOutputDestination);
-              if (webviewDestinations.length) {
-                output.appendStackTraceToWebviewDestinations(
-                  webviewDestinations,
-                  stacktrace.stacktrace
-                );
-              }
-            }
+            const causes = await session.testStacktrace(ns, test, resultsForTest.index);
+            // The REPL window's part of the output comments the lines itself
+            output.appendLineOtherOut(message.replace(/^; /gm, ''), {}, undefined, causes ?? []);
           } else if (message) {
             output.appendClojureOther(message);
           }

@@ -42,6 +42,15 @@ function replInputEvaluationDefinition(
     : undefined;
 }
 
+// Resolves with nothing when the lookup is cancelled, as when a Cmd-hover moves on while
+// cider-nrepl downloads a sources jar. The download carries on, for the next lookup.
+function untilCancelled<T>(lookup: Promise<T>, token: vscode.CancellationToken) {
+  return Promise.race([
+    lookup,
+    new Promise<undefined>((resolve) => token.onCancellationRequested(() => resolve(undefined))),
+  ]);
+}
+
 async function provideClojureDefinition(
   clientProvider: lsp.ClientProvider,
   document,
@@ -52,11 +61,15 @@ async function provideClojureDefinition(
     return;
   }
   if (util.getConnectedState()) {
-    const definition = await replDefinition.replDefinition(
-      replSession.getSession(),
-      namespace.getNamespace(document, position)[0],
-      docMirror.getDocument(document),
-      document.offsetAt(position)
+    const definition = await untilCancelled(
+      replDefinition.replDefinition(
+        replSession.getSession(),
+        namespace.getNamespace(document, position)[0],
+        docMirror.getDocument(document),
+        document.offsetAt(position),
+        { downloadSourcesJar: true }
+      ),
+      token
     );
     if (definition) {
       const evaluationId = cljsLib.replInputEvaluationId(definition.file);

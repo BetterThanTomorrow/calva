@@ -4,6 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.605] - 2026-10-27
+
+- Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
+- [Add clickable stack traces](https://github.com/BetterThanTomorrow/calva/issues/2853)
+- Fix: [Go to definition only sometimes works for Java sources](https://github.com/BetterThanTomorrow/calva/issues/1436)
+- Fix: `extraNReplMiddleware` not applied when jacking in to Leiningen projects
+- Fix: Leiningen jack-in never applied Calva's nREPL middleware (malformed `update-in` key path)
+
+## [2.0.604] - 2026-10-26
+
 - [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
 
 ## [2.0.603] - 2026-10-23

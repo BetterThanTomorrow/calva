@@ -155,20 +155,27 @@
     "textDecoration": "none; text-shadow: 2px 2px 5px rgba(255, 215, 0, 0.75)"
   },
   "calva.outputDestinations": {
+
     "evalResults": [
       "terminal",
       "output-sidebar",
-      "output-view"
+      "output-view",
+      "repl-window"
     ],
     "evalOutput": [
       "terminal",
       "output-sidebar",
-      "output-view"
+      "output-view",
+      "repl-window"
     ],
     "otherOutput": [
       "terminal",
       "output-sidebar",
-      "output-view"
+      "output-view",
+      "repl-window"
     ]
+  },
+  "calva.jackInDependencyVersions": {
+    "cider-nrepl": "0.62.0"
   }
 }

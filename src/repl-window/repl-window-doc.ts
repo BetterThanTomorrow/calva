@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as highlightExtension from '../highlight/src/extension';
 import * as nrepl from '../nrepl';
+import * as cider from '../nrepl/cider';
 import * as util from '../utilities';
 import * as select from '../select';
 import * as formatter from '../calva-fmt/src/format';
@@ -607,11 +608,6 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
   return _stacktraceEntries[key];
 }
 
-function stackEntryString(entry: any): string {
-  const name = entry.var || entry.name;
-  return `${name} (${entry.file}:${entry.line})`;
-}
-
 export function saveStacktrace(stacktrace: any[]): void {
   if (stacktrace === undefined || stacktrace.length === 0) {
     return;
@@ -625,7 +621,7 @@ export function saveStacktrace(stacktrace: any[]): void {
       );
     })
     .forEach((entry) => {
-      entry.string = stackEntryString(entry);
+      entry.string = cider.frameLine(entry);
       _lastStacktrace.push(entry);
       const fileUrl = entry['file-url'];
       if (typeof fileUrl === 'string') {

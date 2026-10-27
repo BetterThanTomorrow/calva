@@ -115,22 +115,26 @@
                         :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
 
-(deftest append-stacktrace-test
+(deftest append-error-test
   (let [post-message-to-webview-spy (spy/spy)
-        webview-view #js {:webview #js {}}]
+        webview-view #js {:webview #js {}}
+        expected-message {:command/name "show-error"
+                          :error/text "Execution error"
+                          :error/category "evalErr"
+                          :error/causes [{:class "clojure.lang.ExceptionInfo" :message nil :stacktrace []}]
+                          :error/unfolded? false
+                          :id "e1"}]
     (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
                   sut/output-sidebar-webview-view (atom webview-view)
                   sut/output-sidebar-log (atom [])
-                  core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                  core/stacktrace->message (constantly "stacktrace")]
-      (sut/append-stacktrace (clj->js []))
-      (is (= [{:command/name "show-stdout" :output-category "evalErr" :output "stacktrace"}]
-             @sut/output-sidebar-log))
-      (is (spy/called-once-with? post-message-to-webview-spy
-                                 webview-view
-                                 {:command/name "show-stdout"
-                                  :output-category "evalErr"
-                                  :output "stacktrace"})))))
+                  core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+      (sut/append-error (clj->js {:outputCategory "evalErr"})
+                        "Execution error"
+                        (clj->js [{:class "clojure.lang.ExceptionInfo" :message [] :stacktrace []}])
+                        "e1")
+      (is (= [expected-message] @sut/output-sidebar-log)
+          "Logs the error so the sidebar can show it again")
+      (is (spy/called-once-with? post-message-to-webview-spy webview-view expected-message)))))
 
 (deftest clear-output-sidebar-test
   (let [post-message-to-webview-spy (spy/spy)

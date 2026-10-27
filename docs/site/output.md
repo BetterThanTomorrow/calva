@@ -82,7 +82,8 @@ The table below lists the features of the different output destinations.
 | Can be placed in VS Code Panel views (sidebars and bottom panel) | ❌ | ❌ | ✅ | ✅ | ✅ |
 | Can be placed in VS Code Editors area | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Image display | ❌ | ✅ | ✅ | ❌ | ❌ |
-| Rich stack traces | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Clickable stack traces | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Filterable stack traces | ❌ | ✅ | ✅ | ❌ | ❌ |
 | Paredit navigation and selection | ✅ | ❌ * | ❌ * | ❌ | ❌ |
 | Button to copy specific output | ❌ | ✅ | ✅ | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ | ✅ |
