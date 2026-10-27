@@ -313,6 +313,12 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    color: var(--vscode-descriptionForeground, #858585);
 }
 
+.output-error-code {
+   padding: 0;
+   background: none;
+   font: inherit;
+}
+
 .output-error-frames {
    margin: 2px 0 0 18px;
    padding: 0;
@@ -350,18 +356,30 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
 
 .output-error-filters {
    display: flex;
-   flex-wrap: wrap;
-   align-items: center;
-   gap: 4px 12px;
+   flex-direction: column;
+   gap: 4px;
    margin-block: 4px 2px;
    font-family: var(--vscode-font-family, sans-serif);
    font-size: calc(var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1));
 }
 
-.output-error-filter-group {
+.output-error-filter-row {
    display: flex;
    flex-wrap: wrap;
-   gap: 2px;
+   align-items: center;
+   gap: 2px 4px;
+}
+
+.output-error-switch {
+   display: inline-flex;
+   margin-inline-end: 8px;
+   border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, #454545));
+   border-radius: 3px;
+}
+
+.output-error-filter-label {
+   margin-inline-end: 4px;
+   color: var(--vscode-descriptionForeground, #858585);
 }
 
 .output-error .output-error-filter {
@@ -373,7 +391,11 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    color: var(--vscode-foreground, #cccccc);
 }
 
-.output-error .output-error-filter:hover:not(:disabled) {
+.output-error .output-error-switch .output-error-filter {
+   border-radius: 0;
+}
+
+.output-error .output-error-filter:hover {
    background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
 }
 
@@ -381,11 +403,6 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    background-color: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.4));
    border-color: var(--vscode-inputOption-activeBorder, #007acc);
    color: var(--vscode-inputOption-activeForeground, #ffffff);
-}
-
-.output-error .output-error-filter:disabled {
-   cursor: default;
-   opacity: 0.5;
 }
 
 .output-error-hidden-count {

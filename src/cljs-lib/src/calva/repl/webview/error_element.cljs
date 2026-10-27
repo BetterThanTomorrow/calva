@@ -2,6 +2,7 @@
   "Draws an error entry in an Output view: the error text with a control to unfold its causes and
    their frames."
   (:require
+   ["highlight.js/lib/core" :as hljs]
    [calva.repl.webview.stacktrace :as stacktrace]))
 
 (def ^:private svg-namespace "http://www.w3.org/2000/svg")
@@ -50,12 +51,20 @@
     (.. link (addEventListener "click" action))
     link))
 
+(defn- clojure-detail
+  "A detail that is Clojure code, with the theme's token colors."
+  [code]
+  (let [code-element (create-element "code" "output-error-code")]
+    (set! (.-innerHTML code-element)
+          (.-value (.highlight hljs code #js {:language "clojure" :ignoreIllegals true})))
+    (create-element "pre" "output-error-detail" code-element)))
+
 (defn- frame-element
   [dispatch {:error/keys [session-key]} frame]
   (let [{:frame/keys [location qualifier name file-url java?] :as parts} (stacktrace/frame-parts frame)
         label [(create-element "span" "output-error-frame-location" location)
                (create-element "span" "output-error-frame-qualifier" (str qualifier "/"))
-               (create-element "span" "output-error-frame-name" name)]]
+               (create-element "span" "hljs-name" name)]]
     (create-element "li" "output-error-frame"
                     (cond
                       file-url
@@ -80,41 +89,52 @@
 (defn- spec-problems
   [{:keys [problems]}]
   (when (seq problems)
-    (create-element "pre" "output-error-detail"
-                    (apply str (for [{:keys [val predicate]} problems]
+    (clojure-detail (apply str (for [{:keys [val predicate]} problems]
                                  (str val " - failed: " predicate "\n"))))))
 
 (defn- pressable-button
-  [{:keys [control label title pressed? disabled? on-click]}]
+  [{:keys [control label title pressed? on-click]}]
   (let [button (create-element "button" "output-error-filter" label)]
     (set! (.-type button) "button")
     (set! (.-title button) title)
-    (set! (.-disabled button) (boolean disabled?))
     (.. button (setAttribute "aria-pressed" (str (boolean pressed?))))
     (.. button (setAttribute "data-control" control))
     (.. button (addEventListener "click" on-click))
     button))
 
+(defn- frame-filter-switch
+  [dispatch {:error/keys [id frame-filter]}]
+  (let [switch (apply create-element "span" "output-error-switch"
+                      (for [{:choice/keys [label] choice :choice/frame-filter} stacktrace/frame-filter-choices]
+                        (pressable-button {:control (str "choice-" (name choice))
+                                           :label label
+                                           :title (str "Show " label)
+                                           :pressed? (= choice frame-filter)
+                                           :on-click #(dispatch [:error/ax.set-frame-filter {:error/id id :error/frame-filter choice}])})))]
+    (.. switch (setAttribute "role" "group"))
+    (.. switch (setAttribute "aria-label" "Frames"))
+    switch))
+
+(defn- hide-flags-row
+  [dispatch {:error/keys [id hidden-flags]}]
+  (apply create-element "div" "output-error-filter-row"
+         (create-element "span" "output-error-filter-label" "Hide:")
+         (for [{:filter/keys [label flag]} stacktrace/frame-filters]
+           (pressable-button {:control (str "flag-" flag)
+                              :label label
+                              :title (str "Hide " label " frames")
+                              :pressed? (contains? hidden-flags flag)
+                              :on-click #(dispatch [:error/ax.toggle-flag {:error/id id :frame/flag flag}])}))))
+
 (defn- filter-bar
-  [dispatch {:error/keys [id causes frame-filter hidden-flags] :as error}]
+  [dispatch {:error/keys [causes frame-filter] :as error}]
   (let [hidden (reduce + (map #(stacktrace/hidden-count error (:stacktrace %)) causes))]
     (create-element "div" "output-error-filters"
-                    (apply create-element "span" "output-error-filter-group"
-                           (for [{:filter/keys [label flag]} stacktrace/frame-filters]
-                             (pressable-button {:control (str "flag-" flag)
-                                                :label label
-                                                :title (str "Hide " label " frames")
-                                                :pressed? (contains? hidden-flags flag)
-                                                :disabled? (not= :filtered frame-filter)
-                                                :on-click #(dispatch [:error/ax.toggle-flag {:error/id id :frame/flag flag}])})))
-                    (apply create-element "span" "output-error-filter-group"
-                           (for [{:choice/keys [label] choice :choice/frame-filter} stacktrace/frame-filter-choices]
-                             (pressable-button {:control (str "choice-" (name choice))
-                                                :label label
-                                                :title (str "Show " label)
-                                                :pressed? (= choice frame-filter)
-                                                :on-click #(dispatch [:error/ax.set-frame-filter {:error/id id :error/frame-filter choice}])})))
-                    (create-element "span" "output-error-hidden-count" (str hidden " frames hidden")))))
+                    (create-element "div" "output-error-filter-row"
+                                    (frame-filter-switch dispatch error)
+                                    (create-element "span" "output-error-hidden-count" (str hidden " frames hidden")))
+                    (when (= :filtered frame-filter)
+                      (hide-flags-row dispatch error)))))
 
 (defn- cause-element
   [dispatch {:error/keys [id unfolded-causes] :as error} index {:keys [triage spec data stacktrace] :as cause}]
@@ -132,7 +152,7 @@
                     (when-not triage
                       (spec-problems spec))
                     (when data
-                      (create-element "pre" "output-error-detail" data))
+                      (clojure-detail data))
                     (when frames-unfolded?
                       (apply create-element "ol" "output-error-frames" (map #(frame-element dispatch error %) frames))))))
 
