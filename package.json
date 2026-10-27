@@ -378,7 +378,7 @@
             "tags": [
               "experimental"
             ],
-            "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input below the output. Once it is on for a view, **Calva: Toggle REPL Input in Output View** and **Calva: Toggle REPL Input in Output Sidebar** switch it for the session. The REPL Input is being built."
+            "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input."
           },
           "calva.outputViews.replInputCommandKeys": {
             "type": "array",
@@ -389,7 +389,7 @@
             "tags": [
               "experimental"
             ],
-            "markdownDescription": "Keys you have bound to Calva commands in your own `keybindings.json`, written the same way, e.g. `ctrl+alt+j` or `ctrl+k ctrl+j`. The REPL Input leaves these keys to VS Code, so the commands run instead of the REPL Input's own handling of the keys. Calva's default keybindings are left to VS Code without being listed here."
+            "markdownDescription": "The REPL Input binds the default keybindings for the Calva commands it uses. If you have bound different shortcuts to e.g ParEdit commands, you need to list them here, written the same way as in keybindings.json, e.g. `ctrl+alt+j` or `ctrl+k ctrl+j`."
           },
           "calva.outputViews.replInputHistoryPerSession": {
             "type": "boolean",
