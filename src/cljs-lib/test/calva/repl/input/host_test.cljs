@@ -377,3 +377,23 @@
           (sut/follow-editor!)
           (testing "tells nothing about the context while the REPL Input isn't the current editor"
             (is (= 5 (count @current-file-changes)))))))))
+
+(deftest kept-session-key-test
+  (with-fresh-host
+    (fn [host]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (testing "keeps no session key while following the editor"
+            (is (nil? (sut/context-kept-session-key))))
+          (sut/lock! {:repl-input.context/ns "pirate.ui"
+                      :repl-input.context/ns-form "(ns pirate.ui)"
+                      :repl-input.context/session-key "cljs"})
+          (testing "gives the session key of a lock without a source file, where `alt+enter` evaluates"
+            (is (= "cljs" (sut/context-kept-session-key))))
+          (sut/lock! {:repl-input.context/ns "pirate.ui"
+                      :repl-input.context/ns-form "(ns pirate.ui)"
+                      :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs"
+                      :repl-input.context/session-key "cljs"})
+          (testing "keeps no session key for a lock with a source file, which routes the file"
+            (is (nil? (sut/context-kept-session-key)))))))))

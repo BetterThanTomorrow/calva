@@ -53,6 +53,7 @@
                              :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
                              :replInputFocused calva.repl.input.host/focused?
                              :replInputSourceFile calva.repl.input.host/context-source-file
+                             :replInputKeptSessionKey calva.repl.input.host/context-kept-session-key
                              :replInputEditFocused calva.repl.input.host/edit-focused!
                              :replInputRunInFocused calva.repl.input.host/run-in-focused!
                              :replInputEditorMoved calva.repl.input.host/editor-moved!

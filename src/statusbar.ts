@@ -72,6 +72,18 @@ function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration)
   return value!;
 }
 
+/** True when the status bar shows the pinned session, which the REPL Input's kept session wins over. */
+function showsPinnedSession(
+  pinnedSessionKey: string | undefined,
+  routingInfo: replSession.RoutingResult | undefined
+): boolean {
+  return (
+    sessionRouting.isPinned() &&
+    Boolean(pinnedSessionKey) &&
+    routingInfo?.reason.type !== 'repl-input'
+  );
+}
+
 function update() {
   const currentConf = vscode.workspace.getConfiguration(
     `calva.statusColor.${
@@ -124,8 +136,8 @@ function update() {
     const replType = replSession.getReplSessionTypeFromState();
     if (replType) {
       const pinnedSessionKey = sessionRouting.getPinnedSessionKey();
-      const isPinned = sessionRouting.isPinned() && Boolean(pinnedSessionKey);
       const routingInfo = replSession.getRoutingInfo();
+      const isPinned = showsPinnedSession(pinnedSessionKey, routingInfo);
       const isCljcRouting = routingInfo?.reason.type === 'cljc-within-connection';
       const displaySessionKey =
         isPinned && pinnedSessionKey ? pinnedSessionKey : routingInfo?.sessionKey ?? replType;

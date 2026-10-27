@@ -650,6 +650,8 @@ The `getSessionKey()` function checks in this order:
        • resolveCljcWithinConnection() applied to first available session
 ```
 
+Before these, when no document is asked about, `getRoutingInfo()` gives the session that the REPL Input's lock keeps while the REPL Input is the current editor (`replInputRouting`, the reason `repl-input`). A lock keeps a session key only when it has no source file. Evaluating from the REPL Input uses that key without routing, so a pinned session doesn't change it, and the status bar shows it without the pin.
+
 **System Guarantees:**
 - CLJC target is set to 'secondary' when CLJS session connects (most recently connected session)
 - REPL window session is always set when connected

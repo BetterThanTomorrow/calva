@@ -212,7 +212,7 @@ While the REPL Input is the last focused place, it is the current editor, and Ca
 
 The adapter's `currentFileChanged` calls `status.update()` and `whenContexts.setCurrentEditorContexts`, which sets `calva:ns` to the context's namespace. The host calls it when the REPL Input becomes or stops being the last focused place, and when the context line's source file, session or namespace changes while it is. `status.update()` calls `replInputRoutingChanged`, which refreshes the context. That settles after one round, since the context line is compared before anything is posted. The status bar asks `replSession.getRoutingInfo()` in `statusbar.update`, whose default is the current file.
 
-A lock without a source file has no current file. The status bar then routes without a document, while `alt+enter` uses the lock's session key, and the two can differ.
+A lock without a source file has no current file, and keeps a session key instead. `currentReplInputSessionKey()` in `current-file.ts` gives it, from the export `replInputKeptSessionKey`, and `replSession.getRoutingInfo()` routes to it before anything else when it asks about no document, with the reason `repl-input`. So the status bar shows the session that `alt+enter` uses, also while a session is pinned, since `context/routed-session-key` doesn't route a kept session key.
 
 ## Where to start
 
