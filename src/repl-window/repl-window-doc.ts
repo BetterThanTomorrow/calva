@@ -3,12 +3,12 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as highlightExtension from '../highlight/src/extension';
 import * as nrepl from '../nrepl';
+import * as cider from '../nrepl/cider';
 import * as util from '../utilities';
 import * as select from '../select';
 import * as formatter from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
 import * as config from '../config';
-import type * as configTypes from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
 import * as codelense from '../providers/codelense';
@@ -66,8 +66,8 @@ export const CLJS_CONNECT_GREETINGS = [
   '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
-function computeDocUri(): vscode.Uri {
-  const projectRoot = state.getProjectRootUri();
+function computeDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
+  const projectRoot = projectRootUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
     return vscode.Uri.joinPath(projectRoot, '.calva', REPL_DOC_NAME);
@@ -77,10 +77,15 @@ function computeDocUri(): vscode.Uri {
 }
 
 let _docUri: vscode.Uri | undefined;
+let isInitialized = false;
 
-function getDocUri(): vscode.Uri {
+/**
+ * Returns the REPL window document. The first call decides where it lives:
+ * in `projectRootUri`, else in the first workspace folder.
+ */
+function getDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
   if (!_docUri) {
-    _docUri = computeDocUri();
+    _docUri = computeDocUri(projectRootUri);
   }
   return _docUri;
 }
@@ -94,7 +99,7 @@ type SessionInfo = {
   session?: nrepl.NReplSession;
 };
 
-let _sessionType: configTypes.ReplSessionType = 'clj';
+let _sessionType: config.ReplSessionType = 'clj';
 const _sessionInfo: Record<string, SessionInfo> = {
   clj: {},
   cljs: {},
@@ -116,7 +121,7 @@ function ensureSessionEntries(sessionType: string) {
 function resolveSessionType(
   session?: nrepl.NReplSession,
   override?: string
-): configTypes.ReplSessionType {
+): config.ReplSessionType {
   if (override) {
     return override;
   }
@@ -146,7 +151,7 @@ export function getNs(): string | undefined {
   return _sessionInfo[_sessionType].ns;
 }
 
-export function getSessionType(): configTypes.ReplSessionType {
+export function getSessionType(): config.ReplSessionType {
   return _sessionType;
 }
 
@@ -362,8 +367,8 @@ export async function clearReplWindowDoc() {
   }
 }
 
-export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
-  const docUri = getDocUri();
+export async function initReplWindowDoc(projectRootUri?: vscode.Uri): Promise<vscode.TextDocument> {
+  const docUri = getDocUri(projectRootUri);
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
   try {
@@ -382,7 +387,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   if (config.getConfig().autoOpenResultOutputDestination) {
     void output.showResultOutputDestination(true);
   }
-  if (_docUri) {
+  if (isInitialized) {
     return doc;
   }
 
@@ -405,6 +410,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
+  isInitialized = true;
   return doc;
 }
 
@@ -598,11 +604,6 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
   return _stacktraceEntries[key];
 }
 
-function stackEntryString(entry: any): string {
-  const name = entry.var || entry.name;
-  return `${name} (${entry.file}:${entry.line})`;
-}
-
 export function saveStacktrace(stacktrace: any[]): void {
   if (stacktrace === undefined || stacktrace.length === 0) {
     return;
@@ -616,7 +617,7 @@ export function saveStacktrace(stacktrace: any[]): void {
       );
     })
     .forEach((entry) => {
-      entry.string = stackEntryString(entry);
+      entry.string = cider.frameLine(entry);
       _lastStacktrace.push(entry);
       const fileUrl = entry['file-url'];
       if (typeof fileUrl === 'string') {

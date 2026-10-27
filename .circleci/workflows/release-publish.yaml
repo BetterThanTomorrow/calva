@@ -20,11 +20,11 @@ jobs:
     filters:: filters()
 
 - prettier-check:
-    requires: [build]
+    requires: [checkout]
     filters:: filters()
 
-- eslint-check:
-    requires: [build]
+- ts-lint:
+    requires: [checkout]
     filters:: filters()
 
 - test-cljslib:
@@ -50,7 +50,7 @@ jobs:
 - github-release:
     requires:
     - prettier-check
-    - eslint-check
+    - ts-lint
     - test-cljslib
     - test-e2e
     - test-smoke

@@ -72,7 +72,7 @@ After pushing, open the [CircleCI dashboard](https://app.circleci.com/pipelines/
 
 The CI pipeline will:
 
-1. Run all tests (prettier, eslint, ClojureScript lib, E2E, smoke, TypeScript unit — includes Clojure grammar)
+1. Run the Prettier and Oxlint checks alongside the build, then run the ClojureScript lib, E2E, smoke, and TypeScript unit tests (including Clojure grammar)
 2. Create a GitHub Release with the changelog contents
 3. For stable releases:
    - Publish to VS Code Marketplace
@@ -156,8 +156,8 @@ If the changelog has no unreleased changes, the script will ask if you want to r
 Triggered by version tags (`v*`). Jobs run in this order:
 
 1. **checkout** - Clone repository
-2. **build** - Build the extension
-3. **Tests** (parallel): prettier-check, eslint-check, test-cljslib, test-e2e, test-smoke, test-smoke-sub-projects, test-ts-unit (grammar covered by test-ts-unit)
+2. **build**, **prettier-check**, and **ts-lint** - Run in parallel after checkout
+3. **Tests** (parallel after build): test-cljslib, test-e2e, test-smoke, test-smoke-sub-projects, test-ts-unit (grammar covered by test-ts-unit)
 4. **github-release** - Create GitHub release with `.vsix` artifact
 5. **marketplace-publish** - Publish to VS Code Marketplace (stable only)
 6. **open-vsx-publish** - Publish to Open VSX (stable only)

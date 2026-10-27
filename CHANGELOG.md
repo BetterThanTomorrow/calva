@@ -4,6 +4,28 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.605] - 2026-10-27
+
+- Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
+- [Add clickable stack traces](https://github.com/BetterThanTomorrow/calva/issues/2853)
+- Fix: [Go to definition only sometimes works for Java sources](https://github.com/BetterThanTomorrow/calva/issues/1436)
+- Fix: `extraNReplMiddleware` not applied when jacking in to Leiningen projects
+- Fix: Leiningen jack-in never applied Calva's nREPL middleware (malformed `update-in` key path)
+
+## [2.0.604] - 2026-10-26
+
+- [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
+
+## [2.0.603] - 2026-10-23
+
+- [Calva Development QOL: Remove stateful project root](https://github.com/BetterThanTomorrow/calva/issues/3295)
+  - Not just for Calva Development... A host of race conditions and misbehavior gets fixed too
+  - Closes [Fix duplicate findProjectRootUri functions](https://github.com/BetterThanTomorrow/calva/issues/1557)
+
+## [2.0.602] - 2026-10-23
+
+- Bump rewrite-clj to v1.3.59
+
 ## [2.0.601] - 2026-10-18
 
 - Fix: [Calva adds `.lsp` and `.clj-kondo` folders to non-Clojure projects](https://github.com/BetterThanTomorrow/calva/issues/2610)

@@ -72,10 +72,7 @@
           #js {:workspaceFolders #js [#js {:uri remote-folder}
                                       #js {:uri file-folder}]})
     (with-redefs [util/vscode-context (atom #js {:extensionUri extension-uri})
-                  util/vscode (atom vscode)
-                  util/get-project-root-uri (fn
-                                             ([] (throw (js/Error. "global getter must not be used")))
-                                             ([_] (throw (js/Error. "global getter must not be used"))))]
+                  util/vscode (atom vscode)]
       (let [roots (vec (sut/local-resource-roots))]
         (is (some #(= remote-folder %) roots)
             "non-file workspace folder is in localResourceRoots")
@@ -187,10 +184,7 @@
                                  "cljs" root-remote
                                  nil)))
                             (with-redefs [util/vscode-context (atom #js {:extensionUri (fake-uri "" "/ext")})
-                                          util/vscode (atom vscode)
-                                          util/get-project-root-uri (fn
-                                                                     ([] (throw (js/Error. "unused")))
-                                                                     ([_] (throw (js/Error. "unused"))))]
+                                          util/vscode (atom vscode)]
                               (let [roots (vec (sut/local-resource-roots))]
                                 (is (some #(= root-remote %) roots)
                                     "second session remote workspace folder is allow-listed")

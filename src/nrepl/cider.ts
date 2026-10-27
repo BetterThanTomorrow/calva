@@ -59,6 +59,122 @@ export interface TestResults {
   'gen-input': unknown;
 }
 
+// A frame from orchard's stacktrace analyzer. bencode sends nil as [].
+export interface StacktraceFrame {
+  name: string;
+  file: string;
+  line: number;
+  class: string;
+  method: string;
+  type: string;
+  flags: string[];
+  ns?: string;
+  fn?: string;
+  var?: string;
+  'file-url'?: string | [];
+}
+
+// https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
+export interface StacktraceCause {
+  class: string;
+  message: string | [];
+  phase: string | [];
+  stacktrace: StacktraceFrame[];
+  data?: string;
+  spec?: unknown;
+  triage?: string;
+  location?: object;
+}
+
+// `analyze-last-stacktrace` and `test-stacktrace` reply with one message per cause, outermost first,
+// then `done`. Other messages for the same id, like track-state's, have no `class`.
+export function stacktraceCausesHandler(
+  resolve: (causes: StacktraceCause[]) => void,
+  reject: (reason: string) => void
+) {
+  const causes: StacktraceCause[] = [];
+  return (msg: any): boolean => {
+    const status: string[] = msg.status ?? [];
+    if (status.includes('unknown-op')) {
+      reject(`The server does not recognize or cannot perform the '${msg.op}' operation`);
+      return true;
+    }
+    if (msg.class !== undefined) {
+      causes.push(msg);
+    }
+    if (status.includes('done')) {
+      resolve(causes);
+      return true;
+    }
+    return false;
+  };
+}
+
+export type MavenCoordinates = { group: string; artifact: string; version: string };
+
+// `info` asked to download sources jars replies with the status `download-sources-jar` and the
+// artifact's coordinates before it fetches a jar, then with the info
+export function infoHandler(
+  resolve: (info: any) => void,
+  reject: (reason: string) => void,
+  onDownload: (coords: MavenCoordinates) => void
+) {
+  return (msg: any): boolean => {
+    const status: string[] = msg.status ?? [];
+    if (status.includes('unknown-op')) {
+      reject(`The server does not recognize or cannot perform the '${msg.op}' operation`);
+      return true;
+    }
+    if (status.includes('download-sources-jar')) {
+      onDownload(msg.coords);
+      return false;
+    }
+    resolve(msg);
+    return true;
+  };
+}
+
+// An error's causes, known already or on their way
+export type Causes = StacktraceCause[] | Promise<StacktraceCause[] | undefined>;
+
+// Calls `f` with the causes right away when they're known, else when they arrive
+export function withCauses(causes: Causes, f: (causes?: StacktraceCause[]) => void) {
+  if (Array.isArray(causes)) {
+    f(causes);
+  } else {
+    void causes.then(f);
+  }
+}
+
+export function outermostCauseFrames(causes?: StacktraceCause[]): StacktraceFrame[] | undefined {
+  return causes?.[0]?.stacktrace;
+}
+
+export function causeHeading({ class: className, message }: StacktraceCause): string {
+  return `${className}: ${typeof message === 'string' ? message : 'No message'}`;
+}
+
+export function frameLine(frame: StacktraceFrame): string {
+  return `${frame.var || frame.name} (${frame.file}:${frame.line})`;
+}
+
+// Every cause, outermost first, with all its frames, for destinations that show text
+export function stacktraceText(causes: StacktraceCause[]): string {
+  return causes
+    .map((cause, index) =>
+      [
+        `${index > 0 ? 'Caused by: ' : ''}${causeHeading(cause)}`,
+        ...(cause.stacktrace ?? []).map((frame) => `  ${frameLine(frame)}`),
+      ].join('\n')
+    )
+    .join('\n');
+}
+
+// ClojureScript errors have causes without frames, and nothing to show as a stacktrace
+export function hasFrames(causes?: StacktraceCause[]): boolean {
+  return causes?.some((cause) => cause.stacktrace?.length > 0) ?? false;
+}
+
 function stripTrailingNewlines(s: string): string {
   return s.replace(/\r?\n$/, '');
 }

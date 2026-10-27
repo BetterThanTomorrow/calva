@@ -144,7 +144,7 @@
       "label": "Calva Watch Lint",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "eslint-watch"],
+      "args": ["run", "lint-watch"],
       "isBackground": true,
       "osx": {
         "options": {
@@ -154,11 +154,32 @@
           }
         }
       },
+      "runOptions": {
+        "instanceLimit": 1
+      },
       "group": {
         "kind": "build",
         "isDefault": false
       },
-      "problemMatcher": "$eslint-compact",
+      "problemMatcher": {
+        "owner": "oxlint",
+        "source": "Oxlint",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+): (.*) \\[(Error|Warning)/(.+)\\]$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4,
+          "severity": 5,
+          "code": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[lint\\] START$",
+          "endsPattern": "^\\[lint\\] END"
+        }
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "defaultCalva"

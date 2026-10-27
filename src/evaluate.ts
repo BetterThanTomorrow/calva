@@ -9,7 +9,6 @@ import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
-import * as resultsOutputUtil from './results-output/util';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
@@ -33,6 +32,28 @@ let inspectorDataProvider: inspector.InspectorDataProvider;
 function initInspectorDataProvider() {
   inspectorDataProvider = new inspector.InspectorDataProvider();
   return inspectorDataProvider;
+}
+
+// Asks for the causes of the session's last error. A failed request gives no causes.
+function lastErrorCauses(session: nrepl.NReplSession) {
+  return session.stacktrace().catch((e) => {
+    console.error(`Failed fetching stacktrace: ${e.message}`);
+    return undefined;
+  });
+}
+
+// The causes the debugger reported with the evaluation, none for an interrupted evaluation, whose
+// `*e` is an older error, else the session's last error
+function evaluationErrorCauses(evaluation: nrepl.NReplEvaluation, session: nrepl.NReplSession) {
+  if (evaluation.interrupted) {
+    return undefined;
+  }
+  return evaluation.causes ?? lastErrorCauses(session);
+}
+
+function asErrorLine(error: unknown) {
+  const text = String(error);
+  return text.endsWith('\n') ? text : `${text}\n`;
 }
 
 function getShadowInfo(session: any) {
@@ -140,6 +161,31 @@ async function addAsComment(
   });
   editor.selections = [selection];
   highlightExtension.highlight(editor);
+}
+
+// Shows an evaluation error at the evaluated code, as a comment when asked for, else as an annotation
+async function annotateEvaluationError(
+  editorError: string,
+  selection: vscode.Selection,
+  editor: vscode.TextEditor,
+  options
+) {
+  const currentCursorPos = editor.selections[0].active;
+  if (options.comment) {
+    await addAsComment(editorError, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  if (editor.document && !replWindow.isReplWindowDoc(editor.document)) {
+    annotations.decorateSelection(
+      editorError,
+      selection,
+      editor,
+      currentCursorPos,
+      annotations.AnnotationStatus.ERROR
+    );
+    if (!options.comment) {
+      annotations.decorateResults(editorError, true, selection, editor);
+    }
+  }
 }
 
 // TODO: Clean up this mess
@@ -283,109 +329,25 @@ async function evaluateCodeUpdatingUI(
         );
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = err.join('\n');
-          if (context.stacktrace) {
-            replWindow.saveStacktrace(context.stacktrace);
-            replWindow.appendLine(
-              resultsOutputUtil.formatAsLineComments(errMsg),
-              (_, afterResultLocation) => {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-              }
-            );
-            if (
-              !outputDestinations
-                .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-                .includes('repl-window')
-            ) {
-              output.appendEvalErr(errMsg, {
-                ns,
-                replSessionType: sessionKey,
-                who: 'ui',
-                ...shadowInfo,
-              });
-            }
-          } else {
-            output.appendEvalErr(errMsg, {
-              ns,
-              replSessionType: sessionKey,
-              who: 'ui',
-              ...shadowInfo,
-            });
-          }
+          output.appendEvalErr(
+            err.join('\n'),
+            { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
+            undefined,
+            context.causes
+          );
         }
       }
     } catch (e) {
       if (showErrorMessage) {
-        const outputWindowError = err.length
-          ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
-          : resultsOutputUtil.formatAsLineComments(e);
-        replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
-          if (selection) {
-            const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selections[0].active;
-            if (editor && options.comment) {
-              await addAsComment(
-                editorError,
-                selection,
-                editor,
-                editor.selections[0],
-                options.commentStyle
-              );
-            }
-            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-              annotations.decorateSelection(
-                editorError,
-                selection,
-                editor,
-                currentCursorPos,
-                annotations.AnnotationStatus.ERROR
-              );
-              if (!options.comment) {
-                annotations.decorateResults(editorError, true, selection, editor);
-              }
-            }
-          }
-          session
-            .stacktrace()
-            .then((stacktrace) => {
-              if (stacktrace && stacktrace.stacktrace) {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-                replWindow.saveStacktrace(stacktrace.stacktrace);
-              }
-            })
-            .catch((e) => {
-              console.error(`Failed fetching stacktrace: ${e.message}`);
-            });
-        });
-        if (
-          !outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .includes('repl-window')
-        ) {
-          output.appendEvalErr(err.length ? err.join('\n') : e, {
-            ns,
-            replSessionType: sessionKey,
-            who: 'ui',
-            ...shadowInfo,
-          });
-          const webviewDestinations = outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .filter(outputDestinations.isWebviewOutputDestination);
-          if (webviewDestinations.length) {
-            session
-              .stacktrace()
-              .then((stacktrace) => {
-                if (stacktrace && stacktrace.stacktrace) {
-                  output.appendStackTraceToWebviewDestinations(
-                    webviewDestinations,
-                    stacktrace.stacktrace
-                  );
-                }
-              })
-              .catch((e) => {
-                console.error(`Failed fetching stacktrace: ${e.message}`);
-              });
-          }
+        const errorText = err.length ? err.join('\n') : String(e);
+        output.appendEvalErr(
+          asErrorLine(errorText),
+          { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
+          undefined,
+          evaluationErrorCauses(context, session)
+        );
+        if (selection && editor) {
+          void annotateEvaluationError(util.stripAnsi(errorText), selection, editor, options);
         }
       }
     }
@@ -832,25 +794,12 @@ async function loadFile(
     }
     return value;
   } catch (e) {
-    replWindow.appendLine(
-      `; Evaluation of file ${fileName} failed: ${e}`,
-      (_location, nextLocation) => {
-        if (res.stacktrace) {
-          replWindow.saveStacktrace(res.stacktrace.stacktrace);
-          replWindow.markLastStacktraceRange(nextLocation);
-        }
-      }
+    output.appendLineOtherErr(
+      `Evaluation of file ${fileName} failed: ${e}`,
+      { who, ...shadowInfo },
+      undefined,
+      evaluationErrorCauses(res, session)
     );
-    if (
-      !outputDestinations
-        .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-        .includes('repl-window')
-    ) {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, {
-        who,
-        ...shadowInfo,
-      });
-    }
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
     }

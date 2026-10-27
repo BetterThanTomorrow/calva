@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
    [matcher-combinators.test]
@@ -283,28 +284,32 @@
             (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "dark"})))))
+                                                                                  :code-theme "dark"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "light"})))))
+                                                                                  :code-theme "light"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast"})))))
+                                                                                  :code-theme "high-contrast"
+                                                                                  :token-colors nil})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
             (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast-light"})))))
+                                                                                  :code-theme "high-contrast-light"
+                                                                                  :token-colors nil})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
@@ -317,15 +322,79 @@
                  "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
                  color-theme-kind))))))))
 
+(deftest set-code-theme!-token-colors-test
+  (testing "sends the active color theme's code colors with the code theme"
+    (let [dark 0
+          context {:vscode/vscode (clj->js {:ColorThemeKind {:Dark dark}})}
+          webview-panel {:some "mock-webview-panel"}
+          post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                    token-colors/active-theme-hljs-colors (fn [kind]
+                                                            (when (= dark kind)
+                                                              {"keyword" "#ff7b72"}))]
+        (sut/set-code-theme! context {:color-theme-kind dark
+                                      :webview-panel webview-panel})
+        (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                              :code-theme "dark"
+                                                                              :token-colors {"keyword" "#ff7b72"}}))))))
+
+(deftest post-code-theme-to-all-views!-test
+  (testing "sets the code theme of every registered webview"
+    (let [set-code-theme-spy (spy/spy)
+          webview-a #js {}
+          webview-b #js {}
+          context {:vscode/vscode #js {}}]
+      (with-redefs [sut/registered-webviews (atom #{webview-a webview-b})
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme-spy)]
+        (sut/post-code-theme-to-all-views! context 2)
+        (is (spy/called-with? set-code-theme-spy context {:color-theme-kind 2 :webview-panel webview-a}))
+        (is (spy/called-with? set-code-theme-spy context {:color-theme-kind 2 :webview-panel webview-b}))
+        (is (spy/called-n-times? set-code-theme-spy 2))))))
+
 (deftest create-color-theme-change-listener-test
-  (testing "Given a context and a webview panel, should call onDidChangeActiveColorTheme and pass it a function"
-    (let [on-did-change-active-color-theme-spy (spy/spy)
-          context {:vscode/vscode (clj->js {:window {:onDidChangeActiveColorTheme
-                                                     (test-util/wrap-spy on-did-change-active-color-theme-spy)}})}]
-      (sut/create-color-theme-change-listener context {:webview-panel {:some "webview-panel"}})
-      (let [calls (spy/calls on-did-change-active-color-theme-spy)]
-        (is (= 1 (count calls)))
-        (is (fn? (type (ffirst calls))))))))
+  (testing "posts the code theme of the new color theme kind to all views"
+    (let [captured-handler (atom nil)
+          post-spy (spy/spy)
+          context {:vscode/vscode #js {:window #js {:onDidChangeActiveColorTheme (fn [handler]
+                                                                                    (reset! captured-handler handler)
+                                                                                    "some-listener")}}}]
+      (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+        (is (= "some-listener" (sut/create-color-theme-change-listener context)))
+        (@captured-handler #js {:kind 1})
+        (is (spy/called-once-with? post-spy context 1))))))
+
+(deftest create-token-color-customizations-change-listener-test
+  (let [captured-handler (atom nil)
+        context {:vscode/vscode #js {:window #js {:activeColorTheme #js {:kind 2}}
+                                     :workspace #js {:onDidChangeConfiguration (fn [handler]
+                                                                                 (reset! captured-handler handler)
+                                                                                 "some-listener")}}}
+        event-for (fn [affected-section]
+                    #js {:affectsConfiguration #(= affected-section %)})]
+    (testing "posts the code theme to all views when editor.tokenColorCustomizations changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+          (is (= "some-listener" (sut/create-token-color-customizations-change-listener context)))
+          (@captured-handler (event-for "editor.tokenColorCustomizations"))
+          (is (spy/called-once-with? post-spy context 2)))))
+    (testing "ignores other configuration changes"
+      (let [post-spy (spy/spy)]
+        (with-redefs [sut/post-code-theme-to-all-views! (test-util/wrap-spy post-spy)]
+          (sut/create-token-color-customizations-change-listener context)
+          (@captured-handler (event-for "editor.wordWrap"))
+          (is (spy/not-called? post-spy)))))))
+
+(deftest init-code-theme!-test
+  (testing "registers the color theme and the token color customizations listeners as subscriptions"
+    (let [push-spy (spy/spy)
+          vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
+      (with-redefs [util/vscode (atom #js {})
+                    util/vscode-context (atom vscode-context-stub)
+                    sut/create-color-theme-change-listener (constantly "color-theme-listener")
+                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")]
+        (sut/init-code-theme!)
+        (is (spy/called-with? push-spy "color-theme-listener"))
+        (is (spy/called-with? push-spy "customizations-listener"))))))
 
 (deftest create-view-state-change-listener-test
   (testing "Given a context and a webview panel, should call onDidChangeViewState and pass it a function"
@@ -560,108 +629,69 @@
                :error
                "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\"")))))))
 
-(deftest stacktrace->message-test
-  (testing "Given a stacktrace with no duplicate flags and no classes to ignore, should return the expected message"
-    (let [stacktrace [{:class "clojure.lang.Numbers",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["java"],
-                       :line 190,
-                       :method "divide",
-                       :name "clojure.lang.Numbers/divide",
-                       :type "java"}
-                      {:fn "eval12684",
-                       :method "invokeStatic",
-                       :ns "core",
-                       :name "core$eval12684/invokeStatic",
-                       :file "NO_SOURCE_FILE",
-                       :type "clj",
-                       :file-url "",
-                       :line 99,
-                       :var "core/eval12684",
-                       :class "core$eval12684",
-                       :flags ["project" "repl" "clj"]}]]
-      (with-redefs [sut/stacktrace-classes-to-ignore #{}]
-        (is (= "clojure.lang.Numbers/divide (Numbers.java:190)\ncore/eval12684 (NO_SOURCE_FILE:99)"
-               (sut/stacktrace->message stacktrace))))))
-  (testing "Given a stacktrace with duplicate flags and classes to ignore,"
-    (let [stacktrace [{:class "some-class-to-ignore",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["java"],
-                       :line 190,
-                       :method "divide",
-                       :name "frame-with-class-to-ignore",
-                       :type "java"}
-                      {:class "clojure.lang.Numbers",
-                       :file "Numbers.java",
-                       :file-url [],
-                       :flags ["dup" "java"],
-                       :line 3915,
-                       :method "divide",
-                       :name "duplicate-frame",
-                       :type "java"}
-                      {:fn "eval12684",
-                       :method "invokeStatic",
-                       :ns "core",
-                       :name "core$eval12684/invokeStatic",
-                       :file "NO_SOURCE_FILE",
-                       :type "clj",
-                       :file-url "",
-                       :line 99,
-                       :var "core/eval12684",
-                       :class "core$eval12684",
-                       :flags ["project" "repl" "clj"]}]]
-      (with-redefs [sut/stacktrace-classes-to-ignore #{"some-class-to-ignore"}]
-        (testing "should return a message with no stacktrace frames that include duplicate flags or classes to ignore"
-          (is (= "core/eval12684 (NO_SOURCE_FILE:99)" (sut/stacktrace->message stacktrace)))))))
-  (testing "Given a stacktrace, should return entries separated by newline characters"
-    (with-redefs [sut/stacktrace-entry->string (constantly "some-entry")]
-      (is (= "some-entry\nsome-entry\nsome-entry"
-             ;; We redefed stacktrace-entry->string to always return "some-entry", so the stacktrace data doesn't
-             ;; matter here, aside from the number of entries.
-             (sut/stacktrace->message ["entry1" "entry2" "entry3"]))))))
+(deftest error-message-test
+  (testing "Given options, the error text and JS cause messages,"
+    (let [causes (clj->js [{:class "clojure.lang.ExceptionInfo"
+                            :message "Could not start"
+                            :phase []
+                            :id "7"
+                            :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
+                                          :file-url []
+                                          :flags ["project" "clj"]}]}])]
+      (testing "should return one show-error message with the causes as data"
+        (is (= {:command/name "show-error"
+                :error/text "Execution error"
+                :error/category "evalErr"
+                :error/causes [{:class "clojure.lang.ExceptionInfo"
+                                :message "Could not start"
+                                :phase nil
+                                :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
+                                              :file-url nil
+                                              :flags #{"project" "clj"}}]}]
+                :error/unfolded? false
+                :id "e1"
+                :meta {:meta/ns "user"}}
+               (sut/error-message (clj->js {:outputCategory "evalErr" :ns "user"})
+                                  "Execution error"
+                                  causes
+                                  "e1"))))
+      (testing "should start unfolded when the options say so"
+        (is (true? (:error/unfolded? (sut/error-message (clj->js {:outputCategory "evalErr" :unfolded true})
+                                                        "Execution error"
+                                                        causes
+                                                        "e1")))))))
+  (testing "Given causes that come later, should return a message without causes"
+    (is (= [] (:error/causes (sut/error-message (clj->js {:outputCategory "evalErr"}) "Execution error" nil "e1"))))))
 
-(deftest append-stacktrace-test
-  (testing "Given a JS stacktrace,"
-    (let [stacktrace->message-spy (spy/stub "some-message")
-          post-message-to-webview-spy (spy/spy)
-          clj-stacktrace [{:class "clojure.lang.Numbers",
-                           :file "Numbers.java"}
-                          {:file "NO_SOURCE_FILE",
-                           :class "core$eval12684"}]
-          js-stacktrace (clj->js clj-stacktrace)]
-      (with-redefs [sut/stacktrace->message (test-util/wrap-spy stacktrace->message-spy)
-                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+(deftest attach-error-causes-test
+  (let [post-message-to-webview-spy (spy/spy)]
+    (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                  sut/output-view-webview-panel (atom nil)]
+      (sut/attach-error-causes "e1" (clj->js []))
+      (is (spy/called-once-with? post-message-to-webview-spy nil (sut/causes-message "e1" (clj->js [])))
+          "A closed Output View stays closed: there is no panel to post to"))))
+
+(deftest causes-message-test
+  (is (= {:command/name "show-error-causes"
+          :error/id "e1"
+          :error/causes [{:class "java.lang.ArithmeticException" :message nil :stacktrace []}]}
+         (sut/causes-message "e1" (clj->js [{:class "java.lang.ArithmeticException" :message [] :stacktrace []}])))
+      "Gives the entry its causes as data"))
+
+(deftest append-error-test
+  (testing "when the webview panel exists, should post the error message to it"
+    (let [post-message-to-webview-spy (spy/spy)]
+      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                     sut/output-view-webview-panel (atom "webview-panel-stub")]
-        (sut/append-stacktrace js-stacktrace)
-        (is (spy/called-once-with? stacktrace->message-spy clj-stacktrace))
+        (sut/append-error (clj->js {:outputCategory "evalErr"}) "Execution error" (clj->js []) "e1")
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
-                                   {:command/name "show-stdout"
-                                    :output-category "evalErr"
-                                    :output "some-message"})))))
-  (testing "when the webview panel does not exist, should create it before posting"
-    (let [create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
-          set-code-theme!-spy (spy/spy)
-          post-message-to-webview-spy (spy/spy)
-          vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
-      (with-redefs [util/vscode (atom vscode-stub)
-                    util/vscode-context (atom "vscode-context")
-                    sut/output-view-webview-panel (atom nil)
-                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
-                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
-                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-        (sut/append-stacktrace (clj->js []))
-        (is (spy/called-once-with? create-repl-output-webview-panel-spy
-                                   {:env/is-debug (:is-debug util/env)
-                                    :vscode/vscode vscode-stub
-                                    :vscode/context "vscode-context"}))
-        (is (spy/called-once-with? post-message-to-webview-spy
-                                   "created-webview-panel"
-                                   {:command/name "show-stdout"
-                                    :output-category "evalErr"
-                                    :output ""}))))))
+                                   {:command/name "show-error"
+                                    :error/text "Execution error"
+                                    :error/category "evalErr"
+                                    :error/causes []
+                                    :error/unfolded? false
+                                    :id "e1"}))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"

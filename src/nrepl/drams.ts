@@ -242,7 +242,7 @@ export async function createAndOpenDram(
 
   let projectRootUri: vscode.Uri;
   if (choice === 'Use random temp directory') {
-    projectRootUri = await state.setOrCreateNonProjectRoot(context);
+    projectRootUri = state.tempRootUri();
   } else {
     const folderUris = await vscode.window.showOpenDialog({
       canSelectFolders: true,
@@ -335,11 +335,11 @@ async function deserializeDramStartConfig(projectRootUri: vscode.Uri): Promise<D
 }
 
 export async function dramStartConfigExists(): Promise<boolean> {
-  const projectRootUri = state.getProjectRootUri();
-  if (!projectRootUri) {
+  const workspaceFolderUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+  if (!workspaceFolderUri) {
     return false;
   }
-  return vscode.workspace.fs.stat(ARGS_FILE_PATH(projectRootUri)).then(
+  return vscode.workspace.fs.stat(ARGS_FILE_PATH(workspaceFolderUri)).then(
     () => true,
     () => false
   );
@@ -356,11 +356,18 @@ export async function maybeStartDram() {
 
 export async function startDram() {
   console.debug('Starting dram..');
-  const config = (await deserializeDramStartConfig(state.getProjectRootUri())).config;
+  const workspaceFolderUri = vscode.workspace.workspaceFolders?.[0]?.uri;
+  if (!workspaceFolderUri) {
+    return;
+  }
+  const config = (await deserializeDramStartConfig(workspaceFolderUri)).config;
   console.debug('Dram start config:', config);
-  void vscode.workspace.fs.delete(ARGS_FILE_PATH(state.getProjectRootUri()));
-  await state.initProjectDir(connectTypes.ConnectType.JackIn, null, false);
-  const projectRootUri = state.getProjectRootUri();
+  void vscode.workspace.fs.delete(ARGS_FILE_PATH(workspaceFolderUri));
+  const projectRootUri = (await state.decideFlowRoot(connectTypes.ConnectType.JackIn, null, false))
+    ?.root;
+  if (!projectRootUri) {
+    return;
+  }
   const openPaths = dramManifest.resolveDramOpenPaths(config);
 
   if (openPaths.length === 0) {

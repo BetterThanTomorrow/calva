@@ -153,7 +153,7 @@
             [:meta {:name "twitter:image" :content image}]))))
 
 (defn- head
-  [{:site/keys [name description favicon extra-css]
+  [{:site/keys [name description icons extra-css]
     :material/keys [stylesheets fonts-stylesheet fonts-style] :script/keys [md-helpers] :as site}
    {:page/keys [url title] page-description :page/description :as page}]
   (let [href #(url/site-href url %)]
@@ -163,7 +163,7 @@
      [:meta {:name "description" :content (or page-description description)}]
      (page-links site page)
      (social-meta site page)
-     [:link {:rel "icon" :href (href favicon)}]
+     (for [icon icons] [:link (update icon :href href)])
      [:title (if title (str title " - " name) name)]
      (for [path stylesheets] [:link {:rel "stylesheet" :href (href path)}])
      [:link {:rel "preconnect" :href "https://fonts.gstatic.com" :crossorigin ""}]

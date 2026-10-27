@@ -2,6 +2,8 @@
   (:require
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.token-colors :as token-colors]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -347,21 +349,27 @@
 
 (defn set-code-theme!
   "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based
-   on the given color theme kind."
+   on the given color theme kind, with the code colors of the active color theme."
   [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
   (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
         code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)]
     (if code-theme
       (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :code-theme code-theme})
+                                              :code-theme code-theme
+                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)})
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
        color-theme-kind))))
 
+(defn post-code-theme-to-all-views!
+  [context color-theme-kind]
+  (run! #(set-code-theme! context {:color-theme-kind color-theme-kind
+                                   :webview-panel %})
+        @registered-webviews))
+
 (defn create-color-theme-change-listener
-  [{:keys [^js vscode/vscode] :as context}
-   {:keys [webview-panel]}]
+  [{:keys [^js vscode/vscode] :as context}]
   (.. vscode -window
       (onDidChangeActiveColorTheme
        (fn [e]
@@ -370,8 +378,22 @@
          ;; This is probably called more frequently than it needs to be, but if that's problematic we can try to
          ;; figure out how to identify when this event means the output view moved into or out of the main window.
          ;; This event fires for more cases than just that, such as when it's focused or unfocused.
-         (set-code-theme! context {:color-theme-kind (.. e -kind)
-                                   :webview-panel webview-panel})))))
+         (post-code-theme-to-all-views! context (.. e -kind))))))
+
+(defn create-token-color-customizations-change-listener
+  [{:keys [^js vscode/vscode] :as context}]
+  (.. vscode -workspace
+      (onDidChangeConfiguration
+       (fn [^js event]
+         (when (.affectsConfiguration event "editor.tokenColorCustomizations")
+           (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
+
+(defn ^:export init-code-theme!
+  []
+  (let [context {:vscode/vscode @util/vscode}]
+    (when-let [^js vscode-context @util/vscode-context]
+      (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
+      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context))))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}
@@ -387,11 +409,7 @@
   [{vscode-context :vscode/context
     :as context}
    {:keys [webview-panel]}]
-  (let [subscriptions [(create-color-theme-change-listener context {:webview-panel webview-panel})
-                       (create-view-state-change-listener context {:webview-panel webview-panel})]]
-    (run! (fn [subscription]
-            (.. ^js vscode-context -subscriptions (push subscription)))
-          subscriptions)))
+  (.. ^js vscode-context -subscriptions (push (create-view-state-change-listener context {:webview-panel webview-panel}))))
 
 (defn add-listeners!
   [^js webview-panel]
@@ -505,32 +523,41 @@
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
-(def stacktrace-classes-to-ignore
-  #{"clojure.lang.RestFn"
-    "clojure.lang.AFn"})
+(defn- causes-data
+  [^js causes]
+  (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true)))
 
-(defn stacktrace-entry->string
-  [{:keys [var name file line]}]
-  (let [name (or var name)]
-    (str name " (" file ":" line ")")))
+(defn error-message
+  "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause
+   messages or nil when they come later, as the Output view entry `error-id`. `options` are those
+   of `append`, plus `unfolded`."
+  [^js options text ^js causes error-id]
+  (let [category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        unfolded? (if (map? options) (:unfolded options) (.-unfolded options))
+        meta-data (options->meta options)]
+    (cond-> {:command/name "show-error"
+             :error/text text
+             :error/category category
+             :error/causes (causes-data causes)
+             :error/unfolded? (boolean unfolded?)}
+      error-id (assoc :id error-id)
+      (seq meta-data) (assoc :meta meta-data))))
 
-(defn stacktrace->message
-  "Takes a clojurefied stacktrace and returns a string representation of it for printing."
-  [stacktrace]
-  (->> stacktrace
-       (filter (fn [{:keys [flags class]}]
-                 (and (not (some #{"dup"} flags))
-                      (not (contains? stacktrace-classes-to-ignore class)))))
-       (map stacktrace-entry->string)
-       (str/join "\n")))
+(defn causes-message
+  "Returns the message that gives the Output view entry `error-id` its `causes`."
+  [error-id ^js causes]
+  {:command/name "show-error-causes"
+   :error/id error-id
+   :error/causes (causes-data causes)})
 
-(defn ^:export append-stacktrace
-  [^js stacktrace]
-  (let [stacktrace (js->clj stacktrace :keywordize-keys true)
-        stacktrace-message (stacktrace->message stacktrace)]
-    (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
-                                                         :output-category "evalErr"
-                                                         :output stacktrace-message})))
+(defn ^:export append-error
+  [^js options text ^js causes error-id]
+  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
+  [error-id ^js causes]
+  (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
 
 (defn ^:export clear-output-view
   []

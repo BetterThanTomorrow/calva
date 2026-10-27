@@ -12,6 +12,8 @@ steps:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
+- !:bin Install Node
+
 - !:cmd
   - Compile Extension Tests
   - npm run compile-test
@@ -24,7 +26,7 @@ steps:
 
 - !:cmd
   - Run Extension Tests
-  - npm run e2e-test
+  - npm run e2e-test -- --local
 
 - !:store
     test_results: ~/calva/junit
