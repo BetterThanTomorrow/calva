@@ -326,8 +326,8 @@
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
         error (get-in db [:output/errors "e1"])
         copy (fn [kind] (sut/handle-action db [:error/ax.copy {:error/id "e1" :copy/kind kind}]))]
-    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/kind :shown :copy/text (stacktrace/shown-text error)}]]
-           (:uf/fxs (copy :shown))))
+    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/kind :filtered :copy/text (stacktrace/filtered-text error)}]]
+           (:uf/fxs (copy :filtered))))
     (is (= [[:fx/copy-error-text {:error/id "e1" :copy/kind :whole :copy/text (stacktrace/whole-text error)}]]
            (:uf/fxs (copy :whole))))
     (is (= db (:uf/db (copy :whole)))

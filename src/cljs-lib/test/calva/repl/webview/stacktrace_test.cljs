@@ -144,17 +144,28 @@
     (is (= ["Execution error"
             "clojure.lang.ExceptionInfo: Could not start"
             "{:service :web, :opts {:a 1, :b 2, :c 3, :d 4, :e 5, ...}}"
+            "  myproj.core/start! (core.clj:16)"
+            "  user/eval9095 (NO_SOURCE_FILE:1)"
             "Caused by: clojure.lang.ExceptionInfo: Bad config"
             "{:config {:port \"abc\"}, :step :load-config}"
+            "  myproj.core/load-config (core.clj:10)"
+            "  user/eval9095 (NO_SOURCE_FILE:1)"
             "Caused by: java.lang.NumberFormatException: For input string: \"abc\""
             "  java.lang.NumberFormatException/forInputString (NumberFormatException.java:67)"
             "  myproj.core/parse-port (core.clj:4)"
             "  user/eval9095 (NO_SOURCE_FILE:1)"]
-           (str/split-lines (sut/shown-text error)))
-        "As shown: every cause with its ex-data, and the root cause's frames the filter shows")
-    (is (= "Caused by: java.lang.NumberFormatException: For input string: \"abc\""
-           (->> (sut/shown-text (sut/toggle-cause error 2)) str/split-lines last))
-        "A folded cause's frames are left out")
+           (str/split-lines (sut/filtered-text error)))
+        "Filtered: every cause with its ex-data and the frames the filter shows")
+    (is (= (sut/filtered-text error)
+           (sut/filtered-text (sut/toggle-cause (sut/toggle-unfolded error) 0)))
+        "Folding doesn't change what is copied")
+    (let [project-frames (->> (sut/filtered-text (assoc error :error/frame-filter :project))
+                              str/split-lines
+                              (filter #(str/starts-with? % "  ")))]
+      (is (= 5 (count project-frames))
+          "Project only copies the five project frames")
+      (is (every? #(str/starts-with? % "  myproj.core/") project-frames)
+          "and no other frames"))
     (is (= 22 (count (str/split-lines (sut/whole-text error))))
         "The whole stacktrace: the text, three causes, two ex-data and all 16 frames")
     (is (= (sut/whole-text error)

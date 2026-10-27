@@ -109,7 +109,7 @@
 
     :error/ax.copy
     (let [{:error/keys [id] :copy/keys [kind]} payload
-          text-of (if (= :whole kind) stacktrace/whole-text stacktrace/shown-text)]
+          text-of (if (= :whole kind) stacktrace/whole-text stacktrace/filtered-text)]
       {:uf/db db
        :uf/fxs [[:fx/copy-error-text {:error/id id
                                       :copy/kind kind

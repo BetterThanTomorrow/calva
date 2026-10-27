@@ -234,6 +234,7 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
 }
 
 .output-error {
+   position: relative;
    font-family: var(--vscode-editor-font-family, monospace);
    font-size: calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1));
    margin-block: 4px;
@@ -426,28 +427,77 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    color: var(--vscode-descriptionForeground, #858585);
 }
 
+/* The error's copy buttons look and behave like the copy button highlightjs-copy gives results:
+   icon buttons in the top right corner, outside the flow, showing on hover or focus. */
 .output-error-copy-buttons {
-   display: inline-flex;
+   position: absolute;
+   top: 0;
+   right: 0;
+   display: flex;
    gap: 4px;
-   margin-inline-start: auto;
+   opacity: 0;
+   transition: opacity 200ms ease-out;
+}
+
+.output-error:hover .output-error-copy-buttons,
+.output-error-copy-buttons:focus-within {
+   opacity: 1;
 }
 
 .output-error .output-error-copy {
-   display: inline-flex;
-   width: auto;
-   padding: 1px 6px;
-   border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, #454545));
-   border-radius: 3px;
+   position: relative;
+   width: 32px;
+   height: 32px;
+   border: 1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc), transparent 80%);
+   border-radius: 0.25rem;
+   background-color: var(--vscode-editor-background, #1e1e1e);
    color: var(--vscode-foreground, #cccccc);
+   transition: background-color 200ms ease;
 }
 
 .output-error .output-error-copy:hover {
-   background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+   background-color: color-mix(in srgb, var(--vscode-foreground, #cccccc), var(--vscode-editor-background, #1e1e1e) 90%);
 }
 
-.output-error .output-error-copy[data-copied="true"]::after {
-   content: " ✓";
-   white-space: pre;
+.output-error .output-error-copy:focus-visible {
+   outline: 1px solid var(--vscode-focusBorder, #007fd4);
+   outline-offset: -1px;
+}
+
+.output-error-copy::before {
+   content: "";
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   width: 1rem;
+   height: 1rem;
+   transform: translate(-50%, -50%);
+   background-color: currentColor;
+   mask-repeat: no-repeat;
+   mask-size: contain;
+   mask-position: center center;
+}
+
+/* highlightjs-copy's clipboard */
+.output-error-copy-whole::before {
+   mask-image: url('data:image/svg+xml;utf-8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6 5C5.73478 5 5.48043 5.10536 5.29289 5.29289C5.10536 5.48043 5 5.73478 5 6V20C5 20.2652 5.10536 20.5196 5.29289 20.7071C5.48043 20.8946 5.73478 21 6 21H18C18.2652 21 18.5196 20.8946 18.7071 20.7071C18.8946 20.5196 19 20.2652 19 20V6C19 5.73478 18.8946 5.48043 18.7071 5.29289C18.5196 5.10536 18.2652 5 18 5H16C15.4477 5 15 4.55228 15 4C15 3.44772 15.4477 3 16 3H18C18.7956 3 19.5587 3.31607 20.1213 3.87868C20.6839 4.44129 21 5.20435 21 6V20C21 20.7957 20.6839 21.5587 20.1213 22.1213C19.5587 22.6839 18.7957 23 18 23H6C5.20435 23 4.44129 22.6839 3.87868 22.1213C3.31607 21.5587 3 20.7957 3 20V6C3 5.20435 3.31607 4.44129 3.87868 3.87868C4.44129 3.31607 5.20435 3 6 3H8C8.55228 3 9 3.44772 9 4C9 4.55228 8.55228 5 8 5H6Z" fill="black"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7 3C7 1.89543 7.89543 1 9 1H15C16.1046 1 17 1.89543 17 3V5C17 6.10457 16.1046 7 15 7H9C7.89543 7 7 6.10457 7 5V3ZM15 3H9V5H15V3Z" fill="black"/></svg>');
+}
+
+/* The filter codicon */
+.output-error-copy-filtered::before {
+   mask-image: url('data:image/svg+xml;utf-8,<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>');
+}
+
+/* The check codicon, as Copy image shows when copied */
+.output-error-copy[data-copied="true"]::before {
+   mask-image: url('data:image/svg+xml;utf-8,<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z"/></svg>');
+}
+
+@media (prefers-reduced-motion) {
+   .output-error-copy-buttons,
+   .output-error .output-error-copy {
+      transition: none;
+   }
 }
 
 .output-error-location {
