@@ -23,7 +23,7 @@ function tsFiles(dir: string): string[] {
 }
 
 function namesAfter(source: string, prefix: string): string[] {
-  return [...source.matchAll(new RegExp(`(?<![\\w$.])${prefix}\\.([\\w$]+)`, 'g'))].map(
+  return [...source.matchAll(new RegExp(`(?<![\\w$.])${prefix}\\s*\\.([\\w$]+)`, 'g'))].map(
     (m) => m[1]
   );
 }
