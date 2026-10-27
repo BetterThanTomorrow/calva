@@ -21,13 +21,14 @@
   [routes source-file]
   (get routes source-file (if (and source-file (string/ends-with? source-file ".cljs")) "cljs" "clj")))
 
-(defn fake-adapter [{:keys [contexts restored session-keys routes builds evaluations completions definition opened]}]
+(defn fake-adapter [{:keys [contexts restored session-keys routes builds evaluations completions definition opened current-file-changes]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
        :cursorContexts (fn [^js doc] #js {"calva:cursorInComment" (string/starts-with? (.-text doc) ";")})
        :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
        :restoreEditorCursorContexts (fn [] @restored)
+       :currentFileChanged (fn [ns] (swap! current-file-changes conj ns))
        :editorNamespace (fn [^js document _position] #js [(.-ns document) (str "(ns " (.-ns document) ")")])
        :routedSessionKey (fn [source-file] (fake-route @routes source-file))
        :sessionBuild (fn [session-key] (get @builds session-key))
@@ -64,7 +65,8 @@
               :evaluations (atom [])
               :completions (atom [])
               :definition (atom nil)
-              :opened (atom [])}]
+              :opened (atom [])
+              :current-file-changes (atom [])}]
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})

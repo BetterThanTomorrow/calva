@@ -336,3 +336,44 @@
               (post! {:command "repl-input-connect" :repl-input/id "output-sidebar"}))
             (testing "opens the menu of the status bar's REPL button"
               (is (= ["calva.showReplMenu"] @executed)))))))))
+
+(deftest current-editor-test
+  (with-fresh-host
+    (fn [{:keys [current-file-changes routes] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.clj"} #js {})
+          (testing "gives the source file of the context"
+            (is (= "file:///pirate/src/pirate/lib.clj" (sut/context-source-file))))
+          (testing "tells nothing while the REPL Input isn't the current editor"
+            (is (= [] @current-file-changes)))
+          (post! {:command "repl-input-focused" :repl-input/id "output-view"})
+          (testing "tells that the current file changed when the REPL Input becomes the current editor, with the context's namespace"
+            (is (= ["pirate.lib"] @current-file-changes)))
+          (post! {:command "repl-input-blurred" :repl-input/id "output-view"})
+          (post! {:command "repl-input-focused" :repl-input/id "output-sidebar"})
+          (testing "tells nothing when the focus goes to the command palette, or to the other REPL Input"
+            (is (= ["pirate.lib"] @current-file-changes)))
+          (sut/lock! {:repl-input.context/ns "pirate.ui"
+                      :repl-input.context/ns-form "(ns pirate.ui)"
+                      :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs"})
+          (testing "tells when the source file of the context changes"
+            (is (= ["pirate.lib" "pirate.ui"] @current-file-changes))
+            (is (= "file:///pirate/src/pirate/ui.cljs" (sut/context-source-file))))
+          (sut/lock! {:repl-input.context/ns "pirate.ui.views"
+                      :repl-input.context/ns-form "(ns pirate.ui.views)"
+                      :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs"})
+          (testing "tells when the namespace of the context changes"
+            (is (= ["pirate.lib" "pirate.ui" "pirate.ui.views"] @current-file-changes)))
+          (swap! routes assoc "file:///pirate/src/pirate/ui.cljs" "cljs:2")
+          (sut/routing-changed!)
+          (testing "tells when the session of the context changes"
+            (is (= 4 (count @current-file-changes))))
+          (sut/text-editor-focused!)
+          (testing "tells when the REPL Input stops being the current editor, without a namespace"
+            (is (= ["pirate.ui.views" nil] (take-last 2 @current-file-changes))))
+          (sut/follow-editor!)
+          (testing "tells nothing about the context while the REPL Input isn't the current editor"
+            (is (= 5 (count @current-file-changes)))))))))

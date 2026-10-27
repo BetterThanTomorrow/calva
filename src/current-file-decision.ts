@@ -15,14 +15,22 @@ export function firstFileUri(documents: (EditorDocument | undefined)[]): vscode.
   return documents.find(isFileDocument)?.uri;
 }
 
+/** The REPL Input while it is the current editor, with the source file of its context. */
+export type ReplInputEditor = { sourceFile: vscode.Uri | undefined };
+
 /**
- * Returns the URI of the file the user is in: the active editor's. When no text editor is
- * active, `lastActiveUri`, or without it, the first of the `visible` editors'.
+ * Returns the URI of the file the user is in: the `replInput`'s source file while it is the
+ * current editor, else the active editor's. When no text editor is active, `lastActiveUri`, or
+ * without it, the first of the `visible` editors'.
  */
 export function decideCurrentFileUri(
   active: EditorDocument | undefined,
   lastActiveUri: vscode.Uri | undefined,
-  visible: EditorDocument[] = []
+  visible: EditorDocument[] = [],
+  replInput?: ReplInputEditor
 ): vscode.Uri | undefined {
+  if (replInput) {
+    return replInput.sourceFile;
+  }
   return firstFileUri([active]) ?? lastActiveUri ?? firstFileUri(visible);
 }

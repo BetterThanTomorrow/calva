@@ -22,6 +22,7 @@ import * as replInputDefinition from './repl-input-definition';
 import * as replInputDocument from './repl-input-document';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
+import * as status from './status';
 import * as cursorGetText from './util/cursor-get-text';
 import * as nsForm from './util/ns-form';
 import * as whenContexts from './when-contexts';
@@ -263,6 +264,10 @@ function initReplInput() {
     },
     restoreEditorCursorContexts: () =>
       whenContexts.setCursorContextIfChanged(vscode.window.activeTextEditor),
+    currentFileChanged: (replInputNs: string | null) => {
+      status.update();
+      whenContexts.setCurrentEditorContexts(replInputNs);
+    },
     ...replInputCompletion.completionAdapter,
     ...replInputDefinition.definitionAdapter,
   });

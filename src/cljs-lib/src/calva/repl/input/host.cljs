@@ -160,10 +160,18 @@
     (swap! !state assoc :repl-input/applied-focused-contexts contexts)))
 
 (defn- set-context-on-change!
-  "Sets the context key `k` to whether there is a REPL Input id `after`, when that differs from `before`."
+  "Sets the context key `k` to whether there is a REPL Input id `after`, when that differs from `before`.
+   Returns true when it set it."
   [k before after]
   (when (not= (some? before) (some? after))
-    (set-context! k (some? after))))
+    (set-context! k (some? after))
+    true))
+
+(defn- current-file-changed!
+  "Tells Calva that the current file changed, with the namespace of the context line in `state` while a
+   REPL Input is the last focused place, else nil."
+  [{:repl-input/keys [last-focused] :repl-input.context/keys [line]}]
+  (some-> ^js @!adapter (.currentFileChanged (when last-focused (:repl-input.context/ns line)))))
 
 (defn- tell-other-views-not-last-focused!
   "Tells the REPL Inputs other than the last focused one, so that only it takes the focus back when its
@@ -180,7 +188,8 @@
                                                (update :repl-input/last-focused focus/last-focused-after event)))
         focused? (some? (:repl-input/focused after))]
     (set-context-on-change! focused-context (:repl-input/focused before) (:repl-input/focused after))
-    (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
+    (when (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
+      (current-file-changed! after))
     (when (and (:repl-input/last-focused after)
                (not= (:repl-input/last-focused before) (:repl-input/last-focused after)))
       (tell-other-views-not-last-focused! after))
@@ -297,6 +306,18 @@
                           :session-keys (.sessionKeys ^js @!adapter)})
         (context/with-builds session-build))))
 
+(def ^:private current-editor-keys
+  [:repl-input.context/source-file :repl-input.context/session-key :repl-input.context/ns])
+
+(defn- tell-current-editor-changed!
+  "Tells that the current file changed while the REPL Input is the current editor, when the source file,
+   the session or the namespace of the context line in `after` differs from the line in `before`."
+  [{:repl-input/keys [last-focused] :as before} after]
+  (when (and last-focused
+             (not= (select-keys (:repl-input.context/line after) current-editor-keys)
+                   (select-keys (:repl-input.context/line before) current-editor-keys)))
+    (current-file-changed! after)))
+
 (defn context-line-message
   [line]
   {:command/name "repl-input-context"
@@ -308,11 +329,12 @@
   []
   (let [current (current-context)
         line (context/line current)
-        [before _] (swap-vals! !state assoc :repl-input.context/line line)]
+        [before after] (swap-vals! !state assoc :repl-input.context/line line)]
     (when (not= line (:repl-input.context/line before))
       (doseq [id (keys (:repl-input/records @!state))]
         (post-to-view! id (context-line-message line)))
       (refresh-history!))
+    (tell-current-editor-changed! before after)
     current))
 
 (defn- refresh-mounted-context!
@@ -410,6 +432,11 @@
   "True while Calva's commands reach a REPL Input: while one has focus, or is the last focused place."
   []
   (some? (command-target @!state)))
+
+(defn ^:export context-source-file
+  "Returns the source file of the context the REPL Inputs evaluate in, as the context line has it, or nil."
+  []
+  (get-in @!state [:repl-input.context/line :repl-input.context/source-file]))
 
 (defn terminal-focused!
   []

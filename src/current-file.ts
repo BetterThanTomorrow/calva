@@ -1,27 +1,53 @@
 import * as vscode from 'vscode';
-import { decideCurrentFileUri } from './current-file-decision';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import { decideCurrentFileUri, type ReplInputEditor } from './current-file-decision';
 
 let lastActiveUri: vscode.Uri | undefined;
 
-/**
- * Returns the URI of the file the user is in.
- */
-export function currentFileUri(): vscode.Uri | undefined {
+function replInputEditor(): ReplInputEditor | undefined {
+  if (cljsLib.replInputFocused()) {
+    const sourceFile: string | null = cljsLib.replInputSourceFile();
+    return { sourceFile: sourceFile ? vscode.Uri.parse(sourceFile) : undefined };
+  }
+}
+
+function fileUri(replInput?: ReplInputEditor): vscode.Uri | undefined {
   return decideCurrentFileUri(
     vscode.window.activeTextEditor?.document,
     lastActiveUri,
-    vscode.window.visibleTextEditors.map((editor) => editor.document)
+    vscode.window.visibleTextEditors.map((editor) => editor.document),
+    replInput
   );
+}
+
+function openDocument(uri: vscode.Uri | undefined): vscode.TextDocument | undefined {
+  const key = uri?.toString();
+  return key
+    ? vscode.workspace.textDocuments.find((document) => document.uri.toString() === key)
+    : undefined;
+}
+
+/**
+ * Returns the URI of the file the user is in, the REPL Input's source file while it is the current
+ * editor.
+ */
+export function currentFileUri(): vscode.Uri | undefined {
+  return fileUri(replInputEditor());
 }
 
 /**
  * Returns the document of the file the user is in, when it is open.
  */
 export function currentFileDocument(): vscode.TextDocument | undefined {
-  const uri = currentFileUri()?.toString();
-  return uri
-    ? vscode.workspace.textDocuments.find((document) => document.uri.toString() === uri)
-    : undefined;
+  return openDocument(currentFileUri());
+}
+
+/**
+ * Returns the document of the active editor, or of the last active one while a webview or another
+ * view has the focus, when it is open. Commands on a file's text act on it.
+ */
+export function activeEditorDocument(): vscode.TextDocument | undefined {
+  return openDocument(fileUri());
 }
 
 function tabUris({ input }: vscode.Tab): vscode.Uri[] {

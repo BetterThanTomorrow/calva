@@ -233,7 +233,7 @@ function tryToGetDocument(
   if (document && Object.prototype.hasOwnProperty.call(document, 'fileName')) {
     return document as vscode.TextDocument;
   }
-  return currentFile.currentFileDocument();
+  return currentFile.activeEditorDocument();
 }
 
 function getDocument(document: vscode.TextDocument | Record<string, never>): vscode.TextDocument {

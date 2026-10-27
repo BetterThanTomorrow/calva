@@ -18,6 +18,11 @@ describe('current file decision', () => {
       active.uri,
       'The active editor is the current file'
     );
+    assert.strictEqual(
+      decideCurrentFileUri(active, undefined, [], undefined),
+      active.uri,
+      'The active editor is the current file while the REPL Input is not the current editor'
+    );
   });
 
   it('gives an active editor of any language or scheme', () => {
@@ -73,6 +78,20 @@ describe('current file decision', () => {
       firstFileUri([document('extension-output-git', 'log', 'output')]),
       undefined,
       'An output channel is not a file'
+    );
+  });
+
+  it("gives the REPL Input's source file while it is the current editor", () => {
+    const sourceFile = uri('/p/src/b.cljs');
+    assert.strictEqual(
+      decideCurrentFileUri(document('/p/src/a.clj'), uri('/p/src/c.clj'), [], { sourceFile }),
+      sourceFile,
+      "The REPL Input's source file is the current file, not the active editor's"
+    );
+    assert.strictEqual(
+      decideCurrentFileUri(document('/p/src/a.clj'), undefined, [], { sourceFile: undefined }),
+      undefined,
+      'A REPL Input without a source file gives no file'
     );
   });
 

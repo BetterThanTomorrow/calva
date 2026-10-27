@@ -531,7 +531,7 @@ async function evaluateSelection(document = {}, options) {
     const line = codeSelection.start.line;
     const column = codeSelection.start.character;
     const filePath = doc.fileName;
-    const session = replSession.getSession();
+    const session = replSession.getSession(doc);
 
     if (code.length > 0) {
       if (options.debug) {
@@ -791,7 +791,7 @@ async function loadDocument(
   }
   const fileType = util.getFileType(doc.uri);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession(doc);
 
   if (
     doc &&
@@ -808,7 +808,16 @@ async function loadDocument(
     if (loadFileRuntimeId !== undefined) {
       shadowCljsRuntime.recordRuntimeActivity(loadFileRuntimeId);
     }
-    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey, who);
+    return await loadFile(
+      filePath,
+      ns,
+      nsForm,
+      pprintOptions,
+      fileType,
+      silent,
+      sessionKey ?? replSession.getSessionKey(doc),
+      who
+    );
   }
 }
 
@@ -968,12 +977,13 @@ async function evaluateUser(code: string) {
 async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
-      [ns, _nsForm] = namespace.getDocumentNamespace(util.tryToGetDocument({})),
-      session = replSession.getSession();
+      doc = util.tryToGetDocument({}),
+      [ns, _nsForm] = namespace.getDocumentNamespace(doc),
+      session = replSession.getSession(doc);
 
     if (session) {
       try {
-        await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
+        await namespace.createNamespaceFromDocumentIfNotExists(doc);
         await session.requireREPLUtilities(ns);
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
