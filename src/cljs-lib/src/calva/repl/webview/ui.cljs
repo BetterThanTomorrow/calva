@@ -97,29 +97,6 @@
     (.. hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event container-element)))))
 
-(defn create-and-append-stdout-element
-  "Creates a new stdout element and appends it to the given DOM element."
-  [dom-element text-node category]
-  (let [pre-element (js/document.createElement "pre")]
-    (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
-    (.. dom-element (appendChild pre-element))
-    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
-
-(defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
-   in which case it appends the content to that element instead."
-  [^js dom-element output category]
-  (let [category (or category "evalOut")
-        text-node (js/document.createTextNode (strip-ansi output))]
-    (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= category (.. last-output-element -dataset -outputElementType))
-        (do
-          (.. last-output-element (appendChild text-node))
-          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node category))
-      (create-and-append-stdout-element dom-element text-node category))))
-
 (defn create-element
   [tag class-name text]
   (let [element (js/document.createElement tag)]
@@ -160,6 +137,50 @@
                             (when-let [original (.getAttribute button "data-copy-label")]
                               (.setAttribute button "aria-label" original)))
                        1500)))
+
+(defn- copy-text!
+  "Writes `text` to the clipboard and marks `button`, if any, as copied. Must run in a click
+   handler: the clipboard write needs the user activation."
+  [^js button text]
+  (-> (.. js/navigator -clipboard (writeText text))
+      (.then #(some-> button show-copied!))
+      (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
+
+(defn- stdout-copy-button
+  "A Copy output button for the stdout element `pre-element`, copying all of its text."
+  [^js pre-element]
+  (let [button (create-element "button" "output-copy-button" nil)]
+    (.. button -classList (add "output-stdout-copy"))
+    (set! (.-type button) "button")
+    (set! (.-title button) "Copy output")
+    (.. button (setAttribute "aria-label" "Copy output"))
+    (.. button (setAttribute "data-copy-label" "Copy output"))
+    (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
+    button))
+
+(defn create-and-append-stdout-element
+  "Creates a new stdout element, with a Copy output button, and appends it to the given DOM element."
+  [dom-element text-node category]
+  (let [pre-element (create-element "pre" "output-stdout" nil)]
+    (.. pre-element (appendChild (stdout-copy-button pre-element)))
+    (.. pre-element (appendChild text-node))
+    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
+    (.. dom-element (appendChild pre-element))
+    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
+
+(defn append-stdout
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
+   in which case it appends the content to that element instead."
+  [^js dom-element output category]
+  (let [category (or category "evalOut")
+        text-node (js/document.createTextNode (strip-ansi output))]
+    (if-let [last-output-element (.. dom-element -lastElementChild)]
+      (if (= category (.. last-output-element -dataset -outputElementType))
+        (do
+          (.. last-output-element (appendChild text-node))
+          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
+        (create-and-append-stdout-element dom-element text-node category))
+      (create-and-append-stdout-element dom-element text-node category))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)
@@ -609,10 +630,8 @@
   "Writes `text` to the clipboard and marks the error's copy button as copied. Runs in the click's
    dispatch: the clipboard write needs the user activation."
   [^js dom-element {:error/keys [id] :copy/keys [text]}]
-  (let [button (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy\"]"))]
-    (-> (.. js/navigator -clipboard (writeText text))
-        (.then #(some-> button show-copied!))
-        (.catch #(js/console.error "Cannot copy the error to the clipboard:" %)))))
+  (copy-text! (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy\"]"))
+              text))
 
 (declare dispatch!)
 

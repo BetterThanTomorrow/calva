@@ -177,8 +177,8 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    max-width: 100%;
 }
 
-/* Every copy button in the Output views looks and behaves the same: the result, image and error
-   copy buttons are icon buttons in the top right corner, outside the flow, showing on hover or
+/* Every copy button in the Output views looks and behaves the same: the result, stdout, image
+   and error copy buttons are icon buttons in the top right corner, outside the flow, showing on hover or
    focus. highlightjs-copy draws the result buttons, and its stylesheet loads after this one, so
    its rules are matched with `body` in front. */
 .output-copy-button,
@@ -244,6 +244,7 @@ body .hljs-copy-container[data-autohide="true"] {
 }
 
 .output-image-thumbnail:hover .output-copy-button,
+.output-stdout:hover .output-copy-button,
 .output-error:hover .output-copy-button,
 .output-copy-button:focus-visible,
 .output-copy-button[data-copied="true"],
@@ -254,7 +255,8 @@ body .hljs-copy-container:has([data-copied="true"]) {
 }
 
 .output-image-copy,
-.output-error-copy {
+.output-error-copy,
+.output-stdout-copy {
    position: absolute;
    top: 0;
    right: 0;
@@ -262,6 +264,10 @@ body .hljs-copy-container:has([data-copied="true"]) {
 
 .output-image-copy {
    margin: 8px;
+}
+
+.output-stdout {
+   position: relative;
 }
 
 @media (prefers-reduced-motion) {
