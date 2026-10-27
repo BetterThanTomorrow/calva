@@ -62,7 +62,7 @@ When an evaluation, a file load, or a test throws, the output views show the err
 
 Click a frame to open its file at the line linked. This works for Java frames too. If a library's Java sources aren't on your machine, Calva downloads them first (this happens once per library).
 
-To paste an error somewhere, hover it and click its copy button. It copies the error with the frames your filter shows, so choose **All frames** first to copy the whole stacktrace.
+To paste an error somewhere, hover it and click its copy button. It copies the error with the frames your filter shows, so to copy the whole stacktrace, unfold the error and choose **All frames** first.
 
 ## Clear Output
 
