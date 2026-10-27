@@ -27,7 +27,9 @@ async function provideClojureDefinition(
     const client = replSession.getSession();
     if (client?.supports('info')) {
       const text = util.getWordAtPosition(document, position);
-      const info = await client.info(namespace.getNamespace(document, position)[0], text);
+      const info = await client.info(namespace.getNamespace(document, position)[0], text, {
+        downloadSourcesJar: true,
+      });
       if (info.file && info.file.length > 0) {
         const pos = new vscode.Position(info.line - 1, info.column || 0);
         try {

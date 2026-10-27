@@ -61,6 +61,16 @@ function resultHandler(resolve: any, reject: any) {
   };
 }
 
+function showSourcesJarDownload(
+  { group, artifact, version }: cider.MavenCoordinates,
+  info: Thenable<unknown>
+) {
+  vscode.window.setStatusBarMessage(
+    `$(sync~spin) Downloading Java sources for ${group}/${artifact} ${version}`,
+    info
+  );
+}
+
 /** An nREPL client */
 export class NReplClient {
   private static ClientSequence = 0;
@@ -868,31 +878,39 @@ export class NReplSession {
     });
   }
 
-  info(ns: string, symbol: string) {
-    return this.sendInfo({ ns, symbol: symbol.replace(/^'/, '') });
+  /**
+   * With `downloadSourcesJar`, cider-nrepl first fetches the sources jar of a Java class whose
+   * source isn't local, once per artifact. Ask for it when the user wants to see the source.
+   */
+  info(ns: string, symbol: string, { downloadSourcesJar = false } = {}) {
+    return this.sendInfo({ ns, symbol: symbol.replace(/^'/, '') }, downloadSourcesJar);
   }
 
   javaMemberInfo(className: string, member: string) {
-    return this.sendInfo({ class: className, member });
+    return this.sendInfo({ class: className, member }, true);
   }
 
-  private sendInfo(params: object) {
-    return new Promise<any>((resolve, reject) => {
+  private sendInfo(params: object, downloadSourcesJar: boolean) {
+    const info = new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'info',
         ...params,
+        ...(downloadSourcesJar ? { 'download-sources-jar': '1' } : {}),
         id,
         session: this.sessionId,
       };
       if (this.supports(msg.op)) {
-        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.messageHandlers[id] = cider.infoHandler(resolve, reject, (coords) =>
+          showSourcesJarDownload(coords, info)
+        );
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
       }
     });
+    return info;
   }
 
   classpath() {

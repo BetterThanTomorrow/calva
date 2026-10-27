@@ -110,6 +110,30 @@ export function stacktraceCausesHandler(
   };
 }
 
+export type MavenCoordinates = { group: string; artifact: string; version: string };
+
+// `info` asked to download sources jars replies with the status `download-sources-jar` and the
+// artifact's coordinates before it fetches a jar, then with the info
+export function infoHandler(
+  resolve: (info: any) => void,
+  reject: (reason: string) => void,
+  onDownload: (coords: MavenCoordinates) => void
+) {
+  return (msg: any): boolean => {
+    const status: string[] = msg.status ?? [];
+    if (status.includes('unknown-op')) {
+      reject(`The server does not recognize or cannot perform the '${msg.op}' operation`);
+      return true;
+    }
+    if (status.includes('download-sources-jar')) {
+      onDownload(msg.coords);
+      return false;
+    }
+    resolve(msg);
+    return true;
+  };
+}
+
 export function outermostCauseFrames(causes?: StacktraceCause[]): StacktraceFrame[] | undefined {
   return causes?.[0]?.stacktrace;
 }
