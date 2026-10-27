@@ -193,11 +193,21 @@ function looksLikeReplWindowFile(doc?: vscode.TextDocument): boolean {
     return false;
   }
   const fileName = doc.fileName;
-  const looksLikeCurrentReplWindowFile = fileName.endsWith(`${path.sep}.calva/${REPL_DOC_NAME}`);
+  const looksLikeCurrentReplWindowFile = fileName.endsWith(
+    `${path.sep}.calva${path.sep}${REPL_DOC_NAME}`
+  );
   const looksLikeLegacyReplWindowFile = fileName.endsWith(
     `${path.sep}.calva${path.sep}output-window${path.sep}output.calva-repl`
   );
   return looksLikeCurrentReplWindowFile || looksLikeLegacyReplWindowFile;
+}
+
+/**
+ * Checks if `doc` is the REPL window, or a file that looks like a REPL window file, which it can be
+ * before a connect has given the REPL window its URI.
+ */
+export function isReplWindowFile(doc?: vscode.TextDocument): boolean {
+  return isReplWindowDoc(doc) || looksLikeReplWindowFile(doc);
 }
 
 // Track which files have been warned to avoid repeated warnings

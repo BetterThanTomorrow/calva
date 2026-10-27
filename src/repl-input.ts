@@ -200,7 +200,7 @@ export function runningSnippetWhenFocused(
 const isClojureFile = (document: vscode.TextDocument | undefined) =>
   document?.languageId === 'clojure' &&
   document.uri.scheme !== replInputDefinition.evaluationScheme &&
-  !replWindow.isReplWindowDoc(document);
+  !replWindow.isReplWindowFile(document);
 
 function followEditor(editor: vscode.TextEditor | undefined) {
   if (editor === vscode.window.activeTextEditor && isClojureFile(editor?.document)) {

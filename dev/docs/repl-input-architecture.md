@@ -140,7 +140,7 @@ These are the rules a change has to keep:
 
 The context line, as the views get it, is `(:repl-input.context/line @calva.repl.input.host/!state)`, and the lock is `(:repl-input.context/lock @calva.repl.input.host/!state)`.
 
-- Following: `repl-input.ts` calls `replInputEditorMoved` when the active editor changes, and when its selection changes by keyboard or mouse, for Clojure files other than the REPL window and the read-only editors of evaluations. The REPL window is recognized by its URI, which `repl-window-doc.ts` knows (`_docUri`) only after a connect.
+- Following: `repl-input.ts` calls `replInputEditorMoved` when the active editor changes, and when its selection changes by keyboard or mouse, for Clojure files other than the REPL window and the read-only editors of evaluations. `replWindow.isReplWindowFile` recognizes the REPL window by its URI, which `repl-window-doc.ts` knows (`_docUri`) only after a connect, and by its file name, `.calva/repl.calva-repl`, also before.
 - Routing: `status.update()` calls `replInputRoutingChanged` (`host/routing-changed!`), which works the context out again, routes the history again with `refresh-history!`, and derives the records when the REPL connected or disconnected.
 - Locking: after a successful evaluation of code with an `ns` or `in-ns` form (`nsFromText`), `context/lock-after` locks its namespace with the context's source file. The webview asks for a lock or for following the editor with `repl-input-lock` and `repl-input-follow-editor`, from the namespace indicator and the history.
 - `host/refresh-context!` posts `repl-input-context` to every view, and routes the history again, when the context line changed. Every change of the lock goes through it.
@@ -232,8 +232,6 @@ A lock without a source file has no current file, and keeps a session key instea
 - After the command palette, the first Calva editing key in the already active file goes to the REPL Input (see Focus).
 - From the Output Sidebar, closing the palette, or running a command from it that isn't Paredit's, leaves the focus in the editor area. VS Code gives an extension no event for it.
 - The REPL Input doesn't evaluate its `ns` form when the session changes and the REPL window's namespace doesn't, as with a cljc target switch. Files have the same gap.
-- A lock without a source file can show another session in the status bar than `alt+enter` uses.
-- Before a connect, the REPL window's URI isn't known, so the REPL Input can follow `.calva/repl.calva-repl` as if it were a Clojure file. Seen, not fixed.
 - clojure-lsp's copy is always a `.clj` file, so cljs and cljc contexts get clj analysis. Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
 - Force delete with several cursors does nothing.
 - In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands.
