@@ -34,6 +34,7 @@ import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as javaSource from './results-output/java-source';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -105,6 +106,7 @@ async function activate(context: vscode.ExtensionContext) {
   cljsLib.initOutputViewImageDisplay();
   cljsLib.initOutputViewsCodeTheme();
   cljsLib.initReplOutputFontSizeScale();
+  cljsLib.setJavaSourceLookup(javaSource.javaSourceUrl);
 
   initializeState();
   output.registerOutputTerminalLifecycle(context);

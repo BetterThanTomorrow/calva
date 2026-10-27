@@ -2,3 +2,4 @@
 * When designing UI and Ux, follow the principles in [.impeccable.md](../.impeccable.md).
 * Always view/read the contents of any file before editing it to ensure you follow local conventions, formatting, and coding style.
 * Follow the CHANGELOG.md formatting pattern: write all entries as a single-line link pointing to the relevant GitHub issue (e.g., `- [Fix various issues with the REPL API](https://github.com/BetterThanTomorrow/calva/issues/3244)`).
+* After changing code, run CodeScene's `code_health_review` on the changed files. If Code Health drops, fix the issues, run the review again, and confirm with `code_health_score`. Before finishing, run `pre_commit_code_health_safeguard` and only stop when it passes.

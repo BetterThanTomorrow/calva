@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.images :as images]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -96,29 +97,6 @@
     (.. hljs (highlightElement code-element))
     (.. dom-element (dispatchEvent (output-appended-event container-element)))))
 
-(defn create-and-append-stdout-element
-  "Creates a new stdout element and appends it to the given DOM element."
-  [dom-element text-node category]
-  (let [pre-element (js/document.createElement "pre")]
-    (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
-    (.. dom-element (appendChild pre-element))
-    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
-
-(defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
-   in which case it appends the content to that element instead."
-  [^js dom-element output category]
-  (let [category (or category "evalOut")
-        text-node (js/document.createTextNode (strip-ansi output))]
-    (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= category (.. last-output-element -dataset -outputElementType))
-        (do
-          (.. last-output-element (appendChild text-node))
-          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node category))
-      (create-and-append-stdout-element dom-element text-node category))))
-
 (defn create-element
   [tag class-name text]
   (let [element (js/document.createElement tag)]
@@ -159,6 +137,50 @@
                             (when-let [original (.getAttribute button "data-copy-label")]
                               (.setAttribute button "aria-label" original)))
                        1500)))
+
+(defn- copy-text!
+  "Writes `text` to the clipboard and marks `button`, if any, as copied. Must run in a click
+   handler: the clipboard write needs the user activation."
+  [^js button text]
+  (-> (.. js/navigator -clipboard (writeText text))
+      (.then #(some-> button show-copied!))
+      (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
+
+(defn- stdout-copy-button
+  "A Copy output button for the stdout element `pre-element`, copying all of its text."
+  [^js pre-element]
+  (let [button (create-element "button" "output-copy-button" nil)]
+    (.. button -classList (add "output-stdout-copy"))
+    (set! (.-type button) "button")
+    (set! (.-title button) "Copy output")
+    (.. button (setAttribute "aria-label" "Copy output"))
+    (.. button (setAttribute "data-copy-label" "Copy output"))
+    (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
+    button))
+
+(defn create-and-append-stdout-element
+  "Creates a new stdout element, with a Copy output button, and appends it to the given DOM element."
+  [dom-element text-node category]
+  (let [pre-element (create-element "pre" "output-stdout" nil)]
+    (.. pre-element (appendChild (stdout-copy-button pre-element)))
+    (.. pre-element (appendChild text-node))
+    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
+    (.. dom-element (appendChild pre-element))
+    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
+
+(defn append-stdout
+  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
+   in which case it appends the content to that element instead."
+  [^js dom-element output category]
+  (let [category (or category "evalOut")
+        text-node (js/document.createTextNode (strip-ansi output))]
+    (if-let [last-output-element (.. dom-element -lastElementChild)]
+      (if (= category (.. last-output-element -dataset -outputElementType))
+        (do
+          (.. last-output-element (appendChild text-node))
+          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
+        (create-and-append-stdout-element dom-element text-node category))
+      (create-and-append-stdout-element dom-element text-node category))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)
@@ -221,27 +243,6 @@
     (-> (.. js/navigator -clipboard (write #js [(js/ClipboardItem. #js {"image/png" png})]))
         (.then #(show-copied! button))
         (.catch #(js/console.error "Cannot copy the image to the clipboard:" %)))))
-
-(def svg-namespace "http://www.w3.org/2000/svg")
-
-(defn create-icon-element
-  "A 16x16 codicon-style icon from one SVG `path-data`."
-  [icon path-data]
-  (let [svg (js/document.createElementNS svg-namespace "svg")
-        path (js/document.createElementNS svg-namespace "path")]
-    (doseq [[k v] {"class" (str "output-image-copy-icon output-image-copy-icon-" icon)
-                   "viewBox" "0 0 16 16"
-                   "aria-hidden" "true"}]
-      (.. svg (setAttribute k v)))
-    (.. path (setAttribute "d" path-data))
-    (.. svg (appendChild path))
-    svg))
-
-(def copy-icon-path
-  "M4 4l1-1h5.414L14 6.586V14l-1 1H5l-1-1V4zm9 3l-3-3H5v10h8V7zM3 1L2 2v10l1 1V2h6.414l-1-1H3z")
-
-(def check-icon-path
-  "M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z")
 
 (defn- includes-remote-urls?
   []
@@ -360,7 +361,8 @@
   (let [label (images/label image)
         thumbnail (create-element "div" "output-image-thumbnail" nil)
         img (create-element "img" "output-image" nil)
-        button (create-element "button" "output-image-copy" nil)]
+        button (create-element "button" "output-copy-button" nil)]
+    (.. button -classList (add "output-image-copy"))
     (set! (.-alt img) label)
     (set! (.-title img) label)
     (when kind
@@ -370,8 +372,6 @@
     (set! (.-title button) "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
     (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
-    (.. button (appendChild (create-icon-element "copy" copy-icon-path)))
-    (.. button (appendChild (create-icon-element "check" check-icon-path)))
     (.. button (addEventListener "click" #(copy-image! button img image)))
     (.. thumbnail (appendChild img))
     (.. thumbnail (appendChild button))
@@ -608,6 +608,33 @@
   [{:keys [x y]}]
   (js/scrollTo x y))
 
+(defn- focused-control
+  [^js element]
+  (when (and element (.contains element js/document.activeElement))
+    (.. js/document -activeElement (getAttribute "data-control"))))
+
+(defn render-error!
+  "Draws `error`, in place of its earlier element if there is one, keeping focus on the control
+   that had it."
+  [^js dom-element dispatch {:error/keys [id] :as error}]
+  (let [new-element (error-element/create error dispatch)
+        ^js existing (.querySelector dom-element (str "[data-error-id=\"" id "\"]"))]
+    (if existing
+      (let [control (focused-control existing)]
+        (.replaceWith existing new-element)
+        (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
+      (do (.. dom-element (appendChild new-element))
+          (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
+
+(defn- copy-error-text!
+  "Writes `text` to the clipboard and marks the error's copy button as copied. Runs in the click's
+   dispatch: the clipboard write needs the user activation."
+  [^js dom-element {:error/keys [id] :copy/keys [text]}]
+  (copy-text! (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy\"]"))
+              text))
+
+(declare dispatch!)
+
 (defn exec-effect!
   [^js output-dom-element [fx-type & args]]
   (case fx-type
@@ -616,6 +643,9 @@
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
+    :fx/render-error (render-error! output-dom-element dispatch! (first args))
+    :fx/post-to-host (post-to-host! (first args))
+    :fx/copy-error-text (copy-error-text! output-dom-element (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-token-colors (set-token-colors! (first args))
@@ -657,7 +687,9 @@
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
          ("show-result" "show-evaluated-code" "show-stdout")
-         (dispatch! [:msg/output message-data]))))))
+         (dispatch! [:msg/output message-data])
+         "show-error"           (dispatch! [:msg/error message-data])
+         "show-error-causes"    (dispatch! [:msg/error-causes message-data]))))))
 
 (defn handle-output-appended
   [^js _event]

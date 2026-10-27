@@ -44,7 +44,7 @@ There is also a command for toggling word wrap in-session across both views: **C
 
 When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.
 
-To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear to the right of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
+To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear in the top right corner of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
 
 How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
 
@@ -56,6 +56,14 @@ The command: **Calva: Cycle Output View Image Display** cycles in-session betwee
 
 The output window, output file and terminal always show the raw text.
 
+## Errors and Stacktraces
+
+When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames. The view start with showing a trace filtered from `Tooling` and `Duplicates`.
+
+Click a frame to open its file at the line linked. This works for Java frames too. If a library's Java sources aren't on your machine, Calva downloads them first (this happens once per library).
+
+To paste an error somewhere, hover it and click its copy button. It copies the error with the frames your filter shows, so to copy the whole stacktrace, unfold the error and choose **All frames** first.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.
@@ -66,7 +74,7 @@ The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the edit
 
 ## Copy Code Snippets
 
-To copy code in the output views, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.
+To copy code or printed output in the output views, hover your cursor over the code snippet or output you want to copy. A "copy" button will appear in its top right corner. Click it to copy the text to your clipboard.
 
 ![Copy button appearing and being clicked, then changing to Copied](images/output-view/copy-button.gif)
 

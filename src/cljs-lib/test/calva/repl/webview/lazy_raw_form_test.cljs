@@ -101,7 +101,8 @@
                               :output "/tmp/cat.png\n"
                               :output-category "evalOut"})
               (let [entry (aget (.-children host) 0)
-                    text-node (aget (.-children entry) 0)]
+                    ;; The stdout element's first child is its copy button
+                    text-node (aget (.-children entry) 1)]
                 (is (some? entry))
                 (is (= "PRE" (.-tagName entry))
                     "stdout is a plain pre element")
