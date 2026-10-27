@@ -2,7 +2,8 @@
   (:require
    [calva.repl.webview.stacktrace :as sut]
    [calva.repl.webview.stacktrace-fixtures :as fixtures]
-   [cljs.test :refer-macros [deftest is]]))
+   [cljs.test :refer-macros [deftest is]]
+   [clojure.string :as str]))
 
 (def runtime-causes (mapv sut/cause-data fixtures/runtime-chain))
 
@@ -137,3 +138,25 @@
                                                     :error/causes runtime-causes
                                                     :meta {:meta/repl-session-key "clj"}})))
       "The error remembers its session, for looking up Java sources"))
+
+(deftest error-text
+  (let [error (sut/error-entry {:id "e1" :error/text "Execution error" :error/causes runtime-causes})]
+    (is (= ["Execution error"
+            "clojure.lang.ExceptionInfo: Could not start"
+            "{:service :web, :opts {:a 1, :b 2, :c 3, :d 4, :e 5, ...}}"
+            "Caused by: clojure.lang.ExceptionInfo: Bad config"
+            "{:config {:port \"abc\"}, :step :load-config}"
+            "Caused by: java.lang.NumberFormatException: For input string: \"abc\""
+            "  java.lang.NumberFormatException/forInputString (NumberFormatException.java:67)"
+            "  myproj.core/parse-port (core.clj:4)"
+            "  user/eval9095 (NO_SOURCE_FILE:1)"]
+           (str/split-lines (sut/shown-text error)))
+        "As shown: every cause with its ex-data, and the root cause's frames the filter shows")
+    (is (= "Caused by: java.lang.NumberFormatException: For input string: \"abc\""
+           (->> (sut/shown-text (sut/toggle-cause error 2)) str/split-lines last))
+        "A folded cause's frames are left out")
+    (is (= 22 (count (str/split-lines (sut/whole-text error))))
+        "The whole stacktrace: the text, three causes, two ex-data and all 16 frames")
+    (is (= (sut/whole-text error)
+           (sut/whole-text (sut/toggle-flag (sut/toggle-cause error 2) "repl")))
+        "The whole stacktrace ignores folding and filters")))

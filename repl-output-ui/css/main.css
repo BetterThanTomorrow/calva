@@ -426,6 +426,30 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    color: var(--vscode-descriptionForeground, #858585);
 }
 
+.output-error-copy-buttons {
+   display: inline-flex;
+   gap: 4px;
+   margin-inline-start: auto;
+}
+
+.output-error .output-error-copy {
+   display: inline-flex;
+   width: auto;
+   padding: 1px 6px;
+   border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, #454545));
+   border-radius: 3px;
+   color: var(--vscode-foreground, #cccccc);
+}
+
+.output-error .output-error-copy:hover {
+   background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.output-error .output-error-copy[data-copied="true"]::after {
+   content: " ✓";
+   white-space: pre;
+}
+
 .output-error-location {
    margin-block: 2px 4px;
 }
