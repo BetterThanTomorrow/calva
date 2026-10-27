@@ -35,7 +35,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `src/results-output/output-sidebar.ts` | Registers the sidebar's provider as `calva.output-sidebar` |
 | | `src/extension.ts` | Calls the `init*` exports at activation and registers the commands |
 
-Every function TypeScript calls in cljs-lib is listed under `:exports` in `shadow-cljs.edn`. The TS import of cljs-lib is untyped, so a misspelled or missing export fails when it is called, not when it compiles.
+Every function TypeScript calls in cljs-lib is listed under `:exports` in `shadow-cljs.edn`. The TS import of cljs-lib is untyped, so the compiler doesn't catch a misspelled or missing export. The unit test `src/extension-test/unit/cljs-lib-exports-test.ts` does: it fails, naming the file and the name, for each `cljsLib.<name>` in `src/` that isn't an export.
 
 ## How output reaches a view
 
@@ -60,7 +60,7 @@ Consecutive `show-stdout` output of the same category goes into the same `pre`. 
 
 A new category needs:
 
-- `OutputCategory` in `output.ts`, and the copy of that type in `evaluated-code.ts`.
+- `OutputCategory` in `output.ts`.
 - The `append*` function in `output.ts` that writes it, and the `calva.outputDestinations` key it reads: an existing one, or a new one in `OutputDestinationConfiguration`, `defaultDestinationConfiguration` and the setting's schema in `package.json`.
 - `output-category->command-name` in `core.cljs`. Without it, `core/append` logs an error and the views don't get the output.
 - `outputCategoryToApiCategory` in `src/api/repl-v1.ts`. Without it, the API's `onOutputLogged` reports the output as `otherOutput`.
@@ -93,7 +93,7 @@ Each view has two message listeners on the extension side: `image-host/listen-fo
 | `open-frame`, `open-java-frame` | Opens a clicked stacktrace frame |
 | `repl-input-*` | The REPL Input's messages |
 
-`ui/handle-message` dispatches with a `case` that has no default, so a command name it doesn't know throws in the webview. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`. `scroll-to` has a case and an action, but nothing sends it.
+`ui/handle-message` dispatches with a `case`. A command name it doesn't know is logged to the webview's console and ignored. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`.
 
 ## The webview's uniflow loop
 

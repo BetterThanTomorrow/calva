@@ -49,12 +49,7 @@
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-word-wrap true]
               [:repl-input/fx.set-line-wrapping true]]
-             (:uf/fxs result)))))
-
-  (testing ":msg/scroll-to"
-    (let [result (sut/handle-action sut/initial-db [:msg/scroll-to {:x 0 :y 100}])]
-      (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/scroll-to {:x 0 :y 100}]] (:uf/fxs result))))))
+             (:uf/fxs result))))))
 
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"

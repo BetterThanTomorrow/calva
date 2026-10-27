@@ -604,10 +604,6 @@
   [scale]
   (.. js/document -documentElement -style (setProperty "--calva-output-font-scale" (str scale))))
 
-(defn scroll-to
-  [{:keys [x y]}]
-  (js/scrollTo x y))
-
 (defonce !effect-handlers (atom {}))
 
 (defn register-effect-handler!
@@ -660,7 +656,6 @@
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
-    :fx/scroll-to (scroll-to (first args))
     (if-let [handler (get @!effect-handlers (namespace fx-type))]
       (handler dispatch! effect)
       (js/console.error "No handler for effect" (str fx-type)))))
@@ -691,7 +686,6 @@
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
-         "scroll-to"            (dispatch! [:msg/scroll-to message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
          "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
@@ -714,7 +708,8 @@
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data])
          "show-error"           (dispatch! [:msg/error message-data])
-         "show-error-causes"    (dispatch! [:msg/error-causes message-data]))))))
+         "show-error-causes"    (dispatch! [:msg/error-causes message-data])
+         (js/console.error "No handler for message" (str command-name)))))))
 
 (defn handle-output-appended
   [^js _event]

@@ -177,10 +177,6 @@
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)
 
-    :msg/scroll-to
-    {:uf/db db
-     :uf/fxs [[:fx/scroll-to payload]]}
-
     (if (= "repl-input" (namespace action-type))
       (input-actions/handle-action db action)
       {:uf/db db})))
