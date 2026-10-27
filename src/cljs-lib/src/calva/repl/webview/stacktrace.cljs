@@ -1,5 +1,6 @@
 (ns calva.repl.webview.stacktrace
-  "Errors with the causes cider-nrepl's stacktrace analyzer reports, as the Output views show them.")
+  "Errors with the causes cider-nrepl's stacktrace analyzer reports, as the Output views show them."
+  (:require [clojure.string :as str]))
 
 (defn- nil-for-empty
   "Returns `m` with nil for bencode's empty list."
@@ -115,3 +116,38 @@
 (defn cause-heading
   [{:keys [class message]}]
   (str class ": " (or message "No message")))
+
+(defn spec-problems-text
+  "Returns one line per problem in a cause's `spec`."
+  [{:keys [problems]}]
+  (apply str (for [{:keys [val predicate]} problems]
+               (str val " - failed: " predicate "\n"))))
+
+(defn- frame-line
+  [frame]
+  (let [{:frame/keys [location qualifier name]} (frame-parts frame)]
+    (str "  " qualifier "/" name " (" location ")")))
+
+(defn- cause-lines
+  [{:error/keys [unfolded-causes] :as error} index {:keys [triage spec data stacktrace] :as cause}]
+  (concat [(str (when (pos? index) "Caused by: ") (cause-heading cause))]
+          (->> [(or triage (spec-problems-text spec)) data]
+               (remove str/blank?)
+               (map str/trimr))
+          (when (contains? unfolded-causes index)
+            (map frame-line (visible-frames error stacktrace)))))
+
+(defn shown-text
+  "Returns `error` as text, the way its unfolded stacktrace shows it: the error text, then every
+   cause with its details, and the frames of unfolded causes that the frame filter shows."
+  [{:error/keys [text causes] :as error}]
+  (str/join "\n" (concat [text]
+                         (some-> (compile-location causes) :location/label vector)
+                         (mapcat #(cause-lines error %1 %2) (range) causes))))
+
+(defn whole-text
+  "Returns `error` as text with its whole stacktrace: every cause with all its frames."
+  [{:error/keys [causes] :as error}]
+  (shown-text (assoc error
+                     :error/frame-filter :all
+                     :error/unfolded-causes (set (range (count causes))))))

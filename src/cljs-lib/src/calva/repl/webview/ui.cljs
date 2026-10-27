@@ -627,6 +627,15 @@
       (do (.. dom-element (appendChild new-element))
           (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
+(defn- copy-error-text!
+  "Writes `text` to the clipboard and marks the error's copy button for `kind` as copied. Runs in
+   the click's dispatch: the clipboard write needs the user activation."
+  [^js dom-element {:error/keys [id] :copy/keys [kind text]}]
+  (let [button (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy-" (name kind) "\"]"))]
+    (-> (.. js/navigator -clipboard (writeText text))
+        (.then #(some-> button show-copied!))
+        (.catch #(js/console.error "Cannot copy the error to the clipboard:" %)))))
+
 (declare dispatch!)
 
 (defn exec-effect!
@@ -639,6 +648,7 @@
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
     :fx/render-error (render-error! output-dom-element dispatch! (first args))
     :fx/post-to-host (post-to-host! (first args))
+    :fx/copy-error-text (copy-error-text! output-dom-element (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-token-colors (set-token-colors! (first args))

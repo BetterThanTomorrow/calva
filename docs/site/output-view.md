@@ -62,6 +62,8 @@ When an evaluation, a file load, or a test throws, the output views show the err
 
 Click a frame to open its file at the line linked. This works for Java frames too. If a library's Java sources aren't on your machine, Calva downloads them first (this happens once per library).
 
+To paste an error somewhere, use **Copy as shown** to copy the error with the frames you see, or **Copy whole stacktrace** to copy every frame.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.

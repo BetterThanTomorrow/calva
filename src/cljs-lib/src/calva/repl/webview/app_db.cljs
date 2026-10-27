@@ -107,6 +107,14 @@
       {:uf/db db
        :uf/fxs [[:fx/post-to-host {:command "open-frame" :fileUrl file-url :line line :column column}]]})
 
+    :error/ax.copy
+    (let [{:error/keys [id] :copy/keys [kind]} payload
+          text-of (if (= :whole kind) stacktrace/whole-text stacktrace/shown-text)]
+      {:uf/db db
+       :uf/fxs [[:fx/copy-error-text {:error/id id
+                                      :copy/kind kind
+                                      :copy/text (text-of (get-in db [:output/errors id]))}]]})
+
     :error/ax.open-java-frame
     (let [{:frame/keys [qualifier line] member :frame/name :error/keys [session-key]} payload]
       {:uf/db db
@@ -135,7 +143,7 @@
     (update-error db (:error/id payload) stacktrace/with-causes (:error/causes payload))
 
     (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter
-     :error/ax.open-frame :error/ax.open-java-frame)
+     :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
     :msg/set-image-display

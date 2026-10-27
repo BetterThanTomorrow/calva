@@ -109,10 +109,9 @@
     (create-element "div" "output-error-location" label)))
 
 (defn- spec-problems
-  [{:keys [problems]}]
+  [{:keys [problems] :as spec}]
   (when (seq problems)
-    (clojure-detail (apply str (for [{:keys [val predicate]} problems]
-                                 (str val " - failed: " predicate "\n"))))))
+    (clojure-detail (stacktrace/spec-problems-text spec))))
 
 (defn- pressable-button
   [{:keys [control label title pressed? on-click]}]
@@ -151,13 +150,29 @@
     (.. row (setAttribute "aria-label" "Hide frames"))
     row))
 
+(defn- copy-button
+  [dispatch {:error/keys [id]} kind label]
+  (let [button (create-element "button" "output-error-copy" label)]
+    (set! (.-type button) "button")
+    (.. button (setAttribute "data-control" (str "copy-" (name kind))))
+    (.. button (setAttribute "data-copy-label" label))
+    (.. button (addEventListener "click" #(dispatch [:error/ax.copy {:error/id id :copy/kind kind}])))
+    button))
+
+(defn- copy-buttons
+  [dispatch error]
+  (create-element "span" "output-error-copy-buttons"
+                  (copy-button dispatch error :shown "Copy as shown")
+                  (copy-button dispatch error :whole "Copy whole stacktrace")))
+
 (defn- filter-bar
   [dispatch {:error/keys [causes frame-filter] :as error}]
   (let [hidden (reduce + (map #(stacktrace/hidden-count error (:stacktrace %)) causes))]
     (create-element "div" "output-error-filters"
                     (create-element "div" "output-error-filter-row"
                                     (frame-filter-switch dispatch error)
-                                    (create-element "span" "output-error-hidden-count" (str (frames-text hidden) " hidden")))
+                                    (create-element "span" "output-error-hidden-count" (str (frames-text hidden) " hidden"))
+                                    (copy-buttons dispatch error))
                     (when (= :filtered frame-filter)
                       (hide-flags-row dispatch error)))))
 
