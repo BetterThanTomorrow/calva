@@ -77,6 +77,59 @@ describe('stacktraceCausesHandler', () => {
       .toBe('clojure.lang.ExceptionInfo: No message');
   });
 
+  it('writes a frame as its var, or its name, with file and line', () => {
+    expectLib
+      .expect(
+        cider.frameLine({
+          name: 'myproj.core$start_BANG_/invokeStatic',
+          var: 'myproj.core/start!',
+          file: 'core.clj',
+          line: 16,
+        } as cider.StacktraceFrame)
+      )
+      .toBe('myproj.core/start! (core.clj:16)');
+    expectLib
+      .expect(
+        cider.frameLine({
+          name: 'java.lang.Integer/parseInt',
+          file: 'Integer.java',
+          line: 662,
+        } as cider.StacktraceFrame)
+      )
+      .toBe('java.lang.Integer/parseInt (Integer.java:662)');
+  });
+
+  it('writes every cause with all its frames, inner causes after Caused by', () => {
+    const frame = (name: string, flags: string[]) => ({ name, file: 'f.clj', line: 1, flags });
+    const causes = [
+      { ...outerCause, stacktrace: [frame('a/b', ['project']), frame('a/b', ['dup', 'tooling'])] },
+      { ...rootCause, stacktrace: [frame('c/d', ['java'])] },
+    ] as unknown as cider.StacktraceCause[];
+    expectLib
+      .expect(cider.stacktraceText(causes))
+      .toBe(
+        [
+          'clojure.lang.ExceptionInfo: Could not start',
+          '  a/b (f.clj:1)',
+          '  a/b (f.clj:1)',
+          'Caused by: java.lang.NumberFormatException: For input string: "abc"',
+          '  c/d (f.clj:1)',
+        ].join('\n')
+      );
+    expectLib.expect(cider.stacktraceText([])).toBe('');
+  });
+
+  it('puts the stacktrace after the message, keeping its trailing newline last', () => {
+    const causes = [
+      { ...rootCause, stacktrace: [{ name: 'c/d', file: 'f.clj', line: 1, flags: [] }] },
+    ] as unknown as cider.StacktraceCause[];
+    const stacktrace = 'java.lang.NumberFormatException: For input string: "abc"\n  c/d (f.clj:1)';
+    expectLib.expect(cider.messageWithStacktrace('Boom\n', causes)).toBe(`Boom\n${stacktrace}\n`);
+    expectLib.expect(cider.messageWithStacktrace('Boom', causes)).toBe(`Boom\n${stacktrace}`);
+    expectLib.expect(cider.messageWithStacktrace('Boom\n', [])).toBe('Boom\n');
+    expectLib.expect(cider.messageWithStacktrace('Boom', undefined)).toBe('Boom');
+  });
+
   it('rejects when the server does not know the op', () => {
     const { resolved, rejected, handled } = feed([
       { id: '7', op: 'analyze-last-stacktrace', status: ['unknown-op', 'done'] },
