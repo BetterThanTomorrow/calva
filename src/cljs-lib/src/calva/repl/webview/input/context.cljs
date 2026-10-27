@@ -205,26 +205,18 @@
   (doto (text-element "repl-input-context-connect" "Connect a REPL")
     (.setAttribute "role" "button")))
 
-(defn- session-elements
-  "Returns the session key of the `context-line` and its build, and the connect link while no session
-   answers to it."
-  [{:repl-input.context/keys [session-key build connected?]}]
-  (cond-> []
-    session-key (conj (text-element "repl-input-context-session" session-key))
-    (and session-key build) (conj (text-element "repl-input-context-build" build))
-    (not connected?) (conj (connect-link-element))))
-
 (defn set-line!
   "Shows the `context-line`: the namespace indicator for the line and the `recalled-lock`, the lock of a
-   recalled history entry from another context, the session, a link that connects a REPL while no session
-   answers to its key, and the play button, disabled while no session answers."
+   recalled history entry from another context, a link that connects a REPL while no session answers to
+   its key, and the play button, disabled while no session answers."
   [{:repl-input.context/keys [connected?] :as context-line} recalled-lock]
   (let [{:repl-input.indicator/keys [choices] :as shown} (indicator context-line recalled-lock)]
     (some-> (child "repl-input-indicator") (set-indicator! shown))
     (some-> (child "repl-input-menu") (set-menu! choices)))
   (when-let [^js line (child "repl-input-context-line")]
-    (.replaceChildren line)
-    (run! #(.append line %) (session-elements context-line)))
+    (if connected?
+      (.replaceChildren line)
+      (.replaceChildren line (connect-link-element))))
   (some-> (child "repl-input-evaluate") (set-play-button! connected?)))
 
 (defn mount!

@@ -440,11 +440,6 @@ body.repl-input-on .output-greeting-read-only {
    background: none;
 }
 
-.repl-input-context-session,
-.repl-input-context-build {
-   flex-shrink: 0;
-}
-
 .repl-input-context-line > span::before {
    content: "· ";
 }
