@@ -18,7 +18,7 @@ export async function provideHover(
   if (util.getConnectedState()) {
     const text = util.getWordAtPosition(document, position);
     const [ns, nsForm] = namespace.getNamespace(document, position);
-    const client = replSession.getSession();
+    const client = replSession.getSession(document);
     if (client && client.supports('info')) {
       await namespace.createNamespaceFromDocumentIfNotExists(document);
       const res = await client.info(ns, text);
@@ -38,50 +38,54 @@ export async function provideHover(
           hovers.push(clojureDocsMd);
         }
       }
-      const editor = util.getActiveTextEditor();
+      const editor = util.tryToGetActiveTextEditor();
 
-      const context = {
-        ns,
-        editorNS: ns,
-        nsForm,
-        repl: document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : 'clj',
-        hoverText: text,
-        hoverLine: position.line + 1,
-        hoverColumn: position.character + 1,
-        hoverFilename: document.fileName,
-        currentLine: editor.selections[0].active.line,
-        currentColumn: editor.selections[0].active.character,
-        currentFilename: editor.document.fileName,
-        selection: editor.document.getText(editor.selections[0]),
-        currentFileText: getText.currentFileText(editor.document),
-        ...getText.currentClojureContext(editor.document, editor.selections[0].active),
-        ...getText.currentClojureContext(document, position, 'hover'),
-      };
+      if (editor) {
+        const context = {
+          ns,
+          editorNS: ns,
+          nsForm,
+          repl: document.languageId === 'clojure' ? replSession.getSessionKey(document) : 'clj',
+          hoverText: text,
+          hoverLine: position.line + 1,
+          hoverColumn: position.character + 1,
+          hoverFilename: document.fileName,
+          currentLine: editor.selections[0].active.line,
+          currentColumn: editor.selections[0].active.character,
+          currentFilename: editor.document.fileName,
+          selection: editor.document.getText(editor.selections[0]),
+          currentFileText: getText.currentFileText(editor.document),
+          ...(editor.document.languageId === 'clojure'
+            ? getText.currentClojureContext(editor.document, editor.selections[0].active)
+            : {}),
+          ...getText.currentClojureContext(document, position, 'hover'),
+        };
 
-      await Promise.all(
-        customREPLHoverSnippets.map(async (snippet) => {
-          try {
-            const text = await customSnippets.evaluateSnippet(editor, snippet.snippet, context, {
-              evaluationSendCodeToOutputWindow: false,
-              showErrorMessage: false,
-              showResult: false,
-            });
+        await Promise.all(
+          customREPLHoverSnippets.map(async (snippet) => {
+            try {
+              const text = await customSnippets.evaluateSnippet(editor, snippet.snippet, context, {
+                evaluationSendCodeToOutputWindow: false,
+                showErrorMessage: false,
+                showResult: false,
+              });
 
-            if (text) {
-              const hover = new vscode.MarkdownString();
-              hover.isTrusted = true;
-              const hoverText = text
-                .replace(/^"|"$/g, '')
-                .replace(/\\n/g, '\n')
-                .replace(/\\"/g, '"');
-              hover.appendMarkdown(hoverText);
-              hovers.push(hover);
+              if (text) {
+                const hover = new vscode.MarkdownString();
+                hover.isTrusted = true;
+                const hoverText = text
+                  .replace(/^"|"$/g, '')
+                  .replace(/\\n/g, '\n')
+                  .replace(/\\"/g, '"');
+                hover.appendMarkdown(hoverText);
+                hovers.push(hover);
+              }
+            } catch (error) {
+              console.log('custom hover exploded', error);
             }
-          } catch (error) {
-            console.log('custom hover exploded', error);
-          }
-        })
-      );
+          })
+        );
+      }
       if (hovers.length) {
         return new vscode.Hover(hovers);
       }

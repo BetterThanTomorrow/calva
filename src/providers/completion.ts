@@ -161,7 +161,7 @@ async function replCompletions(
   }
   const [ns, _] = namespace.getNamespace(document, position);
   return replCompletion.replCompletions(
-    replSession.getSession(),
+    replSession.getSession(document),
     ns,
     docMirror.getDocument(document),
     document.offsetAt(position)

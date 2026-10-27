@@ -63,7 +63,7 @@ async function provideClojureDefinition(
   if (util.getConnectedState()) {
     const definition = await untilCancelled(
       replDefinition.replDefinition(
-        replSession.getSession(),
+        replSession.getSession(document),
         namespace.getNamespace(document, position)[0],
         docMirror.getDocument(document),
         document.offsetAt(position),

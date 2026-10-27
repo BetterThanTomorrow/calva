@@ -8,6 +8,9 @@ import * as replSession from '../../../nrepl/repl-session';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as vscode from 'vscode';
 import * as connector from '../../../connector';
+import * as lsp from '../../../lsp';
+import { HoverProvider } from '../../../providers/hover';
+import { CalvaCompletionItemProvider } from '../../../providers/completion';
 
 const suiteName = 'CLJC Routing';
 
@@ -21,6 +24,39 @@ const fiddleFile = path.join(projectDir, 'hello.fiddle');
 // Files outside the connected project (in test-data/integration-test)
 const outsideCljcFile = path.join(testUtil.testDataDir, 'test.cljc');
 const outsideFiddleFile = path.join(testUtil.testDataDir, 'test.fiddle');
+
+async function showInColumn(filePath: string, column: vscode.ViewColumn) {
+  const document = await vscode.workspace.openTextDocument(filePath);
+  await vscode.window.showTextDocument(document, column);
+  await testUtil.waitForCondition(
+    () => vscode.window.activeTextEditor?.document === document,
+    4000,
+    20,
+    `Timed out waiting for ${filePath} to be the active editor`
+  );
+  return document;
+}
+
+async function replHoverName(document: vscode.TextDocument, position: vscode.Position) {
+  const hover = await new HoverProvider(lsp.getClientProvider()).provideHover(
+    document,
+    position,
+    undefined
+  );
+  return (hover?.contents[0] as vscode.MarkdownString)?.value.match(/```clojure\n(.*)\n```/)?.[1];
+}
+
+async function replCompletionLabels(document: vscode.TextDocument, position: vscode.Position) {
+  const list = await new CalvaCompletionItemProvider(
+    lsp.getClientProvider()
+  ).provideCompletionItems(document, position, new vscode.CancellationTokenSource().token, {
+    triggerKind: vscode.CompletionTriggerKind.Invoke,
+    triggerCharacter: undefined,
+  });
+  return list.items
+    .filter((item) => item['data']?.provider === 'repl')
+    .map((item) => (typeof item.label === 'string' ? item.label : item.label.label));
+}
 
 async function waitForRouting(expectedSessionKey: string, reasonType: string): Promise<void> {
   await testUtil.waitForCondition(
@@ -185,6 +221,71 @@ suite('CLJC Routing suite', function () {
       replSession.getRoutingInfo(null),
       'Without a URI, routing is the routing without a document'
     );
+  });
+
+  test('Hover in a split that is not the active editor answers from that split’s session', async function () {
+    testUtil.log(suiteName, 'Testing: Hover in a split that is not the active editor');
+
+    try {
+      const cljsDocument = await showInColumn(cljsFile, vscode.ViewColumn.One);
+      const cljcDocument = await showInColumn(cljcFile, vscode.ViewColumn.Two);
+      assert.strictEqual(
+        await replHoverName(cljsDocument, new vscode.Position(10, 2)),
+        'cljs.core/comment',
+        'Hover in the .cljs split, with the .cljc editor routing to clj active, should ask cljs'
+      );
+
+      await showInColumn(cljsFile, vscode.ViewColumn.One);
+      assert.strictEqual(
+        await replHoverName(cljcDocument, new vscode.Position(2, 2)),
+        'clojure.core/comment',
+        'Hover in the .cljc split, with the .cljs editor active, should ask clj'
+      );
+
+      const markdownDocument = await vscode.workspace.openTextDocument({
+        language: 'markdown',
+        content: '',
+      });
+      await vscode.window.showTextDocument(markdownDocument, vscode.ViewColumn.Two);
+      assert.strictEqual(
+        await replHoverName(cljsDocument, new vscode.Position(10, 2)),
+        'cljs.core/comment',
+        'Hover in the .cljs split, with a Markdown editor active, should ask cljs'
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
+  });
+
+  test('Completion in a split that is not the active editor answers from that split’s session', async function () {
+    testUtil.log(suiteName, 'Testing: Completion in a split that is not the active editor');
+
+    for (const [sessionKey, userNs] of [
+      ['clj', 'user'],
+      ['cljs', 'cljs.user'],
+    ]) {
+      const session = sessionRegistry.getSession(sessionKey);
+      await session.eval('(ns hello-world.core)', userNs).value;
+      await session.eval(`(defn hello-from-the-${sessionKey}-session [])`, 'hello-world.core')
+        .value;
+    }
+
+    try {
+      const cljsDocument = await showInColumn(cljsFile, vscode.ViewColumn.One);
+      await showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const labels = await replCompletionLabels(cljsDocument, new vscode.Position(8, 2));
+      assert.ok(
+        labels.includes('hello-from-the-cljs-session'),
+        `The .cljs split should complete from cljs, got ${labels.join(', ')}`
+      );
+      assert.ok(
+        !labels.includes('hello-from-the-clj-session'),
+        `The .cljs split should not complete from the active editor’s clj, got ${labels.join(', ')}`
+      );
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
   });
 
   test('Toggle command switches cljc routing between clj and cljs', async function () {

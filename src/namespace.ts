@@ -69,7 +69,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
       const [ns, nsForm] = getNamespace(document);
-      const client = replSession.getSession();
+      const client = replSession.getSession(document);
       if (client) {
         await createNamespaceIfNotExists(client, ns, nsForm);
       }

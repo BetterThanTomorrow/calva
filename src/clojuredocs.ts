@@ -247,7 +247,7 @@ async function clojureDocsLookup(
   const [ns, _] = namespace.getNamespace(doc, p);
 
   // Use the current session to resolve the symbol (handles aliases)
-  const currentSession = replSession.getSession();
+  const currentSession = replSession.getSession(doc);
   const resolved = currentSession ? await currentSession.info(ns, symbol) : null;
   const resolvedNs = resolved?.ns
     ? typeof resolved.ns === 'string'

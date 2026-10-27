@@ -275,13 +275,15 @@ function firstAvailableRouting(): RoutingResult | undefined {
  * 3. Glob pattern matching
  * 4. CLJC session preference (fallback for unclaimed files)
  * 5. First available session (defensive fallback)
+ *
+ * @param doc - The document to route (defaults to the active document)
  */
-function getSessionKey(): string | undefined {
-  return getRoutingInfo()?.sessionKey;
+function getSessionKey(doc?: vscode.TextDocument): string | undefined {
+  return getRoutingInfo(doc)?.sessionKey;
 }
 
-function getSession(): nrepl.NReplSession {
-  const sessionKey = getSessionKey();
+function getSession(doc?: vscode.TextDocument): nrepl.NReplSession {
+  const sessionKey = getSessionKey(doc);
 
   // Try getting from registry first
   if (sessionKey) {
@@ -292,7 +294,7 @@ function getSession(): nrepl.NReplSession {
   }
 
   // Fallback for REPL window session
-  if (outputWindow.isReplWindowDoc(utilities.tryToGetDocument({}))) {
+  if (outputWindow.isReplWindowDoc(utilities.tryToGetDocument(doc))) {
     return outputWindow.getSession();
   }
 
