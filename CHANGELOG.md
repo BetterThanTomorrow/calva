@@ -6,7 +6,7 @@ Changes to Calva.
 
 - [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
 - Fix: `$editor-ns` is empty in custom REPL commands
-- Fix: Go to definition from the REPL lands one column off
+- Fix: Go to definition sometimes land one column off
 - Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
 - Fix: The Output Sidebar loses its output when the Output Destinations change
 
