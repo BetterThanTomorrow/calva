@@ -58,9 +58,9 @@ The output window, output file and terminal always show the raw text.
 
 ## Errors and Stacktraces
 
-When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace: the chain of causes, each with its message and any ex-data, and their frames. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames.
+When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames. The view start with showing a trace filtered from `Tooling` and `Duplicates`.
 
-Click a frame to open its file at that line. This works for Java frames too. If a library's Java sources aren't on your machine, Calva asks cider-nrepl to download them first (this happens once per library).
+Click a frame to open its file at the line linked. This works for Java frames too. If a library's Java sources aren't on your machine, Calva downloads them first (this happens once per library).
 
 ## Clear Output
 
