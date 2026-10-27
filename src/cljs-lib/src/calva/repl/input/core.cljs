@@ -66,7 +66,6 @@
   (set-enabled-context!)
   (recall/load-history!)
   (reveal/load-evaluated-code!)
-  (host/load-keybindings!)
   (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener)))
   (.. ^js @util/vscode-context -subscriptions (push (create-terminal-focus-listener))))
 
