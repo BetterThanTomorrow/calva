@@ -649,30 +649,49 @@
                                               :file-url nil
                                               :flags #{"project" "clj"}}]}]
                 :error/unfolded? false
+                :id "e1"
                 :meta {:meta/ns "user"}}
                (sut/error-message (clj->js {:outputCategory "evalErr" :ns "user"})
                                   "Execution error"
-                                  causes))))
+                                  causes
+                                  "e1"))))
       (testing "should start unfolded when the options say so"
         (is (true? (:error/unfolded? (sut/error-message (clj->js {:outputCategory "evalErr" :unfolded true})
                                                         "Execution error"
-                                                        causes)))))))
-  (testing "Given no causes, should return a message without causes"
-    (is (= [] (:error/causes (sut/error-message (clj->js {:outputCategory "evalErr"}) "Execution error" js/undefined))))))
+                                                        causes
+                                                        "e1")))))))
+  (testing "Given causes that come later, should return a message without causes"
+    (is (= [] (:error/causes (sut/error-message (clj->js {:outputCategory "evalErr"}) "Execution error" nil "e1"))))))
+
+(deftest attach-error-causes-test
+  (let [post-message-to-webview-spy (spy/spy)]
+    (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                  sut/output-view-webview-panel (atom nil)]
+      (sut/attach-error-causes "e1" (clj->js []))
+      (is (spy/called-once-with? post-message-to-webview-spy nil (sut/causes-message "e1" (clj->js [])))
+          "A closed Output View stays closed: there is no panel to post to"))))
+
+(deftest causes-message-test
+  (is (= {:command/name "show-error-causes"
+          :error/id "e1"
+          :error/causes [{:class "java.lang.ArithmeticException" :message nil :stacktrace []}]}
+         (sut/causes-message "e1" (clj->js [{:class "java.lang.ArithmeticException" :message [] :stacktrace []}])))
+      "Gives the entry its causes as data"))
 
 (deftest append-error-test
   (testing "when the webview panel exists, should post the error message to it"
     (let [post-message-to-webview-spy (spy/spy)]
       (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                     sut/output-view-webview-panel (atom "webview-panel-stub")]
-        (sut/append-error (clj->js {:outputCategory "evalErr"}) "Execution error" (clj->js []))
+        (sut/append-error (clj->js {:outputCategory "evalErr"}) "Execution error" (clj->js []) "e1")
         (is (spy/called-once-with? post-message-to-webview-spy
                                    "webview-panel-stub"
                                    {:command/name "show-error"
                                     :error/text "Execution error"
                                     :error/category "evalErr"
                                     :error/causes []
-                                    :error/unfolded? false}))))))
+                                    :error/unfolded? false
+                                    :id "e1"}))))))
 
 (deftest clear-output-view-test
   (testing "Should call post-message-to-webview with expected args"

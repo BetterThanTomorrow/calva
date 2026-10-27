@@ -1,20 +1,23 @@
 (ns calva.repl.webview.stacktrace
   "Errors with the causes cider-nrepl's stacktrace analyzer reports, as the Output views show them.")
 
-(defn- nil-for-empty-list
+(defn- nil-for-empty
+  "Returns `m` with nil for bencode's empty list."
   [m]
   (update-vals m #(if (and (sequential? %) (empty? %)) nil %)))
 
 (defn- frame-data
   [frame]
-  (-> (nil-for-empty-list frame)
+  (-> (nil-for-empty frame)
+      ;; Older cider-nrepl versions send an empty string for a frame without a file
+      (update :file-url not-empty)
       (update :flags set)))
 
 (defn cause-data
   "Returns `cause`, a keywordized cause message from cider-nrepl, with nil for bencode's empty
    list, and `:flags` as a set."
   [cause]
-  (-> (nil-for-empty-list (dissoc cause :id :session))
+  (-> (nil-for-empty (dissoc cause :id :session))
       (update :stacktrace #(mapv frame-data %))))
 
 (defn has-frames?
@@ -47,20 +50,26 @@
      :location/line line
      :location/column column}))
 
+(defn with-causes
+  "Returns `error` with `causes`. The root cause shows its frames, unless it is a compile error,
+   where all frames are tooling."
+  [error causes]
+  (assoc error
+         :error/causes causes
+         :error/unfolded-causes (if (compile-location causes) #{} #{(dec (count causes))})))
+
 (defn error-entry
-  "Returns the entry an Output view keeps for an error with `causes`. It starts folded unless
-   `unfolded?`, and tooling and duplicate frames are hidden. The root cause shows its frames,
-   unless it is a compile error, where all frames are tooling."
+  "Returns the entry an Output view keeps for an error with `causes`, which can come later. It
+   starts folded unless `unfolded?`, and tooling and duplicate frames are hidden."
   [{:keys [id meta] :error/keys [text category causes unfolded?]}]
-  {:error/id id
-   :error/text text
-   :error/category category
-   :error/causes causes
-   :error/session-key (:meta/repl-session-key meta)
-   :error/unfolded? (boolean unfolded?)
-   :error/unfolded-causes (if (compile-location causes) #{} #{(dec (count causes))})
-   :error/frame-filter :filtered
-   :error/hidden-flags #{"tooling" "dup"}})
+  (with-causes {:error/id id
+                :error/text text
+                :error/category category
+                :error/session-key (:meta/repl-session-key meta)
+                :error/unfolded? (boolean unfolded?)
+                :error/frame-filter :filtered
+                :error/hidden-flags #{"tooling" "dup"}}
+    causes))
 
 (defn- toggle-member
   [s x]
@@ -93,9 +102,8 @@
   (- (count frames) (count (visible-frames error frames))))
 
 (defn frame-parts
-  "Returns what an Output view shows for `frame`: file and line, then namespace and function for
-   Clojure frames, or class and method for Java frames, and the file to open, if any. A Java
-   frame's file is looked up when it is clicked."
+  "Returns what an Output view shows for `frame`: file and line, namespace and function or class
+   and method, the `file-url` to open, if any, and whether it is a Java frame."
   [{:keys [type file line ns fn class method file-url]}]
   {:frame/location (str file ":" line)
    :frame/qualifier (or ns class)

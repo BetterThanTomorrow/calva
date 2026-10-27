@@ -278,11 +278,26 @@
 
 (deftest error-without-frames-test
   (let [causes [{:class "clojure.lang.ExceptionInfo" :message "cljs error" :stacktrace []}]
-        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes causes})]
-    (is (= [[:fx/append-stdout "Execution error" "evalErr"]] fxs)
-        "An error without frames shows as text")
-    (is (empty? (:output/errors db))
-        "There is nothing to unfold, so nothing is kept")))
+        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes causes})
+        error (get-in db [:output/errors "e1"])]
+    (is (= [[:fx/render-error error]] fxs)
+        "An error without frames is drawn too, as its own entry")
+    (is (= causes (:error/causes error)))))
+
+(deftest error-causes-arrive-later-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes []}))
+        {later-db :uf/db fxs :uf/fxs} (sut/handle-action db [:msg/error-causes {:error/id "e1"
+                                                                                :error/causes runtime-causes}])
+        error (get-in later-db [:output/errors "e1"])]
+    (is (= runtime-causes (:error/causes error))
+        "The entry gets its causes")
+    (is (= #{(dec (count runtime-causes))} (:error/unfolded-causes error))
+        "The root cause shows its frames")
+    (is (= [[:fx/render-error error]] fxs)
+        "The entry is drawn again, with its stacktrace")
+    (is (= {:uf/db sut/initial-db}
+           (sut/handle-action sut/initial-db [:msg/error-causes {:error/id "e1" :error/causes runtime-causes}]))
+        "Causes for an entry that is gone, as after clearing the view, change nothing")))
 
 (deftest error-toggling-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))

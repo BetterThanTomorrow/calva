@@ -134,6 +134,18 @@ export function infoHandler(
   };
 }
 
+// An error's causes, known already or on their way
+export type Causes = StacktraceCause[] | Promise<StacktraceCause[] | undefined>;
+
+// Calls `f` with the causes right away when they're known, else when they arrive
+export function withCauses(causes: Causes, f: (causes?: StacktraceCause[]) => void) {
+  if (Array.isArray(causes)) {
+    f(causes);
+  } else {
+    void causes.then(f);
+  }
+}
+
 export function outermostCauseFrames(causes?: StacktraceCause[]): StacktraceFrame[] | undefined {
   return causes?.[0]?.stacktrace;
 }
@@ -158,13 +170,9 @@ export function stacktraceText(causes: StacktraceCause[]): string {
     .join('\n');
 }
 
-// The error message followed by its stacktrace, keeping the message's trailing newline last
-export function messageWithStacktrace(message: string, causes?: StacktraceCause[]): string {
-  if (!causes?.length) {
-    return message;
-  }
-  const trailingNewline = message.endsWith('\n') ? '\n' : '';
-  return `${message.replace(/\n$/, '')}\n${stacktraceText(causes)}${trailingNewline}`;
+// ClojureScript errors have causes without frames, and nothing to show as a stacktrace
+export function hasFrames(causes?: StacktraceCause[]): boolean {
+  return causes?.some((cause) => cause.stacktrace?.length > 0) ?? false;
 }
 
 function stripTrailingNewlines(s: string): string {

@@ -70,15 +70,11 @@
      :uf/fxs (into context-fxs (message-fxs name output category meta))}))
 
 (defn- handle-error
-  [db {:keys [meta] :error/keys [text category causes] :as message}]
-  (let [[db context-fxs] (with-context db meta)]
-    (if (stacktrace/has-frames? causes)
-      (let [{:error/keys [id] :as error} (stacktrace/error-entry message)]
-        {:uf/db (assoc-in db [:output/errors id] error)
-         :uf/fxs (conj context-fxs [:fx/render-error error])})
-      {:uf/db db
-       :uf/fxs (cond-> context-fxs
-                 (seq text) (conj [:fx/append-stdout text (or category "evalErr")]))})))
+  [db {:keys [meta] :as message}]
+  (let [[db context-fxs] (with-context db meta)
+        {:error/keys [id] :as error} (stacktrace/error-entry message)]
+    {:uf/db (assoc-in db [:output/errors id] error)
+     :uf/fxs (conj context-fxs [:fx/render-error error])}))
 
 (defn- update-error
   [db id f & args]
@@ -134,6 +130,9 @@
 
     :msg/error
     (handle-error db payload)
+
+    :msg/error-causes
+    (update-error db (:error/id payload) stacktrace/with-causes (:error/causes payload))
 
     (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter
      :error/ax.open-frame :error/ax.open-java-frame)

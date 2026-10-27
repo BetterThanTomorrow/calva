@@ -14,6 +14,15 @@ const converter = protocolConverter.createConverter(undefined, undefined, true);
 
 const definitionFunctions = { lsp: lspDefinition, repl: provideClojureDefinition };
 
+// Resolves with empty info when the lookup is cancelled, as when a Cmd-hover moves on while
+// cider-nrepl downloads a sources jar. The download carries on, for the next lookup.
+function untilCancelled(info: Promise<any>, token: vscode.CancellationToken) {
+  return Promise.race([
+    info,
+    new Promise<any>((resolve) => token.onCancellationRequested(() => resolve({}))),
+  ]);
+}
+
 async function provideClojureDefinition(
   clientProvider: lsp.ClientProvider,
   document,
@@ -27,9 +36,12 @@ async function provideClojureDefinition(
     const client = replSession.getSession();
     if (client?.supports('info')) {
       const text = util.getWordAtPosition(document, position);
-      const info = await client.info(namespace.getNamespace(document, position)[0], text, {
-        downloadSourcesJar: true,
-      });
+      const info = await untilCancelled(
+        client.info(namespace.getNamespace(document, position)[0], text, {
+          downloadSourcesJar: true,
+        }),
+        token
+      );
       if (info.file && info.file.length > 0) {
         const pos = new vscode.Position(info.line - 1, info.column || 0);
         try {

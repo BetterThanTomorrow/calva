@@ -39,6 +39,9 @@ const Direction = {
 } as const;
 const handleShadowRemoteMessage = shadowCljsRuntime.handleShadowRemoteMessage;
 
+// Some cider-nrepl versions can leave a stacktrace reply unfinished
+const STACKTRACE_TIMEOUT_MS = 10000;
+
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
 }
@@ -638,20 +641,27 @@ export class NReplSession {
 
   stacktrace() {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
+    return this.requestCauses({
+      op: 'analyze-last-stacktrace',
+      id: this.client.nextId,
+      session: this.sessionId,
+    });
+  }
+
+  /**
+   * Resolves with the causes of a stacktrace op's reply, or with none when the server doesn't
+   * support the op or hasn't finished the reply within `STACKTRACE_TIMEOUT_MS`.
+   */
+  private requestCauses(msg: { op: string; id: string; session: string; [key: string]: unknown }) {
     return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
-      const id = this.client.nextId;
-      const msg = {
-        op: 'analyze-last-stacktrace',
-        id,
-        session: this.sessionId,
-      };
-      if (this.supports(msg.op)) {
-        this.messageHandlers[id] = cider.stacktraceCausesHandler(resolve, reject);
-        this.client.write(msg);
-      } else {
+      if (!this.supports(msg.op)) {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
+        return;
       }
+      setTimeout(() => resolve(undefined), STACKTRACE_TIMEOUT_MS);
+      this.messageHandlers[msg.id] = cider.stacktraceCausesHandler(resolve, reject);
+      this.client.write(msg);
     });
   }
 
@@ -963,23 +973,13 @@ export class NReplSession {
   }
 
   testStacktrace(ns: string, test: string, index: number) {
-    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
-      const id = this.client.nextId;
-      const msg = {
-        op: 'test-stacktrace',
-        id,
-        session: this.sessionId,
-        ns,
-        var: test,
-        index: index,
-      };
-      if (this.supports(msg.op)) {
-        this.messageHandlers[id] = cider.stacktraceCausesHandler(resolve, reject);
-        this.client.write(msg);
-      } else {
-        log(msg, Direction.ClientToServerNotSupported);
-        resolve(undefined);
-      }
+    return this.requestCauses({
+      op: 'test-stacktrace',
+      id: this.client.nextId,
+      session: this.sessionId,
+      ns,
+      var: test,
+      index: index,
     });
   }
 

@@ -41,6 +41,20 @@ function lastErrorCauses(session: nrepl.NReplSession) {
   });
 }
 
+// The causes the debugger reported with the evaluation, none for an interrupted evaluation, whose
+// `*e` is an older error, else the session's last error
+function evaluationErrorCauses(evaluation: nrepl.NReplEvaluation, session: nrepl.NReplSession) {
+  if (evaluation.interrupted) {
+    return undefined;
+  }
+  return evaluation.causes ?? lastErrorCauses(session);
+}
+
+function asErrorLine(error: unknown) {
+  const text = String(error);
+  return text.endsWith('\n') ? text : `${text}\n`;
+}
+
 function getShadowInfo(session: any) {
   if (session?.replType !== 'cljs' && !session?.isSecondary) {
     return {};
@@ -318,18 +332,18 @@ async function evaluateCodeUpdatingUI(
             err.join('\n'),
             { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
             undefined,
-            context.causes ? Promise.resolve(context.causes) : undefined
+            context.causes
           );
         }
       }
     } catch (e) {
       if (showErrorMessage) {
-        const errorText = err.length ? err.join('\n') : e;
+        const errorText = err.length ? err.join('\n') : String(e);
         output.appendEvalErr(
-          errorText,
+          asErrorLine(errorText),
           { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
           undefined,
-          lastErrorCauses(session)
+          evaluationErrorCauses(context, session)
         );
         if (selection && editor) {
           void annotateEvaluationError(util.stripAnsi(errorText), selection, editor, options);
@@ -744,7 +758,7 @@ async function loadFile(
       `Evaluation of file ${fileName} failed: ${e}`,
       { who, ...shadowInfo },
       undefined,
-      res.causes ? Promise.resolve(res.causes) : lastErrorCauses(session)
+      evaluationErrorCauses(res, session)
     );
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);

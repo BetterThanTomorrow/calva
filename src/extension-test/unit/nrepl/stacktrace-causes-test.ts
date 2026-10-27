@@ -119,15 +119,14 @@ describe('stacktraceCausesHandler', () => {
     expectLib.expect(cider.stacktraceText([])).toBe('');
   });
 
-  it('puts the stacktrace after the message, keeping its trailing newline last', () => {
-    const causes = [
-      { ...rootCause, stacktrace: [{ name: 'c/d', file: 'f.clj', line: 1, flags: [] }] },
-    ] as unknown as cider.StacktraceCause[];
-    const stacktrace = 'java.lang.NumberFormatException: For input string: "abc"\n  c/d (f.clj:1)';
-    expectLib.expect(cider.messageWithStacktrace('Boom\n', causes)).toBe(`Boom\n${stacktrace}\n`);
-    expectLib.expect(cider.messageWithStacktrace('Boom', causes)).toBe(`Boom\n${stacktrace}`);
-    expectLib.expect(cider.messageWithStacktrace('Boom\n', [])).toBe('Boom\n');
-    expectLib.expect(cider.messageWithStacktrace('Boom', undefined)).toBe('Boom');
+  it('tells causes with frames from those without, as for ClojureScript', () => {
+    const frameless = { ...outerCause, stacktrace: [] } as unknown as cider.StacktraceCause;
+    expectLib
+      .expect(cider.hasFrames([frameless, rootCause] as unknown as cider.StacktraceCause[]))
+      .toBe(true);
+    expectLib.expect(cider.hasFrames([frameless])).toBe(false);
+    expectLib.expect(cider.hasFrames([])).toBe(false);
+    expectLib.expect(cider.hasFrames(undefined)).toBe(false);
   });
 
   it('rejects when the server does not know the op', () => {

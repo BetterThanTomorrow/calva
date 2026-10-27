@@ -222,12 +222,7 @@ async function reportTests(
           if (resultsForTest.type === 'error') {
             const causes = await session.testStacktrace(ns, test, resultsForTest.index);
             // The REPL window's part of the output comments the lines itself
-            output.appendLineOtherOut(
-              message.replace(/; /gi, ''),
-              {},
-              undefined,
-              Promise.resolve(causes)
-            );
+            output.appendLineOtherOut(message.replace(/^; /gm, ''), {}, undefined, causes ?? []);
           } else if (message) {
             output.appendClojureOther(message);
           }

@@ -681,7 +681,8 @@
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data])
-         "show-error"           (dispatch! [:msg/error message-data]))))))
+         "show-error"           (dispatch! [:msg/error message-data])
+         "show-error-causes"    (dispatch! [:msg/error-causes message-data]))))))
 
 (defn handle-output-appended
   [^js _event]

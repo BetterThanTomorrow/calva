@@ -12,7 +12,7 @@
   (reset! !java-source-url-fn f))
 
 (defn- editor-column
-  "Returns the column of a visible text editor, so the file opens beside the Output view."
+  "Returns the column of the first visible text editor, or the first column when there is none."
   [^js vscode]
   (or (some-> ^js (first (.. vscode -window -visibleTextEditors)) .-viewColumn)
       (.. vscode -ViewColumn -One)))

@@ -18,6 +18,8 @@
         "Flags become a set")
     (is (nil? (:file-url (some #(when (contains? (:flags %) "repl") %) (:stacktrace outer))))
         "A frame without source gets a nil file-url")
+    (is (nil? (:file-url (first (:stacktrace (sut/cause-data {:class "x" :stacktrace [{:file-url "" :flags []}]})))))
+        "So does the empty file-url older cider-nrepl versions send")
     (is (= {} (:location outer))
         "An empty location map stays a map")
     (is (not-any? #(contains? % :id) runtime-causes)

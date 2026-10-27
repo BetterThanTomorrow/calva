@@ -156,8 +156,12 @@
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
 
 (defn ^:export append-error
-  [^js options text ^js causes]
-  (add-output-sidebar-message! (core/error-message options text causes)))
+  [^js options text ^js causes error-id]
+  (add-output-sidebar-message! (core/error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  [error-id ^js causes]
+  (add-output-sidebar-message! (core/causes-message error-id causes)))
 
 (defn ^:export clear-output-sidebar
   []
