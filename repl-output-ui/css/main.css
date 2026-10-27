@@ -253,6 +253,23 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    cursor: pointer;
 }
 
+.output-error-toggle,
+.output-error-cause-toggle {
+   display: flex;
+   align-items: flex-start;
+   gap: 2px;
+   cursor: pointer;
+}
+
+.output-error .output-error-chevron-button {
+   flex: none;
+   width: auto;
+}
+
+.output-error-frame-openable {
+   cursor: pointer;
+}
+
 .output-error button:focus-visible {
    outline: 1px solid var(--vscode-focusBorder, #007fd4);
    outline-offset: 1px;
@@ -413,12 +430,13 @@ body[data-image-display="images"] .output-images:not(:has(.output-image-thumbnai
    margin-block: 2px 4px;
 }
 
-.output-error .output-error-location {
+.output-error .output-error-location-link {
    display: inline;
    width: auto;
+   margin-block: 2px 4px;
    color: var(--vscode-textLink-foreground, #3794ff);
 }
 
-.output-error .output-error-location:hover {
+.output-error .output-error-location-link:hover {
    text-decoration: underline;
 }

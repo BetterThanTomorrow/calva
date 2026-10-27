@@ -11,6 +11,7 @@ import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 import * as cider from '../nrepl/cider';
 import * as evaluatedCode from './evaluated-code';
+import * as errorOutput from './error-output';
 import { isWebviewOutputDestination } from './output-destinations';
 
 const customChalk = new chalk.Instance({ level: 3 });
@@ -69,7 +70,7 @@ type AppendOptions = {
   shadowBuild?: string;
   shadowRuntimeId?: number;
   // The causes of the error the message is about, for the Output views
-  causes?: Promise<cider.StacktraceCause[] | undefined>;
+  causes?: cider.Causes;
   unfolded?: boolean;
 };
 
@@ -269,24 +270,9 @@ function revealResultDestination(destination: string, preserveFocus: boolean) {
   return revealer ? revealer(preserveFocus) : outputWindow.revealReplWindowDoc(preserveFocus);
 }
 
-// The Output views show a message about an error together with the error's causes
-function writeErrorToWebview(options: AppendOptions, message: string, after?: AfterAppendCallback) {
-  void options.causes.then((causes) => {
-    const text = util.stripAnsi(message).replace(/^\n+|\n+$/g, '');
-    if (options.destination === 'output-sidebar') {
-      cljsLib.appendErrorToReplOutputSidebar(options, text, causes);
-    } else {
-      cljsLib.appendErrorToReplOutputWebview(options, text, causes);
-    }
-    if (after) {
-      after(undefined, undefined);
-    }
-  });
-}
-
 function writeToWebview(options: AppendOptions, message: string, after?: AfterAppendCallback) {
   if (options.causes !== undefined) {
-    writeErrorToWebview(options, message, after);
+    errorOutput.writeErrorToWebview(options, message, after);
     return;
   }
   if (options.destination === 'output-sidebar') {
@@ -670,36 +656,22 @@ function withStacktraceText(write: Write): Write {
     if (causes === undefined || !isTextDestination(destination)) {
       return write(options, message, after);
     }
-    void causes.then((causes) =>
-      write({ ...options, causes: undefined }, cider.messageWithStacktrace(message, causes), after)
-    );
+    write({ ...options, causes: undefined }, message, after);
+    cider.withCauses(causes, (causes) => appendStacktraceText(options, causes));
   };
+}
+
+function appendStacktraceText(options: AppendOptions, causes?: cider.StacktraceCause[]) {
+  if (cider.hasFrames(causes)) {
+    const lineStart = didLastOutputTerminateLine.get(options.destination) ?? true ? '' : '\n';
+    writeAppend({ ...options, causes: undefined }, `${lineStart}${cider.stacktraceText(causes)}\n`);
+  }
 }
 
 // The Output Channel, the terminal and output files. The REPL window and the Output views draw
 // stacktraces and the evaluation context themselves.
 function isTextDestination(destination: string) {
   return destination !== 'repl-window' && !isWebviewOutputDestination(destination);
-}
-
-// The REPL window keeps the outermost cause's frames for the "Print stacktrace" link after the error
-function withStacktraceLink(
-  causes: AppendOptions['causes'],
-  after?: AfterAppendCallback
-): AfterAppendCallback | undefined {
-  if (causes === undefined) {
-    return after;
-  }
-  return (location, afterLocation) => {
-    void causes.then((causes) => {
-      const frames = cider.outermostCauseFrames(causes);
-      if (frames) {
-        outputWindow.saveStacktrace(frames);
-        outputWindow.markLastStacktraceRange(afterLocation);
-      }
-    });
-    return after?.(location, afterLocation);
-  };
 }
 
 function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
@@ -715,7 +687,7 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
         ? message
         : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
-    outputWindow.append(decoratedMessage, withStacktraceLink(options.causes, after));
+    outputWindow.append(decoratedMessage, errorOutput.withStacktraceLink(options.causes, after));
     return;
   }
   if (destination === 'output-channel') {
@@ -820,7 +792,7 @@ export function appendEvalErr(
   message: string,
   options: AppendClojureOptions,
   after?: AfterAppendCallback,
-  causes?: Promise<cider.StacktraceCause[] | undefined>
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
   if (!destinations.length) {
@@ -999,7 +971,10 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
         ? message
         : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
-    outputWindow.appendLine(decoratedMessage, withStacktraceLink(options.causes, after));
+    outputWindow.appendLine(
+      decoratedMessage,
+      errorOutput.withStacktraceLink(options.causes, after)
+    );
     return;
   }
   if (destination === 'output-channel') {
@@ -1162,7 +1137,7 @@ export function appendLineOtherOut(
   message: string,
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback,
-  causes?: Promise<cider.StacktraceCause[] | undefined>
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
@@ -1221,7 +1196,7 @@ export function appendLineOtherErr(
   message: string,
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback,
-  causes?: Promise<cider.StacktraceCause[] | undefined>
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
@@ -1293,12 +1268,12 @@ function printStackTrace(causes: cider.StacktraceCause[]) {
       continue;
     }
     if (isWebviewOutputDestination(destination)) {
-      writeErrorToWebview(
+      errorOutput.writeErrorToWebview(
         {
           destination,
           outputCategory: 'evalErr',
           unfolded: true,
-          causes: Promise.resolve(causes),
+          causes,
         },
         cider.causeHeading(causes[0])
       );
@@ -1306,6 +1281,7 @@ function printStackTrace(causes: cider.StacktraceCause[]) {
     }
     switch (destination) {
       case 'repl-window':
+        outputWindow.saveStacktrace(cider.outermostCauseFrames(causes));
         outputWindow.printLastStacktrace();
         void replWindowAppendPrompt();
         break;

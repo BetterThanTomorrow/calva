@@ -110,14 +110,16 @@
                           :error/text "Execution error"
                           :error/category "evalErr"
                           :error/causes [{:class "clojure.lang.ExceptionInfo" :message nil :stacktrace []}]
-                          :error/unfolded? false}]
+                          :error/unfolded? false
+                          :id "e1"}]
     (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
                   sut/output-sidebar-webview-view (atom webview-view)
                   sut/output-sidebar-log (atom [])
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/append-error (clj->js {:outputCategory "evalErr"})
                         "Execution error"
-                        (clj->js [{:class "clojure.lang.ExceptionInfo" :message [] :stacktrace []}]))
+                        (clj->js [{:class "clojure.lang.ExceptionInfo" :message [] :stacktrace []}])
+                        "e1")
       (is (= [expected-message] @sut/output-sidebar-log)
           "Logs the error so the sidebar can show it again")
       (is (spy/called-once-with? post-message-to-webview-spy webview-view expected-message)))))

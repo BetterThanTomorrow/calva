@@ -523,23 +523,41 @@
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
+(defn- causes-data
+  [^js causes]
+  (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true)))
+
 (defn error-message
   "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause
-   messages, as one entry in an Output view. `options` are those of `append`, plus `unfolded`."
-  [^js options text ^js causes]
+   messages or nil when they come later, as the Output view entry `error-id`. `options` are those
+   of `append`, plus `unfolded`."
+  [^js options text ^js causes error-id]
   (let [category (if (map? options) (:outputCategory options) (.-outputCategory options))
         unfolded? (if (map? options) (:unfolded options) (.-unfolded options))
         meta-data (options->meta options)]
     (cond-> {:command/name "show-error"
              :error/text text
              :error/category category
-             :error/causes (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true))
+             :error/causes (causes-data causes)
              :error/unfolded? (boolean unfolded?)}
+      error-id (assoc :id error-id)
       (seq meta-data) (assoc :meta meta-data))))
 
+(defn causes-message
+  "Returns the message that gives the Output view entry `error-id` its `causes`."
+  [error-id ^js causes]
+  {:command/name "show-error-causes"
+   :error/id error-id
+   :error/causes (causes-data causes)})
+
 (defn ^:export append-error
-  [^js options text ^js causes]
-  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes)))
+  [^js options text ^js causes error-id]
+  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
+  [error-id ^js causes]
+  (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
 
 (defn ^:export clear-output-view
   []
