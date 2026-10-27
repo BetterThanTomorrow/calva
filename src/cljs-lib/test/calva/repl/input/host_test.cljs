@@ -390,7 +390,7 @@
           (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
           (testing "gives a REPL Input that mounts again in a page set again its text and selections back"
             (is (= [{:command/name "repl-input-edit" :repl-input/id "output-sidebar" :repl-input/version 0
-                     :text "(def treasure :gold)" :selections [[5 5]]}]
+                     :text "(def treasure :gold)" :selections [[5 5]] :restore? true}]
                    (posted-named posted "repl-input-edit")))
             (is (= "(def treasure :gold)" (get-in @sut/!state [:repl-input/records "output-sidebar" :repl-input/text]))))
           (sut/view-disposed! "output-sidebar")

@@ -239,7 +239,7 @@
     :repl-input/ax.edit
     (if (= (:repl-input/version payload) (:repl-input/version db))
       {:uf/db db
-       :uf/fxs [[:repl-input/fx.apply-edit (select-keys payload [:text :selections])]]}
+       :uf/fxs [[:repl-input/fx.apply-edit (select-keys payload [:text :selections :restore?])]]}
       {:uf/db db})
 
     :repl-input/ax.set-brackets

@@ -12,7 +12,7 @@
    [calva.repl.webview.input.stdin :as stdin]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
-   ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField]]
+   ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField Transaction]]
    ["@codemirror/view" :refer [Decoration EditorView drawSelection keymap]]))
 
 (defn mount-element
@@ -311,14 +311,16 @@
     (.dispatch view #js {:effects (.reconfigure command-keys-compartment (command-keys-handler command-keys))})))
 
 (defn- apply-edit!
-  [{:keys [text selections]}]
+  [{:keys [text selections restore?]}]
   (when-let [^js view (editor-view)]
     (let [change (edit/text-change (.. view -state -doc toString) text)]
       (.dispatch view (clj->js (cond-> {:selection (.create EditorSelection
                                                             (into-array (for [[anchor head] selections]
                                                                           (.range EditorSelection anchor head))))
                                         :scrollIntoView true
-                                        :annotations (.of isolateHistory "full")}
+                                        :annotations (if restore?
+                                                       (.of (.-addToHistory Transaction) false)
+                                                       (.of isolateHistory "full"))}
                                  change (assoc :changes change)))))))
 
 (defn- set-bracket-marks!

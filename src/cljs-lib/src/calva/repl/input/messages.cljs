@@ -31,7 +31,7 @@
   (let [restored (records/restored (get-in @host/!state [:repl-input/records id]))]
     (swap! host/!views assoc id webview-host)
     (host/take-record! records/take-mount msg)
-    (some->> restored (host/take-edit! id version))
+    (some->> restored (merge {:restore? true}) (host/take-edit! id version))
     (mounted! id)
     (host/load-keybindings!)))
 

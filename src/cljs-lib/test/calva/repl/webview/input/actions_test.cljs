@@ -68,6 +68,9 @@
       (is (= {:uf/db db
               :uf/fxs [[:repl-input/fx.apply-edit {:text "(a b)" :selections [[4 4]]}]]}
              (sut/handle-action db [:repl-input/ax.edit edit]))))
+    (testing "tells the editor when the edit restores text the REPL Input had before"
+      (is (= [[:repl-input/fx.apply-edit {:text "(a b)" :selections [[4 4]] :restore? true}]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.edit (assoc edit :restore? true)])))))
     (testing "drops an edit of an older version, since the text changed after the command read it"
       (is (= {:uf/db (assoc db :repl-input/version 3)}
              (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.edit edit]))))))

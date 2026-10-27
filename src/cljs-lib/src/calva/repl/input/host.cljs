@@ -363,14 +363,16 @@
 
 (defn take-edit!
   "Takes `after`, an edit the extension made from `version` of the REPL Input `id`, and posts it to that
-   REPL Input. Returns true when the REPL Input was still at `version`."
-  [id version {:keys [text selections] :as after}]
+   REPL Input, as no undo step when it `restore?`s text the REPL Input had before. Returns true when the
+   REPL Input was still at `version`."
+  [id version {:keys [text selections restore?] :as after}]
   (let [[old new] (swap-vals! !state update :repl-input/records records/take-edit id version after)]
     (when (not= old new)
-      (post-to-view! id {:command/name "repl-input-edit"
-                         :repl-input/version version
-                         :text text
-                         :selections selections})
+      (post-to-view! id (cond-> {:command/name "repl-input-edit"
+                                 :repl-input/version version
+                                 :text text
+                                 :selections selections}
+                          restore? (assoc :restore? true)))
       (derive-record! id)
       true)))
 
