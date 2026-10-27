@@ -2,7 +2,14 @@
  :deps {org.babashka/cli {:mvn/version "0.8.67"}}
  :tasks
  {:requires [[babashka.cli :as cli]
+             [renamed-props]
              [tasks :as t]]
+
+  renamed-props
+  {:doc "Usage: bb renamed-props [--outputs <file> ...]  Lists JS property reads a release build renamed. Run `npm run release-cljs` first."
+   :task (renamed-props/report!
+          (cli/parse-opts *command-line-args* {:restrict [:outputs :sources]
+                                              :coerce {:outputs []}}))}
 
   package-dev-release
   {:doc "Usage: bb package-dev-release [<slug>] [--dry]"
