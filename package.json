@@ -378,7 +378,7 @@
             "tags": [
               "experimental"
             ],
-            "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input below the output. **Calva: Toggle REPL Input in Output View** and **Calva: Toggle REPL Input in Output Sidebar** switch it for the session. The REPL Input is being built."
+            "markdownDescription": "Whether the Output View and the Output Sidebar show a REPL Input below the output. Once it is on for a view, **Calva: Toggle REPL Input in Output View** and **Calva: Toggle REPL Input in Output Sidebar** switch it for the session. The REPL Input is being built."
           },
           "calva.outputViews.replInputCommandKeys": {
             "type": "array",
