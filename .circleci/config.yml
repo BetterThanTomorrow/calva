@@ -60,6 +60,9 @@ jobs:
         name: Release CLJS builds
         command: npm run release-cljs
     - run:
+        name: Check the release builds for renamed JS property reads
+        command: clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
+    - run:
         name: Verify CLJS test output
         command: ls -l out/cljs-lib/test
     - run:

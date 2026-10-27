@@ -27,6 +27,10 @@ steps:
   - npm run release-cljs
 
 - !:cmd
+  - Check the release builds for renamed JS property reads
+  - clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
+
+- !:cmd
   - Verify CLJS test output
   - ls -l out/cljs-lib/test
 

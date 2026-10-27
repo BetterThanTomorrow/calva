@@ -1,8 +1,9 @@
 (ns renamed-props
   "Finds JavaScript property and method names that ClojureScript code reads, but that a release build's
    advanced compilation renamed, as it does for a property read on a value it can't tell is a JS object.
-   Such a read works in development builds and gives `undefined` in release builds."
-  (:require [babashka.fs :as fs]
+   Such a read works in development builds and gives `undefined` in release builds. Runs with bb, and with
+   the Clojure CLI where bb isn't installed, as in CI."
+  (:require [clojure.java.io :as io]
             [clojure.string :as string]))
 
 (def default-outputs
@@ -45,7 +46,10 @@
    that none of the `outputs` has."
   [{:keys [outputs sources]}]
   (let [kept (into #{} (mapcat (comp output-names slurp)) outputs)]
-    (for [file (sort (map str (fs/glob sources "**.{cljs,cljc}")))
+    (for [file (->> (file-seq (io/file sources))
+                    (filter #(re-find #"\.clj[sc]$" (.getName ^java.io.File %)))
+                    (map str)
+                    sort)
           [line-number line] (map-indexed (fn [i line] [(inc i) line]) (string/split-lines (slurp file)))
           name (distinct (read-names line))
           :when (not (kept name))]
@@ -55,7 +59,7 @@
   "Prints the renamed reads, and exits with 1 when there are any. Missing outputs mean there is no release
    build to scan."
   [{:keys [outputs] :or {outputs default-outputs} :as opts}]
-  (let [missing (remove fs/exists? outputs)]
+  (let [missing (remove #(.exists (io/file %)) outputs)]
     (when (seq missing)
       (println "No release build output at" (string/join ", " missing) "- run `npm run release-cljs` first.")
       (System/exit 2))
