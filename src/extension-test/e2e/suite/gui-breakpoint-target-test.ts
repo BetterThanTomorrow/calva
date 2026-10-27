@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import {
   breakpointLocationsForRange,
   breakpointTargetPosition,
-} from '../../../debugger/calva-debug';
+} from '../../../debugger/gui-breakpoints';
 
 const { describe, it } = Mocha;
 
