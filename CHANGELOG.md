@@ -9,6 +9,7 @@ Changes to Calva.
 - Fix: Go to definition sometimes land one column off
 - Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
 - Fix: The Output Sidebar loses its output when the Output Destinations change
+- Fix: Code in the Output views isn't highlighted when offline
 
 ## [2.0.605] - 2026-10-27
 
