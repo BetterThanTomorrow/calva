@@ -1930,18 +1930,6 @@
         "category": "Calva"
       },
       {
-        "command": "calva.toggleOutputViewReplInput",
-        "title": "Toggle REPL Input in Output View",
-        "category": "Calva",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "calva.toggleOutputSidebarReplInput",
-        "title": "Toggle REPL Input in Output Sidebar",
-        "category": "Calva",
-        "icon": "$(edit)"
-      },
-      {
         "command": "calva.replInput.deleteBackward",
         "title": "Delete Backward in REPL Input",
         "category": "Calva Paredit",
@@ -4154,14 +4142,6 @@
           "when": "editorLangId == clojure"
         },
         {
-          "command": "calva.toggleOutputViewReplInput",
-          "when": "calva:replInputEnabled"
-        },
-        {
-          "command": "calva.toggleOutputSidebarReplInput",
-          "when": "calva:replInputEnabled"
-        },
-        {
           "command": "calva.replInput.deleteBackward",
           "when": "calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
         },
@@ -4287,11 +4267,6 @@
         }
       ],
       "editor/title": [
-        {
-          "command": "calva.toggleOutputViewReplInput",
-          "when": "activeWebviewPanelId == 'calva.output-view' && calva:replInputEnabled",
-          "group": "navigation"
-        },
         {
           "enablement": "editorLangId == clojure  && calva:connected",
           "command": "calva.loadFile",
@@ -4450,11 +4425,6 @@
           "command": "calva.clearReplOutputSidebar",
           "when": "view == calva.output-sidebar",
           "group": "navigation@5"
-        },
-        {
-          "command": "calva.toggleOutputSidebarReplInput",
-          "when": "view == calva.output-sidebar && calva:replInputEnabled",
-          "group": "navigation@6"
         },
         {
           "command": "calva.pasteAsInspectorItem",

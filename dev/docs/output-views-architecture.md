@@ -126,11 +126,11 @@ Setting the HTML again reloads the page and loses what it showed. The Output Vie
 | | Output View | Output Sidebar |
 | --- | --- | --- |
 | VS Code kind | A `WebviewPanel`, `calva.output-view`, in an editor group beside the active one | A `WebviewView`, `calva.output-sidebar`, in the Calva view container |
-| Created | In `core/create-repl-output-webview-panel`, at the first output to it, by `calva.showReplOutputView`, or when `calva.toggleOutputViewReplInput` turns the REPL Input on | By VS Code, when the view is shown. `sidebar/create-repl-output-sidebar-provider` resolves it |
+| Created | In `core/create-repl-output-webview-panel`, at the first output to it, by `calva.showReplOutputView`, or when a `(read-line)` from a file waits in its REPL Input | By VS Code, when the view is shown. `sidebar/create-repl-output-sidebar-provider` resolves it |
 | Output before it exists | Creates it | Kept in `output-sidebar-log` and replayed when the view resolves |
-| Not an Output Destination | Opens only by the show command or the REPL Input toggle | A help page with the current `calva.outputDestinations`, unless the REPL Input is on for it |
+| Not an Output Destination | Opens only by the show command, or for a `(read-line)` that waits in its REPL Input | A help page with the current `calva.outputDestinations`, unless the REPL Input is on for it |
 | Clear | Posts `clear-output-view` when the panel exists | Empties the log, and posts `clear-output-view` |
-| Title buttons | The REPL Input toggle | Font size, word wrap, image display, clear, and the REPL Input toggle |
+| Title buttons | None | Font size, word wrap, image display, and clear |
 | Visibility and focus events | `onDidChangeViewState`: visible and active | `onDidChangeVisibility`: visible |
 | Title | "REPL" while the REPL Input is on for it, else "REPL Output" | Same |
 

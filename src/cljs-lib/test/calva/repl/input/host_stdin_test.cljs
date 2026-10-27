@@ -13,12 +13,12 @@
       (fn [{:keys [posted contexts] :as host}]
         (with-view host
           (fn []
-            (let [shown (atom 0)]
-              (with-redefs [sut/show-sidebar! #(swap! shown inc)]
+            (let [shown (atom [])]
+              (with-redefs [sut/show-view! #(swap! shown conj %)]
                 (mount-focused! "output-sidebar" "")
-                (let [line+ (sut/read-line+ #js {:value (js/Promise. (fn [_ _]))})]
+                (let [line+ (sut/read-line+ #js {:value (js/Promise. (fn [_ _]))} "output-sidebar")]
                   (testing "reveals the Output Sidebar and waits there for the line"
-                    (is (= 1 @shown))
+                    (is (= ["output-sidebar"] @shown))
                     (is (= :reading-stdin (last (bars posted))))
                     (is (not-any? #(= "calva:replInputReadingStdin" (first %)) @contexts)))
                   (post! {:command "repl-input-send-line" :repl-input/id "output-sidebar" :line "Ahoy"})
@@ -29,17 +29,37 @@
                                  (is (nil? (last (bars posted)))))
                                (done)))))))))))))
 
+(deftest read-line+-output-view-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted] :as host}]
+        (with-view host
+          (fn []
+            (let [shown (atom [])]
+              (with-redefs [sut/show-view! #(swap! shown conj %)]
+                (mount-focused! "output-view" "")
+                (let [line+ (sut/read-line+ #js {:value (js/Promise. (fn [_ _]))} "output-view")]
+                  (testing "reveals the Output View and waits in its stdin input"
+                    (is (= ["output-view"] @shown))
+                    (is (= :reading-stdin (last (bars posted)))))
+                  (post! {:command "repl-input-send-line" :repl-input/id "output-view" :line "Arr"})
+                  (-> line+
+                      (.then (fn [line]
+                               (testing "answers with the line sent from the Output View's stdin input"
+                                 (is (= "Arr" line)))
+                               (done)))))))))))))
+
 (deftest read-line+-evaluation-ends-test
   (async done
     (with-fresh-host
       (fn [{:keys [posted] :as host}]
         (with-view host
           (fn []
-            (with-redefs [sut/show-sidebar! (constantly nil)]
+            (with-redefs [sut/show-view! (constantly nil)]
               (mount-focused! "output-sidebar" "")
               (let [!end (atom nil)
                     value (js/Promise. (fn [_ reject] (reset! !end reject)))]
-                (sut/read-line+ #js {:value value})
+                (sut/read-line+ #js {:value value} "output-sidebar")
                 (@!end (js/Error. "Interrupted"))
                 (-> value
                     (.catch (constantly nil))

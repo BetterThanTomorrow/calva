@@ -27,7 +27,6 @@
   {:repl-input/records {}
    :repl-input/focused nil
    :repl-input/last-focused nil
-   :repl-input/overrides {}
    :repl-input/keybindings []
    :repl-input/settings {}
    :repl-input/applied-cursor-contexts nil
@@ -60,15 +59,7 @@
 (defn enabled?
   "True when the REPL Input is on for `view-id`."
   [view-id]
-  (setting/enabled? (config/current-setting) (:repl-input/overrides @!state) view-id))
-
-(defn toggle!
-  [view-id]
-  (swap! !state update :repl-input/overrides #(setting/toggle (config/current-setting) % view-id)))
-
-(defn clear-toggles!
-  []
-  (swap! !state assoc :repl-input/overrides {}))
+  (setting/enabled? (config/current-setting) view-id))
 
 (defn view-title
   [view-id]

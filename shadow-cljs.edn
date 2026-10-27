@@ -50,8 +50,6 @@
                              :setJavaSourceLookup calva.repl.webview.frame-host/set-java-source-lookup!
                              :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar
                              :initReplInput calva.repl.input.core/init!
-                             :toggleOutputViewReplInput calva.repl.input.core/toggle-output-view!
-                             :toggleOutputSidebarReplInput calva.repl.input.core/toggle-output-sidebar!
                              :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
                              :replInputFocused calva.repl.input.host/focused?
                              :replInputSourceFile calva.repl.input.host/context-source-file

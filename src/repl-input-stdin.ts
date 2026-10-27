@@ -2,15 +2,16 @@
 export type ReplInputSetting = Record<string, boolean> | undefined;
 
 /**
- * Returns the stdin function for an evaluation from a file: `readInSidebar` while `setting` has the
- * REPL Input on for a view, or `undefined`, which reads stdin from the input box, as the REPL window's
- * evaluations do.
+ * Returns the id of the Output view whose REPL Input reads stdin for an evaluation from a file: the
+ * Output Sidebar while `setting` has its REPL Input on, else the Output View while that has it on, or
+ * `undefined`, which reads stdin from the input box, as the REPL window's evaluations do.
  */
-export function editorStdin(
+export function stdinViewId(
   setting: ReplInputSetting,
-  fromReplWindow: boolean,
-  readInSidebar: () => Promise<string>
-): (() => Promise<string>) | undefined {
-  const replInputOn = Object.values(setting ?? {}).some(Boolean);
-  return replInputOn && !fromReplWindow ? readInSidebar : undefined;
+  fromReplWindow: boolean
+): 'output-sidebar' | 'output-view' | undefined {
+  if (fromReplWindow) {
+    return undefined;
+  }
+  return (['output-sidebar', 'output-view'] as const).find((id) => setting?.[id]);
 }

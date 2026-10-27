@@ -8,8 +8,7 @@ Read [Output Views Architecture](output-views-architecture.md) first. The REPL I
 
 The REPL Input is behind `calva.outputViews.replInput`, a setting with one value per view, `{"output-view": false, "output-sidebar": false}` by default, tagged `experimental`. It has no user documentation and no changelog entry, and stays out of both until it is announced. Keep it that way when you change it.
 
-- `calva:replInputEnabled` is true while the setting has the REPL Input on for at least one view. It shows the two toggle commands, `calva.toggleOutputViewReplInput` and `calva.toggleOutputSidebarReplInput`.
-- The toggles override the setting for the session, per view. A change of the setting clears them.
+- The setting alone turns the REPL Input on or off for a view. A change of the setting mounts or unmounts it in the views that are open.
 - The REPL Input's keybindings need `calva:replInputFocused`, and its commands in the palette need it or the last focused place (see Focus). Neither can hold without a mounted REPL Input, so with the setting off no key reaches it and none of its commands shows.
 - `calva.repl.input.core/init!` runs at every activation, whatever the setting: it loads the history and the kept code, and starts the setting and terminal focus listeners. VS Code's resolved keybindings are read when a REPL Input mounts.
 
@@ -29,13 +28,13 @@ The namespaces are `calva.repl.input.<name>`.
 
 | Namespace | What it does |
 | --- | --- |
-| `core` | `init!`, the setting listener, the toggles, the terminal focus listener |
+| `core` | `init!`, the setting listener, the terminal focus listener |
 | `host` | The state atom, the records, focus, the derived data, the context, posting to the views, the exports TS reads |
 | `messages` | Takes the webview's `repl-input-*` messages |
 | `records` | The versioned record of each REPL Input, pure |
 | `context` | The context, locks and how they route, pure |
 | `focus` | The focus decisions, pure |
-| `setting` | The setting and the session's toggles, pure |
+| `setting` | The setting, pure |
 | `config` | Reads the settings, the resolved keybindings, the heights, the stored history and the kept code |
 | `command-keys`, `when-clause` | Which keys VS Code gets, from the keybindings and their `when` clauses, pure |
 | `brackets` | Which brackets close themselves, and the bracket styles, pure |
@@ -43,7 +42,7 @@ The namespaces are `calva.repl.input.<name>`.
 | `history`, `recall` | The history entries, and recalling them |
 | `complete`, `completion` | Completion requests, and the copy clojure-lsp completes in |
 | `definition`, `reveal` | Go to definition, and the kept code of evaluations |
-| `stdin` | stdin for evaluations from files, in the Output Sidebar |
+| `stdin` | stdin for evaluations from files, in an Output view's REPL Input |
 
 ### Webview side
 
@@ -75,7 +74,7 @@ Calva's TS code that branches on `replInput.hasFocus()`: `src/paredit/extension.
 
 ## State
 
-On the extension side, `calva.repl.input.host/!state` holds the REPL Inputs' state: the records by view id, the focused and last focused REPL Input, the toggles, the parsed keybindings, the settings, the context keys last set, the running evaluations, the kept code, the context (`:repl-input.context/lock`, `/editor` and `/line`) and the history (`:repl-input.history/entries` and `/walked`). It changes only in message and event handlers. The decisions are pure functions in their own namespaces, with tests.
+On the extension side, `calva.repl.input.host/!state` holds the REPL Inputs' state: the records by view id, the focused and last focused REPL Input, the parsed keybindings, the settings, the context keys last set, the running evaluations, the kept code, the context (`:repl-input.context/lock`, `/editor` and `/line`) and the history (`:repl-input.history/entries` and `/walked`). It changes only in message and event handlers. The decisions are pure functions in their own namespaces, with tests.
 
 Beside it are atoms for things that aren't data: `host/!adapter` (the TS functions), `host/!views` (each view's webview host by id, set when its REPL Input mounts), `evaluate/!running` (each running evaluation's `NReplEvaluation` and stdin resolver), and `complete/!completions` (the request in flight and the JS items each view was answered with).
 
@@ -165,7 +164,7 @@ The other evaluation commands from files work on the REPL Input while it has the
 ### stdin
 
 - An evaluation from the REPL Input reads stdin in the view's stdin input. `evaluate/read-stdin+` shows it through the evaluation bar, and the webview posts the line with `repl-input-send-line`.
-- An evaluation from a file reads stdin in the Output Sidebar while the setting has the REPL Input on for a view. `stdinFor` in `evaluate.ts` decides with `repl-input-stdin.ts`, from the setting, not the toggles, and not for the REPL window. `calva.repl.input.stdin/read-line+` reveals the Output Sidebar, turns its REPL Input on for the session when it is off, and waits for the line. Otherwise the evaluation reads stdin with the input box.
+- An evaluation from a file reads stdin in the Output Sidebar's REPL Input while the setting has it on, else in the Output View's while the setting has that on, and otherwise with the input box. Evaluations from the REPL window use the input box. `stdinFor` in `evaluate.ts` picks the view with `stdinViewId` in `repl-input-stdin.ts`, and `calva.repl.input.stdin/read-line+` reveals that view and waits for the line in its stdin input.
 
 ## History
 
@@ -246,6 +245,6 @@ A lock without a source file has no current file. The status bar then routes wit
 - The cljs tests: `src/cljs-lib/test/calva/repl/input/` for the extension side and `src/cljs-lib/test/calva/repl/webview/input/` for the webview. `host_fixtures.cljs` has a fake adapter and fake views: a test sends messages to `messages/handle-message!` and reads what was posted. The editor and `main.cljs` have no unit tests, since CodeMirror needs a real document.
 - The TS unit tests: `current-file-decision-test.ts`, `repl-input-document-test.ts`, `repl-input-stdin-test.ts` and `editing-keybindings-test.ts` in `src/extension-test/unit/`.
 - The e2e suite doesn't drive the REPL Input.
-- In the Extension Development Host, turn the REPL Input on with the setting in the test project's `.vscode/settings.json`. After that, the toggle commands switch a view for the session. The `:calva-lib` runtime has `@calva.repl.input.host/!state`. Each Output view's page is a `:repl-output-ui` runtime, where `@calva.repl.webview.app-db/!app-db` has the REPL Input's db (see Testing and probing in [Output Views Architecture](output-views-architecture.md)).
+- In the Extension Development Host, turn the REPL Input on with the setting in the test project's `.vscode/settings.json`. The `:calva-lib` runtime has `@calva.repl.input.host/!state`. Each Output view's page is a `:repl-output-ui` runtime, where `@calva.repl.webview.app-db/!app-db` has the REPL Input's db (see Testing and probing in [Output Views Architecture](output-views-architecture.md)).
 - Focus events need the window to have the OS focus. When it doesn't, `(calva.repl.input.host/update-focus! [:focus "output-view"])` in the `:calva-lib` runtime stands in for them.
 - Keys depend on the keyboard layout, the palette and the OS focus, so key handling needs a check with real keys by a person.

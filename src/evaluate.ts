@@ -401,16 +401,16 @@ async function updateEditorWithError(editorError: string, ui: UiContext) {
   decorateFileEditor(editorError, annotations.AnnotationStatus.ERROR, currentCursorPos, ui);
 }
 
-/** Returns the stdin of an evaluation from `editor`: the Output Sidebar's REPL Input while the setting has the REPL Input on for a view, else the input box. */
+/** Returns the stdin of an evaluation from `editor`: the stdin input of the REPL Input that `stdinViewId` picks, else the input box. */
 function stdinFor(
   editor: vscode.TextEditor | undefined,
   sentEvaluation: () => nrepl.NReplEvaluation
-) {
-  return replInputStdin.editorStdin(
+): (() => Promise<string>) | undefined {
+  const viewId = replInputStdin.stdinViewId(
     vscode.workspace.getConfiguration('calva').get('outputViews.replInput'),
-    replWindow.isReplWindowDoc(editor?.document),
-    () => cljsLib.replInputReadLine(sentEvaluation())
+    replWindow.isReplWindowDoc(editor?.document)
   );
+  return viewId && (() => cljsLib.replInputReadLine(sentEvaluation(), viewId));
 }
 
 type EvaluationNamespace = { session: nrepl.NReplSession; ns: string; nsForm: string };

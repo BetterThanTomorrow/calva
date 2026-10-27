@@ -272,8 +272,6 @@ async function activate(context: vscode.ExtensionContext) {
     increaseOutputViewFontSize: cljsLib.increaseOutputViewFontSize,
     decreaseOutputViewFontSize: cljsLib.decreaseOutputViewFontSize,
     resetOutputViewFontSize: cljsLib.resetOutputViewFontSize,
-    toggleOutputViewReplInput: cljsLib.toggleOutputViewReplInput,
-    toggleOutputSidebarReplInput: cljsLib.toggleOutputSidebarReplInput,
     clearReplHistory: replHistory.clearHistory,
     connect: connector.connectCommand,
     connectNonProjectREPL: () => {
