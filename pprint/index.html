@@ -75,6 +75,11 @@
 <td><strong>Current Calva default.</strong> <code>clojure.core/pprint</code> is a bit basic, but it's tried and tested, and doesn't suffer from the issues with the other server side printing options, mentioned below.</td>
 </tr>
 <tr>
+<td><a href="https://github.com/clojure-emacs/orchard"><code>orchard</code></a></td>
+<td>server</td>
+<td>faster than <code>pprint</code>, doesn't mix a lazy seq's printing into the result, doesn't pretty-print exceptions.</td>
+</tr>
+<tr>
 <td><a href="https://github.com/brandonbloom/fipp"><code>fipp</code></a></td>
 <td>server</td>
 <td></td>
@@ -92,7 +97,8 @@
 </tbody>
 </table>
 <p>These particular server side functions were chosen because they have pre-configured print-functions in <a href="https://docs.cider.mx/cider-nrepl/"><code>cider-nrepl</code></a>.</p>
-<h4 id="or-configure-printfn">Or configure <code>printFn</code><a href="#or-configure-printfn" title="Permanent link" class="headerlink">#</a></h4>
+<div class="admonition note"><p class="admonition-title"><code>pprint</code> and <code>cider-nrepl</code> &gt;= 0.61</p><p>With <code>cider-nrepl</code> versions from <code>0.61</code>, Calva uses <code>clojure.pprint</code> though <code>cider.nrepl.pprint/clojure-pprint</code>, because <a href="https://github.com/BetterThanTomorrow/calva/issues/3265">calva#3265</a>.</p>
+</div><h4 id="or-configure-printfn">Or configure <code>printFn</code><a href="#or-configure-printfn" title="Permanent link" class="headerlink">#</a></h4>
 <p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one. (This is also a bit experimental, please consider giving feedback about how it works for you if you try it.)</p>
 <h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?<a href="#why-does-server-or-client-side-matter" title="Permanent link" class="headerlink">#</a></h3>
 <p>This matters because on the server all pretty printers, except <code>pprint</code> does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for <a href="https://www.datomic.com">Datomic</a> transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, and instead you will soon have a very hot computer.</p>
