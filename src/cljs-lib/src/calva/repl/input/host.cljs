@@ -90,12 +90,9 @@
   (.routedSessionKey ^js @!adapter source-file))
 
 (defn- walked-history
-  "Returns the history entries that the REPL Inputs walk, each in the session that routing it gives now:
-   those in the context line's session when the history is kept per session, else all of them."
-  [{:repl-input.history/keys [entries] :repl-input/keys [settings] :repl-input.context/keys [line]}]
-  (history/visible (history/routed entries route)
-                   (:repl-input.context/session-key line)
-                   (get settings history/per-session-setting)))
+  "Returns the history entries that the REPL Inputs walk, each in the session that routing it gives now."
+  [{:repl-input.history/keys [entries]}]
+  (history/routed entries route))
 
 (defn refresh-history!
   "Posts the history entries that the REPL Inputs walk to them when the entries changed. Returns true when

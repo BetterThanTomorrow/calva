@@ -55,11 +55,6 @@
                         (sut/add (sut/entry "(def a 1)" (assoc user :repl-input.context/session-key "cljs"))))))
         "Without a source file, another session is another context")))
 
-(deftest visible-test
-  (testing "filters by the session the REPL Input evaluates in when the setting says so"
-    (is (= ["(js/alert 1)"] (mapv :repl-input.history/code (sut/visible entries "cljs" true))))
-    (is (= 3 (count (sut/visible entries "cljs" false))))))
-
 (deftest pick-items-test
   (testing "newest first, the code on one line as the label, the namespace as the description"
     (is (= [{:label "(js/alert 1)" :description "pirate.ui" :index 2}

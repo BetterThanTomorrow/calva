@@ -391,14 +391,6 @@
             ],
             "markdownDescription": "The REPL Input binds the default keybindings for the Calva commands it uses. If you have bound different shortcuts to e.g ParEdit commands, you need to list them here, written the same way as in keybindings.json, e.g. `ctrl+alt+j` or `ctrl+k ctrl+j`."
           },
-          "calva.outputViews.replInputHistoryPerSession": {
-            "type": "boolean",
-            "default": false,
-            "tags": [
-              "experimental"
-            ],
-            "markdownDescription": "Whether `up`, `down` and `ctrl+r` in the REPL Input go through only what was evaluated in the session the REPL Input evaluates in, as the REPL window's history does. Off, they go through everything evaluated in the REPL Input."
-          },
           "calva.outputViewImageDisplay": {
             "type": "string",
             "enum": [

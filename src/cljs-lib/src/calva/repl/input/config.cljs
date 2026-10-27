@@ -5,7 +5,6 @@
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.completion :as completion]
-   [calva.repl.input.history :as history]
    [calva.util :as util]
    [clojure.set :as set]
    ["jsonc-parser" :as jsonc]))
@@ -32,15 +31,15 @@
          {:completion (completion/editor-settings settings)}))
 
 (defn read-settings
-  "The settings that the parsed `keybindings`, the brackets, the editing and the history depend on, as a
-   map from setting keys to values."
+  "The settings that the parsed `keybindings`, the brackets and the editing depend on, as a map from setting
+   keys to values."
   [keybindings]
   (let [workspace (.-workspace ^js @util/vscode)
         read (fn [^js config ks]
                (into {} (map (fn [k] [k (js->clj (.get config k))])) ks))]
     (merge (read (.getConfiguration workspace)
                  (concat (command-keys/setting-keys keybindings)
-                         [command-keys/user-keys-setting history/per-session-setting]
+                         [command-keys/user-keys-setting]
                          brackets/highlight-settings))
            (read (.getConfiguration workspace js/undefined #js {:languageId "clojure"})
                  clojure-settings))))

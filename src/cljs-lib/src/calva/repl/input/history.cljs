@@ -5,10 +5,6 @@
    [calva.repl.input.context :as context]
    [clojure.string :as string]))
 
-(def per-session-setting
-  "The setting that keeps the history to the session the REPL Input evaluates in."
-  "calva.outputViews.replInputHistoryPerSession")
-
 (defn entry
   "Returns the history entry of `code`, evaluated in `context`, with the context's source file."
   [code {:repl-input.context/keys [ns ns-form session-key source-file]}]
@@ -34,13 +30,6 @@
   (if (or (string/blank? code) (same-entry? new-entry (peek entries)))
     entries
     (conj (vec entries) new-entry)))
-
-(defn visible
-  "Returns the `entries` in the session `session-key` when `per-session?`, else all of them."
-  [entries session-key per-session?]
-  (if per-session?
-    (filterv #(= session-key (:repl-input.context/session-key %)) entries)
-    (vec entries)))
 
 (defn pick-items
   "Returns the quick pick items for `entries`, newest first: the code as the label, with what VS Code would

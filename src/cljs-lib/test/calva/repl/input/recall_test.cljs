@@ -36,22 +36,6 @@
                            (is (= [[] ["(def a 1)"] ["(def a 1)"]] (posted-histories posted))))
                          (done))))))))))
 
-(deftest per-session-history-test
-  (with-fresh-host
-    (fn [{:keys [posted] :as host}]
-      (with-view host
-        (fn []
-          (swap! host/!state assoc
-                 :repl-input.history/entries [{:repl-input.history/code "(def a 1)" :repl-input.context/ns "user" :repl-input.context/session-key "clj"}
-                                              {:repl-input.history/code "(js/alert 1)" :repl-input.context/ns "user" :repl-input.context/session-key "cljs"}])
-          (mount-focused! "output-view" "")
-          (host/settings-changed! {"calva.outputViews.replInputHistoryPerSession" true})
-          (testing "gives the REPL Inputs the entries of the context's session when the history is kept per session"
-            (is (= [["(def a 1)" "(js/alert 1)"] ["(def a 1)"]] (posted-histories posted))))
-          (host/editor-moved! #js {:ns "pirate.ui" :uri "file:///pirate/src/pirate/ui.cljs"} #js {})
-          (testing "and when the context's session changes"
-            (is (= ["(js/alert 1)"] (last (posted-histories posted))))))))))
-
 (deftest lock-test
   (with-fresh-host
     (fn [{:keys [posted routes] :as host}]
