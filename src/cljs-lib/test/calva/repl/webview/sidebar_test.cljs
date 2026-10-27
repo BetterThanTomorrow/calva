@@ -76,8 +76,8 @@
         ((ffirst (spy/calls on-did-dispose-spy)))
         (is (nil? @sut/output-sidebar-webview-view))
         (is (spy/called-once-with? unregister-webview!-spy webview-view))
-        (testing "should tell the REPL Input host when the page is set, and drop the REPL Input's record when the view is disposed"
-          (is (= [[:page-set "output-sidebar"] [:disposed "output-sidebar"]] @forgotten)))))))
+        (testing "should drop the REPL Input's record when the page is set with the REPL Input off, and when the view is disposed"
+          (is (= [[:disposed "output-sidebar"] [:disposed "output-sidebar"]] @forgotten)))))))
 
 (deftest show-repl-output-sidebar-test
   (let [show-spy (spy/spy)
