@@ -23,7 +23,7 @@
 (defn- workspace-folder-uris
   "URIs of every open workspace folder."
   [^js vscode]
-  (let [^js workspace (.-workspace vscode)]
+  (let [^js workspace (some-> vscode .-workspace)]
     (when-let [folders (and workspace (.-workspaceFolders workspace))]
       (keep (fn [^js folder] (.-uri folder)) (array-seq folders)))))
 
