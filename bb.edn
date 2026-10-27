@@ -2,8 +2,13 @@
  :deps {org.babashka/cli {:mvn/version "0.8.67"}}
  :tasks
  {:requires [[babashka.cli :as cli]
+             [release-check]
              [renamed-props]
              [tasks :as t]]
+
+  release-check
+  {:doc "Usage: bb release-check  Release-builds cljs-lib into a temp folder as CI does, runs its tests, and scans for renamed JS property reads."
+   :task (release-check/check! {})}
 
   renamed-props
   {:doc "Usage: bb renamed-props [--outputs <file> ...]  Lists JS property reads a release build renamed. Run `npm run release-cljs` first."
