@@ -216,11 +216,6 @@ suite('CLJC Routing suite', function () {
         );
       }
     }
-    assert.deepStrictEqual(
-      replSession.getRoutingInfoForUri(undefined),
-      replSession.getRoutingInfo(null),
-      'Without a URI, routing is the routing without a document'
-    );
   });
 
   test('Hover in a split that is not the active editor answers from that split’s session', async function () {

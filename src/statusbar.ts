@@ -79,8 +79,6 @@ function update() {
     }`
   );
 
-  const doc = util.tryToGetDocument({});
-
   //let disconnectedColor = "rgb(192,192,192)";
 
   const pprint = config.getConfig().prettyPrintingOptions?.enabled;
@@ -133,7 +131,7 @@ function update() {
         isPinned && pinnedSessionKey ? pinnedSessionKey : routingInfo?.sessionKey ?? replType;
 
       // Use shared session label formatting
-      const labelContext = replSession.getSessionLabelContext({ isPinned, doc });
+      const labelContext = replSession.getSessionLabelContext({ isPinned });
       const baseStatusText = sessionLabel.formatSessionLabel(displaySessionKey, labelContext);
 
       const pinIndicator = isPinned ? '$(pin) ' : '';

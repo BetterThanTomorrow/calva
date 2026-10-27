@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as util from './utilities';
+import * as currentFile from './current-file';
 import * as string from './util/string';
 import open = require('open');
 import * as status from './status';
@@ -2075,9 +2076,9 @@ export async function selectCljcTarget(target?: 'primary' | 'secondary') {
     },
   ];
 
-  const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc
-    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+  const fileUri = currentFile.currentFileUri();
+  const activeFilePath = fileUri
+    ? projectRootUtil.getPathRelativeToWorkspace(fileUri)
     : 'no file selected';
 
   const selection = await vscode.window.showQuickPick(items, {

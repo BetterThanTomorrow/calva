@@ -789,7 +789,7 @@ async function loadDocument(
   ) {
     void vscode.window.showTextDocument(doc, { preview: false });
   }
-  const fileType = util.getFileType(doc);
+  const fileType = util.getFileType(doc.uri);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
   const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
 

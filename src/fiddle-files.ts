@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fiddleFilesUtil from './util/fiddle-files';
 import * as clientRegistry from './nrepl/client-registry';
+import * as currentFile from './current-file';
 import * as config from './config';
 import * as nsUtil from './util/ns-form';
 import * as evaluate from './evaluate';
@@ -32,13 +33,19 @@ function perFileRoot(filePath: string): string | undefined {
   );
 }
 
-export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
-  if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
+function currentClojureDocument(): vscode.TextDocument | undefined {
+  const document = currentFile.currentFileDocument();
+  return document?.languageId === 'clojure' ? document : undefined;
+}
+
+export function updateFiddleFileOpenedContext() {
+  const document = currentClojureDocument();
+  if (!document) {
     return;
   }
   activeEditorIsFiddle = fiddleFilesUtil.isFiddleFile(
-    editor.document.fileName,
-    perFileRoot(editor.document.fileName),
+    document.fileName,
+    perFileRoot(document.fileName),
     config.getConfig().fiddleFilePaths
   );
   void vscode.commands.executeCommand(
@@ -51,7 +58,7 @@ export function updateFiddleFileOpenedContext(editor: vscode.TextEditor) {
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((editor) => {
-      updateFiddleFileOpenedContext(editor);
+      updateFiddleFileOpenedContext();
       if (editor && editor.document && editor.document.languageId === 'clojure') {
         filePathToViewColumn.set(editor.document.fileName, editor.viewColumn);
       }
@@ -64,11 +71,11 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('calva.fiddleFilePaths')) {
-        updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+        updateFiddleFileOpenedContext();
       }
     })
   );
-  updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+  updateFiddleFileOpenedContext();
 
   // Best effort to initialize view column for source and fiddle files
   // Only visible editors are considered, the API does not provide a way to get the view column for a non-visible editor
@@ -115,11 +122,11 @@ async function askToCreateANewFile(filePath: string) {
 }
 
 function getFiddleForSourceFile() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
+  const document = currentClojureDocument();
+  if (!document) {
     return { fiddleFileUri: null, fiddleFilePath: null };
   }
-  const sourceFilePath = editor.document.fileName;
+  const sourceFilePath = document.fileName;
   const projectRootPath = perFileRoot(sourceFilePath);
   const fiddleFilePaths = config.getConfig().fiddleFilePaths;
   const fiddleFilePath = fiddleFilesUtil.getFiddleForSourceFile(
@@ -172,11 +179,11 @@ export async function evaluateFiddleForSourceFile() {
 }
 
 export async function openSourceFileForFiddle() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || !editor.document || editor.document.languageId !== 'clojure') {
+  const document = currentClojureDocument();
+  if (!document) {
     return;
   }
-  const filePath = editor.document.fileName;
+  const filePath = document.fileName;
   const projectRootPath = perFileRoot(filePath);
   const fiddleFilePaths = config.getConfig().fiddleFilePaths;
   const sourceFilePath = await fiddleFilesUtil.getSourceForFiddleFile(

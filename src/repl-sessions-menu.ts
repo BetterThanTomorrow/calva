@@ -6,6 +6,7 @@ import * as clientRegistry from './nrepl/client-registry';
 import * as status from './status';
 import * as projectRootUtil from './project-root';
 import * as utilities from './utilities';
+import * as currentFile from './current-file';
 import * as outputWindow from './repl-window/repl-window-doc';
 import * as output from './results-output/output';
 import * as state from './state';
@@ -161,10 +162,7 @@ function formatSessionDetail({
   }
 
   // REPL window target indicator - only shown when REPL window is active
-  if (
-    isReplWindowTarget &&
-    outputWindow.isReplWindowDoc(vscode.window.activeTextEditor?.document)
-  ) {
+  if (isReplWindowTarget && outputWindow.isReplWindowUri(currentFile.currentFileUri())) {
     detailParts.push('Targeted by $(check) repl-window');
   }
 
@@ -418,12 +416,13 @@ function buildMenuItems(): SessionQuickPickItem[] {
   const isAutoRouting = !pinnedSession;
   const routingInfo = replSession.getRoutingInfo();
   const currentOutputSession = outputWindow.getSessionType();
-  const activeFilePath = vscode.window.activeTextEditor?.document?.uri?.fsPath;
+  const fileUri = currentFile.currentFileUri();
+  const activeFilePath = fileUri?.fsPath;
 
   const items: SessionQuickPickItem[] = [];
 
   // REPL window session selector - only shown when REPL window is active
-  const isReplWindowActive = outputWindow.isReplWindowDoc(vscode.window.activeTextEditor?.document);
+  const isReplWindowActive = outputWindow.isReplWindowUri(fileUri);
   if (isReplWindowActive) {
     const outputSessionMeta = currentOutputSession
       ? sessionRegistry.getSessionMetadata(currentOutputSession)
@@ -481,10 +480,8 @@ export async function showReplSessionsMenu(): Promise<void> {
   }
 
   // Build placeholder with active file path if available
-  const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc
-    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
-    : undefined;
+  const fileUri = currentFile.currentFileUri();
+  const activeFilePath = fileUri ? projectRootUtil.getPathRelativeToWorkspace(fileUri) : undefined;
   const placeHolder = activeFilePath
     ? `Selecting a session pins it. ${activeFilePath}`
     : 'Selecting a session pins it';

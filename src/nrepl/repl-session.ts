@@ -3,6 +3,7 @@ import * as minimatchLib from 'minimatch';
 import type * as globs from './globs';
 import type * as nrepl from '.';
 import * as utilities from '../utilities';
+import * as currentFile from '../current-file';
 import * as outputWindow from '../repl-window/repl-window-doc';
 import * as sessionRegistry from './session-registry';
 import * as sessionRouting from './session-routing';
@@ -196,12 +197,10 @@ function resolveCljcWithinConnection(winningSessionKey: string): string | undefi
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
  *
- * @param doc - The document to route (defaults to the active document)
+ * @param doc - The document to route (defaults to the current file)
  */
-function getRoutingInfo(
-  doc: vscode.TextDocument | undefined = utilities.tryToGetDocument({})
-): RoutingResult | undefined {
-  return getRoutingInfoForUri(doc?.uri);
+function getRoutingInfo(doc?: vscode.TextDocument): RoutingResult | undefined {
+  return getRoutingInfoForUri(doc?.uri ?? currentFile.currentFileUri());
 }
 
 /**
@@ -276,7 +275,7 @@ function firstAvailableRouting(): RoutingResult | undefined {
  * 4. CLJC session preference (fallback for unclaimed files)
  * 5. First available session (defensive fallback)
  *
- * @param doc - The document to route (defaults to the active document)
+ * @param doc - The document to route (defaults to the current file)
  */
 function getSessionKey(doc?: vscode.TextDocument): string | undefined {
   return getRoutingInfo(doc)?.sessionKey;
@@ -294,7 +293,7 @@ function getSession(doc?: vscode.TextDocument): nrepl.NReplSession {
   }
 
   // Fallback for REPL window session
-  if (outputWindow.isReplWindowDoc(utilities.tryToGetDocument(doc))) {
+  if (outputWindow.isReplWindowUri(doc?.uri ?? currentFile.currentFileUri())) {
     return outputWindow.getSession();
   }
 
@@ -315,20 +314,20 @@ function getReplSessionTypeFromState() {
  * VS Code wrapper around the pure determineSessionLabelContext function.
  *
  * @param options.isPinned - Whether the session is pinned (pinned sessions don't get context prefixes)
- * @param options.doc - The document to check for context (defaults to active document)
+ * @param options.uri - The file to check for context (defaults to the current file)
  * @returns The context type for the session label
  */
 function getSessionLabelContext(options?: {
   isPinned?: boolean;
-  doc?: vscode.TextDocument;
+  uri?: vscode.Uri;
 }): sessionLabel.SessionLabelContext {
-  const { isPinned = false, doc = utilities.tryToGetDocument({}) } = options ?? {};
-  const routingInfo = getRoutingInfo(doc);
-  const fileType = utilities.getFileType(doc);
+  const { isPinned = false, uri = currentFile.currentFileUri() } = options ?? {};
+  const routingInfo = getRoutingInfoForUri(uri);
+  const fileType = utilities.getFileType(uri);
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,
-    isReplWindow: outputWindow.isReplWindowDoc(doc),
+    isReplWindow: outputWindow.isReplWindowUri(uri),
     isCljcRouting: routingInfo?.reason.type === 'cljc-within-connection',
     fileExtension: fileType,
   });
