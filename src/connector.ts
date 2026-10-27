@@ -2024,6 +2024,7 @@ export function toggleCLJCSession() {
   const currentTarget = clientRegistry.getCljcTargetForConnection(clientKey);
   const newTarget = currentTarget === 'primary' ? 'secondary' : 'primary';
   clientRegistry.setCljcTargetForConnection(clientKey, newTarget);
+  sessionRouting.notifyRoutingChanged();
   replSession.updateReplSessionType();
   status.update();
 }
@@ -2055,6 +2056,7 @@ export async function selectCljcTarget(target?: 'primary' | 'secondary') {
 
   if (target === 'primary' || target === 'secondary') {
     clientRegistry.setCljcTargetForConnection(clientKey, target);
+    sessionRouting.notifyRoutingChanged();
     replSession.updateReplSessionType();
     status.update();
     return;
@@ -2087,6 +2089,7 @@ export async function selectCljcTarget(target?: 'primary' | 'secondary') {
 
   if (selection) {
     clientRegistry.setCljcTargetForConnection(clientKey, selection.target);
+    sessionRouting.notifyRoutingChanged();
     replSession.updateReplSessionType();
     status.update();
   }
