@@ -325,12 +325,11 @@
 (deftest copy-error-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
         error (get-in db [:output/errors "e1"])
-        copy (fn [kind] (sut/handle-action db [:error/ax.copy {:error/id "e1" :copy/kind kind}]))]
-    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/kind :filtered :copy/text (stacktrace/filtered-text error)}]]
-           (:uf/fxs (copy :filtered))))
-    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/kind :whole :copy/text (stacktrace/whole-text error)}]]
-           (:uf/fxs (copy :whole))))
-    (is (= db (:uf/db (copy :whole)))
+        {copy-db :uf/db copy-fxs :uf/fxs} (sut/handle-action db [:error/ax.copy {:error/id "e1"}])]
+    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/text (stacktrace/filtered-text error)}]]
+           copy-fxs)
+        "Copies the error with the frames its filter shows")
+    (is (= db copy-db)
         "Copying changes nothing in the Output view")))
 
 (deftest clear-output-view-forgets-errors-test
