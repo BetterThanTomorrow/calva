@@ -4,13 +4,11 @@ import * as annotations from './providers/annotations';
 import * as path from 'path';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
-import * as cider from './nrepl/cider';
 import * as statusbar from './statusbar';
 import type * as printerTypes from './printer';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
-import * as resultsOutputUtil from './results-output/util';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
@@ -148,6 +146,31 @@ async function addAsComment(
   });
   editor.selections = [selection];
   highlightExtension.highlight(editor);
+}
+
+// Shows an evaluation error at the evaluated code, as a comment when asked for, else as an annotation
+async function annotateEvaluationError(
+  editorError: string,
+  selection: vscode.Selection,
+  editor: vscode.TextEditor,
+  options
+) {
+  const currentCursorPos = editor.selections[0].active;
+  if (options.comment) {
+    await addAsComment(editorError, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  if (editor.document && !replWindow.isReplWindowDoc(editor.document)) {
+    annotations.decorateSelection(
+      editorError,
+      selection,
+      editor,
+      currentCursorPos,
+      annotations.AnnotationStatus.ERROR
+    );
+    if (!options.comment) {
+      annotations.decorateResults(editorError, true, selection, editor);
+    }
+  }
 }
 
 // TODO: Clean up this mess
@@ -291,93 +314,25 @@ async function evaluateCodeUpdatingUI(
         );
         // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
         if (err.length > 0) {
-          const errMsg = err.join('\n');
-          if (context.stacktrace) {
-            replWindow.saveStacktrace(context.stacktrace);
-            replWindow.appendLine(
-              resultsOutputUtil.formatAsLineComments(errMsg),
-              (_, afterResultLocation) => {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-              }
-            );
-            if (
-              !outputDestinations
-                .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-                .includes('repl-window')
-            ) {
-              output.appendEvalErr(errMsg, {
-                ns,
-                replSessionType: sessionKey,
-                who: 'ui',
-                ...shadowInfo,
-              });
-            }
-          } else {
-            output.appendEvalErr(errMsg, {
-              ns,
-              replSessionType: sessionKey,
-              who: 'ui',
-              ...shadowInfo,
-            });
-          }
+          output.appendEvalErr(
+            err.join('\n'),
+            { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
+            undefined,
+            context.causes ? Promise.resolve(context.causes) : undefined
+          );
         }
       }
     } catch (e) {
       if (showErrorMessage) {
-        const causes = lastErrorCauses(session);
-        const outputWindowError = err.length
-          ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
-          : resultsOutputUtil.formatAsLineComments(e);
-        replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
-          if (selection) {
-            const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selections[0].active;
-            if (editor && options.comment) {
-              await addAsComment(
-                editorError,
-                selection,
-                editor,
-                editor.selections[0],
-                options.commentStyle
-              );
-            }
-            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-              annotations.decorateSelection(
-                editorError,
-                selection,
-                editor,
-                currentCursorPos,
-                annotations.AnnotationStatus.ERROR
-              );
-              if (!options.comment) {
-                annotations.decorateResults(editorError, true, selection, editor);
-              }
-            }
-          }
-          void causes.then((causes) => {
-            const frames = cider.outermostCauseFrames(causes);
-            if (frames) {
-              replWindow.markLastStacktraceRange(afterResultLocation);
-              replWindow.saveStacktrace(frames);
-            }
-          });
-        });
-        if (
-          !outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .includes('repl-window')
-        ) {
-          output.appendEvalErr(
-            err.length ? err.join('\n') : e,
-            {
-              ns,
-              replSessionType: sessionKey,
-              who: 'ui',
-              ...shadowInfo,
-            },
-            undefined,
-            causes
-          );
+        const errorText = err.length ? err.join('\n') : e;
+        output.appendEvalErr(
+          errorText,
+          { ns, replSessionType: sessionKey, who: 'ui', ...shadowInfo },
+          undefined,
+          lastErrorCauses(session)
+        );
+        if (selection && editor) {
+          void annotateEvaluationError(util.stripAnsi(errorText), selection, editor, options);
         }
       }
     }
@@ -785,27 +740,12 @@ async function loadFile(
     }
     return value;
   } catch (e) {
-    replWindow.appendLine(
-      `; Evaluation of file ${fileName} failed: ${e}`,
-      (_location, nextLocation) => {
-        if (res.stacktrace) {
-          replWindow.saveStacktrace(res.stacktrace.stacktrace);
-          replWindow.markLastStacktraceRange(nextLocation);
-        }
-      }
+    output.appendLineOtherErr(
+      `Evaluation of file ${fileName} failed: ${e}`,
+      { who, ...shadowInfo },
+      undefined,
+      res.causes ? Promise.resolve(res.causes) : lastErrorCauses(session)
     );
-    if (
-      !outputDestinations
-        .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-        .includes('repl-window')
-    ) {
-      output.appendLineOtherErr(
-        `Evaluation of file ${fileName} failed: ${e}`,
-        { who, ...shadowInfo },
-        undefined,
-        lastErrorCauses(session)
-      );
-    }
     if (silent) {
       throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
     }

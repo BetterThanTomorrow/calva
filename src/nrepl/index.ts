@@ -1308,6 +1308,8 @@ export class NReplEvaluation {
 
   private _stacktrace: any;
 
+  private _causes: cider.StacktraceCause[] | undefined;
+
   private _msgs: any[] = [];
 
   private _interrupted: boolean = false;
@@ -1400,6 +1402,11 @@ export class NReplEvaluation {
     return this._stacktrace;
   }
 
+  // The causes of an evaluation error that the debugger reports among the evaluation's messages
+  get causes() {
+    return this._causes;
+  }
+
   get msgs() {
     return this._msgs;
   }
@@ -1480,6 +1487,7 @@ export class NReplEvaluation {
         const cause = msg.causes[0];
         const errorMessage = `${cause.class}: ${cause.message}`;
         this._stacktrace = { stacktrace: cause.stacktrace };
+        this._causes = msg.causes;
         this.err(errorMessage);
       }
       if (msg.value !== undefined || msg['debug-value'] !== undefined) {

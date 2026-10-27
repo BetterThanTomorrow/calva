@@ -118,6 +118,31 @@ export function causeHeading({ class: className, message }: StacktraceCause): st
   return `${className}: ${typeof message === 'string' ? message : 'No message'}`;
 }
 
+export function frameLine(frame: StacktraceFrame): string {
+  return `${frame.var || frame.name} (${frame.file}:${frame.line})`;
+}
+
+// Every cause, outermost first, with all its frames, for destinations that show text
+export function stacktraceText(causes: StacktraceCause[]): string {
+  return causes
+    .map((cause, index) =>
+      [
+        `${index > 0 ? 'Caused by: ' : ''}${causeHeading(cause)}`,
+        ...(cause.stacktrace ?? []).map((frame) => `  ${frameLine(frame)}`),
+      ].join('\n')
+    )
+    .join('\n');
+}
+
+// The error message followed by its stacktrace, keeping the message's trailing newline last
+export function messageWithStacktrace(message: string, causes?: StacktraceCause[]): string {
+  if (!causes?.length) {
+    return message;
+  }
+  const trailingNewline = message.endsWith('\n') ? '\n' : '';
+  return `${message.replace(/\n$/, '')}\n${stacktraceText(causes)}${trailingNewline}`;
+}
+
 function stripTrailingNewlines(s: string): string {
   return s.replace(/\r?\n$/, '');
 }
