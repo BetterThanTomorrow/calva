@@ -129,17 +129,16 @@
     (str "  " qualifier "/" name " (" location ")")))
 
 (defn- cause-lines
-  [{:error/keys [unfolded-causes] :as error} index {:keys [triage spec data stacktrace] :as cause}]
+  [error index {:keys [triage spec data stacktrace] :as cause}]
   (concat [(str (when (pos? index) "Caused by: ") (cause-heading cause))]
           (->> [(or triage (spec-problems-text spec)) data]
                (remove str/blank?)
                (map str/trimr))
-          (when (contains? unfolded-causes index)
-            (map frame-line (visible-frames error stacktrace)))))
+          (map frame-line (visible-frames error stacktrace))))
 
-(defn shown-text
-  "Returns `error` as text, the way its unfolded stacktrace shows it: the error text, then every
-   cause with its details, and the frames of unfolded causes that the frame filter shows."
+(defn filtered-text
+  "Returns `error` as text: the error text, then every cause with its details and the frames that
+   the error's frame filter shows."
   [{:error/keys [text causes] :as error}]
   (str/join "\n" (concat [text]
                          (some-> (compile-location causes) :location/label vector)
@@ -147,7 +146,5 @@
 
 (defn whole-text
   "Returns `error` as text with its whole stacktrace: every cause with all its frames."
-  [{:error/keys [causes] :as error}]
-  (shown-text (assoc error
-                     :error/frame-filter :all
-                     :error/unfolded-causes (set (range (count causes))))))
+  [error]
+  (filtered-text (assoc error :error/frame-filter :all)))

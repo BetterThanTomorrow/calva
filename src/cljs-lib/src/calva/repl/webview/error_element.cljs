@@ -150,29 +150,13 @@
     (.. row (setAttribute "aria-label" "Hide frames"))
     row))
 
-(defn- copy-button
-  [dispatch {:error/keys [id]} kind label]
-  (let [button (create-element "button" "output-error-copy" label)]
-    (set! (.-type button) "button")
-    (.. button (setAttribute "data-control" (str "copy-" (name kind))))
-    (.. button (setAttribute "data-copy-label" label))
-    (.. button (addEventListener "click" #(dispatch [:error/ax.copy {:error/id id :copy/kind kind}])))
-    button))
-
-(defn- copy-buttons
-  [dispatch error]
-  (create-element "span" "output-error-copy-buttons"
-                  (copy-button dispatch error :shown "Copy as shown")
-                  (copy-button dispatch error :whole "Copy whole stacktrace")))
-
 (defn- filter-bar
   [dispatch {:error/keys [causes frame-filter] :as error}]
   (let [hidden (reduce + (map #(stacktrace/hidden-count error (:stacktrace %)) causes))]
     (create-element "div" "output-error-filters"
                     (create-element "div" "output-error-filter-row"
                                     (frame-filter-switch dispatch error)
-                                    (create-element "span" "output-error-hidden-count" (str (frames-text hidden) " hidden"))
-                                    (copy-buttons dispatch error))
+                                    (create-element "span" "output-error-hidden-count" (str (frames-text hidden) " hidden")))
                     (when (= :filtered frame-filter)
                       (hide-flags-row dispatch error)))))
 
@@ -209,12 +193,35 @@
                   text-element)
       text-element)))
 
+(defn- copy-button
+  [dispatch {:error/keys [id]} kind label]
+  (let [button (create-element "button" "output-error-copy")]
+    (.. button -classList (add (str "output-error-copy-" (name kind))))
+    (set! (.-type button) "button")
+    (set! (.-title button) label)
+    (doseq [[k v] {"aria-label" label
+                   "data-copy-label" label
+                   "data-control" (str "copy-" (name kind))}]
+      (.. button (setAttribute k v)))
+    (.. button (addEventListener "click" #(dispatch [:error/ax.copy {:error/id id :copy/kind kind}])))
+    button))
+
+(defn- copy-buttons
+  "The buttons that copy the error with its stacktrace. They show while the pointer is over the
+   error, or one of them has focus."
+  [dispatch error]
+  (create-element "div" "output-error-copy-buttons"
+                  (copy-button dispatch error :filtered "Copy filtered")
+                  (copy-button dispatch error :whole "Copy whole stacktrace")))
+
 (defn create
   "Returns the element for `error`. Its controls dispatch actions with `dispatch`. An error whose
    causes have no frames, or haven't arrived, shows its text only."
   [{:error/keys [id category causes unfolded?] :as error} dispatch]
   (let [element (create-element "div" "output-error"
                                 (error-heading dispatch error)
+                                (when (stacktrace/has-frames? causes)
+                                  (copy-buttons dispatch error))
                                 (when (and unfolded? (stacktrace/has-frames? causes))
                                   (apply create-element "div" "output-error-causes"
                                          (some->> (stacktrace/compile-location causes) (location-element dispatch))
