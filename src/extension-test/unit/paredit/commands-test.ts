@@ -1408,50 +1408,60 @@ describe('paredit commands', () => {
 
       describe('squeeze', () => {
         it('Single-cursor: Squeezes content and deletes sexp with ()', async () => {
-          const a = docFromTextNotation('foo (bar|) baz');
-          const b = docFromTextNotation('foo | baz');
+          const a = textNotation.docFromTextNotation('foo (bar|) baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
           await handlers.squeeze(a, false);
-          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
         it('Single-cursor: Squeezes content and deletes sexp with []', async () => {
-          const a = docFromTextNotation('foo [bar|] baz');
-          const b = docFromTextNotation('foo | baz');
+          const a = textNotation.docFromTextNotation('foo [bar|] baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
           await handlers.squeeze(a, false);
-          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
         it('Single-cursor: Squeezes content and deletes sexp with {}', async () => {
-          const a = docFromTextNotation('foo {bar|} baz');
-          const b = docFromTextNotation('foo | baz');
+          const a = textNotation.docFromTextNotation('foo {bar|} baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
           await handlers.squeeze(a, false);
-          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
         it('Single-cursor: Squeezes content and deletes sexp with #{}', async () => {
-          const a = docFromTextNotation('foo #{bar|} baz');
-          const b = docFromTextNotation('foo | baz');
+          const a = textNotation.docFromTextNotation('foo #{bar|} baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
           await handlers.squeeze(a, false);
-          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
         it('Single-cursor: Squeezes content and deletes sexp with ""', async () => {
-          const a = docFromTextNotation('foo "bar|" baz');
-          const b = docFromTextNotation('foo | baz');
+          const a = textNotation.docFromTextNotation('foo "bar|" baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
           await handlers.squeeze(a, false);
-          expect(textNotationFromDoc(a)).toEqual(textNotationFromDoc(b));
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
 
         it('Single-cursor: Does nothing when cursor is not in a list', async () => {
-          const a = docFromTextNotation('a b| c d');
-          const b = docFromTextNotation('a b| c d');
+          const a = textNotation.docFromTextNotation('a b| c d');
+          const b = textNotation.docFromTextNotation('a b| c d');
           await handlers.squeeze(a, false);
-          expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
       });
     });

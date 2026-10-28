@@ -154,9 +154,9 @@ export function rewrapParens(doc: model.EditableDocument, isMulti: boolean) {
 }
 
 export async function squeeze(
-  doc: EditableDocument,
+  doc: model.EditableDocument,
   isMulti: boolean,
-  onRange: (doc: EditableDocument, range: [number, number]) => Promise<void> = async () => {
+  onRange: (doc: model.EditableDocument, range: [number, number]) => Promise<void> = async () => {
     // Default empty implementation
   }
 ) {
