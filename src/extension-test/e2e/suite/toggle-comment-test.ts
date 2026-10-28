@@ -323,6 +323,21 @@ mocha.suite(suiteName, () => {
     }
   );
 
+  mocha.it('should restore the text with one undo after a structural comment', async () => {
+    const editor = vscode.window.activeTextEditor;
+    await performToggle(editor, '(do•  |(prn "a")•  (prn "b")|)');
+    await waitForNotation(editor, '(do•  |;; (prn "a")•  ;; (prn "b")|•  )');
+    const commented = getText(editor.document, true);
+    await vscode.commands.executeCommand('undo');
+    await testUtil.waitForCondition(
+      () => getText(editor.document, true) !== commented,
+      2000,
+      20,
+      'Timed out waiting for undo to change the text'
+    );
+    assert.equal(getText(editor.document, true), '(do•  (prn "a")•  (prn "b"))');
+  });
+
   mocha.it(
     'should comment multi-line nested forms when all lines selected and preserve selection',
     async () => {

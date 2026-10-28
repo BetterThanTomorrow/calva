@@ -18,6 +18,32 @@ async function toggled(notation: string, behavior: ToggleCommentBehavior = 'comm
   return { notation: textNotation.textNotationFromDoc(doc), reformatCalls };
 }
 
+/** `offset` into `text`, as an offset into the same text with CRLF line breaks */
+function crlfOffset(text: string, offset: number) {
+  return offset + (text.slice(0, offset).match(/\n/g) ?? []).length;
+}
+
+/** The text and selections of the document `notation` gives, with CRLF line breaks */
+function crlfTextAndSelections(notation: string): [string, [number, number][]] {
+  const [text, selections] = textNotation.textAndSelections(
+    textNotation.docFromTextNotation(notation)
+  );
+  return [
+    text.replace(/\n/g, '\r\n'),
+    selections.map(([anchor, active]) => [crlfOffset(text, anchor), crlfOffset(text, active)]),
+  ];
+}
+
+async function toggledInCrlf(notation: string) {
+  const [text, selections] = crlfTextAndSelections(notation);
+  const doc = new model.StringDocument(text);
+  doc.selections = selections.map(
+    ([anchor, active]) => new model.ModelEditSelection(anchor, active)
+  );
+  await toggleLineComment(doc, 'commentCurrentLine', () => Promise.resolve());
+  return textNotation.textAndSelections(doc);
+}
+
 describe('toggleLineComment', () => {
   describe('with a cursor outside comments', () => {
     it('ignores the parent form with ignoreParentForm', async () => {
@@ -110,5 +136,24 @@ describe('toggleLineComment', () => {
         ).notation
       ).toBe('(defn foo []•  |(println "a")•  |1(println "b"))');
     });
+  });
+
+  describe('in CRLF text', () => {
+    const cases = [
+      [
+        'comments the line at a cursor, moving the closing bracket',
+        '(defn foo []•  |(println "test"))',
+      ],
+      ['comments selected lines, moving the closing bracket', '(do•  |(prn "a")•  (prn "b")|)'],
+      ['comments a partial multi-line selection', '(a |(b c•      d)|•   e)'],
+      ['uncomments a partial selection', '(a |;; (b c•   ;;    d)|•   e)'],
+    ];
+    for (const [description, notation] of cases) {
+      it(`${description} as in LF text`, async () => {
+        expect(await toggledInCrlf(notation)).toEqual(
+          crlfTextAndSelections((await toggled(notation)).notation)
+        );
+      });
+    }
   });
 });
