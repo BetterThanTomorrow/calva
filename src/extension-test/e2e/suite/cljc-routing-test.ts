@@ -1,7 +1,5 @@
 import * as assert from 'assert';
 import * as mocha from 'mocha';
-import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -660,15 +658,14 @@ suite('CLJC Routing suite', function () {
       assert.strictEqual(evaluation.interrupted, false, 'Interrupt leaves it out');
     } finally {
       client.disconnect();
+      client.session.close();
     }
   });
 
   test('Loading a file in a session that closes stops quietly and leaves the REPL window as it was', async function () {
     testUtil.log(suiteName, 'Testing: Loading a file in a session that closes');
 
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'calva-dropped-load-'));
-    const file = path.join(dir, 'dropped_load.clj');
-    fs.writeFileSync(file, '(Thread/sleep 20000)\n');
+    const file = path.join(projectDir, 'slow_load.clj');
     const { host, port } = clientRegistry.getRegisteredClient(clientKey);
     const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
     const sessionKey = 'dropped-load-test';
@@ -691,7 +688,7 @@ suite('CLJC Routing suite', function () {
       client.disconnect();
       assert.strictEqual(
         await loading,
-        'Evaluation of file dropped_load.clj stopped: The REPL session closed before the evaluation finished',
+        'Evaluation of file slow_load.clj stopped: The REPL session closed before the evaluation finished',
         'The load stops, saying the session closed'
       );
       assert.strictEqual(
@@ -702,8 +699,10 @@ suite('CLJC Routing suite', function () {
       assert.strictEqual(replWindow.getNs(), replWindowBefore.ns, 'The REPL window keeps its ns');
     } finally {
       sessionRegistry.unregisterSession(sessionKey);
+      whoTracking.clearSessionTracking(sessionKey);
+      whoTracking.clearCurrentWho(client.session.sessionId);
       client.disconnect();
-      fs.rmSync(dir, { recursive: true, force: true });
+      client.session.close();
     }
   });
 

@@ -3,6 +3,7 @@ import * as evaluate from '../../../evaluate';
 import * as nrepl from '../../../nrepl';
 import { disabledPrettyPrinter } from '../../../printer';
 import * as replWindow from '../../../repl-window/repl-window-doc';
+import * as whoTracking from '../../../api/who-tracking';
 
 type Written = { op: string; id?: string; 'interrupt-id'?: string };
 
@@ -192,35 +193,50 @@ suite('Evaluating in a namespace, as files do', () => {
     replWindow.setSession(windowSession, 'user');
     const written: Written[] = [];
     const session = sessionWritingTo(written);
-    const evaluating = evaluate.evaluateInNamespace(
-      { session, ns: 'user', nsForm: '(ns user)' },
-      () =>
-        evaluate.evaluateToOutputDestinations({
-          code: '(Thread/sleep 60000)',
-          session,
+    // A key of its own, so the evaluation's activity isn't recorded for the real clj session
+    const sessionKey = 'nrepl-evaluation-test';
+    (session as unknown as { _calvaSessionMetadata: { key: string } })._calvaSessionMetadata = {
+      key: sessionKey,
+    };
+    try {
+      const evaluating = evaluate.evaluateInNamespace(
+        { session, ns: 'user', nsForm: '(ns user)' },
+        () =>
+          evaluate.evaluateToOutputDestinations({
+            code: '(Thread/sleep 60000)',
+            session,
+            ns: 'user',
+            filePath: 'nrepl-evaluation-test.clj',
+            line: 0,
+            column: 0,
+            pprintOptions: disabledPrettyPrinter,
+            echoDestinations: [],
+          })
+      );
+      session.close();
+      assert.deepStrictEqual(
+        await evaluating,
+        {
+          error: 'The REPL session closed before the evaluation finished',
+          dropped: true,
           ns: 'user',
-          filePath: 'nrepl-evaluation-test.clj',
-          line: 0,
-          column: 0,
-          pprintOptions: disabledPrettyPrinter,
-          echoDestinations: [],
-        })
-    );
-    session.close();
-    assert.deepStrictEqual(
-      await evaluating,
-      {
-        error: 'The REPL session closed before the evaluation finished',
-        dropped: true,
-        ns: 'user',
-      },
-      'The evaluation ends as dropped'
-    );
-    assert.strictEqual(replWindow.getSession(), windowSession, 'The REPL window keeps its session');
-    assert.deepStrictEqual(
-      written.filter(({ op }) => op === 'analyze-last-stacktrace'),
-      [],
-      'The closed session is not asked for a stacktrace'
-    );
+        },
+        'The evaluation ends as dropped'
+      );
+      assert.strictEqual(
+        replWindow.getSession(),
+        windowSession,
+        'The REPL window keeps its session'
+      );
+      assert.deepStrictEqual(
+        written.filter(({ op }) => op === 'analyze-last-stacktrace'),
+        [],
+        'The closed session is not asked for a stacktrace'
+      );
+    } finally {
+      session.close();
+      whoTracking.clearSessionTracking(sessionKey);
+      whoTracking.clearCurrentWho(session.sessionId);
+    }
   });
 });
