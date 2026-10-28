@@ -383,6 +383,10 @@ body.repl-input-on .output-greeting-read-only {
    cursor: pointer;
 }
 
+.repl-input-context-button[hidden] {
+   display: none;
+}
+
 .repl-input-context-button:hover {
    background-color: var(--vscode-toolbar-hoverBackground);
 }

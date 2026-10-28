@@ -177,6 +177,7 @@
    when it is a selector."
   [^js button {:repl-input.indicator/keys [mode ns]}]
   (let [{:keys [icon tooltip label]} (indicator-looks mode)]
+    (set! (.-hidden button) false)
     (.setAttribute button "data-mode" (name mode))
     (.setAttribute button "aria-label" (str ns ", " label))
     (tooltip/set-text! button tooltip)
@@ -207,11 +208,12 @@
 
 (defn set-line!
   "Shows the `context-line`: the namespace indicator for the line and the `recalled-lock`, the lock of a
-   recalled history entry from another context, a link that connects a REPL while no session answers to
-   its key, and the play button, disabled while no session answers."
+   recalled history entry from another context, once the line has a namespace, a link that connects a REPL
+   while no session answers to its key, and the play button, disabled while no session answers."
   [{:repl-input.context/keys [connected?] :as context-line} recalled-lock]
-  (let [{:repl-input.indicator/keys [choices] :as shown} (indicator context-line recalled-lock)]
-    (some-> (child "repl-input-indicator") (set-indicator! shown))
+  (let [{:repl-input.indicator/keys [choices ns] :as shown} (indicator context-line recalled-lock)]
+    (when ns
+      (some-> (child "repl-input-indicator") (set-indicator! shown)))
     (some-> (child "repl-input-menu") (set-menu! choices)))
   (when-let [^js line (child "repl-input-context-line")]
     (if connected?
@@ -229,6 +231,7 @@
         play (context-button "repl-input-evaluate" [:repl-input/ax.evaluate] dispatch!)
         bar (element "div" "repl-input-evaluation-bar")
         interrupt (element "button" "repl-input-interrupt")]
+    (set! (.-hidden indicator) true)
     (.addEventListener line "click" #(some-> (click-action (.-target ^js %)) dispatch!))
     (doto play
       (.setAttribute "aria-label" evaluate-title)
