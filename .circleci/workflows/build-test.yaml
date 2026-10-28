@@ -12,6 +12,7 @@ jobs:
 - test-docs-builder
 
 - ts-lint:               {requires: [checkout]}
+- renamed-props-check:   {requires: [checkout]}
 - test-cljslib:          {requires: [build]}
 - test-e2e:              {requires: [build]}
 - test-smoke:              {requires: [build]}
@@ -22,6 +23,7 @@ jobs:
     requires:
     - prettier-check
     - ts-lint
+    - renamed-props-check
     - test-cljslib
     - test-e2e
     - test-smoke

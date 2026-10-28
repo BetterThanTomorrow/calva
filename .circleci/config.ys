@@ -27,6 +27,7 @@ job-names =::
 - build
 - prettier-check
 - ts-lint
+- renamed-props-check
 - test-cljslib
 - test-ts-unit
 - test-e2e

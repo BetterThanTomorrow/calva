@@ -27,10 +27,6 @@ steps:
   - npm run release-cljs
 
 - !:cmd
-  - Check the release builds for renamed JS property reads
-  - clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
-
-- !:cmd
   - Check the size of the Output views' webview bundle
   - clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
 

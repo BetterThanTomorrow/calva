@@ -27,6 +27,10 @@ jobs:
     requires: [checkout]
     filters:: filters()
 
+- renamed-props-check:
+    requires: [checkout]
+    filters:: filters()
+
 - test-cljslib:
     requires: [build]
     filters:: filters()
@@ -51,6 +55,7 @@ jobs:
     requires:
     - prettier-check
     - ts-lint
+    - renamed-props-check
     - test-cljslib
     - test-e2e
     - test-smoke
