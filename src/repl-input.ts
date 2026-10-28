@@ -12,6 +12,7 @@ import {
 } from './custom-snippets-catalog';
 import * as evaluate from './evaluate';
 import * as formatterConfig from './formatter-config';
+import * as lspState from './lsp/state';
 import * as namespace from './namespace';
 import type * as nrepl from './nrepl';
 import * as replSession from './nrepl/repl-session';
@@ -266,6 +267,7 @@ function initReplInput() {
       whenContexts.setCursorContextIfChanged(vscode.window.activeTextEditor),
     currentFileChanged: (replInputNs: string | null) => {
       status.update();
+      lspState.getClientProvider().updateStatusBar();
       whenContexts.setCurrentEditorContexts(replInputNs);
     },
     ...replInputCompletion.completionAdapter,
