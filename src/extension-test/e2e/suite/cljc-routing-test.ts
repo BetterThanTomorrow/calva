@@ -245,7 +245,9 @@ suite('CLJC Routing suite', function () {
   test('Evaluating a selection in a focused output channel evaluates it outside the last active file’s namespace', async function () {
     testUtil.log(suiteName, 'Testing: Evaluating a selection in an output channel');
 
-    await testUtil.openFile(cljcFile);
+    // The file shows in a preview tab, which evaluating in it pins
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await vscode.window.showTextDocument(vscode.Uri.file(cljcFile), { preview: true });
     const replWindowBefore = currentReplWindow();
     const code = '(def evaluated-in (str *ns*))';
     const channel = vscode.window.createOutputChannel('Calva e2e evaluation');
@@ -283,6 +285,14 @@ suite('CLJC Routing suite', function () {
         evaluatedIn,
         '["user"]',
         'The output channel’s code should evaluate in the output channel’s namespace, not in the last active .cljc file’s'
+      );
+      assert.ok(
+        !vscode.window.tabGroups.all.some((group) =>
+          group.tabs.some(
+            (tab) => tab.input instanceof vscode.TabInputText && tab.input.uri.scheme === 'output'
+          )
+        ),
+        'The output channel should open in no editor tab'
       );
     } finally {
       channel.dispose();

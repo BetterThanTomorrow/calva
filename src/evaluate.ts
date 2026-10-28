@@ -519,6 +519,16 @@ function withoutIgnoreMarker(code: string) {
   return code.replace(/^#_\s*/, '');
 }
 
+/** True when the active tab is a preview of `doc`, which an output channel's document never is. */
+function isInActivePreviewTab(doc: vscode.TextDocument) {
+  const activeTab = vscode.window.tabGroups?.activeTabGroup?.activeTab;
+  return (
+    !!activeTab?.isPreview &&
+    activeTab.input instanceof vscode.TabInputText &&
+    activeTab.input.uri.toString() === doc.uri.toString()
+  );
+}
+
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
 
@@ -536,7 +546,7 @@ async function evaluateSelection(document = {}, options) {
       code = withoutIgnoreMarker(code);
     }
     const doc = util.textDocumentOr(document, editor.document);
-    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
+    if (isInActivePreviewTab(doc)) {
       void vscode.window.showTextDocument(doc, { preview: false });
     }
     const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
