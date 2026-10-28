@@ -3237,11 +3237,6 @@
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
       },
       {
-        "command": "paredit.squeeze",
-        "key": "ctrl+alt+r ctrl+alt+r",
-        "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
-      },
-      {
         "command": "paredit.deleteForward",
         "key": "delete",
         "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
