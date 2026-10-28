@@ -6,6 +6,7 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
 import * as jackIn from '../../../nrepl/jack-in';
+import * as nrepl from '../../../nrepl';
 import * as vscode from 'vscode';
 import * as connector from '../../../connector';
 import * as lsp from '../../../lsp';
@@ -486,6 +487,27 @@ suite('CLJC Routing suite', function () {
       afterToggleRouting?.sessionKey,
       'cljs',
       'After toggle, outside .fiddle should route to cljs'
+    );
+  });
+
+  test('A dropped connection drops its evaluations', async function () {
+    testUtil.log(suiteName, 'Testing: A dropped connection drops its evaluations');
+
+    const { host, port } = clientRegistry.getRegisteredClient(clientKey);
+    const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
+    const evaluation = client.session.eval('(Thread/sleep 60000)', 'user');
+    assert.strictEqual(evaluation.running, true, 'The evaluation runs');
+    client.disconnect();
+    await testUtil.waitForCondition(
+      () => !evaluation.running,
+      4000,
+      20,
+      'Timed out waiting for the dropped connection to drop the evaluation'
+    );
+    assert.strictEqual(
+      nrepl.NReplEvaluation.interruptAll(() => undefined),
+      0,
+      'No evaluation of the dropped connection is interrupted'
     );
   });
 

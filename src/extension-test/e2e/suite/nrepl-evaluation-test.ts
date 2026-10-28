@@ -5,7 +5,7 @@ import * as replWindow from '../../../repl-window/repl-window-doc';
 
 type Written = { op: string; id?: string; 'interrupt-id'?: string };
 
-function sessionWritingTo(written: Written[]) {
+function sessionWriting(write: (msg: Written) => void) {
   let id = 0;
   const client = {
     sessions: {},
@@ -13,9 +13,13 @@ function sessionWritingTo(written: Written[]) {
     get nextId() {
       return `${++id}`;
     },
-    write: (msg: Written) => written.push(msg),
+    write,
   };
   return new nrepl.NReplSession('nrepl-evaluation-test', client as unknown as nrepl.NReplClient);
+}
+
+function sessionWritingTo(written: Written[]) {
+  return sessionWriting((msg) => written.push(msg));
 }
 
 function rejection(promise: Promise<unknown>) {
@@ -23,6 +27,10 @@ function rejection(promise: Promise<unknown>) {
     () => undefined,
     (reason) => reason
   );
+}
+
+function interruptIds(written: Written[]) {
+  return written.filter(({ op }) => op === 'interrupt').map((msg) => msg['interrupt-id']);
 }
 
 suite('NReplEvaluation interrupts', () => {
@@ -63,6 +71,51 @@ suite('NReplEvaluation interrupts', () => {
       'Evaluation was interrupted',
       'The evaluation ends as interrupted'
     );
+  });
+
+  // nREPL 1.3 and later drop the evaluations waiting in a session when they interrupt the running
+  // one, and never reply to them
+  test('interrupting all evaluations also ends the evaluations waiting in the session', async () => {
+    const running = session.eval('(Thread/sleep 60000)', 'user');
+    const waiting = session.eval('(+ 1 2)', 'user');
+    assert.strictEqual(
+      nrepl.NReplEvaluation.interruptAll(() => undefined),
+      2
+    );
+    assert.deepStrictEqual(interruptIds(written), [running.id, waiting.id]);
+    assert.strictEqual(await rejection(running.value), 'Evaluation was interrupted');
+    assert.strictEqual(await rejection(waiting.value), 'Evaluation was interrupted');
+  });
+
+  test('closing the session drops its evaluations', () => {
+    session.eval('(Thread/sleep 60000)', 'user');
+    session.close();
+    assert.strictEqual(
+      nrepl.NReplEvaluation.interruptAll(() => undefined),
+      0,
+      'No evaluation of the closed session is interrupted'
+    );
+    assert.deepStrictEqual(interruptIds(written), [], 'Nothing is written for the closed session');
+  });
+
+  test('an evaluation that fails to be sent rejects with the error', async () => {
+    const error = new Error('The socket is closed');
+    const failing = sessionWriting((msg) => {
+      if (msg.op === 'eval') {
+        throw error;
+      }
+    });
+    try {
+      const evaluation = failing.eval('(+ 1 2)', 'user');
+      assert.strictEqual(await rejection(evaluation.value), error, 'The evaluation rejects');
+      assert.strictEqual(
+        nrepl.NReplEvaluation.interruptAll(() => undefined),
+        0,
+        'The evaluation is not running'
+      );
+    } finally {
+      failing.close();
+    }
   });
 });
 

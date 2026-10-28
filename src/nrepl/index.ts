@@ -128,6 +128,7 @@ export class NReplClient {
 
   private _fireCloseHandlers() {
     try {
+      Object.values(this.sessions).forEach((session) => session.dropEvaluations());
       this._closeHandlers.forEach((x) => x(this));
       for (const x in this.sessions) {
         this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
@@ -495,6 +496,15 @@ export class NReplSession {
     }
   }
 
+  /**
+   * Stops tracking this session's evaluations, for when the session or its connection is gone and
+   * the server will not reply to them. Interrupting all evaluations then leaves them out.
+   */
+  dropEvaluations() {
+    this._runningIds = [];
+    NReplEvaluation.dropSessionEvaluations(this);
+  }
+
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
   replType: ReplSessionType = null;
 
@@ -520,7 +530,7 @@ export class NReplSession {
     } catch (error) {
       console.error(error);
     } finally {
-      this._runningIds = [];
+      this.dropEvaluations();
       delete this.client.sessions[this.sessionId];
       const index = NReplSession.Instances.indexOf(this);
       if (index > -1) {
@@ -1321,7 +1331,7 @@ export class NReplEvaluation {
   /**
    * Sends `message` in the session. The evaluation runs from then until its reply is done, and
    * calls `onReply` for each reply message. Resolves to `undefined` when the server doesn't support
-   * the message's op.
+   * the message's op, and rejects with the error when the message can't be written.
    */
   send(
     message: { op: string; [key: string]: unknown },
@@ -1340,7 +1350,13 @@ export class NReplEvaluation {
     this._running = true;
     this.add();
     this.session.addRunningID(this.id);
-    this.session.client.write(message);
+    try {
+      this.session.client.write(message);
+    } catch (e) {
+      delete this.session.messageHandlers[this.id];
+      this.remove();
+      this.doReject(e);
+    }
   }
 
   private add(): void {
@@ -1575,5 +1591,13 @@ export class NReplEvaluation {
       }
     });
     return num;
+  }
+
+  /** Stops tracking the evaluations of `session`, which then are not running. */
+  static dropSessionEvaluations(session: NReplSession) {
+    NReplEvaluation.Instances.filter((item) => item.session === session).forEach((item) => {
+      item._running = false;
+      item.remove();
+    });
   }
 }
