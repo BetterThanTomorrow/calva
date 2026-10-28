@@ -1,9 +1,11 @@
 (ns release-check
-  "Checks cljs-lib the way CI does: builds the tests, the extension and the Output views' webview with
-   advanced compilation into a temp folder, runs the tests, and scans the release outputs for JS property
-   reads that the compilation renamed. The watchers' output folders are left alone."
+  "Checks cljs-lib the way CI does: builds the tests and the Output views' webview with advanced
+   compilation into a temp folder, runs the tests, checks the webview bundle's size, and scans pseudo-names
+   release builds for JS property reads that the compilation renamed. The watchers' output folders are left
+   alone."
   (:require [babashka.fs :as fs]
             [babashka.process :as p]
+            [bundle-size]
             [renamed-props]))
 
 (defn- release!
@@ -22,24 +24,20 @@
                          "node" tests-js))))
 
 (defn check!
-  "Runs the release check and exits with 1 when the tests fail or a release build renamed a property read."
+  "Runs the release check and exits with 1 when the tests fail, the webview bundle is past its size limit,
+   or a release build renamed a property read."
   [_]
   (let [dir (str (fs/create-temp-dir {:prefix "calva-release-check"}))
         tests-js (str dir "/test/cljs-lib-tests.js")
-        lib-js (str dir "/lib/cljs-lib.js")
         ui-dir (str dir "/ui")
         built? (every? true? [(release! :test {:output-to tests-js :autorun false})
-                              (release! :calva-lib {:output-to lib-js})
                               (release! :repl-output-ui {:output-dir ui-dir})])]
     (when-not built?
       (println "A release build failed.")
       (System/exit 1))
     (let [tests-passed? (run-tests! tests-js)
-          renamed (renamed-props/renamed-reads {:outputs [lib-js (str ui-dir "/main.js")]
-                                                :sources renamed-props/default-sources})]
-      (doseq [{:keys [file line name]} renamed]
-        (println (str file ":" line ": " name)))
-      (println (count renamed) "property reads renamed by the release build.")
+          size-ok? (bundle-size/within-limit? (str ui-dir "/main.js"))
+          renamed-ok? (renamed-props/check! {})]
       (fs/delete-tree dir)
-      (when-not (and tests-passed? (empty? renamed))
+      (when-not (and tests-passed? size-ok? renamed-ok?)
         (System/exit 1)))))
