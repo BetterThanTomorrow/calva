@@ -151,7 +151,7 @@ The context line, as the views get it, is `(:repl-input.context/line @calva.repl
 2. `evaluate.cljs` works the context out. Without a connected session, it says so in a message and evaluates nothing.
 3. When the code is all of the text, the REPL Input is cleared. The code is added to the history.
 4. The evaluation gets an id, `reveal/keep-code!` keeps its code, and the evaluation bar says it runs.
-5. The adapter's `evaluate`, `evaluateCode` in `repl-input.ts`, gets the session by its key and calls `evaluate.evaluateInNamespace` around `evaluate.evaluateToOutputDestinations`, the functions evaluations from files use. It evaluates the `ns` form first when the REPL window's namespace differs, and leaves the REPL window's session and namespace where the evaluation ended, as files do. The code is sent with the file name `calva-repl-input/<id>.clj` and the line and column where it starts in the REPL Input, and echoed to the Output Destinations when `calva.evaluationSendCodeToOutputWindow` is on.
+5. The adapter's `evaluate`, `evaluateCode` in `repl-input.ts`, gets the session by its key and calls `evaluate.evaluateInNamespace` around `evaluate.evaluateToOutputDestinations`, the functions evaluations from files use. It evaluates the `ns` form first unless the session last evaluated in the namespace, and leaves the REPL window's session and namespace where the evaluation ended, as files do. The code is sent with the file name `calva-repl-input/<id>.clj` and the line and column where it starts in the REPL Input, and echoed to the Output Destinations when `calva.evaluationSendCodeToOutputWindow` is on.
 6. Results, stdout and errors go to the Output Destinations, like any evaluation's. A REPL Input in a view that isn't an Output Destination shows none of them.
 7. When it's done, the context may lock (see Context and routing), and the evaluation bar updates.
 
@@ -232,7 +232,6 @@ A lock without a source file has no current file. It routes as Calva routes with
 - An edit from the extension is dropped when a key was typed after the version it was made from (see Editing). `enter` and the clear after `alt+enter` are the likely cases, since a key often follows them at once. F12 reads the text from the extension's record, which can be one change behind.
 - After the command palette, the first Calva editing key in the already active file goes to the REPL Input (see Focus).
 - From the Output Sidebar, closing the palette, or running a command from it that isn't Paredit's, leaves the focus in the editor area. VS Code gives an extension no event for it.
-- The REPL Input doesn't evaluate its `ns` form when the session changes and the REPL window's namespace doesn't, as with a cljc target switch. Files have the same gap.
 - clojure-lsp's copy is always a `.clj` file, so cljs and cljc contexts get clj analysis. Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
 - Force delete with several cursors does nothing.
 - In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands.

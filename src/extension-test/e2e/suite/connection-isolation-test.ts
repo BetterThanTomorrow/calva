@@ -446,4 +446,37 @@ describe(`${suiteName} suite`, () => {
       undefined
     );
   });
+
+  it('shadow-cljs runtime changes make the cljs session set up its namespace again', () => {
+    registerShadowConnectionBesideCurrent([]);
+    const cljsSession = sessionRegistry.getSession('cljs:2');
+    const runtime = (runtimeId: number) => ({
+      runtimeId,
+      description: `Browser ${runtimeId} of B`,
+      buildId: 'app',
+      host: 'browser',
+      workerId: 1,
+      sinceInst: 0,
+      sinceDescription: '',
+    });
+    outputWindow.setSession(cljsSession, 'pirate.ui', 'cljs:2');
+
+    shadowCljsRuntime.updateRuntimeState(7, runtime(7), 'client-b');
+    assert.ok(
+      !outputWindow.sessionHasNs(cljsSession, 'pirate.ui'),
+      'A new runtime may lack the namespace the session last evaluated in'
+    );
+
+    outputWindow.setSession(cljsSession, 'pirate.ui', 'cljs:2');
+    shadowCljsRuntime.updateRuntimeState(7, runtime(7), 'client-b');
+    assert.ok(
+      outputWindow.sessionHasNs(cljsSession, 'pirate.ui'),
+      'The same runtime keeps the namespace'
+    );
+    assert.strictEqual(
+      outputWindow.getSessionNs(cljsSession),
+      'pirate.ui',
+      'The REPL window keeps showing the namespace'
+    );
+  });
 });

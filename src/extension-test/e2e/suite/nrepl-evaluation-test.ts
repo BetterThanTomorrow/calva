@@ -141,7 +141,7 @@ suite('Evaluating in a namespace, as files do', () => {
     replWindow.setSession(before.session, before.ns, before.sessionType);
   });
 
-  test('evaluates the ns form first when the REPL window namespace differs, and leaves the REPL window in the namespace the evaluation ended in', async () => {
+  test('evaluates the ns form first unless the session last evaluated in the namespace, and leaves the REPL window in the namespace the evaluation ended in', async () => {
     const nsFormsEvaluated: [string, string][] = [];
     const session = {
       _calvaSessionMetadata: { key: 'evaluating-in-a-namespace-test' },
@@ -160,7 +160,7 @@ suite('Evaluating in a namespace, as files do', () => {
     assert.deepStrictEqual(
       nsFormsEvaluated,
       [['(ns pirate.core)', 'user']],
-      'The ns form is evaluated in the REPL window namespace, which differs'
+      'The ns form is evaluated in the namespace the session last evaluated in, which differs'
     );
     assert.strictEqual(replWindow.getNs(), 'pirate.core', 'The REPL window is in the namespace');
 
@@ -171,7 +171,7 @@ suite('Evaluating in a namespace, as files do', () => {
     assert.strictEqual(
       nsFormsEvaluated.length,
       1,
-      'The ns form is not evaluated while the REPL window has the namespace'
+      'The ns form is not evaluated while the session has the namespace'
     );
 
     await evaluate.evaluateInNamespace(
@@ -186,11 +186,78 @@ suite('Evaluating in a namespace, as files do', () => {
     );
   });
 
+  test('evaluates the ns form in each session the code goes to, as after a cljc target switch', async () => {
+    const nsFormsEvaluated: [string, string][] = [];
+    const sessionKeyed = (key: string) =>
+      ({
+        _calvaSessionMetadata: { key },
+        evaluateInNs: (nsForm: string) => {
+          nsFormsEvaluated.push([key, nsForm]);
+          return Promise.resolve();
+        },
+      } as unknown as nrepl.NReplSession);
+    const clj = sessionKeyed('evaluating-in-a-namespace-test-clj');
+    const cljs = sessionKeyed('evaluating-in-a-namespace-test-cljs');
+    replWindow.setSession(clj, 'user');
+    replWindow.setSession(cljs, 'cljs.user');
+    const evaluateIn = (session: nrepl.NReplSession) =>
+      evaluate.evaluateInNamespace(
+        { session, ns: 'pirate.common', nsForm: '(ns pirate.common)' },
+        () => Promise.resolve({ ns: 'pirate.common', value: 'nil' })
+      );
+
+    await evaluateIn(cljs);
+    await evaluateIn(clj);
+    assert.deepStrictEqual(
+      nsFormsEvaluated,
+      [
+        ['evaluating-in-a-namespace-test-cljs', '(ns pirate.common)'],
+        ['evaluating-in-a-namespace-test-clj', '(ns pirate.common)'],
+      ],
+      'Each session gets the ns form, though the REPL window already shows the namespace'
+    );
+
+    await evaluateIn(cljs);
+    assert.strictEqual(
+      nsFormsEvaluated.length,
+      2,
+      'A session that last evaluated in the namespace gets no ns form'
+    );
+  });
+
+  test('a renamed session evaluates the ns form only when its namespace changes', async () => {
+    const nsFormsEvaluated: string[] = [];
+    const metadata = { key: 'evaluating-in-a-namespace-test-before-rename' };
+    const session = {
+      _calvaSessionMetadata: metadata,
+      evaluateInNs: (nsForm: string) => {
+        nsFormsEvaluated.push(nsForm);
+        return Promise.resolve();
+      },
+    } as unknown as nrepl.NReplSession;
+    replWindow.setSession(session, 'pirate.core');
+    // As the REPL Sessions menu renames a session
+    metadata.key = 'evaluating-in-a-namespace-test-after-rename';
+    replWindow.setSession(session, 'user', metadata.key);
+    const evaluateInOther = () =>
+      evaluate.evaluateInNamespace(
+        { session, ns: 'pirate.other', nsForm: '(ns pirate.other)' },
+        () => Promise.resolve({ ns: 'pirate.other', value: 'nil' })
+      );
+
+    await evaluateInOther();
+    await evaluateInOther();
+    assert.deepStrictEqual(
+      nsFormsEvaluated,
+      ['(ns pirate.other)'],
+      'The second evaluation keeps the namespace, and *1 with it'
+    );
+  });
+
   test('an evaluation whose session closes leaves the REPL window as it was, and asks the closed session for no stacktrace', async () => {
     const windowSession = {
       _calvaSessionMetadata: { key: 'evaluating-in-a-namespace-test' },
     } as unknown as nrepl.NReplSession;
-    replWindow.setSession(windowSession, 'user');
     const written: Written[] = [];
     const session = sessionWritingTo(written);
     // A key of its own, so the evaluation's activity isn't recorded for the real clj session
@@ -198,6 +265,9 @@ suite('Evaluating in a namespace, as files do', () => {
     (session as unknown as { _calvaSessionMetadata: { key: string } })._calvaSessionMetadata = {
       key: sessionKey,
     };
+    // The session is in user, as a connected session is
+    replWindow.setSession(session, 'user');
+    replWindow.setSession(windowSession, 'user');
     try {
       const evaluating = evaluate.evaluateInNamespace(
         { session, ns: 'user', nsForm: '(ns user)' },

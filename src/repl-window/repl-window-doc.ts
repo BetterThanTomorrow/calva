@@ -97,6 +97,8 @@ function getDocDir(): vscode.Uri {
 type SessionInfo = {
   ns?: string;
   session?: nrepl.NReplSession;
+  /** False when `session` may lack `ns`: a new session, or one that switched runtime, until it evaluates in a namespace. */
+  hasNs?: boolean;
 };
 
 let _sessionType: config.ReplSessionType = 'clj';
@@ -165,11 +167,38 @@ export function setSession(session: nrepl.NReplSession, newNs?: string, sessionK
   ensureSessionEntries(resolvedType);
   _sessionType = resolvedType;
 
-  if (session) {
-    _sessionInfo[resolvedType].session = session;
+  const info = _sessionInfo[resolvedType];
+  if (session && session !== info.session) {
+    info.session = session;
+    info.hasNs = false;
   }
   if (newNs) {
-    _sessionInfo[resolvedType].ns = newNs;
+    info.ns = newNs;
+    info.hasNs = true;
+  }
+}
+
+function sessionInfoOf(session: nrepl.NReplSession): SessionInfo | undefined {
+  const info = _sessionInfo[resolveSessionType(session)];
+  return info?.session === session ? info : undefined;
+}
+
+/** Returns the namespace `session` last evaluated in, or undefined when the REPL window hasn't seen `session`. */
+export function getSessionNs(session: nrepl.NReplSession): string | undefined {
+  return sessionInfoOf(session)?.ns;
+}
+
+/** True when `session` last evaluated in `ns`, and hasn't switched runtime since. */
+export function sessionHasNs(session: nrepl.NReplSession, ns: string): boolean {
+  const info = sessionInfoOf(session);
+  return !!info?.hasNs && info.ns === ns;
+}
+
+/** Forgets that `session` has its namespace, as after a switch to a runtime that may lack it. */
+export function forgetSessionNs(session: nrepl.NReplSession): void {
+  const info = sessionInfoOf(session);
+  if (info) {
+    info.hasNs = false;
   }
 }
 

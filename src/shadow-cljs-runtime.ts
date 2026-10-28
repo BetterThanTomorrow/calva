@@ -8,6 +8,7 @@ import * as output from './results-output/output';
 import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 import * as sessionEvents from './nrepl/session-events';
+import * as replWindow from './repl-window/repl-window-doc';
 
 /**
  * Tracks the last time Calva evaluated code on each runtime ID.
@@ -388,11 +389,20 @@ export function updateRuntimeState(
   clientKey: string,
   options?: { isNewConnection?: boolean }
 ): void {
+  const previousRuntimeId = clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeId;
   clientRegistry.setConnectionState(clientKey, {
     shadowCljsRuntimeId: runtimeId,
     shadowCljsRuntimeInfo: runtimeInfo,
   });
   status.update();
+
+  // The new runtime may lack the namespaces the session evaluated in
+  const cljsSession = sessionRegistry.getSession(
+    sessionRegistry.getSecondarySessionKeyForClient(clientKey)
+  );
+  if (cljsSession && runtimeId !== previousRuntimeId) {
+    replWindow.forgetSessionNs(cljsSession);
+  }
 
   if (options?.isNewConnection) {
     const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {

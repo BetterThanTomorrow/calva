@@ -500,8 +500,9 @@ This section describes how various Calva features interact with the session syst
 1. User triggers evaluation in a file
 2. `replSession.getSession()` is called (no parameters needed)
 3. Routing logic resolves session based on current context (see [Session Routing Details](#session-routing-details))
-4. Code is sent to the resolved session via nREPL `eval` op
-5. Results displayed inline and/or in output destination
+4. `evaluateInNamespace` evaluates the file's `ns` form in the resolved session first, unless that session last evaluated in the file's namespace, in the runtime it has now. The REPL window keeps the namespace each session last evaluated in (`getSessionNs` and `sessionHasNs` in `repl-window-doc.ts`), so a cljc target switch or a pin sends the `ns` form to the session that lacks it. A build switch makes a new session, and a runtime change makes the cljs session set up its namespace again
+5. Code is sent to the resolved session via nREPL `eval` op
+6. Results displayed inline and/or in output destination
 
 **Design principle:** The routing logic routes the document a feature was asked about, such as hover or completion, or else the current file (`currentFileUri` in `src/current-file.ts`): the active editor, the last active one while a webview has the focus, or the REPL Input's source file while it is the current editor. Callers don't need to specify file types.
 
@@ -551,7 +552,7 @@ ClojureDocs lookups use a **dedicated session** that is probed for ClojureDocs s
 4. Evaluate shadow-cljs API calls on the **Primary Session**:
    - `(shadow.cljs.devtools.api/repl-runtimes :build-id)`
    - `(shadow.cljs.devtools.api/repl-runtime-select :build-id runtime-id)`
-5. Update connection state with selected runtime
+5. Update connection state with selected runtime (`updateRuntimeState`), which makes the connection's cljs session evaluate its `ns` form again before its next evaluation, since the new runtime may lack the namespace
 
 **Why primary session?** Shadow-cljs API calls must be evaluated in the CLJ session (the watch process context), not the CLJS runtime.
 

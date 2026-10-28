@@ -22,6 +22,7 @@ const suiteName = 'CLJC Routing';
 const projectDir = path.join(testUtil.testDataDir, '..', 'projects', 'cljs-only');
 const cljsFile = path.join(projectDir, 'src', 'hello_world', 'core.cljs');
 const cljcFile = path.join(projectDir, 'src', 'hello_world', 'core.cljc');
+const nsSetupFile = path.join(projectDir, 'src', 'hello_world', 'ns_setup.cljc');
 const ednFile = path.join(projectDir, 'deps.edn');
 const fiddleFile = path.join(projectDir, 'hello.fiddle');
 
@@ -703,6 +704,60 @@ suite('CLJC Routing suite', function () {
       whoTracking.clearCurrentWho(client.session.sessionId);
       client.disconnect();
       client.session.close();
+    }
+  });
+
+  test('Evaluates a .cljc file’s ns form in clj after the cljc target switches from cljs', async function () {
+    const replWindowBefore = currentReplWindow();
+    const editor = await testUtil.openFile(nsSetupFile);
+    const form = '(def evaluated-type (str (type 1)))';
+    const start = editor.document.getText().indexOf(form);
+    const selectForm = () => {
+      editor.selections = [
+        new vscode.Selection(
+          editor.document.positionAt(start),
+          editor.document.positionAt(start + form.length)
+        ),
+      ];
+    };
+    const evaluated = (sessionKey: string, ns: string, code: string) =>
+      testUtil.waitForValue(
+        async () => {
+          const value = await sessionRegistry.getSession(sessionKey).eval(code, ns).value;
+          return ['nil', 'false'].includes(value) ? undefined : value;
+        },
+        4000,
+        50,
+        `Timed out waiting for the form to be evaluated in ${sessionKey}`
+      );
+    try {
+      clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
+      selectForm();
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      assert.strictEqual(
+        await evaluated(
+          'cljs',
+          'cljs.user',
+          "(some? (resolve 'hello-world.ns-setup/evaluated-type))"
+        ),
+        'true',
+        'The form is evaluated in cljs'
+      );
+
+      clientRegistry.setCljcTargetForConnection(clientKey, 'primary');
+      selectForm();
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      assert.strictEqual(
+        await evaluated(
+          'clj',
+          'user',
+          "(some-> (resolve 'hello-world.ns-setup/evaluated-type) deref)"
+        ),
+        '"class java.lang.Long"',
+        'The ns form reaches clj, though the REPL window already shows the namespace from cljs'
+      );
+    } finally {
+      restoreReplWindow(replWindowBefore);
     }
   });
 

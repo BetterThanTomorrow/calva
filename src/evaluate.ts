@@ -422,17 +422,17 @@ type EvaluationNamespace = {
 };
 
 /**
- * Runs `evaluate`, after evaluating `nsForm` in `session` when the REPL window's namespace differs
- * from `ns`. When `showResult`, the default, leaves the REPL window in `session` and the namespace
- * the evaluation ended in. An evaluation that isn't shown, or that `dropped` because its session
- * closed, leaves the REPL window as it was.
+ * Runs `evaluate`, after evaluating `nsForm` in `session` unless `session` last evaluated in `ns`
+ * in the runtime it has now. When `showResult`, the default, leaves the REPL window in `session`
+ * and the namespace the evaluation ended in. An evaluation that isn't shown, or that `dropped`
+ * because its session closed, leaves the REPL window as it was.
  */
 async function evaluateInNamespace<E extends { ns?: string; dropped?: boolean }>(
   { session, ns, nsForm, showResult = true }: EvaluationNamespace,
   evaluate: () => Promise<E>
 ): Promise<E> {
-  if (replWindow.getNs() !== ns) {
-    await session.evaluateInNs(nsForm, replWindow.getNs());
+  if (!replWindow.sessionHasNs(session, ns)) {
+    await session.evaluateInNs(nsForm, replWindow.getSessionNs(session) ?? replWindow.getNs());
   }
   const evaluation = await evaluate();
   if (showResult && !evaluation.dropped) {
