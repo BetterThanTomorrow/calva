@@ -19,32 +19,20 @@ function selectionAndText(
   if (doc) {
     const mirrorDoc = docMirror.getDocument(doc);
     const [range, text] = textGetter(mirrorDoc, pos ? doc.offsetAt(pos) : undefined);
-    if (range) {
-      return [select.selectionFromOffsetRange(doc, range), text];
-    }
+    return [range && select.selectionFromOffsetRange(doc, range), text];
   }
   return [undefined, ''];
-}
-
-/** As `selectionAndText`, but with the whole text of `doc` when nothing is picked. */
-function selectionAndTextElseDocument(
-  doc: vscode.TextDocument,
-  textGetter: (doc: model.EditableDocument, active?: number) => cursorTextGetter.RangeAndText,
-  pos: vscode.Position
-): SelectionAndText {
-  const picked = selectionAndText(doc, textGetter, pos);
-  return doc && !picked[0] ? [undefined, doc.getText()] : picked;
 }
 
 export function currentTopLevelFormText(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndTextElseDocument(doc, cursorTextGetter.currentTopLevelForm, pos);
+  return selectionAndText(doc, cursorTextGetter.currentTopLevelForm, pos);
 }
 
 export function currentFormText(doc: vscode.TextDocument, pos: vscode.Position): SelectionAndText {
-  return selectionAndTextElseDocument(doc, cursorTextGetter.currentForm, pos);
+  return selectionAndText(doc, cursorTextGetter.currentForm, pos);
 }
 
 export function currentPairText(doc: vscode.TextDocument, pos: vscode.Position): SelectionAndText {
@@ -69,7 +57,7 @@ export function currentEnclosingFormText(
   doc: vscode.TextDocument,
   pos: vscode.Position
 ): SelectionAndText {
-  return selectionAndTextElseDocument(doc, cursorTextGetter.currentEnclosingForm, pos);
+  return selectionAndText(doc, cursorTextGetter.currentEnclosingForm, pos);
 }
 
 export function currentFunction(doc: vscode.TextDocument, pos?: vscode.Position): SelectionAndText {

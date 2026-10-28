@@ -6,10 +6,18 @@ import * as model from '../cursor-doc/model';
 import * as paredit from '../cursor-doc/paredit';
 import type { PareditConfig } from '../cursor-doc/paredit-config';
 
-export type RangeAndText = [[number, number], string] | [undefined, ''];
+export type RangeAndText = [[number, number], string] | [undefined, string];
 
 function rangeAndText(doc: model.EditableDocument, range?: [number, number]): RangeAndText {
   return range ? [range, doc.model.getText(...range)] : [undefined, ''];
+}
+
+/** As `rangeAndText`, but with the whole text of `doc` when there is no `range`: with no form to pick, as at the top level, the form is the whole document. */
+function rangeAndTextElseDocument(
+  doc: model.EditableDocument,
+  range?: [number, number]
+): RangeAndText {
+  return range ? rangeAndText(doc, range) : [undefined, doc.model.getText(0, Infinity)];
 }
 
 const hasSelection = (doc: model.EditableDocument) =>
@@ -19,7 +27,7 @@ export function currentForm(
   doc: model.EditableDocument,
   active: number = doc.selections[0].active
 ): RangeAndText {
-  return rangeAndText(doc, doc.getTokenCursor(active).rangeForCurrentForm(active));
+  return rangeAndTextElseDocument(doc, doc.getTokenCursor(active).rangeForCurrentForm(active));
 }
 
 export function selectionText(doc: model.EditableDocument): RangeAndText {
@@ -43,7 +51,7 @@ export function currentEnclosingForm(
       return rangeAndText(doc, [start, cursor.offsetStart]);
     }
   }
-  return [undefined, ''];
+  return rangeAndTextElseDocument(doc);
 }
 
 export function currentPair(
@@ -102,8 +110,7 @@ export function currentTopLevelForm(
   active: number = doc.selections[0].active
 ): RangeAndText {
   const defunCursor = doc.getTokenCursor(active);
-  const defunRange = defunCursor.rangeForDefun(active);
-  return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
+  return rangeAndTextElseDocument(doc, defunCursor.rangeForDefun(active));
 }
 
 function rangeToCursor(

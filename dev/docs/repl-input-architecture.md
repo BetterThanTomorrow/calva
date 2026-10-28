@@ -157,7 +157,7 @@ The context line, as the views get it, is `(:repl-input.context/line @calva.repl
 
 The file name matters twice. cider-nrepl's `eval` fails without one, and go to definition finds the evaluation by it (`definition/evaluation-file` and `evaluation-id`).
 
-The other evaluation commands from files work on the REPL Input while it has the focus: `extension.ts` wraps them with `replInput.evaluatingWhenFocused(pick, …)`, which evaluates what `pick` takes from the REPL Input's `StringDocument`. The picks are those of `util/cursor-get-text.ts`, which files use too, through `util/get-text.ts` at a document position. They keep the text and don't add to the history. Custom REPL commands go through `runningSnippetWhenFocused`, with the REPL Input's text and context (`replInputSnippetEvaluation` in `custom-snippets-catalog.ts`).
+The other evaluation commands from files work on the REPL Input while it has the focus: `extension.ts` wraps them with `replInput.evaluatingWhenFocused(pick, …)`, which evaluates what `pick` takes from the REPL Input's `StringDocument`. The picks are those of `util/cursor-get-text.ts`, which files use too, through `util/get-text.ts` at a document position. With no form to pick, as between two top-level forms for the enclosing form, a pick is the whole document, without a range, as in a file, so the REPL Input evaluates all of its text there. They keep the text and don't add to the history. Custom REPL commands go through `runningSnippetWhenFocused`, with the REPL Input's text and context (`replInputSnippetEvaluation` in `custom-snippets-catalog.ts`).
 
 `calva.replInput.interrupt` interrupts the view's running evaluations, through the `NReplEvaluation` each one handed back when it was sent.
 

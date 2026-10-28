@@ -143,14 +143,15 @@ async function evaluateCode({
 
 type Pick = (doc: model.EditableDocument) => cursorGetText.RangeAndText;
 
-/** Returns the code `pick` takes from a REPL Input document, as `evaluateSelection` takes it from an editor, with the line and column where it starts. */
-function pickedCode(pick: Pick) {
+/** Returns the code `pick` takes from a REPL Input document, as `evaluateSelection` takes it from an editor, with the line and column where it starts. A pick without a range is all of the document, taken as it is, and only when the document has a form. */
+export function pickedCode(pick: Pick) {
   return (doc: model.StringDocument) => {
     const [range, picked] = pick(doc);
+    const hasForm = range || cursorGetText.currentTopLevelForm(doc, 0)[0];
     const { start, end } = doc.selections[0];
-    const code = start === end ? evaluate.withoutIgnoreMarker(picked) : picked;
-    if (range && code.length > 0) {
-      const [line, column] = doc.model.getRowCol(range[0]);
+    const code = range && start === end ? evaluate.withoutIgnoreMarker(picked) : picked;
+    if (hasForm && code.length > 0) {
+      const [line, column] = doc.model.getRowCol(range?.[0] ?? 0);
       return { code, line, column };
     }
   };

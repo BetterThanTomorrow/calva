@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import * as testUtil from './util';
 import * as ranges from '../../../api/ranges';
 import * as getText from '../../../util/get-text';
+import * as cursorGetText from '../../../util/cursor-get-text';
+import * as replInput from '../../../repl-input';
+import * as replInputDocument from '../../../repl-input-document';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as replWindow from '../../../repl-window/repl-window-doc';
@@ -42,6 +45,30 @@ suite('Form picks', () => {
       undefined,
       document.getText(),
     ]);
+  });
+
+  test('at the top level, the enclosing form in the REPL Input is all of its code, as in a file', () => {
+    const code = '(a b)\n\n(c d)';
+    const doc = replInputDocument.stringDocument(code, [[6, 6]]);
+    assert.deepStrictEqual(replInput.pickedCode(cursorGetText.currentEnclosingForm)(doc), {
+      code,
+      line: 0,
+      column: 0,
+    });
+  });
+
+  test('all of the REPL Input keeps its ignore markers, and evaluates only when it has a form', () => {
+    const code = '#_(a)\n\n(b)';
+    const ignoring = replInputDocument.stringDocument(code, [[6, 6]]);
+    assert.deepStrictEqual(replInput.pickedCode(cursorGetText.currentEnclosingForm)(ignoring), {
+      code,
+      line: 0,
+      column: 0,
+    });
+    const comment = replInputDocument.stringDocument(';; try this later\n', [[18, 18]]);
+    for (const pick of [cursorGetText.currentTopLevelForm, cursorGetText.currentEnclosingForm]) {
+      assert.strictEqual(replInput.pickedCode(pick)(comment), undefined);
+    }
   });
 
   test('custom REPL commands and hover snippets get the forms at a position, and the function, head and tail at the selection', async () => {

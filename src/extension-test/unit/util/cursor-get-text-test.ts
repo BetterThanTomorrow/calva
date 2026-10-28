@@ -170,9 +170,9 @@ describe('get text', () => {
         .toEqual([rangeOf(text, '[d e]'), '[d e]']);
     });
 
-    it('Finds nothing at the top level', () => {
+    it('Takes the whole document at the top level', () => {
       const doc = textNotation.docFromTextNotation('(a b) |(c d)');
-      expectLib.expect(getText.currentEnclosingForm(doc)).toEqual([undefined, '']);
+      expectLib.expect(getText.currentEnclosingForm(doc)).toEqual([undefined, '(a b) (c d)']);
     });
   });
 
