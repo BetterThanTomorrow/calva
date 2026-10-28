@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
+import * as model from '../../cursor-doc/model';
 import * as paredit from '../../cursor-doc/paredit';
 import * as replInputDocument from '../../repl-input-document';
+
+model.initScanner(20000);
 
 describe('REPL Input document', () => {
   it('holds the text and the selections the REPL Input posted', () => {

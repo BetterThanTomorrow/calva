@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
 import * as replDefinition from '../../../src/providers/repl-definition';
+import * as model from '../../cursor-doc/model';
 import * as textNotation from './common/text-notation';
+
+model.initScanner(20000);
 
 function fakeSession(info: any, supportsInfo = true) {
   const calls: [string, string][] = [];

@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
 import * as catalog from '../../custom-snippets-catalog';
+import * as model from '../../cursor-doc/model';
 import * as textNotation from './common/text-notation';
+
+model.initScanner(20000);
 
 describe('customREPLCommandSnippets resolution (#3283)', () => {
   const editorNS = 'my.app.core';

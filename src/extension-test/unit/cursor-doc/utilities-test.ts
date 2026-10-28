@@ -1,7 +1,10 @@
 import * as expectLib from 'expect';
+import * as model from '../../../cursor-doc/model';
 import * as utilities from '../../../cursor-doc/utilities';
 import * as textNotation from '../common/text-notation';
 //import { docFromTextNotation, textAndSelection } from '../common/text-notation';
+
+model.initScanner(20000);
 
 describe('Utilities that need cursor doc things', () => {
   describe('addMissingBrackets', () => {

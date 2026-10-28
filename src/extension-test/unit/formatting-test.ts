@@ -2,7 +2,10 @@ import * as expectLib from 'expect';
 import * as formatIndex from '../../calva-fmt/src/format-index';
 import * as backspaceOnWhitespaceLib from '../../cursor-doc/backspace-on-whitespace';
 import * as indent from '../../cursor-doc/indent';
+import * as model from '../../cursor-doc/model';
 import * as textNotation from './common/text-notation';
+
+model.initScanner(20000);
 
 describe('formatter, indenter and paredit comparison', () => {
   const configs = [

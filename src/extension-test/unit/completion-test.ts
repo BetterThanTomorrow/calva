@@ -2,7 +2,10 @@ import * as expectLib from 'expect';
 import { CompletionItemKind } from 'vscode-languageserver-protocol';
 import * as completionUtil from '../../../src/providers/completion-util';
 import * as replCompletion from '../../../src/providers/repl-completion';
+import * as model from '../../cursor-doc/model';
 import * as textNotation from './common/text-notation';
+
+model.initScanner(20000);
 
 function fakeSession(completions: any[]) {
   const calls: [string, string, string | undefined][] = [];

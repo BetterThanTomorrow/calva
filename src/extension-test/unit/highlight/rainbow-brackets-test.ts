@@ -3,6 +3,8 @@ import * as model from '../../../cursor-doc/model';
 import * as rainbowBrackets from '../../../highlight/src/rainbow-brackets';
 import * as textNotation from '../common/text-notation';
 
+model.initScanner(20000);
+
 const options: rainbowBrackets.RainbowOptions = {
   colorCount: 3,
   cycleBracketColors: true,

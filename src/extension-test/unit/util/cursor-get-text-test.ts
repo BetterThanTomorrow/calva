@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
 import * as textNotation from '../common/text-notation';
 import * as getText from '../../../util/cursor-get-text';
+import * as model from '../../../cursor-doc/model';
+
+model.initScanner(20000);
 
 describe('get text', () => {
   describe('getTopLevelFunction', () => {

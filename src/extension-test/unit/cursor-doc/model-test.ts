@@ -2,6 +2,8 @@ import * as expectLib from 'expect';
 import * as model from '../../../cursor-doc/model';
 import * as textNotation from '../common/text-notation';
 
+model.initScanner(20000);
+
 describe('StringDocument', () => {
   it('inserts at the anchor of the first selection, keeping the selections', () => {
     const doc = textNotation.docFromTextNotation('(a |b|)');
