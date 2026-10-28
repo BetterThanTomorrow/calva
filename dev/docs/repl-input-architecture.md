@@ -234,7 +234,7 @@ A lock without a source file has no current file. It routes as Calva routes with
 - From the Output Sidebar, closing the palette, or running a command from it that isn't Paredit's, leaves the focus in the editor area. VS Code gives an extension no event for it.
 - clojure-lsp's copy is always a `.clj` file, so cljs and cljc contexts get clj analysis. Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
 - Force delete with several cursors does nothing.
-- In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands.
+- In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands, in files too: Cursor registers its keybindings above every extension's.
 - The file evaluation commands' form picks exist twice: `get-text.ts` and `select.ts` keep `vscode` versions of the picks in `util/cursor-get-text.ts`.
 
 ## Testing and probing
