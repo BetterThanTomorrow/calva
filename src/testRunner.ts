@@ -355,12 +355,10 @@ function getTestUnderCursor() {
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
-  const doc = util.tryToGetDocument({});
+  const editor = util.tryToGetActiveTextEditor();
+  const doc = editor?.document;
   const session = replSession.getSession(doc);
-  const [ns, _] = namespace.getNamespace(
-    doc,
-    vscode.window.activeTextEditor?.selections[0]?.active
-  );
+  const [ns, _] = namespace.getNamespace(doc, editor?.selections[0]?.active);
   const test = getTestUnderCursor();
 
   if (test) {

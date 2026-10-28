@@ -12,9 +12,9 @@ import * as replInput from './repl-input';
 // Relies on that `when` claus guards this from being called
 // when the cursor is before the comment marker
 export function continueCommentCommand() {
-  const document = util.tryToGetDocument({});
-  if (document && document.languageId === 'clojure') {
-    const editor = util.getActiveTextEditor();
+  const editor = util.tryToGetActiveTextEditor();
+  if (editor?.document.languageId === 'clojure') {
+    const document = editor.document;
     const position = editor.selections[0].active;
     const cursor = docMirror.getDocument(document).getTokenCursor();
     if (cursor.getToken().type !== 'comment') {
@@ -119,18 +119,15 @@ export async function toggleLineCommentCommand(behaviorArg?: ToggleCommentBehavi
     );
   }
 
-  const document = util.tryToGetDocument({});
-  if (!document || document.languageId !== 'clojure') {
+  const editor = util.tryToGetActiveTextEditor();
+  if (editor?.document.languageId !== 'clojure') {
     return;
   }
 
-  const editor = util.getActiveTextEditor();
-  if (!editor) {
-    return;
-  }
-
-  return toggleComment.toggleLineComment(docMirror.getDocument(document), behavior, (ranges) =>
-    reformatRangesEndingUndoStep(editor, ranges)
+  return toggleComment.toggleLineComment(
+    docMirror.getDocument(editor.document),
+    behavior,
+    (ranges) => reformatRangesEndingUndoStep(editor, ranges)
   );
 }
 

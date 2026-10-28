@@ -456,9 +456,11 @@ export async function revealReplWindowDocForCurrentNS(preserveFocus = true) {
 
 export function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
+  const document = util.tryToGetDocument({});
+  const editor = util.tryToGetActiveTextEditor();
   const [ns, _] = namespace.getNamespace(
-    util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selections[0]?.active
+    document,
+    editor?.document === document ? editor.selections[0].active : undefined
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
@@ -466,14 +468,11 @@ export function setNamespaceFromCurrentFile() {
 }
 
 function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
-  const session = replSession.getSession();
-  const [ns, _] = namespace.getNamespace(
-    util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selections[0]?.active
-  );
   const editor = util.getActiveTextEditor();
   const doc = editor.document;
   const selection = editor.selections[0];
+  const session = replSession.getSession(doc);
+  const [ns, _] = namespace.getNamespace(doc, selection.active);
   let code = '';
   if (selection.isEmpty) {
     const formSelection = select.getFormSelection(doc, selection.active, topLevel);

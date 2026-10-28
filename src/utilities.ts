@@ -227,13 +227,20 @@ function getWordAtPosition(document, position) {
   return text;
 }
 
+/** Returns `document` when it is a text document, and not the `{}` commands get without one, else `orElse`. */
+function textDocumentOr(
+  document: unknown,
+  orElse: vscode.TextDocument | undefined
+): vscode.TextDocument | undefined {
+  return document && Object.prototype.hasOwnProperty.call(document, 'fileName')
+    ? (document as vscode.TextDocument)
+    : orElse;
+}
+
 function tryToGetDocument(
   document: vscode.TextDocument | Record<string, never> | undefined
 ): vscode.TextDocument | undefined {
-  if (document && Object.prototype.hasOwnProperty.call(document, 'fileName')) {
-    return document as vscode.TextDocument;
-  }
-  return currentFile.activeEditorDocument();
+  return textDocumentOr(document, currentFile.activeEditorDocument());
 }
 
 function getDocument(document: vscode.TextDocument | Record<string, never>): vscode.TextDocument {
@@ -710,6 +717,7 @@ export {
   isCommentFormHead,
   distinct,
   getWordAtPosition,
+  textDocumentOr,
   tryToGetDocument,
   getDocument,
   getFileType,

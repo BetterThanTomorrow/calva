@@ -533,7 +533,7 @@ async function evaluateSelection(document = {}, options) {
     if (editor.selections[0].isEmpty) {
       code = withoutIgnoreMarker(code);
     }
-    const doc = util.getDocument(document);
+    const doc = util.textDocumentOr(document, editor.document);
     if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
       void vscode.window.showTextDocument(doc, { preview: false });
     }

@@ -221,6 +221,55 @@ suite('CLJC Routing suite', function () {
     }
   });
 
+  test('Evaluating a selection in a focused output channel evaluates it outside the last active file’s namespace', async function () {
+    testUtil.log(suiteName, 'Testing: Evaluating a selection in an output channel');
+
+    await testUtil.openFile(cljcFile);
+    const replWindowBefore = currentReplWindow();
+    const code = '(def evaluated-in (str *ns*))';
+    const channel = vscode.window.createOutputChannel('Calva e2e evaluation');
+    try {
+      channel.appendLine(code);
+      channel.show(false);
+      const outputEditor = await testUtil.waitForValue(
+        () => {
+          const editor = vscode.window.activeTextEditor;
+          return editor?.document.uri.scheme === 'output' &&
+            editor.document.getText().includes(code)
+            ? editor
+            : undefined;
+        },
+        4000,
+        20,
+        'Timed out waiting for the output channel to have the focus'
+      );
+      outputEditor.selections = [new vscode.Selection(0, 0, 0, code.length)];
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      const clj = sessionRegistry.getSession('clj');
+      const evaluatedIn = await testUtil.waitForValue(
+        async () => {
+          const value = await clj.eval(
+            "(vec (keep #(some-> (resolve %) deref) '[user/evaluated-in hello-world.core/evaluated-in]))",
+            'user'
+          ).value;
+          return value === '[]' ? undefined : value;
+        },
+        4000,
+        50,
+        'Timed out waiting for the selection to be evaluated'
+      );
+      assert.strictEqual(
+        evaluatedIn,
+        '["user"]',
+        'The output channel’s code should evaluate in the output channel’s namespace, not in the last active .cljc file’s'
+      );
+    } finally {
+      channel.dispose();
+      restoreReplWindow(replWindowBefore);
+      await testUtil.openFile(cljcFile);
+    }
+  });
+
   test('Hover in a split that is not the active editor answers from that split’s session', async function () {
     testUtil.log(suiteName, 'Testing: Hover in a split that is not the active editor');
 
