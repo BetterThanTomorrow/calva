@@ -1,6 +1,6 @@
 (ns calva.repl.input.config
   "Reads what the REPL Inputs depend on from VS Code: the settings, the keys VS Code resolved for Calva's
-   keybindings, the REPL Inputs' heights, the history, and the code of the latest evaluations."
+   keybindings, the history, and the code of the latest evaluations."
   (:require
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
@@ -8,8 +8,6 @@
    [calva.util :as util]
    [clojure.set :as set]
    ["jsonc-parser" :as jsonc]))
-
-(def heights-key "calva.replInput.heights")
 
 (defn current-setting
   []
@@ -71,15 +69,6 @@
                  (let [keybindings (command-keys/calva-keybindings manifest resolved)]
                    (if (seq keybindings) keybindings (fallback)))))
         (.catch fallback))))
-
-(defn heights
-  []
-  (when-let [vscode-context @util/vscode-context]
-    (js->clj (.. ^js vscode-context -globalState (get heights-key)))))
-
-(defn store-height!
-  [{:keys [height] :repl-input/keys [id]}]
-  (.. ^js @util/vscode-context -globalState (update heights-key (clj->js (assoc (heights) id height)))))
 
 (def history-key "calva.replInput.history")
 

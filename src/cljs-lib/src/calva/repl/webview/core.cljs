@@ -274,10 +274,8 @@
 ;; dev workflow to function properly
 
 (defn repl-input-html
-  [{:repl-input/keys [id enabled? height]}]
-  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\""
-       (when height (str " data-repl-input-height=\"" height "\""))
-       "></div>"))
+  [{:repl-input/keys [id enabled?]}]
+  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\"></div>"))
 
 (defn get-webview-html
   [{:env/keys [is-debug]} {:keys [js-source css-href code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]

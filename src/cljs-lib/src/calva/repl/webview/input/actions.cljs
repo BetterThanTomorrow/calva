@@ -5,8 +5,6 @@
    [calva.repl.webview.input.history :as history]
    [calva.repl.webview.input.keys :as input-keys]))
 
-(def min-height 40)
-
 (def view-margin 40)
 
 (defn- post
@@ -14,7 +12,7 @@
   [:fx/post-to-host (merge {:command command :repl-input/id (:repl-input/id db)} more)])
 
 (defn- clamp-height
-  [height view-height]
+  [{:keys [height min-height view-height]}]
   (js/Math.round (max min-height (min height (- view-height view-margin)))))
 
 (defn- set-enabled
@@ -221,8 +219,8 @@
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.init
-    (let [{:repl-input/keys [id height enabled?]} payload]
-      (set-enabled (assoc db :repl-input/id id :repl-input/height height) enabled?))
+    (let [{:repl-input/keys [id enabled?]} payload]
+      (set-enabled (assoc db :repl-input/id id) enabled?))
 
     :repl-input/ax.set-enabled
     (set-enabled db payload)
@@ -269,12 +267,8 @@
      :uf/fxs [(post db "repl-input-blurred")]}
 
     :repl-input/ax.drag
-    (let [height (clamp-height (:height payload) (:view-height payload))]
+    (let [height (clamp-height payload)]
       {:uf/db (assoc db :repl-input/height height)
        :uf/fxs [[:repl-input/fx.set-height height]]})
-
-    :repl-input/ax.drag-ended
-    {:uf/db db
-     :uf/fxs [(post db "repl-input-resized" :height (:repl-input/height db))]}
 
     (handle-evaluation-action db action)))

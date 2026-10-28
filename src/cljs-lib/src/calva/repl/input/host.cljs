@@ -69,8 +69,7 @@
   "What the Output view's page needs to mount the REPL Input for `view-id`."
   [view-id]
   {:repl-input/id view-id
-   :repl-input/enabled? (enabled? view-id)
-   :repl-input/height (get (config/heights) view-id)})
+   :repl-input/enabled? (enabled? view-id)})
 
 (defn post-to-view!
   [id message]

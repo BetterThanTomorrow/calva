@@ -2,7 +2,6 @@
   "Takes the messages that the REPL Inputs in the Output views post."
   (:require
    [calva.repl.input.complete :as complete]
-   [calva.repl.input.config :as config]
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
@@ -46,7 +45,6 @@
                                  (host/update-focus! [:unmount id]))
       "repl-input-focused" (host/update-focus! [:focus id])
       "repl-input-blurred" (host/update-focus! [:blur id])
-      "repl-input-resized" (config/store-height! msg)
       "repl-input-follow-editor" (host/follow-editor!)
       "repl-input-connect" (.. ^js @util/vscode -commands (executeCommand "calva.showReplMenu"))
       "repl-input-evaluate" (evaluate/evaluate! id)

@@ -35,7 +35,7 @@ The namespaces are `calva.repl.input.<name>`.
 | `context` | The context, locks and how they route, pure |
 | `focus` | The focus decisions, pure |
 | `setting` | The setting, pure |
-| `config` | Reads the settings, the resolved keybindings, the heights, the stored history and the kept code |
+| `config` | Reads the settings, the resolved keybindings, the stored history and the kept code |
 | `command-keys`, `when-clause` | Which keys VS Code gets, from the keybindings and their `when` clauses, pure |
 | `brackets` | Which brackets close themselves, and the bracket styles, pure |
 | `evaluate`, `evaluations` | Evaluating, stdin, interrupting, and the evaluation bar |
@@ -80,13 +80,13 @@ Beside it are atoms for things that aren't data: `host/!adapter` (the TS functio
 
 The view ids are those of the Output Destinations, `"output-view"` and `"output-sidebar"`. Each view has its own record, with its text, selections, version and history position. Both share one context, so a lock made in one view holds in the other.
 
-VS Code keeps the latest 500 history entries (`calva.replInput.history`) and the code of the latest 500 evaluations (`calva.replInput.evaluatedCode`) in `workspaceState`, and the dragged heights (`calva.replInput.heights`) in `globalState`.
+VS Code keeps the latest 500 history entries (`calva.replInput.history`) and the code of the latest 500 evaluations (`calva.replInput.evaluatedCode`) in `workspaceState`.
 
-In the webview, the REPL Input's state is in the Output view's db, under `:repl-input/*` and `:repl-input.history/*`. CodeMirror's `EditorState` holds the text and the undo history.
+In the webview, the REPL Input's state is in the Output view's db, under `:repl-input/*` and `:repl-input.history/*`. CodeMirror's `EditorState` holds the text and the undo history. The REPL Input starts two lines tall at the view's font size, a `min-height` in the editor's theme, and grows with its text up to 40% of the view. A drag of the sash sets `:repl-input/height`, which lasts as long as the page, so a reloaded view starts at two lines again.
 
 ## Mounting
 
-1. `core/get-webview-html` puts `#repl-input` in every Output view's page, with the data from `host/html-state`: the view id, whether the REPL Input is on, and its stored height.
+1. `core/get-webview-html` puts `#repl-input` in every Output view's page, with the data from `host/html-state`: the view id, and whether the REPL Input is on.
 2. `main.cljs` dispatches `:repl-input/ax.init`. When it is on, `:repl-input/fx.mount` creates the `EditorView`, and `:repl-input/ax.mounted` posts `repl-input-mounted`.
 3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluation bar, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
 
@@ -236,7 +236,6 @@ A lock without a source file has no current file. It routes as Calva routes with
 - clojure-lsp's copy is always a `.clj` file, so cljs and cljc contexts get clj analysis. Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
 - Force delete with several cursors does nothing.
 - In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands.
-- A webview reload seems to bring the REPL Input up at the height in its first HTML, not the stored one.
 - The file evaluation commands' form picks exist twice: `get-text.ts` and `select.ts` keep `vscode` versions of the picks in `util/cursor-get-text.ts`.
 
 ## Testing and probing

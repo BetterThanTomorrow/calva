@@ -60,6 +60,8 @@
                         :fontFamily "var(--vscode-editor-font-family, monospace)"
                         :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
                         :height "var(--repl-input-height, auto)"
+                        ;; Two lines at the scroller's 1.4 line height, the content's 4px padding above and below, and the border
+                        :minHeight "var(--repl-input-height, calc(2.8em + 10px))"
                         :maxHeight "var(--repl-input-height, 40vh)"}
                "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
                ".cm-scroller" #js {:fontFamily "inherit"
@@ -221,15 +223,29 @@
       (.setProperty style "--repl-input-height" (str height "px"))
       (.removeProperty style "--repl-input-height"))))
 
+(defn- empty-height
+  "Returns the height in px of `view` with two empty lines, as the theme's `minHeight` has it."
+  [^js view]
+  (let [px js/parseFloat
+        line-height (px (.-lineHeight (js/getComputedStyle (.-scrollDOM view))))
+        ^js content (js/getComputedStyle (.-contentDOM view))
+        ^js editor (js/getComputedStyle (.-dom view))]
+    (+ (* 2 line-height)
+       (px (.-paddingTop content)) (px (.-paddingBottom content))
+       (px (.-borderTopWidth editor)) (px (.-borderBottomWidth editor)))))
+
 (defn- listen-for-drag!
   [^js sash dispatch!]
   (.addEventListener
    sash "pointerdown"
    (fn [^js down]
-     (let [start-y (.-clientY down)
-           start-height (some-> (editor-view) .-dom .getBoundingClientRect .-height)
+     (let [^js view (editor-view)
+           start-y (.-clientY down)
+           start-height (.. view -dom getBoundingClientRect -height)
+           min-height (empty-height view)
            move (fn [^js e]
                   (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
+                                                   :min-height min-height
                                                    :view-height js/window.innerHeight}]))]
        (.preventDefault down)
        (.setPointerCapture sash (.-pointerId down))
@@ -238,8 +254,7 @@
        (.addEventListener sash "pointerup"
                           (fn [_]
                             (.removeEventListener sash "pointermove" move)
-                            (.. sash -classList (remove "active"))
-                            (dispatch! [:repl-input/ax.drag-ended]))
+                            (.. sash -classList (remove "active")))
                           #js {:once true})))))
 
 (defonce ^:private !window-focus (atom {:listening? false :last-focused nil :pointer-down-at 0}))

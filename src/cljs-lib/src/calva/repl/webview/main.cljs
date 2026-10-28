@@ -8,8 +8,7 @@
   (when-let [element (input-editor/mount-element)]
     (let [dataset (.-dataset element)]
       (ui/dispatch! [:repl-input/ax.init {:repl-input/id (.-replInputId dataset)
-                                          :repl-input/enabled? (= "true" (.-replInputEnabled dataset))
-                                          :repl-input/height (some-> (.-replInputHeight dataset) js/parseFloat)}]))))
+                                          :repl-input/enabled? (= "true" (.-replInputEnabled dataset))}]))))
 
 (defn ^:export main []
   (ui/main)

@@ -115,7 +115,7 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 - A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the stylesheets. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
 - The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
-- The greeting, `#output`, and the `#repl-input` element with the view id, whether the REPL Input is on for the view, and its stored height.
+- The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
 
 `image-host/webview-options` gives both views scripts, command links to the view's own Show command, and `localResourceRoots`: the extension, workspace folders that aren't `file:`, and the file system roots, so local images anywhere can load. The roots are rebuilt when workspace folders change. Both views keep their page when hidden (`retainContextWhenHidden`).

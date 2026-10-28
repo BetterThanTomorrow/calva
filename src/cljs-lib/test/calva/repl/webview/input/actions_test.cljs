@@ -3,13 +3,13 @@
    [calva.repl.webview.input.actions :as sut]
    [cljs.test :refer-macros [deftest testing is]]))
 
-(def init-payload {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/height 200})
+(def init-payload {:repl-input/id "output-view" :repl-input/enabled? true})
 
 (deftest init-test
-  (testing "mounts the REPL Input with the stored height when it is on"
+  (testing "mounts the REPL Input without a height when it is on, so it starts at its empty height"
     (let [{:uf/keys [db fxs]} (sut/handle-action {} [:repl-input/ax.init init-payload])]
-      (is (= {:repl-input/id "output-view" :repl-input/height 200 :repl-input/enabled? true :repl-input/version 0} db))
-      (is (= [[:repl-input/fx.mount {:height 200}]] fxs))))
+      (is (= {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/version 0} db))
+      (is (= [[:repl-input/fx.mount {:height nil}]] fxs))))
   (testing "mounts nothing when it is off"
     (let [{:uf/keys [db fxs]} (sut/handle-action {} [:repl-input/ax.init (assoc init-payload :repl-input/enabled? false)])]
       (is (= "output-view" (:repl-input/id db)))
@@ -52,17 +52,17 @@
 
 (deftest drag-test
   (let [db {:repl-input/id "output-view" :repl-input/height 100}]
-    (testing "sets the height the sash is dragged to"
+    (testing "sets the height the sash is dragged to, in the page only"
       (is (= {:uf/db (assoc db :repl-input/height 150)
               :uf/fxs [[:repl-input/fx.set-height 150]]}
-             (sut/handle-action db [:repl-input/ax.drag {:height 150 :view-height 600}]))))
-    (testing "keeps the height between the minimum and the view"
-      (is (= sut/min-height (get-in (sut/handle-action db [:repl-input/ax.drag {:height 3 :view-height 600}]) [:uf/db :repl-input/height])))
-      (is (= 560 (get-in (sut/handle-action db [:repl-input/ax.drag {:height 900 :view-height 600}]) [:uf/db :repl-input/height]))))
-    (testing "keeps the height when the drag ends, and stores it"
-      (is (= {:uf/db db
-              :uf/fxs [[:fx/post-to-host {:command "repl-input-resized" :repl-input/id "output-view" :height 100}]]}
-             (sut/handle-action db [:repl-input/ax.drag-ended]))))))
+             (sut/handle-action db [:repl-input/ax.drag {:height 150 :min-height 49 :view-height 600}]))))
+    (testing "keeps the height between the empty REPL Input's and the view's"
+      (is (= 49 (get-in (sut/handle-action db [:repl-input/ax.drag {:height 3 :min-height 49 :view-height 600}]) [:uf/db :repl-input/height])))
+      (is (= 560 (get-in (sut/handle-action db [:repl-input/ax.drag {:height 900 :min-height 49 :view-height 600}]) [:uf/db :repl-input/height]))))
+    (testing "mounts again at the dragged height when the setting turns it off and on"
+      (let [off-db (:uf/db (sut/handle-action (assoc db :repl-input/enabled? true) [:repl-input/ax.set-enabled false]))]
+        (is (= [[:repl-input/fx.mount {:height 100}]]
+               (:uf/fxs (sut/handle-action off-db [:repl-input/ax.set-enabled true]))))))))
 
 (deftest edit-test
   (let [db {:repl-input/id "output-view" :repl-input/version 2}

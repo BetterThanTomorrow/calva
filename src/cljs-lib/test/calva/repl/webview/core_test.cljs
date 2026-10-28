@@ -218,26 +218,19 @@
 
 (deftest get-webview-html-repl-input-test
   (testing "renders the REPL Input mount after the output, with its state"
-    (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\" data-repl-input-height=\"120\"></div>"
+    (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\"></div>"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:repl-input {:repl-input/id "output-view"
-                                                     :repl-input/enabled? true
-                                                     :repl-input/height 120}}))))
-  (testing "leaves out the height when there is none"
-    (is (re-find #"<div id=\"repl-input\" data-repl-input-id=\"output-sidebar\" data-repl-input-enabled=\"false\"></div>"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:repl-input {:repl-input/id "output-sidebar"
-                                                     :repl-input/enabled? false}}))))
+                                                     :repl-input/enabled? true}}))))
   (testing "renders no REPL Input mount without REPL Input state"
     (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {})))))
   (testing "renders the page with the REPL Input off as the page without it, apart from the mount marked off"
     (let [page {:js-source "js-source" :css-href "css-href" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
-          off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\" data-repl-input-height=\"120\"></div>"]
+          off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\"></div>"]
       (is (= (sut/get-webview-html {:env/is-debug false} page)
              (string/replace (sut/get-webview-html {:env/is-debug false}
                                                    (assoc page :repl-input {:repl-input/id "output-view"
-                                                                            :repl-input/enabled? false
-                                                                            :repl-input/height 120}))
+                                                                            :repl-input/enabled? false}))
                              off-mount
                              ""))))))
 
