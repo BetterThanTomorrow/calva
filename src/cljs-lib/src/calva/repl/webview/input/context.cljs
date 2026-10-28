@@ -159,7 +159,10 @@
       (.append (menu-item :locked close!)
                (menu-item :following #(do (dispatch! [:repl-input/ax.follow-editor])
                                           (close!))))
+      (.addEventListener "mousedown" #(.preventDefault ^js %))
       (.addEventListener "keydown" #(on-menu-keydown menu %))
+      (.addEventListener "focusout" #(when-not (.contains menu (.-relatedTarget ^js %))
+                                       (close!)))
       (.addEventListener "toggle" #(.setAttribute indicator "aria-expanded" (str (= "open" (.-newState ^js %))))))))
 
 (defn toggle-menu!
