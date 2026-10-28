@@ -99,21 +99,28 @@
              [_ path] (re-seq #"\"((?:[^\"\\]|\\.)*)\"" sources)]
          (string/replace path "\\/" "/"))))
 
-(defn renamed-reads
-  "Returns `{:build :file :line :name}` for each name that a source in a bundle in `dir` reads and that the
-   bundle has renamed. A bundle's sources are the `.cljs` and `.cljc` files under `sources` that its source
-   map lists."
+(defn- bundle-files
+  "Returns the `.cljs` and `.cljc` files under `sources` that the source map of the bundle `js-file` lists."
+  [js-file sources]
+  (for [path (sort (source-map-sources (slurp (str js-file ".map"))))
+        :let [file (io/file sources path)]
+        :when (and (re-find #"\.clj[sc]$" path) (.exists file))]
+    file))
+
+(defn scan
+  "Returns `{:build :files :reads}` for each bundle in `dir`: the files under `sources` that its source map
+   lists, and `{:build :file :line :name}` for each name such a file reads that the bundle has renamed."
   [{:keys [dir sources]}]
   (for [{:keys [build output]} bundles
         :let [js-file (str dir "/" output)
               renamed (renamed-names (slurp js-file))
-              in-bundle (source-map-sources (slurp (str js-file ".map")))]
-        path (sort in-bundle)
-        :let [file (io/file sources path)]
-        :when (and (re-find #"\.clj[sc]$" path) (.exists file))
-        [line property] (read-names (slurp file))
-        :when (renamed property)]
-    {:build build :file (str file) :line line :name property}))
+              files (bundle-files js-file sources)]]
+    {:build build
+     :files files
+     :reads (for [file files
+                  [line property] (read-names (slurp file))
+                  :when (renamed property)]
+              {:build build :file (str file) :line line :name property})}))
 
 (defn- delete-tree!
   [dir]
@@ -121,17 +128,22 @@
 
 (defn check!
   "Release-builds the bundles with pseudo names into a temp folder and prints the renamed reads. Returns
-   true when the bundles built and no read was renamed."
+   true when the bundles built, each bundle's source map lists sources under `sources`, and no read was
+   renamed."
   [{:keys [sources] :or {sources default-sources}}]
   (let [dir (str (java.nio.file.Files/createTempDirectory "calva-renamed-props"
                                                           (make-array java.nio.file.attribute.FileAttribute 0)))]
     (try
       (if (release! dir)
-        (let [reads (renamed-reads {:dir dir :sources sources})]
+        (let [scanned (scan {:dir dir :sources sources})
+              reads (mapcat :reads scanned)
+              unlisted (map :build (remove (comp seq :files) scanned))]
           (doseq [{:keys [build file line name]} reads]
             (println (str file ":" line ": " name " (" build ")")))
+          (doseq [build unlisted]
+            (println "The source map of" build "lists none of the sources under" sources "- its reads can't be checked."))
           (println (count reads) "property reads renamed by the release build.")
-          (empty? reads))
+          (and (empty? reads) (empty? unlisted)))
         (do (println "A pseudo-names release build failed.")
             false))
       (finally
