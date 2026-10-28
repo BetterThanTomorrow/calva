@@ -5,7 +5,7 @@ import * as highlightExtension from '../highlight/src/extension';
 import * as nrepl from '../nrepl';
 import * as cider from '../nrepl/cider';
 import * as util from '../utilities';
-import * as select from '../select';
+import * as getText from '../util/get-text';
 import * as formatter from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
 import * as config from '../config';
@@ -504,7 +504,10 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
   const [ns, _] = namespace.getNamespace(doc, selection.active);
   let code = '';
   if (selection.isEmpty) {
-    const formSelection = select.getFormSelection(doc, selection.active, topLevel);
+    const [formSelection] = (topLevel ? getText.currentTopLevelFormText : getText.currentFormText)(
+      doc,
+      selection.active
+    );
     code = formatter.formatCode(doc.getText(formSelection), doc.eol);
   } else {
     code = formatter.formatCode(doc.getText(selection), doc.eol);

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as docMirror from './doc-mirror/index';
 import * as model from './cursor-doc/model';
-import * as select from './select';
+import * as getText from './util/get-text';
 import * as printer from './printer';
 import * as format from './calva-fmt/src/format';
 import * as toggleComment from './toggle-comment';
@@ -179,7 +179,7 @@ export function prettyPrintReplaceCurrentForm(
   const document = editor.document;
   const selection = editor.selections[0];
   const range = selection.isEmpty
-    ? select.getFormSelection(document, selection.active, false)
+    ? getText.currentFormText(document, selection.active)[0]
     : selection;
   const text = document.getText(range);
   const result = printer.prettyPrint(text, options);

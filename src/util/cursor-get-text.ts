@@ -15,8 +15,10 @@ function rangeAndText(doc: model.EditableDocument, range?: [number, number]): Ra
 const hasSelection = (doc: model.EditableDocument) =>
   doc.selections[0].start !== doc.selections[0].end;
 
-export function currentForm(doc: model.EditableDocument): RangeAndText {
-  const active = doc.selections[0].active;
+export function currentForm(
+  doc: model.EditableDocument,
+  active: number = doc.selections[0].active
+): RangeAndText {
   return rangeAndText(doc, doc.getTokenCursor(active).rangeForCurrentForm(active));
 }
 
@@ -29,8 +31,11 @@ export function selectionElseCurrentForm(doc: model.EditableDocument): RangeAndT
   return hasSelection(doc) ? selectionText(doc) : currentForm(doc);
 }
 
-export function currentEnclosingForm(doc: model.EditableDocument): RangeAndText {
-  const cursor = doc.getTokenCursor(doc.selections[0].active);
+export function currentEnclosingForm(
+  doc: model.EditableDocument,
+  active: number = doc.selections[0].active
+): RangeAndText {
+  const cursor = doc.getTokenCursor(active);
   if (cursor.backwardList()) {
     cursor.backwardUpList();
     const start = cursor.offsetStart;
@@ -41,16 +46,22 @@ export function currentEnclosingForm(doc: model.EditableDocument): RangeAndText 
   return [undefined, ''];
 }
 
-export function currentPair(doc: model.EditableDocument, config?: PareditConfig): RangeAndText {
-  const active = doc.selections[0].active;
+export function currentPair(
+  doc: model.EditableDocument,
+  config?: PareditConfig,
+  active: number = doc.selections[0].active
+): RangeAndText {
   const cursor = doc.getTokenCursor(active);
   return paredit.isInPairsList(cursor, config)
     ? rangeAndText(doc, paredit.currentSexpsRange(doc, cursor, active, true, config))
     : [undefined, ''];
 }
 
-export function currentFunction(doc: model.EditableDocument, topLevel = false): RangeAndText {
-  const active = doc.selections[0].active;
+export function currentFunction(
+  doc: model.EditableDocument,
+  topLevel = false,
+  active: number = doc.selections[0].active
+): RangeAndText {
   const cursor = doc.getTokenCursor(active);
   if (topLevel) {
     cursor.set(doc.getTokenCursor(cursor.rangeForDefun(active)[1] - 1));
@@ -86,9 +97,12 @@ export function currentTopLevelDefined(
   return [undefined, ''];
 }
 
-export function currentTopLevelForm(doc: model.EditableDocument): RangeAndText {
-  const defunCursor = doc.getTokenCursor(doc.selections[0].active);
-  const defunRange = defunCursor.rangeForDefun(doc.selections[0].active);
+export function currentTopLevelForm(
+  doc: model.EditableDocument,
+  active: number = doc.selections[0].active
+): RangeAndText {
+  const defunCursor = doc.getTokenCursor(active);
+  const defunRange = defunCursor.rangeForDefun(active);
   return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
@@ -142,6 +156,16 @@ export function selectionAddingBrackets(doc: model.EditableDocument): RangeAndTe
   return rangeToCursor(doc, [left, rangeEnd], left, right);
 }
 
+/** The text from the start of the list around `offset` to `offset`, by default the selection's start. */
+export function head(doc: model.EditableDocument, offset?: number): RangeAndText {
+  return rangeAndText(doc, paredit.rangeToBackwardList(doc, offset));
+}
+
+/** The text from `offset` to the end of the list around it, by default the selection's end. */
+export function tail(doc: model.EditableDocument, offset?: number): RangeAndText {
+  return rangeAndText(doc, paredit.rangeToForwardList(doc, offset));
+}
+
 /** The selection adding brackets when there is one, else the enclosing form to the cursor, as the evaluate to cursor command takes them. */
 export function enclosingFormOrSelectionToCursor(doc: model.EditableDocument): RangeAndText {
   return hasSelection(doc) ? selectionAddingBrackets(doc) : currentEnclosingFormToCursor(doc);
@@ -157,7 +181,7 @@ export function currentClojureContext(doc: model.EditableDocument, config?: Pare
     currentFn: currentFunction(doc),
     topLevelDefinedForm: currentTopLevelDefined(doc),
     topLevelFn: currentFunction(doc, true),
-    head: rangeAndText(doc, paredit.rangeToBackwardList(doc)),
-    tail: rangeAndText(doc, paredit.rangeToForwardList(doc)),
+    head: head(doc),
+    tail: tail(doc),
   };
 }
