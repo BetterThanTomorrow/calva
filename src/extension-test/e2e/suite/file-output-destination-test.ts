@@ -116,6 +116,50 @@ suite('File Output Destination Test', () => {
     );
   }
 
+  async function setEvaluationSendCodeToOutputWindow(value: unknown) {
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update(
+      'evaluationSendCodeToOutputWindow',
+      value,
+      vscode.ConfigurationTarget.Global
+    );
+    await testUtil.waitForCondition(
+      () =>
+        vscode.workspace.getConfiguration('calva').inspect('evaluationSendCodeToOutputWindow')
+          ?.globalValue === value,
+      2000,
+      50,
+      'evaluationSendCodeToOutputWindow config update did not take effect'
+    );
+  }
+
+  /**
+   * Evaluates code from the file at `filePath` with `calva.evaluationSendCodeToOutputWindow` on,
+   * then off, and asserts that each result reaches `resultsFile`, and the code only with the echo on.
+   */
+  async function assertEvaluationFromAFile(filePath: string, resultsFile: string) {
+    const editor = await testUtil.openFile(filePath);
+    const echoSetting = vscode.workspace
+      .getConfiguration('calva')
+      .inspect('evaluationSendCodeToOutputWindow')?.globalValue;
+    try {
+      for (const [echo, message] of [
+        [true, 'An evaluation from a file should echo its code with the echo on'],
+        [false, 'An evaluation from a file should not echo its code with the echo off'],
+      ] as const) {
+        await setEvaluationSendCodeToOutputWindow(echo);
+        const code = `(str "from-a-file-" "echo-${echo}")`;
+        await evaluate.evaluateInCurrentEditor(editor, code, undefined, 'user', {});
+        const content = await waitForFileContent(resultsFile, (c) =>
+          c.includes(`"from-a-file-echo-${echo}"`)
+        );
+        assert.strictEqual(content.includes(code), echo, message);
+      }
+    } finally {
+      await setEvaluationSendCodeToOutputWindow(echoSetting);
+    }
+  }
+
   test('eval result written to file destination', async function () {
     this.timeout(120_000);
     await jackInWithTerminal();
@@ -207,7 +251,7 @@ suite('File Output Destination Test', () => {
     assert.ok(matches.length >= 2, `Expected at least 2 "nil" in file, got ${matches.length}`);
   });
 
-  test('shared evaluation sends result, stdout and error to the destinations', async function () {
+  test('shared evaluation, and evaluation from a file with echo on and off, send to the destinations', async function () {
     this.timeout(120_000);
     await jackInWithTerminal();
 
@@ -251,5 +295,7 @@ suite('File Output Destination Test', () => {
     });
     assert.ok('error' in failed, `Expected an error, got: ${JSON.stringify(failed)}`);
     await waitForFileContent(outputFile, (c) => c.includes('shared-eval-boom'));
+
+    await assertEvaluationFromAFile(testFilePath, resultsFile);
   });
 });

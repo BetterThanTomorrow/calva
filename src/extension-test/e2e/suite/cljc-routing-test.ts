@@ -14,6 +14,7 @@ import { HoverProvider } from '../../../providers/hover';
 import { CalvaCompletionItemProvider } from '../../../providers/completion';
 import * as state from '../../../state';
 import * as replWindow from '../../../repl-window/repl-window-doc';
+import * as whoTracking from '../../../api/who-tracking';
 
 const suiteName = 'CLJC Routing';
 
@@ -221,6 +222,24 @@ suite('CLJC Routing suite', function () {
     }
   });
 
+  test('With one file focused, Calva answers with its document, its session and its project root', async function () {
+    testUtil.log(suiteName, 'Testing: What Calva answers for one focused file');
+
+    for (const [file, sessionKey] of [
+      [cljsFile, 'cljs'],
+      [cljcFile, 'clj'],
+    ]) {
+      await testUtil.openFile(file);
+      assert.deepStrictEqual(
+        await testUtil.currentFileAnswers(),
+        { document: file, sessionKey, closestRoot: projectDir },
+        `${path.basename(
+          file
+        )} should be the document, route to ${sessionKey}, and have the project root`
+      );
+    }
+  });
+
   test('Evaluating a selection in a focused output channel evaluates it outside the last active file’s namespace', async function () {
     testUtil.log(suiteName, 'Testing: Evaluating a selection in an output channel');
 
@@ -372,6 +391,29 @@ suite('CLJC Routing suite', function () {
 
   // Runs after the hover tests: once the .cljs file is loaded, a clj hover in hello-world.core
   // finds nothing until the namespace's ns form is evaluated in clj
+  test('Load file on a .cljs file loads it into cljs while a file routing to clj is active', async function () {
+    testUtil.log(suiteName, 'Testing: Load file on a file that is not the active editor');
+
+    await testUtil.openFile(cljcFile);
+    const replWindowBefore = currentReplWindow();
+    const who = 'load-file-routing-test';
+    try {
+      await vscode.commands.executeCommand('calva.loadFile', { path: cljsFile, silent: true, who });
+      assert.strictEqual(
+        whoTracking.getCurrentWho(sessionRegistry.getSession('cljs').sessionId),
+        who,
+        'The .cljs file should load into cljs'
+      );
+      assert.notStrictEqual(
+        whoTracking.getCurrentWho(sessionRegistry.getSession('clj').sessionId),
+        who,
+        'The .cljs file should not load into the active editor’s clj'
+      );
+    } finally {
+      restoreReplWindow(replWindowBefore);
+    }
+  });
+
   test('Toggle command switches cljc routing between clj and cljs', async function () {
     testUtil.log(suiteName, 'Testing: Toggle cljc target switches routing');
 
