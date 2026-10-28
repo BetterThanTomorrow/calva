@@ -1,5 +1,7 @@
 import * as assert from 'assert';
 import * as mocha from 'mocha';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -648,6 +650,50 @@ suite('CLJC Routing suite', function () {
       assert.strictEqual(evaluation.interrupted, false, 'Interrupt leaves it out');
     } finally {
       client.disconnect();
+    }
+  });
+
+  test('Loading a file in a session that closes stops quietly and leaves the REPL window as it was', async function () {
+    testUtil.log(suiteName, 'Testing: Loading a file in a session that closes');
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'calva-dropped-load-'));
+    const file = path.join(dir, 'dropped_load.clj');
+    fs.writeFileSync(file, '(Thread/sleep 20000)\n');
+    const { host, port } = clientRegistry.getRegisteredClient(clientKey);
+    const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
+    const sessionKey = 'dropped-load-test';
+    const who = 'dropped-load-test';
+    sessionRegistry.registerSession(sessionKey, client.session);
+    const replWindowBefore = currentReplWindow();
+    try {
+      const loading = vscode.commands
+        .executeCommand('calva.loadFile', { path: file, silent: true, sessionKey, who })
+        .then(
+          () => undefined,
+          (error: Error) => error.message
+        );
+      await testUtil.waitForCondition(
+        () => whoTracking.getCurrentWho(client.session.sessionId) === who,
+        4000,
+        20,
+        'Timed out waiting for the file to be sent'
+      );
+      client.disconnect();
+      assert.strictEqual(
+        await loading,
+        'Evaluation of file dropped_load.clj stopped: The REPL session closed before the evaluation finished',
+        'The load stops, saying the session closed'
+      );
+      assert.strictEqual(
+        replWindow.getSession(),
+        replWindowBefore.session,
+        'The REPL window keeps its session'
+      );
+      assert.strictEqual(replWindow.getNs(), replWindowBefore.ns, 'The REPL window keeps its ns');
+    } finally {
+      sessionRegistry.unregisterSession(sessionKey);
+      client.disconnect();
+      fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 

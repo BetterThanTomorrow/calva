@@ -43,9 +43,9 @@ function lastErrorCauses(session: nrepl.NReplSession) {
 }
 
 // The causes the debugger reported with the evaluation, none for an interrupted evaluation, whose
-// `*e` is an older error, else the session's last error
+// `*e` is an older error, or a dropped one, whose session is gone, else the session's last error
 function evaluationErrorCauses(evaluation: nrepl.NReplEvaluation, session: nrepl.NReplSession) {
-  if (evaluation.interrupted) {
+  if (evaluation.interrupted || evaluation.dropped) {
     return undefined;
   }
   return evaluation.causes ?? lastErrorCauses(session);
@@ -189,7 +189,8 @@ type EvaluationHooks = {
   onEvaluationSent?: (evaluation: nrepl.NReplEvaluation) => unknown;
 };
 
-type Evaluation = { ns: string } & ({ value: string } | { error: string });
+// `dropped` when the evaluation ended because its REPL session closed
+type Evaluation = { ns: string } & ({ value: string } | { error: string; dropped: boolean });
 
 function valueOf(evaluation: Evaluation): string | null {
   return 'value' in evaluation ? evaluation.value : null;
@@ -311,7 +312,7 @@ async function outputOutcome(
     if (showErrorMessage) {
       appendFailure(message, evaluation, session, outputOptions, hooks);
     }
-    return { error: message };
+    return { error: message, dropped: evaluation.dropped };
   }
 }
 
@@ -423,9 +424,10 @@ type EvaluationNamespace = {
 /**
  * Runs `evaluate`, after evaluating `nsForm` in `session` when the REPL window's namespace differs
  * from `ns`. When `showResult`, the default, leaves the REPL window in `session` and the namespace
- * the evaluation ended in. An evaluation that isn't shown leaves the REPL window as it was.
+ * the evaluation ended in. An evaluation that isn't shown, or that `dropped` because its session
+ * closed, leaves the REPL window as it was.
  */
-async function evaluateInNamespace<E extends { ns?: string }>(
+async function evaluateInNamespace<E extends { ns?: string; dropped?: boolean }>(
   { session, ns, nsForm, showResult = true }: EvaluationNamespace,
   evaluate: () => Promise<E>
 ): Promise<E> {
@@ -433,7 +435,7 @@ async function evaluateInNamespace<E extends { ns?: string }>(
     await session.evaluateInNs(nsForm, replWindow.getNs());
   }
   const evaluation = await evaluate();
-  if (showResult) {
+  if (showResult && !evaluation.dropped) {
     replWindow.setSession(session, evaluation.ns);
   }
   return evaluation;
@@ -910,6 +912,7 @@ async function loadFile(
     },
     pprintOptions: pprintOptions,
   });
+  const outputOptions = { who, ...shadowInfo };
   try {
     const value = await res.value;
     if (value) {
@@ -920,53 +923,97 @@ async function loadFile(
     }
     return value;
   } catch (e) {
-    output.appendLineOtherErr(
-      `Evaluation of file ${fileName} failed: ${e}`,
-      { who, ...shadowInfo },
-      undefined,
-      evaluationErrorCauses(res, session)
-    );
-    if (silent) {
-      throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
-    }
-    if (
-      !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
-        replWindow.isReplWindowDoc(editor.document)
-      )
-    ) {
-      void vscode.window
-        .showErrorMessage(
-          `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`,
-          'Show output'
-        )
-        .then((choice) => {
-          if (choice === 'Show output') {
-            void output.showResultOutputDestination(true);
-          }
-        });
+    const failure = { fileName, evaluation: res, errorMessages, silent, outputOptions };
+    if (res.dropped) {
+      reportStoppedLoad(e, failure);
+    } else {
+      reportFailedLoad(e, failure);
     }
   } finally {
-    replWindow.setSession(session, ns);
-    replSession.updateReplSessionType();
-    if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
-        who,
-        ...shadowInfo,
-      });
-      const context = customSnippets.makeContext(
-        vscode.window.activeTextEditor,
-        ns,
-        ns,
-        nsForm,
-        fileType
-      );
-      await customSnippets.evaluateSnippet(
-        util.getActiveTextEditor(),
-        calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType],
-        context,
-        {}
-      );
+    if (!res.dropped) {
+      await afterFileLoaded({ session, ns, nsForm, fileType, outputOptions });
     }
+  }
+}
+
+type LoadFileFailure = {
+  fileName: string;
+  evaluation: nrepl.NReplEvaluation;
+  errorMessages: string[];
+  silent: boolean;
+  outputOptions: output.AppendClojureOptions;
+};
+
+/** Says in the output that loading the file stopped because its REPL session closed. Throws when `silent`, as a failed load does. */
+function reportStoppedLoad(error: unknown, { fileName, silent, outputOptions }: LoadFileFailure) {
+  const message = `Evaluation of file ${fileName} stopped: ${error}`;
+  output.appendLineOtherOut(message, outputOptions);
+  if (silent) {
+    throw new Error(message);
+  }
+}
+
+/**
+ * Says that loading the file failed with `error`: in the output, with the error's causes, and in an
+ * error message when no REPL window shows. Throws instead of showing the message when `silent`.
+ */
+function reportFailedLoad(
+  error: unknown,
+  { fileName, evaluation, errorMessages, silent, outputOptions }: LoadFileFailure
+) {
+  output.appendLineOtherErr(
+    `Evaluation of file ${fileName} failed: ${error}`,
+    outputOptions,
+    undefined,
+    evaluationErrorCauses(evaluation, evaluation.session)
+  );
+  const message = `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${error}`;
+  if (silent) {
+    throw new Error(message);
+  }
+  if (
+    !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
+      replWindow.isReplWindowDoc(editor.document)
+    )
+  ) {
+    void vscode.window.showErrorMessage(message, 'Show output').then((choice) => {
+      if (choice === 'Show output') {
+        void output.showResultOutputDestination(true);
+      }
+    });
+  }
+}
+
+type LoadedFile = {
+  session: nrepl.NReplSession;
+  ns: string;
+  nsForm: string;
+  fileType: string;
+  outputOptions: output.AppendClojureOptions;
+};
+
+/** Leaves the REPL window in `session` and `ns`, and evaluates `autoEvaluateCode.onFileLoaded` for `fileType`. */
+async function afterFileLoaded({ session, ns, nsForm, fileType, outputOptions }: LoadedFile) {
+  replWindow.setSession(session, ns);
+  replSession.updateReplSessionType();
+  if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+    output.appendLineOtherOut(
+      `Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``,
+      outputOptions
+    );
+    const context = customSnippets.makeContext(
+      vscode.window.activeTextEditor,
+      ns,
+      ns,
+      nsForm,
+      fileType
+    );
+    await customSnippets.evaluateSnippet(
+      util.getActiveTextEditor(),
+      calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType],
+      context,
+      {}
+    );
   }
 }
 

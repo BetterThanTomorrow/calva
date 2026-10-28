@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as evaluate from '../../../evaluate';
 import * as nrepl from '../../../nrepl';
+import { disabledPrettyPrinter } from '../../../printer';
 import * as replWindow from '../../../repl-window/repl-window-doc';
 
 type Written = { op: string; id?: string; 'interrupt-id'?: string };
@@ -9,7 +10,7 @@ function sessionWriting(write: (msg: Written) => void) {
   let id = 0;
   const client = {
     sessions: {},
-    describe: { ops: { eval: {}, interrupt: {}, close: {} } },
+    describe: { ops: { eval: {}, interrupt: {}, close: {}, 'analyze-last-stacktrace': {} } },
     get nextId() {
       return `${++id}`;
     },
@@ -60,6 +61,7 @@ suite('NReplEvaluation interrupts', () => {
       'Evaluation was interrupted',
       'The evaluation ends as interrupted'
     );
+    assert.ok(!evaluation.dropped, 'An interrupted evaluation is not dropped');
   });
 
   test('interrupting all evaluations reaches one that has had no reply yet', async () => {
@@ -96,6 +98,7 @@ suite('NReplEvaluation interrupts', () => {
       'The evaluation rejects'
     );
     assert.ok(!evaluation.running, 'The evaluation is not running');
+    assert.ok(evaluation.dropped, 'The evaluation is dropped');
     nrepl.NReplEvaluation.interruptAll(() => undefined);
     assert.ok(!evaluation.interrupted, 'Interrupt leaves it out');
     assert.deepStrictEqual(interruptIds(written), [], 'Nothing is written for the closed session');
@@ -179,6 +182,45 @@ suite('Evaluating in a namespace, as files do', () => {
       replWindow.getNs(),
       'pirate.lib',
       'The REPL window is in the namespace the evaluation ended in'
+    );
+  });
+
+  test('an evaluation whose session closes leaves the REPL window as it was, and asks the closed session for no stacktrace', async () => {
+    const windowSession = {
+      _calvaSessionMetadata: { key: 'evaluating-in-a-namespace-test' },
+    } as unknown as nrepl.NReplSession;
+    replWindow.setSession(windowSession, 'user');
+    const written: Written[] = [];
+    const session = sessionWritingTo(written);
+    const evaluating = evaluate.evaluateInNamespace(
+      { session, ns: 'user', nsForm: '(ns user)' },
+      () =>
+        evaluate.evaluateToOutputDestinations({
+          code: '(Thread/sleep 60000)',
+          session,
+          ns: 'user',
+          filePath: 'nrepl-evaluation-test.clj',
+          line: 0,
+          column: 0,
+          pprintOptions: disabledPrettyPrinter,
+          echoDestinations: [],
+        })
+    );
+    session.close();
+    assert.deepStrictEqual(
+      await evaluating,
+      {
+        error: 'The REPL session closed before the evaluation finished',
+        dropped: true,
+        ns: 'user',
+      },
+      'The evaluation ends as dropped'
+    );
+    assert.strictEqual(replWindow.getSession(), windowSession, 'The REPL window keeps its session');
+    assert.deepStrictEqual(
+      written.filter(({ op }) => op === 'analyze-last-stacktrace'),
+      [],
+      'The closed session is not asked for a stacktrace'
     );
   });
 });

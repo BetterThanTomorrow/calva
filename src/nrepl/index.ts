@@ -1314,6 +1314,8 @@ export class NReplEvaluation {
 
   private _interrupted: boolean = false;
 
+  private _dropped: boolean = false;
+
   private _finished: boolean = false;
 
   private _running: boolean = false;
@@ -1400,6 +1402,11 @@ export class NReplEvaluation {
 
   get interrupted() {
     return this._interrupted;
+  }
+
+  /** True when the evaluation ended because its REPL session closed, before the server replied. */
+  get dropped() {
+    return this._dropped;
   }
 
   get running() {
@@ -1603,11 +1610,12 @@ export class NReplEvaluation {
     return num;
   }
 
-  /** Ends the evaluations of `session`. Each rejects, saying the REPL session closed. */
+  /** Ends the evaluations of `session` as dropped. Each rejects, saying the REPL session closed. */
   static dropSessionEvaluations(session: NReplSession) {
     NReplEvaluation.Instances.filter((item) => item.session === session).forEach((item) => {
       delete session.messageHandlers[item.id];
       item.remove();
+      item._dropped = true;
       item.doReject('The REPL session closed before the evaluation finished');
     });
   }
