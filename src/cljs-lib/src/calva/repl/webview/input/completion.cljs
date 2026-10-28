@@ -166,6 +166,54 @@
                                       #js {:key "Tab" :run acceptCompletion}]
                                accept-on-enter? (conj #js {:key "Enter" :run acceptCompletion}))))))
 
+(def ^:private info-width
+  "The widest the docs panel gets, and how far right of the list's left edge it starts when it can't go
+   beside the list, as CodeMirror has them."
+  {:max 400 :margin 30})
+
+(def ^:private info-max-height
+  "The tallest the docs panel gets, as a CSS length."
+  "min(20em, 40vh)")
+
+(defn info-position
+  "Returns where the docs panel goes, as CodeMirror places it, with its height capped to the room there, so
+   that a short view doesn't clip it: beside the completion `list`, from the selected `option` down, when
+   the `info` panel fits there, else below the list, or above it when there is no room below. `space` is the
+   view. Each is a rect with `:left`, `:right`, `:top` and `:bottom`."
+  [list option info space]
+  (let [space-left (- (:left list) (:left space))
+        space-right (- (:right space) (:right list))
+        width (- (:right info) (:left info))
+        height (- (:bottom info) (:top info))
+        left? (< space-right (min width space-left))]
+    (if (<= width (if left? space-left space-right))
+      (let [top (max (:top space) (min (:top option) (- (:bottom space) height)))]
+        {:side "top"
+         :offset (- top (:top list))
+         :max-width (min (:max info-width) (if left? space-left space-right))
+         :max-height (- (:bottom space) top)
+         :class (if left? "cm-completionInfo-left" "cm-completionInfo-right")})
+      (let [space-below (- (:bottom space) (:bottom list))
+            narrow {:max-width (min (:max info-width) (- (:right space) (:left list) (:margin info-width)))
+                    :class "cm-completionInfo-right-narrow"}]
+        (if (or (>= space-below height) (> space-below (:top list)))
+          (assoc narrow
+                 :side "top"
+                 :offset (- (:bottom option) (:top list))
+                 :max-height (- (:bottom space) (:bottom option)))
+          (assoc narrow
+                 :side "bottom"
+                 :offset (- (:bottom list) (:top option))
+                 :max-height (- (:top option) (:top space))))))))
+
+(defn- position-info
+  "Places the docs panel with `info-position`, for CodeMirror's `positionInfo`."
+  [_view list option info space]
+  (let [rect (fn [^js r] {:left (.-left r) :right (.-right r) :top (.-top r) :bottom (.-bottom r)})
+        {:keys [side offset max-width max-height class]} (info-position (rect list) (rect option) (rect info) (rect space))]
+    #js {:style (str side ": " offset "px; max-width: " max-width "px; max-height: min(" info-max-height ", " max-height "px)")
+         :class class}))
+
 (def ^:private theme
   (.theme EditorView
           #js {".cm-tooltip.cm-tooltip-autocomplete"
@@ -191,7 +239,7 @@
                     :border "1px solid var(--vscode-editorHoverWidget-border)"
                     :padding "4px 8px"
                     :fontFamily "var(--vscode-font-family)"
-                    :maxHeight "min(20em, 40vh)"
+                    :maxHeight info-max-height
                     :overflowY "auto"}
                ".cm-completionInfo pre"
                #js {:margin "0 0 4px 0"
@@ -211,5 +259,6 @@
                               :defaultKeymap false
                               :activateOnTyping activate-on-typing?
                               :activateOnTypingDelay delay
-                              :icons icons?})]
+                              :icons icons?
+                              :positionInfo position-info})]
     #js []))
