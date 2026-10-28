@@ -21,12 +21,25 @@
                      "If the growth is wanted, raise `limit` in scripts/bundle_size.clj.")
             false))))
 
+(defn- development-build?
+  "True when `bundle` is a development build, which loads its namespaces from `cljs-runtime/` beside it."
+  [bundle]
+  (.exists (io/file (.getParentFile (io/file bundle)) "cljs-runtime")))
+
 (defn report!
   "Checks the size of the release-built webview bundle, and exits with 1 when it is past the limit.
-   A missing bundle means there is no release build to check."
+   A missing bundle, or a development build, means there is no release build to check."
   [{:keys [bundle] :or {bundle default-bundle}}]
-  (when-not (.exists (io/file bundle))
-    (println "No release build output at" bundle "- run `npm run release-cljs` first.")
-    (System/exit 2))
-  (when-not (within-limit? bundle)
+  (cond
+    (not (.exists (io/file bundle)))
+    (do (println "No release build output at" bundle "- CI release-builds it with `npm run release-cljs`."
+                 "Locally, `bb release-check` release-builds it into a temp folder and checks its size.")
+        (System/exit 2))
+
+    (development-build? bundle)
+    (do (println bundle "is a development build, as the watcher writes it, so its size says nothing."
+                 "`bb release-check` release-builds the bundle into a temp folder and checks its size.")
+        (System/exit 2))
+
+    (not (within-limit? bundle))
     (System/exit 1)))
