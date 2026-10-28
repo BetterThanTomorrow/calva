@@ -129,7 +129,11 @@ async function activate(context: vscode.ExtensionContext) {
   // Initialize flare webview provider for sidebar
   flareHandler.registerFlareWebviewProvider(context);
   outputSidebar.registerReplOutputSidebarProvider(context);
-  replInput.activate(context);
+  try {
+    replInput.activate(context);
+  } catch (e) {
+    console.error('Failed activating REPL Input: ' + e.message);
+  }
 
   overrides.activate();
 

@@ -67,4 +67,7 @@
   (testing "reads back the evaluations the way workspaceState keeps them"
     (is (= evaluations (sut/from-stored (sut/stored evaluations)))))
   (testing "skips what isn't an evaluation"
-    (is (= [] (sut/from-stored [{:id 1} "(def a 1)"])))))
+    (is (= [] (sut/from-stored [{:id 1} "(def a 1)"]))))
+  (testing "reads no evaluations from what workspaceState keeps that isn't a list of evaluations"
+    (doseq [stored [5 true "(def a 1)" nil {} (first (sut/stored evaluations))]]
+      (is (= [] (sut/from-stored stored)) (pr-str stored)))))

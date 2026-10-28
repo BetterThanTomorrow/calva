@@ -58,7 +58,8 @@
         entries))
 
 (defn from-stored
-  "Returns the entries that `workspaceState` kept as `stored`, skipping what isn't an entry."
+  "Returns the entries that `workspaceState` kept as `stored`, skipping what isn't an entry, and none when
+   `stored` isn't a list."
   [stored]
   (into []
         (comp (filter (comp string? :code))
@@ -68,7 +69,7 @@
                       :repl-input.context/ns-form nsForm
                       :repl-input.context/session-key sessionKey
                       :repl-input.context/source-file sourceFile})))
-        stored))
+        (when (sequential? stored) stored)))
 
 (defn routed
   "Returns `entries` with the session key that `route` gives each source file now, or without one what

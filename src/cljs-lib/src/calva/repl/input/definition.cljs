@@ -70,12 +70,13 @@
         evaluations))
 
 (defn from-stored
-  "Returns the evaluations that `workspaceState` kept as `stored`, skipping what isn't an evaluation."
+  "Returns the evaluations that `workspaceState` kept as `stored`, skipping what isn't an evaluation, and
+   none when `stored` isn't a list."
   [stored]
   (into []
         (comp (filter (every-pred map? (comp string? :code)))
               (map (fn [{:keys [id code line column]}] (evaluation id code line column))))
-        stored))
+        (when (sequential? stored) stored)))
 
 (defn repl-target
   "Returns where the definition the REPL reports in `file` at `line` and `column` leads: a REPL Input

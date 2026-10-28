@@ -84,7 +84,10 @@
   (testing "skips what workspaceState keeps that isn't an entry"
     (is (= [(first entries)] (sut/from-stored ["(+ 1 2)" {:id 7} (first (sut/stored entries))]))))
   (testing "reads entries kept with the evaluation id they once had"
-    (is (= [(first entries)] (sut/from-stored [(assoc (first (sut/stored entries)) :id 1)])))))
+    (is (= [(first entries)] (sut/from-stored [(assoc (first (sut/stored entries)) :id 1)]))))
+  (testing "reads no entries from what workspaceState keeps that isn't a list of entries"
+    (doseq [stored [5 true "(+ 1 2)" nil {} (first (sut/stored entries))]]
+      (is (= [] (sut/from-stored stored)) (pr-str stored)))))
 
 (deftest routed-test
   (let [routed-files (atom [])
