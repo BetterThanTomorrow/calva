@@ -36,6 +36,14 @@ suite('Form picks', () => {
     assert.strictEqual(textOf(ranges.currentTopLevelDef(document, afterInc)), 'pick-me');
   });
 
+  test('at the top level, the enclosing form is the whole file', () => {
+    const betweenForms = new vscode.Position(1, 0);
+    assert.deepStrictEqual(ranges.currentEnclosingForm(document, betweenForms), [
+      undefined,
+      document.getText(),
+    ]);
+  });
+
   test('custom REPL commands and hover snippets get the forms at a position, and the function, head and tail at the selection', async () => {
     const editor = await vscode.window.showTextDocument(document);
     const inStr = new vscode.Position(4, 23);
