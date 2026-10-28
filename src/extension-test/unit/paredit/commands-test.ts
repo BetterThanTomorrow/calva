@@ -1405,6 +1405,65 @@ describe('paredit commands', () => {
           expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
         });
       });
+
+      describe('squeeze', () => {
+        it('Single-cursor: Squeezes content and deletes sexp with ()', async () => {
+          const a = textNotation.docFromTextNotation('foo (bar|) baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
+          await handlers.squeeze(a, false);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Squeezes content and deletes sexp with []', async () => {
+          const a = textNotation.docFromTextNotation('foo [bar|] baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
+          await handlers.squeeze(a, false);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Squeezes content and deletes sexp with {}', async () => {
+          const a = textNotation.docFromTextNotation('foo {bar|} baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
+          await handlers.squeeze(a, false);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Squeezes content and deletes sexp with #{}', async () => {
+          const a = textNotation.docFromTextNotation('foo #{bar|} baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
+          await handlers.squeeze(a, false);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Squeezes content and deletes sexp with ""', async () => {
+          const a = textNotation.docFromTextNotation('foo "bar|" baz');
+          const b = textNotation.docFromTextNotation('foo | baz');
+          await handlers.squeeze(a, false);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(a))
+            .toEqual(textNotation.textNotationFromDoc(b));
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+
+        it('Single-cursor: Does nothing when cursor is not in a list', async () => {
+          const a = textNotation.docFromTextNotation('a b| c d');
+          const b = textNotation.docFromTextNotation('a b| c d');
+          await handlers.squeeze(a, false);
+          expectLib.expect(_.omit(a, defaultDocOmit)).toEqual(_.omit(b, defaultDocOmit));
+        });
+      });
     });
   });
 });

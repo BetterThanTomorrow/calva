@@ -2802,6 +2802,95 @@ describe('paredit', () => {
       });
     });
 
+    describe('Squeeze', () => {
+      let clipboardContent = '';
+      const onRange = (doc, range) => {
+        clipboardContent = doc.model.getText(range[0], range[1]);
+        return Promise.resolve();
+      };
+
+      it('Squeezes content and deletes entire sexp with ()', async () => {
+        const a = textNotation.docFromTextNotation('foo (bar|) baz');
+        const b = textNotation.docFromTextNotation('foo | baz');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar');
+      });
+      it('Squeezes content and deletes entire sexp with []', async () => {
+        const a = textNotation.docFromTextNotation('foo [bar|] baz');
+        const b = textNotation.docFromTextNotation('foo | baz');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar');
+      });
+      it('Squeezes content and deletes entire sexp with {}', async () => {
+        const a = textNotation.docFromTextNotation('foo {bar|} baz');
+        const b = textNotation.docFromTextNotation('foo | baz');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar');
+      });
+      it('Squeezes content and deletes entire sexp with #{}', async () => {
+        const a = textNotation.docFromTextNotation('foo #{bar|} baz');
+        const b = textNotation.docFromTextNotation('foo | baz');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar');
+      });
+      it('Squeezes content and deletes entire sexp with ""', async () => {
+        const a = textNotation.docFromTextNotation('foo "bar|" baz');
+        const b = textNotation.docFromTextNotation('foo | baz');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar');
+      });
+      it('Squeezes multi-element content correctly', async () => {
+        const a = textNotation.docFromTextNotation('foo (bar baz |qux) quux');
+        const b = textNotation.docFromTextNotation('foo | quux');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('bar baz qux');
+      });
+      it('Squeezes nested expression content correctly', async () => {
+        const a = textNotation.docFromTextNotation('(a (b c|) d)');
+        const b = textNotation.docFromTextNotation('(a | d)');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('b c');
+      });
+      it('Squeezes with metadata', async () => {
+        const a = textNotation.docFromTextNotation('^:foo (b c|) d');
+        const b = textNotation.docFromTextNotation('^:foo | d');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+        expectLib.expect(clipboardContent).toEqual('b c');
+      });
+      it('Does nothing when cursor is not in a list', async () => {
+        const a = textNotation.docFromTextNotation('a b| c d');
+        const b = textNotation.docFromTextNotation('a b| c d');
+        await paredit.squeezeSexpr(a, onRange);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+      });
+    });
+
     describe('Slurping', () => {
       describe('Slurping forwards', () => {
         it('slurps form after list', async () => {
