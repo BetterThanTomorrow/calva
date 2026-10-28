@@ -42,6 +42,18 @@ export async function openFile(filePath: string) {
   return editor;
 }
 
+export async function showInColumn(filePath: string, column: vscode.ViewColumn) {
+  const document = await vscode.workspace.openTextDocument(filePath);
+  await vscode.window.showTextDocument(document, column);
+  await waitForCondition(
+    () => vscode.window.activeTextEditor?.document === document,
+    4000,
+    20,
+    `Timed out waiting for ${filePath} to be the active editor`
+  );
+  return document;
+}
+
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);

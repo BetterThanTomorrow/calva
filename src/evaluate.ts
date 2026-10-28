@@ -413,21 +413,29 @@ function stdinFor(
   return viewId && (() => cljsLib.replInputReadLine(sentEvaluation(), viewId));
 }
 
-type EvaluationNamespace = { session: nrepl.NReplSession; ns: string; nsForm: string };
+type EvaluationNamespace = {
+  session: nrepl.NReplSession;
+  ns: string;
+  nsForm: string;
+  showResult?: boolean;
+};
 
 /**
  * Runs `evaluate`, after evaluating `nsForm` in `session` when the REPL window's namespace differs
- * from `ns`, and leaves the REPL window in `session` and the namespace the evaluation ended in.
+ * from `ns`. When `showResult`, the default, leaves the REPL window in `session` and the namespace
+ * the evaluation ended in. An evaluation that isn't shown leaves the REPL window as it was.
  */
 async function evaluateInNamespace<E extends { ns?: string }>(
-  { session, ns, nsForm }: EvaluationNamespace,
+  { session, ns, nsForm, showResult = true }: EvaluationNamespace,
   evaluate: () => Promise<E>
 ): Promise<E> {
   if (replWindow.getNs() !== ns) {
     await session.evaluateInNs(nsForm, replWindow.getNs());
   }
   const evaluation = await evaluate();
-  replWindow.setSession(session, evaluation.ns);
+  if (showResult) {
+    replWindow.setSession(session, evaluation.ns);
+  }
   return evaluation;
 }
 
@@ -466,8 +474,10 @@ async function evaluateCodeUpdatingUI(
   const ui: UiContext = { editor, selection, options };
   const echoCode =
     evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
+  const showResult = options.showResult === undefined || options.showResult === true;
+  const evaluationNamespace = { session, ns, nsForm: options.nsForm, showResult };
   let sentEvaluation: nrepl.NReplEvaluation;
-  const evaluation = await evaluateInNamespace({ session, ns, nsForm: options.nsForm }, () =>
+  const evaluation = await evaluateInNamespace(evaluationNamespace, () =>
     evaluateToOutputDestinations(
       {
         code,
@@ -478,7 +488,7 @@ async function evaluateCodeUpdatingUI(
         column: options.column,
         pprintOptions,
         echoDestinations: echoCode ? replWindowEchoDestinations() : [],
-        showResult: options.showResult === undefined || options.showResult === true,
+        showResult,
         showErrorMessage:
           options.showErrorMessage === undefined || options.showErrorMessage === true,
         stdin: stdinFor(editor, () => sentEvaluation),

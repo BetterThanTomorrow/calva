@@ -12,6 +12,8 @@ import * as connector from '../../../connector';
 import * as lsp from '../../../lsp';
 import { HoverProvider } from '../../../providers/hover';
 import { CalvaCompletionItemProvider } from '../../../providers/completion';
+import * as state from '../../../state';
+import * as replWindow from '../../../repl-window/repl-window-doc';
 
 const suiteName = 'CLJC Routing';
 
@@ -26,16 +28,16 @@ const fiddleFile = path.join(projectDir, 'hello.fiddle');
 const outsideCljcFile = path.join(testUtil.testDataDir, 'test.cljc');
 const outsideFiddleFile = path.join(testUtil.testDataDir, 'test.fiddle');
 
-async function showInColumn(filePath: string, column: vscode.ViewColumn) {
-  const document = await vscode.workspace.openTextDocument(filePath);
-  await vscode.window.showTextDocument(document, column);
-  await testUtil.waitForCondition(
-    () => vscode.window.activeTextEditor?.document === document,
-    4000,
-    20,
-    `Timed out waiting for ${filePath} to be the active editor`
-  );
-  return document;
+function currentReplWindow() {
+  return {
+    session: replWindow.getSession(),
+    sessionType: replWindow.getSessionType(),
+    ns: replWindow.getNs(),
+  };
+}
+
+function restoreReplWindow({ session, sessionType, ns }: ReturnType<typeof currentReplWindow>) {
+  replWindow.setSession(session, ns, sessionType);
 }
 
 async function replHoverName(document: vscode.TextDocument, position: vscode.Position) {
@@ -223,15 +225,15 @@ suite('CLJC Routing suite', function () {
     testUtil.log(suiteName, 'Testing: Hover in a split that is not the active editor');
 
     try {
-      const cljsDocument = await showInColumn(cljsFile, vscode.ViewColumn.One);
-      const cljcDocument = await showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      const cljcDocument = await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
       assert.strictEqual(
         await replHoverName(cljsDocument, new vscode.Position(10, 2)),
         'cljs.core/comment',
         'Hover in the .cljs split, with the .cljc editor routing to clj active, should ask cljs'
       );
 
-      await showInColumn(cljsFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
       assert.strictEqual(
         await replHoverName(cljcDocument, new vscode.Position(2, 2)),
         'clojure.core/comment',
@@ -268,8 +270,8 @@ suite('CLJC Routing suite', function () {
     }
 
     try {
-      const cljsDocument = await showInColumn(cljsFile, vscode.ViewColumn.One);
-      await showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
       const labels = await replCompletionLabels(cljsDocument, new vscode.Position(8, 2));
       assert.ok(
         labels.includes('hello-from-the-cljs-session'),
@@ -284,6 +286,43 @@ suite('CLJC Routing suite', function () {
     }
   });
 
+  test('A hover snippet in a split runs in that split’s session and leaves the REPL window as it was', async function () {
+    testUtil.log(suiteName, 'Testing: Hover snippet in a split that is not the active editor');
+
+    const projectConfig = state.getProjectConfig();
+    const replWindowBefore = currentReplWindow();
+    state.setProjectConfig({
+      ...projectConfig,
+      customREPLHoverSnippets: [{ name: 'Which REPL', snippet: '(if (= 1 1.0) "cljs" "clj")' }],
+    });
+    replWindow.setSession(sessionRegistry.getSession('clj'), 'user', 'clj');
+    try {
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const hover = await new HoverProvider(lsp.getClientProvider()).provideHover(
+        cljsDocument,
+        new vscode.Position(10, 2),
+        undefined
+      );
+      const hoverTexts = hover?.contents.map((content) => (content as vscode.MarkdownString).value);
+      assert.ok(
+        hoverTexts?.includes('cljs'),
+        `The snippet should run in the .cljs split’s cljs, got ${JSON.stringify(hoverTexts)}`
+      );
+      assert.deepStrictEqual(
+        { sessionType: replWindow.getSessionType(), ns: replWindow.getNs() },
+        { sessionType: 'clj', ns: 'user' },
+        'The REPL window should keep its session and namespace'
+      );
+    } finally {
+      state.setProjectConfig(projectConfig);
+      restoreReplWindow(replWindowBefore);
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
+  });
+
+  // Runs after the hover tests: once the .cljs file is loaded, a clj hover in hello-world.core
+  // finds nothing until the namespace's ns form is evaluated in clj
   test('Toggle command switches cljc routing between clj and cljs', async function () {
     testUtil.log(suiteName, 'Testing: Toggle cljc target switches routing');
 
