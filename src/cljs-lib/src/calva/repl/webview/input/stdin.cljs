@@ -2,7 +2,7 @@
   "The stdin input between the output and the REPL Input, where an evaluation that reads stdin gets its
    line."
   (:require
-   [calva.repl.webview.input.tooltip :as tooltip]))
+   [calva.repl.webview.tooltip :as tooltip]))
 
 (def placeholder "(read-line) reads the next line · enter sends it")
 
@@ -73,8 +73,7 @@
     (.append stdin-row
              (icon "repl-input-stdin-icon repl-input-stdin-prompt" chevron-right-path)
              input
-             stop
-             (tooltip/element stop "repl-input-stdin-stop-tooltip" "Interrupt (escape)"))
+             (tooltip/attach! stop "Interrupt (escape)"))
     (.append parent stdin-row)))
 
 (defn show!

@@ -15,11 +15,12 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 
 | Where | Code | What it does |
 | --- | --- | --- |
-| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Starts `ui`, registers the REPL Input's effect handler, mounts the REPL Input |
+| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Adds the tooltip, starts `ui`, registers the REPL Input's effect handler, mounts the REPL Input |
 | | `ui.cljs` | Takes the extension's messages, dispatches actions, runs the effects that draw the DOM, posts to the extension |
 | | `app_db.cljs` | The db and `handle-action`, pure: which effects a message or a click leads to |
 | | `error_element.cljs`, `stacktrace.cljs` | Errors with their causes and frames. `stacktrace` is pure and is used on the extension side too |
 | | `images.cljs`, `image_refs.cljs` | Finds image data URLs, image URLs and image file paths in results |
+| | `tooltip.cljs` | The tooltip of every control in the page |
 | | `input/*.cljs` | The REPL Input |
 | | `repl-output-ui/css/main.css` | The stylesheet of both views. The build writes `repl-output-ui/js/main.js` |
 | | `repl-output-ui/css/vendor/` | The highlight.js theme stylesheets and the copy button plugin's stylesheet, copied from their npm packages, with their licenses |
@@ -117,6 +118,8 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 - The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
 - The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
+
+The page draws its controls' tooltips itself, since `title` tooltips are unreliable in webviews. `main` adds one hint popover, `#output-tooltip`, to the body, and `tooltip/attach!` points a control at it with `interestfor`, keeping its text in `aria-description`, which screen readers read as the control's description. The tooltip takes that text when the control shows interest, on hover or keyboard focus, `tooltip/set-text!` changes it while it shows, and it hides when its control hides or leaves the page. Every copy button has it, the result blocks' from highlight.js's copy plugin too, through a highlight.js plugin added after the copy plugin, and so do the error's filter buttons and links and the REPL Input's controls. `interestfor` works on buttons and links only, so an image's label stays its `title`.
 
 `image-host/webview-options` gives both views scripts, command links to the view's own Show command, and `localResourceRoots`: the extension, workspace folders that aren't `file:`, and the file system roots, so local images anywhere can load. The roots are rebuilt when workspace folders change. Both views keep their page when hidden (`retainContextWhenHidden`).
 

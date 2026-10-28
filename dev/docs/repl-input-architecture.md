@@ -57,7 +57,7 @@ The namespaces are `calva.repl.webview.input.<name>`.
 | `history` | Walking the history, and the lock or following that a shown entry asks for |
 | `context` | The context line: the namespace indicator and its menu, the play button, the evaluation bar |
 | `completion` | CodeMirror's completion, fed with the extension's candidates |
-| `stdin`, `highlight`, `brackets`, `edit`, `definition`, `tooltip` | The stdin input, highlighting with highlight.js, bracket classes, the smallest text change, click to definition, the controls' tooltips |
+| `stdin`, `highlight`, `brackets`, `edit`, `definition` | The stdin input, highlighting with highlight.js, bracket classes, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip` |
 
 ### Extension side, TS
 

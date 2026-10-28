@@ -3,6 +3,7 @@
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
@@ -152,7 +153,7 @@
   (let [button (create-element "button" "output-copy-button" nil)]
     (.. button -classList (add "output-stdout-copy"))
     (set! (.-type button) "button")
-    (set! (.-title button) "Copy output")
+    (tooltip/attach! button "Copy output")
     (.. button (setAttribute "aria-label" "Copy output"))
     (.. button (setAttribute "data-copy-label" "Copy output"))
     (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
@@ -369,7 +370,7 @@
       (set! (.. img -dataset -imageKind) (name kind))
       (set! (.. thumbnail -dataset -imageKind) (name kind)))
     (set! (.-type button) "button")
-    (set! (.-title button) "Copy image")
+    (tooltip/attach! button "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
     (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
     (.. button (addEventListener "click" #(copy-image! button img image)))
@@ -724,4 +725,9 @@
   (add-event-listeners output-dom-element)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
-                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
+                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true})))
+                               ;; Added after the copy plugin, which adds the button it gives a tooltip
+                               (.. hljs (addPlugin #js {"after:highlightElement"
+                                                        (fn [^js result]
+                                                          (some-> (.. result -el -parentElement (querySelector ".hljs-copy-button"))
+                                                                  (tooltip/attach! "Copy")))})))))

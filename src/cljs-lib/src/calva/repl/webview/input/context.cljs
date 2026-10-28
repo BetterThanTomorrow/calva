@@ -3,7 +3,7 @@
    the evaluation bar."
   (:require
    [calva.repl.webview.input.stdin :as stdin]
-   [calva.repl.webview.input.tooltip :as tooltip]))
+   [calva.repl.webview.tooltip :as tooltip]))
 
 (defn- child
   [class-name]
@@ -240,12 +240,10 @@
       (.setAttribute "aria-label" evaluate-title)
       (.append (stdin/icon "repl-input-context-icon" play-path)))
     (.append row
-             indicator
-             (tooltip/element indicator "repl-input-indicator-tooltip" "")
+             (tooltip/attach! indicator "")
              (namespace-menu indicator dispatch!)
              line
-             play
-             (tooltip/element play "repl-input-evaluate-tooltip" ""))
+             (tooltip/attach! play ""))
     (set! (.-textContent interrupt) "Interrupt")
     (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
     (set! (.-hidden bar) true)

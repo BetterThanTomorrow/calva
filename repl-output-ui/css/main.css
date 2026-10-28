@@ -557,12 +557,12 @@ body.repl-input-on .output-greeting-read-only {
    background-color: var(--vscode-toolbar-hoverBackground);
 }
 
-#repl-input [interestfor] {
+[interestfor] {
    interest-delay-start: 500ms;
    interest-delay-end: 100ms;
 }
 
-.repl-input-tooltip {
+.output-tooltip {
    position-area: top;
    position-try-fallbacks: bottom;
    inset: auto;
