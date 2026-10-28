@@ -18,7 +18,8 @@ const afterInc = new vscode.Position(3, 17);
 const afterStr = new vscode.Position(4, 24);
 const defn = '(defn pick-me [x]\n  (let [y (inc x)]\n    {:a [1 2] :b (str y)}))';
 
-const textOf = ([, text]: getText.SelectionAndText | [vscode.Range, string]) => text;
+// The ranges API and currentClojureContext give their picks as [range, text]
+const textOf = (picked: unknown) => (picked as [unknown, string])[1];
 
 suite('Form picks', () => {
   let document: vscode.TextDocument;
