@@ -207,8 +207,8 @@
                  :max-height (- (:top option) (:top space))))))))
 
 (defn- position-info
-  "Places the docs panel with `info-position`, for CodeMirror's `positionInfo`."
-  [_view list option info space]
+  "Places the docs panel with `info-position`, for CodeMirror's `positionInfo`, which also passes the tooltip."
+  [_view & [list option info space]]
   (let [rect (fn [^js r] {:left (.-left r) :right (.-right r) :top (.-top r) :bottom (.-bottom r)})
         {:keys [side offset max-width max-height class]} (info-position (rect list) (rect option) (rect info) (rect space))]
     #js {:style (str side ": " offset "px; max-width: " max-width "px; max-height: min(" info-max-height ", " max-height "px)")
