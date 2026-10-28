@@ -635,6 +635,8 @@ async function connectToHost(
     });
   }
 
+  throwWhenClosed(localClient);
+
   void liveShareSupport.didConnectRepl(port);
 
   await readRuntimeConfigs(mainSession);
@@ -665,6 +667,16 @@ async function connectToHost(
   }
 
   return { connected: true, clientKey: localClient.clientKey };
+}
+
+/**
+ * Throws when `client` was disconnected while connecting, e.g. while its cljs REPL started, which
+ * stops the connect without setting up the closed sessions or prompting for another connection.
+ */
+function throwWhenClosed(client: nrepl.NReplClient) {
+  if (!clientRegistry.getClient(client.clientKey)) {
+    throw new Error(`The connection ${client.clientKey} closed while connecting`);
+  }
 }
 
 /**
@@ -811,6 +823,10 @@ type connectFn = (
   checkSuccess: checkConnectedFn
 ) => Promise<boolean | undefined>;
 
+/**
+ * Evaluates the connect `code` in `newCljsSession` and resolves with what `checkSuccess` says of
+ * the result. Rejects when the session closes before the evaluation finished.
+ */
 async function evalConnectCode(
   newCljsSession: nrepl.NReplSession,
   code: string,
@@ -839,6 +855,9 @@ async function evalConnectCode(
       pprintOptions: printer.disabledPrettyPrinter,
     });
   const valueResult = await result.value.catch((reason) => {
+    if (result.dropped) {
+      throw reason;
+    }
     console.error('Error evaluating connect form: ', reason);
   });
   return await checkSuccess(valueResult, out, err);
@@ -1111,7 +1130,7 @@ function createCljsReplConnector(
       return runtimes && parseInt(runtimes) > 0;
     };
     return new Promise<boolean>((resolve, reject) => {
-      void vscode.window.withProgress(
+      const waiting = vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Waiting for shadow-cljs runtimes...',
@@ -1135,6 +1154,8 @@ function createCljsReplConnector(
           }
         }
       );
+      // The wait fails when the session closes while it asks for runtimes
+      void waiting.then(undefined, reject);
     });
   }
 
