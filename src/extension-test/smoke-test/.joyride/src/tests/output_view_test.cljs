@@ -47,6 +47,11 @@
   (p/do (some-> (output-view-tab) vscode/window.tabGroups.close)
         (wait-for+ "the Output View to close" 10000 #(not (output-view-tab)))))
 
+(def ^:private off-hold-ms
+  "How long the test holds the Output View open with the REPL Input off before it checks that nothing
+   mounted. The page posts nothing while the REPL Input is off, so there is no signal that it loaded."
+  10000)
+
 (deftest-async output-view-repl-input
   (let [!mounted? (atom false)
         listener (vscode/workspace.onDidOpenTextDocument
@@ -54,13 +59,14 @@
                      (reset! !mounted? true)))]
     (-> (p/do
           (set-repl-input+ #js {"output-view" false "output-sidebar" false})
-          (p/let [tab (open-output-view+)]
+          (p/let [tab (open-output-view+)
+                  _ (p/delay off-hold-ms)]
             (testing "With the REPL Input off"
               (is (= "REPL Output" (.-label tab))
-                  "The Output View opens")))
+                  "The Output View opens")
+              (is (not (or @!mounted? (keybindings-read?)))
+                  "No REPL Input mounts")))
           (close-output-view+)
-          (is (not (or @!mounted? (keybindings-read?)))
-              "No REPL Input mounted while it is off")
           (set-repl-input+ #js {"output-view" true "output-sidebar" false})
           (p/let [tab (open-output-view+)
                   mounted? (wait-for+ "the REPL Input to mount" 30000 #(deref !mounted?))]
@@ -69,7 +75,8 @@
                   "The Output View opens")
               (is mounted?
                   "The REPL Input mounts in the Output View"))))
-        (p/finally (fn []
-                     (.dispose listener)
-                     (p/do (close-output-view+)
-                           (set-repl-input+ js/undefined)))))))
+        (p/handle (fn [result error]
+                    (.dispose listener)
+                    (p/do (close-output-view+)
+                          (set-repl-input+ js/undefined)
+                          (if error (p/rejected error) result)))))))
