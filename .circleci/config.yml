@@ -63,6 +63,9 @@ jobs:
         name: Check the release builds for renamed JS property reads
         command: clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
     - run:
+        name: Check the size of the Output views' webview bundle
+        command: clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
+    - run:
         name: Verify CLJS test output
         command: ls -l out/cljs-lib/test
     - run:
@@ -121,7 +124,7 @@ jobs:
         command: ls -l out/cljs-lib/test
     - run:
         name: Copy build
-        command: cp -r out /tmp/build; cp package.json /tmp/build
+        command: cp -r out /tmp/build; cp -r repl-output-ui/js /tmp/build/repl-output-ui; cp package.json /tmp/build
     - save_cache:
         name: Save dependencies
         key: ts-node22-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}

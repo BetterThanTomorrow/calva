@@ -31,6 +31,10 @@ steps:
   - clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
 
 - !:cmd
+  - Check the size of the Output views' webview bundle
+  - clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
+
+- !:cmd
   - Verify CLJS test output
   - ls -l out/cljs-lib/test
 
@@ -51,6 +55,7 @@ steps:
 - !:cmd
   - Copy build
   - cp -r out /tmp/build;
+    cp -r repl-output-ui/js /tmp/build/repl-output-ui;
     cp package.json /tmp/build
 
 - save_cache:
