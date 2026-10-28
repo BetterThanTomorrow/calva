@@ -126,9 +126,14 @@ export class NReplClient {
     }
   }
 
+  /** Ends the evaluations of every session, for when the connection is gone. */
+  dropEvaluations() {
+    Object.values(this.sessions).forEach((session) => session.dropEvaluations());
+  }
+
   private _fireCloseHandlers() {
     try {
-      Object.values(this.sessions).forEach((session) => session.dropEvaluations());
+      this.dropEvaluations();
       this._closeHandlers.forEach((x) => x(this));
       for (const x in this.sessions) {
         this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
@@ -496,9 +501,16 @@ export class NReplSession {
     }
   }
 
+  removeRunningID(id: string) {
+    const index = this._runningIds.indexOf(id);
+    if (index > -1) {
+      this._runningIds.splice(index, 1);
+    }
+  }
+
   /**
-   * Stops tracking this session's evaluations, for when the session or its connection is gone and
-   * the server will not reply to them. Interrupting all evaluations then leaves them out.
+   * Ends this session's evaluations, for when the session or its connection is gone and the server
+   * will not reply to them. They reject, and interrupting all evaluations leaves them out.
    */
   dropEvaluations() {
     this._runningIds = [];
@@ -763,10 +775,7 @@ export class NReplSession {
   }
 
   interrupt(interruptId: string) {
-    const index = this._runningIds.indexOf(interruptId);
-    if (index > -1) {
-      this._runningIds.splice(index, 1);
-    }
+    this.removeRunningID(interruptId);
     const id = this.client.nextId;
     return new Promise<void>((resolve, reject) => {
       const msg = {
@@ -1354,6 +1363,7 @@ export class NReplEvaluation {
       this.session.client.write(message);
     } catch (e) {
       delete this.session.messageHandlers[this.id];
+      this.session.removeRunningID(this.id);
       this.remove();
       this.doReject(e);
     }
@@ -1593,11 +1603,12 @@ export class NReplEvaluation {
     return num;
   }
 
-  /** Stops tracking the evaluations of `session`, which then are not running. */
+  /** Ends the evaluations of `session`. Each rejects, saying the REPL session closed. */
   static dropSessionEvaluations(session: NReplSession) {
     NReplEvaluation.Instances.filter((item) => item.session === session).forEach((item) => {
-      item._running = false;
+      delete session.messageHandlers[item.id];
       item.remove();
+      item.doReject('The REPL session closed before the evaluation finished');
     });
   }
 }

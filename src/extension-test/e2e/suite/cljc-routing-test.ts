@@ -490,25 +490,35 @@ suite('CLJC Routing suite', function () {
     );
   });
 
-  test('A dropped connection drops its evaluations', async function () {
-    testUtil.log(suiteName, 'Testing: A dropped connection drops its evaluations');
+  test('A dropped connection ends its evaluations', async function () {
+    testUtil.log(suiteName, 'Testing: A dropped connection ends its evaluations');
 
     const { host, port } = clientRegistry.getRegisteredClient(clientKey);
     const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
-    const evaluation = client.session.eval('(Thread/sleep 60000)', 'user');
-    assert.strictEqual(evaluation.running, true, 'The evaluation runs');
-    client.disconnect();
-    await testUtil.waitForCondition(
-      () => !evaluation.running,
-      4000,
-      20,
-      'Timed out waiting for the dropped connection to drop the evaluation'
-    );
-    assert.strictEqual(
-      nrepl.NReplEvaluation.interruptAll(() => undefined),
-      0,
-      'No evaluation of the dropped connection is interrupted'
-    );
+    try {
+      const evaluation = client.session.eval('(Thread/sleep 20000)', 'user');
+      const rejection = evaluation.value.then(
+        () => undefined,
+        (reason) => reason
+      );
+      assert.strictEqual(evaluation.running, true, 'The evaluation runs');
+      client.disconnect();
+      await testUtil.waitForCondition(
+        () => !evaluation.running,
+        4000,
+        20,
+        'Timed out waiting for the dropped connection to end the evaluation'
+      );
+      assert.strictEqual(
+        await rejection,
+        'The REPL session closed before the evaluation finished',
+        'The evaluation rejects'
+      );
+      nrepl.NReplEvaluation.interruptAll(() => undefined);
+      assert.strictEqual(evaluation.interrupted, false, 'Interrupt leaves it out');
+    } finally {
+      client.disconnect();
+    }
   });
 
   async function jackInToClojureScriptProject(): Promise<void> {

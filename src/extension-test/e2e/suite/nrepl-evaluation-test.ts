@@ -87,14 +87,17 @@ suite('NReplEvaluation interrupts', () => {
     assert.strictEqual(await rejection(waiting.value), 'Evaluation was interrupted');
   });
 
-  test('closing the session drops its evaluations', () => {
-    session.eval('(Thread/sleep 60000)', 'user');
+  test('closing the session ends its evaluations', async () => {
+    const evaluation = session.eval('(Thread/sleep 60000)', 'user');
     session.close();
     assert.strictEqual(
-      nrepl.NReplEvaluation.interruptAll(() => undefined),
-      0,
-      'No evaluation of the closed session is interrupted'
+      await rejection(evaluation.value),
+      'The REPL session closed before the evaluation finished',
+      'The evaluation rejects'
     );
+    assert.ok(!evaluation.running, 'The evaluation is not running');
+    nrepl.NReplEvaluation.interruptAll(() => undefined);
+    assert.ok(!evaluation.interrupted, 'Interrupt leaves it out');
     assert.deepStrictEqual(interruptIds(written), [], 'Nothing is written for the closed session');
   });
 

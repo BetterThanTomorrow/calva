@@ -330,6 +330,7 @@ async function connectViaWebSocket(
         preservedRenames = clientRegistry.getConnectionState(clientKey)?.renamedSessionNames;
 
         // Clean up client and sessions but keep server alive
+        activeClient.dropEvaluations();
         clientTeardown.releaseClientSuffix(clientKey);
         const wasRegistered = clientRegistry.unregisterClient(clientKey);
         if (wasRegistered) {
