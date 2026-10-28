@@ -6,6 +6,7 @@
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as string]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -228,7 +229,17 @@
                                        {:repl-input {:repl-input/id "output-sidebar"
                                                      :repl-input/enabled? false}}))))
   (testing "renders no REPL Input mount without REPL Input state"
-    (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {}))))))
+    (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {})))))
+  (testing "renders the page with the REPL Input off as the page without it, apart from the mount marked off"
+    (let [page {:js-source "js-source" :css-href "css-href" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
+          off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\" data-repl-input-height=\"120\"></div>"]
+      (is (= (sut/get-webview-html {:env/is-debug false} page)
+             (string/replace (sut/get-webview-html {:env/is-debug false}
+                                                   (assoc page :repl-input {:repl-input/id "output-view"
+                                                                            :repl-input/enabled? false
+                                                                            :repl-input/height 120}))
+                             off-mount
+                             ""))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"

@@ -46,6 +46,28 @@
             (is (= [["calva:replInputFocused" false] ["calva:replInputLastFocused" false]] (take-last 2 @contexts)))
             (is (not (sut/focused?)))))))))
 
+(deftest without-repl-input-test
+  (with-fresh-host
+    (fn [{:keys [contexts current-file-changes]}]
+      (sut/text-editor-focused!)
+      (sut/terminal-focused!)
+      (doseq [view-id ["output-view" "output-sidebar"]]
+        (sut/view-state-changed! view-id true false)
+        (sut/view-state-changed! view-id false false)
+        (sut/view-hidden! view-id)
+        (sut/view-page-set! view-id)
+        (sut/view-disposed! view-id))
+      (sut/settings-changed! {})
+      (sut/routing-changed!)
+      (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.clj"} #js {})
+      (sut/follow-editor!)
+      (testing "focus, view and setting events set no context while no REPL Input is mounted"
+        (is (= [] @contexts)))
+      (testing "and never tell Calva that the current file changed"
+        (is (= [] @current-file-changes)))
+      (testing "and leave Calva's commands to the editors"
+        (is (not (sut/focused?)))))))
+
 (deftest view-lifecycle-focus-test
   (with-fresh-host
     (fn [{:keys [contexts] :as host}]

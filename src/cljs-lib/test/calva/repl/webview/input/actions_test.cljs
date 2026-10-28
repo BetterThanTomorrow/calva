@@ -13,7 +13,10 @@
   (testing "mounts nothing when it is off"
     (let [{:uf/keys [db fxs]} (sut/handle-action {} [:repl-input/ax.init (assoc init-payload :repl-input/enabled? false)])]
       (is (= "output-view" (:repl-input/id db)))
-      (is (empty? fxs)))))
+      (is (not (:repl-input/enabled? db)))
+      (is (empty? fxs))
+      (testing "and neither unmounts nor tells the extension when the setting turns it off again"
+        (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.set-enabled false])))))))
 
 (deftest set-enabled-test
   (let [on-db {:repl-input/id "output-sidebar" :repl-input/enabled? true :repl-input/version 4}]

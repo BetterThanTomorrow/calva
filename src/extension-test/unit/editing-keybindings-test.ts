@@ -178,6 +178,19 @@ function holdTogetherInReplInput(clause: string, otherClause: string) {
     .some((context) => exprs.every((expr) => evaluate(expr, context)));
 }
 
+const REPL_INPUT_KEY_PREFIX = 'calva:replInput';
+
+const menuEntries: { command?: string; when?: string }[] = Object.values<
+  { command?: string; when?: string }[]
+>(manifest.contributes.menus).flat();
+
+/** Every `when` and `enablement` clause of the manifest's commands, keybindings and menus, with its command */
+const manifestClauses: { command?: string; clause: string }[] = [
+  ...commands.map(({ command, enablement }) => ({ command, clause: enablement })),
+  ...keybindings.map(({ command, when }) => ({ command, clause: when })),
+  ...menuEntries.map(({ command, when }) => ({ command, clause: when })),
+].filter(({ clause }) => clause !== undefined);
+
 function occurrences(s: string, sub: string) {
   return s.split(sub).length - 1;
 }
@@ -322,6 +335,51 @@ describe('Calva editing keybindings and the REPL Input', () => {
       })
       .map(({ command, key }) => `${command} ${key}`);
     expect(unfocused).toEqual([]);
+  });
+
+  it('without a REPL Input, every other clause in the manifest reads as it would without the REPL Input', () => {
+    const touched = manifestClauses.filter(
+      ({ command, clause }) =>
+        !isReplInputCommand(command ?? '') && clause.includes(REPL_INPUT_KEY_PREFIX)
+    );
+    expect(touched.length).toBeGreaterThan(100);
+    const changed = touched
+      .filter(({ clause }) => {
+        const without =
+          clause === REPL_INPUT_ENABLEMENT
+            ? EDITOR_ENABLEMENT
+            : clause.split(REPL_INPUT_CLAUSE).join(EDITOR_CLAUSE);
+        return (
+          without.includes(REPL_INPUT_KEY_PREFIX) ||
+          disagreementsWithoutReplInput(clause, without).length > 0
+        );
+      })
+      .map(({ command, clause }) => `${command}: ${clause}`);
+    expect(changed).toEqual([]);
+  });
+
+  it("without a REPL Input, the REPL Input's own commands are disabled, unbound and out of every menu", () => {
+    const unguarded = [
+      ...commands.filter(({ command, enablement }) => isReplInputCommand(command) && !enablement),
+      ...keybindings.filter(({ command, when }) => isReplInputCommand(command) && !when),
+      ...menuEntries.filter(({ command, when }) => isReplInputCommand(command ?? '') && !when),
+    ].map(({ command }) => command);
+    expect(unguarded).toEqual([]);
+    const own = manifestClauses.filter(({ command }) => isReplInputCommand(command ?? ''));
+    expect(own.length).toBeGreaterThan(100);
+    const holdingWithReplInputKeysFalse = own
+      .filter(({ clause }) => {
+        const expr = parseWhen(clause);
+        const atoms = [...atomsOf(expr)];
+        const replInputKeysFalse = atoms
+          .filter((atom) => atom.startsWith(REPL_INPUT_KEY_PREFIX))
+          .map((atom) => [atom, false] as const);
+        return contexts(atoms.filter((atom) => !atom.startsWith(REPL_INPUT_KEY_PREFIX))).some(
+          (context) => evaluate(expr, new Map([...context, ...replInputKeysFalse]))
+        );
+      })
+      .map(({ command, clause }) => `${command}: ${clause}`);
+    expect(holdingWithReplInputKeysFalse).toEqual([]);
   });
 
   it("the REPL Input's own commands are in the command palette only while it has focus, or is the last focused place", () => {
