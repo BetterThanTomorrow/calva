@@ -14,6 +14,7 @@ import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as getText from './util/get-text';
+import * as select from './select';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
@@ -529,6 +530,24 @@ function isInActivePreviewTab(doc: vscode.TextDocument) {
   );
 }
 
+/** Returns the selection and code that `selectionFn` picks in `editor`. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
+function pickedCodeAndSelection(
+  editor: vscode.TextEditor,
+  doc: vscode.TextDocument,
+  selectionFn: (editor: vscode.TextEditor) => getText.SelectionAndText
+): [vscode.Selection, string] {
+  const [picked, code] = selectionFn(editor);
+  if (picked) {
+    return [picked, editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code];
+  }
+  const wholeDocument =
+    !replWindow.isReplWindowFile(doc) && getText.currentTopLevelFormText(doc, doc.positionAt(0))[0];
+  return [
+    select.selectionFromOffsetRange(doc, [0, doc.getText().length]),
+    wholeDocument ? code : '',
+  ];
+}
+
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
 
@@ -537,15 +556,9 @@ async function evaluateSelection(document = {}, options) {
 
   if (cljsLib.getStateValue('connected')) {
     const editor = util.getActiveTextEditor();
-    const selection = selectionFn(editor);
-    const codeSelection: vscode.Selection = selection[0];
-    let code = selection[1];
-    [codeSelection, code]; //TODO: What's this doing here?
-
-    if (editor.selections[0].isEmpty) {
-      code = withoutIgnoreMarker(code);
-    }
     const doc = util.textDocumentOr(document, editor.document);
+    const [codeSelection, pickedCode] = pickedCodeAndSelection(editor, doc, selectionFn);
+    let code = pickedCode;
     if (isInActivePreviewTab(doc)) {
       void vscode.window.showTextDocument(doc, { preview: false });
     }

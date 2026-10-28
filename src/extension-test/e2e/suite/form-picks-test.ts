@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as testUtil from './util';
@@ -179,6 +181,40 @@ suite('Form picks', () => {
         ),
         'inc'
       );
+    });
+
+    test('between two top-level forms, evaluating the enclosing form sends the whole file', async () => {
+      const betweenForms = new vscode.Position(1, 0);
+      assert.strictEqual(
+        await evaluating(
+          'calva.evaluateEnclosingForm',
+          new vscode.Selection(betweenForms, betweenForms)
+        ),
+        document.getText()
+      );
+    });
+
+    test('at the REPL window prompt, evaluating the enclosing form sends nothing', async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'form-picks-'));
+      const replWindowFile = path.join(dir, '.calva', 'repl.calva-repl');
+      fs.mkdirSync(path.dirname(replWindowFile));
+      fs.writeFileSync(replWindowFile, 'clj꞉user꞉> (inc 1)\n2\nclj꞉user꞉> \n');
+      try {
+        const replDoc = await vscode.languages.setTextDocumentLanguage(
+          await vscode.workspace.openTextDocument(replWindowFile),
+          'clojure'
+        );
+        const editor = await vscode.window.showTextDocument(replDoc);
+        const prompt = new vscode.Position(2, 11);
+        editor.selections = [new vscode.Selection(prompt, prompt)];
+        evaluated.length = 0;
+        await vscode.commands.executeCommand('calva.evaluateEnclosingForm');
+        await testUtil.sleep(500);
+        assert.deepStrictEqual(evaluated, []);
+      } finally {
+        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
     });
   });
 });
