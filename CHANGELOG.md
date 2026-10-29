@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Jacking-in fails with a nrepl-middleware error](https://github.com/BetterThanTomorrow/calva/issues/3319)
 - [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
 - Fix: `$editor-ns` is empty in custom REPL commands
 - Fix: Go to definition sometimes land one column off
