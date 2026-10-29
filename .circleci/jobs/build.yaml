@@ -20,6 +20,13 @@ steps:
     - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
     - cljs-deps-v1-
 
+- restore_cache:
+    name: Restore the shadow-cljs compile cache
+    keys:
+    - shadow-cljs-build-v1-{{ .Branch }}-{{ .Revision }}
+    - shadow-cljs-build-v1-{{ .Branch }}-
+    - shadow-cljs-build-v1-
+
 - !:cmd
   - Install CLJS dependencies
   - npx shadow-cljs classpath
@@ -47,6 +54,12 @@ steps:
     key: cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
     paths:
     - ~/.m2
+
+- save_cache:
+    name: Save the shadow-cljs compile cache
+    key: shadow-cljs-build-v1-{{ .Branch }}-{{ .Revision }}
+    paths:
+    - ~/calva/.shadow-cljs
 
 - persist_to_workspace:
     root: /tmp
