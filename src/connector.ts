@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as util from './utilities';
+import * as currentFile from './current-file';
 import * as string from './util/string';
 import open = require('open');
 import * as status from './status';
@@ -329,6 +330,7 @@ async function connectViaWebSocket(
         preservedRenames = clientRegistry.getConnectionState(clientKey)?.renamedSessionNames;
 
         // Clean up client and sessions but keep server alive
+        activeClient.dropEvaluations();
         clientTeardown.releaseClientSuffix(clientKey);
         const wasRegistered = clientRegistry.unregisterClient(clientKey);
         if (wasRegistered) {
@@ -617,7 +619,7 @@ async function connectToHost(
         );
       }
       if (useSecondarySession && isShadowCljsConnector(connectSequence.cljsType)) {
-        await shadowCljsRuntime.initializeShadowRemoteNotifications();
+        await shadowCljsRuntime.initializeShadowRemoteNotifications(localClient.clientKey);
       }
     } catch (e) {
       output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
@@ -632,6 +634,8 @@ async function connectToHost(
       silent,
     });
   }
+
+  throwWhenClosed(localClient);
 
   void liveShareSupport.didConnectRepl(port);
 
@@ -663,6 +667,16 @@ async function connectToHost(
   }
 
   return { connected: true, clientKey: localClient.clientKey };
+}
+
+/**
+ * Throws when `client` was disconnected while connecting, e.g. while its cljs REPL started, which
+ * stops the connect without setting up the closed sessions or prompting for another connection.
+ */
+function throwWhenClosed(client: nrepl.NReplClient) {
+  if (!clientRegistry.getClient(client.clientKey)) {
+    throw new Error(`The connection ${client.clientKey} closed while connecting`);
+  }
 }
 
 /**
@@ -809,6 +823,10 @@ type connectFn = (
   checkSuccess: checkConnectedFn
 ) => Promise<boolean | undefined>;
 
+/**
+ * Evaluates the connect `code` in `newCljsSession` and resolves with what `checkSuccess` says of
+ * the result. Rejects when the session closes before the evaluation finished.
+ */
 async function evalConnectCode(
   newCljsSession: nrepl.NReplSession,
   code: string,
@@ -837,6 +855,9 @@ async function evalConnectCode(
       pprintOptions: printer.disabledPrettyPrinter,
     });
   const valueResult = await result.value.catch((reason) => {
+    if (result.dropped) {
+      throw reason;
+    }
     console.error('Error evaluating connect form: ', reason);
   });
   return await checkSuccess(valueResult, out, err);
@@ -1109,7 +1130,7 @@ function createCljsReplConnector(
       return runtimes && parseInt(runtimes) > 0;
     };
     return new Promise<boolean>((resolve, reject) => {
-      void vscode.window.withProgress(
+      const waiting = vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Waiting for shadow-cljs runtimes...',
@@ -1133,6 +1154,8 @@ function createCljsReplConnector(
           }
         }
       );
+      // The wait fails when the session closes while it asks for runtimes
+      void waiting.then(undefined, reject);
     });
   }
 
@@ -2075,9 +2098,9 @@ export async function selectCljcTarget(target?: 'primary' | 'secondary') {
     },
   ];
 
-  const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc
-    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+  const fileUri = currentFile.currentFileUri();
+  const activeFilePath = fileUri
+    ? projectRootUtil.getPathRelativeToWorkspace(fileUri)
     : 'no file selected';
 
   const selection = await vscode.window.showQuickPick(items, {

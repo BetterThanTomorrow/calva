@@ -1,27 +1,15 @@
 import * as vscode from 'vscode';
 import * as util from '../utilities';
-import * as select from '../select';
 import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
+import type { NReplSession } from '../nrepl';
 import * as vscodeLanguageserverProtocol from 'vscode-languageserver-protocol';
 import * as protocolConverter from 'vscode-languageclient/lib/common/protocolConverter';
 import * as lsp from '../lsp';
 import * as completionUtil from './completion-util';
-
-const mappings = {
-  nil: vscode.CompletionItemKind.Value,
-  macro: vscode.CompletionItemKind.Value,
-  class: vscode.CompletionItemKind.Class,
-  keyword: vscode.CompletionItemKind.Keyword,
-  namespace: vscode.CompletionItemKind.Module,
-  function: vscode.CompletionItemKind.Function,
-  'special-form': vscode.CompletionItemKind.Keyword,
-  var: vscode.CompletionItemKind.Variable,
-  local: vscode.CompletionItemKind.Variable,
-  method: vscode.CompletionItemKind.Method,
-};
+import * as replCompletion from './repl-completion';
 
 const converter = protocolConverter.createConverter(undefined, undefined, true);
 
@@ -89,16 +77,7 @@ export class CalvaCompletionItemProvider implements vscode.CompletionItemProvide
       if (client) {
         await namespace.createNamespaceFromDocumentIfNotExists(activeTextEditor.document);
         const [ns, _] = namespace.getDocumentNamespace();
-        const result = await client.info(
-          ns,
-          typeof item.label === 'string' ? item.label : item['data'].label
-        );
-        const [doc, details] = infoparser.getCompletion(result);
-        const docFromCider = item['data']?.['completion-doc'];
-
-        item.documentation =
-          doc || docFromCider ? new vscode.MarkdownString(docFromCider, true) : undefined;
-        item.detail = details;
+        await resolveReplCompletionItem(client, ns, item);
       }
 
       return item;
@@ -148,58 +127,43 @@ async function lspResolveCompletions(
   );
 }
 
+/**
+ * Fills in the documentation and detail of a REPL completion item, from `session`'s info
+ * on the item in namespace `ns`.
+ */
+export async function resolveReplCompletionItem(
+  session: NReplSession,
+  ns: string,
+  item: vscode.CompletionItem
+) {
+  const result = await session.info(
+    ns,
+    typeof item.label === 'string' ? item.label : item['data'].label
+  );
+  const [doc, details] = infoparser.getCompletion(result);
+  const docFromCider = item['data']?.['completion-doc'];
+
+  item.documentation =
+    doc || docFromCider ? new vscode.MarkdownString(docFromCider, true) : undefined;
+  item.detail = details;
+  return item;
+}
+
 async function replCompletions(
   clientProvider: lsp.ClientProvider,
   document: vscode.TextDocument,
   position: vscode.Position,
   _token: vscode.CancellationToken,
   _context: vscode.CompletionContext
-): Promise<vscode.CompletionItem[]> {
+): Promise<vscodeLanguageserverProtocol.CompletionItem[]> {
   if (!util.getConnectedState()) {
     return [];
   }
-  const text = util.getWordAtPosition(document, position);
-
-  const toplevelSelection = select.getFormSelection(document, position, true);
-
-  util.assertIsDefined(toplevelSelection, 'Expected a topLevelSelection!');
-
-  const toplevel = document.getText(toplevelSelection),
-    toplevelStartOffset = document.offsetAt(toplevelSelection.start),
-    toplevelStartCursor = docMirror.getDocument(document).getTokenCursor(toplevelStartOffset + 1),
-    wordRange = document.getWordRangeAtPosition(position);
-
-  util.assertIsDefined(wordRange, 'Expected a wordRange!');
-
-  const wordStartLocalOffset = document.offsetAt(wordRange.start) - toplevelStartOffset,
-    wordEndLocalOffset = document.offsetAt(wordRange.end) - toplevelStartOffset,
-    contextStart = toplevel.substring(0, wordStartLocalOffset),
-    contextEnd = toplevel.substring(wordEndLocalOffset),
-    replContext = `${contextStart}__prefix__${contextEnd}`,
-    toplevelIsValidForm = toplevelStartCursor.withinValidList() && replContext != '__prefix__',
-    [ns, _] = namespace.getNamespace(document, position),
-    client = replSession.getSession(),
-    res = await client.complete(ns, text, toplevelIsValidForm ? replContext : undefined),
-    results = res.completions || [];
-
-  results.forEach((element) => {
-    if (!element['ns']) {
-      // make sure every entry has a namespace
-      // for the 'info' call.
-      element['ns'] = ns;
-    }
-  });
-  return results.map((item) => {
-    const result = new vscode.CompletionItem(
-      item.candidate,
-      // +1 because the LSP CompletionItemKind enum starts at 1
-      // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
-      (mappings[item.type] || vscode.CompletionItemKind.Text) + 1
-    );
-    const data = item[0] === '.' ? item.slice(1) : item;
-    data['provider'] = 'repl';
-    result['data'] = data;
-
-    return result;
-  });
+  const [ns, _] = namespace.getNamespace(document, position);
+  return replCompletion.replCompletions(
+    replSession.getSession(document),
+    ns,
+    docMirror.getDocument(document),
+    document.offsetAt(position)
+  );
 }

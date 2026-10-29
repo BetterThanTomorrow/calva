@@ -1,5 +1,8 @@
 (ns calva.repl.webview.token-colors-test
   (:require
+   ["fs" :as fs]
+   ["os" :as os]
+   ["path" :as path]
    [calva.repl.webview.token-colors :as sut]
    [cljs.test :refer [deftest is testing]]))
 
@@ -95,3 +98,36 @@
         "A theme with an id gets its rules by id")
     (is (empty? (sut/customization-rules nil (first themes)))
         "No customizations, no rules")))
+
+(defn- write-theme!
+  [file foreground]
+  (fs/writeFileSync file (js/JSON.stringify (clj->js {:tokenColors [{:scope "comment"
+                                                                     :settings {:foreground foreground}}]}))))
+
+(defn- comment-foreground
+  [token-colors]
+  (get-in (first token-colors) ["settings" "foreground"]))
+
+(deftest theme-token-colors-test
+  (let [dir (fs/mkdtempSync (path/join (os/tmpdir) "calva-theme-"))
+        theme-a (path/join dir "a.json")
+        theme-b (path/join dir "b.json")]
+    (try
+      (sut/clear-theme-token-colors!)
+      (write-theme! theme-a "#aaaaaa")
+      (write-theme! theme-b "#bbbbbb")
+      (is (= "#aaaaaa" (comment-foreground (sut/theme-token-colors theme-a))))
+      (write-theme! theme-a "#cccccc")
+      (is (= "#aaaaaa" (comment-foreground (sut/theme-token-colors theme-a)))
+          "The same theme file is read once")
+      (is (= "#bbbbbb" (comment-foreground (sut/theme-token-colors theme-b)))
+          "Another theme file is read")
+      (is (= "#cccccc" (comment-foreground (sut/theme-token-colors theme-a)))
+          "Going back to a theme reads its file again")
+      (write-theme! theme-a "#dddddd")
+      (sut/clear-theme-token-colors!)
+      (is (= "#dddddd" (comment-foreground (sut/theme-token-colors theme-a)))
+          "Clearing reads the file again")
+      (finally
+        (sut/clear-theme-token-colors!)
+        (fs/rmSync dir #js {:recursive true :force true})))))

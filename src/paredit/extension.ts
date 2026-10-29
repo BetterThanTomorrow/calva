@@ -10,6 +10,7 @@ import * as mainConfig from '../config';
 import * as textNotation from '../extension-test/unit/common/text-notation';
 import * as calvaState from '../state';
 import * as pareditConfig from '../cursor-doc/paredit-config';
+import * as replInput from '../repl-input';
 
 type EditableDocument = model.EditableDocument;
 type PareditConfig = pareditConfig.PareditConfig;
@@ -46,6 +47,20 @@ function shouldKillAlsoCutToClipboard(override?: boolean): boolean {
 
 function multiCursorEnabled(override?: boolean): boolean {
   return override ?? workspace.getConfiguration().get('calva.paredit.multicursor');
+}
+
+/**
+ * Deletes a character without Paredit's checks: with VS Code's `command` in an editor, and with the REPL
+ * Input's own in the focused REPL Input while `doc` has one cursor. With several cursors, the keybinding
+ * holds in VS Code but not in the REPL Input, which then has deleted with CodeMirror's own key.
+ */
+function forceDelete(doc: EditableDocument, command: 'deleteLeft' | 'deleteRight') {
+  if (!replInput.hasFocus()) {
+    return vscode.commands.executeCommand(command);
+  }
+  if (doc.selections.length === 1) {
+    replInput.runInFocused(command);
+  }
 }
 
 // Cache paredit configuration
@@ -504,15 +519,11 @@ const pareditCommands = [
   },
   {
     command: 'paredit.forceDeleteForward',
-    handler: () => {
-      return vscode.commands.executeCommand('deleteRight');
-    },
+    handler: (doc: EditableDocument) => forceDelete(doc, 'deleteRight'),
   },
   {
     command: 'paredit.forceDeleteBackward',
-    handler: () => {
-      return vscode.commands.executeCommand('deleteLeft');
-    },
+    handler: (doc: EditableDocument) => forceDelete(doc, 'deleteLeft'),
   },
   {
     command: 'paredit.addRichComment',
@@ -533,6 +544,9 @@ const pareditCommands = [
 function wrapPareditCommand<C extends PareditCommand>(command: C) {
   return async (arg: CommandArgOf<C>) => {
     try {
+      if (replInput.hasFocus()) {
+        return replInput.editFocused((doc) => command.handler(doc, arg));
+      }
       const textEditor = window.activeTextEditor;
 
       utilities.assertIsDefined(textEditor, 'Expected window to have an activeTextEditor!');

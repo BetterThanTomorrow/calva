@@ -8,6 +8,7 @@ import * as respacer from './respacer';
 import * as cursorDocUtils from '../../cursor-doc/utilities';
 import _ = require('lodash');
 import type * as tokenCursor from '../../cursor-doc/token-cursor';
+import type { EditableDocument } from '../../cursor-doc/model';
 import * as formatIndex from './format-index';
 import * as state from '../../state';
 import * as healer from './healer';
@@ -136,27 +137,45 @@ function rangeReformatChanges(
   originalRange: vscode.Range,
   onType: boolean
 ): respacer.WhitespaceChange[] | undefined {
-  const mirrorDoc = docMirror.getDocument(document);
   const startIndex = document.offsetAt(originalRange.start);
-  const cursor = mirrorDoc.getTokenCursor(startIndex);
+  const endIndex = document.offsetAt(originalRange.end);
+  return documentRangeReformatChanges(docMirror.getDocument(document), document.eol, {
+    startIndex,
+    startColumn: originalRange.start.character,
+    originalText: document.getText(originalRange),
+    fullDocument: startIndex === 0 && endIndex === document.getText().length,
+  });
+}
+
+type DocumentRange = {
+  startIndex: number;
+  startColumn: number;
+  originalText: string;
+  fullDocument: boolean;
+};
+
+/** The changes that reformat a range of `doc`. None if the range starts in a string or comment. */
+export function documentRangeReformatChanges(
+  doc: EditableDocument,
+  eol: vscode.EndOfLine,
+  { startIndex, startColumn, originalText, fullDocument }: DocumentRange
+): respacer.WhitespaceChange[] {
+  const cursor = doc.getTokenCursor(startIndex);
   // Do not format comments as individual ranges.
   // But do not evade formatting the whole doc if it happens to begin with a comment.
   if (startIndex == 0 || (!cursor.withinString() && !cursor.withinComment())) {
-    const eol = _convertEolNumToStringNotation(document.eol);
-    const originalText = document.getText(originalRange);
-    const endIndex = document.offsetAt(originalRange.end);
-    const fullDocument = startIndex === 0 && endIndex === document.getText().length;
+    const eolString = _convertEolNumToStringNotation(eol);
 
     if (fullDocument) {
-      const formattedText = formatCode(originalText, document.eol, true);
-      return whitespaceAndNsEdits(eol, startIndex, originalText, formattedText);
+      const formattedText = formatCode(originalText, eol, true);
+      return whitespaceAndNsEdits(eolString, startIndex, originalText, formattedText);
     }
 
-    const healing = healer.bandage(originalText, originalRange.start.character, eol);
-    const formattedHealedText = formatCode(healing.healedText, document.eol, false);
+    const healing = healer.bandage(originalText, startColumn, eolString);
+    const formattedHealedText = formatCode(healing.healedText, eol, false);
     const newTextDraft = healer.unbandage(healing, formattedHealedText);
     // unbandage aligned top-level forms flush-left, except the first one.
-    return whitespaceAndNsEdits(eol, startIndex, originalText, newTextDraft);
+    return whitespaceAndNsEdits(eolString, startIndex, originalText, newTextDraft);
   } else {
     console.warn('Range starting in comment or string is not being formatted');
     return [];
@@ -217,37 +236,84 @@ export function formatDocIndexesInfo(
   cursorIndexes: number[],
   extraConfig: CljFmtConfig = {}
 ) {
-  const mDoc = docMirror.getDocument(doc);
   const formatRange = formatDocIndexRange(doc, indexOfRange, extraConfig);
   if (!formatRange || (formatRange[0] == -1 && formatRange[1] == -1)) {
     return;
   }
-  const eol = _convertEolNumToStringNotation(doc.eol);
+  const info = formattedRangeInfo(
+    docMirror.getDocument(doc),
+    doc.getText(),
+    _convertEolNumToStringNotation(doc.eol),
+    formatRange,
+    { onType, cursorIndexes, extraConfig }
+  );
+  return {
+    ...info,
+    range: new vscode.Range(doc.positionAt(info.range[0]), doc.positionAt(info.range[1])),
+  };
+}
 
+function formattedRangeInfo(
+  mDoc: EditableDocument,
+  allText: string,
+  eol: string,
+  formatRange: [number, number],
+  {
+    onType,
+    cursorIndexes,
+    extraConfig,
+  }: { onType: boolean; cursorIndexes: number[]; extraConfig: CljFmtConfig }
+) {
   const cursor = mDoc.getTokenCursor(1 + formatRange[0]);
   const formatted: {
     'range-text': string;
     range: number[];
-  } = formatIndex.formatIndexes(doc.getText(), formatRange, cursorIndexes, eol, onType, {
+  } = formatIndex.formatIndexes(allText, formatRange, cursorIndexes, eol, onType, {
     ...config.getConfigNow(),
     ...extraConfig,
     'comment-form?': util.isCommentFormHead(cursor.getFunctionName()),
   });
-  const range: vscode.Range = new vscode.Range(
-    doc.positionAt(formatted.range[0]),
-    doc.positionAt(formatted.range[1])
-  );
-  const previousText: string = doc.getText(
-    new vscode.Range(doc.positionAt(formatRange[0]), doc.positionAt(formatRange[1]))
-  );
+  const previousText = allText.substring(formatRange[0], formatRange[1]);
   const formattedText = formatted['range-text'];
-  const changes = whitespaceAndNsEdits(eol, doc.offsetAt(range.start), previousText, formattedText);
   return {
-    formattedText: formattedText,
-    range: range,
-    previousText: previousText,
-    changes: changes,
+    formattedText,
+    range: formatted.range,
+    previousText,
+    changes: whitespaceAndNsEdits(eol, formatted.range[0], previousText, formattedText),
   };
+}
+
+/**
+ * The changes, last first, that format the forms at the cursors of `doc`, the way `formatPosition`
+ * does in an editor. For documents outside the editors, with `\n` line endings, whose text is `text`.
+ */
+export function formatAtCursorsChanges(
+  doc: EditableDocument,
+  text: string,
+  extraConfig: CljFmtConfig = {}
+): respacer.WhitespaceChange[] {
+  const cursorIndexes = doc.selections.map(({ active }) => active);
+  const rangeAt = (index: number) =>
+    _calculateFormatRange(extraConfig, doc.getTokenCursor(index), index);
+  const ranges = cursorIndexes.map(rangeAt);
+  if (ranges.some((range) => !range)) {
+    return documentRangeReformatChanges(doc, vscode.EndOfLine.LF, {
+      startIndex: 0,
+      startColumn: 0,
+      originalText: text,
+      fullDocument: true,
+    });
+  }
+  return docMirror
+    .nonOverlappingRanges(ranges)
+    .map(([start]) => rangeAt(start))
+    .filter((range) => range)
+    .flatMap(
+      (range) =>
+        formattedRangeInfo(doc, text, '\n', range, { onType: false, cursorIndexes, extraConfig })
+          .changes
+    )
+    .sort((a, b) => b.start - a.start);
 }
 
 interface CljFmtConfig {

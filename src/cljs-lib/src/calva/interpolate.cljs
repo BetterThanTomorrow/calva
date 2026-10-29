@@ -26,7 +26,7 @@
                                  (string/replace #"\\" "\\\\"))
                          "")
          :ns (.-ns context)
-         :editor-ns (.-editorNs context)
+         :editor-ns (.-editorNS context)
          :ns-form (.-nsForm context)
          :repl (.-repl context)
          :selection-closing-brackets (safe-second (.-selectionWithBracketTrail context))

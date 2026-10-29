@@ -3,7 +3,8 @@
    their frames."
   (:require
    ["highlight.js/lib/core" :as hljs]
-   [calva.repl.webview.stacktrace :as stacktrace]))
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.tooltip :as tooltip]))
 
 (def ^:private svg-namespace "http://www.w3.org/2000/svg")
 
@@ -62,8 +63,7 @@
   [class-name title & children]
   (let [link (apply create-element "button" class-name children)]
     (set! (.-type link) "button")
-    (set! (.-title link) title)
-    link))
+    (tooltip/attach! link title)))
 
 (defn- frames-text
   [n]
@@ -117,7 +117,7 @@
   [{:keys [control label title pressed? on-click]}]
   (let [button (create-element "button" "output-error-filter" label)]
     (set! (.-type button) "button")
-    (set! (.-title button) title)
+    (tooltip/attach! button title)
     (.. button (setAttribute "aria-pressed" (str (boolean pressed?))))
     (.. button (setAttribute "data-control" control))
     (.. button (addEventListener "click" on-click))
@@ -199,7 +199,7 @@
   (let [button (create-element "button" "output-copy-button")]
     (.. button -classList (add "output-error-copy"))
     (set! (.-type button) "button")
-    (set! (.-title button) "Copy error")
+    (tooltip/attach! button "Copy error")
     (doseq [[k v] {"aria-label" "Copy error"
                    "data-copy-label" "Copy error"
                    "data-control" "copy"}]

@@ -23,8 +23,9 @@
 (defn- workspace-folder-uris
   "URIs of every open workspace folder."
   [^js vscode]
-  (when-let [folders (some-> vscode .-workspace .-workspaceFolders)]
-    (keep (fn [^js folder] (.-uri folder)) (array-seq folders))))
+  (let [^js workspace (some-> vscode .-workspace)]
+    (when-let [folders (and workspace (.-workspaceFolders workspace))]
+      (keep (fn [^js folder] (.-uri folder)) (array-seq folders)))))
 
 (defn- non-file-uri?
   "True when `uri` has a scheme other than file."

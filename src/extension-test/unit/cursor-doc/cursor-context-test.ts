@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
 import * as context from '../../../cursor-doc/cursor-context';
+import * as model from '../../../cursor-doc/model';
 import * as textNotation from '../common/text-notation';
+
+model.initScanner(20000);
 
 describe('Cursor Contexts', () => {
   describe('cursorInString', () => {

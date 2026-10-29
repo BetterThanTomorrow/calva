@@ -10,6 +10,7 @@ import * as outputWindow from './repl-window/repl-window-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as url from 'url';
 import * as fiddleFiles from './fiddle-files';
+import * as currentFile from './current-file';
 import * as whenContexts from './when-contexts';
 import * as output from './results-output/output';
 import * as config from './config';
@@ -226,20 +227,20 @@ function getWordAtPosition(document, position) {
   return text;
 }
 
+/** Returns `document` when it is a text document, and not the `{}` commands get without one, else `orElse`. */
+function textDocumentOr(
+  document: unknown,
+  orElse: vscode.TextDocument | undefined
+): vscode.TextDocument | undefined {
+  return document && Object.prototype.hasOwnProperty.call(document, 'fileName')
+    ? (document as vscode.TextDocument)
+    : orElse;
+}
+
 function tryToGetDocument(
   document: vscode.TextDocument | Record<string, never> | undefined
 ): vscode.TextDocument | undefined {
-  const activeTextEditor = tryToGetActiveTextEditor();
-  if (document && Object.prototype.hasOwnProperty.call(document, 'fileName')) {
-    return document as vscode.TextDocument;
-  } else if (activeTextEditor?.document && activeTextEditor.document.languageId !== 'Log') {
-    return activeTextEditor.document;
-  } else if (vscode.window.visibleTextEditors.length > 0) {
-    const editor = vscode.window.visibleTextEditors.find(
-      (editor) => editor.document && editor.document.languageId !== 'Log'
-    );
-    return editor?.document;
-  }
+  return textDocumentOr(document, currentFile.activeEditorDocument());
 }
 
 function getDocument(document: vscode.TextDocument | Record<string, never>): vscode.TextDocument {
@@ -252,11 +253,9 @@ function getDocument(document: vscode.TextDocument | Record<string, never>): vsc
   return doc;
 }
 
-function getFileType(document: vscode.TextDocument | Record<string, never> | undefined) {
-  const doc = tryToGetDocument(document);
-
-  if (doc) {
-    return path.extname(doc.fileName).replace(/^\./, '');
+function getFileType(uri: vscode.Uri | undefined) {
+  if (uri) {
+    return path.extname(uri.fsPath).replace(/^\./, '');
   } else {
     return 'clj';
   }
@@ -278,7 +277,7 @@ function getConnectedState() {
 function setConnectedState(value: boolean) {
   void vscode.commands.executeCommand('setContext', 'calva:connected', value);
   cljsLib.setStateValue('connected', value);
-  fiddleFiles.updateFiddleFileOpenedContext(vscode.window.activeTextEditor);
+  fiddleFiles.updateFiddleFileOpenedContext();
   whenContexts.setProjectRootContext();
 }
 
@@ -718,6 +717,7 @@ export {
   isCommentFormHead,
   distinct,
   getWordAtPosition,
+  textDocumentOr,
   tryToGetDocument,
   getDocument,
   getFileType,

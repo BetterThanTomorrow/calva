@@ -1,11 +1,4 @@
-export type EvaluatedCodeOutputCategory =
-  | 'evalResults'
-  | 'evaluatedCode'
-  | 'clojure'
-  | 'evalOut'
-  | 'evalErr'
-  | 'otherOut'
-  | 'otherErr';
+import type { OutputCategory } from './output';
 
 export type EvaluatedCodeMessage = {
   category: 'evaluatedCode';
@@ -20,7 +13,7 @@ export type EvaluatedCodeMessage = {
 export type VisibleEvaluatedCodeWrite = {
   code: string;
   didLastTerminateLine: boolean;
-  outputCategory: EvaluatedCodeOutputCategory;
+  outputCategory: OutputCategory;
 };
 
 export function routeEvaluatedCode(options: {
@@ -31,7 +24,7 @@ export function routeEvaluatedCode(options: {
   replSessionKey?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
-  visibleOutputCategory?: EvaluatedCodeOutputCategory;
+  visibleOutputCategory?: OutputCategory;
   emit: (message: EvaluatedCodeMessage) => void;
   writeVisible: (write: VisibleEvaluatedCodeWrite) => void;
 }) {

@@ -44,15 +44,12 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
 
-  (testing ":msg/set-word-wrap"
+  (testing ":msg/set-word-wrap wraps the output and the REPL Input"
     (let [result (sut/handle-action sut/initial-db [:msg/set-word-wrap {:word-wrap true}])]
       (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-word-wrap true]] (:uf/fxs result)))))
-
-  (testing ":msg/scroll-to"
-    (let [result (sut/handle-action sut/initial-db [:msg/scroll-to {:x 0 :y 100}])]
-      (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/scroll-to {:x 0 :y 100}]] (:uf/fxs result))))))
+      (is (= [[:fx/set-word-wrap true]
+              [:repl-input/fx.set-line-wrapping true]]
+             (:uf/fxs result))))))
 
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"

@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
 import * as textNotation from '../common/text-notation';
 import * as getText from '../../../util/cursor-get-text';
+import * as model from '../../../cursor-doc/model';
+
+model.initScanner(20000);
 
 describe('get text', () => {
   describe('getTopLevelFunction', () => {
@@ -132,6 +135,83 @@ describe('get text', () => {
       expectLib
         .expect(getText.selectionAddingBrackets(doc))
         .toEqual([range, `${doc.model.getText(...range)}${trail}`]);
+    });
+  });
+
+  const rangeOf = (text: string, part: string): [number, number] => [
+    text.indexOf(part),
+    text.indexOf(part) + part.length,
+  ];
+
+  describe('selectionElseCurrentForm', () => {
+    it('Finds the current form at the cursor', () => {
+      const doc = textNotation.docFromTextNotation('(a b) (c |(d e) f)');
+      const text = doc.model.getText(0, doc.model.maxOffset);
+      expectLib
+        .expect(getText.selectionElseCurrentForm(doc))
+        .toEqual([rangeOf(text, '(d e)'), '(d e)']);
+    });
+
+    it('Gives the selection when there is one', () => {
+      const doc = textNotation.docFromTextNotation('(a b) (c |(d e) f|)');
+      const text = doc.model.getText(0, doc.model.maxOffset);
+      expectLib
+        .expect(getText.selectionElseCurrentForm(doc))
+        .toEqual([rangeOf(text, '(d e) f'), '(d e) f']);
+    });
+  });
+
+  describe('currentEnclosingForm', () => {
+    it('Finds the form enclosing the cursor', () => {
+      const doc = textNotation.docFromTextNotation('(a b) (c [d |e] f)');
+      const text = doc.model.getText(0, doc.model.maxOffset);
+      expectLib
+        .expect(getText.currentEnclosingForm(doc))
+        .toEqual([rangeOf(text, '[d e]'), '[d e]']);
+    });
+
+    it('Takes the whole document at the top level', () => {
+      const doc = textNotation.docFromTextNotation('(a b) |(c d)');
+      expectLib.expect(getText.currentEnclosingForm(doc)).toEqual([undefined, '(a b) (c d)']);
+    });
+  });
+
+  describe('enclosingFormOrSelectionToCursor', () => {
+    it('Takes the enclosing form to the cursor when nothing is selected', () => {
+      const doc = textNotation.docFromTextNotation('(a (b c |d) e)');
+      expectLib.expect(getText.enclosingFormOrSelectionToCursor(doc)).toEqual([[3, 7], '(b c)']);
+    });
+
+    it('Takes the selection adding brackets when there is one', () => {
+      const doc = textNotation.docFromTextNotation('(a |(b c d|) e)');
+      expectLib.expect(getText.enclosingFormOrSelectionToCursor(doc)).toEqual([[3, 9], '(b c d)']);
+    });
+  });
+
+  describe('currentClojureContext', () => {
+    it('Finds the forms around the cursor, as custom REPL commands name them', () => {
+      const doc = textNotation.docFromTextNotation(
+        '(def a 1)•(defn foo [x]•  (let [y (inc x)]•    (bar |y x)))'
+      );
+      const texts = Object.fromEntries(
+        Object.entries(getText.currentClojureContext(doc)).map(([k, [, text]]) => [k, text])
+      );
+      expectLib.expect(texts).toEqual({
+        currentForm: 'y',
+        currentPair: '',
+        enclosingForm: '(bar y x)',
+        topLevelForm: '(defn foo [x]\n  (let [y (inc x)]\n    (bar y x)))',
+        currentFn: 'bar',
+        topLevelDefinedForm: 'foo',
+        topLevelFn: 'defn',
+        head: 'bar ',
+        tail: 'y x',
+      });
+    });
+
+    it('Finds the current pair in a binding vector', () => {
+      const doc = textNotation.docFromTextNotation('(let [a 1 |b 2] a)');
+      expectLib.expect(getText.currentClojureContext(doc).currentPair[1]).toEqual('b 2');
     });
   });
 });

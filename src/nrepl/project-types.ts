@@ -1024,8 +1024,9 @@ async function leinCommandLine(
       '--'
     );
   }
+  // The cider-nrepl plugin adds the CIDER middleware, and `lein repl` can't take
+  // `cider.nrepl/cider-middleware`, which is a vector, not a middleware.
   const useMiddleware = [
-    ...middleware,
     ...(cljsType ? cljsMiddleware[cljsType] : []),
     ...(connectSequence.extraNReplMiddleware || []),
   ];
