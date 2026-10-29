@@ -3,7 +3,7 @@
 docker:
 - image: cimg/clojure:1.12.6-openjdk-21.0-browsers
 
-parallelism: 2
+parallelism: 3
 
 working_directory: ~/calva
 
