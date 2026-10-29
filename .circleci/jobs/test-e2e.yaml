@@ -24,12 +24,18 @@ steps:
                      --recv-keys E88979FB9B30ACF2;
     sudo apt update && sudo apt install -y libnss3 imagemagick
 
+- !:bin Show JVM CPUs
+
 - !:cmd
   - Run Extension Tests
   - npm run e2e-test -- --local
 
 - !:store
     test_results: ~/calva/junit
+
+- store_artifacts:
+    path: ~/calva/junit
+    destination: junit
 
 - store_artifacts:
     path: ~/calva/out/extension-test/e2e/screenshots

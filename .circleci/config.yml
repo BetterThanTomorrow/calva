@@ -51,6 +51,21 @@ jobs:
               --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
           node --version
     - run:
+        name: Show JVM CPUs
+        command: |
+          echo "nproc: $(nproc)"
+          if [[ -f /sys/fs/cgroup/cpu.max ]]; then
+            echo "cgroup v2 cpu.max: $(cat /sys/fs/cgroup/cpu.max)"
+          else
+            echo "cgroup v1 cfs_quota_us: $(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>/dev/null)"
+            echo "cgroup v1 cfs_period_us: $(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us 2>/dev/null)"
+            echo "cgroup v1 shares: $(cat /sys/fs/cgroup/cpu/cpu.shares 2>/dev/null)"
+          fi
+          java -XshowSettings:system -version 2>&1
+          java -XX:+PrintFlagsFinal -version 2>/dev/null |
+            grep -E ' (ActiveProcessorCount|CICompilerCount|ParallelGCThreads|ConcGCThreads|UseSerialGC|UseG1GC) ' ||
+            true
+    - run:
         name: Install CLJS dependencies
         command: npx shadow-cljs classpath
     - run:
@@ -247,10 +262,28 @@ jobs:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3 imagemagick
     - run:
+        name: Show JVM CPUs
+        command: |
+          echo "nproc: $(nproc)"
+          if [[ -f /sys/fs/cgroup/cpu.max ]]; then
+            echo "cgroup v2 cpu.max: $(cat /sys/fs/cgroup/cpu.max)"
+          else
+            echo "cgroup v1 cfs_quota_us: $(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us 2>/dev/null)"
+            echo "cgroup v1 cfs_period_us: $(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us 2>/dev/null)"
+            echo "cgroup v1 shares: $(cat /sys/fs/cgroup/cpu/cpu.shares 2>/dev/null)"
+          fi
+          java -XshowSettings:system -version 2>&1
+          java -XX:+PrintFlagsFinal -version 2>/dev/null |
+            grep -E ' (ActiveProcessorCount|CICompilerCount|ParallelGCThreads|ConcGCThreads|UseSerialGC|UseG1GC) ' ||
+            true
+    - run:
         name: Run Extension Tests
         command: npm run e2e-test -- --local
     - store_test_results:
         path: ~/calva/junit
+    - store_artifacts:
+        path: ~/calva/junit
+        destination: junit
     - store_artifacts:
         path: ~/calva/out/extension-test/e2e/screenshots
         destination: e2e-screenshots
