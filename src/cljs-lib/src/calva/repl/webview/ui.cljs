@@ -3,6 +3,7 @@
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
    ["strip-ansi" :default strip-ansi]
@@ -152,7 +153,7 @@
   (let [button (create-element "button" "output-copy-button" nil)]
     (.. button -classList (add "output-stdout-copy"))
     (set! (.-type button) "button")
-    (set! (.-title button) "Copy output")
+    (tooltip/attach! button "Copy output")
     (.. button (setAttribute "aria-label" "Copy output"))
     (.. button (setAttribute "data-copy-label" "Copy output"))
     (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
@@ -191,7 +192,7 @@
 (defn post-to-host!
   [message]
   (when vscode-api
-    (.postMessage vscode-api (clj->js message))))
+    (.postMessage vscode-api (clj->js message :keyword-fn #(subs (str %) 1)))))
 
 (defn- host-request-id
   []
@@ -369,7 +370,7 @@
       (set! (.. img -dataset -imageKind) (name kind))
       (set! (.. thumbnail -dataset -imageKind) (name kind)))
     (set! (.-type button) "button")
-    (set! (.-title button) "Copy image")
+    (tooltip/attach! button "Copy image")
     (.. button (setAttribute "aria-label" (str "Copy " label)))
     (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
     (.. button (addEventListener "click" #(copy-image! button img image)))
@@ -604,9 +605,13 @@
   [scale]
   (.. js/document -documentElement -style (setProperty "--calva-output-font-scale" (str scale))))
 
-(defn scroll-to
-  [{:keys [x y]}]
-  (js/scrollTo x y))
+(defonce !effect-handlers (atom {}))
+
+(defn register-effect-handler!
+  "Registers `handler` for the effects with the keyword namespace `effect-ns`. It is called with
+   `dispatch!` and the effect."
+  [effect-ns handler]
+  (swap! !effect-handlers assoc effect-ns handler))
 
 (defn- focused-control
   [^js element]
@@ -636,7 +641,7 @@
 (declare dispatch!)
 
 (defn exec-effect!
-  [^js output-dom-element [fx-type & args]]
+  [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
     :fx/append-result (append-eval-result output-dom-element (first args))
@@ -652,7 +657,9 @@
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
-    :fx/scroll-to (scroll-to (first args))))
+    (if-let [handler (get @!effect-handlers (namespace fx-type))]
+      (handler dispatch! effect)
+      (js/console.error "No handler for effect" (str fx-type)))))
 
 (defn dispatch!
   [action]
@@ -680,16 +687,30 @@
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
-         "scroll-to"            (dispatch! [:msg/scroll-to message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
          "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
          "image-bytes-missing"  (deliver-host-request! (:id message-data) message-data)
+         "repl-input-enabled"   (dispatch! [:repl-input/ax.set-enabled (:repl-input/enabled? message-data)])
+         "repl-input-edit"      (dispatch! [:repl-input/ax.edit message-data])
+         "repl-input-command-keys" (dispatch! [:repl-input/ax.set-command-keys (:repl-input/command-keys message-data)])
+         "repl-input-brackets"  (dispatch! [:repl-input/ax.set-brackets message-data])
+         "repl-input-editor-settings" (dispatch! [:repl-input/ax.set-editor-settings (:repl-input/editor-settings message-data)])
+         "repl-input-run-command" (dispatch! [:repl-input/ax.run-command (:repl-input/command message-data)])
+         "repl-input-context"   (dispatch! [:repl-input/ax.set-context-line (:repl-input/context-line message-data)])
+         "repl-input-evaluation" (dispatch! [:repl-input/ax.set-evaluation (:repl-input/evaluation message-data)])
+         "repl-input-focus"     (dispatch! [:repl-input/ax.focus])
+         "repl-input-not-last-focused" (dispatch! [:repl-input/ax.not-last-focused])
+         "repl-input-completions" (dispatch! [:repl-input/ax.completions message-data])
+         "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
+         "repl-input-history"   (dispatch! [:repl-input/ax.set-history (:repl-input.history/entries message-data)])
+         "repl-input-recall"    (dispatch! [:repl-input/ax.recall (:repl-input.history/position message-data)])
          ("show-result" "show-evaluated-code" "show-stdout")
          (dispatch! [:msg/output message-data])
          "show-error"           (dispatch! [:msg/error message-data])
-         "show-error-causes"    (dispatch! [:msg/error-causes message-data]))))))
+         "show-error-causes"    (dispatch! [:msg/error-causes message-data])
+         (js/console.error "No handler for message" (str command-name)))))))
 
 (defn handle-output-appended
   [^js _event]
@@ -704,4 +725,9 @@
   (add-event-listeners output-dom-element)
   (.. hljs (registerLanguage "clojure" clojure))
   (ensure-dom-content-loaded (fn []
-                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true}))))))
+                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true})))
+                               ;; Added after the copy plugin, which adds the button it gives a tooltip
+                               (.. hljs (addPlugin #js {"after:highlightElement"
+                                                        (fn [^js result]
+                                                          (some-> (.. result -el -parentElement (querySelector ".hljs-copy-button"))
+                                                                  (tooltip/attach! "Copy")))})))))

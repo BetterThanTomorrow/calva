@@ -278,9 +278,14 @@ export class DocumentModel implements EditableModel {
     if (!modelEdits || modelEdits.length == 0) {
       return Promise.resolve(true);
     }
-    // Editor-free path: when no formatting, no selections, and no explicit editor,
+    // Editor-free path: when no formatting, no selections, no explicit editor and no undo stop,
     // use WorkspaceEdit which only needs a document URI (no visible editor required).
-    if (options.skipFormat && !options.selections && !options.editor) {
+    if (
+      options.skipFormat &&
+      !options.selections &&
+      !options.editor &&
+      options.undoStopAfter === undefined
+    ) {
       return this.applyViaWorkspaceEdit(modelEdits);
     }
     // Reformatting will retouch the spots affected by edits.
@@ -319,7 +324,7 @@ export class DocumentModel implements EditableModel {
       (builder) => {
         this.editNowTextOnly(modelEdits, { builder: builder, ...options });
       },
-      { undoStopAfter: options.skipFormat, undoStopBefore }
+      { undoStopAfter: options.undoStopAfter ?? options.skipFormat, undoStopBefore }
     );
     if (!postEditPlan) {
       return editCompletion;

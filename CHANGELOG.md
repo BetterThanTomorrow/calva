@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
+- Fix: `$editor-ns` is empty in custom REPL commands
+- Fix: Go to definition sometimes land one column off
+- Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
+- Fix: The Output Sidebar loses its output when the Output Destinations change
+- Fix: Code in the Output views isn't highlighted when offline
+- Calva Development QoL: CI build-and-test pipeline now runs in 8 minutes, down from 18 minutes
+
 ## [2.0.605] - 2026-10-27
 
 - Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)

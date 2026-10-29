@@ -14,6 +14,9 @@ import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
 import * as docMirror from '../../../doc-mirror';
 import * as connector from '../../../connector';
+import * as utilities from '../../../utilities';
+import * as replSession from '../../../nrepl/repl-session';
+import { ConnectType } from '../../../nrepl/connect-types';
 
 export const testDataDir = path.join(
   __dirname,
@@ -40,6 +43,31 @@ export async function openFile(filePath: string) {
   );
 
   return editor;
+}
+
+export async function showInColumn(filePath: string, column: vscode.ViewColumn) {
+  const document = await vscode.workspace.openTextDocument(filePath);
+  await vscode.window.showTextDocument(document, column);
+  await waitForCondition(
+    () => vscode.window.activeTextEditor?.document === document,
+    4000,
+    20,
+    `Timed out waiting for ${filePath} to be the active editor`
+  );
+  return document;
+}
+
+/**
+ * Returns what Calva answers for the file the user is in: the path of its document, the session
+ * it routes to, and the project root closest to it.
+ */
+export async function currentFileAnswers() {
+  const { input } = await state.gatherRootDecision(ConnectType.JackIn, undefined, false);
+  return {
+    document: utilities.tryToGetDocument({})?.uri.fsPath,
+    sessionKey: replSession.getRoutingInfo()?.sessionKey,
+    closestRoot: input.closestRoot,
+  };
 }
 
 export function sleep(ms: number): Promise<void> {

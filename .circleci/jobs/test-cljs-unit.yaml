@@ -12,12 +12,5 @@ steps:
     - rmdir ~/calva && cp -r /tmp/build ~/calva
 
   - !:cmd
-    - Verify CLJS test output after restore
-    - ls -l out/cljs-lib/test
-
-  - !:cmd
-    - Run CLJS Tests
+    - Run CLJS Unit Tests
     - npm run calva-lib-test
-
-  - !:store
-    test_results: ~/calva/junit

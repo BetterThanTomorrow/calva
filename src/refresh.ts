@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as util from './utilities';
 import * as state from './state';
 import * as nrepl from './nrepl';
 import * as replSession from './nrepl/repl-session';
@@ -39,8 +38,7 @@ function initRefreshOptions(opts: Record<string, unknown>) {
 export function refresh(opts: Record<string, unknown> = {}) {
   initRefreshOptions(opts);
 
-  const doc = util.tryToGetDocument({}),
-    client: nrepl.NReplSession = replSession.getSession();
+  const client: nrepl.NReplSession = replSession.getSession();
 
   if (client != undefined) {
     const sessionKey = sessionRegistry.resolveSessionKey(client);
@@ -58,8 +56,7 @@ export function refresh(opts: Record<string, unknown> = {}) {
 export function refreshAll(opts: Record<string, unknown> = {}) {
   initRefreshOptions(opts);
 
-  const doc = util.tryToGetDocument({}),
-    client: nrepl.NReplSession = replSession.getSession();
+  const client: nrepl.NReplSession = replSession.getSession();
 
   if (client != undefined) {
     const sessionKey = sessionRegistry.resolveSessionKey(client);

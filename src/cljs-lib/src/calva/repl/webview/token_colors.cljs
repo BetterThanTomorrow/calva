@@ -106,6 +106,24 @@
             (when (sequential? tokenColors)
               tokenColors))))
 
+(defonce !theme-token-colors (atom nil))
+
+(defn theme-token-colors
+  "Returns the `tokenColors` of the theme file at `theme-file`, reading the file only when it isn't the file
+   read last, or after `clear-theme-token-colors!`."
+  [theme-file]
+  (let [{:theme/keys [file token-colors]} @!theme-token-colors]
+    (if (= theme-file file)
+      token-colors
+      (let [token-colors (vec (read-token-colors theme-file))]
+        (reset! !theme-token-colors {:theme/file theme-file
+                                     :theme/token-colors token-colors})
+        token-colors))))
+
+(defn clear-theme-token-colors!
+  []
+  (reset! !theme-token-colors nil))
+
 (defn- contributed-themes
   [^js vscode]
   (for [^js extension (.. vscode -extensions -all)
@@ -136,7 +154,7 @@
       (when-let [{:theme/keys [file] :as theme} (active-theme (contributed-themes vscode)
                                                               (theme-settings vscode color-theme-kind)
                                                               color-theme-kind)]
-        (hljs-colors (concat (read-token-colors file)
+        (hljs-colors (concat (theme-token-colors file)
                              (customization-rules (user-customizations vscode) theme))))
       (catch :default e
         (util/log-to-console :error "Cannot read the color theme's token colors:" e)

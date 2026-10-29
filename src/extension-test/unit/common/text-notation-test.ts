@@ -1,5 +1,8 @@
 import * as expectLib from 'expect';
+import * as model from '../../../cursor-doc/model';
 import * as textNotation from '../common/text-notation';
+
+model.initScanner(20000);
 
 describe('text-notation test utils', () => {
   describe('textNotationFromDoc', () => {

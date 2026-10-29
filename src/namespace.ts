@@ -51,18 +51,27 @@ export function getNamespace(
   return ['user', "(in-ns 'user)"];
 }
 
+/** Evaluates `nsForm` in `session` unless the REPL lists `ns` as loaded. */
+export async function createNamespaceIfNotExists(
+  session: nrepl.NReplSession,
+  ns: string,
+  nsForm: string
+) {
+  const nsList = await session.listNamespaces([]);
+  if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
+    return;
+  }
+  await session.evaluateInNs(nsForm, outputWindow.getNs());
+}
+
 export async function createNamespaceFromDocumentIfNotExists(doc) {
   if (utilities.getConnectedState()) {
     const document = utilities.tryToGetDocument(doc);
     if (document) {
       const [ns, nsForm] = getNamespace(document);
-      const client = replSession.getSession();
+      const client = replSession.getSession(document);
       if (client) {
-        const nsList = await client.listNamespaces([]);
-        if (nsList && nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
-          return;
-        }
-        await client.evaluateInNs(nsForm, outputWindow.getNs());
+        await createNamespaceIfNotExists(client, ns, nsForm);
       }
     }
   }

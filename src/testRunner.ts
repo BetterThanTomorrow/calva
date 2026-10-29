@@ -249,7 +249,7 @@ async function reportTests(
 
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
-  const session = replSession.getSession();
+  const session = replSession.getSession(util.tryToGetDocument(document));
   output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
@@ -274,7 +274,7 @@ function runAllTestsCommand(controller: vscode.TestController) {
 
 async function loadTestNS() {
   const document = util.getActiveTextEditor().document;
-  const session = replSession.getSession();
+  const session = replSession.getSession(document);
   const doc = util.tryToGetDocument(document);
 
   const [ns, _] = namespace.getNamespace(
@@ -309,7 +309,7 @@ async function runNamespaceTestsImpl(
     return;
   }
 
-  const session = replSession.getSession();
+  const session = replSession.getSession(document);
 
   output.appendLineOtherOut(
     `Running tests for the following namespaces:\n${
@@ -355,12 +355,10 @@ function getTestUnderCursor() {
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
-  const doc = util.tryToGetDocument({});
-  const session = replSession.getSession();
-  const [ns, _] = namespace.getNamespace(
-    doc,
-    vscode.window.activeTextEditor?.selections[0]?.active
-  );
+  const editor = util.tryToGetActiveTextEditor();
+  const doc = editor?.document;
+  const session = replSession.getSession(doc);
+  const [ns, _] = namespace.getNamespace(doc, editor?.selections[0]?.active);
   const test = getTestUnderCursor();
 
   if (test) {
@@ -402,7 +400,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-  const session = replSession.getSession();
+  const session = replSession.getSession(util.tryToGetDocument(document));
   output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);

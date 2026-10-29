@@ -2,23 +2,10 @@ import * as vscode from 'vscode';
 import * as isEqual from 'lodash.isequal';
 import * as nodeUtil from 'util';
 import * as docMirror from '../../doc-mirror/index';
-import * as clojureLexer from '../../cursor-doc/clojure-lexer';
-import * as tokenCursor from '../../cursor-doc/token-cursor';
 import * as utilities from '../../utilities';
-import * as pareditConfig from '../../cursor-doc/paredit-config';
 import * as config from '../../config';
+import * as rainbowBrackets from './rainbow-brackets';
 
-type StackItem = {
-  char: string;
-  start: vscode.Position;
-  end: vscode.Position;
-  pair_idx: number;
-  opens_comment_form?: boolean;
-};
-
-function position_str(pos: vscode.Position) {
-  return '' + pos.line + ':' + pos.character;
-}
 function is_clojure(editor) {
   return !!editor && editor.document.languageId === 'clojure';
 }
@@ -45,9 +32,7 @@ let lastHighlightedEditor,
   enableBracketColors,
   useRainbowIndentGuides,
   highlightActiveIndent,
-  pairsBack: Map<string, [vscode.Range, vscode.Range]> = new Map(),
-  pairsForward: Map<string, [vscode.Range, vscode.Range]> = new Map(),
-  placedGuidesColor: Map<string, number> = new Map(),
+  rainbow: rainbowBrackets.RainbowBrackets,
   rainbowTimer = undefined,
   matchTimer = undefined,
   dirty = false;
@@ -251,315 +236,109 @@ function updateRainbowBrackets() {
   if (!mirrorDoc) {
     return;
   }
-  const rainbow = rainbowTypes.map(() => []);
-  const rainbowGuides = rainbowTypes.map(() => []);
-  const misplaced = [];
-  const comment_forms = [];
-  const ignores = [];
-  const topLevelIgnores = [];
   const len = rainbowTypes.length;
   const colorsEnabled = enableBracketColors && len > 0;
   const guideColorsEnabled = useRainbowIndentGuides && len > 0;
   const activeGuideEnabled = highlightActiveIndent && len > 0;
-  const colorIndex = cycleBracketColors ? (i) => i % len : (i) => Math.min(i, len - 1);
-
-  let in_comment_form = false;
-  let stack_depth = 0;
-  const stack: StackItem[] = [];
-  pairsBack = new Map();
-  pairsForward = new Map();
-  placedGuidesColor = new Map();
   const { customCommentForms, aliasMap } = config.getConfig();
-  const commentFormConfig = { customCommentForms, aliasMap };
-  activeEditor.visibleRanges.forEach((range) => {
-    // Find the visible forms
-    const startOffset = doc.offsetAt(range.start);
-    const endOffset = doc.offsetAt(range.end);
-    const startCursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(0);
-    const startRange = startCursor.rangeForDefun(startOffset, false);
-    const endCursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(endOffset);
-    const endRange = endCursor.rangeForDefun(endOffset, false);
-    const rangeStart = startRange ? startRange[0] : startOffset;
-    const rangeEnd = endRange ? endRange[1] : endOffset;
-    // Look for top level ignores, and adjust starting point if found
-    const topLevelSentinelCursor = mirrorDoc.getTokenCursor(rangeStart);
-    let startPaintingFrom = rangeStart;
-    for (let i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
-      if (topLevelSentinelCursor.getToken().type === 'ignore') {
-        do {
-          topLevelSentinelCursor.backwardSexp();
-        } while (
-          !topLevelSentinelCursor.atStart() &&
-          topLevelSentinelCursor.getToken().type === 'ignore'
-        );
-        startPaintingFrom = topLevelSentinelCursor.offsetStart;
-        break;
-      }
+  rainbow = rainbowBrackets.rainbowBrackets(
+    mirrorDoc.model.lineInputModel,
+    activeEditor.visibleRanges.map((range): [number, number] => [
+      doc.offsetAt(range.start),
+      doc.offsetAt(range.end),
+    ]),
+    {
+      colorCount: len,
+      cycleBracketColors,
+      guides: guideColorsEnabled || activeGuideEnabled,
+      commentFormConfig: { customCommentForms, aliasMap },
     }
-    // Start painting!
-    const cursor: tokenCursor.LispTokenCursor = mirrorDoc.getTokenCursor(startPaintingFrom);
-    do {
-      cursor.forwardWhitespace();
-      {
-        // Skip pass strings and literals, and highlight ignored forms.
-        const token: clojureLexer.Token = cursor.getToken();
-        if (token.type === 'str-inside' || token.raw.includes('"')) {
-          continue;
-        } else if (token.type === 'lit') {
-          continue;
-        } else if (token.type === 'ignore') {
-          const ignoreCursor = cursor.clone();
-          let ignore_counter = 0;
-          const ignore_start = activeEditor.document.positionAt(ignoreCursor.offsetStart);
-          while (ignoreCursor.getToken().type === 'ignore') {
-            ignore_counter++;
-            ignoreCursor.next();
-            ignoreCursor.forwardWhitespace();
-          }
-          for (let i = 0; i < ignore_counter; i++) {
-            ignoreCursor.forwardSexp(true, true, true);
-          }
-          const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
-          if (cursor.atTopLevel()) {
-            topLevelIgnores.push(new vscode.Range(ignore_start, ignore_end));
-          } else {
-            ignores.push(new vscode.Range(ignore_start, ignore_end));
-          }
-        }
-      }
-      const token = cursor.getToken(),
-        char = token.raw,
-        charLength = char.length;
-      // Highlight (comment ...) forms
-      if (!in_comment_form && pareditConfig.isCommentFormHead(char, commentFormConfig)) {
-        const peekCursor = cursor.clone();
-        peekCursor.backwardWhitespace();
-        if (peekCursor.getPrevToken().raw === '(') {
-          in_comment_form = true;
-          stack[stack.length - 1].opens_comment_form = true;
-        }
-      }
-      // Rainbows! (And also highlight current parens.)
-      if (token.type === 'open') {
-        const readerCursor = cursor.clone();
-        readerCursor.backwardThroughAnyReader();
-        const start = activeEditor.document.positionAt(readerCursor.offsetStart),
-          end = activeEditor.document.positionAt(cursor.offsetEnd),
-          openRange = new vscode.Range(start, end),
-          openString = activeEditor.document.getText(openRange);
-        if (colorsEnabled) {
-          const decoration = { range: openRange };
-          rainbow[colorIndex(stack_depth)].push(decoration);
-        }
-        ++stack_depth;
-        stack.push({
-          char: openString,
-          start: start,
-          end: end,
-          pair_idx: undefined,
-          opens_comment_form: false,
-        });
-        continue;
-      } else if (token.type === 'close') {
-        const pos = activeEditor.document.positionAt(cursor.offsetStart),
-          decoration = { range: new vscode.Range(pos, pos.translate(0, 1)) };
-        let pair_idx = stack.length - 1;
-        while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
-          pair_idx = stack[pair_idx].pair_idx - 1;
-        }
-        if (
-          pair_idx === undefined ||
-          pair_idx < 0 ||
-          !clojureLexer.validPair(stack[pair_idx].char, char)
-        ) {
-          misplaced.push(decoration);
-        } else {
-          const pair = stack[pair_idx],
-            closing = new vscode.Range(pos, pos.translate(0, charLength)),
-            opening = new vscode.Range(pair.end.translate(0, -1), pair.end);
-          if (in_comment_form && pair.opens_comment_form) {
-            comment_forms.push(new vscode.Range(pair.start, pos.translate(0, charLength)));
-            in_comment_form = false;
-          }
-          stack.push({
-            char: char,
-            start: pos,
-            end: pos.translate(0, charLength),
-            pair_idx: pair_idx,
-          });
-          pairsBack.set(position_str(pos), [opening, closing]);
-          const startOffset = activeEditor.document.offsetAt(pair.start);
-          for (let i = 0; i < pair.char.length; ++i) {
-            pairsForward.set(position_str(activeEditor.document.positionAt(startOffset + i)), [
-              opening,
-              closing,
-            ]);
-          }
-          --stack_depth;
-          if (colorsEnabled) {
-            rainbow[colorIndex(stack_depth)].push(decoration);
-          }
-          if (guideColorsEnabled || activeGuideEnabled) {
-            const matchPos = pos.translate(0, 1);
-            const openSelection = matchBefore(new vscode.Selection(matchPos, matchPos));
-            const openSelectionPos = openSelection[0].start;
-            const guideLength = decorateGuide(
-              doc,
-              openSelectionPos,
-              matchPos,
-              rainbowGuides[colorIndex(stack_depth)]
-            );
-            if (guideLength > 0) {
-              placedGuidesColor.set(position_str(openSelectionPos), colorIndex(stack_depth));
-            }
-          }
-          continue;
-        }
-      }
-    } while (cursor.offsetStart < rangeEnd && cursor.next());
-  });
-
+  );
+  const brackets = colorsEnabled ? decorationsByColor(doc, rainbow.brackets) : [];
+  const guides = guideColorsEnabled ? decorationsByColor(doc, rainbow.guides) : [];
   for (let i = 0; i < rainbowTypes.length; ++i) {
-    activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
+    activeEditor.setDecorations(rainbowTypes[i], brackets[i] ?? []);
     if (guideColorsEnabled) {
-      activeEditor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
+      activeEditor.setDecorations(rainbowGuidesTypes[i], guides[i]);
     }
   }
-  activeEditor.setDecorations(misplacedType, misplaced);
-  activeEditor.setDecorations(commentFormType, comment_forms);
-  activeEditor.setDecorations(ignoredFormType, ignores);
-  activeEditor.setDecorations(ignoredTopLevelFormType, topLevelIgnores);
+  activeEditor.setDecorations(
+    misplacedType,
+    rainbow.misplaced.map((range) => ({ range: toRange(doc, range) }))
+  );
+  activeEditor.setDecorations(
+    commentFormType,
+    rainbow.commentForms.map((range) => toRange(doc, range))
+  );
+  activeEditor.setDecorations(
+    ignoredFormType,
+    rainbow.ignoredForms.map((range) => toRange(doc, range))
+  );
+  activeEditor.setDecorations(
+    ignoredTopLevelFormType,
+    rainbow.topLevelIgnoredForms.map((range) => toRange(doc, range))
+  );
   matchPairs();
   if (activeGuideEnabled) {
     decorateActiveGuides();
   }
 }
 
-function matchBefore(selection) {
-  const cursor = selection.active;
-  if (cursor.isBeforeOrEqual(selection.anchor)) {
-    if (cursor.character > 0) {
-      return pairsBack.get(position_str(cursor.translate(0, -1)));
-    }
-  }
+function toRange(doc: vscode.TextDocument, [start, end]: [number, number]) {
+  return new vscode.Range(doc.positionAt(start), doc.positionAt(end));
 }
 
-function matchAfter(selection) {
-  const cursor = selection.active;
-  if (cursor.isAfterOrEqual(selection.anchor)) {
-    if (cursor.translate(0, 1).line === cursor.line) {
-      return pairsForward.get(position_str(cursor));
-    }
-  }
+function decorationsByColor(
+  doc: vscode.TextDocument,
+  coloredRanges: rainbowBrackets.ColoredRange[]
+): { range: vscode.Range }[][] {
+  const decorations = rainbowTypes.map(() => []);
+  coloredRanges.forEach(({ range, colorIndex }) =>
+    decorations[colorIndex].push({ range: toRange(doc, range) })
+  );
+  return decorations;
 }
 
 function matchPairs() {
-  if (!is_clojure(activeEditor)) {
+  if (!is_clojure(activeEditor) || !rainbow) {
     return;
   }
-
-  const matches: { range: vscode.Range }[] = [];
-  activeEditor.selections.forEach((selection) => {
-    const match_before = matchBefore(selection),
-      match_after = matchAfter(selection);
-    if (match_before) {
-      matches.push({ range: match_before[0] });
-      matches.push({ range: match_before[1] });
-    }
-    if (match_after) {
-      matches.push({ range: match_after[0] });
-      matches.push({ range: match_after[1] });
-    }
-  });
-  activeEditor.setDecorations(matchedType, matches);
-}
-
-function decorateGuide(
-  doc: vscode.TextDocument,
-  startPos: vscode.Position,
-  endPos: vscode.Position,
-  guides: any[]
-): number {
-  let guideLength = 0;
-  for (let lineDelta = 1; lineDelta <= endPos.line - startPos.line; lineDelta++) {
-    const guidePos = startPos.translate(lineDelta, 0);
-    if (doc.lineAt(guidePos).text.match(/^ */)[0].length >= startPos.character) {
-      const guidesDecoration = { range: new vscode.Range(guidePos, guidePos) };
-      guides.push(guidesDecoration);
-      guideLength++;
-    }
-  }
-  return guideLength;
+  const doc = activeEditor.document;
+  const matches = rainbowBrackets.matchedBrackets(
+    rainbow,
+    activeEditor.selections.map((selection): [number, number] => [
+      doc.offsetAt(selection.anchor),
+      doc.offsetAt(selection.active),
+    ])
+  );
+  activeEditor.setDecorations(
+    matchedType,
+    matches.map((range) => ({ range: toRange(doc, range) }))
+  );
 }
 
 function decorateActiveGuides() {
-  // Deduplicate shared guides and batch decoration updates across cursors.
-  const activeGuides = new Map<
-    number,
-    {
-      starts: Set<string>;
-      decorations: Map<string, { range: vscode.Range }>;
-    }
-  >();
   activeEditor = utilities.tryToGetActiveTextEditor();
   if (!activeEditor) {
     return;
   }
-  if (activeGuidesTypes) {
-    activeGuidesTypes.forEach((type) => activeEditor.setDecorations(type, []));
-  }
-  activeEditor.selections.forEach((selection) => {
-    const doc = activeEditor.document;
-    const mirrorDoc = docMirror.tryToGetDocument(doc);
-    if (!mirrorDoc) {
-      return;
-    }
-    const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
-    const visitedEndPositions = [selection.start];
-    findActiveGuide: while (cursor.forwardList() && cursor.upList()) {
-      const endPos = doc.positionAt(cursor.offsetStart);
-      for (let i = 0; i < visitedEndPositions.length; i++) {
-        if (endPos.isEqual(visitedEndPositions[i])) {
-          break findActiveGuide;
-        }
-      }
-      visitedEndPositions.push(endPos);
-      cursor.backwardSexp();
-      const downCursor = cursor.clone();
-      if (downCursor.downList()) {
-        const startPos = doc.positionAt(downCursor.offsetStart - 1);
-        const guideRange = new vscode.Range(startPos, endPos);
-        const colorIndex = placedGuidesColor.get(position_str(startPos));
-        if (colorIndex !== undefined) {
-          if (guideRange.contains(selection)) {
-            const guidesForColor = activeGuides.get(colorIndex) ?? {
-              starts: new Set<string>(),
-              decorations: new Map<string, { range: vscode.Range }>(),
-            };
-            if (!activeGuides.has(colorIndex)) {
-              activeGuides.set(colorIndex, guidesForColor);
-            }
-            const startKey = position_str(startPos);
-            if (!guidesForColor.starts.has(startKey)) {
-              guidesForColor.starts.add(startKey);
-              const guideDecorations: { range: vscode.Range }[] = [];
-              if (decorateGuide(doc, startPos, endPos, guideDecorations) > 0) {
-                guideDecorations.forEach((decoration) => {
-                  guidesForColor.decorations.set(position_str(decoration.range.start), decoration);
-                });
-              }
-            }
-          }
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-  });
-  activeGuides.forEach(({ decorations }, colorIndex) => {
-    activeEditor.setDecorations(activeGuidesTypes[colorIndex], [...decorations.values()]);
-  });
+  const doc = activeEditor.document;
+  const mirrorDoc = docMirror.tryToGetDocument(doc);
+  const guides =
+    mirrorDoc && rainbow
+      ? decorationsByColor(
+          doc,
+          rainbowBrackets.activeGuides(
+            mirrorDoc.model.lineInputModel,
+            rainbow,
+            activeEditor.selections.map((selection): [number, number] => [
+              doc.offsetAt(selection.start),
+              doc.offsetAt(selection.end),
+            ])
+          )
+        )
+      : [];
+  activeGuidesTypes?.forEach((type, i) => activeEditor.setDecorations(type, guides[i] ?? []));
 }
 
 export function activate(context: vscode.ExtensionContext) {

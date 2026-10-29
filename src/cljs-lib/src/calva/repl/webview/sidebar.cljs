@@ -1,13 +1,28 @@
 (ns calva.repl.webview.sidebar
   (:require
+   [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.trail :as trail]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
-(defonce output-sidebar-log (atom []))
+(defonce output-sidebar-log (atom #queue []))
 (defonce output-sidebar-showing-output-log? (atom false))
+
+(def log-kept-count
+  "How many of the latest messages `output-sidebar-log` keeps."
+  5000)
+
+(defn add-to-log
+  "Returns `log`, a queue, with `message` last, keeping the latest `log-kept-count`."
+  [log message]
+  (let [added (conj log message)]
+    (if (> (count added) log-kept-count)
+      (pop added)
+      added)))
 
 (defn current-output-destinations
   []
@@ -47,6 +62,7 @@
 
 (defn set-sidebar-help!
   [^js webview-view]
+  (trail/log! "output-sidebar help page set")
   (reset! output-sidebar-showing-output-log? false)
   (set! (.. webview-view -webview -html)
         (get-sidebar-help-html (.. webview-view -webview -cspSource))))
@@ -73,24 +89,37 @@
 
 (defn apply-sidebar-help-or-output-log!
   [^js webview-view]
-  (if (output-sidebar-in-setting? (current-output-destinations))
-    (do
-      (show-sidebar-output-log! webview-view)
-      (post-output-sidebar-log!))
-    (do
-      (set-sidebar-help! webview-view)
-      (reset! output-sidebar-log []))))
+  (let [destination? (output-sidebar-in-setting? (current-output-destinations))]
+    (if (input-host/enabled? "output-sidebar")
+      (input-host/view-page-set! "output-sidebar")
+      (input-host/view-disposed! "output-sidebar"))
+    (set! (.-title webview-view) (input-host/view-title "output-sidebar"))
+    (if (or destination? (input-host/enabled? "output-sidebar"))
+      (do
+        (show-sidebar-output-log! webview-view)
+        (post-output-sidebar-log!))
+      (set-sidebar-help! webview-view))
+    (when-not destination?
+      (reset! output-sidebar-log #queue []))))
 
 (defn add-output-sidebar-message!
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log conj message)
+    (swap! output-sidebar-log add-to-log message)
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
 (defn add-context-subscription!
   [subscription]
   (.. ^js @util/vscode-context -subscriptions (push subscription)))
+
+(defn- output-destinations-changed!
+  "Shows the help or the output log in the Output Sidebar `webview-view` for the changed Output Destinations.
+   Leaves the page as it is while it shows the output log and the sidebar stays a destination."
+  [^js webview-view]
+  (when-not (and @output-sidebar-showing-output-log?
+                 (output-sidebar-in-setting? (current-output-destinations)))
+    (apply-sidebar-help-or-output-log! webview-view)))
 
 (defn create-output-destinations-change-listener
   []
@@ -99,16 +128,19 @@
        (fn [^js event]
          (when (and (.affectsConfiguration event "calva.outputDestinations")
                     @output-sidebar-webview-view)
-           (apply-sidebar-help-or-output-log! @output-sidebar-webview-view))))))
+           (output-destinations-changed! @output-sidebar-webview-view))))))
 
 (defn ^:export create-repl-output-sidebar-provider
   []
   (let [provider
         #js {:resolveWebviewView
              (fn [^js webview-view _context _token]
+               (trail/log! (str "output-sidebar resolved, REPL Input " (input-host/on-or-off "output-sidebar")))
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
                (image-host/listen-for-webview-messages! webview-view)
+               (input-messages/listen-for-messages! webview-view)
+               (core/listen-for-page-loaded! webview-view "output-sidebar")
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
@@ -119,13 +151,17 @@
                                       (when ws-folders-disposable
                                         (.dispose ^js ws-folders-disposable))
                                       (reset! output-sidebar-webview-view nil)
-                                      (core/unregister-webview! webview-view))))))
+                                      (core/unregister-webview! webview-view)
+                                      (input-host/view-disposed! "output-sidebar"))))))
                (add-context-subscription!
                 (.. webview-view
                     (onDidChangeVisibility
                      (fn []
-                       (when (and (.. webview-view -visible)
-                                  (output-sidebar-in-setting? (current-output-destinations)))
+                       (cond
+                         (not (.. webview-view -visible))
+                         (input-host/view-hidden! "output-sidebar")
+
+                         @output-sidebar-showing-output-log?
                          (core/set-code-theme! (sidebar-context)
                                                {:color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)
                                                 :webview-panel webview-view})))))))}]
@@ -144,13 +180,9 @@
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        command-name (get core/output-category->command-name output-category)
-        meta-data (core/options->meta options)]
+        command-name (get core/output-category->command-name output-category)]
     (if command-name
-      (add-output-sidebar-message! (cond-> {:command/name command-name
-                                            :output-category output-category
-                                            :output message}
-                                     (seq meta-data) (assoc :meta meta-data)))
+      (add-output-sidebar-message! (core/output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
@@ -165,6 +197,6 @@
 
 (defn ^:export clear-output-sidebar
   []
-  (reset! output-sidebar-log [])
+  (reset! output-sidebar-log #queue [])
   (when @output-sidebar-webview-view
     (core/post-message-to-webview @output-sidebar-webview-view {:command/name "clear-output-view"})))

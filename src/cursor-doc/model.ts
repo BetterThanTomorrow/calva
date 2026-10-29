@@ -247,6 +247,8 @@ export class ModelEditSelection {
 
 export type ModelEditOptions = {
   undoStopBefore?: boolean;
+  /** Defaults to `skipFormat`. Given, the edit goes through the editor, which has the undo stack. */
+  undoStopAfter?: boolean;
   skipFormat?: boolean;
   selections?: ModelEditSelection[];
   builder?: TextEditorEdit;
@@ -343,7 +345,7 @@ export const selectionsAfterEdits = (function () {
       if (delta != 0) {
         retSelections = retSelections.map(function (s: ModelEditSelection) {
           return new ModelEditSelection(
-            bump(s.end, affected),
+            bump(s.anchor, affected),
             bump(s.active, affected),
             bump(s.start, affected),
             bump(s.end, affected)
@@ -796,7 +798,8 @@ export class StringDocument implements EditableDocument {
 
     this.model = new LineInputModel(eol ? eol.length : 1, this);
     if (contents) {
-      this.insertString(contents);
+      this.model.insertString(0, contents);
+      initScanner(scanner.maxLength);
     }
     this.selections = [];
   }
@@ -845,10 +848,20 @@ export class StringDocument implements EditableDocument {
     return this.model.getTokenCursor(offset);
   }
 
+  /**
+   * Inserts `text` at the anchor of the first selection, or at the start when there is no selection,
+   * and keeps the selections where they are, as a text editor's document does.
+   */
   insertString(text: string) {
-    this.model.insertString(0, text);
+    const offset = this.selections[0]?.anchor ?? 0;
+    this.model.editNow([new ModelEdit('insertString', [offset, text])], {
+      selections: this.selections,
+    });
     initScanner(scanner.maxLength);
   }
 
-  getSelectionText: () => string;
+  getSelectionText() {
+    const selection = this.selections[0];
+    return selection ? this.model.getText(selection.start, selection.end) : '';
+  }
 }

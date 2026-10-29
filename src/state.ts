@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as semver from 'semver';
 import * as analyticsModule from './analytics';
 import * as util from './utilities';
+import * as currentFile from './current-file';
 import * as path from 'path';
 import * as fileArg from './util/resolve-file-arg';
 import * as child from 'child_process';
@@ -121,9 +122,9 @@ export function nonProjectRootUri(): vscode.Uri {
 }
 
 function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
-  const doc = util.tryToGetDocument({});
-  if (doc) {
-    const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
+  const uri = currentFile.currentFileUri();
+  if (uri) {
+    const folder = vscode.workspace.getWorkspaceFolder(uri);
     if (folder) {
       return folder;
     }
@@ -135,7 +136,7 @@ function getProjectWsFolder(): vscode.WorkspaceFolder | undefined {
 }
 
 /**
- * The inputs for one root decision: candidate roots, the active file's closest
+ * The inputs for one root decision: candidate roots, the current file's closest
  * root, the connect sequences and the workspace folders.
  */
 export async function gatherRootDecision(
@@ -144,8 +145,8 @@ export async function gatherRootDecision(
   disableAutoSelect: boolean
 ): Promise<{ input: RootDecisionInput; candidateUris: vscode.Uri[] }> {
   const candidateUris = await projectRoot.findProjectRoots();
-  const activeUri = vscode.window.activeTextEditor?.document.uri;
-  const closest = activeUri ? projectRoot.findClosestParent(activeUri, candidateUris) : undefined;
+  const fileUri = currentFile.currentFileUri();
+  const closest = fileUri ? projectRoot.findClosestParent(fileUri, candidateUris) : undefined;
   return {
     candidateUris,
     input: {

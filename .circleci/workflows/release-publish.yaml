@@ -15,8 +15,12 @@ jobs:
 - checkout:
     filters:: filters()
 
-- build:
+- build-cljslib:
     requires: [checkout]
+    filters:: filters()
+
+- package-vsix:
+    requires: [build-cljslib]
     filters:: filters()
 
 - prettier-check:
@@ -27,31 +31,37 @@ jobs:
     requires: [checkout]
     filters:: filters()
 
-- test-cljslib:
-    requires: [build]
+- renamed-props-check:
+    requires: [checkout]
+    filters:: filters()
+
+- test-cljs-unit:
+    requires: [build-cljslib]
     filters:: filters()
 
 - test-e2e:
-    requires: [build]
+    requires: [build-cljslib]
     filters:: filters()
 
 - test-smoke:
-    requires: [build]
+    requires: [package-vsix]
     filters:: filters()
 
 - test-smoke-sub-projects:
-    requires: [build]
+    requires: [package-vsix]
     filters:: filters()
 
 - test-ts-unit:
-    requires: [build]
+    requires: [build-cljslib]
     filters:: filters()
 
 - github-release:
     requires:
+    - package-vsix
     - prettier-check
     - ts-lint
-    - test-cljslib
+    - renamed-props-check
+    - test-cljs-unit
     - test-e2e
     - test-smoke
     - test-smoke-sub-projects

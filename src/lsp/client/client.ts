@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as lspState from '../state';
 import * as tokenFilter from './semantic-token-filter';
 import * as api from '../api';
+import * as replInputCopy from '../repl-input-copy';
 
 /**
  * This can potentially be used to replace or alter the automatic command instrumentation performed by the
@@ -187,7 +188,7 @@ export const createClient = (params: CreateClientParams): defs.LspClient => {
           }
         },
         handleDiagnostics(uri, diagnostics, next) {
-          if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+          if (uri.path.endsWith(config.REPL_FILE_EXT) || replInputCopy.isCopy(uri)) {
             return;
           }
           return next(uri, diagnostics);

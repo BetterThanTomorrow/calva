@@ -1,0 +1,73 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.12.0-openjdk-21.0-node
+
+working_directory: ~/calva
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- install-node
+
+- restore_cache:
+    name: Restore CLJS dependencies
+    keys:
+    - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+    - cljs-deps-v1-
+
+- restore_cache:
+    name: Restore the shadow-cljs compile cache
+    keys:
+    - shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+    - shadow-cljs-build-cljslib-v1-{{ .Branch }}-
+    - shadow-cljs-build-cljslib-v1-
+
+- !:cmd
+  - Install CLJS dependencies
+  - npx shadow-cljs classpath
+
+- !:cmd
+  - Release CLJS builds
+  # The tests run in test-cljs-unit
+  - npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui :test
+      --config-merge '{:autorun false}'
+
+- !:cmd
+  - Check the size of the Output views' webview bundle
+  - clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
+
+- !:bin*
+  - Tamper Calva version if not release versioned
+  - tamper-calva-version
+
+- !:cmd
+  - Copy build
+  - cp -r out /tmp/build;
+    cp -r repl-output-ui/js /tmp/build/repl-output-ui;
+    cp package.json /tmp/build
+
+- save_cache:
+    name: Save CLJS dependencies
+    key: cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+    paths:
+    - ~/.m2
+
+- save_cache:
+    name: Save the shadow-cljs compile cache
+    key: shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+    # A warm test build leaves some namespace docstrings out of the bundle
+    paths:
+    - ~/calva/.shadow-cljs/builds/calva-lib
+    - ~/calva/.shadow-cljs/builds/repl-output-ui
+    - ~/calva/.shadow-cljs/jar-manifest
+
+- persist_to_workspace:
+    root: /tmp
+    paths:
+    - build
+    - env

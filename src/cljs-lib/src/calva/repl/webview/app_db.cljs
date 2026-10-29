@@ -1,6 +1,7 @@
 (ns calva.repl.webview.app-db
   (:require
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.input.actions :as input-actions]
    [calva.repl.webview.stacktrace :as stacktrace]))
 
 (def initial-db
@@ -35,7 +36,7 @@
       [[:fx/append-result output]])))
 
 (defn- message-fxs
-  [command-name output category meta]
+  [{command-name :command/name :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
@@ -63,11 +64,11 @@
       [db []])))
 
 (defn- handle-output
-  [db {:keys [command/name output meta output-category]}]
+  [db {:keys [meta output-category] :as payload}]
   (let [[db context-fxs] (with-context db meta)
         category (or output-category "evalOut")]
     {:uf/db db
-     :uf/fxs (into context-fxs (message-fxs name output category meta))}))
+     :uf/fxs (into context-fxs (message-fxs payload category))}))
 
 (defn- handle-error
   [db {:keys [meta] :as message}]
@@ -122,8 +123,23 @@
                                    :line line
                                    :sessionKey session-key}]]})))
 
+(defn- handle-font-action
+  [db action-type payload]
+  (let [new-db (case action-type
+                 :msg/set-base-font-scale
+                 (assoc db :output/base-font-scale (:scale payload 1.0))
+
+                 :msg/adjust-font-size
+                 (assoc db :output/font-size-adjustment (+ (or (:output/font-size-adjustment db) 0.0)
+                                                           (:delta payload 0.1)))
+
+                 :msg/reset-font-size
+                 (assoc db :output/font-size-adjustment 0.0))]
+    {:uf/db new-db
+     :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
+
 (defn handle-action
-  [db [action-type payload]]
+  [db [action-type payload :as action]]
   (case action-type
     :msg/clear-output-view
     {:uf/db  (-> db
@@ -155,31 +171,12 @@
 
     :msg/set-word-wrap
     {:uf/db db
-     :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]]}
+     :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]
+              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]]}
 
-    :msg/set-base-font-scale
-    (let [new-db (assoc db :output/base-font-scale (:scale payload 1.0))
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
+    (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
+    (handle-font-action db action-type payload)
 
-    :msg/adjust-font-size
-    (let [delta (:delta payload 0.1)
-          current-adj (or (:output/font-size-adjustment db) 0.0)
-          new-adj (+ current-adj delta)
-          new-db (assoc db :output/font-size-adjustment new-adj)
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
-
-    :msg/reset-font-size
-    (let [new-db (assoc db :output/font-size-adjustment 0.0)
-          effective-scale (compute-effective-scale new-db)]
-      {:uf/db new-db
-       :uf/fxs [[:fx/set-font-scale effective-scale]]})
-
-    :msg/scroll-to
-    {:uf/db db
-     :uf/fxs [[:fx/scroll-to payload]]}
-
-    {:uf/db db}))
+    (if (= "repl-input" (namespace action-type))
+      (input-actions/handle-action db action)
+      {:uf/db db})))

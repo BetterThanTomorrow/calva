@@ -1,10 +1,12 @@
 (ns calva.repl.webview.core-test
   (:require
+   [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as string]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -186,17 +188,51 @@
                                         :script-nonce "n"})))))
 
 (deftest get-webview-html-csp-nonce-test
-  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source"
+  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source and allows the same nonce"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
                                                               :css-href "css-href"
                                                               :csp-source "csp-source"
                                                               :script-nonce "abc-123"})]
       (is (re-find #"script-src 'nonce-abc-123'" result))
       (is (re-find #"<script nonce=\"abc-123\" src=\"js-source\"></script>" result))
-      (is (re-find #"style-src[\s\S]*csp-source;" result))
+      (is (re-find #"style-src[\s\S]*csp-source 'nonce-abc-123';" result))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (nil? (re-find #"script-src js-source" result)))
       (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
+
+(deftest get-webview-html-stylesheets-test
+  (let [result (sut/get-webview-html {:env/is-debug false}
+                                     {:csp-source "csp-source"
+                                      :script-nonce "n"
+                                      :code-theme "light"
+                                      :code-theme-stylesheets [["dark" "dark-href"] ["light" "light-href"]]
+                                      :copy-button-css-href "copy-href"})]
+    (is (re-find #"href=\"dark-href\"\s*data-code-theme=\"dark\"\s*disabled" result)
+        "The code theme stylesheets of other theme kinds are disabled")
+    (is (re-find #"href=\"light-href\"\s*data-code-theme=\"light\"\s*/>" result)
+        "The code theme stylesheet of the current theme kind is enabled")
+    (is (re-find #"href=\"copy-href\"" result)
+        "The copy button stylesheet is linked")
+    (is (re-find #"style-src csp-source 'nonce-n';" result)
+        "Stylesheets load from the webview's own source only")))
+
+(deftest get-webview-html-repl-input-test
+  (testing "renders the REPL Input mount after the output, with its state"
+    (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\"></div>"
+                 (sut/get-webview-html {:env/is-debug false}
+                                       {:repl-input {:repl-input/id "output-view"
+                                                     :repl-input/enabled? true}}))))
+  (testing "renders no REPL Input mount without REPL Input state"
+    (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {})))))
+  (testing "renders the page with the REPL Input off as the page without it, apart from the mount marked off"
+    (let [page {:js-source "js-source" :css-href "css-href" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
+          off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\"></div>"]
+      (is (= (sut/get-webview-html {:env/is-debug false} page)
+             (string/replace (sut/get-webview-html {:env/is-debug false}
+                                                   (assoc page :repl-input {:repl-input/id "output-view"
+                                                                            :repl-input/enabled? false}))
+                             off-mount
+                             ""))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -220,7 +256,7 @@
           extension-uri "extension-uri"
           context {:vscode/context (clj->js {:extensionUri extension-uri})
                    :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
-          result (sut/get-css-path context)]
+          result (sut/get-css-path context ["main.css"])]
       (testing "should call joinPath with expected args"
         (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
       (testing "should return the result of joinPath"
@@ -247,24 +283,30 @@
                       sut/word-wrap? (constantly true)
                       sut/get-output-views-font-scale-setting (constantly 1.5)
                       sut/image-display (constantly "raw")
+                      input-host/html-state (fn [view-id] {:repl-input/id view-id})
                       sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
             (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-          (testing "should call get-css-path with expected args"
-            (is (spy/called-once-with? get-css-path-spy context)))
-          (testing "should call asWebviewUri once for the CSS"
-            (is (spy/called-once-with? as-webview-uri-spy "some-css-path")))
+          (testing "should call get-css-path for main.css and for each stylesheet shipped with the extension"
+            (is (spy/called-with? get-css-path-spy context ["main.css"]))
+            (is (spy/called-with? get-css-path-spy context ["vendor" "highlight.js" "github-dark.min.css"]))
+            (is (spy/called-with? get-css-path-spy context sut/copy-button-stylesheet))
+            (is (= 6 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
           (testing "should call get-webview-html with expected args including a script nonce"
             (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
                                                                      :css-href "some-css-href"
+                                                                     :code-theme-stylesheets (mapv (fn [[theme]] [theme "some-css-href"])
+                                                                                                   sut/highlight-js-code-theme-stylesheet-data)
+                                                                     :copy-button-css-href "some-css-href"
                                                                      :csp-source "some-csp-source"
                                                                      :script-nonce fixed-nonce
                                                                      :code-theme nil
                                                                      :greeting-html "some-greeting"
                                                                      :word-wrap? true
                                                                      :font-scale 1.5
-                                                                     :image-display "raw"})))
+                                                                     :image-display "raw"
+                                                                     :repl-input {:repl-input/id "output-view"}})))
           (testing "should set webview html to result of call to get-webview-html"
             (is (= "some-html" (.. webview-panel -webview -html)))))
         (finally
@@ -385,16 +427,18 @@
           (is (spy/not-called? post-spy)))))))
 
 (deftest init-code-theme!-test
-  (testing "registers the color theme and the token color customizations listeners as subscriptions"
+  (testing "registers the color theme, the token color customizations and the extensions listeners as subscriptions"
     (let [push-spy (spy/spy)
           vscode-context-stub #js {:subscriptions #js {:push (test-util/wrap-spy push-spy)}}]
       (with-redefs [util/vscode (atom #js {})
                     util/vscode-context (atom vscode-context-stub)
                     sut/create-color-theme-change-listener (constantly "color-theme-listener")
-                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")]
+                    sut/create-token-color-customizations-change-listener (constantly "customizations-listener")
+                    sut/create-extensions-change-listener (constantly "extensions-listener")]
         (sut/init-code-theme!)
         (is (spy/called-with? push-spy "color-theme-listener"))
-        (is (spy/called-with? push-spy "customizations-listener"))))))
+        (is (spy/called-with? push-spy "customizations-listener"))
+        (is (spy/called-with? push-spy "extensions-listener"))))))
 
 (deftest create-view-state-change-listener-test
   (testing "Given a context and a webview panel, should call onDidChangeViewState and pass it a function"
@@ -404,6 +448,22 @@
       (let [calls (spy/calls on-did-change-view-state-spy)]
         (is (= 1 (count calls)))
         (is (fn? (type (ffirst calls))))))))
+
+(deftest page-loaded-posts-repl-input-state
+  (let [!listener (atom nil)
+        !posted (atom [])
+        webview-host #js {:webview #js {:onDidReceiveMessage #(reset! !listener %)
+                                        :postMessage #(swap! !posted conj (reader/read-string %))}}
+        setting #js {"output-view" true}]
+    (with-redefs [util/vscode (atom #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})]
+      (sut/listen-for-page-loaded! webview-host "output-view")
+      (@!listener #js {:command "repl-input-changed"})
+      (is (empty? @!posted)
+          "Other messages are left to the other listeners")
+      (@!listener #js {:command "page-loaded"})
+      (is (match? [{:command/name "repl-input-enabled" :repl-input/id "output-view" :repl-input/enabled? true}]
+                  @!posted)
+          "A loaded page gets the REPL Input's state from the setting"))))
 
 (deftest initialize-webview-panel-test
   (testing "Given a context and a webview panel,"
