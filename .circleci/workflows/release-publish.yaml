@@ -20,7 +20,7 @@ jobs:
     filters:: filters()
 
 - package-vsix:
-    requires: [build-cljslib, test-cljslib]
+    requires: [build-cljslib]
     filters:: filters()
 
 - prettier-check:
@@ -35,8 +35,8 @@ jobs:
     requires: [checkout]
     filters:: filters()
 
-- test-cljslib:
-    requires: [checkout]
+- test-cljs-unit:
+    requires: [build-cljslib]
     filters:: filters()
 
 - test-e2e:
@@ -61,7 +61,7 @@ jobs:
     - prettier-check
     - ts-lint
     - renamed-props-check
-    - test-cljslib
+    - test-cljs-unit
     - test-e2e
     - test-smoke
     - test-smoke-sub-projects

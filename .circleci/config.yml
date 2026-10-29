@@ -83,7 +83,7 @@ jobs:
         command: npx shadow-cljs classpath
     - run:
         name: Release CLJS builds
-        command: npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui
+        command: npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui :test --config-merge '{:autorun false}'
     - run:
         name: Check the size of the Output views' webview bundle
         command: clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
@@ -134,7 +134,9 @@ jobs:
         name: Save the shadow-cljs compile cache
         key: shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
         paths:
-        - ~/calva/.shadow-cljs
+        - ~/calva/.shadow-cljs/builds/calva-lib
+        - ~/calva/.shadow-cljs/builds/repl-output-ui
+        - ~/calva/.shadow-cljs/jar-manifest
     - persist_to_workspace:
         root: /tmp
         paths:
@@ -224,9 +226,9 @@ jobs:
     - run:
         name: Check the release builds for renamed JS property reads
         command: clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
-  test-cljslib:
+  test-cljs-unit:
     docker:
-    - image: cimg/clojure:1.12.0-openjdk-21.0-node
+    - image: cimg/node:22.23.4
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -234,30 +236,9 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - install-node
-    - restore_cache:
-        name: Restore CLJS dependencies
-        keys:
-        - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
-        - cljs-deps-v1-
     - run:
-        name: Release CLJS test build
-        command: npx shadow-cljs release -A:ci:test :test
-    - run:
-        name: Verify CLJS test output
-        command: ls -l out/cljs-lib/test
-    - run:
-        name: Run CLJS Tests
+        name: Run CLJS Unit Tests
         command: npm run calva-lib-test
-    - store_test_results:
-        path: ~/calva/junit
-    - run:
-        name: Copy test build
-        command: mkdir -p /tmp/build/out/cljs-lib && cp -r out/cljs-lib/test /tmp/build/out/cljs-lib
-    - persist_to_workspace:
-        root: /tmp
-        paths:
-        - build/out/cljs-lib/test
   test-ts-unit:
     docker:
     - image: cimg/node:22.23.4
@@ -645,7 +626,6 @@ workflows:
     - package-vsix:
         requires:
         - build-cljslib
-        - test-cljslib
     - test-docs-builder
     - ts-lint:
         requires:
@@ -653,9 +633,9 @@ workflows:
     - renamed-props-check:
         requires:
         - checkout
-    - test-cljslib:
+    - test-cljs-unit:
         requires:
-        - checkout
+        - build-cljslib
     - test-e2e:
         requires:
         - build-cljslib
@@ -674,7 +654,7 @@ workflows:
         - prettier-check
         - ts-lint
         - renamed-props-check
-        - test-cljslib
+        - test-cljs-unit
         - test-e2e
         - test-smoke
         - test-smoke-sub-projects
@@ -702,7 +682,6 @@ workflows:
     - package-vsix:
         requires:
         - build-cljslib
-        - test-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -732,9 +711,9 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - test-cljslib:
+    - test-cljs-unit:
         requires:
-        - checkout
+        - build-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -778,7 +757,7 @@ workflows:
         - prettier-check
         - ts-lint
         - renamed-props-check
-        - test-cljslib
+        - test-cljs-unit
         - test-e2e
         - test-smoke
         - test-smoke-sub-projects

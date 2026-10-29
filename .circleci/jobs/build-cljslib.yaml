@@ -33,7 +33,9 @@ steps:
 
 - !:cmd
   - Release CLJS builds
-  - npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui
+  # The tests run in test-cljs-unit
+  - npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui :test
+      --config-merge '{:autorun false}'
 
 - !:cmd
   - Check the size of the Output views' webview bundle
@@ -58,8 +60,11 @@ steps:
 - save_cache:
     name: Save the shadow-cljs compile cache
     key: shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+    # A warm test build leaves some namespace docstrings out of the bundle
     paths:
-    - ~/calva/.shadow-cljs
+    - ~/calva/.shadow-cljs/builds/calva-lib
+    - ~/calva/.shadow-cljs/builds/repl-output-ui
+    - ~/calva/.shadow-cljs/jar-manifest
 
 - persist_to_workspace:
     root: /tmp
