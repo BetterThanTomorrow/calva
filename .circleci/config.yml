@@ -671,6 +671,14 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
+    - prettier-check:
+        requires:
+        - checkout
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
     - build-cljslib:
         requires:
         - checkout
@@ -682,14 +690,6 @@ workflows:
     - package-vsix:
         requires:
         - build-cljslib
-        filters:
-          branches:
-            ignore: /.*/
-          tags:
-            only: /^v\d+\.\d+\.\d+-?.*/
-    - prettier-check:
-        requires:
-        - checkout
         filters:
           branches:
             ignore: /.*/
