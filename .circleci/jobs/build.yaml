@@ -14,6 +14,12 @@ steps:
 
 - !:bin Install Node
 
+- restore_cache:
+    name: Restore CLJS dependencies
+    keys:
+    - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+    - cljs-deps-v1-
+
 - !:cmd
   - Install CLJS dependencies
   - npx shadow-cljs classpath
@@ -45,12 +51,9 @@ steps:
     cp package.json /tmp/build
 
 - save_cache:
-    name: Save dependencies
-    key: ts-node22-{{ checksum "package.json" }}-cljs-{{
-               checksum "shadow-cljs.edn" }}-grammar-{{
-               checksum "clojure.tmLanguage.json" }}
+    name: Save CLJS dependencies
+    key: cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
     paths:
-    - ./node_modules
     - ~/.m2
 
 - persist_to_workspace:

@@ -50,6 +50,11 @@ jobs:
             sudo tar -xJ -C /usr/local --strip-components=1 \
               --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
           node --version
+    - restore_cache:
+        name: Restore CLJS dependencies
+        keys:
+        - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+        - cljs-deps-v1-
     - run:
         name: Install CLJS dependencies
         command: npx shadow-cljs classpath
@@ -104,10 +109,9 @@ jobs:
         name: Copy build
         command: cp -r out /tmp/build; cp -r repl-output-ui/js /tmp/build/repl-output-ui; cp package.json /tmp/build
     - save_cache:
-        name: Save dependencies
-        key: ts-node22-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}
+        name: Save CLJS dependencies
+        key: cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
         paths:
-        - ./node_modules
         - ~/.m2
     - persist_to_workspace:
         root: /tmp
