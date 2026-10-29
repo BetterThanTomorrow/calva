@@ -250,6 +250,8 @@ jobs:
     - image: cimg/clojure:1.12.6-openjdk-21.0-browsers
     parallelism: 2
     working_directory: ~/calva
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:TieredStopAtLevel=1
     steps:
     - attach_workspace:
         at: /tmp

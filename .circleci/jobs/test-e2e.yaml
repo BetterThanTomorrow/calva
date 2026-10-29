@@ -7,6 +7,9 @@ parallelism: 2
 
 working_directory: ~/calva
 
+environment:
+  JAVA_TOOL_OPTIONS: -XX:TieredStopAtLevel=1
+
 steps:
 - !:attach-workspace /tmp
 
