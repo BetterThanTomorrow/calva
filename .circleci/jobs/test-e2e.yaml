@@ -3,6 +3,8 @@
 docker:
 - image: cimg/clojure:1.12.6-openjdk-21.0-browsers
 
+parallelism: 2
+
 working_directory: ~/calva
 
 steps:
@@ -34,7 +36,13 @@ steps:
 
 - !:cmd
   - Run Extension Tests
-  - npm run e2e-test -- --local
+  - suites=$(circleci tests glob 'out/extension-test/e2e/suite/*-test.js' |
+             circleci tests split --split-by=timings |
+             xargs -n1 basename);
+    echo "Running" $suites;
+    npm run e2e-test -- --local $suites
+
+- !:bin Add suite files to e2e test cases
 
 - save_cache:
     name: Save e2e dependencies

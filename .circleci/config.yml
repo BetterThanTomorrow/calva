@@ -248,6 +248,7 @@ jobs:
   test-e2e:
     docker:
     - image: cimg/clojure:1.12.6-openjdk-21.0-browsers
+    parallelism: 2
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -283,7 +284,30 @@ jobs:
         command: sudo apt update && sudo apt install -y imagemagick
     - run:
         name: Run Extension Tests
-        command: npm run e2e-test -- --local
+        command: suites=$(circleci tests glob 'out/extension-test/e2e/suite/*-test.js' | circleci tests split --split-by=timings | xargs -n1 basename); echo "Running" $suites; npm run e2e-test -- --local $suites
+    - run:
+        name: Add suite files to e2e test cases
+        command: |
+          # CircleCI's timing split reads `file` on <testcase>, and the reporter only
+          # writes it on <testsuite>
+          # shellcheck disable=SC2016 # ${suiteFile} is a JavaScript template literal
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+          const results = "junit/test-results.xml";
+          let suiteFile;
+          const xml = fs
+            .readFileSync(results, "utf8")
+            .replace(/<testsuite [^>]*>|<testcase /g, (tag) => {
+              if (tag.startsWith("<testsuite ")) {
+                const file = tag.match(/ file="([^"]*)"/)?.[1];
+                suiteFile = file && path.relative(process.cwd(), file);
+                return tag;
+              }
+              return suiteFile ? `<testcase file="${suiteFile}" ` : tag;
+            });
+          fs.writeFileSync(results, xml);
+          '
     - save_cache:
         name: Save e2e dependencies
         key: e2e-deps-v1-{{ checksum "/tmp/jack-in-dependency-versions.json" }}-{{ checksum "test-fixtures/deps.edn" }}-{{ checksum "test-fixtures/projects/cljs-only/deps.edn" }}
