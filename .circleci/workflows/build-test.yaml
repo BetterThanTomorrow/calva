@@ -8,13 +8,13 @@ jobs:
 
 - prettier-check: {requires: [checkout]}
 - build:          {requires: [checkout]}
-- package-vsix:   {requires: [build]}
+- package-vsix:   {requires: [build, test-cljslib]}
 
 - test-docs-builder
 
 - ts-lint:               {requires: [checkout]}
 - renamed-props-check:   {requires: [checkout]}
-- test-cljslib:          {requires: [build]}
+- test-cljslib:          {requires: [checkout]}
 - test-e2e:              {requires: [build]}
 - test-smoke:              {requires: [package-vsix]}
 - test-smoke-sub-projects: {requires: [package-vsix]}

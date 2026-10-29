@@ -20,7 +20,7 @@ jobs:
     filters:: filters()
 
 - package-vsix:
-    requires: [build]
+    requires: [build, test-cljslib]
     filters:: filters()
 
 - prettier-check:
@@ -36,7 +36,7 @@ jobs:
     filters:: filters()
 
 - test-cljslib:
-    requires: [build]
+    requires: [checkout]
     filters:: filters()
 
 - test-e2e:

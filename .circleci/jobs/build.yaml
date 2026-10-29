@@ -26,23 +26,15 @@ steps:
 
 - !:cmd
   - Release CLJS builds
-  - npm run release-cljs
+  - npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui
 
 - !:cmd
   - Check the size of the Output views' webview bundle
   - clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
 
-- !:cmd
-  - Verify CLJS test output
-  - ls -l out/cljs-lib/test
-
 - !:bin*
   - Tamper Calva version if not release versioned
   - tamper-calva-version
-
-- !:cmd
-  - Verify CLJS test output before persist
-  - ls -l out/cljs-lib/test
 
 - !:cmd
   - Copy build

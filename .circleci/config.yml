@@ -60,13 +60,10 @@ jobs:
         command: npx shadow-cljs classpath
     - run:
         name: Release CLJS builds
-        command: npm run release-cljs
+        command: npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui
     - run:
         name: Check the size of the Output views' webview bundle
         command: clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
-    - run:
-        name: Verify CLJS test output
-        command: ls -l out/cljs-lib/test
     - run:
         name: Tamper Calva version if not release versioned
         command: |
@@ -102,9 +99,6 @@ jobs:
             echo >&2 'FATAL! Version missmatch between package.json and tag. Aborting.'
             exit 1
           fi
-    - run:
-        name: Verify CLJS test output before persist
-        command: ls -l out/cljs-lib/test
     - run:
         name: Copy build
         command: cp -r out /tmp/build; cp -r repl-output-ui/js /tmp/build/repl-output-ui; cp package.json /tmp/build
@@ -218,7 +212,7 @@ jobs:
         command: clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
   test-cljslib:
     docker:
-    - image: cimg/node:22.23.4
+    - image: cimg/clojure:1.12.0-openjdk-21.0-node
     working_directory: ~/calva
     steps:
     - attach_workspace:
@@ -227,13 +221,36 @@ jobs:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
-        name: Verify CLJS test output after restore
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
+            sudo tar -xJ -C /usr/local --strip-components=1 \
+              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
+    - restore_cache:
+        name: Restore CLJS dependencies
+        keys:
+        - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+        - cljs-deps-v1-
+    - run:
+        name: Release CLJS test build
+        command: npx shadow-cljs release -A:ci:test :test
+    - run:
+        name: Verify CLJS test output
         command: ls -l out/cljs-lib/test
     - run:
         name: Run CLJS Tests
         command: npm run calva-lib-test
     - store_test_results:
         path: ~/calva/junit
+    - run:
+        name: Copy test build
+        command: mkdir -p /tmp/build/out/cljs-lib && cp -r out/cljs-lib/test /tmp/build/out/cljs-lib
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - build/out/cljs-lib/test
   test-ts-unit:
     docker:
     - image: cimg/node:22.23.4
@@ -642,6 +659,7 @@ workflows:
     - package-vsix:
         requires:
         - build
+        - test-cljslib
     - test-docs-builder
     - ts-lint:
         requires:
@@ -651,7 +669,7 @@ workflows:
         - checkout
     - test-cljslib:
         requires:
-        - build
+        - checkout
     - test-e2e:
         requires:
         - build
@@ -698,6 +716,7 @@ workflows:
     - package-vsix:
         requires:
         - build
+        - test-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -729,7 +748,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-cljslib:
         requires:
-        - build
+        - checkout
         filters:
           branches:
             ignore: /.*/
