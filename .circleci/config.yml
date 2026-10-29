@@ -36,6 +36,8 @@ jobs:
     docker:
     - image: cimg/clojure:1.12.0-openjdk-21.0-node
     working_directory: ~/calva
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:ActiveProcessorCount=2
     steps:
     - attach_workspace:
         at: /tmp
@@ -262,6 +264,8 @@ jobs:
     docker:
     - image: cimg/clojure:1.11-browsers
     working_directory: ~/calva
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:ActiveProcessorCount=2
     steps:
     - attach_workspace:
         at: /tmp

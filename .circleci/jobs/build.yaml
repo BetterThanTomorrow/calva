@@ -5,6 +5,9 @@ docker:
 
 working_directory: ~/calva
 
+environment:
+  JAVA_TOOL_OPTIONS: -XX:ActiveProcessorCount=2
+
 steps:
 - !:attach-workspace /tmp
 
