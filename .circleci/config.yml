@@ -1,6 +1,30 @@
 # DO NOT EDIT - This file was generated from 'config.ys'.
 
 version: 2.1
+commands:
+  install-node:
+    steps:
+    - restore_cache:
+        name: Restore Node download
+        keys:
+        - node-v1-{{ checksum ".nvmrc" }}
+    - run:
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          tarball=~/node-download/node-v$version-linux-x64.tar.xz
+          if [[ ! -f $tarball ]]; then
+            mkdir -p ~/node-download
+            curl -fsSL -o "$tarball" "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz"
+          fi
+          sudo tar -xJf "$tarball" -C /usr/local --strip-components=1 \
+            --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
+    - save_cache:
+        name: Save Node download
+        key: node-v1-{{ checksum ".nvmrc" }}
+        paths:
+        - ~/node-download
 jobs:
   checkout:
     docker:
@@ -42,14 +66,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - restore_cache:
         name: Restore CLJS dependencies
         keys:
@@ -135,14 +152,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Create artifacts workspace
         command: mkdir /tmp/artifacts
@@ -207,14 +217,7 @@ jobs:
     - run:
         name: Restore source and dependencies
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Install CLJS dependencies
         command: npx shadow-cljs classpath
@@ -231,14 +234,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - restore_cache:
         name: Restore CLJS dependencies
         keys:
@@ -290,14 +286,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Write jack-in dependency versions
         command: |
@@ -384,14 +373,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
@@ -410,14 +392,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3

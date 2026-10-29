@@ -17,7 +17,7 @@ steps:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !:bin Install Node
+- install-node
 
 - !:bin Write jack-in dependency versions
 

@@ -11,7 +11,7 @@ steps:
     - Restore build
     - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-  - !:bin Install Node
+  - install-node
 
   - restore_cache:
       name: Restore CLJS dependencies

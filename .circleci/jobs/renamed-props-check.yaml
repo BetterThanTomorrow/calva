@@ -12,7 +12,7 @@ steps:
   - Restore source and dependencies
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !:bin Install Node
+- install-node
 
 - !:cmd
   - Install CLJS dependencies

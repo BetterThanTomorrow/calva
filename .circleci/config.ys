@@ -67,6 +67,22 @@ workflows-map =::
 
 version: 2.1
 
+# Reusable steps, used by name in the jobs:
+commands:
+  # Node comes from nodejs.org, which some runs wait on for half a minute
+  install-node:
+    steps:
+    - restore_cache:
+        name: Restore Node download
+        keys:
+        - node-v1-{{ checksum ".nvmrc" }}
+    - !:bin Install Node
+    - save_cache:
+        name: Save Node download
+        key: node-v1-{{ checksum ".nvmrc" }}
+        paths:
+        - ~/node-download
+
 # Generate 'jobs' section:
 jobs::
   reduce _ {} job-names:
