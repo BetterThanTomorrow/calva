@@ -7,6 +7,7 @@
    [calva.repl.input.reveal :as reveal]
    [calva.repl.webview.core :as webview]
    [calva.repl.webview.sidebar :as sidebar]
+   [calva.trail :as trail]
    [calva.util :as util]))
 
 (defn- enabled-message
@@ -32,6 +33,8 @@
 
 (defn- apply-to-views!
   []
+  (trail/log! (str "REPL Input setting changed: output-view " (host/on-or-off "output-view")
+                   ", output-sidebar " (host/on-or-off "output-sidebar")))
   (apply-to-output-view!)
   (apply-to-output-sidebar!))
 

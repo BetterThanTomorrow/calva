@@ -5,6 +5,7 @@
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.trail :as trail]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
@@ -61,6 +62,7 @@
 
 (defn set-sidebar-help!
   [^js webview-view]
+  (trail/log! "output-sidebar help page set")
   (reset! output-sidebar-showing-output-log? false)
   (set! (.. webview-view -webview -html)
         (get-sidebar-help-html (.. webview-view -webview -cspSource))))
@@ -133,10 +135,12 @@
   (let [provider
         #js {:resolveWebviewView
              (fn [^js webview-view _context _token]
+               (trail/log! (str "output-sidebar resolved, REPL Input " (input-host/on-or-off "output-sidebar")))
                (reset! output-sidebar-webview-view webview-view)
                (core/register-webview! webview-view)
                (image-host/listen-for-webview-messages! webview-view)
                (input-messages/listen-for-messages! webview-view)
+               (core/listen-for-page-loaded! webview-view "output-sidebar")
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)

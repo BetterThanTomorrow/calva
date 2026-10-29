@@ -61,6 +61,11 @@
   [view-id]
   (setting/enabled? (config/current-setting) view-id))
 
+(defn on-or-off
+  "Returns \"on\" when the REPL Input is on for `view-id`, else \"off\"."
+  [view-id]
+  (if (enabled? view-id) "on" "off"))
+
 (defn view-title
   [view-id]
   (if (enabled? view-id) "REPL" "REPL Output"))

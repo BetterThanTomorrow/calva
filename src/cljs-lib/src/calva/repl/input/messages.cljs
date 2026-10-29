@@ -7,6 +7,7 @@
    [calva.repl.input.host :as host]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]
+   [calva.trail :as trail]
    [calva.util :as util]))
 
 (defn- mounted!
@@ -28,6 +29,7 @@
    from before, as when its page was set again."
   [^js webview-host {:keys [version] :repl-input/keys [id] :as msg}]
   (let [restored (records/restored (get-in @host/!state [:repl-input/records id]))]
+    (trail/log! (str "REPL Input mounted in " id))
     (swap! host/!views assoc id webview-host)
     (host/take-record! records/take-mount msg)
     (some->> restored (merge {:restore? true}) (host/take-edit! id version))

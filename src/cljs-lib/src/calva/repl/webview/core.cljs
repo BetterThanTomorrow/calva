@@ -6,6 +6,7 @@
    [calva.repl.webview.image-host :as image-host]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.token-colors :as token-colors]
+   [calva.trail :as trail]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -446,11 +447,21 @@
            (unregister-webview! webview-panel)
            (input-host/view-disposed! "output-view"))))))
 
+(defn listen-for-page-loaded!
+  "Logs a trail line each time the page in `webview-host`, the Output view `view-id`, has loaded."
+  [^js webview-host view-id]
+  (when-let [webview (some-> webview-host .-webview)]
+    (when (fn? (.-onDidReceiveMessage webview))
+      (.onDidReceiveMessage webview (fn [^js message]
+                                      (when (= "page-loaded" (.-command message))
+                                        (trail/log! (str view-id " page loaded"))))))))
+
 (defn initialize-webview-panel
   [context ^js webview-panel]
   (register-webview! webview-panel)
   (image-host/listen-for-webview-messages! webview-panel)
   (input-messages/listen-for-messages! webview-panel)
+  (listen-for-page-loaded! webview-panel "output-view")
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -458,6 +469,7 @@
 
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
+  (trail/log! (str "output-view created, REPL Input " (input-host/on-or-off "output-view")))
   (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
                            "calva.output-view"

@@ -15,7 +15,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 
 | Where | Code | What it does |
 | --- | --- | --- |
-| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Adds the tooltip, starts `ui`, registers the REPL Input's effect handler, mounts the REPL Input |
+| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Adds the tooltip, starts `ui`, registers the REPL Input's effect handler, posts `page-loaded`, mounts the REPL Input |
 | | `ui.cljs` | Takes the extension's messages, dispatches actions, runs the effects that draw the DOM, posts to the extension |
 | | `app_db.cljs` | The db and `handle-action`, pure: which effects a message or a click leads to |
 | | `error_element.cljs`, `stacktrace.cljs` | Errors with their causes and frames. `stacktrace` is pure and is used on the extension side too |
@@ -30,6 +30,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `frame_host.cljs` | Opens the file of a clicked stacktrace frame |
 | | `token_colors.cljs` | Reads the active color theme's token colors for highlight.js |
 | | `greeting.cljs` | The greeting at the top of each view |
+| | `src/cljs-lib/src/calva/trail.cljs` | The trail: console lines for Calva's activation and the Output views |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
 | | `src/results-output/evaluated-code.ts` | The echo of evaluated code |
@@ -75,7 +76,7 @@ Both directions carry Clojure data, in different encodings:
 - Extension to webview: an EDN string. `post-message-to-webview` posts `(pr-str message)` and `ui/handle-message` reads it with `cljs.reader/read-string`. The message is a map with `:command/name`, and what it posts has to print as EDN.
 - Webview to extension: a JS object with a `command` key. `ui/post-to-host!` converts with `clj->js` and a keyword function that keeps a keyword's namespace, so `:repl-input/id` arrives as `"repl-input/id"`, and `js->clj :keywordize-keys true` turns it back into `:repl-input/id`.
 
-Each view has two message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, and `calva.repl.input.messages/listen-for-messages!` for the REPL Input. Each ignores the commands that belong to the other.
+Each view has three message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, `calva.repl.input.messages/listen-for-messages!` for the REPL Input, and `core/listen-for-page-loaded!` for `page-loaded`. Each ignores the commands that belong to the others.
 
 | Extension to webview | What it does |
 | --- | --- |
@@ -93,6 +94,7 @@ Each view has two message listeners on the extension side: `image-host/listen-fo
 | `resolve-local-image` | Asks for a webview URI for an image file |
 | `fetch-image-for-copy` | Asks for a remote image's bytes, for Copy image |
 | `open-frame`, `open-java-frame` | Opens a clicked stacktrace frame |
+| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail |
 | `repl-input-*` | The REPL Input's messages |
 
 `ui/handle-message` dispatches with a `case`. A command name it doesn't know is logged to the webview's console and ignored. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`.
@@ -186,4 +188,5 @@ A change to the word wrap or image display setting clears its session override a
 - The REPL: in the source window, connect with the "Calva" connect sequence from `.vscode/settings.json`. It starts the shadow-cljs watches for `:calva-lib`, `:repl-output-ui` and `:test`, and its `cljs` session defaults to `:calva-lib`, which runs in the Extension Development Host's extension host. The `:calva-lib` runtime has `calva.repl.webview.core/registered-webviews` and `calva.repl.webview.sidebar/output-sidebar-log`.
 - Several runtimes can be connected to one build: the unit test watcher's mocha worker (Node 22, `calva.util/vscode` nil) loads `:calva-lib` too, and each open Output view is a `:repl-output-ui` runtime of its own. From the `clj` session, `(shadow.cljs.devtools.api/repl-runtimes :repl-output-ui)` lists them. Its `:client-id` is the `:runtime-id` for `(shadow.cljs.devtools.api/cljs-eval :repl-output-ui "@calva.repl.webview.app-db/!app-db" {:runtime-id n})`, which returns the results as strings under `:results`. Tell two views apart by `(:repl-input/id @calva.repl.webview.app-db/!app-db)`.
 - The command Developer: Open Webview Developer Tools shows a view's DOM and console.
+- The trail: `calva.trail/log!` logs a console line, `[Calva +<ms>ms] <message>`, with the milliseconds since cljs-lib loaded. It logs activation START and END, each view created or resolved with the REPL Input on or off, its page loaded, or the sidebar's help page set, which has no script, the REPL Input mounted in it, and a changed REPL Input setting. The lines show in the extension host's console, and in the smoke tests' CI log, which tells whether a view's page loaded and its REPL Input mounted. The `:test` build turns the trail off with the closure define `calva.trail/enabled?`.
 - Changes to the cljs-lib and `:repl-output-ui` code reload through the shadow-cljs watch. HTML built by `get-webview-html` shows in a view after its page is set again, for example after closing and reopening the Output View. TS changes need a reload of the Extension Development Host.

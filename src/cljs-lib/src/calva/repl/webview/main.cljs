@@ -15,4 +15,5 @@
   (.append js/document.body (tooltip/element))
   (ui/main)
   (ui/register-effect-handler! "repl-input" input-editor/exec-effect!)
+  (ui/post-to-host! {:command "page-loaded"})
   (init-repl-input!))
