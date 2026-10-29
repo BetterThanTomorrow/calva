@@ -28,26 +28,31 @@ suite('File Output Destination Test', () => {
     menuSelections: { cljAliases: [] },
   };
 
-  mocha.before(async () => {
+  mocha.before(async function () {
+    this.timeout(120_000);
     testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     const config = vscode.workspace.getConfiguration('calva');
     originalDestinations = config.inspect('outputDestinations')?.globalValue;
+    await outputWindow.clearReplWindowDoc();
+    jackInHarness.reset();
+    await jackInHarness.disconnectAllClients();
+    await jackInWithTerminal();
   });
 
   mocha.after(async () => {
+    await vscode.workspace
+      .getConfiguration('calva')
+      .update('outputDestinations', originalDestinations, vscode.ConfigurationTarget.Global);
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
     await testUtil.waitForJackOutComplete(suite);
     testUtil.showMessage(suite, 'suite done!');
   });
 
-  mocha.beforeEach(async function () {
-    this.timeout(60_000);
+  mocha.beforeEach(async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'calva-file-output-test-'));
     await outputWindow.clearReplWindowDoc();
-    jackInHarness.reset();
-    await jackInHarness.disconnectAllClients();
   });
 
   mocha.afterEach(async () => {
@@ -161,9 +166,6 @@ suite('File Output Destination Test', () => {
   }
 
   test('eval result written to file destination', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'eval-results.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -187,9 +189,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('eval output (stdout) written to file destination', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'eval-output.txt');
     await setOutputDestinations({
       evalResults: 'terminal',
@@ -206,9 +205,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('file auto-created with parent directories', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'sub', 'dir', 'output.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -224,9 +220,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('multiple appends accumulate in file', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'accumulated.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -252,9 +245,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('shared evaluation, and evaluation from a file with echo on and off, send to the destinations', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const resultsFile = path.join(tmpDir, 'shared-eval-results.txt');
     const outputFile = path.join(tmpDir, 'shared-eval-output.txt');
     await setOutputDestinations({
