@@ -1,6 +1,10 @@
 (ns tests.output-view-test
   (:require [cljs.test :refer [is testing]]
+            [clojure.string :as string]
+            [joyride.core :as joyride]
             [promesa.core :as p]
+            ["fs" :as fs]
+            ["path" :as path]
             ["vscode" :as vscode]
             [macros :refer [deftest-async]]))
 
@@ -31,6 +35,42 @@
 (defn- keybindings-read?
   []
   (some #(= resolved-keybindings-uri (str (.-uri %))) vscode/workspace.textDocuments))
+
+(defn- renderer-log-path
+  "Returns the path of the window's renderer log, two folders up from Joyride's extension host log folder."
+  []
+  (path/join (path/dirname (path/dirname (.. (joyride/extension-context) -logUri -fsPath))) "renderer.log"))
+
+(defn- renderer-log-entries
+  "Returns the last `n` entries of the renderer log that are errors or mention webviews. An entry is a
+   timestamped line and the lines that follow it, of which it keeps the first few."
+  [n]
+  (let [log-path (renderer-log-path)]
+    (when (fs/existsSync log-path)
+      (->> (string/split-lines (fs/readFileSync log-path "utf8"))
+           (reduce (fn [entries line]
+                     (if (or (empty? entries) (re-find #"^\d{4}-\d{2}-\d{2} " line))
+                       (conj entries [line])
+                       (update entries (dec (count entries)) conj line)))
+                   [])
+           (filter #(re-find #"(?i)webview|\[error\]" (string/join "\n" %)))
+           (take-last n)
+           (map #(string/join "\n" (take 6 %)))))))
+
+(defn- print-mount-diagnosis!
+  "Prints what the window shows when the REPL Input hasn't mounted: the Output View tab, the setting, whether
+   the keybindings document is open, and the renderer log's webview and error entries."
+  []
+  (let [setting (.get (vscode/workspace.getConfiguration "calva") "outputViews.replInput")
+        lines (concat [""
+                       "The REPL Input didn't mount. What the window shows:"
+                       (str "Output View tab: " (or (some-> (output-view-tab) .-label) "none"))
+                       (str "calva.outputViews.replInput: " (js/JSON.stringify setting))
+                       (str "Keybindings document open: " (boolean (keybindings-read?)))
+                       (str "Webview and error entries in " (renderer-log-path) ":")]
+                      (or (seq (renderer-log-entries 10)) ["(none)"])
+                      [""])]
+    (js/process.stdout.write (string/join "\n" lines))))
 
 (defn- set-repl-input+
   [setting]
@@ -69,7 +109,10 @@
           (close-output-view+)
           (set-repl-input+ #js {"output-view" true "output-sidebar" false})
           (p/let [tab (open-output-view+)
-                  mounted? (wait-for+ "the REPL Input to mount" 30000 #(deref !mounted?))]
+                  mounted? (-> (wait-for+ "the REPL Input to mount" 30000 #(deref !mounted?))
+                               (p/catch (fn [error]
+                                          (print-mount-diagnosis!)
+                                          (p/rejected error))))]
             (testing "With the REPL Input on"
               (is (= "REPL" (.-label tab))
                   "The Output View opens")
