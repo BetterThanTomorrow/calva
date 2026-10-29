@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.606] - 2026-10-29
+
 - [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
 - Fix: `$editor-ns` is empty in custom REPL commands
 - Fix: Go to definition sometimes land one column off
