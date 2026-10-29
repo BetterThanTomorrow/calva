@@ -32,8 +32,6 @@ steps:
   - Apt install missing dependencies
   - sudo apt update && sudo apt install -y imagemagick
 
-- !:bin Show JVM CPUs
-
 - !:cmd
   - Run Extension Tests
   - npm run e2e-test -- --local

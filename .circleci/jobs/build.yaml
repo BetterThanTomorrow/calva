@@ -14,8 +14,6 @@ steps:
 
 - !:bin Install Node
 
-- !:bin Show JVM CPUs
-
 - !:cmd
   - Install CLJS dependencies
   - npx shadow-cljs classpath
