@@ -1,8 +1,12 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.token-colors :as token-colors]
+   [calva.trail :as trail]
    [calva.util :as util]
    [clojure.string :as str]))
 
@@ -225,10 +229,15 @@
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def highlight-js-code-theme-stylesheet-data
-  [["dark" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"]
-   ["light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"]
-   ["high-contrast" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css"]
-   ["high-contrast-light" "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css"]])
+  "The highlight.js stylesheet of each code theme, as its path under `repl-output-ui/css`."
+  [["dark" ["vendor" "highlight.js" "github-dark.min.css"]]
+   ["light" ["vendor" "highlight.js" "github.min.css"]]
+   ["high-contrast" ["vendor" "highlight.js" "base16" "windows-high-contrast.min.css"]]
+   ["high-contrast-light" ["vendor" "highlight.js" "base16" "windows-high-contrast-light.min.css"]]])
+
+(def copy-button-stylesheet
+  "The path under `repl-output-ui/css` of the highlight.js copy button plugin's stylesheet."
+  ["vendor" "highlightjs-copy" "highlightjs-copy.min.css"])
 
 (defn highlight-js-code-theme-stylesheet-link
   [code-theme [theme href]]
@@ -243,9 +252,9 @@
     />"))
 
 (defn highlight-js-code-theme-stylesheet-links
-  [code-theme]
+  [code-theme code-theme-stylesheets]
   (str/join "\n" (map #(highlight-js-code-theme-stylesheet-link code-theme %)
-                       highlight-js-code-theme-stylesheet-data)))
+                       code-theme-stylesheets)))
 
 (defn code-theme-for-kind
   [^js color-theme-kind-enum color-theme-kind]
@@ -265,8 +274,12 @@
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 
+(defn repl-input-html
+  [{:repl-input/keys [id enabled?]}]
+  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\"></div>"))
+
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce]}]
+  [{:env/keys [is-debug]} {:keys [js-source css-href code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -278,12 +291,7 @@
     <meta http-equiv=\"Content-Security-Policy\"
           content=\"default-src 'none';
                     img-src data: https: http: " csp-source ";
-                    style-src https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast.min.css
-                              https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/base16/windows-high-contrast-light.min.css
-                              https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css
-                              " csp-source ";
+                    style-src " csp-source " 'nonce-" script-nonce "';
                     script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
                     " (when is-debug "connect-src ws://localhost:*;") "
                     base-uri 'none';
@@ -293,18 +301,18 @@
 
     <link rel=\"stylesheet\" href=\"" css-href "\" />
 
-    <!-- Should these stylesheets and scripts be saved and referenced locally so that if users are offline the webview still functions as expected? -->
-" (highlight-js-code-theme-stylesheet-links code-theme) "
+" (highlight-js-code-theme-stylesheet-links code-theme code-theme-stylesheets) "
 
     <link
       rel=\"stylesheet\"
-      href=\"https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.css\"
+      href=\"" copy-button-css-href "\"
     />
 
   </head>
   <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
     " greeting-html "
     <div id=\"output\" class=\"output-element-container\"></div>
+    " (when repl-input (repl-input-html repl-input)) "
 
     <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
   </body>
@@ -319,31 +327,42 @@
     (.. ^js webview-panel -webview (asWebviewUri js-path))))
 
 (defn get-css-path
+  "Returns the uri of the stylesheet at the path `stylesheet` under `repl-output-ui/css`."
   [{:keys [vscode/vscode]
-    vscode-context :vscode/context}]
-  (let [extension-uri (.. ^js vscode-context -extensionUri)]
-    (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "css" "main.css"))))
+    vscode-context :vscode/context}
+   stylesheet]
+  (let [^js uri (.-Uri ^js vscode)]
+    (.apply (.-joinPath uri) uri (into-array (concat [(.-extensionUri ^js vscode-context) "repl-output-ui" "css"]
+                                                     stylesheet)))))
+
+(defn- stylesheet-href
+  [context ^js webview-panel stylesheet]
+  (.. webview-panel -webview (asWebviewUri (get-css-path context stylesheet))))
 
 (defn set-webview-html!
   [context
    {:keys [^js webview-panel view-kind]
     :or {view-kind :output-view}}]
   (let [js-source (get-js-source context {:webview-panel webview-panel})
-        css-path (get-css-path context)
-        css-href (.. ^js webview-panel -webview (asWebviewUri css-path))
+        css-href (stylesheet-href context webview-panel ["main.css"])
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
                                                 :css-href css-href
+                                                :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
+                                                                                [theme (stylesheet-href context webview-panel stylesheet)])
+                                                                              highlight-js-code-theme-stylesheet-data)
+                                                :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
                                                 :csp-source csp-source
                                                 :script-nonce script-nonce
                                                 :code-theme (code-theme-from-context context)
                                                 :greeting-html greeting-html
                                                 :word-wrap? (word-wrap?)
                                                 :font-scale (get-output-views-font-scale-setting)
-                                                :image-display (image-display)})]
+                                                :image-display (image-display)
+                                                :repl-input (input-host/html-state (name view-kind))})]
     (set! (.. webview-panel -webview -html) webview-html)))
 
 (defn set-code-theme!
@@ -387,12 +406,17 @@
          (when (.affectsConfiguration event "editor.tokenColorCustomizations")
            (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
 
+(defn create-extensions-change-listener
+  [{:keys [^js vscode/vscode]}]
+  (.. vscode -extensions (onDidChange (fn [_] (token-colors/clear-theme-token-colors!)))))
+
 (defn ^:export init-code-theme!
   []
   (let [context {:vscode/vscode @util/vscode}]
     (when-let [^js vscode-context @util/vscode-context]
       (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
-      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context))))))
+      (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context)))
+      (.. vscode-context -subscriptions (push (create-extensions-change-listener context))))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}
@@ -400,6 +424,7 @@
   (.. webview-panel
       (onDidChangeViewState
        (fn [^js _event]
+         (input-host/view-state-changed! "output-view" (.-visible webview-panel) (.-active webview-panel))
          (set-code-theme! context
                           {:color-theme-kind (.. ^js vscode -window -activeColorTheme -kind)
                            :webview-panel webview-panel})))))
@@ -419,12 +444,26 @@
            (when ws-folders-disposable
              (.dispose ^js ws-folders-disposable))
            (dispose-repl-output-webview-panel output-view-webview-panel)
-           (unregister-webview! webview-panel))))))
+           (unregister-webview! webview-panel)
+           (input-host/view-disposed! "output-view"))))))
+
+(defn listen-for-page-loaded!
+  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the
+   page whether the REPL Input is on, which the page misses when the setting changed before it listened."
+  [^js webview-host view-id]
+  (when-let [webview (some-> webview-host .-webview)]
+    (when (fn? (.-onDidReceiveMessage webview))
+      (.onDidReceiveMessage webview (fn [^js message]
+                                      (when (= "page-loaded" (.-command message))
+                                        (trail/log! (str view-id " page loaded"))
+                                        (post-message-to-webview webview-host (input-host/enabled-message view-id))))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]
   (register-webview! webview-panel)
   (image-host/listen-for-webview-messages! webview-panel)
+  (input-messages/listen-for-messages! webview-panel)
+  (listen-for-page-loaded! webview-panel "output-view")
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -432,10 +471,11 @@
 
 (defn create-repl-output-webview-panel
   [{:keys [vscode/vscode] :as context}]
+  (trail/log! (str "output-view created, REPL Input " (input-host/on-or-off "output-view")))
   (let [webview-panel (.. ^js vscode -window
                           (createWebviewPanel
                            "calva.output-view"
-                           "REPL Output"
+                           (input-host/view-title "output-view")
                            #js {:preserveFocus true
                                 :viewColumn (.. ^js vscode -ViewColumn -Beside)}
                            (let [^js opts (image-host/webview-options "calva.showReplOutputView")]
@@ -508,46 +548,60 @@
         shadow-build (assoc :meta/shadow-build shadow-build)
         (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
 
+(defn output-message
+  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`."
+  [options command-name output-category message]
+  (let [meta-data (options->meta options)]
+    (cond-> {:command/name command-name
+             :output-category output-category
+             :output message}
+      (seq meta-data) (assoc :meta meta-data))))
+
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        command-name (get output-category->command-name output-category)
-        meta-data (options->meta options)]
+        command-name (get output-category->command-name output-category)]
     (if command-name
-      (post-message-to-webview (ensure-output-view-panel) (cond-> {:command/name command-name
-                                                                   :output-category output-category
-                                                                   :output message}
-                                                            (seq meta-data) (assoc :meta meta-data)))
+      (post-message-to-webview (ensure-output-view-panel) (output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
-(def stacktrace-classes-to-ignore
-  #{"clojure.lang.RestFn"
-    "clojure.lang.AFn"})
+(defn- causes-data
+  [^js causes]
+  (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true)))
 
-(defn stacktrace-entry->string
-  [{:keys [var name file line]}]
-  (let [name (or var name)]
-    (str name " (" file ":" line ")")))
+(defn error-message
+  "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause
+   messages or nil when they come later, as the Output view entry `error-id`. `options` are those
+   of `append`, plus `unfolded`."
+  [^js options text ^js causes error-id]
+  (let [category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        unfolded? (if (map? options) (:unfolded options) (.-unfolded options))
+        meta-data (options->meta options)]
+    (cond-> {:command/name "show-error"
+             :error/text text
+             :error/category category
+             :error/causes (causes-data causes)
+             :error/unfolded? (boolean unfolded?)}
+      error-id (assoc :id error-id)
+      (seq meta-data) (assoc :meta meta-data))))
 
-(defn stacktrace->message
-  "Takes a clojurefied stacktrace and returns a string representation of it for printing."
-  [stacktrace]
-  (->> stacktrace
-       (filter (fn [{:keys [flags class]}]
-                 (and (not (some #{"dup"} flags))
-                      (not (contains? stacktrace-classes-to-ignore class)))))
-       (map stacktrace-entry->string)
-       (str/join "\n")))
+(defn causes-message
+  "Returns the message that gives the Output view entry `error-id` its `causes`."
+  [error-id ^js causes]
+  {:command/name "show-error-causes"
+   :error/id error-id
+   :error/causes (causes-data causes)})
 
-(defn ^:export append-stacktrace
-  [^js stacktrace]
-  (let [stacktrace (js->clj stacktrace :keywordize-keys true)
-        stacktrace-message (stacktrace->message stacktrace)]
-    (post-message-to-webview (ensure-output-view-panel) {:command/name "show-stdout"
-                                                         :output-category "evalErr"
-                                                         :output stacktrace-message})))
+(defn ^:export append-error
+  [^js options text ^js causes error-id]
+  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
+  [error-id ^js causes]
+  (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
 
 (defn ^:export clear-output-view
   []

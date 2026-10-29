@@ -9,7 +9,6 @@ import * as namespace from './namespace';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as output from './results-output/output';
-import * as outputDestinations from './results-output/output-destinations';
 
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -221,31 +220,9 @@ async function reportTests(
           const message = cider.detailedMessage(resultsForTest);
 
           if (resultsForTest.type === 'error') {
-            const stacktrace = await session.testStacktrace(ns, test, resultsForTest.index);
-
-            outputWindow.saveStacktrace(stacktrace.stacktrace);
-            outputWindow.appendLine(message, (_, afterResultLocation) => {
-              outputWindow.markLastStacktraceRange(afterResultLocation);
-            });
-            const otherOutputDestination = output.getDestinationConfiguration().otherOutput;
-            if (
-              !outputDestinations
-                .normalizeDestinations(otherOutputDestination)
-                .includes('repl-window')
-            ) {
-              // We don't want to prepend lines with `; ` in output destinations other than the repl-window.
-              // This is just a quick fix to avoid refactoring for now.
-              output.appendLineOtherOut(message.replace(/; /gi, ''));
-              const webviewDestinations = outputDestinations
-                .normalizeDestinations(otherOutputDestination)
-                .filter(outputDestinations.isWebviewOutputDestination);
-              if (webviewDestinations.length) {
-                output.appendStackTraceToWebviewDestinations(
-                  webviewDestinations,
-                  stacktrace.stacktrace
-                );
-              }
-            }
+            const causes = await session.testStacktrace(ns, test, resultsForTest.index);
+            // The REPL window's part of the output comments the lines itself
+            output.appendLineOtherOut(message.replace(/^; /gm, ''), {}, undefined, causes ?? []);
           } else if (message) {
             output.appendClojureOther(message);
           }
@@ -272,7 +249,7 @@ async function reportTests(
 
 // FIXME: use cljs session where necessary
 async function runAllTests(controller: vscode.TestController, document = {}) {
-  const session = replSession.getSession();
+  const session = replSession.getSession(util.tryToGetDocument(document));
   output.appendLineOtherOut('Running all project tests…');
   try {
     await reportTests(controller, session, [await session.testAll()]);
@@ -297,7 +274,7 @@ function runAllTestsCommand(controller: vscode.TestController) {
 
 async function loadTestNS() {
   const document = util.getActiveTextEditor().document;
-  const session = replSession.getSession();
+  const session = replSession.getSession(document);
   const doc = util.tryToGetDocument(document);
 
   const [ns, _] = namespace.getNamespace(
@@ -332,7 +309,7 @@ async function runNamespaceTestsImpl(
     return;
   }
 
-  const session = replSession.getSession();
+  const session = replSession.getSession(document);
 
   output.appendLineOtherOut(
     `Running tests for the following namespaces:\n${
@@ -378,12 +355,10 @@ function getTestUnderCursor() {
 }
 
 async function runTestUnderCursor(controller: vscode.TestController) {
-  const doc = util.tryToGetDocument({});
-  const session = replSession.getSession();
-  const [ns, _] = namespace.getNamespace(
-    doc,
-    vscode.window.activeTextEditor?.selections[0]?.active
-  );
+  const editor = util.tryToGetActiveTextEditor();
+  const doc = editor?.document;
+  const session = replSession.getSession(doc);
+  const [ns, _] = namespace.getNamespace(doc, editor?.selections[0]?.active);
   const test = getTestUnderCursor();
 
   if (test) {
@@ -425,7 +400,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
 }
 
 async function rerunTests(controller: vscode.TestController, document = {}) {
-  const session = replSession.getSession();
+  const session = replSession.getSession(util.tryToGetDocument(document));
   output.appendLineOtherOut('Running previously failed tests…');
   try {
     await reportTests(controller, session, [await session.retest()]);

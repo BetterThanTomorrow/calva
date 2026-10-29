@@ -40,7 +40,7 @@
                                            :selection "selected text"
                                            :selectionWithBracketTrail #js [nil "selected text)"]
                                            :ns "user"
-                                           :editorNs "editor.ns"
+                                           :editorNS "editor.ns"
                                            :repl "clj"
                                            :hoverLine 43
                                            :hoverColumn 11

@@ -1,0 +1,79 @@
+(ns calva.repl.input.history
+  "What the REPL Inputs evaluated, oldest first: adding to it, the entries the REPL Inputs walk, the
+   quick pick that searches them, and the entries the way `workspaceState` keeps them."
+  (:require
+   [clojure.string :as string]))
+
+(defn entry
+  "Returns the history entry of `code`, evaluated in `context`, with the context's source file."
+  [code {:repl-input.context/keys [ns ns-form session-key source-file]}]
+  {:repl-input.history/code (string/trim code)
+   :repl-input.context/ns ns
+   :repl-input.context/ns-form ns-form
+   :repl-input.context/session-key session-key
+   :repl-input.context/source-file source-file})
+
+(defn- same-entry?
+  "True when `entry` and `other` have the same code, namespace and source file, and, when `entry` has no
+   source file, the same session key."
+  [entry other]
+  (let [identity-keys (cond-> [:repl-input.history/code
+                               :repl-input.context/ns
+                               :repl-input.context/source-file]
+                        (not (:repl-input.context/source-file entry)) (conj :repl-input.context/session-key))]
+    (= (select-keys entry identity-keys) (select-keys other identity-keys))))
+
+(def kept-count
+  "How many of the latest entries the history keeps."
+  500)
+
+(defn add
+  "Returns `entries` with `new-entry` last, keeping the latest `kept-count`, unless its code is blank, or the
+   last entry is the same entry."
+  [entries {:repl-input.history/keys [code] :as new-entry}]
+  (if (or (string/blank? code) (same-entry? new-entry (peek entries)))
+    entries
+    (let [added (conj (vec entries) new-entry)]
+      (subvec added (max 0 (- (count added) kept-count))))))
+
+(defn pick-items
+  "Returns the quick pick items for `entries`, newest first: the code as the label, with what VS Code would
+   show as an icon escaped, the namespace as the description, and the entry's `index` in `entries`."
+  [entries]
+  (->> entries
+       (map-indexed (fn [index {:repl-input.history/keys [code] :repl-input.context/keys [ns]}]
+                      {:label (-> code
+                                  (string/replace #"\s+" " ")
+                                  (string/replace "$(" "\\$("))
+                       :description ns
+                       :index index}))
+       reverse
+       vec))
+
+(defn stored
+  "Returns `entries` the way `workspaceState` keeps them."
+  [entries]
+  (mapv (fn [{:repl-input.history/keys [code] :repl-input.context/keys [ns ns-form session-key source-file]}]
+          {:code code :ns ns :nsForm ns-form :sessionKey session-key :sourceFile source-file})
+        entries))
+
+(defn from-stored
+  "Returns the entries that `workspaceState` kept as `stored`, skipping what isn't an entry, and none when
+   `stored` isn't a list."
+  [stored]
+  (into []
+        (comp (filter (comp string? :code))
+              (map (fn [{:keys [code ns nsForm sessionKey sourceFile]}]
+                     {:repl-input.history/code code
+                      :repl-input.context/ns ns
+                      :repl-input.context/ns-form nsForm
+                      :repl-input.context/session-key sessionKey
+                      :repl-input.context/source-file sourceFile})))
+        (when (sequential? stored) stored)))
+
+(defn routed
+  "Returns `entries` with the session key that `route` gives each source file now, or without one what
+   `route` gives without a file, routing each source file once."
+  [entries route]
+  (let [route-once (memoize route)]
+    (mapv #(assoc % :repl-input.context/session-key (route-once (:repl-input.context/source-file %))) entries)))

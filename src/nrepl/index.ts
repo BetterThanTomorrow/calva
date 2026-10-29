@@ -5,6 +5,7 @@ import * as cider from './cider';
 import * as state from './../state';
 import * as util from '../utilities';
 import * as printer from '../printer';
+import * as serverSidePrinter from '../server-side-printer';
 import * as debug from '../debugger/calva-debug';
 import * as vscode from 'vscode';
 import * as debugDecorations from '../debugger/decorations';
@@ -26,7 +27,6 @@ type ReplSessionType = config.ReplSessionType;
 const BEncoderStream = bencode.BEncoderStream;
 const BDecoderStream = bencode.BDecoderStream;
 const disabledPrettyPrinter = printer.disabledPrettyPrinter;
-const getServerSidePrinter = printer.getServerSidePrinter;
 const prettyPrint = printer.prettyPrint;
 const formatAsLineComments = resultsOutputUtil.formatAsLineComments;
 const getStateValue = cljsLib.getStateValue;
@@ -38,6 +38,9 @@ const Direction = {
   ClientToServerNotSupported: logging.Direction.ClientToServerNotSupported,
 } as const;
 const handleShadowRemoteMessage = shadowCljsRuntime.handleShadowRemoteMessage;
+
+// Some cider-nrepl versions can leave a stacktrace reply unfinished
+const STACKTRACE_TIMEOUT_MS = 10000;
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -59,6 +62,16 @@ function resultHandler(resolve: any, reject: any) {
     }
     return true;
   };
+}
+
+function showSourcesJarDownload(
+  { group, artifact, version }: cider.MavenCoordinates,
+  info: Thenable<unknown>
+) {
+  vscode.window.setStatusBarMessage(
+    `$(sync~spin) Downloading Java sources for ${group}/${artifact} ${version}`,
+    info
+  );
 }
 
 /** An nREPL client */
@@ -113,8 +126,14 @@ export class NReplClient {
     }
   }
 
+  /** Ends the evaluations of every session, for when the connection is gone. */
+  dropEvaluations() {
+    Object.values(this.sessions).forEach((session) => session.dropEvaluations());
+  }
+
   private _fireCloseHandlers() {
     try {
+      this.dropEvaluations();
       this._closeHandlers.forEach((x) => x(this));
       for (const x in this.sessions) {
         this.sessions[x]._onCloseHandlers.forEach((s) => s(this.sessions[x]));
@@ -474,12 +493,28 @@ export class NReplSession {
     return NReplSession.Instances;
   }
 
-  private addRunningID(id: string) {
+  addRunningID(id: string) {
     if (id) {
       if (!this._runningIds.includes(id)) {
         this._runningIds.push(id);
       }
     }
+  }
+
+  removeRunningID(id: string) {
+    const index = this._runningIds.indexOf(id);
+    if (index > -1) {
+      this._runningIds.splice(index, 1);
+    }
+  }
+
+  /**
+   * Ends this session's evaluations, for when the session or its connection is gone and the server
+   * will not reply to them. They reject, and interrupting all evaluations leaves them out.
+   */
+  dropEvaluations() {
+    this._runningIds = [];
+    NReplEvaluation.dropSessionEvaluations(this);
   }
 
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
@@ -490,6 +525,10 @@ export class NReplSession {
    */
   public supports(op: string): boolean {
     return this.client.describe && !!this.client.describe.ops[op];
+  }
+
+  ciderNreplVersion(): serverSidePrinter.CiderNreplVersion | undefined {
+    return this.client.describe?.aux?.['cider-version'];
   }
 
   close() {
@@ -503,7 +542,7 @@ export class NReplSession {
     } catch (error) {
       console.error(error);
     } finally {
-      this._runningIds = [];
+      this.dropEvaluations();
       delete this.client.sessions[this.sessionId];
       const index = NReplSession.Instances.indexOf(this);
       if (index > -1) {
@@ -624,20 +663,27 @@ export class NReplSession {
 
   stacktrace() {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
-    return new Promise<any>((resolve, reject) => {
-      const id = this.client.nextId;
-      const msg = {
-        op: 'analyze-last-stacktrace',
-        id,
-        session: this.sessionId,
-      };
-      if (this.supports(msg.op)) {
-        this.messageHandlers[id] = resultHandler(resolve, reject);
-        this.client.write(msg);
-      } else {
+    return this.requestCauses({
+      op: 'analyze-last-stacktrace',
+      id: this.client.nextId,
+      session: this.sessionId,
+    });
+  }
+
+  /**
+   * Resolves with the causes of a stacktrace op's reply, or with none when the server doesn't
+   * support the op or hasn't finished the reply within `STACKTRACE_TIMEOUT_MS`.
+   */
+  private requestCauses(msg: { op: string; id: string; session: string; [key: string]: unknown }) {
+    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
+      if (!this.supports(msg.op)) {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
+        return;
       }
+      setTimeout(() => resolve(undefined), STACKTRACE_TIMEOUT_MS);
+      this.messageHandlers[msg.id] = cider.stacktraceCausesHandler(resolve, reject);
+      this.client.write(msg);
     });
   }
 
@@ -708,47 +754,28 @@ export class NReplSession {
     const pprintOptions = opts.pprintOptions;
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
-    const extraOpts = getServerSidePrinter(pprintOptions);
+    const extraOpts = serverSidePrinter.getServerSidePrinter(
+      pprintOptions,
+      this.ciderNreplVersion()
+    );
     const { stdout, stderr, stdin, ...cleanedOpts } = opts;
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
       ...cleanedOpts,
     });
 
-    const evaluation = new NReplEvaluation(
-      opMsg.id,
-      this,
-      opts.stderr,
-      opts.stdout,
-      opts.stdin,
-      new Promise((resolve, reject) => {
-        if (this.supports(opMsg.op)) {
-          this.messageHandlers[opMsg.id] = (msg) => {
-            evaluation.setHandlers(resolve, reject);
-            if (opts.line && opts.column && opts.file) {
-              debugDecorations.triggerUpdateAndRenderDecorations();
-            }
-            if (evaluation.onMessage(msg, pprintOptions)) {
-              return true;
-            }
-          };
-          this.addRunningID(opMsg.id);
-          this.client.write(opMsg);
-        } else {
-          log(opMsg, Direction.ClientToServerNotSupported);
-          resolve(undefined);
-        }
-      })
-    );
+    const evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin);
+    evaluation.send(opMsg, pprintOptions, () => {
+      if (opts.line && opts.column && opts.file) {
+        debugDecorations.triggerUpdateAndRenderDecorations();
+      }
+    });
 
     return evaluation;
   }
 
   interrupt(interruptId: string) {
-    const index = this._runningIds.indexOf(interruptId);
-    if (index > -1) {
-      this._runningIds.splice(index, 1);
-    }
+    this.removeRunningID(interruptId);
     const id = this.client.nextId;
     return new Promise<void>((resolve, reject) => {
       const msg = {
@@ -796,40 +823,25 @@ export class NReplSession {
     const pprintOptions = opts.pprintOptions;
     opts['pprint'] = pprintOptions.enabled;
     delete opts.pprintOptions;
-    const extraOpts = getServerSidePrinter(pprintOptions);
+    const extraOpts = serverSidePrinter.getServerSidePrinter(
+      pprintOptions,
+      this.ciderNreplVersion()
+    );
     const { stderr, stdout, ...optsLessOut } = opts;
-    const evaluation = new NReplEvaluation(
-      id,
-      this,
-      stderr,
-      stdout,
-      null,
-      new Promise((resolve, reject) => {
-        const msg = {
-          ...extraOpts,
-          ...optsLessOut,
-          op: 'load-file',
-          session: this.sessionId,
-          file,
-          id,
-          'file-name': opts.fileName,
-          'file-path': opts.filePath,
-        };
-        if (this.supports(msg.op)) {
-          this.messageHandlers[id] = (msg) => {
-            evaluation.setHandlers(resolve, reject);
-            debugDecorations.triggerUpdateAndRenderDecorations();
-            if (evaluation.onMessage(msg, pprintOptions)) {
-              return true;
-            }
-          };
-          this.addRunningID(id);
-          this.client.write(msg);
-        } else {
-          log(msg, Direction.ClientToServerNotSupported);
-          resolve(undefined);
-        }
-      })
+    const evaluation = new NReplEvaluation(id, this, stderr, stdout, null);
+    evaluation.send(
+      {
+        ...extraOpts,
+        ...optsLessOut,
+        op: 'load-file',
+        session: this.sessionId,
+        file,
+        id,
+        'file-name': opts.fileName,
+        'file-path': opts.filePath,
+      },
+      pprintOptions,
+      () => debugDecorations.triggerUpdateAndRenderDecorations()
     );
 
     return evaluation;
@@ -858,24 +870,39 @@ export class NReplSession {
     });
   }
 
-  info(ns: string, symbol: string) {
-    return new Promise<any>((resolve, reject) => {
+  /**
+   * With `downloadSourcesJar`, cider-nrepl first fetches the sources jar of a Java class whose
+   * source isn't local, once per artifact. Ask for it when the user wants to see the source.
+   */
+  info(ns: string, symbol: string, { downloadSourcesJar = false } = {}) {
+    return this.sendInfo({ ns, symbol: symbol.replace(/^'/, '') }, downloadSourcesJar);
+  }
+
+  javaMemberInfo(className: string, member: string) {
+    return this.sendInfo({ class: className, member }, true);
+  }
+
+  private sendInfo(params: object, downloadSourcesJar: boolean) {
+    const info = new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'info',
-        ns,
-        symbol: symbol.replace(/^'/, ''),
+        ...params,
+        ...(downloadSourcesJar ? { 'download-sources-jar': '1' } : {}),
         id,
         session: this.sessionId,
       };
       if (this.supports(msg.op)) {
-        this.messageHandlers[id] = resultHandler(resolve, reject);
+        this.messageHandlers[id] = cider.infoHandler(resolve, reject, (coords) =>
+          showSourcesJarDownload(coords, info)
+        );
         this.client.write(msg);
       } else {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
       }
     });
+    return info;
   }
 
   classpath() {
@@ -928,26 +955,13 @@ export class NReplSession {
   }
 
   testStacktrace(ns: string, test: string, index: number) {
-    return new Promise<any>((resolve, reject) => {
-      const id = this.client.nextId;
-      const msg = {
-        op: 'test-stacktrace',
-        id,
-        session: this.sessionId,
-        ns,
-        var: test,
-        index: index,
-      };
-      if (this.supports(msg.op)) {
-        this.messageHandlers[id] = (msg) => {
-          resolve(msg);
-          return true;
-        };
-        this.client.write(msg);
-      } else {
-        log(msg, Direction.ClientToServerNotSupported);
-        resolve(undefined);
-      }
+    return this.requestCauses({
+      op: 'test-stacktrace',
+      id: this.client.nextId,
+      session: this.sessionId,
+      ns,
+      var: test,
+      index: index,
     });
   }
 
@@ -1294,9 +1308,13 @@ export class NReplEvaluation {
 
   private _stacktrace: any;
 
+  private _causes: cider.StacktraceCause[] | undefined;
+
   private _msgs: any[] = [];
 
   private _interrupted: boolean = false;
+
+  private _dropped: boolean = false;
 
   private _finished: boolean = false;
 
@@ -1306,14 +1324,52 @@ export class NReplEvaluation {
 
   private __reject: (reason?: any) => void;
 
+  readonly value: Promise<any>;
+
   constructor(
     public id: string,
     public session: NReplSession,
     public stderr: (x: string) => void,
     public stdout: (x: string) => void,
-    public stdin: () => Promise<string>,
-    public value: Promise<any>
-  ) {}
+    public stdin: () => Promise<string>
+  ) {
+    this.value = new Promise((resolve, reject) => {
+      this._resolve = resolve;
+      this.__reject = reject;
+    });
+  }
+
+  /**
+   * Sends `message` in the session. The evaluation runs from then until its reply is done, and
+   * calls `onReply` for each reply message. Resolves to `undefined` when the server doesn't support
+   * the message's op, and rejects with the error when the message can't be written.
+   */
+  send(
+    message: { op: string; [key: string]: unknown },
+    pprintOptions: PrettyPrintingOptions,
+    onReply: () => void
+  ) {
+    if (!this.session.supports(message.op)) {
+      log(message, Direction.ClientToServerNotSupported);
+      this.doResolve(undefined);
+      return;
+    }
+    this.session.messageHandlers[this.id] = (msg) => {
+      onReply();
+      return this.onMessage(msg, pprintOptions);
+    };
+    this._running = true;
+    this.add();
+    this.session.addRunningID(this.id);
+    try {
+      this.session.client.write(message);
+    } catch (e) {
+      delete this.session.messageHandlers[this.id];
+      this.session.removeRunningID(this.id);
+      this.remove();
+      this.doReject(e);
+    }
+  }
 
   private add(): void {
     if (!NReplEvaluation.Instances.includes(this)) {
@@ -1346,6 +1402,11 @@ export class NReplEvaluation {
 
   get interrupted() {
     return this._interrupted;
+  }
+
+  /** True when the evaluation ended because its REPL session closed, before the server replied. */
+  get dropped() {
+    return this._dropped;
   }
 
   get running() {
@@ -1384,6 +1445,11 @@ export class NReplEvaluation {
 
   get stacktrace() {
     return this._stacktrace;
+  }
+
+  // The causes of an evaluation error that the debugger reports among the evaluation's messages
+  get causes() {
+    return this._causes;
   }
 
   get msgs() {
@@ -1439,14 +1505,7 @@ export class NReplEvaluation {
     }
   }
 
-  setHandlers(resolve: (reason?: any) => void, reject: (reason?: any) => void) {
-    this._resolve = resolve;
-    this.__reject = reject;
-  }
-
   onMessage(msg: any, pprintOptions: PrettyPrintingOptions): boolean {
-    this._running = true;
-    this.add();
     if (msg) {
       this._msgs.push(msg);
       if (msg.out) {
@@ -1466,6 +1525,7 @@ export class NReplEvaluation {
         const cause = msg.causes[0];
         const errorMessage = `${cause.class}: ${cause.message}`;
         this._stacktrace = { stacktrace: cause.stacktrace };
+        this._causes = msg.causes;
         this.err(errorMessage);
       }
       if (msg.value !== undefined || msg['debug-value'] !== undefined) {
@@ -1487,7 +1547,7 @@ export class NReplEvaluation {
             });
         } else {
           util
-            .promptForUserInputString('REPL Input:')
+            .promptForUserInputString('stdin')
             .then((input) => {
               if (input !== undefined) {
                 this.session.stdin(`${input}\n`);
@@ -1548,5 +1608,15 @@ export class NReplEvaluation {
       }
     });
     return num;
+  }
+
+  /** Ends the evaluations of `session` as dropped. Each rejects, saying the REPL session closed. */
+  static dropSessionEvaluations(session: NReplSession) {
+    NReplEvaluation.Instances.filter((item) => item.session === session).forEach((item) => {
+      delete session.messageHandlers[item.id];
+      item.remove();
+      item._dropped = true;
+      item.doReject('The REPL session closed before the evaluation finished');
+    });
   }
 }

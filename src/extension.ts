@@ -34,6 +34,7 @@ import * as config from './config';
 import * as snippets from './custom-snippets';
 import * as whenContexts from './when-contexts';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as javaSource from './results-output/java-source';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 import * as converters from './converters';
@@ -45,12 +46,15 @@ import * as clojureDocs from './clojuredocs';
 import * as overrides from './overrides';
 import * as lsp from './lsp';
 import * as fiddleFiles from './fiddle-files';
+import * as currentFile from './current-file';
 import * as flareHandler from './flare-handler';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as shadowRuntime from './shadow-cljs-runtime';
 import * as outputSidebar from './results-output/output-sidebar';
+import * as replInput from './repl-input';
+import * as cursorGetText from './util/cursor-get-text';
 
 function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
   replHistory.setReplHistoryCommandsActiveContext(editor);
@@ -84,12 +88,11 @@ function initializeState() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
-  console.info('Calva activate START');
-
   // Store a reference to the vscode API in the cljs so it can call the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
+  cljsLib.trail('activate START');
   cljsLib.setSessionProjectRootUriFn((sessionKey: string) => {
     const root = sessionRegistry.getSessionMetadata(sessionKey)?.projectRoot;
     if (!root) {
@@ -105,10 +108,12 @@ async function activate(context: vscode.ExtensionContext) {
   cljsLib.initOutputViewImageDisplay();
   cljsLib.initOutputViewsCodeTheme();
   cljsLib.initReplOutputFontSizeScale();
+  cljsLib.setJavaSourceLookup(javaSource.javaSourceUrl);
 
   initializeState();
   output.registerOutputTerminalLifecycle(context);
   state.setExtensionContext(context);
+  currentFile.activate(context);
   state.initDepsEdnJackInExecutable();
   const isDramStart = await drams.dramStartConfigExists();
   void drams.refreshDramConfigs();
@@ -123,6 +128,11 @@ async function activate(context: vscode.ExtensionContext) {
   // Initialize flare webview provider for sidebar
   flareHandler.registerFlareWebviewProvider(context);
   outputSidebar.registerReplOutputSidebarProvider(context);
+  try {
+    replInput.activate(context);
+  } catch (e) {
+    console.error('Failed activating REPL Input: ' + e.message);
+  }
 
   overrides.activate();
 
@@ -251,6 +261,10 @@ async function activate(context: vscode.ExtensionContext) {
   void vscode.commands.executeCommand('setContext', 'calva:connecting', false);
   setKeybindingsEnabledContext();
 
+  const runCustomREPLCommand = replInput.runningSnippetWhenFocused(
+    snippets.evaluateCustomCodeSnippetCommand
+  );
+
   // COMMANDS
   const commands = {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
@@ -279,17 +293,38 @@ async function activate(context: vscode.ExtensionContext) {
     'debug.instrument': evaluate.instrumentTopLevelForm,
     'diagnostics.toggleNreplLoggingEnabled': nreplLogging.toggleEnabled,
     disconnect: jackIn.calvaDisconnect,
-    evaluateCurrentTopLevelForm: evaluate.evaluateTopLevelForm,
-    evaluateEnclosingForm: evaluate.evaluateEnclosingForm,
+    evaluateCurrentTopLevelForm: replInput.evaluatingWhenFocused(
+      cursorGetText.currentTopLevelForm,
+      evaluate.evaluateTopLevelForm
+    ),
+    evaluateEnclosingForm: replInput.evaluatingWhenFocused(
+      cursorGetText.currentEnclosingForm,
+      evaluate.evaluateEnclosingForm
+    ),
     evaluateReplWindowForm: evaluate.evaluateReplWindowForm,
-    evaluateSelection: evaluate.evaluateCurrentForm,
+    evaluateSelection: replInput.evaluatingWhenFocused(
+      cursorGetText.selectionElseCurrentForm,
+      evaluate.evaluateCurrentForm
+    ),
     evaluateSelectionAsComment: evaluate.evaluateSelectionAsComment,
     evaluateSelectionReplace: evaluate.evaluateSelectionReplace,
-    evaluateSelectionToSelectionEnd: evaluate.evaluateToCursor,
-    evaluateStartOfFileToCursor: evaluate.evaluateStartOfFileToCursor,
-    evaluateToCursor: evaluate.evaluateToCursor,
+    evaluateSelectionToSelectionEnd: replInput.evaluatingWhenFocused(
+      cursorGetText.enclosingFormOrSelectionToCursor,
+      evaluate.evaluateToCursor
+    ),
+    evaluateStartOfFileToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.startOfFileToCursor,
+      evaluate.evaluateStartOfFileToCursor
+    ),
+    evaluateToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.enclosingFormOrSelectionToCursor,
+      evaluate.evaluateToCursor
+    ),
     evaluateTopLevelFormAsComment: evaluate.evaluateTopLevelFormAsComment,
-    evaluateTopLevelFormToCursor: evaluate.evaluateTopLevelFormToCursor,
+    evaluateTopLevelFormToCursor: replInput.evaluatingWhenFocused(
+      cursorGetText.currentTopLevelFormToCursor,
+      evaluate.evaluateTopLevelFormToCursor
+    ),
     evaluateUser: evaluate.evaluateUser,
     interruptAllEvaluations: evaluate.interruptAllEvaluations,
     jackIn: jackIn.jackInCommand,
@@ -315,7 +350,7 @@ async function activate(context: vscode.ExtensionContext) {
     rereadUserConfigEdn: config.updateCalvaConfigFromUserConfigEdn,
     rerunTests: () => testRunner.rerunTestsCommand(testController),
     runAllTests: () => testRunner.runAllTestsCommand(testController),
-    runCustomREPLCommand: snippets.evaluateCustomCodeSnippetCommand,
+    runCustomREPLCommand,
     runNamespaceTests: () => testRunner.runNamespaceTestsCommand(testController),
     loadTestFileForCurrentNamespace: testRunner.loadTestNS,
     runTestUnderCursor: () => testRunner.runTestUnderCursorCommand(testController),
@@ -360,9 +395,8 @@ async function activate(context: vscode.ExtensionContext) {
     },
     switchCljsBuild: connector.switchCljsBuild,
     selectShadowCljsRuntime: shadowRuntime.selectShadowCljsRuntimeCommand,
-    tapCurrentTopLevelForm: () =>
-      snippets.evaluateCustomCodeSnippetCommand('(tap> $top-level-form)'),
-    tapSelection: () => snippets.evaluateCustomCodeSnippetCommand('(tap> $current-form)'),
+    tapCurrentTopLevelForm: () => runCustomREPLCommand('(tap> $top-level-form)'),
+    tapSelection: () => runCustomREPLCommand('(tap> $current-form)'),
     toggleBetweenImplAndTest: () => {
       return fileSwitcher.toggleBetweenImplAndTest();
     },
@@ -670,7 +704,7 @@ async function activate(context: vscode.ExtensionContext) {
 
   void drams.maybeStartDram();
 
-  console.info('Calva activate END');
+  cljsLib.trail('activate END');
 
   return api.getApi();
 }

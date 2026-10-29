@@ -366,10 +366,13 @@ function requestWindowsJackOut(entry: JackInProcessEntry) {
   if (!client?.session) {
     return;
   }
-  client.session.eval(
-    '(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)',
-    'user'
-  );
+  // The jack-out disconnects right away, which ends this evaluation before it replies
+  client.session
+    .eval(
+      '(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)',
+      'user'
+    )
+    .value.catch(() => undefined);
 }
 
 /**

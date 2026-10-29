@@ -7,6 +7,9 @@ import * as mocha from 'mocha';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
+import * as evaluate from '../../../evaluate';
+import * as replSession from '../../../nrepl/repl-session';
+import * as calvaConfig from '../../../config';
 import * as testUtil from './util';
 
 suite('File Output Destination Test', () => {
@@ -25,26 +28,31 @@ suite('File Output Destination Test', () => {
     menuSelections: { cljAliases: [] },
   };
 
-  mocha.before(async () => {
+  mocha.before(async function () {
+    this.timeout(120_000);
     testUtil.showMessage(suite, 'suite starting!');
     await testUtil.ensureOutputDir(testUtil.testDataDir);
     const config = vscode.workspace.getConfiguration('calva');
     originalDestinations = config.inspect('outputDestinations')?.globalValue;
+    await outputWindow.clearReplWindowDoc();
+    jackInHarness.reset();
+    await jackInHarness.disconnectAllClients();
+    await jackInWithTerminal();
   });
 
   mocha.after(async () => {
+    await vscode.workspace
+      .getConfiguration('calva')
+      .update('outputDestinations', originalDestinations, vscode.ConfigurationTarget.Global);
     testUtil.log(suite, 'Suite cleanup: killing all jack-in processes');
     await jackIn.calvaJackout({ force: true });
     await testUtil.waitForJackOutComplete(suite);
     testUtil.showMessage(suite, 'suite done!');
   });
 
-  mocha.beforeEach(async function () {
-    this.timeout(60_000);
+  mocha.beforeEach(async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'calva-file-output-test-'));
     await outputWindow.clearReplWindowDoc();
-    jackInHarness.reset();
-    await jackInHarness.disconnectAllClients();
   });
 
   mocha.afterEach(async () => {
@@ -113,10 +121,51 @@ suite('File Output Destination Test', () => {
     );
   }
 
-  test('eval result written to file destination', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
+  async function setEvaluationSendCodeToOutputWindow(value: unknown) {
+    const config = vscode.workspace.getConfiguration('calva');
+    await config.update(
+      'evaluationSendCodeToOutputWindow',
+      value,
+      vscode.ConfigurationTarget.Global
+    );
+    await testUtil.waitForCondition(
+      () =>
+        vscode.workspace.getConfiguration('calva').inspect('evaluationSendCodeToOutputWindow')
+          ?.globalValue === value,
+      2000,
+      50,
+      'evaluationSendCodeToOutputWindow config update did not take effect'
+    );
+  }
 
+  /**
+   * Evaluates code from the file at `filePath` with `calva.evaluationSendCodeToOutputWindow` on,
+   * then off, and asserts that each result reaches `resultsFile`, and the code only with the echo on.
+   */
+  async function assertEvaluationFromAFile(filePath: string, resultsFile: string) {
+    const editor = await testUtil.openFile(filePath);
+    const echoSetting = vscode.workspace
+      .getConfiguration('calva')
+      .inspect('evaluationSendCodeToOutputWindow')?.globalValue;
+    try {
+      for (const [echo, message] of [
+        [true, 'An evaluation from a file should echo its code with the echo on'],
+        [false, 'An evaluation from a file should not echo its code with the echo off'],
+      ] as const) {
+        await setEvaluationSendCodeToOutputWindow(echo);
+        const code = `(str "from-a-file-" "echo-${echo}")`;
+        await evaluate.evaluateInCurrentEditor(editor, code, undefined, 'user', {});
+        const content = await waitForFileContent(resultsFile, (c) =>
+          c.includes(`"from-a-file-echo-${echo}"`)
+        );
+        assert.strictEqual(content.includes(code), echo, message);
+      }
+    } finally {
+      await setEvaluationSendCodeToOutputWindow(echoSetting);
+    }
+  }
+
+  test('eval result written to file destination', async function () {
     const outputFile = path.join(tmpDir, 'eval-results.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -140,9 +189,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('eval output (stdout) written to file destination', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'eval-output.txt');
     await setOutputDestinations({
       evalResults: 'terminal',
@@ -159,9 +205,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('file auto-created with parent directories', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'sub', 'dir', 'output.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -177,9 +220,6 @@ suite('File Output Destination Test', () => {
   });
 
   test('multiple appends accumulate in file', async function () {
-    this.timeout(120_000);
-    await jackInWithTerminal();
-
     const outputFile = path.join(tmpDir, 'accumulated.txt');
     await setOutputDestinations({
       evalResults: ['terminal', outputFile],
@@ -202,5 +242,50 @@ suite('File Output Destination Test', () => {
 
     const matches = content.match(/nil/g) || [];
     assert.ok(matches.length >= 2, `Expected at least 2 "nil" in file, got ${matches.length}`);
+  });
+
+  test('shared evaluation, and evaluation from a file with echo on and off, send to the destinations', async function () {
+    const resultsFile = path.join(tmpDir, 'shared-eval-results.txt');
+    const outputFile = path.join(tmpDir, 'shared-eval-output.txt');
+    await setOutputDestinations({
+      evalResults: ['terminal', resultsFile],
+      evalOutput: ['terminal', outputFile],
+      otherOutput: 'terminal',
+    });
+
+    const session = replSession.getSession();
+    const evaluationFile = 'calva-repl-input/shared-eval-test.clj';
+    const evaluationOptions = {
+      session,
+      ns: 'user',
+      filePath: evaluationFile,
+      line: 4,
+      column: 2,
+      pprintOptions: calvaConfig.getConfig().prettyPrintingOptions,
+      echoDestinations: [],
+    };
+
+    const evaluation = await evaluate.evaluateToOutputDestinations({
+      ...evaluationOptions,
+      code: '(def shared-eval-probe (do (println "shared-eval-stdout") :probed))',
+    });
+    assert.deepStrictEqual(evaluation, { value: "#'user/shared-eval-probe", ns: 'user' });
+    await waitForFileContent(resultsFile, (c) => c.includes("#'user/shared-eval-probe"));
+    await waitForFileContent(outputFile, (c) => c.includes('shared-eval-stdout'));
+
+    const location = await session.eval(
+      "(select-keys (meta #'user/shared-eval-probe) [:file :line :column])",
+      'user'
+    ).value;
+    assert.strictEqual(location, `{:file "${evaluationFile}", :line 5, :column 3}`);
+
+    const failed = await evaluate.evaluateToOutputDestinations({
+      ...evaluationOptions,
+      code: '(throw (ex-info "shared-eval-boom" {}))',
+    });
+    assert.ok('error' in failed, `Expected an error, got: ${JSON.stringify(failed)}`);
+    await waitForFileContent(outputFile, (c) => c.includes('shared-eval-boom'));
+
+    await assertEvaluationFromAFile(testFilePath, resultsFile);
   });
 });

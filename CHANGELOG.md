@@ -4,7 +4,23 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
+- Fix: `$editor-ns` is empty in custom REPL commands
+- Fix: Go to definition sometimes land one column off
+- Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
+- Fix: The Output Sidebar loses its output when the Output Destinations change
+- Fix: Code in the Output views isn't highlighted when offline
+- Calva Development QoL: CI build-and-test pipeline now runs in 8 minutes, down from 18 minutes
+- Fix: [Jacking-in fails with a nrepl-middleware error](https://github.com/BetterThanTomorrow/calva/issues/3319)
 - Fix: [Jack-in silently misses project servers when their port is already in use](https://github.com/BetterThanTomorrow/calva/issues/3312)
+
+## [2.0.605] - 2026-10-27
+
+- Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
+- [Add clickable stack traces](https://github.com/BetterThanTomorrow/calva/issues/2853)
+- Fix: [Go to definition only sometimes works for Java sources](https://github.com/BetterThanTomorrow/calva/issues/1436)
+- Fix: `extraNReplMiddleware` not applied when jacking in to Leiningen projects
+- Fix: Leiningen jack-in never applied Calva's nREPL middleware (malformed `update-in` key path)
 
 ## [2.0.604] - 2026-10-26
 

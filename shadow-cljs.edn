@@ -26,9 +26,12 @@
                              :html2hiccup calva.html2hiccup/html->hiccup-convert-bridge
                              :interpolateVariables calva.interpolate/interpolate-variables
                              :initializeCljs calva.util/initialize-cljs
+                             :trail calva.trail/log!
+                             :wordCharacter calva.words/word-character
                              :showReplOutputWebviewPanel calva.repl.webview.core/show-repl-output-webview-panel
                              :appendToReplOutputWebview calva.repl.webview.core/append
-                             :appendStackTraceToReplOutputWebview calva.repl.webview.core/append-stacktrace
+                             :appendErrorToReplOutputWebview calva.repl.webview.core/append-error
+                             :attachCausesToReplOutputWebview calva.repl.webview.core/attach-error-causes
                              :clearReplOutputView calva.repl.webview.core/clear-output-view
                              :toggleReplOutputWordWrap calva.repl.webview.core/toggle-word-wrap
                              :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
@@ -43,18 +46,41 @@
                              :createReplOutputSidebarProvider calva.repl.webview.sidebar/create-repl-output-sidebar-provider
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
-                             :appendStackTraceToReplOutputSidebar calva.repl.webview.sidebar/append-stacktrace
-                             :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar}
+                             :appendErrorToReplOutputSidebar calva.repl.webview.sidebar/append-error
+                             :attachCausesToReplOutputSidebar calva.repl.webview.sidebar/attach-error-causes
+                             :setJavaSourceLookup calva.repl.webview.frame-host/set-java-source-lookup!
+                             :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar
+                             :initReplInput calva.repl.input.core/init!
+                             :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
+                             :replInputFocused calva.repl.input.host/focused?
+                             :replInputSourceFile calva.repl.input.host/context-source-file
+                             :replInputEditFocused calva.repl.input.host/edit-focused!
+                             :replInputRunInFocused calva.repl.input.host/run-in-focused!
+                             :replInputEditorMoved calva.repl.input.host/editor-moved!
+                             :replInputRoutingChanged calva.repl.input.host/routing-changed!
+                             :replInputEvaluateFocused calva.repl.input.evaluate/evaluate-focused!
+                             :replInputEvaluateFromFocused calva.repl.input.evaluate/evaluate-from-focused!
+                             :replInputEvaluateFormFocused calva.repl.input.evaluate/evaluate-form-focused!
+                             :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
+                             :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!
+                             :replInputFollowEditor calva.repl.input.host/follow-editor!
+                             :replInputEvaluationId calva.repl.input.definition/evaluation-id
+                             :replInputEvaluationScheme calva.repl.input.definition/scheme
+                             :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
+                             :replInputEvaluationCode calva.repl.input.reveal/evaluation-code
+                             :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!
+                             :replInputReadLine calva.repl.input.stdin/read-line+}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
-                 :autorun   true}
+                 :autorun   true
+                 :closure-defines {calva.trail/enabled? false}}
                 :repl-output-ui
                 {:target :browser
                  :asset-path "js"
                  :output-dir "repl-output-ui/js"
-                 :modules {:main {:init-fn calva.repl.webview.ui/main}}
+                 :modules {:main {:init-fn calva.repl.webview.main/main}}
                  :devtools {:loader-mode :eval
                             :use-document-host false}}}}

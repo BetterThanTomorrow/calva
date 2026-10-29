@@ -2018,6 +2018,28 @@ describe('paredit', () => {
           .toEqual(textNotation.textAndSelection(b));
       });
 
+      it('does not drag forward when there is no sexpr', async () => {
+        for (const dotText of ['|', '  |  ', '; a comment|']) {
+          const a = textNotation.docFromTextNotation(dotText);
+          const b = textNotation.docFromTextNotation(dotText);
+          await paredit.dragSexprForward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        }
+      });
+
+      it('does not drag backward when there is no sexpr', async () => {
+        for (const dotText of ['|', '  |  ', '; a comment|']) {
+          const a = textNotation.docFromTextNotation(dotText);
+          const b = textNotation.docFromTextNotation(dotText);
+          await paredit.dragSexprBackward(a);
+          expectLib
+            .expect(textNotation.textAndSelection(a))
+            .toEqual(textNotation.textAndSelection(b));
+        }
+      });
+
       it('drags pair forward in maps', async () => {
         const a = textNotation.docFromTextNotation(
           `(c• {:|e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`
@@ -2726,6 +2748,14 @@ describe('paredit', () => {
       it('Closes quote at end of string', async () => {
         const a = textNotation.docFromTextNotation('(str "foo|")');
         const b = textNotation.docFromTextNotation('(str "foo"|)');
+        await paredit.stringQuote(a);
+        expectLib
+          .expect(textNotation.textAndSelection(a))
+          .toEqual(textNotation.textAndSelection(b));
+      });
+      it('Inserts a quote at the start of a selection, keeping the selection', async () => {
+        const a = textNotation.docFromTextNotation('(|a b|)');
+        const b = textNotation.docFromTextNotation('(|"a |b)');
         await paredit.stringQuote(a);
         expectLib
           .expect(textNotation.textAndSelection(a))

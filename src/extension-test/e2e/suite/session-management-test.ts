@@ -40,6 +40,7 @@ const createEvaluatingSession = (result: string, clientKey?: string): nrepl.NRep
       outPut: '',
       errorOutput: '',
     }),
+    evaluateInNs: () => Promise.resolve(),
     stacktrace: () => Promise.resolve(undefined),
   } as unknown as nrepl.NReplSession);
 

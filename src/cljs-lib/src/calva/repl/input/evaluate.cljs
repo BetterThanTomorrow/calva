@@ -1,0 +1,175 @@
+(ns calva.repl.input.evaluate
+  "Evaluates from the REPL Inputs, their text or the part a command picks, in the context, and answers
+   the evaluations' reads from stdin and interrupts them."
+  (:require
+   [calva.repl.input.context :as context]
+   [calva.repl.input.definition :as definition]
+   [calva.repl.input.evaluations :as evaluations]
+   [calva.repl.input.host :as host]
+   [calva.repl.input.recall :as recall]
+   [calva.repl.input.reveal :as reveal]
+   [calva.util :as util]
+   [clojure.string :as string]))
+
+(defonce ^{:doc "The NReplEvaluation and the stdin reply of each running evaluation, by evaluation id."}
+  !running (atom {}))
+
+(defn evaluation-message
+  [id]
+  {:command/name "repl-input-evaluation"
+   :repl-input/evaluation (evaluations/bar (:repl-input/evaluations @host/!state) id)})
+
+(defn update-evaluations!
+  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its evaluation
+   bar and its stdin input."
+  [id f & args]
+  (apply swap! host/!state update :repl-input/evaluations f id args)
+  (host/post-to-view! id (evaluation-message id)))
+
+(defn- read-stdin+
+  "Returns a promise of the line sent from the REPL Input `id` to the evaluation `evaluation-id`."
+  [id evaluation-id]
+  (js/Promise.
+   (fn [resolve _]
+     (swap! !running assoc-in [evaluation-id :send-line] resolve)
+     (update-evaluations! id evaluations/reading-stdin evaluation-id true))))
+
+(defn- evaluated!
+  [{:keys [id evaluation-id evaluation-context code-namespace]} succeeded?]
+  (swap! !running dissoc evaluation-id)
+  (swap! host/!state update :repl-input.context/lock context/lock-after evaluation-context code-namespace succeeded?)
+  (update-evaluations! id evaluations/finished evaluation-id)
+  (host/refresh-context!))
+
+(defn next-evaluation-id!
+  []
+  (:repl-input/last-evaluation-id
+   (swap! host/!state update :repl-input/last-evaluation-id evaluations/next-id (js/Date.now))))
+
+(defn- evaluate+
+  "Evaluates the `code` of `request` from the REPL Input `id` as the evaluation `evaluation-id` in
+   `evaluation-context`, as starting at `line` and `column`, sending the code to the output unless
+   `send-code?` is false, and keeps the code by the evaluation's id. Returns a promise of when it is done."
+  [id evaluation-id {:keys [code line column send-code?]} {:repl-input.context/keys [ns ns-form session-key] :as evaluation-context}]
+  (let [^js adapter @host/!adapter
+        evaluation {:id id
+                    :evaluation-id evaluation-id
+                    :evaluation-context evaluation-context
+                    :code-namespace (js->clj (.nsFromText adapter code))}]
+    (reveal/keep-code! evaluation-id code line column)
+    (update-evaluations! id evaluations/started evaluation-id)
+    (-> (.evaluate adapter #js {:code code
+                                :ns ns
+                                :nsForm ns-form
+                                :sessionKey session-key
+                                :filePath (definition/evaluation-file evaluation-id)
+                                :line (or line 0)
+                                :column (or column 0)
+                                :sendCode (not (false? send-code?))
+                                :stdin #(read-stdin+ id evaluation-id)
+                                :onSent #(swap! !running assoc-in [evaluation-id :evaluation] %)})
+        (.then (fn [^js outcome] (.-succeeded outcome))
+               (constantly false))
+        (.then #(evaluated! evaluation %)))))
+
+(defn- show-message!
+  [message]
+  (some-> ^js @util/vscode .-window (.showInformationMessage message)))
+
+(defn- not-connected+
+  [evaluation-context]
+  (js/Promise.resolve (show-message! (context/not-connected-message evaluation-context))))
+
+(defn- evaluate-keeping-text+
+  [{:repl-input/keys [id]} request evaluation-context]
+  (evaluate+ id (next-evaluation-id!) request evaluation-context))
+
+(defn- evaluate-entered+
+  "Evaluates `request` from the REPL Input of `record` in `evaluation-context`, adds its code to the
+   history, and clears the REPL Input when the code was all of its text."
+  [{:repl-input/keys [id text version]} {:keys [code] :as request} evaluation-context]
+  (when (= (string/trim (str text)) (string/trim code))
+    (host/take-edit! id version host/empty-text))
+  (recall/add! id code evaluation-context)
+  (evaluate+ id (next-evaluation-id!) request evaluation-context))
+
+(defn evaluate!
+  "Evaluates all of the text of the REPL Input `id` in the context as one evaluation, adds it to the
+   history and clears the REPL Input, or says that no session answers to the context's session key.
+   Returns a promise of when the evaluation is done."
+  [id]
+  (let [{:repl-input/keys [text] :as record} (get-in @host/!state [:repl-input/records id])]
+    (if (string/blank? text)
+      (js/Promise.resolve nil)
+      (let [evaluation-context (host/refresh-context!)]
+        (if (:repl-input.context/connected? evaluation-context)
+          (evaluate-entered+ record {:code text} evaluation-context)
+          (not-connected+ evaluation-context))))))
+
+(defn ^:export evaluate-focused!
+  "Evaluates the REPL Input that Calva's commands reach, as `evaluate!` does."
+  []
+  (evaluate! (host/command-target!)))
+
+(defn- picked-evaluation
+  "Returns `[request overrides]` for what a pick returned: the evaluation request, and the context it names."
+  [^js picked]
+  (let [{:keys [code line column ns nsForm sessionKey sendCode]} (js->clj picked :keywordize-keys true)]
+    [{:code code :line line :column column :send-code? sendCode}
+     {:repl-input.context/ns ns
+      :repl-input.context/ns-form nsForm
+      :repl-input.context/session-key sessionKey}]))
+
+(defn- evaluate-picked+
+  [evaluate-request+ record evaluation-context picked]
+  (let [[request overrides] (picked-evaluation picked)
+        picked-context (context/evaluation-context evaluation-context overrides (.sessionKeys ^js @host/!adapter))]
+    (if (:repl-input.context/connected? picked-context)
+      (evaluate-request+ record request picked-context)
+      (not-connected+ picked-context))))
+
+(defn- evaluate-picked-from-focused+
+  "Evaluates what `pick` takes from the REPL Input that Calva's commands reach with `evaluate-request+`,
+   which gets the REPL Input's record, the request and the context."
+  [pick evaluate-request+]
+  (if-let [record (get-in @host/!state [:repl-input/records (host/command-target!)])]
+    (let [{:repl-input.context/keys [ns ns-form session-key] :as evaluation-context} (host/refresh-context!)]
+      (-> (js/Promise.resolve (pick (host/document record) #js {:ns ns :nsForm ns-form :sessionKey session-key}))
+          (.then #(when % (evaluate-picked+ evaluate-request+ record evaluation-context %)))))
+    (js/Promise.resolve nil)))
+
+(defn ^:export evaluate-from-focused!
+  "Evaluates what `pick` takes from a document with the focused REPL Input's text and selections, in the
+   context, and keeps the text. `pick` gets the document and the context as `{ns nsForm sessionKey}`, and
+   returns, or promises, `{code line column}` with the `ns`, `nsForm`, `sessionKey` and `sendCode` it
+   changes, or nothing. Returns a promise of when the evaluation is done."
+  [pick]
+  (evaluate-picked-from-focused+ pick evaluate-keeping-text+))
+
+(defn ^:export evaluate-form-focused!
+  "Evaluates the form that `pick` takes from the focused REPL Input, as `evaluate-from-focused!` does, adds
+   it to the history, and clears the REPL Input when the form was all of its text. Returns a promise of
+   when the evaluation is done."
+  [pick]
+  (evaluate-picked-from-focused+ pick evaluate-entered+))
+
+(defn send-line!
+  "Sends `line`, from the stdin input of the REPL Input `id`, to the evaluation that waits there for a
+   line from stdin."
+  [id line]
+  (let [evaluation-id (evaluations/waiting-for-stdin (:repl-input/evaluations @host/!state) id)]
+    (when-let [send (get-in @!running [evaluation-id :send-line])]
+      (swap! !running update evaluation-id dissoc :send-line)
+      (update-evaluations! id evaluations/reading-stdin evaluation-id false)
+      (send (or line "")))))
+
+(defn interrupt!
+  [id]
+  (doseq [evaluation-id (keys (get-in @host/!state [:repl-input/evaluations id]))]
+    (when-let [^js evaluation (get-in @!running [evaluation-id :evaluation])]
+      (.interrupt evaluation))))
+
+(defn ^:export interrupt-focused!
+  "Interrupts the evaluations running from the REPL Input that Calva's commands reach."
+  []
+  (some-> (host/command-target!) interrupt!))

@@ -1,6 +1,30 @@
 # DO NOT EDIT - This file was generated from 'config.ys'.
 
 version: 2.1
+commands:
+  install-node:
+    steps:
+    - restore_cache:
+        name: Restore Node download
+        keys:
+        - node-v1-{{ checksum ".nvmrc" }}
+    - run:
+        name: Install Node
+        command: |
+          version=$(cat .nvmrc)
+          tarball=~/node-download/node-v$version-linux-x64.tar.xz
+          if [[ ! -f $tarball ]]; then
+            mkdir -p ~/node-download
+            curl -fsSL -o "$tarball" "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz"
+          fi
+          sudo tar -xJf "$tarball" -C /usr/local --strip-components=1 \
+            --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
+          node --version
+    - save_cache:
+        name: Save Node download
+        key: node-v1-{{ checksum ".nvmrc" }}
+        paths:
+        - ~/node-download
 jobs:
   checkout:
     docker:
@@ -32,7 +56,7 @@ jobs:
         root: /tmp
         paths:
         - build
-  build:
+  build-cljslib:
     docker:
     - image: cimg/clojure:1.12.0-openjdk-21.0-node
     working_directory: ~/calva
@@ -42,26 +66,27 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
+    - restore_cache:
+        name: Restore CLJS dependencies
+        keys:
+        - cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+        - cljs-deps-v1-
+    - restore_cache:
+        name: Restore the shadow-cljs compile cache
+        keys:
+        - shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+        - shadow-cljs-build-cljslib-v1-{{ .Branch }}-
+        - shadow-cljs-build-cljslib-v1-
     - run:
         name: Install CLJS dependencies
         command: npx shadow-cljs classpath
     - run:
-        name: Create artifacts workspace
-        command: mkdir /tmp/artifacts
-    - run:
         name: Release CLJS builds
-        command: npm run release-cljs
+        command: npx shadow-cljs release -A:ci:test :calva-lib :repl-output-ui :test --config-merge '{:autorun false}'
     - run:
-        name: Verify CLJS test output
-        command: ls -l out/cljs-lib/test
+        name: Check the size of the Output views' webview bundle
+        command: clojure -M -i scripts/bundle_size.clj -e '(bundle-size/report! {})'
     - run:
         name: Tamper Calva version if not release versioned
         command: |
@@ -98,6 +123,42 @@ jobs:
             exit 1
           fi
     - run:
+        name: Copy build
+        command: cp -r out /tmp/build; cp -r repl-output-ui/js /tmp/build/repl-output-ui; cp package.json /tmp/build
+    - save_cache:
+        name: Save CLJS dependencies
+        key: cljs-deps-v1-{{ checksum "shadow-cljs.edn" }}-{{ checksum "deps.edn" }}
+        paths:
+        - ~/.m2
+    - save_cache:
+        name: Save the shadow-cljs compile cache
+        key: shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+        paths:
+        - ~/calva/.shadow-cljs/builds/calva-lib
+        - ~/calva/.shadow-cljs/builds/repl-output-ui
+        - ~/calva/.shadow-cljs/jar-manifest
+    - persist_to_workspace:
+        root: /tmp
+        paths:
+        - build
+        - env
+  package-vsix:
+    docker:
+    - image: cimg/clojure:1.12.0-openjdk-21.0-node
+    working_directory: ~/calva
+    environment:
+      npm_config_ignore_scripts: 'true'
+    steps:
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore build
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - install-node
+    - run:
+        name: Create artifacts workspace
+        command: mkdir /tmp/artifacts
+    - run:
         name: Package vsix
         command: |
           if [[ $CIRCLE_TAG =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
@@ -113,26 +174,12 @@ jobs:
     - run:
         name: Copy vsix
         command: cp *.vsix /tmp/artifacts/
-    - run:
-        name: Verify CLJS test output before persist
-        command: ls -l out/cljs-lib/test
-    - run:
-        name: Copy build
-        command: cp -r out /tmp/build; cp package.json /tmp/build
-    - save_cache:
-        name: Save dependencies
-        key: ts-node22-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "clojure.tmLanguage.json" }}
-        paths:
-        - ./node_modules
-        - ~/.m2
     - store_artifacts:
         path: /tmp/artifacts
     - persist_to_workspace:
         root: /tmp
         paths:
         - artifacts
-        - build
-        - env
   prettier-check:
     docker:
     - image: cimg/node:22.23.4
@@ -162,7 +209,24 @@ jobs:
     - run:
         name: Verify lint watcher lifecycle
         command: npm run test-lint-watch
-  test-cljslib:
+  renamed-props-check:
+    docker:
+    - image: cimg/clojure:1.12.0-openjdk-21.0-node
+    working_directory: ~/calva
+    steps:
+    - attach_workspace:
+        at: /tmp
+    - run:
+        name: Restore source and dependencies
+        command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - install-node
+    - run:
+        name: Install CLJS dependencies
+        command: npx shadow-cljs classpath
+    - run:
+        name: Check the release builds for renamed JS property reads
+        command: clojure -M -i scripts/renamed_props.clj -e '(renamed-props/report! {})'
+  test-cljs-unit:
     docker:
     - image: cimg/node:22.23.4
     working_directory: ~/calva
@@ -173,13 +237,8 @@ jobs:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
     - run:
-        name: Verify CLJS test output after restore
-        command: ls -l out/cljs-lib/test
-    - run:
-        name: Run CLJS Tests
+        name: Run CLJS Unit Tests
         command: npm run calva-lib-test
-    - store_test_results:
-        path: ~/calva/junit
   test-ts-unit:
     docker:
     - image: cimg/node:22.23.4
@@ -197,33 +256,91 @@ jobs:
         path: ~/calva/junit
   test-e2e:
     docker:
-    - image: cimg/clojure:1.11-browsers
+    - image: cimg/clojure:1.12.6-openjdk-21.0-browsers
+    parallelism: 3
     working_directory: ~/calva
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:TieredStopAtLevel=1
     steps:
     - attach_workspace:
         at: /tmp
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
+    - install-node
     - run:
-        name: Install Node
+        name: Write jack-in dependency versions
         command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+          # The cache key can't checksum package.json: CI gives it a per-commit version
+          node -p 'JSON.stringify([].concat(require("./package.json").contributes.configuration)
+            .map((c) => c.properties["calva.jackInDependencyVersions"])
+            .find(Boolean).default)' | tee /tmp/jack-in-dependency-versions.json
+    - restore_cache:
+        name: Restore e2e dependencies
+        keys:
+        - e2e-deps-v1-{{ checksum "/tmp/jack-in-dependency-versions.json" }}-{{ checksum "test-fixtures/deps.edn" }}-{{ checksum "test-fixtures/projects/cljs-only/deps.edn" }}
+        - e2e-deps-v1-
     - run:
         name: Compile Extension Tests
         command: npm run compile-test
     - run:
         name: Apt install missing dependencies
-        command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3 imagemagick
+        command: sudo apt update && sudo apt install -y imagemagick
     - run:
         name: Run Extension Tests
-        command: npm run e2e-test -- --local
+        command: suites=$(circleci tests glob "$PWD/out/extension-test/e2e/suite/*-test.js" | circleci tests split --split-by=timings | xargs -n1 basename); echo "Running" $suites; npm run e2e-test -- --local $suites
+    - run:
+        name: Add hook times to e2e results
+        command: |
+          # CircleCI splits the e2e suites by the test case times in the JUnit file,
+          # which leave out the before/after hooks where suites jack in. Each suite
+          # file gets a test case carrying the rest of its wall time.
+          # shellcheck disable=SC2016 # ${...} are JavaScript template literals
+          node -e '
+          const fs = require("fs");
+          const path = process.argv[1];
+          const xml = fs.readFileSync(path, "utf8");
+          const attr = (s, name) => (s.match(new RegExp(` ${name}="([^"]*)"`)) || [])[1];
+          const suiteRe = /<testsuite( [^>]*)>([\s\S]*?)<\/testsuite>/g;
+          const files = new Map();
+          for (const [, attrs, body] of xml.matchAll(suiteRe)) {
+            const file = attr(attrs, "file");
+            if (!file) continue;
+            // The reporter ends a nested suite when its parent ends, so the latest end is the file end
+            const start = Date.parse(attr(attrs, "timestamp"));
+            const end = start + 1000 * Number(attr(attrs, "time"));
+            const cases = [...body.matchAll(/<testcase [^>]*?time="([^"]*)"/g)]
+              .reduce((sum, [, t]) => sum + Number(t), 0);
+            const f = files.get(file) ?? { start, end, cases: 0, firstSuite: attrs };
+            files.set(file, { ...f, start: Math.min(f.start, start), end: Math.max(f.end, end), cases: f.cases + cases });
+          }
+          const hookCases = new Map();
+          for (const [file, { start, end, cases, firstSuite }] of files) {
+            const hooks = (end - start) / 1000 - cases;
+            if (hooks >= 0.5) {
+              console.log(file.split("/").pop(), hooks.toFixed(1), "s of hooks");
+              hookCases.set(firstSuite, `<testcase name="${attr(firstSuite, "name")} before and after hooks" time="${hooks.toFixed(4)}" classname="before and after hooks">\n    </testcase>\n  `);
+            }
+          }
+          const out = xml
+            .replace(suiteRe, (suite, attrs) => !hookCases.has(attrs) ? suite : suite
+              .replace(/ tests="(\d+)"/, (_, n) => ` tests="${Number(n) + 1}"`)
+              .replace(/<\/testsuite>$/, `${hookCases.get(attrs)}</testsuite>`))
+            .replace(/(<testsuites [^>]*? tests=")(\d+)"/, (_, pre, n) => `${pre}${Number(n) + hookCases.size}"`);
+          fs.writeFileSync(path, out);
+          ' "${1:-junit/test-results.xml}" || echo "Hook times not added"
+    - save_cache:
+        name: Save e2e dependencies
+        key: e2e-deps-v1-{{ checksum "/tmp/jack-in-dependency-versions.json" }}-{{ checksum "test-fixtures/deps.edn" }}-{{ checksum "test-fixtures/projects/cljs-only/deps.edn" }}
+        paths:
+        - ~/.m2
+        - ~/.deps.clj
+        - ~/.gitlibs
     - store_test_results:
         path: ~/calva/junit
+    - store_artifacts:
+        path: ~/calva/junit
+        destination: junit
     - store_artifacts:
         path: ~/calva/out/extension-test/e2e/screenshots
         destination: e2e-screenshots
@@ -237,14 +354,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
@@ -263,14 +373,7 @@ jobs:
     - run:
         name: Restore build
         command: rmdir ~/calva && cp -r /tmp/build ~/calva
-    - run:
-        name: Install Node
-        command: |
-          version=$(cat .nvmrc)
-          curl -fsSL "https://nodejs.org/dist/v$version/node-v$version-linux-x64.tar.xz" |
-            sudo tar -xJ -C /usr/local --strip-components=1 \
-              --exclude CHANGELOG.md --exclude LICENSE --exclude README.md
-          node --version
+    - install-node
     - run:
         name: Apt install missing dependencies
         command: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E88979FB9B30ACF2; sudo apt update && sudo apt install -y libnss3
@@ -517,33 +620,41 @@ workflows:
     - prettier-check:
         requires:
         - checkout
-    - build:
+    - build-cljslib:
         requires:
         - checkout
+    - package-vsix:
+        requires:
+        - build-cljslib
     - test-docs-builder
     - ts-lint:
         requires:
         - checkout
-    - test-cljslib:
+    - renamed-props-check:
         requires:
-        - build
+        - checkout
+    - test-cljs-unit:
+        requires:
+        - build-cljslib
     - test-e2e:
         requires:
-        - build
+        - build-cljslib
     - test-smoke:
         requires:
-        - build
+        - package-vsix
     - test-smoke-sub-projects:
         requires:
-        - build
+        - package-vsix
     - test-ts-unit:
         requires:
-        - build
+        - build-cljslib
     - marketplace-preview-publish:
         requires:
+        - package-vsix
         - prettier-check
         - ts-lint
-        - test-cljslib
+        - renamed-props-check
+        - test-cljs-unit
         - test-e2e
         - test-smoke
         - test-smoke-sub-projects
@@ -560,9 +671,17 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - build:
+    - build-cljslib:
         requires:
         - checkout
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - package-vsix:
+        requires:
+        - build-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -584,9 +703,17 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - test-cljslib:
+    - renamed-props-check:
         requires:
-        - build
+        - checkout
+        filters:
+          branches:
+            ignore: /.*/
+          tags:
+            only: /^v\d+\.\d+\.\d+-?.*/
+    - test-cljs-unit:
+        requires:
+        - build-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -594,7 +721,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-e2e:
         requires:
-        - build
+        - build-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -602,7 +729,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-smoke:
         requires:
-        - build
+        - package-vsix
         filters:
           branches:
             ignore: /.*/
@@ -610,7 +737,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-smoke-sub-projects:
         requires:
-        - build
+        - package-vsix
         filters:
           branches:
             ignore: /.*/
@@ -618,7 +745,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-ts-unit:
         requires:
-        - build
+        - build-cljslib
         filters:
           branches:
             ignore: /.*/
@@ -626,9 +753,11 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - github-release:
         requires:
+        - package-vsix
         - prettier-check
         - ts-lint
-        - test-cljslib
+        - renamed-props-check
+        - test-cljs-unit
         - test-e2e
         - test-smoke
         - test-smoke-sub-projects

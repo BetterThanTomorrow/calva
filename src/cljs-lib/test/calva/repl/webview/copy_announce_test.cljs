@@ -46,3 +46,20 @@
         (finally
           (set! js/setTimeout original-timeout)
           (set! js/clearTimeout original-clear))))))
+
+(deftest stdout-copy-button-test
+  (let [output (js/document.createElement "div")
+        _ (ui/create-and-append-stdout-element output (js/document.createTextNode "hello\n") "evalOut")
+        pre (aget (.-children output) 0)
+        [button text-node] (array-seq (.-children pre))]
+    (is (= ["output-stdout"] (js->clj (.. pre -classList -names))))
+    (is (= ["output-copy-button" "output-stdout-copy"] (js->clj (.. button -classList -names)))
+        "The stdout element starts with its copy button")
+    (is (nil? (.-title button)))
+    (is (= "output-tooltip" (.getAttribute button "interestfor")))
+    (is (= "Copy output" (.getAttribute button "aria-description"))
+        "The copy button shows the page's tooltip")
+    (is (= "Copy output" (.getAttribute button "data-copy-label"))
+        "The accessible name comes back after the copied announcement")
+    (is (= "hello\n" (.-textContent text-node))
+        "The text follows the button")))

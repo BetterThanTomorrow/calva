@@ -2,7 +2,24 @@
  :deps {org.babashka/cli {:mvn/version "0.8.67"}}
  :tasks
  {:requires [[babashka.cli :as cli]
+             [bundle-size]
+             [release-check]
+             [renamed-props]
              [tasks :as t]]
+
+  release-check
+  {:doc "Usage: bb release-check  Release-builds cljs-lib into a temp folder as CI does, runs its tests, checks the Output views' webview bundle size, and scans for renamed JS property reads."
+   :task (release-check/check! {})}
+
+  bundle-size
+  {:doc "Usage: bb bundle-size [--bundle <file>]  Checks that a release build of the Output views' webview bundle, as CI makes with `npm run release-cljs`, is within its size limit. Locally, `bb release-check` makes one and checks it."
+   :task (bundle-size/report!
+          (cli/parse-opts *command-line-args* {:restrict [:bundle]}))}
+
+  renamed-props
+  {:doc "Usage: bb renamed-props  Release-builds cljs-lib and the Output views' webview with pseudo names into a temp folder, and lists the JS property reads each build renamed."
+   :task (renamed-props/report!
+          (cli/parse-opts *command-line-args* {:restrict [:sources]}))}
 
   package-dev-release
   {:doc "Usage: bb package-dev-release [<slug>] [--dry]"

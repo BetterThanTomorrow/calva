@@ -1024,15 +1024,14 @@ async function leinCommandLine(
       '--'
     );
   }
-  const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
+  // The cider-nrepl plugin adds the CIDER middleware, and `lein repl` can't take
+  // `cider.nrepl/cider-middleware`, which is a vector, not a middleware.
+  const useMiddleware = [
+    ...(cljsType ? cljsMiddleware[cljsType] : []),
+    ...(connectSequence.extraNReplMiddleware || []),
+  ];
   for (const mw of useMiddleware) {
-    args.push(
-      'update-in',
-      `${q + '[:repl-options,:nrepl-middleware]' + q}`,
-      'conj',
-      `'["${mw}"]'`,
-      '--'
-    );
+    args.push('update-in', `${q + ':repl-options:nrepl-middleware' + q}`, 'conj', mw, '--');
   }
   if (profiles.length) {
     args.push('with-profile', profiles.map((x) => `+${stringUtil.unKeywordize(x)}`).join(','));

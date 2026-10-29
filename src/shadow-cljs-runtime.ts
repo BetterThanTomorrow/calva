@@ -8,6 +8,7 @@ import * as output from './results-output/output';
 import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 import * as sessionEvents from './nrepl/session-events';
+import * as replWindow from './repl-window/repl-window-doc';
 
 /**
  * Tracks the last time Calva evaluated code on each runtime ID.
@@ -278,28 +279,18 @@ export async function selectShadowRuntime(): Promise<RuntimeQuickPickItem | null
  */
 export async function switchToRuntime(
   runtimeInfo: shadowRuntimeCore.RuntimeInfo,
-  clientKey?: string,
+  clientKey = getConnectionContextForCurrentSession()?.clientKey,
   options?: { isNewConnection?: boolean }
 ): Promise<boolean> {
   try {
-    let cljSession;
-    if (clientKey) {
-      cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
-    } else {
-      cljSession = getPrimarySessionForCurrentConnection();
-    }
+    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
 
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-cljs runtime selection');
       return false;
     }
 
-    let currentBuild;
-    if (clientKey) {
-      currentBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
-    } else {
-      currentBuild = getCurrentBuild();
-    }
+    const currentBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
     const runtimeId = runtimeInfo.runtimeId;
 
     const selectRuntimeCode = `(shadow.cljs.devtools.api/repl-runtime-select ${currentBuild} ${runtimeId})`;
@@ -346,36 +337,16 @@ export async function selectShadowCljsRuntimeCommand(): Promise<void> {
 }
 
 /**
- * Detect and store the initially connected runtime after CLJS REPL setup.
- * This handles the case where shadow-cljs automatically connects to a runtime.
- *
- * When called during initial connection (before session routing is set up),
- * pass the clientKey explicitly to avoid relying on session routing lookup.
+ * Detect and store the initially connected runtime of the `clientKey` connection after CLJS
+ * REPL setup. This handles the case where shadow-cljs automatically connects to a runtime.
  */
-export async function detectInitialRuntime(clientKey?: string): Promise<void> {
+export async function detectInitialRuntime(clientKey: string): Promise<void> {
   try {
-    let effectiveClientKey: string;
-    let connectionState;
-
-    if (clientKey) {
-      // Use the explicitly provided clientKey (during initial connection)
-      effectiveClientKey = clientKey;
-      connectionState = clientRegistry.getConnectionState(clientKey);
-    } else {
-      // Fall back to looking up via session routing (for later calls)
-      const ctx = getConnectionContextForCurrentSession();
-      if (!ctx) {
-        return;
-      }
-      effectiveClientKey = ctx.clientKey;
-      connectionState = ctx.connectionState;
-    }
-
-    if (!connectionState || connectionState.cljsTypeName !== 'shadow-cljs') {
+    if (clientRegistry.getConnectionState(clientKey)?.cljsTypeName !== 'shadow-cljs') {
       return; // Only run for shadow-cljs projects
     }
 
-    const runtimes = await getShadowRuntimesForClient(effectiveClientKey);
+    const runtimes = await getShadowRuntimesForClient(clientKey);
     if (!runtimes || runtimes.length === 0) {
       output.appendLineOtherOut(`No shadow-cljs runtimes detected.`);
       return; // No runtimes available
@@ -384,7 +355,7 @@ export async function detectInitialRuntime(clientKey?: string): Promise<void> {
     const runtime = runtimes[0];
     const runtimeId = runtime.runtimeId;
 
-    updateRuntimeState(runtimeId, runtime, effectiveClientKey, { isNewConnection: true });
+    updateRuntimeState(runtimeId, runtime, clientKey, { isNewConnection: true });
 
     status.update();
     if (runtimes.length > 1) {
@@ -404,27 +375,36 @@ export type { shadowRuntimeCore as ShadowRuntimeTypes };
 export type { RuntimeQuickPickItem };
 export { canonicalBuildId } from './shadow-cljs-runtime-core';
 
+/** The session key that the `clientKey` connection's runtime events carry. */
+function getRuntimeSessionKeyForClient(clientKey: string): string | undefined {
+  return (
+    sessionRegistry.getSecondarySessionKeyForClient(clientKey) ??
+    sessionRegistry.getPrimarySessionKeyForClient(clientKey)
+  );
+}
+
 export function updateRuntimeState(
   runtimeId: number,
   runtimeInfo: shadowRuntimeCore.RuntimeInfo,
-  clientKey?: string,
+  clientKey: string,
   options?: { isNewConnection?: boolean }
 ): void {
-  const effectiveClientKey = clientKey ?? getConnectionContextForCurrentSession()?.clientKey;
-  if (effectiveClientKey) {
-    clientRegistry.setConnectionState(effectiveClientKey, {
-      shadowCljsRuntimeId: runtimeId,
-      shadowCljsRuntimeInfo: runtimeInfo,
-    });
-  }
+  const previousRuntimeId = clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeId;
+  clientRegistry.setConnectionState(clientKey, {
+    shadowCljsRuntimeId: runtimeId,
+    shadowCljsRuntimeInfo: runtimeInfo,
+  });
   status.update();
 
-  if (options?.isNewConnection) {
-    const sessionKey = effectiveClientKey
-      ? sessionRegistry.getSecondarySessionKeyForClient(effectiveClientKey) ??
-        sessionRegistry.getPrimarySessionKeyForClient(effectiveClientKey)
-      : replSession.getReplSessionTypeFromState();
+  // The new runtime may lack the namespaces the session evaluated in
+  const cljsSession = sessionRegistry.getSession(
+    sessionRegistry.getSecondarySessionKeyForClient(clientKey)
+  );
+  if (cljsSession && runtimeId !== previousRuntimeId) {
+    replWindow.forgetSessionNs(cljsSession);
+  }
 
+  if (options?.isNewConnection) {
     const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
       ...runtimeInfo,
       lastActivity: getRuntimeLastActivity(runtimeId),
@@ -432,21 +412,18 @@ export function updateRuntimeState(
 
     sessionEvents.fireSessionsChanged({
       type: 'runtime-connected',
-      clientKey: effectiveClientKey,
-      sessionKey,
+      clientKey,
+      sessionKey: getRuntimeSessionKeyForClient(clientKey),
       runtime: runtimeWithActivity,
     });
   }
 }
 
-export function clearRuntimeState(clientKey?: string): void {
-  const effectiveClientKey = clientKey ?? getConnectionContextForCurrentSession()?.clientKey;
-  if (effectiveClientKey) {
-    clientRegistry.setConnectionState(effectiveClientKey, {
-      shadowCljsRuntimeId: undefined,
-      shadowCljsRuntimeInfo: undefined,
-    });
-  }
+export function clearRuntimeState(clientKey: string): void {
+  clientRegistry.setConnectionState(clientKey, {
+    shadowCljsRuntimeId: undefined,
+    shadowCljsRuntimeInfo: undefined,
+  });
   status.update();
 }
 
@@ -500,11 +477,6 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
       // 2. Fire lifecycle event for any connecting or disconnecting Shadow client
       const lifecycle = shadowRuntimeCore.decideLifecycleEvent(data);
       if (lifecycle.type === 'runtime-connected') {
-        const sessionKey = clientKey
-          ? sessionRegistry.getSecondarySessionKeyForClient(clientKey) ??
-            sessionRegistry.getPrimarySessionKeyForClient(clientKey)
-          : replSession.getReplSessionTypeFromState();
-
         const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
           ...lifecycle.runtimeInfo,
           lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
@@ -513,15 +485,10 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
         sessionEvents.fireSessionsChanged({
           type: 'runtime-connected',
           clientKey,
-          sessionKey,
+          sessionKey: getRuntimeSessionKeyForClient(clientKey),
           runtime: runtimeWithActivity,
         });
       } else if (lifecycle.type === 'runtime-disconnected') {
-        const sessionKey = clientKey
-          ? sessionRegistry.getSecondarySessionKeyForClient(clientKey) ??
-            sessionRegistry.getPrimarySessionKeyForClient(clientKey)
-          : replSession.getReplSessionTypeFromState();
-
         const baseRuntimeInfo =
           lifecycle.runtimeInfo ??
           (currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
@@ -547,7 +514,7 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
         sessionEvents.fireSessionsChanged({
           type: 'runtime-disconnected',
           clientKey,
-          sessionKey,
+          sessionKey: getRuntimeSessionKeyForClient(clientKey),
           runtime: runtimeWithActivity,
         });
       }
@@ -558,11 +525,12 @@ export async function handleShadowRemoteMessage(msgData: any, clientKey: string)
 }
 
 /**
- * Initialize shadow-remote notifications for real-time runtime status updates
+ * Initialize shadow-remote notifications for real-time runtime status updates of the
+ * `clientKey` connection
  */
-export async function initializeShadowRemoteNotifications(): Promise<void> {
+export async function initializeShadowRemoteNotifications(clientKey: string): Promise<void> {
   try {
-    const cljSession = getPrimarySessionForCurrentConnection();
+    const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     if (!cljSession) {
       output.appendLineOtherErr('No Clojure session available for shadow-remote initialization');
       return;

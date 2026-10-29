@@ -9,6 +9,8 @@ import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import type * as nrepl from '../../../nrepl';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as sessionTeardown from '../../../nrepl/session-teardown';
+import * as sessionEvents from '../../../nrepl/session-events';
+import * as shadowCljsRuntime from '../../../shadow-cljs-runtime';
 import * as testUtil from './util';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
@@ -20,6 +22,75 @@ const createSession = (replType: string, clientKey?: string): nrepl.NReplSession
     replType,
     client: clientKey ? { clientKey } : undefined,
   } as nrepl.NReplSession);
+
+const shadowRuntimesEdn =
+  '[{:client-id 7 :build-id :app :host :browser :worker-id 1 :desc "Browser of B"}]';
+
+const createShadowSession = (
+  sessionKey: string,
+  clientKey: string,
+  calls: string[]
+): nrepl.NReplSession =>
+  ({
+    ...createSession(sessionKey.replace(/:.*/, ''), clientKey),
+    shadowCljsRemoteInit: () => {
+      calls.push(`${sessionKey} shadowCljsRemoteInit`);
+      return Promise.resolve(true);
+    },
+    shadowCljsRemoteRegisterNotify: () => {
+      calls.push(`${sessionKey} shadowCljsRemoteRegisterNotify`);
+      return Promise.resolve(true);
+    },
+    eval: (code: string) => {
+      calls.push(`${sessionKey} eval`);
+      return { value: Promise.resolve(code.includes('repl-runtimes') ? shadowRuntimesEdn : 'nil') };
+    },
+  } as unknown as nrepl.NReplSession);
+
+const createClient = (clientKey: string): nrepl.NReplClient =>
+  ({
+    clientKey,
+    close: () => Promise.resolve(undefined),
+    disconnect: () => undefined,
+    addOnCloseHandler: () => undefined,
+    removeOnCloseHandler: () => undefined,
+  } as unknown as nrepl.NReplClient);
+
+/**
+ * Registers a clj connection, `client-a`, which the current file routes to, and a shadow-cljs
+ * connection, `client-b`, with `clj:2` and `cljs:2`. Each session records its calls in `calls`.
+ */
+const registerShadowConnectionBesideCurrent = (calls: string[]): void => {
+  clientRegistry.registerClient(createClient('client-a'), {
+    connectSequenceName: 'Connection A',
+    projectRoot: 'file:///project-a',
+  });
+  clientRegistry.registerClient(createClient('client-b'), {
+    connectSequenceName: 'Connection B',
+    projectRoot: 'file:///project-b',
+    connectionState: { cljsTypeName: 'shadow-cljs', cljsBuild: ':app' },
+  });
+  sessionRegistry.registerSession('clj', createShadowSession('clj', 'client-a', calls), {
+    connectionOwnerId: 'client-a',
+    isSecondary: false,
+  });
+  sessionRegistry.registerSession('clj:2', createShadowSession('clj:2', 'client-b', calls), {
+    connectionOwnerId: 'client-b',
+    isSecondary: false,
+  });
+  sessionRegistry.registerSession('cljs:2', createShadowSession('cljs:2', 'client-b', calls), {
+    connectionOwnerId: 'client-b',
+    isSecondary: true,
+  });
+  cljsLib.setStateValue('current-session-type', 'clj');
+};
+
+const recordRuntimeEvents = (events: sessionEvents.SessionsChangedEvent[]) =>
+  sessionEvents.onSessionsChanged((event) => {
+    if (event.type.startsWith('runtime-')) {
+      events.push(event);
+    }
+  });
 
 const resetOutputWindowSession = (sessionType: string, ns: string): void => {
   outputWindow.setSession(createSession(sessionType), ns, sessionType);
@@ -276,5 +347,136 @@ describe(`${suiteName} suite`, () => {
     assert.ok(sessionRegistry.getSession('session-b'), 'Session B should still exist');
     assert.strictEqual(clientsAfter[0].key, 'client-b', 'Client B should still be registered');
     assert.ok(!sessionRegistry.getSession('session-a'), 'Session A should be removed');
+  });
+
+  it('shadow-cljs runtime notifications register on their own connection', async () => {
+    const calls: string[] = [];
+    registerShadowConnectionBesideCurrent(calls);
+
+    await shadowCljsRuntime.initializeShadowRemoteNotifications('client-b');
+
+    assert.deepStrictEqual(
+      calls,
+      ['clj:2 shadowCljsRemoteInit', 'clj:2 shadowCljsRemoteRegisterNotify'],
+      'Connection B’s clj session should register, while the current file routes to A'
+    );
+  });
+
+  it('shadow-cljs initial runtime detection stores the runtime on its own connection', async () => {
+    const calls: string[] = [];
+    const events: sessionEvents.SessionsChangedEvent[] = [];
+    registerShadowConnectionBesideCurrent(calls);
+    const listener = recordRuntimeEvents(events);
+
+    try {
+      await shadowCljsRuntime.detectInitialRuntime('client-b');
+    } finally {
+      listener.dispose();
+    }
+
+    assert.deepStrictEqual(calls, ['clj:2 eval'], 'Connection B’s clj session should be asked');
+    assert.strictEqual(clientRegistry.getConnectionState('client-b').shadowCljsRuntimeId, 7);
+    assert.strictEqual(
+      clientRegistry.getConnectionState('client-a').shadowCljsRuntimeId,
+      undefined
+    );
+    assert.deepStrictEqual(
+      events.map(({ type, clientKey, sessionKey }) => [type, clientKey, sessionKey]),
+      [['runtime-connected', 'client-b', 'cljs:2']]
+    );
+  });
+
+  it('shadow-cljs runtime notices update the runtime state of their own connection', async () => {
+    const calls: string[] = [];
+    const events: sessionEvents.SessionsChangedEvent[] = [];
+    registerShadowConnectionBesideCurrent(calls);
+    const listener = recordRuntimeEvents(events);
+    const notice = (eventOp: string) => ({
+      op: 'shadow-remote-msg',
+      data: `{:op :notify :client-id 7 :event-op :${eventOp} :client-info {:build-id :app :host :browser :worker-id 1 :desc "Browser of B"}}`,
+    });
+
+    try {
+      await shadowCljsRuntime.handleShadowRemoteMessage(notice('client-connect'), 'client-b');
+      assert.strictEqual(clientRegistry.getConnectionState('client-b').shadowCljsRuntimeId, 7);
+      assert.strictEqual(
+        clientRegistry.getConnectionState('client-a').shadowCljsRuntimeId,
+        undefined
+      );
+
+      await shadowCljsRuntime.handleShadowRemoteMessage(notice('client-disconnect'), 'client-b');
+      assert.strictEqual(
+        clientRegistry.getConnectionState('client-b').shadowCljsRuntimeId,
+        undefined
+      );
+    } finally {
+      listener.dispose();
+    }
+
+    assert.deepStrictEqual(calls, ['clj:2 eval'], 'Connection B’s clj session should select');
+    assert.deepStrictEqual(
+      events.map(({ type, clientKey, sessionKey }) => [type, clientKey, sessionKey]),
+      [
+        ['runtime-connected', 'client-b', 'cljs:2'],
+        ['runtime-disconnected', 'client-b', 'cljs:2'],
+      ]
+    );
+  });
+
+  it('shadow-cljs runtime selection without a connection selects in the current file’s connection', async () => {
+    const calls: string[] = [];
+    registerShadowConnectionBesideCurrent(calls);
+    cljsLib.setStateValue('current-session-type', 'cljs:2');
+
+    const switched = await shadowCljsRuntime.switchToRuntime({
+      runtimeId: 7,
+      description: 'Browser of B',
+      buildId: 'app',
+      host: 'browser',
+      workerId: 1,
+      sinceInst: 0,
+      sinceDescription: '',
+    });
+
+    assert.ok(switched, 'The runtime should be selected');
+    assert.deepStrictEqual(calls, ['clj:2 eval'], 'Connection B’s clj session should select');
+    assert.strictEqual(clientRegistry.getConnectionState('client-b').shadowCljsRuntimeId, 7);
+    assert.strictEqual(
+      clientRegistry.getConnectionState('client-a').shadowCljsRuntimeId,
+      undefined
+    );
+  });
+
+  it('shadow-cljs runtime changes make the cljs session set up its namespace again', () => {
+    registerShadowConnectionBesideCurrent([]);
+    const cljsSession = sessionRegistry.getSession('cljs:2');
+    const runtime = (runtimeId: number) => ({
+      runtimeId,
+      description: `Browser ${runtimeId} of B`,
+      buildId: 'app',
+      host: 'browser',
+      workerId: 1,
+      sinceInst: 0,
+      sinceDescription: '',
+    });
+    outputWindow.setSession(cljsSession, 'pirate.ui', 'cljs:2');
+
+    shadowCljsRuntime.updateRuntimeState(7, runtime(7), 'client-b');
+    assert.ok(
+      !outputWindow.sessionHasNs(cljsSession, 'pirate.ui'),
+      'A new runtime may lack the namespace the session last evaluated in'
+    );
+
+    outputWindow.setSession(cljsSession, 'pirate.ui', 'cljs:2');
+    shadowCljsRuntime.updateRuntimeState(7, runtime(7), 'client-b');
+    assert.ok(
+      outputWindow.sessionHasNs(cljsSession, 'pirate.ui'),
+      'The same runtime keeps the namespace'
+    );
+    assert.strictEqual(
+      outputWindow.getSessionNs(cljsSession),
+      'pirate.ui',
+      'The REPL window keeps showing the namespace'
+    );
   });
 });

@@ -6,8 +6,15 @@ import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
 import * as jackIn from '../../../nrepl/jack-in';
+import * as nrepl from '../../../nrepl';
 import * as vscode from 'vscode';
 import * as connector from '../../../connector';
+import * as lsp from '../../../lsp';
+import { HoverProvider } from '../../../providers/hover';
+import { CalvaCompletionItemProvider } from '../../../providers/completion';
+import * as state from '../../../state';
+import * as replWindow from '../../../repl-window/repl-window-doc';
+import * as whoTracking from '../../../api/who-tracking';
 
 const suiteName = 'CLJC Routing';
 
@@ -15,12 +22,46 @@ const suiteName = 'CLJC Routing';
 const projectDir = path.join(testUtil.testDataDir, '..', 'projects', 'cljs-only');
 const cljsFile = path.join(projectDir, 'src', 'hello_world', 'core.cljs');
 const cljcFile = path.join(projectDir, 'src', 'hello_world', 'core.cljc');
+const nsSetupFile = path.join(projectDir, 'src', 'hello_world', 'ns_setup.cljc');
 const ednFile = path.join(projectDir, 'deps.edn');
 const fiddleFile = path.join(projectDir, 'hello.fiddle');
 
 // Files outside the connected project (in test-data/integration-test)
 const outsideCljcFile = path.join(testUtil.testDataDir, 'test.cljc');
 const outsideFiddleFile = path.join(testUtil.testDataDir, 'test.fiddle');
+
+function currentReplWindow() {
+  return {
+    session: replWindow.getSession(),
+    sessionType: replWindow.getSessionType(),
+    ns: replWindow.getNs(),
+  };
+}
+
+function restoreReplWindow({ session, sessionType, ns }: ReturnType<typeof currentReplWindow>) {
+  replWindow.setSession(session, ns, sessionType);
+}
+
+async function replHoverName(document: vscode.TextDocument, position: vscode.Position) {
+  const hover = await new HoverProvider(lsp.getClientProvider()).provideHover(
+    document,
+    position,
+    undefined
+  );
+  return (hover?.contents[0] as vscode.MarkdownString)?.value.match(/```clojure\n(.*)\n```/)?.[1];
+}
+
+async function replCompletionLabels(document: vscode.TextDocument, position: vscode.Position) {
+  const list = await new CalvaCompletionItemProvider(
+    lsp.getClientProvider()
+  ).provideCompletionItems(document, position, new vscode.CancellationTokenSource().token, {
+    triggerKind: vscode.CompletionTriggerKind.Invoke,
+    triggerCharacter: undefined,
+  });
+  return list.items
+    .filter((item) => item['data']?.provider === 'repl')
+    .map((item) => (typeof item.label === 'string' ? item.label : item.label.label));
+}
 
 async function waitForRouting(expectedSessionKey: string, reasonType: string): Promise<void> {
   await testUtil.waitForCondition(
@@ -138,6 +179,250 @@ suite('CLJC Routing suite', function () {
     const target = clientRegistry.getCljcTargetForConnection(clientKey);
     assert.strictEqual(target, 'primary', 'Default cljc target should be primary');
     assert.strictEqual(routingInfo?.sessionKey, 'clj', '.cljc should route to clj (primary)');
+  });
+
+  test('Routes a document that is not the active editor the way it routes it when it is', async function () {
+    testUtil.log(suiteName, 'Testing: Routing for a given document');
+
+    const cljcEditor = await testUtil.openFile(cljcFile);
+    const routingWhenActive = replSession.getRoutingInfo();
+
+    await testUtil.openFile(cljsFile);
+    const routingWhenNotActive = replSession.getRoutingInfo(cljcEditor.document);
+    testUtil.log(
+      suiteName,
+      'Routing for the .cljc document from a .cljs editor:',
+      routingWhenNotActive
+    );
+
+    assert.deepStrictEqual(
+      routingWhenNotActive,
+      routingWhenActive,
+      'The .cljc document should route the same with a .cljs editor active'
+    );
+    assert.strictEqual(
+      replSession.getRoutingInfo()?.sessionKey,
+      'cljs',
+      'Without a document, routing follows the active .cljs editor'
+    );
+  });
+
+  test('Routes a file by its URI, without opening it, the way it routes its document', async function () {
+    testUtil.log(suiteName, 'Testing: Routing for a file URI');
+
+    for (const target of ['primary', 'secondary'] as const) {
+      clientRegistry.setCljcTargetForConnection(clientKey, target);
+      for (const file of [cljcFile, cljsFile, ednFile, outsideCljcFile]) {
+        const editor = await testUtil.openFile(file);
+        assert.deepStrictEqual(
+          replSession.getRoutingInfoForUri(vscode.Uri.file(file)),
+          replSession.getRoutingInfo(editor.document),
+          `${path.basename(file)} should route the same by its URI with the cljc target ${target}`
+        );
+      }
+    }
+  });
+
+  test('With one file focused, Calva answers with its document, its session and its project root', async function () {
+    testUtil.log(suiteName, 'Testing: What Calva answers for one focused file');
+
+    for (const [file, sessionKey] of [
+      [cljsFile, 'cljs'],
+      [cljcFile, 'clj'],
+    ]) {
+      await testUtil.openFile(file);
+      assert.deepStrictEqual(
+        await testUtil.currentFileAnswers(),
+        { document: file, sessionKey, closestRoot: projectDir },
+        `${path.basename(
+          file
+        )} should be the document, route to ${sessionKey}, and have the project root`
+      );
+    }
+  });
+
+  test('Evaluating a selection in a focused output channel evaluates it outside the last active file’s namespace', async function () {
+    testUtil.log(suiteName, 'Testing: Evaluating a selection in an output channel');
+
+    // The file shows in a preview tab, which evaluating in it pins
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await vscode.window.showTextDocument(vscode.Uri.file(cljcFile), { preview: true });
+    const replWindowBefore = currentReplWindow();
+    const code = '(def evaluated-in (str *ns*))';
+    const channel = vscode.window.createOutputChannel('Calva e2e evaluation');
+    try {
+      channel.appendLine(code);
+      channel.show(false);
+      const outputEditor = await testUtil.waitForValue(
+        () => {
+          const editor = vscode.window.activeTextEditor;
+          return editor?.document.uri.scheme === 'output' &&
+            editor.document.getText().includes(code)
+            ? editor
+            : undefined;
+        },
+        4000,
+        20,
+        'Timed out waiting for the output channel to have the focus'
+      );
+      outputEditor.selections = [new vscode.Selection(0, 0, 0, code.length)];
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      const clj = sessionRegistry.getSession('clj');
+      const evaluatedIn = await testUtil.waitForValue(
+        async () => {
+          const value = await clj.eval(
+            "(vec (keep #(some-> (resolve %) deref) '[user/evaluated-in hello-world.core/evaluated-in]))",
+            'user'
+          ).value;
+          return value === '[]' ? undefined : value;
+        },
+        4000,
+        50,
+        'Timed out waiting for the selection to be evaluated'
+      );
+      assert.strictEqual(
+        evaluatedIn,
+        '["user"]',
+        'The output channel’s code should evaluate in the output channel’s namespace, not in the last active .cljc file’s'
+      );
+      assert.ok(
+        !vscode.window.tabGroups.all.some((group) =>
+          group.tabs.some(
+            (tab) => tab.input instanceof vscode.TabInputText && tab.input.uri.scheme === 'output'
+          )
+        ),
+        'The output channel should open in no editor tab'
+      );
+    } finally {
+      channel.dispose();
+      restoreReplWindow(replWindowBefore);
+      await testUtil.openFile(cljcFile);
+    }
+  });
+
+  test('Hover in a split that is not the active editor answers from that split’s session', async function () {
+    testUtil.log(suiteName, 'Testing: Hover in a split that is not the active editor');
+
+    try {
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      const cljcDocument = await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
+      assert.strictEqual(
+        await replHoverName(cljsDocument, new vscode.Position(10, 2)),
+        'cljs.core/comment',
+        'Hover in the .cljs split, with the .cljc editor routing to clj active, should ask cljs'
+      );
+
+      await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      assert.strictEqual(
+        await replHoverName(cljcDocument, new vscode.Position(2, 2)),
+        'clojure.core/comment',
+        'Hover in the .cljc split, with the .cljs editor active, should ask clj'
+      );
+
+      const markdownDocument = await vscode.workspace.openTextDocument({
+        language: 'markdown',
+        content: '',
+      });
+      await vscode.window.showTextDocument(markdownDocument, vscode.ViewColumn.Two);
+      assert.strictEqual(
+        await replHoverName(cljsDocument, new vscode.Position(10, 2)),
+        'cljs.core/comment',
+        'Hover in the .cljs split, with a Markdown editor active, should ask cljs'
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
+  });
+
+  test('Completion in a split that is not the active editor answers from that split’s session', async function () {
+    testUtil.log(suiteName, 'Testing: Completion in a split that is not the active editor');
+
+    for (const [sessionKey, userNs] of [
+      ['clj', 'user'],
+      ['cljs', 'cljs.user'],
+    ]) {
+      const session = sessionRegistry.getSession(sessionKey);
+      await session.eval('(ns hello-world.core)', userNs).value;
+      await session.eval(`(defn hello-from-the-${sessionKey}-session [])`, 'hello-world.core')
+        .value;
+    }
+
+    try {
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const labels = await replCompletionLabels(cljsDocument, new vscode.Position(8, 2));
+      assert.ok(
+        labels.includes('hello-from-the-cljs-session'),
+        `The .cljs split should complete from cljs, got ${labels.join(', ')}`
+      );
+      assert.ok(
+        !labels.includes('hello-from-the-clj-session'),
+        `The .cljs split should not complete from the active editor’s clj, got ${labels.join(', ')}`
+      );
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
+  });
+
+  test('A hover snippet in a split runs in that split’s session and leaves the REPL window as it was', async function () {
+    testUtil.log(suiteName, 'Testing: Hover snippet in a split that is not the active editor');
+
+    const projectConfig = state.getProjectConfig();
+    const replWindowBefore = currentReplWindow();
+    state.setProjectConfig({
+      ...projectConfig,
+      customREPLHoverSnippets: [{ name: 'Which REPL', snippet: '(if (= 1 1.0) "cljs" "clj")' }],
+    });
+    replWindow.setSession(sessionRegistry.getSession('clj'), 'user', 'clj');
+    try {
+      const cljsDocument = await testUtil.showInColumn(cljsFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(cljcFile, vscode.ViewColumn.Two);
+      const hover = await new HoverProvider(lsp.getClientProvider()).provideHover(
+        cljsDocument,
+        new vscode.Position(10, 2),
+        undefined
+      );
+      const hoverTexts = hover?.contents.map((content) => (content as vscode.MarkdownString).value);
+      assert.ok(
+        hoverTexts?.includes('cljs'),
+        `The snippet should run in the .cljs split’s cljs, got ${JSON.stringify(hoverTexts)}`
+      );
+      assert.deepStrictEqual(
+        { sessionType: replWindow.getSessionType(), ns: replWindow.getNs() },
+        { sessionType: 'clj', ns: 'user' },
+        'The REPL window should keep its session and namespace'
+      );
+    } finally {
+      state.setProjectConfig(projectConfig);
+      restoreReplWindow(replWindowBefore);
+      await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+    }
+  });
+
+  // Runs after the hover tests: once the .cljs file is loaded, a clj hover in hello-world.core
+  // finds nothing until the namespace's ns form is evaluated in clj
+  test('Load file on a .cljs file loads it into cljs while a file routing to clj is active', async function () {
+    testUtil.log(suiteName, 'Testing: Load file on a file that is not the active editor');
+
+    await testUtil.openFile(cljcFile);
+    const replWindowBefore = currentReplWindow();
+    const who = 'load-file-routing-test';
+    try {
+      await vscode.commands.executeCommand('calva.loadFile', { path: cljsFile, silent: true, who });
+      assert.strictEqual(
+        whoTracking.getCurrentWho(sessionRegistry.getSession('cljs').sessionId),
+        who,
+        'The .cljs file should load into cljs'
+      );
+      assert.notStrictEqual(
+        whoTracking.getCurrentWho(sessionRegistry.getSession('clj').sessionId),
+        who,
+        'The .cljs file should not load into the active editor’s clj'
+      );
+    } finally {
+      restoreReplWindow(replWindowBefore);
+    }
   });
 
   test('Toggle command switches cljc routing between clj and cljs', async function () {
@@ -344,6 +629,136 @@ suite('CLJC Routing suite', function () {
       'cljs',
       'After toggle, outside .fiddle should route to cljs'
     );
+  });
+
+  test('A dropped connection ends its evaluations', async function () {
+    testUtil.log(suiteName, 'Testing: A dropped connection ends its evaluations');
+
+    const { host, port } = clientRegistry.getRegisteredClient(clientKey);
+    const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
+    try {
+      const evaluation = client.session.eval('(Thread/sleep 20000)', 'user');
+      const rejection = evaluation.value.then(
+        () => undefined,
+        (reason) => reason
+      );
+      assert.strictEqual(evaluation.running, true, 'The evaluation runs');
+      client.disconnect();
+      await testUtil.waitForCondition(
+        () => !evaluation.running,
+        4000,
+        20,
+        'Timed out waiting for the dropped connection to end the evaluation'
+      );
+      assert.strictEqual(
+        await rejection,
+        'The REPL session closed before the evaluation finished',
+        'The evaluation rejects'
+      );
+      nrepl.NReplEvaluation.interruptAll(() => undefined);
+      assert.strictEqual(evaluation.interrupted, false, 'Interrupt leaves it out');
+    } finally {
+      client.disconnect();
+      client.session.close();
+    }
+  });
+
+  test('Loading a file in a session that closes stops quietly and leaves the REPL window as it was', async function () {
+    testUtil.log(suiteName, 'Testing: Loading a file in a session that closes');
+
+    const file = path.join(projectDir, 'slow_load.clj');
+    const { host, port } = clientRegistry.getRegisteredClient(clientKey);
+    const client = await nrepl.NReplClient.create({ host, port, onError: () => undefined });
+    const sessionKey = 'dropped-load-test';
+    const who = 'dropped-load-test';
+    sessionRegistry.registerSession(sessionKey, client.session);
+    const replWindowBefore = currentReplWindow();
+    try {
+      const loading = vscode.commands
+        .executeCommand('calva.loadFile', { path: file, silent: true, sessionKey, who })
+        .then(
+          () => undefined,
+          (error: Error) => error.message
+        );
+      await testUtil.waitForCondition(
+        () => whoTracking.getCurrentWho(client.session.sessionId) === who,
+        4000,
+        20,
+        'Timed out waiting for the file to be sent'
+      );
+      client.disconnect();
+      assert.strictEqual(
+        await loading,
+        'Evaluation of file slow_load.clj stopped: The REPL session closed before the evaluation finished',
+        'The load stops, saying the session closed'
+      );
+      assert.strictEqual(
+        replWindow.getSession(),
+        replWindowBefore.session,
+        'The REPL window keeps its session'
+      );
+      assert.strictEqual(replWindow.getNs(), replWindowBefore.ns, 'The REPL window keeps its ns');
+    } finally {
+      sessionRegistry.unregisterSession(sessionKey);
+      whoTracking.clearSessionTracking(sessionKey);
+      whoTracking.clearCurrentWho(client.session.sessionId);
+      client.disconnect();
+      client.session.close();
+    }
+  });
+
+  test('Evaluates a .cljc file’s ns form in clj after the cljc target switches from cljs', async function () {
+    const replWindowBefore = currentReplWindow();
+    const editor = await testUtil.openFile(nsSetupFile);
+    const form = '(def evaluated-type (str (type 1)))';
+    const start = editor.document.getText().indexOf(form);
+    const selectForm = () => {
+      editor.selections = [
+        new vscode.Selection(
+          editor.document.positionAt(start),
+          editor.document.positionAt(start + form.length)
+        ),
+      ];
+    };
+    const evaluated = (sessionKey: string, ns: string, code: string) =>
+      testUtil.waitForValue(
+        async () => {
+          const value = await sessionRegistry.getSession(sessionKey).eval(code, ns).value;
+          return ['nil', 'false'].includes(value) ? undefined : value;
+        },
+        4000,
+        50,
+        `Timed out waiting for the form to be evaluated in ${sessionKey}`
+      );
+    try {
+      clientRegistry.setCljcTargetForConnection(clientKey, 'secondary');
+      selectForm();
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      assert.strictEqual(
+        await evaluated(
+          'cljs',
+          'cljs.user',
+          "(some? (resolve 'hello-world.ns-setup/evaluated-type))"
+        ),
+        'true',
+        'The form is evaluated in cljs'
+      );
+
+      clientRegistry.setCljcTargetForConnection(clientKey, 'primary');
+      selectForm();
+      await vscode.commands.executeCommand('calva.evaluateSelection');
+      assert.strictEqual(
+        await evaluated(
+          'clj',
+          'user',
+          "(some-> (resolve 'hello-world.ns-setup/evaluated-type) deref)"
+        ),
+        '"class java.lang.Long"',
+        'The ns form reaches clj, though the REPL window already shows the namespace from cljs'
+      );
+    } finally {
+      restoreReplWindow(replWindowBefore);
+    }
   });
 
   async function jackInToClojureScriptProject(): Promise<void> {

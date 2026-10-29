@@ -2,6 +2,8 @@
   (:require
    [calva.repl.webview.app-db :as sut]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.stacktrace-fixtures :as fixtures]
    [cljs.test :refer-macros [deftest testing is]]))
 
 (deftest initial-db-test
@@ -42,15 +44,12 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
 
-  (testing ":msg/set-word-wrap"
+  (testing ":msg/set-word-wrap wraps the output and the REPL Input"
     (let [result (sut/handle-action sut/initial-db [:msg/set-word-wrap {:word-wrap true}])]
       (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-word-wrap true]] (:uf/fxs result)))))
-
-  (testing ":msg/scroll-to"
-    (let [result (sut/handle-action sut/initial-db [:msg/scroll-to {:x 0 :y 100}])]
-      (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/scroll-to {:x 0 :y 100}]] (:uf/fxs result))))))
+      (is (= [[:fx/set-word-wrap true]
+              [:repl-input/fx.set-line-wrapping true]]
+             (:uf/fxs result))))))
 
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"
@@ -249,3 +248,112 @@
         (is (= [] (:images payload))))
       (finally
         (reset! images/!max-result-data-url-payload-chars nil)))))
+
+(def runtime-causes (mapv stacktrace/cause-data fixtures/runtime-chain))
+
+(defn- show-error
+  [db message]
+  (sut/handle-action db [:msg/error (merge {:command/name "show-error"
+                                            :id "e1"
+                                            :error/text "Execution error"
+                                            :error/category "evalErr"}
+                                           message)]))
+
+(deftest error-with-frames-test
+  (let [meta {:meta/who "ui" :meta/ns "my.ns" :meta/repl-session-key "clj"}
+        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes runtime-causes :meta meta})
+        error (get-in db [:output/errors "e1"])]
+    (is (= ["ui" "clj" nil nil "my.ns"] (:output/last-context db))
+        "An error changes the context like other output")
+    (is (= [[:fx/append-ns-info meta]
+            [:fx/render-error error]]
+           fxs)
+        "Draws the error after the context")
+    (is (false? (:error/unfolded? error))
+        "The error arrives folded")
+    (is (= runtime-causes (:error/causes error)))))
+
+(deftest error-without-frames-test
+  (let [causes [{:class "clojure.lang.ExceptionInfo" :message "cljs error" :stacktrace []}]
+        {:uf/keys [db fxs]} (show-error sut/initial-db {:error/causes causes})
+        error (get-in db [:output/errors "e1"])]
+    (is (= [[:fx/render-error error]] fxs)
+        "An error without frames is drawn too, as its own entry")
+    (is (= causes (:error/causes error)))))
+
+(deftest error-causes-arrive-later-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes []}))
+        {later-db :uf/db fxs :uf/fxs} (sut/handle-action db [:msg/error-causes {:error/id "e1"
+                                                                                :error/causes runtime-causes}])
+        error (get-in later-db [:output/errors "e1"])]
+    (is (= runtime-causes (:error/causes error))
+        "The entry gets its causes")
+    (is (= #{(dec (count runtime-causes))} (:error/unfolded-causes error))
+        "The root cause shows its frames")
+    (is (= [[:fx/render-error error]] fxs)
+        "The entry is drawn again, with its stacktrace")
+    (is (= {:uf/db sut/initial-db}
+           (sut/handle-action sut/initial-db [:msg/error-causes {:error/id "e1" :error/causes runtime-causes}]))
+        "Causes for an entry that is gone, as after clearing the view, change nothing")))
+
+(deftest error-toggling-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
+        {unfolded-db :uf/db fxs :uf/fxs} (sut/handle-action db [:error/ax.toggle "e1"])
+        unfolded (get-in unfolded-db [:output/errors "e1"])]
+    (is (true? (:error/unfolded? unfolded)))
+    (is (= [[:fx/render-error unfolded]] fxs)
+        "Redraws the error")
+    (is (= #{0 2} (get-in (sut/handle-action unfolded-db [:error/ax.toggle-cause {:error/id "e1" :cause/index 0}])
+                          [:uf/db :output/errors "e1" :error/unfolded-causes]))
+        "Unfolds the frames of one cause")
+    (is (= {:uf/db db} (sut/handle-action db [:error/ax.toggle "no-such-error"]))
+        "An unknown error changes nothing")))
+
+(deftest open-frame-test
+  (is (= [[:fx/post-to-host {:command "open-frame"
+                             :fileUrl "file:/Users/me/myproj/src/myproj/core.clj"
+                             :line 16
+                             :column 5}]]
+         (:uf/fxs (sut/handle-action sut/initial-db
+                                     [:error/ax.open-frame {:frame/file-url "file:/Users/me/myproj/src/myproj/core.clj"
+                                                            :frame/line 16
+                                                            :frame/column 5}])))))
+
+(deftest copy-error-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
+        error (get-in db [:output/errors "e1"])
+        {copy-db :uf/db copy-fxs :uf/fxs} (sut/handle-action db [:error/ax.copy {:error/id "e1"}])]
+    (is (= [[:fx/copy-error-text {:error/id "e1" :copy/text (stacktrace/filtered-text error)}]]
+           copy-fxs)
+        "Copies the error with the frames its filter shows")
+    (is (= db copy-db)
+        "Copying changes nothing in the Output view")))
+
+(deftest clear-output-view-forgets-errors-test
+  (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
+    (is (empty? (:output/errors (:uf/db (sut/handle-action db [:msg/clear-output-view])))))))
+
+(deftest error-filters-test
+  (let [db (:uf/db (show-error (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))
+                               {:id "e2" :error/causes runtime-causes}))
+        {flag-db :uf/db flag-fxs :uf/fxs} (sut/handle-action db [:error/ax.toggle-flag {:error/id "e1" :frame/flag "repl"}])
+        {choice-db :uf/db} (sut/handle-action db [:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :project}])]
+    (is (= #{"tooling" "dup" "repl"} (get-in flag-db [:output/errors "e1" :error/hidden-flags])))
+    (is (= [[:fx/render-error (get-in flag-db [:output/errors "e1"])]] flag-fxs)
+        "Redraws the error")
+    (is (= #{"tooling" "dup"} (get-in flag-db [:output/errors "e2" :error/hidden-flags]))
+        "Other errors keep their filters")
+    (is (= :project (get-in choice-db [:output/errors "e1" :error/frame-filter])))
+    (is (= :filtered (get-in choice-db [:output/errors "e2" :error/frame-filter])))))
+
+(deftest open-java-frame-test
+  (is (= [[:fx/post-to-host {:command "open-java-frame"
+                             :className "java.lang.Integer"
+                             :member "parseInt"
+                             :line 662
+                             :sessionKey "clj"}]]
+         (:uf/fxs (sut/handle-action sut/initial-db
+                                     [:error/ax.open-java-frame {:frame/qualifier "java.lang.Integer"
+                                                                 :frame/name "parseInt"
+                                                                 :frame/line 662
+                                                                 :error/session-key "clj"}])))))

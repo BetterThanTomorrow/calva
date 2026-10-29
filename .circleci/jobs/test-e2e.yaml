@@ -1,9 +1,14 @@
 !YS-v0:
 
 docker:
-- image: cimg/clojure:1.11-browsers
+- image: cimg/clojure:1.12.6-openjdk-21.0-browsers
+
+parallelism: 3
 
 working_directory: ~/calva
+
+environment:
+  JAVA_TOOL_OPTIONS: -XX:TieredStopAtLevel=1
 
 steps:
 - !:attach-workspace /tmp
@@ -12,7 +17,17 @@ steps:
   - Restore build
   - rmdir ~/calva && cp -r /tmp/build ~/calva
 
-- !:bin Install Node
+- install-node
+
+- !:bin Write jack-in dependency versions
+
+- restore_cache:
+    name: Restore e2e dependencies
+    keys:
+    - e2e-deps-v1-{{ checksum "/tmp/jack-in-dependency-versions.json" }}-{{
+               checksum "test-fixtures/deps.edn" }}-{{
+               checksum "test-fixtures/projects/cljs-only/deps.edn" }}
+    - e2e-deps-v1-
 
 - !:cmd
   - Compile Extension Tests
@@ -20,16 +35,34 @@ steps:
 
 - !:cmd
   - Apt install missing dependencies
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com
-                     --recv-keys E88979FB9B30ACF2;
-    sudo apt update && sudo apt install -y libnss3 imagemagick
+  - sudo apt update && sudo apt install -y imagemagick
 
 - !:cmd
   - Run Extension Tests
-  - npm run e2e-test -- --local
+  - suites=$(circleci tests glob "$PWD/out/extension-test/e2e/suite/*-test.js" |
+             circleci tests split --split-by=timings |
+             xargs -n1 basename);
+    echo "Running" $suites;
+    npm run e2e-test -- --local $suites
+
+- !:bin Add hook times to e2e results
+
+- save_cache:
+    name: Save e2e dependencies
+    key: e2e-deps-v1-{{ checksum "/tmp/jack-in-dependency-versions.json" }}-{{
+               checksum "test-fixtures/deps.edn" }}-{{
+               checksum "test-fixtures/projects/cljs-only/deps.edn" }}
+    paths:
+    - ~/.m2
+    - ~/.deps.clj
+    - ~/.gitlibs
 
 - !:store
     test_results: ~/calva/junit
+
+- store_artifacts:
+    path: ~/calva/junit
+    destination: junit
 
 - store_artifacts:
     path: ~/calva/out/extension-test/e2e/screenshots
