@@ -24,7 +24,7 @@
 # contain the associated definition:
 job-names =::
 - checkout
-- release-cljs
+- build-cljslib
 - package-vsix
 - prettier-check
 - ts-lint

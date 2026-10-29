@@ -23,9 +23,9 @@ steps:
 - restore_cache:
     name: Restore the shadow-cljs compile cache
     keys:
-    - shadow-cljs-release-cljs-v1-{{ .Branch }}-{{ .Revision }}
-    - shadow-cljs-release-cljs-v1-{{ .Branch }}-
-    - shadow-cljs-release-cljs-v1-
+    - shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
+    - shadow-cljs-build-cljslib-v1-{{ .Branch }}-
+    - shadow-cljs-build-cljslib-v1-
 
 - !:cmd
   - Install CLJS dependencies
@@ -57,7 +57,7 @@ steps:
 
 - save_cache:
     name: Save the shadow-cljs compile cache
-    key: shadow-cljs-release-cljs-v1-{{ .Branch }}-{{ .Revision }}
+    key: shadow-cljs-build-cljslib-v1-{{ .Branch }}-{{ .Revision }}
     paths:
     - ~/calva/.shadow-cljs
 

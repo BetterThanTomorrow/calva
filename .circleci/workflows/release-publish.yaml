@@ -15,12 +15,12 @@ jobs:
 - checkout:
     filters:: filters()
 
-- release-cljs:
+- build-cljslib:
     requires: [checkout]
     filters:: filters()
 
 - package-vsix:
-    requires: [release-cljs, test-cljslib]
+    requires: [build-cljslib, test-cljslib]
     filters:: filters()
 
 - prettier-check:
@@ -40,7 +40,7 @@ jobs:
     filters:: filters()
 
 - test-e2e:
-    requires: [release-cljs]
+    requires: [build-cljslib]
     filters:: filters()
 
 - test-smoke:
@@ -52,7 +52,7 @@ jobs:
     filters:: filters()
 
 - test-ts-unit:
-    requires: [release-cljs]
+    requires: [build-cljslib]
     filters:: filters()
 
 - github-release:

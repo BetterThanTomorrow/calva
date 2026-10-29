@@ -7,18 +7,18 @@ jobs:
         ignore: /^v\d+\.\d+\.\d+-?.*/
 
 - prettier-check: {requires: [checkout]}
-- release-cljs:   {requires: [checkout]}
-- package-vsix:   {requires: [release-cljs, test-cljslib]}
+- build-cljslib:  {requires: [checkout]}
+- package-vsix:   {requires: [build-cljslib, test-cljslib]}
 
 - test-docs-builder
 
 - ts-lint:               {requires: [checkout]}
 - renamed-props-check:   {requires: [checkout]}
 - test-cljslib:          {requires: [checkout]}
-- test-e2e:              {requires: [release-cljs]}
+- test-e2e:              {requires: [build-cljslib]}
 - test-smoke:              {requires: [package-vsix]}
 - test-smoke-sub-projects: {requires: [package-vsix]}
-- test-ts-unit:          {requires: [release-cljs]}
+- test-ts-unit:          {requires: [build-cljslib]}
 
 - marketplace-preview-publish:
     requires:
