@@ -10,6 +10,7 @@ Changes to Calva.
 - Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
 - Fix: The Output Sidebar loses its output when the Output Destinations change
 - Fix: Code in the Output views isn't highlighted when offline
+- Calva Development QoL: CI build-and-test pipeline now runs in 8 minutes, down from 18 minutes
 
 ## [2.0.605] - 2026-10-27
 
