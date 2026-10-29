@@ -56,7 +56,7 @@ jobs:
         root: /tmp
         paths:
         - build
-  build:
+  release-cljs:
     docker:
     - image: cimg/clojure:1.12.0-openjdk-21.0-node
     working_directory: ~/calva
@@ -75,9 +75,9 @@ jobs:
     - restore_cache:
         name: Restore the shadow-cljs compile cache
         keys:
-        - shadow-cljs-build-v1-{{ .Branch }}-{{ .Revision }}
-        - shadow-cljs-build-v1-{{ .Branch }}-
-        - shadow-cljs-build-v1-
+        - shadow-cljs-release-cljs-v1-{{ .Branch }}-{{ .Revision }}
+        - shadow-cljs-release-cljs-v1-{{ .Branch }}-
+        - shadow-cljs-release-cljs-v1-
     - run:
         name: Install CLJS dependencies
         command: npx shadow-cljs classpath
@@ -132,7 +132,7 @@ jobs:
         - ~/.m2
     - save_cache:
         name: Save the shadow-cljs compile cache
-        key: shadow-cljs-build-v1-{{ .Branch }}-{{ .Revision }}
+        key: shadow-cljs-release-cljs-v1-{{ .Branch }}-{{ .Revision }}
         paths:
         - ~/calva/.shadow-cljs
     - persist_to_workspace:
@@ -639,12 +639,12 @@ workflows:
     - prettier-check:
         requires:
         - checkout
-    - build:
+    - release-cljs:
         requires:
         - checkout
     - package-vsix:
         requires:
-        - build
+        - release-cljs
         - test-cljslib
     - test-docs-builder
     - ts-lint:
@@ -658,7 +658,7 @@ workflows:
         - checkout
     - test-e2e:
         requires:
-        - build
+        - release-cljs
     - test-smoke:
         requires:
         - package-vsix
@@ -667,7 +667,7 @@ workflows:
         - package-vsix
     - test-ts-unit:
         requires:
-        - build
+        - release-cljs
     - marketplace-preview-publish:
         requires:
         - package-vsix
@@ -691,7 +691,7 @@ workflows:
             ignore: /.*/
           tags:
             only: /^v\d+\.\d+\.\d+-?.*/
-    - build:
+    - release-cljs:
         requires:
         - checkout
         filters:
@@ -701,7 +701,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - package-vsix:
         requires:
-        - build
+        - release-cljs
         - test-cljslib
         filters:
           branches:
@@ -742,7 +742,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-e2e:
         requires:
-        - build
+        - release-cljs
         filters:
           branches:
             ignore: /.*/
@@ -766,7 +766,7 @@ workflows:
             only: /^v\d+\.\d+\.\d+-?.*/
     - test-ts-unit:
         requires:
-        - build
+        - release-cljs
         filters:
           branches:
             ignore: /.*/

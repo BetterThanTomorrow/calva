@@ -6,7 +6,7 @@ docker:
 working_directory: ~/calva
 
 # The vsix's prepublish script runs `npm run release`, whose prerelease hook
-# would reinstall, clean out/ and redo the CLJS release the build job just did
+# would reinstall, clean out/ and redo the CLJS release the release-cljs job just did
 environment:
   npm_config_ignore_scripts: 'true'
 
