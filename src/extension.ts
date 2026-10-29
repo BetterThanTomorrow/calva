@@ -88,12 +88,11 @@ function initializeState() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
-  cljsLib.trail('activate START');
-
   // Store a reference to the vscode API in the cljs so it can call the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
   // We cannot run unit tests on code that imports the vscode API, because it's only available at runtime.
   cljsLib.initializeCljs(vscode, context);
+  cljsLib.trail('activate START');
   cljsLib.setSessionProjectRootUriFn((sessionKey: string) => {
     const root = sessionRegistry.getSessionMetadata(sessionKey)?.projectRoot;
     if (!root) {
