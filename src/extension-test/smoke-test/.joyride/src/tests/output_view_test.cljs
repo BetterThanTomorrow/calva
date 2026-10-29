@@ -73,9 +73,14 @@
     (js/process.stdout.write (string/join "\n" lines))))
 
 (defn- set-repl-input+
+  "Sets the REPL Input setting, and resolves once the extension host reads the new value. That can be after
+   the update has resolved, and Calva builds the Output View's page from the value it reads."
   [setting]
-  (.update (vscode/workspace.getConfiguration "calva") "outputViews.replInput" setting
-           vscode/ConfigurationTarget.Global))
+  (let [config #(vscode/workspace.getConfiguration "calva")
+        expected (js->clj setting)]
+    (p/do (.update (config) "outputViews.replInput" setting vscode/ConfigurationTarget.Global)
+          (wait-for+ "the extension host to read the REPL Input setting" 10000
+                     #(= expected (js->clj (.-globalValue (.inspect (config) "outputViews.replInput"))))))))
 
 (defn- open-output-view+
   []
@@ -89,7 +94,7 @@
 
 (def ^:private off-hold-ms
   "How long the test holds the Output View open with the REPL Input off before it checks that nothing
-   mounted. The page posts nothing while the REPL Input is off, so there is no signal that it loaded."
+   mounted. With the REPL Input off, nothing the test can see tells that the page loaded."
   10000)
 
 (deftest-async output-view-repl-input
