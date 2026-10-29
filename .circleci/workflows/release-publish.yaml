@@ -19,6 +19,10 @@ jobs:
     requires: [checkout]
     filters:: filters()
 
+- package-vsix:
+    requires: [build]
+    filters:: filters()
+
 - prettier-check:
     requires: [checkout]
     filters:: filters()
@@ -40,11 +44,11 @@ jobs:
     filters:: filters()
 
 - test-smoke:
-    requires: [build]
+    requires: [package-vsix]
     filters:: filters()
 
 - test-smoke-sub-projects:
-    requires: [build]
+    requires: [package-vsix]
     filters:: filters()
 
 - test-ts-unit:
@@ -53,6 +57,7 @@ jobs:
 
 - github-release:
     requires:
+    - package-vsix
     - prettier-check
     - ts-lint
     - renamed-props-check

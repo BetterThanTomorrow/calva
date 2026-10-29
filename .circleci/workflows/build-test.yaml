@@ -8,6 +8,7 @@ jobs:
 
 - prettier-check: {requires: [checkout]}
 - build:          {requires: [checkout]}
+- package-vsix:   {requires: [build]}
 
 - test-docs-builder
 
@@ -15,12 +16,13 @@ jobs:
 - renamed-props-check:   {requires: [checkout]}
 - test-cljslib:          {requires: [build]}
 - test-e2e:              {requires: [build]}
-- test-smoke:              {requires: [build]}
-- test-smoke-sub-projects: {requires: [build]}
+- test-smoke:              {requires: [package-vsix]}
+- test-smoke-sub-projects: {requires: [package-vsix]}
 - test-ts-unit:          {requires: [build]}
 
 - marketplace-preview-publish:
     requires:
+    - package-vsix
     - prettier-check
     - ts-lint
     - renamed-props-check

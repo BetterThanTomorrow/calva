@@ -21,10 +21,6 @@ steps:
   - npx shadow-cljs classpath
 
 - !:cmd
-  - Create artifacts workspace
-  - mkdir /tmp/artifacts
-
-- !:cmd
   - Release CLJS builds
   - npm run release-cljs
 
@@ -39,12 +35,6 @@ steps:
 - !:bin*
   - Tamper Calva version if not release versioned
   - tamper-calva-version
-
-- !:bin Package vsix
-
-- !:cmd
-  - Copy vsix
-  - cp *.vsix /tmp/artifacts/
 
 - !:cmd
   - Verify CLJS test output before persist
@@ -65,12 +55,8 @@ steps:
     - ./node_modules
     - ~/.m2
 
-- !:store
-    artifacts: /tmp/artifacts
-
 - persist_to_workspace:
     root: /tmp
     paths:
-    - artifacts
     - build
     - env

@@ -25,6 +25,7 @@
 job-names =::
 - checkout
 - build
+- package-vsix
 - prettier-check
 - ts-lint
 - renamed-props-check
