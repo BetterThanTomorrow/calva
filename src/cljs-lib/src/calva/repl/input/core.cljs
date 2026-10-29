@@ -10,17 +10,11 @@
    [calva.trail :as trail]
    [calva.util :as util]))
 
-(defn- enabled-message
-  [view-id]
-  {:command/name "repl-input-enabled"
-   :repl-input/id view-id
-   :repl-input/enabled? (host/enabled? view-id)})
-
 (defn- apply-to-output-view!
   []
   (when-let [^js panel @webview/output-view-webview-panel]
     (set! (.-title panel) (host/view-title "output-view"))
-    (webview/post-message-to-webview panel (enabled-message "output-view"))))
+    (webview/post-message-to-webview panel (host/enabled-message "output-view"))))
 
 (defn- apply-to-output-sidebar!
   []
@@ -28,7 +22,7 @@
     (if (sidebar/output-sidebar-in-setting? (sidebar/current-output-destinations))
       (do
         (set! (.-title view) (host/view-title "output-sidebar"))
-        (webview/post-message-to-webview view (enabled-message "output-sidebar")))
+        (webview/post-message-to-webview view (host/enabled-message "output-sidebar")))
       (sidebar/apply-sidebar-help-or-output-log! view))))
 
 (defn- apply-to-views!

@@ -449,6 +449,22 @@
         (is (= 1 (count calls)))
         (is (fn? (type (ffirst calls))))))))
 
+(deftest page-loaded-posts-repl-input-state
+  (let [!listener (atom nil)
+        !posted (atom [])
+        webview-host #js {:webview #js {:onDidReceiveMessage #(reset! !listener %)
+                                        :postMessage #(swap! !posted conj (reader/read-string %))}}
+        setting #js {"output-view" true}]
+    (with-redefs [util/vscode (atom #js {:workspace #js {:getConfiguration (fn [_section] #js {:get (fn [_setting] setting)})}})]
+      (sut/listen-for-page-loaded! webview-host "output-view")
+      (@!listener #js {:command "repl-input-changed"})
+      (is (empty? @!posted)
+          "Other messages are left to the other listeners")
+      (@!listener #js {:command "page-loaded"})
+      (is (match? [{:command/name "repl-input-enabled" :repl-input/id "output-view" :repl-input/enabled? true}]
+                  @!posted)
+          "A loaded page gets the REPL Input's state from the setting"))))
+
 (deftest initialize-webview-panel-test
   (testing "Given a context and a webview panel,"
     (let [on-did-dispose-spy (spy/spy)

@@ -94,7 +94,7 @@ Each view has three message listeners on the extension side: `image-host/listen-
 | `resolve-local-image` | Asks for a webview URI for an image file |
 | `fetch-image-for-copy` | Asks for a remote image's bytes, for Copy image |
 | `open-frame`, `open-java-frame` | Opens a clicked stacktrace frame |
-| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail |
+| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail, and answers with `repl-input-enabled` for the view, since a page that loads while the setting changes can miss the `repl-input-enabled` that the change posts |
 | `repl-input-*` | The REPL Input's messages |
 
 `ui/handle-message` dispatches with a `case`. A command name it doesn't know is logged to the webview's console and ignored. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`.

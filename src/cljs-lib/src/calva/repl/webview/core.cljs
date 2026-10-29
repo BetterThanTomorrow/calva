@@ -448,13 +448,15 @@
            (input-host/view-disposed! "output-view"))))))
 
 (defn listen-for-page-loaded!
-  "Logs a trail line each time the page in `webview-host`, the Output view `view-id`, has loaded."
+  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the
+   page whether the REPL Input is on, which the page misses when the setting changed before it listened."
   [^js webview-host view-id]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
       (.onDidReceiveMessage webview (fn [^js message]
                                       (when (= "page-loaded" (.-command message))
-                                        (trail/log! (str view-id " page loaded"))))))))
+                                        (trail/log! (str view-id " page loaded"))
+                                        (post-message-to-webview webview-host (input-host/enabled-message view-id))))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]

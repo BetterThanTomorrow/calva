@@ -66,6 +66,13 @@
   [view-id]
   (if (enabled? view-id) "on" "off"))
 
+(defn enabled-message
+  "Returns the message that turns the REPL Input in the page of `view-id` on or off, as the setting has it."
+  [view-id]
+  {:command/name "repl-input-enabled"
+   :repl-input/id view-id
+   :repl-input/enabled? (enabled? view-id)})
+
 (defn view-title
   [view-id]
   (if (enabled? view-id) "REPL" "REPL Output"))
