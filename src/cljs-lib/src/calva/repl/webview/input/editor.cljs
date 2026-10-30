@@ -1,5 +1,6 @@
 (ns calva.repl.webview.input.editor
-  "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
+  "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element, and the controls
+   around it, rendered there with Replicant."
   (:require
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.completion :as completion]
@@ -10,6 +11,8 @@
    [calva.repl.webview.input.history :as input-history]
    [calva.repl.webview.input.keys :as input-keys]
    [calva.repl.webview.input.stdin :as stdin]
+   [calva.repl.webview.tooltip :as tooltip]
+   [replicant.dom :as replicant]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
    ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField Transaction]]
@@ -234,28 +237,28 @@
        (px (.-paddingTop content)) (px (.-paddingBottom content))
        (px (.-borderTopWidth editor)) (px (.-borderBottomWidth editor)))))
 
-(defn- listen-for-drag!
-  [^js sash dispatch!]
-  (.addEventListener
-   sash "pointerdown"
-   (fn [^js down]
-     (let [^js view (editor-view)
-           start-y (.-clientY down)
-           start-height (.. view -dom getBoundingClientRect -height)
-           min-height (empty-height view)
-           move (fn [^js e]
-                  (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
-                                                   :min-height min-height
-                                                   :view-height js/window.innerHeight}]))]
-       (.preventDefault down)
-       (.setPointerCapture sash (.-pointerId down))
-       (.. sash -classList (add "active"))
-       (.addEventListener sash "pointermove" move)
-       (.addEventListener sash "pointerup"
-                          (fn [_]
-                            (.removeEventListener sash "pointermove" move)
-                            (.. sash -classList (remove "active")))
-                          #js {:once true})))))
+(defn- start-drag!
+  "Follows the pointer that pressed the sash, the target of `down`, and dispatches the REPL Input's height
+   as it moves."
+  [dispatch! ^js down]
+  (let [^js sash (.-currentTarget down)
+        ^js view (editor-view)
+        start-y (.-clientY down)
+        start-height (.. view -dom getBoundingClientRect -height)
+        min-height (empty-height view)
+        move (fn [^js e]
+               (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
+                                                :min-height min-height
+                                                :view-height js/window.innerHeight}]))]
+    (.preventDefault down)
+    (.setPointerCapture sash (.-pointerId down))
+    (dispatch! [:repl-input/ax.drag-started])
+    (.addEventListener sash "pointermove" move)
+    (.addEventListener sash "pointerup"
+                       (fn [_]
+                         (.removeEventListener sash "pointermove" move)
+                         (dispatch! [:repl-input/ax.drag-ended]))
+                       #js {:once true})))
 
 (defonce ^:private !window-focus (atom {:listening? false :last-focused nil :pointer-down-at 0}))
 
@@ -298,17 +301,46 @@
     (js/document.addEventListener "focusout" forget-focus-moved-within-page!)
     (js/window.addEventListener "focus" restore-focus!)))
 
+(defonce ^:private !controls
+  (atom {:handlers nil :state nil}))
+
+(defn- render-controls!
+  "Renders the REPL Input's controls for their `state` around CodeMirror's element, which comes after them,
+   and which Replicant leaves alone."
+  [state]
+  (swap! !controls assoc :state state)
+  (when-let [element (mount-element)]
+    (replicant/render element (context/controls state (:handlers @!controls)))
+    (context/close-menu-without-choices! (:repl-input/context-line state) (:repl-input/recalled-lock state))
+    (tooltip/refresh!)))
+
+(defn ^:dev/after-load render-reloaded-controls!
+  "Renders the REPL Input's controls again after a code reload, in development."
+  []
+  (let [{:keys [handlers state]} @!controls]
+    (when (and handlers (some-> (mount-element) .-firstElementChild))
+      (render-controls! state))))
+
+(defn- event-value
+  "Returns what the placeholder `x` in an action stands for in the DOM `event`, or `x`."
+  [^js event x]
+  (case x
+    :event/open? (= "open" (.-newState event))
+    x))
+
 (defn- mount!
-  [dispatch! {:keys [height]}]
+  [dispatch! {:keys [height controls]}]
   (let [element (mount-element)
-        sash (js/document.createElement "div")
         state (.create EditorState #js {:doc "" :extensions (extensions dispatch!)})]
-    (set! (.-className sash) (if mac? "repl-input-sash mac" "repl-input-sash"))
-    (.appendChild element sash)
-    (listen-for-drag! sash dispatch!)
+    (replicant/set-dispatch! (fn [{:replicant/keys [^js dom-event]} actions]
+                               (when (= "click" (.-type dom-event))
+                                 (tooltip/hide!))
+                               (run! #(dispatch! (mapv (partial event-value dom-event) %)) actions)))
+    (swap! !controls assoc :handlers {:mac? mac?
+                                      :on-sash-pointerdown (partial start-drag! dispatch!)
+                                      :on-stdin-keydown (partial stdin/on-keydown dispatch!)})
+    (render-controls! controls)
     (listen-for-window-focus!)
-    (stdin/mount! element dispatch!)
-    (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
     (set-height! height)
     (.. js/document -body -classList (add "repl-input-on"))
@@ -317,6 +349,7 @@
 (defn- unmount!
   []
   (some-> (editor-view) .destroy)
+  (some-> (mount-element) replicant/unmount)
   (set! (.-textContent (mount-element)) "")
   (.. js/document -body -classList (remove "repl-input-on")))
 
@@ -387,10 +420,12 @@
   (some-> (editor-view) focus-now-or-later!))
 
 (defn- hide-stdin!
-  "Hides the stdin input, and gives the focus back to the REPL Input when the stdin input had it."
+  "Empties the stdin input, and gives the focus back to the REPL Input when the stdin input had it."
   []
-  (when (stdin/hide!)
-    (focus!)))
+  (let [had-focus? (stdin/focused?)]
+    (stdin/clear!)
+    (when had-focus?
+      (focus!))))
 
 (defn- set-completion!
   [dispatch! config]
@@ -411,10 +446,10 @@
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))
     :repl-input/fx.set-line-wrapping (set-line-wrapping! (first args))
     :repl-input/fx.run-command (run-command! (first args))
-    :repl-input/fx.set-context-line (context/set-line! (first args) (second args))
+    :repl-input/fx.render-controls (render-controls! (first args))
     :repl-input/fx.toggle-namespace-menu (context/toggle-menu!)
-    :repl-input/fx.set-evaluation (context/set-evaluation! (first args))
-    :repl-input/fx.show-stdin (some-> (stdin/show!) focus-now-or-later!)
+    :repl-input/fx.close-namespace-menu (context/close-menu!)
+    :repl-input/fx.show-stdin (some-> (stdin/clear!) focus-now-or-later!)
     :repl-input/fx.hide-stdin (hide-stdin!)
     :repl-input/fx.focus (focus!)
     :repl-input/fx.forget-focus (swap! !window-focus assoc :last-focused nil)

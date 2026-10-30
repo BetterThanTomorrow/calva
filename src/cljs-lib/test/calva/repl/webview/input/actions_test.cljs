@@ -3,13 +3,27 @@
    [calva.repl.webview.input.actions :as sut]
    [cljs.test :refer-macros [deftest testing is]]))
 
+(defn- shown
+  "Returns the effects of the action `result`, with the effect that draws the REPL Input's controls replaced by
+   what its context line shows: the context line and the lock of the recalled history entry."
+  [{:uf/keys [fxs]}]
+  (mapv (fn [[fx-type state :as fx]]
+          (if (= :repl-input/fx.render-controls fx-type)
+            [:shown (:repl-input/context-line state) (:repl-input/recalled-lock state)]
+            fx))
+        fxs))
+
+(defn- render-fx
+  [db]
+  [:repl-input/fx.render-controls (sut/controls-state db)])
+
 (def init-payload {:repl-input/id "output-view" :repl-input/enabled? true})
 
 (deftest init-test
   (testing "mounts the REPL Input without a height when it is on, so it starts at its empty height"
     (let [{:uf/keys [db fxs]} (sut/handle-action {} [:repl-input/ax.init init-payload])]
       (is (= {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/version 0} db))
-      (is (= [[:repl-input/fx.mount {:height nil}]] fxs))))
+      (is (= [[:repl-input/fx.mount {:height nil :controls (sut/controls-state db)}]] fxs))))
   (testing "mounts nothing when it is off"
     (let [{:uf/keys [db fxs]} (sut/handle-action {} [:repl-input/ax.init (assoc init-payload :repl-input/enabled? false)])]
       (is (= "output-view" (:repl-input/id db)))
@@ -61,8 +75,9 @@
       (is (= 560 (get-in (sut/handle-action db [:repl-input/ax.drag {:height 900 :min-height 49 :view-height 600}]) [:uf/db :repl-input/height]))))
     (testing "mounts again at the dragged height when the setting turns it off and on"
       (let [off-db (:uf/db (sut/handle-action (assoc db :repl-input/enabled? true) [:repl-input/ax.set-enabled false]))]
-        (is (= [[:repl-input/fx.mount {:height 100}]]
-               (:uf/fxs (sut/handle-action off-db [:repl-input/ax.set-enabled true]))))))))
+        (is (= [[:repl-input/fx.mount 100]]
+               (mapv (fn [[fx-type {:keys [height]}]] [fx-type height])
+                     (:uf/fxs (sut/handle-action off-db [:repl-input/ax.set-enabled true])))))))))
 
 (deftest edit-test
   (let [db {:repl-input/id "output-view" :repl-input/version 2}
@@ -127,15 +142,27 @@
    :repl-input.context/connected? true})
 
 (deftest context-line-test
-  (let [db {:repl-input/id "output-view"}]
+  (let [db {:repl-input/id "output-view" :repl-input/enabled? true}]
     (testing "shows the context line the extension posts"
       (is (= {:uf/db (assoc db :repl-input/context-line locked-line)
-              :uf/fxs [[:repl-input/fx.set-context-line locked-line nil]]}
+              :uf/fxs [(render-fx (assoc db :repl-input/context-line locked-line))]}
              (sut/handle-action db [:repl-input/ax.set-context-line locked-line]))))
+    (testing "draws nothing while the REPL Input is off"
+      (let [off (assoc db :repl-input/enabled? false)]
+        (is (empty? (:uf/fxs (sut/handle-action off [:repl-input/ax.set-context-line locked-line]))))
+        (is (empty? (:uf/fxs (sut/handle-action (assoc off :repl-input/evaluation :reading-stdin)
+                                                [:repl-input/ax.set-evaluation nil]))))))
     (testing "asks the extension to connect a REPL on a click on the connect link"
       (is (= {:uf/db db
               :uf/fxs [[:fx/post-to-host {:command "repl-input-connect" :repl-input/id "output-view"}]]}
-             (sut/handle-action db [:repl-input/ax.connect]))))))
+             (sut/handle-action db [:repl-input/ax.connect]))))
+    (testing "tells what the controls show"
+      (is (= {:repl-input/context-line locked-line
+              :repl-input/recalled-lock nil
+              :repl-input/evaluation :running
+              :repl-input/namespace-menu-open? false
+              :repl-input/dragging? false}
+             (sut/controls-state (assoc db :repl-input/context-line locked-line :repl-input/evaluation :running)))))))
 
 (deftest follow-editor-test
   (let [db {:repl-input/id "output-view"}]
@@ -160,28 +187,28 @@
         (is (= {:uf/db no-line} (sut/handle-action no-line [:repl-input/ax.evaluate])))))))
 
 (deftest evaluation-test
-  (let [db {:repl-input/id "output-view" :repl-input/completion-settings {:delay 10}}]
+  (let [db {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/completion-settings {:delay 10}}]
     (testing "shows the evaluation bar the extension posts"
       (is (= {:uf/db (assoc db :repl-input/evaluation :running)
-              :uf/fxs [[:repl-input/fx.set-evaluation :running]]}
+              :uf/fxs [(render-fx (assoc db :repl-input/evaluation :running))]}
              (sut/handle-action db [:repl-input/ax.set-evaluation :running]))))
     (testing "shows the stdin input when an evaluation starts reading stdin, and keeps completion on"
       (is (= {:uf/db (assoc db :repl-input/evaluation :reading-stdin)
-              :uf/fxs [[:repl-input/fx.set-evaluation :reading-stdin]
+              :uf/fxs [(render-fx (assoc db :repl-input/evaluation :reading-stdin))
                        [:repl-input/fx.show-stdin]]}
              (sut/handle-action (assoc db :repl-input/evaluation :running) [:repl-input/ax.set-evaluation :reading-stdin]))))
     (testing "leaves the stdin input be while the evaluation still reads stdin"
-      (is (= [[:repl-input/fx.set-evaluation :reading-stdin]]
+      (is (= [(render-fx (assoc db :repl-input/evaluation :reading-stdin))]
              (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
                                          [:repl-input/ax.set-evaluation :reading-stdin])))))
     (testing "hides the stdin input when the line is sent, or the evaluation ends"
-      (is (= [[:repl-input/fx.set-evaluation :running]
-              [:repl-input/fx.hide-stdin]]
+      (is (= [[:repl-input/fx.hide-stdin]
+              (render-fx (assoc db :repl-input/evaluation :running))]
              (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
                                          [:repl-input/ax.set-evaluation :running]))))
       (is (= [:repl-input/fx.hide-stdin]
-             (last (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
-                                               [:repl-input/ax.set-evaluation nil]))))))
+             (first (:uf/fxs (sut/handle-action (assoc db :repl-input/evaluation :reading-stdin)
+                                                [:repl-input/ax.set-evaluation nil]))))))
     (testing "asks the extension to interrupt"
       (is (= [[:fx/post-to-host {:command "repl-input-interrupt" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action db [:repl-input/ax.interrupt])))))))
@@ -218,27 +245,29 @@
 
 (deftest walk-history-test
   (let [db {:repl-input/id "output-view"
+            :repl-input/enabled? true
             :repl-input/text "(draft"
             :repl-input/selections [[2 2]]
             :repl-input/context-line following-line
             :repl-input.history/entries [pirate-entry]}
-        {walked :uf/db fxs :uf/fxs} (sut/handle-action db [:repl-input/ax.walk-history :back])
+        walk-result (sut/handle-action db [:repl-input/ax.walk-history :back])
+        walked (:uf/db walk-result)
         entry-lock (dissoc pirate-entry :repl-input.history/code)
         entry-line (assoc entry-lock :repl-input.context/locked? true :repl-input.context/editor-ns "user" :repl-input.context/editor-session-key "clj")
         caught-up (assoc walked :repl-input/context-line entry-line)]
     (testing "walks the history in the page, showing the entry with the cursor at its start, and locks the namespace and session of an entry from another context"
       (is (= [[:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[0 0]]}]
-              [:repl-input/fx.set-context-line following-line nil]
+              [:shown following-line nil]
               [:fx/post-to-host {:command "repl-input-lock" :repl-input/id "output-view" :lock entry-lock}]]
-             fxs)))
+             (shown walk-result))))
     (testing "shows the entry's lock as recalled once the context line is locked to it"
-      (is (= [[:repl-input/fx.set-context-line entry-line entry-lock]]
-             (:uf/fxs (sut/handle-action walked [:repl-input/ax.set-context-line entry-line])))))
+      (is (= [[:shown entry-line entry-lock]]
+             (shown (sut/handle-action walked [:repl-input/ax.set-context-line entry-line])))))
     (testing "walking past the newest entry brings back the text, with the cursor at its end, and follows the editor again, as before the walk"
       (is (= [[:repl-input/fx.apply-edit {:text "(draft" :selections [[6 6]]}]
-              [:repl-input/fx.set-context-line entry-line nil]
+              [:shown entry-line nil]
               [:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
-             (:uf/fxs (sut/handle-action caught-up [:repl-input/ax.walk-history :forward])))))
+             (shown (sut/handle-action caught-up [:repl-input/ax.walk-history :forward])))))
     (testing "walking past the newest entry brings back the lock from before the walk"
       (let [locked-db (assoc db :repl-input/context-line locked-line :repl-input.history/entries [(assoc pirate-entry :repl-input.context/ns "pirate.ui")])
             walked-locked (:uf/db (sut/handle-action locked-db [:repl-input/ax.walk-history :back]))]
@@ -248,15 +277,15 @@
     (testing "does nothing where there is nowhere to walk"
       (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.walk-history :forward]))))
     (testing "a new history from the extension ends the walk, and keeps the lock"
-      (let [{new-db :uf/db new-fxs :uf/fxs} (sut/handle-action caught-up [:repl-input/ax.set-history [pirate-entry pirate-entry]])]
-        (is (nil? (:repl-input.history/position new-db)))
-        (is (= [[:repl-input/fx.set-context-line entry-line nil]] new-fxs))))
+      (let [new-history (sut/handle-action caught-up [:repl-input/ax.set-history [pirate-entry pirate-entry]])]
+        (is (nil? (:repl-input.history/position (:uf/db new-history))))
+        (is (= [[:shown entry-line nil]] (shown new-history)))))
     (testing "shows the entry that the history search picked"
       (is (= [:repl-input/fx.apply-edit {:text "(def a 1)" :selections [[9 9]]}]
              (first (:uf/fxs (sut/handle-action db [:repl-input/ax.recall 0]))))))))
 
 (deftest namespace-indicator-test
-  (let [db {:repl-input/id "output-view" :repl-input/text "" :repl-input.history/entries [pirate-entry]}
+  (let [db {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/text "" :repl-input.history/entries [pirate-entry]}
         following (assoc db :repl-input/context-line following-line)
         locked (assoc db :repl-input/context-line locked-line)
         recalled (-> (sut/handle-action following [:repl-input/ax.walk-history :back])
@@ -271,10 +300,33 @@
       (is (= [[:repl-input/fx.toggle-namespace-menu]]
              (:uf/fxs (sut/handle-action recalled [:repl-input/ax.click-namespace-indicator]))))
       (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
-             (:uf/fxs (sut/handle-action recalled [:repl-input/ax.follow-editor])))))))
+             (:uf/fxs (sut/handle-action recalled [:repl-input/ax.follow-editor])))))
+    (testing "keeps whether the menu is open, and draws the controls when that changes"
+      (let [opened (sut/handle-action recalled [:repl-input/ax.namespace-menu-toggled true])]
+        (is (:repl-input/namespace-menu-open? (:uf/db opened)))
+        (is (= [(render-fx (:uf/db opened))] (:uf/fxs opened)))
+        (is (= {:uf/db (:uf/db opened)}
+               (sut/handle-action (:uf/db opened) [:repl-input/ax.namespace-menu-toggled true])))))
+    (testing "closes the menu, and forgets that it was open when the REPL Input turns off"
+      (is (= [[:repl-input/fx.close-namespace-menu]]
+             (:uf/fxs (sut/handle-action recalled [:repl-input/ax.close-namespace-menu]))))
+      (is (nil? (-> (sut/handle-action recalled [:repl-input/ax.namespace-menu-toggled true])
+                    :uf/db
+                    (sut/handle-action [:repl-input/ax.set-enabled false])
+                    :uf/db
+                    :repl-input/namespace-menu-open?))))))
+
+(deftest sash-drag-test
+  (let [db {:repl-input/id "output-view" :repl-input/enabled? true}
+        dragging (:uf/db (sut/handle-action db [:repl-input/ax.drag-started]))]
+    (testing "draws the sash as dragged while it is"
+      (is (:repl-input/dragging? (sut/controls-state dragging)))
+      (is (= [(render-fx dragging)] (:uf/fxs (sut/handle-action db [:repl-input/ax.drag-started]))))
+      (is (not (:repl-input/dragging? (sut/controls-state (:uf/db (sut/handle-action dragging [:repl-input/ax.drag-ended])))))))))
 
 (deftest editor-change-test
   (let [db {:repl-input/id "output-view"
+            :repl-input/enabled? true
             :repl-input/text ""
             :repl-input/version 0
             :repl-input/context-line following-line
@@ -288,25 +340,25 @@
         in-entry-ns (assoc entry-line :repl-input.context/editor-ns "pirate.core")
         follow-post [:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
     (testing "follows the editor when the editor has the shown entry's namespace"
-      (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]
+      (is (= [[:shown in-entry-ns entry-lock]
               follow-post]
-             (:uf/fxs (sut/handle-action recalled [:repl-input/ax.set-context-line in-entry-ns])))))
+             (shown (sut/handle-action recalled [:repl-input/ax.set-context-line in-entry-ns])))))
     (testing "keeps following the editor when typing in the entry"
       (let [typed (:uf/db (sut/handle-action recalled [:repl-input/ax.changed {:text "(def a 2)" :selections [[8 8]]}]))]
         (is (= follow-post (last (:uf/fxs (sut/handle-action typed [:repl-input/ax.set-context-line in-entry-ns])))))))
     (testing "changes nothing on an editor change after a click on the namespace indicator, as when picking from its menu"
       (let [clicked (:uf/db (sut/handle-action recalled [:repl-input/ax.click-namespace-indicator]))]
-        (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]]
-               (:uf/fxs (sut/handle-action clicked [:repl-input/ax.set-context-line in-entry-ns]))))))
+        (is (= [[:shown in-entry-ns entry-lock]]
+               (shown (sut/handle-action clicked [:repl-input/ax.set-context-line in-entry-ns]))))))
     (testing "changes nothing on an editor change after following the editor from the menu"
       (let [followed (:uf/db (sut/handle-action recalled [:repl-input/ax.follow-editor]))
             following-elsewhere (assoc following-line :repl-input.context/ns "pirate.ui" :repl-input.context/editor-ns "pirate.ui")]
-        (is (= [[:repl-input/fx.set-context-line following-elsewhere nil]]
-               (:uf/fxs (sut/handle-action followed [:repl-input/ax.set-context-line following-elsewhere]))))))
+        (is (= [[:shown following-elsewhere nil]]
+               (shown (sut/handle-action followed [:repl-input/ax.set-context-line following-elsewhere]))))))
     (testing "changes nothing on an editor change once an evaluation has started"
       (let [evaluating (:uf/db (sut/handle-action recalled [:repl-input/ax.set-evaluation :running]))]
-        (is (= [[:repl-input/fx.set-context-line in-entry-ns entry-lock]]
-               (:uf/fxs (sut/handle-action evaluating [:repl-input/ax.set-context-line in-entry-ns]))))))))
+        (is (= [[:shown in-entry-ns entry-lock]]
+               (shown (sut/handle-action evaluating [:repl-input/ax.set-context-line in-entry-ns]))))))))
 
 (deftest completion-test
   (let [db {:repl-input/id "output-view"}]

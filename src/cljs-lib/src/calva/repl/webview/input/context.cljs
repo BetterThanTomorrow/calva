@@ -9,22 +9,6 @@
   [class-name]
   (some-> (js/document.getElementById "repl-input") (.querySelector (str "." class-name))))
 
-(defn- element
-  [tag class-name]
-  (doto (js/document.createElement tag)
-    (-> .-className (set! class-name))))
-
-(defn- text-element
-  [class-name text]
-  (doto (element "span" class-name)
-    (-> .-textContent (set! text))))
-
-(defn- click-action
-  "Returns the action of a click at `target` on the context line: on its connect link, or nil."
-  [^js target]
-  (when (.closest target ".repl-input-context-connect")
-    [:repl-input/ax.connect]))
-
 (def ^:private evaluate-title "Evaluate REPL Input")
 
 (def ^:private connect-title "Connect a REPL to enable evaluations")
@@ -94,34 +78,25 @@
     locked? {:repl-input.indicator/mode :locked :repl-input.indicator/ns ns}
     :else {:repl-input.indicator/mode :following :repl-input.indicator/ns ns}))
 
-(defn- set-play-button!
-  "Shows the play button `button` as disabled, with a tooltip that says to connect a REPL, unless
-   `connected?`."
-  [^js button connected?]
-  (.setAttribute button "aria-disabled" (str (not connected?)))
-  (tooltip/set-text! button (if connected? evaluate-title connect-title)))
-
-(defn- context-button
-  "Returns a button of the class `class-name` on the context line, which dispatches `action` when clicked
-   and keeps the focus where it is."
-  [class-name action dispatch!]
-  (doto (element "button" (str "repl-input-context-button " class-name))
-    (.addEventListener "mousedown" #(.preventDefault ^js %))
-    (.addEventListener "click" #(dispatch! action))))
+(defn- prevent-default
+  "Keeps the focus where it is when a control is pressed."
+  [^js event]
+  (.preventDefault event))
 
 (defn- menu-item
-  "Returns the item of the namespace menu for the choice `mode`, which calls `on-click` when clicked."
-  [mode on-click]
+  "Returns the item of the namespace menu for the choice `mode`, showing its namespace and session, which
+   dispatches `actions` when clicked."
+  [mode {:repl-input.choice/keys [ns session]} actions]
   (let [{:keys [icon detail]} (choice-looks mode)]
-    (doto (element "button" "repl-input-menu-item")
-      (.setAttribute "role" "menuitemradio")
-      (.setAttribute "aria-checked" (str (= :locked mode)))
-      (.setAttribute "data-choice" (name mode))
-      (.append (stdin/icon "repl-input-context-icon" icon)
-               (text-element "repl-input-menu-ns" "")
-               (text-element "repl-input-menu-session" "")
-               (text-element "repl-input-menu-detail" detail))
-      (.addEventListener "click" on-click))))
+    [:button {:class "repl-input-menu-item"
+              :role "menuitemradio"
+              :aria-checked (str (= :locked mode))
+              :data-choice (name mode)
+              :on {:click actions}}
+     (stdin/icon ["repl-input-context-icon"] icon)
+     [:span {:class "repl-input-menu-ns"} (or ns "")]
+     [:span {:class "repl-input-menu-session"} (or session "")]
+     [:span {:class "repl-input-menu-detail"} detail]]))
 
 (defn- focus-index
   "Returns the index of the menu item that the key `pressed` moves the focus to from the item at `index`,
@@ -147,23 +122,37 @@
         (.preventDefault event)
         (.focus (aget items index))))))
 
+(defn- on-menu-focusout
+  "Closes the menu when the focus leaves it."
+  [^js event]
+  (let [^js menu (.-currentTarget event)]
+    (when-not (.contains menu (.-relatedTarget event))
+      (.hidePopover menu))))
+
+(defn- on-menu-key
+  [^js event]
+  (on-menu-keydown (.-currentTarget event) event))
+
 (defn- namespace-menu
-  "Returns the menu of the namespace `indicator`, with a choice that keeps the lock of the recalled history
-   entry, and one that follows the editor."
-  [^js indicator dispatch!]
-  (let [menu (doto (element "div" "repl-input-menu")
-               (.setAttribute "popover" "auto")
-               (.setAttribute "role" "menu"))
-        close! #(.hidePopover menu)]
-    (doto menu
-      (.append (menu-item :locked close!)
-               (menu-item :following #(do (dispatch! [:repl-input/ax.follow-editor])
-                                          (close!))))
-      (.addEventListener "mousedown" #(.preventDefault ^js %))
-      (.addEventListener "keydown" #(on-menu-keydown menu %))
-      (.addEventListener "focusout" #(when-not (.contains menu (.-relatedTarget ^js %))
-                                       (close!)))
-      (.addEventListener "toggle" #(.setAttribute indicator "aria-expanded" (str (= "open" (.-newState ^js %))))))))
+  "Returns the menu of the namespace indicator, with the `choices` to keep the lock of the recalled history
+   entry, and to follow the editor. Its `toggle` dispatches whether it opened, as `:event/open?`."
+  [choices]
+  (let [by-mode (into {} (map (juxt :repl-input.choice/mode identity)) choices)]
+    [:div {:class "repl-input-menu"
+           :popover "auto"
+           :role "menu"
+           :on {:mousedown prevent-default
+                :keydown on-menu-key
+                :focusout on-menu-focusout
+                :toggle [[:repl-input/ax.namespace-menu-toggled :event/open?]]}}
+     (menu-item :locked (by-mode :locked) [[:repl-input/ax.close-namespace-menu]])
+     (menu-item :following (by-mode :following) [[:repl-input/ax.follow-editor]
+                                                 [:repl-input/ax.close-namespace-menu]])]))
+
+(defn close-menu!
+  "Closes the namespace menu."
+  []
+  (some-> ^js (child "repl-input-menu") .hidePopover))
 
 (defn toggle-menu!
   "Opens the namespace menu under the namespace indicator, with the focus on its first choice, or closes
@@ -175,85 +164,73 @@
       (do (.showPopover menu #js {:source (child "repl-input-indicator")})
           (some-> (.querySelector menu ".repl-input-menu-item") .focus)))))
 
-(defn- set-indicator!
-  "Shows the `indicator` on the namespace indicator `button`: its icon, namespace and tooltip, and a chevron
-   when it is a selector."
-  [^js button {:repl-input.indicator/keys [mode ns]}]
-  (let [{:keys [icon tooltip label]} (indicator-looks mode)]
-    (set! (.-hidden button) false)
-    (.setAttribute button "data-mode" (name mode))
-    (.setAttribute button "aria-label" (str ns ", " label))
-    (tooltip/set-text! button tooltip)
-    (.replaceChildren button (stdin/icon "repl-input-context-icon" icon) (text-element "repl-input-context-ns" ns))
-    (if (= :selector mode)
-      (doto button
-        (.setAttribute "aria-haspopup" "menu")
-        (.append (stdin/icon "repl-input-context-icon repl-input-indicator-chevron" chevron-down-path)))
-      (doto button
-        (.removeAttribute "aria-haspopup")
-        (.removeAttribute "aria-expanded")))))
+(defn- indicator-button
+  "Returns the namespace indicator for the `indicator`, hidden until it has a namespace, with a chevron when
+   it is a selector, whose menu is open when `menu-open?`."
+  [{:repl-input.indicator/keys [mode ns]} menu-open?]
+  (let [{:keys [icon tooltip label]} (indicator-looks mode)
+        selector? (= :selector mode)]
+    (into [:button (merge {:class ["repl-input-context-button" "repl-input-indicator"]
+                           :hidden (nil? ns)
+                           :on {:mousedown prevent-default
+                                :click [[:repl-input/ax.click-namespace-indicator]]}}
+                          (tooltip/attributes (if ns tooltip ""))
+                          (when ns
+                            {:data-mode (name mode)
+                             :aria-label (str ns ", " label)})
+                          (when (and ns selector?)
+                            {:aria-haspopup "menu"
+                             :aria-expanded (str (boolean menu-open?))}))]
+          (when ns
+            (cond-> [(stdin/icon ["repl-input-context-icon"] icon)
+                     [:span {:class "repl-input-context-ns"} ns]]
+              selector? (conj (stdin/icon ["repl-input-context-icon" "repl-input-indicator-chevron"] chevron-down-path)))))))
 
-(defn- set-menu!
-  "Shows the namespaces and sessions of the `choices` in the namespace `menu`, and closes it when there are
-   none."
-  [^js menu choices]
-  (doseq [{:repl-input.choice/keys [mode ns session]} choices
-          :let [item (.querySelector menu (str "[data-choice=" (name mode) "]"))]]
-    (some-> item (.querySelector ".repl-input-menu-ns") (-> .-textContent (set! ns)))
-    (some-> item (.querySelector ".repl-input-menu-session") (-> .-textContent (set! (or session "")))))
-  (when (and (empty? choices) (.matches menu ":popover-open"))
-    (.hidePopover menu)))
+(defn row
+  "Returns the context line for the `context-line` and the `recalled-lock`, the lock of a recalled history
+   entry from another context, as hiccup: the namespace indicator and its menu, a link that connects a REPL
+   while no session answers to the line's key, and the play button, disabled while no session answers."
+  [{:repl-input.context/keys [connected?] :as context-line} recalled-lock menu-open?]
+  (let [{:repl-input.indicator/keys [choices] :as shown} (indicator context-line recalled-lock)]
+    [:div {:class "repl-input-context"}
+     (indicator-button shown menu-open?)
+     (namespace-menu choices)
+     [:div {:class "repl-input-context-line"}
+      (when-not connected?
+        [:span {:class "repl-input-context-connect"
+                :role "button"
+                :on {:click [[:repl-input/ax.connect]]}}
+         "Connect a REPL"])]
+     [:button (merge {:class ["repl-input-context-button" "repl-input-evaluate"]
+                      :aria-label evaluate-title
+                      :aria-disabled (str (not connected?))
+                      :on {:mousedown prevent-default
+                           :click [[:repl-input/ax.evaluate]]}}
+                     (tooltip/attributes (if connected? evaluate-title connect-title)))
+      (stdin/icon ["repl-input-context-icon"] play-path)]]))
 
-(defn- connect-link-element
-  []
-  (doto (text-element "repl-input-context-connect" "Connect a REPL")
-    (.setAttribute "role" "button")))
-
-(defn set-line!
-  "Shows the `context-line`: the namespace indicator for the line and the `recalled-lock`, the lock of a
-   recalled history entry from another context, once the line has a namespace, a link that connects a REPL
-   while no session answers to its key, and the play button, disabled while no session answers."
-  [{:repl-input.context/keys [connected?] :as context-line} recalled-lock]
-  (let [{:repl-input.indicator/keys [choices ns] :as shown} (indicator context-line recalled-lock)]
-    (when ns
-      (some-> (child "repl-input-indicator") (set-indicator! shown)))
-    (some-> (child "repl-input-menu") (set-menu! choices)))
-  (when-let [^js line (child "repl-input-context-line")]
-    (if connected?
-      (.replaceChildren line)
-      (.replaceChildren line (connect-link-element))))
-  (some-> (child "repl-input-evaluate") (set-play-button! connected?)))
-
-(defn mount!
-  "Adds the context line, with its namespace indicator and menu and its play button, and the evaluation
-   bar, to `parent`. A click on the connect link, on a button, or on Interrupt, dispatches its action."
-  [^js parent dispatch!]
-  (let [row (element "div" "repl-input-context")
-        indicator (context-button "repl-input-indicator" [:repl-input/ax.click-namespace-indicator] dispatch!)
-        line (element "div" "repl-input-context-line")
-        play (context-button "repl-input-evaluate" [:repl-input/ax.evaluate] dispatch!)
-        bar (element "div" "repl-input-evaluation-bar")
-        interrupt (element "button" "repl-input-interrupt")]
-    (set! (.-hidden indicator) true)
-    (.addEventListener line "click" #(some-> (click-action (.-target ^js %)) dispatch!))
-    (doto play
-      (.setAttribute "aria-label" evaluate-title)
-      (.append (stdin/icon "repl-input-context-icon" play-path)))
-    (.append row
-             (tooltip/attach! indicator "")
-             (namespace-menu indicator dispatch!)
-             line
-             (tooltip/attach! play ""))
-    (set! (.-textContent interrupt) "Interrupt")
-    (.addEventListener interrupt "click" #(dispatch! [:repl-input/ax.interrupt]))
-    (set! (.-hidden bar) true)
-    (.append bar (text-element "repl-input-evaluation-text" "Evaluating…") interrupt)
-    (.append parent row bar)
-    (set-line! nil nil)))
-
-(defn set-evaluation!
-  "Shows the evaluation bar while an `evaluation` is `:running`, and hides it otherwise. The stdin input
-   shows for one that reads stdin."
+(defn evaluation-bar
+  "Returns the evaluation bar, shown while the `evaluation` is `:running`, as hiccup."
   [evaluation]
-  (when-let [^js bar (child "repl-input-evaluation-bar")]
-    (set! (.-hidden bar) (not= :running evaluation))))
+  [:div {:class "repl-input-evaluation-bar" :hidden (not= :running evaluation)}
+   [:span {:class "repl-input-evaluation-text"} "Evaluating…"]
+   [:button {:class "repl-input-interrupt" :on {:click [[:repl-input/ax.interrupt]]}} "Interrupt"]])
+
+(defn close-menu-without-choices!
+  "Closes the namespace menu when the `context-line` and the `recalled-lock` give it no choices."
+  [context-line recalled-lock]
+  (when-not (seq (:repl-input.indicator/choices (indicator context-line recalled-lock)))
+    (when-let [^js menu (child "repl-input-menu")]
+      (when (.matches menu ":popover-open")
+        (.hidePopover menu)))))
+
+(defn controls
+  "Returns the REPL Input's parts around its code editor for the controls' `state`, as hiccup: the sash,
+   which calls `on-sash-pointerdown` when pressed, the stdin input, the context line and the evaluation bar."
+  [{:repl-input/keys [context-line recalled-lock evaluation namespace-menu-open? dragging?]}
+   {:keys [mac? on-sash-pointerdown on-stdin-keydown]}]
+  (list [:div {:class (cond-> ["repl-input-sash"] mac? (conj "mac") dragging? (conj "active"))
+               :on {:pointerdown on-sash-pointerdown}}]
+        (stdin/row (= :reading-stdin evaluation) on-stdin-keydown)
+        (row context-line recalled-lock namespace-menu-open?)
+        (evaluation-bar evaluation)))

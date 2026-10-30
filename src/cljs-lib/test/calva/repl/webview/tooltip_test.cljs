@@ -33,6 +33,11 @@
     (is (nil? (.-title button))
         "The control has no VS Code tooltip")))
 
+(deftest tooltip-attributes
+  (is (= {:interestfor "output-tooltip" :aria-description "Evaluate"}
+         (tooltip/attributes "Evaluate"))
+      "A control in hiccup points at the page's tooltip, with its text as its accessible description"))
+
 (deftest tooltip-text
   (let [tip (tooltip/element)
         copy (tooltip/attach! (js/document.createElement "button") "Copy output")
@@ -42,10 +47,12 @@
         "The tooltip takes the text of the control that shows interest")
     (show-interest! tip play)
     (is (= "Evaluate" (.-textContent tip)))
-    (tooltip/set-text! play "Connect a REPL")
+    (.setAttribute play "aria-description" "Connect a REPL")
+    (tooltip/refresh!)
     (is (= "Connect a REPL" (.-textContent tip))
         "A new text shows while the tooltip shows for the control")
-    (tooltip/set-text! copy "Copy")
+    (.setAttribute copy "aria-description" "Copy")
+    (tooltip/refresh!)
     (is (= "Connect a REPL" (.-textContent tip))
         "Another control's new text waits until it shows the tooltip")
     (show-interest! tip copy)

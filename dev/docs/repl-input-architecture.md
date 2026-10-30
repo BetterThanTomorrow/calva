@@ -50,14 +50,14 @@ The namespaces are `calva.repl.webview.input.<name>`.
 
 | Namespace | What it does |
 | --- | --- |
-| `editor` | The CodeMirror view: mounting, the compartments that settings reconfigure, the `:repl-input/fx.*` effects, the sash, giving the focus back |
+| `editor` | The CodeMirror view: mounting, the compartments that settings reconfigure, the `:repl-input/fx.*` effects, giving the focus back, and `render-controls!`, which renders the controls around CodeMirror into `#repl-input` with Replicant. CodeMirror's element comes after them, and Replicant leaves it alone. While the REPL Input is on, the actions that change what the controls show emit `:repl-input/fx.render-controls` with `actions/controls-state`. The controls' clicks and the menu's `toggle` are actions, through Replicant's dispatch; the stdin input's keys and the sash's drag are functions made once per mount |
 | `actions` | The `:repl-input/ax.*` actions, pure, on the Output view's db |
 | `keys` | Which keydowns to leave to VS Code |
 | `commands` | CodeMirror's keymap, and the named commands that VS Code's keys run through Calva's keybindings |
 | `history` | Walking the history, and the lock or following that a shown entry asks for |
-| `context` | The context line: the namespace indicator and its menu, the play button, the evaluation bar |
+| `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, the context line with the namespace indicator, its menu and the play button, and the evaluation bar. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
 | `completion` | CodeMirror's completion, fed with the extension's candidates |
-| `stdin`, `highlight`, `brackets`, `edit`, `definition` | The stdin input, highlighting with highlight.js, bracket classes, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip` |
+| `stdin`, `highlight`, `brackets`, `edit`, `definition` | The stdin input, as hiccup, highlighting with highlight.js, bracket classes, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
 
 ### Extension side, TS
 
