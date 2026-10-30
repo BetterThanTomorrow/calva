@@ -150,7 +150,7 @@
     (is (= [[:error/ax.copy {:error/id "e1"}]]
            (action-of (first (l/select :.output-error-copy hiccup)))))
     (is (empty? (l/select :.output-error-causes hiccup))
-        "A folded error shows its text and its controls")))
+        "A folded error shows no causes")))
 
 (deftest unfolded-error-element-test
   (let [hiccup (error-element/element (error-entry true))

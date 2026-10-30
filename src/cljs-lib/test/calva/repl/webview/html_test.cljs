@@ -7,6 +7,8 @@
   (testing "writes double quotes in text and attribute values as double quotes"
     (is (= "<pre data-action=\"[[:copy {:text &quot;a&quot;}]]\">{:c &quot;four&quot;} &apos;x</pre>"
            (sut/render [:pre {:data-action "[[:copy {:text \"a\"}]]"} "{:c \"four\"} 'x"]))))
+  (testing "writes carriage returns as character references, which HTML parsing keeps"
+    (is (= "<pre>a&#13;\nb&#13;c</pre>" (sut/render [:pre "a\r\nb\rc"]))))
   (testing "keeps text that looks like an entity as text"
     (is (= "<pre>&amp;#39;</pre>" (sut/render [:pre "&#39;"]))))
   (testing "writes innerHTML as it is"

@@ -32,3 +32,12 @@
       (with-selection true #(ui/on-output-click #js {:target text :detail 1}))
       (is (= [[:error/ax.toggle "e1"]] @dispatched)
           "A click without a selection dispatches the row's action"))))
+
+(deftest event-target-in-actions-test
+  (let [button (fake-document/hiccup-element [:button {:data-action (pr-str [[:output/ax.copy-image {:image/mime "image/png"
+                                                                                                     :copy/button :event/target}]])}])
+        dispatched (atom [])]
+    (with-redefs [ui/dispatch! #(swap! dispatched conj %)]
+      (ui/on-output-click #js {:target button :detail 1}))
+    (is (= [[:output/ax.copy-image {:image/mime "image/png" :copy/button button}]] @dispatched)
+        ":event/target in an action's payload stands for the clicked control")))

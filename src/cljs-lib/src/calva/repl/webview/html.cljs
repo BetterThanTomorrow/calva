@@ -6,10 +6,13 @@
 
 (defn render
   "Returns `hiccup` as HTML. Replicant writes a double quote as `&#39;`, the entity of an apostrophe, and
-   every `&#39;` it escapes comes from a double quote, so they are written as `&quot;`. `:innerHTML` is
-   written as it is, apart from that: a `&#39;` in it becomes `&quot;` too."
+   every `&#39;` it escapes comes from a double quote, so they are written as `&quot;`. HTML parsing turns
+   a carriage return into a line feed, so carriage returns are written as `&#13;`. `:innerHTML` is
+   written as it is, apart from those two."
   [hiccup]
-  (string/replace (replicant/render hiccup) "&#39;" "&quot;"))
+  (-> (replicant/render hiccup)
+      (string/replace "&#39;" "&quot;")
+      (string/replace "\r" "&#13;")))
 
 (defn document
   "Returns the HTML document of `hiccup`, an `:html` element."

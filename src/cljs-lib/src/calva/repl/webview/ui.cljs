@@ -696,9 +696,9 @@
   [^js output-dom-element]
   (.. js/window (addEventListener "message" handle-message))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
-  (.. output-dom-element (addEventListener "click" on-output-click))
-  (.. output-dom-element (addEventListener "load" on-image-load true))
-  (.. output-dom-element (addEventListener "error" on-image-error true)))
+  (.. output-dom-element (addEventListener "click" #(on-output-click %)))
+  (.. output-dom-element (addEventListener "load" #(on-image-load %) true))
+  (.. output-dom-element (addEventListener "error" #(on-image-error %) true)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)

@@ -117,7 +117,7 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 ## The page
 
-`core/page` builds the page for both views as hiccup, and `set-webview-html!` renders it with `html/document`. Replicant writes a double quote as `&#39;`, the entity of an apostrophe, so `html/render` writes those as `&quot;`. A VS Code `Uri` goes into the hiccup as a string, since Replicant writes an attribute whose value isn't a string, a number or a keyword as a bare name. The page has:
+`core/page` builds the page for both views as hiccup, and `set-webview-html!` renders it with `html/document`. Replicant writes a double quote as `&#39;`, the entity of an apostrophe, so `html/render` writes those as `&quot;`. HTML parsing turns a carriage return into a line feed, so `html/render` writes carriage returns as `&#13;`, and output keeps them. A VS Code `Uri` goes into the hiccup as a string, since Replicant writes an attribute whose value isn't a string, a number or a keyword as a bare name. The page has:
 
 - A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the styles in the page. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
 - The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
