@@ -3,6 +3,7 @@
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
@@ -100,11 +101,11 @@
 (deftest get-webview-html-test
   (testing "Given valid args and that the environment is debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
-                                                             :css-href "css-href"
+                                                             :styles "styles-css"
                                                              :csp-source "csp-source"
                                                              :script-nonce "test-nonce"})]
       (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
+      (is (re-find #"<style id=\"calva-output-styles\" nonce=\"test-nonce\">styles-css</style>" result))
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (re-find #"script-src 'unsafe-eval' 'nonce-test-nonce'" result))
@@ -112,11 +113,11 @@
       (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
   (testing "Given valid args and that the environment is not debug, should return the expected html markup"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
+                                                              :styles "styles-css"
                                                               :csp-source "csp-source"
                                                               :script-nonce "test-nonce"})]
       (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
+      (is (re-find #"<style id=\"calva-output-styles\" nonce=\"test-nonce\">styles-css</style>" result))
       (is (= 2 (count (re-seq #"csp-source" result))))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (re-find #"script-src 'nonce-test-nonce'" result))
@@ -127,7 +128,7 @@
     (is (re-find #"GREETING-MARKER\s*<div id=\"output\" class=\"output-element-container\"></div>"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :greeting-html "GREETING-MARKER"}))))
@@ -135,7 +136,7 @@
     (is (re-find #"<body class=\"word-wrap\" "
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :word-wrap? true}))))
@@ -143,7 +144,7 @@
     (is (re-find #"<body data-image-display="
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :word-wrap? false}))))
@@ -151,7 +152,7 @@
     (is (re-find #"<body data-image-display=\"raw\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :image-display "raw"}))))
@@ -159,14 +160,14 @@
     (is (re-find #"<body data-image-display=\"images\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"}))))
   (testing "Given word-wrap and image-display, should add both to the body"
     (is (re-find #"<body class=\"word-wrap\" data-image-display=\"images\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :word-wrap? true
@@ -175,7 +176,7 @@
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"
                                         :font-scale 1.25}))))
@@ -183,14 +184,14 @@
     (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
                  (sut/get-webview-html {:env/is-debug false}
                                        {:js-source "js-source"
-                                        :css-href "css-href"
+                                        :styles "styles-css"
                                         :csp-source "csp-source"
                                         :script-nonce "n"})))))
 
 (deftest get-webview-html-csp-nonce-test
   (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source and allows the same nonce"
     (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
+                                                              :styles "styles-css"
                                                               :csp-source "csp-source"
                                                               :script-nonce "abc-123"})]
       (is (re-find #"script-src 'nonce-abc-123'" result))
@@ -198,7 +199,8 @@
       (is (re-find #"style-src[\s\S]*csp-source 'nonce-abc-123';" result))
       (is (re-find #"img-src data: https: http: csp-source" result))
       (is (nil? (re-find #"script-src js-source" result)))
-      (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
+      (is (re-find #"<style id=\"calva-output-styles\" nonce=\"abc-123\">" result)
+          "The page's styles carry the nonce that style-src allows"))))
 
 (deftest get-webview-html-stylesheets-test
   (let [result (sut/get-webview-html {:env/is-debug false}
@@ -213,6 +215,8 @@
         "The code theme stylesheet of the current theme kind is enabled")
     (is (re-find #"href=\"copy-href\"" result)
         "The copy button stylesheet is linked")
+    (is (= 3 (count (re-seq #"rel=\"stylesheet\"" result)))
+        "Only the code theme and copy button stylesheets are linked")
     (is (re-find #"style-src csp-source 'nonce-n';" result)
         "Stylesheets load from the webview's own source only")))
 
@@ -225,7 +229,7 @@
   (testing "renders no REPL Input mount without REPL Input state"
     (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {})))))
   (testing "renders the page with the REPL Input off as the page without it, apart from the mount marked off"
-    (let [page {:js-source "js-source" :css-href "css-href" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
+    (let [page {:js-source "js-source" :styles "styles-css" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
           off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\"></div>"]
       (is (= (sut/get-webview-html {:env/is-debug false} page)
              (string/replace (sut/get-webview-html {:env/is-debug false}
@@ -256,9 +260,9 @@
           extension-uri "extension-uri"
           context {:vscode/context (clj->js {:extensionUri extension-uri})
                    :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
-          result (sut/get-css-path context ["main.css"])]
+          result (sut/get-css-path context ["vendor" "highlightjs-copy.min.css"])]
       (testing "should call joinPath with expected args"
-        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
+        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "vendor" "highlightjs-copy.min.css")))
       (testing "should return the result of joinPath"
         (is (= "some-path" result))))))
 
@@ -283,19 +287,19 @@
                       sut/word-wrap? (constantly true)
                       sut/get-output-views-font-scale-setting (constantly 1.5)
                       sut/image-display (constantly "raw")
+                      styles/css (constantly "some-styles")
                       input-host/html-state (fn [view-id] {:repl-input/id view-id})
                       sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
             (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-          (testing "should call get-css-path for main.css and for each stylesheet shipped with the extension"
-            (is (spy/called-with? get-css-path-spy context ["main.css"]))
+          (testing "should call get-css-path for each stylesheet shipped with the extension"
             (is (spy/called-with? get-css-path-spy context ["vendor" "highlight.js" "github-dark.min.css"]))
             (is (spy/called-with? get-css-path-spy context sut/copy-button-stylesheet))
-            (is (= 6 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
+            (is (= 5 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
           (testing "should call get-webview-html with expected args including a script nonce"
             (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
-                                                                     :css-href "some-css-href"
+                                                                     :styles "some-styles"
                                                                      :code-theme-stylesheets (mapv (fn [[theme]] [theme "some-css-href"])
                                                                                                    sut/highlight-js-code-theme-stylesheet-data)
                                                                      :copy-button-css-href "some-css-href"

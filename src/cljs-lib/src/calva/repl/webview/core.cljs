@@ -5,6 +5,7 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.image-host :as image-host]
    [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [calva.trail :as trail]
    [calva.util :as util]
@@ -279,7 +280,7 @@
   (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\"></div>"))
 
 (defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
+  [{:env/keys [is-debug]} {:keys [js-source styles code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
   (str "
 <!DOCTYPE html>
 <html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
@@ -299,7 +300,7 @@
 
     <title>REPL Output</title>
 
-    <link rel=\"stylesheet\" href=\"" css-href "\" />
+    <style id=\"calva-output-styles\" nonce=\"" script-nonce "\">" styles "</style>
 
 " (highlight-js-code-theme-stylesheet-links code-theme code-theme-stylesheets) "
 
@@ -344,13 +345,12 @@
    {:keys [^js webview-panel view-kind]
     :or {view-kind :output-view}}]
   (let [js-source (get-js-source context {:webview-panel webview-panel})
-        css-href (stylesheet-href context webview-panel ["main.css"])
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         greeting-html (greeting/html-for-view view-kind logo-href)
         webview-html (get-webview-html context {:js-source js-source
-                                                :css-href css-href
+                                                :styles (styles/css)
                                                 :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
                                                                                 [theme (stylesheet-href context webview-panel stylesheet)])
                                                                               highlight-js-code-theme-stylesheet-data)

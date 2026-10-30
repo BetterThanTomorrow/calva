@@ -6,6 +6,7 @@
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
+   [garden.core :as garden]
    ["strip-ansi" :default strip-ansi]
    ["highlightjs-copy" :as CopyButtonPlugin]
    ["highlight.js/lib/core" :as hljs]
@@ -551,8 +552,8 @@
 (defn token-colors-css
   "Returns CSS that gives each highlight.js scope in `colors` its color, over the code theme's."
   [colors]
-  (apply str (for [[scope color] colors]
-               (str ":root .hljs-" scope " { color: " color "; }\n"))))
+  (garden/css (for [[scope color] colors]
+                [(str ":root .hljs-" scope) {:color color}])))
 
 (defonce !token-colors-sheet (atom nil))
 

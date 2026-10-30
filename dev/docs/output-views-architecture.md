@@ -15,14 +15,14 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 
 | Where | Code | What it does |
 | --- | --- | --- |
-| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Adds the tooltip, starts `ui`, registers the REPL Input's effect handler, posts `page-loaded`, mounts the REPL Input |
+| Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/main.cljs` | The build's `:init-fn`. Adds the tooltip, starts `ui`, registers the REPL Input's effect handler, posts `page-loaded`, mounts the REPL Input. The build writes `repl-output-ui/js/main.js` |
 | | `ui.cljs` | Takes the extension's messages, dispatches actions, runs the effects that draw the DOM, posts to the extension |
 | | `app_db.cljs` | The db and `handle-action`, pure: which effects a message or a click leads to |
 | | `error_element.cljs`, `stacktrace.cljs` | Errors with their causes and frames. `stacktrace` is pure and is used on the extension side too |
 | | `images.cljs`, `image_refs.cljs` | Finds image data URLs, image URLs and image file paths in results |
 | | `tooltip.cljs` | The tooltip of every control in the page |
 | | `input/*.cljs` | The REPL Input |
-| | `repl-output-ui/css/main.css` | The stylesheet of both views. The build writes `repl-output-ui/js/main.js` |
+| | `styles_reload.cljs` | A preload of the build in development: renders the views' styles into the page again after each code reload |
 | | `repl-output-ui/css/vendor/` | The highlight.js theme stylesheets and the copy button plugin's stylesheet, copied from their npm packages, with their licenses |
 | Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page HTML, turns output into messages, posts settings to every view |
 | | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page, and the log it replays |
@@ -30,6 +30,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `frame_host.cljs` | Opens the file of a clicked stacktrace frame |
 | | `token_colors.cljs` | Reads the active color theme's token colors for highlight.js |
 | | `greeting.cljs` | The greeting at the top of each view |
+| | `styles.cljs` | The views' own styles, as Garden data, and `css`, which renders them |
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
@@ -116,7 +117,8 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 `core/get-webview-html` builds the page for both views:
 
-- A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the stylesheets. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
+- A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the styles in the page. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
+- The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
 - The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
 - The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
@@ -187,6 +189,7 @@ A change to the word wrap or image display setting clears its session override a
 - In the Extension Development Host: `src/cljs-lib/fiddles/output_destinations.cljs` reaches the Output View panel, the destinations and the terminals from the `:calva-lib` runtime. `src/cljs-lib/fiddles/output_heartbeat.clj` prints from a background thread once a minute, for output that arrives without an evaluation.
 - The REPL: in the source window, connect with the "Calva" connect sequence from `.vscode/settings.json`. It starts the shadow-cljs watches for `:calva-lib`, `:repl-output-ui` and `:test`, and its `cljs` session defaults to `:calva-lib`, which runs in the Extension Development Host's extension host. The `:calva-lib` runtime has `calva.repl.webview.core/registered-webviews` and `calva.repl.webview.sidebar/output-sidebar-log`.
 - Several runtimes can be connected to one build: the unit test watcher's mocha worker (Node 22, `calva.util/vscode` nil) loads `:calva-lib` too, and each open Output view is a `:repl-output-ui` runtime of its own. From the `clj` session, `(shadow.cljs.devtools.api/repl-runtimes :repl-output-ui)` lists them. Its `:client-id` is the `:runtime-id` for `(shadow.cljs.devtools.api/cljs-eval :repl-output-ui "@calva.repl.webview.app-db/!app-db" {:runtime-id n})`, which returns the results as strings under `:results`. Tell two views apart by `(:repl-input/id @calva.repl.webview.app-db/!app-db)`.
+- `src/cljs-lib/fiddles/output_views_checks.clj`, from the `clj` session, posts a fixed set of output to a view and reads the view's own stylesheet rules and its DOM as data, to compare with the baselines it saved. It also times appending output.
 - The command Developer: Open Webview Developer Tools shows a view's DOM and console.
 - The trail: `calva.trail/log!` logs a line with the milliseconds since cljs-lib loaded, to the console as `[Calva +<ms>ms] <message>`, and to the Calva Log output channel, a log channel that VS Code also writes to `Calva Log.log` in Calva's extension log folder. It logs activation START and END, each view created or resolved with the REPL Input on or off, its page loaded, or the sidebar's help page set, which has no script, the REPL Input mounted in it, and a changed REPL Input setting. The console lines show in the Debug Console of the window that launched the Extension Development Host, and in the smoke tests' CI log, which tells whether a view's page loaded and its REPL Input mounted. The `:test` build turns the trail off with the closure define `calva.trail/enabled?`.
 - Changes to the cljs-lib and `:repl-output-ui` code reload through the shadow-cljs watch. HTML built by `get-webview-html` shows in a view after its page is set again, for example after closing and reopening the Output View. TS changes need a reload of the Extension Development Host.

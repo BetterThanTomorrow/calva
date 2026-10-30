@@ -83,4 +83,5 @@
                  :output-dir "repl-output-ui/js"
                  :modules {:main {:init-fn calva.repl.webview.main/main}}
                  :devtools {:loader-mode :eval
-                            :use-document-host false}}}}
+                            :use-document-host false
+                            :preloads [calva.repl.webview.styles-reload]}}}}

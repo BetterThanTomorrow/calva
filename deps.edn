@@ -10,6 +10,9 @@
         vvvvalvalval/supdate {:mvn/version "0.2.3"}
         camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}
         no.cjohansen/replicant {:mvn/version "2025.03.27"}
+        com.lambdaisland/garden {:mvn/version "1.10.609"
+                                 ;; Its CSS compressor brings a newer Closure Compiler and Guava than shadow-cljs uses, and needs neither
+                                 :exclusions [com.google.javascript/closure-compiler com.google.guava/guava]}
         #_#_org.clojars.liverm0r/dartclojure {:local/root "../DartClojure"}}
  :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}}}
            :ci {:jvm-opts ["-Xmx2g"]}

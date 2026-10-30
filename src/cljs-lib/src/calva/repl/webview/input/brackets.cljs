@@ -2,7 +2,7 @@
   "The REPL Input's rainbow brackets, painted by class from a stylesheet with the colors and styles
    Calva paints files with."
   (:require
-   [clojure.string :as string]))
+   [garden.core :as garden]))
 
 (defn- bracket-class
   [color-index]
@@ -57,25 +57,21 @@
 
 (defn- declarations
   [style]
-  (string/join " " (for [[k v] style
-                         :let [property (css-properties k)]
-                         :when (and property (css-value? v))]
-                     (str property ": " v ";"))))
-
-(defn- rule
-  [selectors style]
-  (let [declarations (declarations style)]
-    (when (seq declarations)
-      (str (string/join ", " selectors) " { " declarations " }\n"))))
+  (into {} (for [[k v] style
+                 :let [property (css-properties k)]
+                 :when (and property (css-value? v))]
+             [(keyword property) v])))
 
 (defn- style-rules
   "The rules for `class-name` from a decoration `style`, with its `light` and `dark` parts."
   [class-name style]
   (let [selector (str "." class-name)]
-    (apply str
-           (rule [selector] style)
-           (for [[kind prefixes] theme-kind-selectors]
-             (rule (map #(str % " " selector) prefixes) (get style kind))))))
+    (for [[selectors style] (cons [[selector] style]
+                                  (for [[kind prefixes] theme-kind-selectors]
+                                    [(map #(str % " " selector) prefixes) (get style kind)]))
+          :let [declarations (declarations style)]
+          :when (seq declarations)]
+      (conj (vec selectors) declarations))))
 
 (defn- color-style
   [color]
@@ -83,11 +79,15 @@
     {"light" {"color" (first color)} "dark" {"color" (second color)}}
     {"color" color}))
 
+(defn rules
+  "Returns the Garden rules that paint the classes of `mark-ranges` with `bracket-styles`."
+  [{:keys [bracket-colors] :as bracket-styles}]
+  (vec (concat (apply concat (map-indexed (fn [i color] (style-rules (bracket-class i) (color-style color)))
+                                          bracket-colors))
+               (mapcat (fn [[k class-name]] (style-rules class-name (get bracket-styles k)))
+                       classes))))
+
 (defn css
   "The stylesheet that paints the classes of `mark-ranges` with `bracket-styles`."
-  [{:keys [bracket-colors] :as bracket-styles}]
-  (apply str
-         (concat (map-indexed (fn [i color] (style-rules (bracket-class i) (color-style color)))
-                              bracket-colors)
-                 (for [[k class-name] classes]
-                   (style-rules class-name (get bracket-styles k))))))
+  [bracket-styles]
+  (garden/css (rules bracket-styles)))
