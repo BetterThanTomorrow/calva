@@ -66,13 +66,32 @@
      (defn ovc-dom []
        (pr-str (ovc-node js/document.documentElement)))
 
+     (defn ovc-declarations
+       "The declarations of `css-text`, split at the semicolons outside quotes and parentheses."
+       [css-text]
+       (loop [[c & more] (seq css-text) depth 0 quote nil current "" declarations #{}]
+         (cond
+           (nil? c) (cond-> declarations (not (str/blank? current)) (conj (str/trim current)))
+           quote (recur more depth (if (= c quote) nil quote) (str current c) declarations)
+           (#{"'" "\""} c) (recur more depth c (str current c) declarations)
+           (= "(" c) (recur more (inc depth) quote (str current c) declarations)
+           (= ")" c) (recur more (dec depth) quote (str current c) declarations)
+           (and (= ";" c) (zero? depth)) (recur more depth quote "" (conj declarations (str/trim current)))
+           :else (recur more depth quote (str current c) declarations))))
+
+     (defn ovc-rule [rule]
+       (if (.-selectorText rule)
+         [(.-selectorText rule) (ovc-declarations (.. rule -style -cssText))]
+         [(.-conditionText rule) (mapv ovc-rule (array-seq (.-cssRules rule)))]))
+
+     (defn ovc-sheet-rules [sheet]
+       (mapv ovc-rule (array-seq (.-cssRules sheet))))
+
      (defn ovc-rules []
        (pr-str (some->> (array-seq js/document.styleSheets)
                         (filter #(some-> (.-ownerNode %) (.matches "link[href$='main.css'], style#calva-output-styles")))
                         first
-                        .-cssRules
-                        array-seq
-                        (mapv #(.-cssText %)))))
+                        ovc-sheet-rules)))
 
      (defn ovc-post! [message]
        (ui/handle-message (js-obj "data" (pr-str message))))
@@ -168,16 +187,37 @@
 (defn baseline [view-kind]
   (edn/read-string (slurp (baseline-file view-kind))))
 
+(defn node-differences
+  "Returns where the DOM data `a` and `b` differ, as `{:path :before :now}` entries. A path is the
+   tags down to the node; an element that differs in its attributes is shown with its attributes only."
+  ([a b] (node-differences [] a b))
+  ([path a b]
+   (cond
+     (= a b) []
+     (and (vector? a) (vector? b) (= (first a) (first b)))
+     (let [path (conj path (first a))
+           [_ a-attributes & a-children] a
+           [_ b-attributes & b-children] b]
+       (into (if (= a-attributes b-attributes)
+               []
+               [{:path path :before a-attributes :now b-attributes}])
+             (if (= (count a-children) (count b-children))
+               (mapcat #(node-differences path %1 %2) a-children b-children)
+               [{:path path :before a-children :now b-children}])))
+     :else [{:path path :before a :now b}])))
+
 (defn differences
-  "Returns what differs between the baseline of `view-kind` and its page now, as
-   `[only-in-baseline only-now]` for the rules and for the DOM, or nil when nothing differs."
+  "Returns what differs between the baseline of `view-kind` and its page now: the rules as
+   `[only-in-baseline only-now]`, and the DOM in each image display as `node-differences`. Nil
+   when nothing differs."
   [view-kind]
   (let [before (baseline view-kind)
         now (snapshot (runtime-id view-kind))
         rules (when (not= (:rules before) (:rules now))
                 (vec (take 2 (data/diff (:rules before) (:rules now)))))
         dom (when (not= (:dom before) (:dom now))
-              (vec (take 2 (data/diff (:dom before) (:dom now)))))]
+              (into {} (for [[display dom] (:dom before)]
+                         [display (node-differences dom (get-in now [:dom display]))])))]
     (when (or rules dom)
       (cond-> {}
         rules (assoc :rules rules)
