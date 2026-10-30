@@ -24,13 +24,14 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `input/*.cljs` | The REPL Input |
 | | `styles_reload.cljs` | A preload of the build in development: renders the views' styles into the page again after each code reload |
 | | `repl-output-ui/css/vendor/` | The highlight.js theme stylesheets and the copy button plugin's stylesheet, copied from their npm packages, with their licenses |
-| Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page HTML, turns output into messages, posts settings to every view |
-| | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page, and the log it replays |
+| Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page as hiccup, turns output into messages, posts settings to every view |
+| | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page (`help-page`), and the log it replays |
 | | `image_host.cljs` | Webview options, local image lookups, fetching remote images for Copy image |
 | | `frame_host.cljs` | Opens the file of a clicked stacktrace frame |
 | | `token_colors.cljs` | Reads the active color theme's token colors for highlight.js |
 | | `greeting.cljs` | The greeting at the top of each view |
-| | `styles.cljs` | The views' own styles, as Garden data, and `css`, which renders them |
+| | `html.cljs` | Renders hiccup to HTML with Replicant |
+| | `styles.cljs` | The views' own styles as Garden data, `rules`, and the Output Sidebar help page's, `help-rules`, with `css` and `help-css`, which render them |
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
@@ -115,7 +116,7 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 ## The page
 
-`core/get-webview-html` builds the page for both views:
+`core/page` builds the page for both views as hiccup, and `set-webview-html!` renders it with `html/document`. Replicant writes a double quote as `&#39;`, the entity of an apostrophe, so `html/render` writes those as `&quot;`. A VS Code `Uri` goes into the hiccup as a string, since Replicant writes an attribute whose value isn't a string, a number or a keyword as a bare name. The page has:
 
 - A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the styles in the page. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
 - The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
@@ -177,7 +178,7 @@ A change to the word wrap or image display setting clears its session override a
 ## Where to start
 
 - A new kind of output in the views: a category (see Output categories), or a new command name with its case in `ui/handle-message`, its `app_db.cljs` action and its `ui.cljs` effect.
-- A setting that changes how the views look: read it in `core.cljs`, put its initial value in `get-webview-html`, listen for its change and post to `registered-webviews`, and add an `:msg/*` action and an effect.
+- A setting that changes how the views look: read it in `core.cljs`, put its initial value in `page`, listen for its change and post to `registered-webviews`, and add an `:msg/*` action and an effect.
 - Something the page asks the extension for: post it with `post-to-host!` from an effect, answer it in `image-host/handle-webview-message!` (or a listener of its own, registered with the others in `core/initialize-webview-panel` and the sidebar provider), and reply by the request's `:id` with `deliver-host-request!`, as the image lookups do.
 - Something that differs between the views: `core.cljs` for the Output View, `sidebar.cljs` for the Output Sidebar. `set-webview-html!` takes the `:view-kind`. A message for the sidebar goes through `add-output-sidebar-message!` when a page reset should replay it, or straight to `@output-sidebar-webview-view` with `post-message-to-webview` when it shouldn't.
 
@@ -192,4 +193,4 @@ A change to the word wrap or image display setting clears its session override a
 - `src/cljs-lib/fiddles/output_views_checks.clj`, from the `clj` session, posts a fixed set of output to a view and reads the view's own stylesheet rules and its DOM as data, to compare with the baselines it saved. It also times appending output.
 - The command Developer: Open Webview Developer Tools shows a view's DOM and console.
 - The trail: `calva.trail/log!` logs a line with the milliseconds since cljs-lib loaded, to the console as `[Calva +<ms>ms] <message>`, and to the Calva Log output channel, a log channel that VS Code also writes to `Calva Log.log` in Calva's extension log folder. It logs activation START and END, each view created or resolved with the REPL Input on or off, its page loaded, or the sidebar's help page set, which has no script, the REPL Input mounted in it, and a changed REPL Input setting. The console lines show in the Debug Console of the window that launched the Extension Development Host, and in the smoke tests' CI log, which tells whether a view's page loaded and its REPL Input mounted. The `:test` build turns the trail off with the closure define `calva.trail/enabled?`.
-- Changes to the cljs-lib and `:repl-output-ui` code reload through the shadow-cljs watch. HTML built by `get-webview-html` shows in a view after its page is set again, for example after closing and reopening the Output View. TS changes need a reload of the Extension Development Host.
+- Changes to the cljs-lib and `:repl-output-ui` code reload through the shadow-cljs watch. The page built by `page` shows in a view after its page is set again, for example after closing and reopening the Output View. TS changes need a reload of the Extension Development Host.

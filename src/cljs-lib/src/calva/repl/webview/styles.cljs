@@ -733,3 +733,22 @@
   "Returns the Output views' styles as CSS."
   []
   (garden/css rules))
+
+(def help-rules
+  "The styles of the Output Sidebar's help page."
+  [["body"
+    {:color "var(--vscode-foreground)"
+     :background "var(--vscode-editor-background)"
+     :font-family "var(--vscode-font-family)"
+     :padding "16px"}]
+   ["h1"
+    {:font-size "1.2em"}]
+   ["pre"
+    {:white-space "pre-wrap"}]
+   ["a"
+    {:color "var(--vscode-textLink-foreground)"}]])
+
+(defn help-css
+  "Returns the styles of the Output Sidebar's help page as CSS."
+  []
+  (garden/css help-rules))

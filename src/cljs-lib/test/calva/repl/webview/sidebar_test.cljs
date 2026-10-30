@@ -4,6 +4,7 @@
    [calva.repl.webview.core :as core]
    [calva.repl.webview.sidebar :as sut]
    [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as string]
    [spy.core :as spy]
    [test-util :as test-util]
    [calva.util :as util]))
@@ -17,17 +18,23 @@
   (testing "skips nested destination arrays"
     (is (not (sut/output-sidebar-in-setting? {:evalResults [["output-sidebar"]]})))))
 
-(deftest get-sidebar-help-html-test
+(deftest help-page-test
   (let [destinations #js {:evalResults "terminal"
                           :evalOutput "terminal"
                           :otherOutput "terminal"}]
     (with-redefs [sut/current-output-destinations (constantly destinations)]
-      (let [html (sut/get-sidebar-help-html "csp-source")]
-        (is (re-find #"REPL Output" html))
-        (is (re-find #"terminal" html))
-        (is (re-find #"https://calva.io/output" html))
-        (is (re-find #"The current output destination configuration is" html))
-        (is (re-find #"default-src 'none'; style-src csp-source" html))))))
+      (let [page (sut/help-page "csp-source")
+            nodes (tree-seq #(or (vector? %) (seq? %)) #(if (vector? %) (rest %) %) page)
+            text (string/join " " (filter string? nodes))
+            policy (some #(when (and (map? %) (= "Content-Security-Policy" (:http-equiv %))) (:content %)) nodes)
+            style (some #(when (and (vector? %) (= :style (first %))) (second %)) nodes)]
+        (is (string/includes? text "REPL Output"))
+        (is (string/includes? text "terminal"))
+        (is (string/includes? text "The current output destination configuration is"))
+        (is (some #(and (map? %) (= "https://calva.io/output" (:href %))) nodes))
+        (is (re-find #"^default-src 'none'; style-src csp-source 'nonce-[^']+'$" policy))
+        (is (= (str "default-src 'none'; style-src csp-source 'nonce-" (:nonce style) "'") policy)
+            "The page's styles carry the nonce the policy allows")))))
 
 (deftest resolve-webview-view-test
   (let [on-did-dispose-spy (spy/stub "dispose-subscription")

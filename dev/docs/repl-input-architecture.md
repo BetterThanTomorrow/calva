@@ -86,7 +86,7 @@ In the webview, the REPL Input's state is in the Output view's db, under `:repl-
 
 ## Mounting
 
-1. `core/get-webview-html` puts `#repl-input` in every Output view's page, with the data from `host/html-state`: the view id, and whether the REPL Input is on.
+1. `core/page` puts `#repl-input`, `core/repl-input-element`, in every Output view's page, with the data from `host/html-state`: the view id, and whether the REPL Input is on.
 2. `main.cljs` dispatches `:repl-input/ax.init`. When it is on, `:repl-input/fx.mount` creates the `EditorView`, and `:repl-input/ax.mounted` posts `repl-input-mounted`.
 3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluation bar, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
 

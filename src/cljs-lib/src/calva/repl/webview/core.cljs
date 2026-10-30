@@ -3,6 +3,7 @@
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.styles :as styles]
@@ -241,21 +242,9 @@
   ["vendor" "highlightjs-copy" "highlightjs-copy.min.css"])
 
 (defn highlight-js-code-theme-stylesheet-link
+  "Returns the link to the highlight.js stylesheet `href` of `theme`, disabled unless it is `code-theme`."
   [code-theme [theme href]]
-  (str "    <link
-      rel=\"stylesheet\"
-      href=\"" href "\"
-      data-code-theme=\"" theme "\""
-       (when (not= code-theme theme)
-         "
-      disabled")
-       "
-    />"))
-
-(defn highlight-js-code-theme-stylesheet-links
-  [code-theme code-theme-stylesheets]
-  (str/join "\n" (map #(highlight-js-code-theme-stylesheet-link code-theme %)
-                       code-theme-stylesheets)))
+  [:link {:rel "stylesheet" :href (str href) :data-code-theme theme :disabled (not= code-theme theme)}])
 
 (defn code-theme-for-kind
   [^js color-theme-kind-enum color-theme-kind]
@@ -275,49 +264,40 @@
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 
-(defn repl-input-html
+(defn- content-security-policy
+  [is-debug csp-source script-nonce]
+  (str/join " " (cond-> ["default-src 'none';"
+                         (str "img-src data: https: http: " csp-source ";")
+                         (str "style-src " csp-source " 'nonce-" script-nonce "';")
+                         (str "script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';")]
+                  is-debug (conj "connect-src ws://localhost:*;")
+                  :always (conj "base-uri 'none';" "form-action 'none';"))))
+
+(defn repl-input-element
+  "Returns the element the REPL Input mounts in, with its view id and whether it is on."
   [{:repl-input/keys [id enabled?]}]
-  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\"></div>"))
+  [:div {:id "repl-input" :data-repl-input-id id :data-repl-input-enabled (str (boolean enabled?))}])
 
-(defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source styles code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
-  (str "
-<!DOCTYPE html>
-<html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
-  <head>
-    <meta charset=\"UTF-8\" />
-
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
-
-    <meta http-equiv=\"Content-Security-Policy\"
-          content=\"default-src 'none';
-                    img-src data: https: http: " csp-source ";
-                    style-src " csp-source " 'nonce-" script-nonce "';
-                    script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
-                    " (when is-debug "connect-src ws://localhost:*;") "
-                    base-uri 'none';
-                    form-action 'none';\">
-
-    <title>REPL Output</title>
-
-    <style id=\"calva-output-styles\" nonce=\"" script-nonce "\">" styles "</style>
-
-" (highlight-js-code-theme-stylesheet-links code-theme code-theme-stylesheets) "
-
-    <link
-      rel=\"stylesheet\"
-      href=\"" copy-button-css-href "\"
-    />
-
-  </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
-    " greeting-html "
-    <div id=\"output\" class=\"output-element-container\"></div>
-    " (when repl-input (repl-input-html repl-input)) "
-
-    <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
-  </body>
-</html>"))
+(defn page
+  "Returns the page of an Output view, as hiccup."
+  [{:env/keys [is-debug]} {:keys [js-source styles code-theme-stylesheets copy-button-css-href csp-source code-theme greeting word-wrap? font-scale image-display script-nonce repl-input]}]
+  [:html {:lang "en" :style {:--calva-output-font-scale (str (or font-scale 1.0))}}
+   [:head
+    [:meta {:charset "UTF-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+    [:meta {:http-equiv "Content-Security-Policy"
+            :content (content-security-policy is-debug csp-source script-nonce)}]
+    [:title "REPL Output"]
+    [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]
+    (for [stylesheet code-theme-stylesheets]
+      (highlight-js-code-theme-stylesheet-link code-theme stylesheet))
+    [:link {:rel "stylesheet" :href (str copy-button-css-href)}]]
+   [:body (cond-> {:data-image-display (or image-display default-image-display)}
+            word-wrap? (assoc :class "word-wrap"))
+    greeting
+    [:div {:id "output" :class "output-element-container"}]
+    (when repl-input (repl-input-element repl-input))
+    [:script {:nonce script-nonce :src (str js-source)}]]])
 
 (defn get-js-source
   [{:keys [vscode/vscode]
@@ -348,22 +328,21 @@
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
-        greeting-html (greeting/html-for-view view-kind logo-href)
-        webview-html (get-webview-html context {:js-source js-source
-                                                :styles (styles/css)
-                                                :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
-                                                                                [theme (stylesheet-href context webview-panel stylesheet)])
-                                                                              highlight-js-code-theme-stylesheet-data)
-                                                :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
-                                                :csp-source csp-source
-                                                :script-nonce script-nonce
-                                                :code-theme (code-theme-from-context context)
-                                                :greeting-html greeting-html
-                                                :word-wrap? (word-wrap?)
-                                                :font-scale (get-output-views-font-scale-setting)
-                                                :image-display (image-display)
-                                                :repl-input (input-host/html-state (name view-kind))})]
-    (set! (.. webview-panel -webview -html) webview-html)))
+        view-page (page context {:js-source js-source
+                                 :styles (styles/css)
+                                 :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
+                                                                 [theme (stylesheet-href context webview-panel stylesheet)])
+                                                               highlight-js-code-theme-stylesheet-data)
+                                 :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
+                                 :csp-source csp-source
+                                 :script-nonce script-nonce
+                                 :code-theme (code-theme-from-context context)
+                                 :greeting (greeting/for-view view-kind logo-href)
+                                 :word-wrap? (word-wrap?)
+                                 :font-scale (get-output-views-font-scale-setting)
+                                 :image-display (image-display)
+                                 :repl-input (input-host/html-state (name view-kind))})]
+    (set! (.. webview-panel -webview -html) (html/document view-page))))
 
 (defn set-code-theme!
   "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based

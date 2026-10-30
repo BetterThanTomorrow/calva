@@ -4,7 +4,9 @@
    [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.styles :as styles]
    [calva.trail :as trail]
    [calva.util :as util]))
 
@@ -38,34 +40,29 @@
                (= "output-sidebar" destination)))
            (vals destinations)))))
 
-(defn get-sidebar-help-html
+(defn help-page
+  "Returns the Output Sidebar's help page, as hiccup."
   [csp-source]
-  (let [destinations (current-output-destinations)
-        style-nonce (.randomUUID (js/require "crypto"))]
-    (str "<!DOCTYPE html>"
-         "<html lang=\"en\"><head>"
-         "<meta charset=\"UTF-8\">"
-         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src "
-         csp-source " 'nonce-" style-nonce "'\">"
-         "<style nonce=\"" style-nonce "\">"
-         "body { color: var(--vscode-foreground); background: var(--vscode-editor-background); "
-         "font-family: var(--vscode-font-family); padding: 16px; }"
-         "h1 { font-size: 1.2em; } pre { white-space: pre-wrap; }"
-         "a { color: var(--vscode-textLink-foreground); }"
-         "</style></head><body>"
-         "<h1>REPL Output</h1>"
-         "<p>REPL results, evaluated code, and other output can be sent to this view with the "
-         "<code>output-sidebar</code> <strong>Output destination</strong>.</p>"
-         (greeting/destinations-config-html destinations)
-         "</body></html>")))
+  (let [style-nonce (.randomUUID (js/require "crypto"))]
+    [:html {:lang "en"}
+     [:head
+      [:meta {:charset "UTF-8"}]
+      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+      [:meta {:http-equiv "Content-Security-Policy"
+              :content (str "default-src 'none'; style-src " csp-source " 'nonce-" style-nonce "'")}]
+      [:style {:nonce style-nonce :innerHTML (styles/help-css)}]]
+     [:body
+      [:h1 "REPL Output"]
+      [:p "REPL results, evaluated code, and other output can be sent to this view with the "
+       [:code "output-sidebar"] " " [:strong "Output destination"] "."]
+      (greeting/destinations-config (current-output-destinations))]]))
 
 (defn set-sidebar-help!
   [^js webview-view]
   (trail/log! "output-sidebar help page set")
   (reset! output-sidebar-showing-output-log? false)
   (set! (.. webview-view -webview -html)
-        (get-sidebar-help-html (.. webview-view -webview -cspSource))))
+        (html/document (help-page (.. webview-view -webview -cspSource)))))
 
 (defn sidebar-context
   []
