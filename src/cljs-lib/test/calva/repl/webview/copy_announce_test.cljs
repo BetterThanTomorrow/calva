@@ -1,6 +1,6 @@
 (ns calva.repl.webview.copy-announce-test
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.ui :as ui]
    [cljs.test :refer-macros [deftest testing is]]))
 
@@ -47,19 +47,19 @@
           (set! js/setTimeout original-timeout)
           (set! js/clearTimeout original-clear))))))
 
-(deftest stdout-copy-button-test
+(deftest stdout-copy-click-test
   (let [output (js/document.createElement "div")
-        _ (ui/create-and-append-stdout-element output (js/document.createTextNode "hello\n") "evalOut")
-        pre (aget (.-children output) 0)
-        [button text-node] (array-seq (.-children pre))]
-    (is (= ["output-stdout"] (js->clj (.. pre -classList -names))))
-    (is (= ["output-copy-button" "output-stdout-copy"] (js->clj (.. button -classList -names)))
-        "The stdout element starts with its copy button")
-    (is (nil? (.-title button)))
-    (is (= "output-tooltip" (.getAttribute button "interestfor")))
-    (is (= "Copy output" (.getAttribute button "aria-description"))
-        "The copy button shows the page's tooltip")
-    (is (= "Copy output" (.getAttribute button "data-copy-label"))
-        "The accessible name comes back after the copied announcement")
-    (is (= "hello\n" (.-textContent text-node))
-        "The text follows the button")))
+        dispatched (atom [])]
+    (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!
+                  ui/dispatch! #(swap! dispatched conj %)]
+      (ui/append-stdout output "hello\n" "evalOut")
+      (ui/append-stdout output "again\n" "evalOut")
+      (let [pre (.-lastElementChild output)
+            button (.querySelector pre "button")]
+        (is (= 1 (.-childElementCount output))
+            "Stdout of the same category continues its block")
+        (is (= ["hello\n" "again\n"] (map #(.-textContent %) (rest (.-children pre))))
+            "The text follows the copy button")
+        (ui/on-output-click #js {:target button})
+        (is (= [[:output/ax.copy-stdout button]] @dispatched)
+            "A click on the copy button dispatches its action with the button")))))

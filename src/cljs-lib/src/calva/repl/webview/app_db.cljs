@@ -160,6 +160,10 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
+    :output/ax.copy-stdout
+    {:uf/db db
+     :uf/fxs [[:fx/copy-stdout payload]]}
+
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}

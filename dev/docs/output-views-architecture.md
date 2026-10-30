@@ -49,7 +49,7 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 3. For a webview destination, `writeToWebview` calls `appendToReplOutputWebview` or `appendToReplOutputSidebar`. An error that comes with causes goes through `error-output.ts` instead (see Errors and stacktraces).
 4. In cljs-lib, `core/append` maps the category to a command name with `output-category->command-name`, adds the evaluation's `:meta` (who, namespace, session key, shadow-cljs build and runtime), and posts the message. For the Output View, `ensure-output-view-panel` creates the panel when there is none, so the first output to `output-view` opens it. For the Output Sidebar, `add-output-sidebar-message!` keeps the message in `output-sidebar-log`, and posts it when VS Code has resolved the view.
 5. In the webview, `ui/handle-message` reads the message and dispatches `[:msg/output message]`. `app-db/handle-action` returns an `ns-info` effect when the evaluation context differs from the last one, and the effect that appends the output.
-6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. The namespace info, evaluated code and results are hiccup, from `ns-info-element`, `evaluated-code-element` and `clojure-code-element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
+6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. The namespace info, evaluated code, results and stdout are hiccup, from `ns-info-element`, `evaluated-code-element`, `clojure-code-element` and `stdout-element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
 
 ### Output categories
 
@@ -61,7 +61,7 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 | `evalOut`, `evalErr` | `appendEvalOut`, `appendEvalErr` and their `appendLine*` | `evalOutput` | `show-stdout` | A `pre` with the category in `data-output-element-type` |
 | `otherOut`, `otherErr` | `appendOtherOut`, `appendOtherErr` and their `appendLine*` | `otherOutput` | `show-stdout` | Same as above |
 
-Consecutive `show-stdout` output of the same category goes into the same `pre`. Only `show-stdout` keeps the category in the page: `create-and-append-stdout-element` in `ui.cljs` sets `data-output-element-type`, which the CSS colors by. `message-fxs` in `app_db.cljs` drops the category for `show-result` and `show-evaluated-code`, so those can't be styled per category.
+Consecutive `show-stdout` output of the same category goes into the same `pre`. Only `show-stdout` keeps the category in the page: `stdout-element` in `ui.cljs` sets `data-output-element-type`, which the CSS colors by. `message-fxs` in `app_db.cljs` drops the category for `show-result` and `show-evaluated-code`, so those can't be styled per category.
 
 A new category needs:
 
@@ -107,6 +107,7 @@ Each view has three message listeners on the extension side: `image-host/listen-
 
 - `:msg/*` actions come from the extension's messages.
 - `:error/ax.*` actions come from the controls of an error entry.
+- `:output/ax.*` actions come from the output blocks' controls: `:output/ax.copy-stdout` from a stdout block's Copy output button. A control's actions are EDN in its `data-action` attribute, with `:event/target` standing for the control. `on-output-click`, the one click listener on `#output`, reads the attribute of the nearest element that has one, hides the page's tooltip and dispatches the actions.
 - `:repl-input/ax.*` actions go to `calva.repl.webview.input.actions/handle-action`.
 - `:fx/*` effects run in `ui.cljs`. Effects in another keyword namespace go to the handler registered for it with `register-effect-handler!`. `main.cljs` registers `"repl-input"` for the REPL Input's `:repl-input/fx.*` effects.
 
@@ -124,7 +125,7 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 - The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
 
-The page draws its controls' tooltips itself, since `title` tooltips are unreliable in webviews. `main` adds one hint popover, `#output-tooltip`, to the body, and `tooltip/attach!` points a control at it with `interestfor`, keeping its text in `aria-description`, which screen readers read as the control's description. A control in hiccup gets the same from `tooltip/attributes`, and the REPL Input's Replicant dispatch calls `tooltip/hide!` on a click. The tooltip takes that text when the control shows interest, on hover or keyboard focus, `tooltip/refresh!` shows a changed text while it shows, and it hides when its control hides or leaves the page. Every copy button has it, the result blocks' from highlight.js's copy plugin too, through a highlight.js plugin added after the copy plugin, and so do the error's filter buttons and links and the REPL Input's controls. `interestfor` works on buttons and links only, so an image's label stays its `title`.
+The page draws its controls' tooltips itself, since `title` tooltips are unreliable in webviews. `main` adds one hint popover, `#output-tooltip`, to the body, and `tooltip/attach!` points a control at it with `interestfor`, keeping its text in `aria-description`, which screen readers read as the control's description. A control in hiccup gets the same from `tooltip/attributes`, and `ui/on-output-click` and the REPL Input's Replicant dispatch call `tooltip/hide!` on a click. The tooltip takes that text when the control shows interest, on hover or keyboard focus, `tooltip/refresh!` shows a changed text while it shows, and it hides when its control hides or leaves the page. Every copy button has it, the result blocks' from highlight.js's copy plugin too, through a highlight.js plugin added after the copy plugin, and so do the error's filter buttons and links and the REPL Input's controls. `interestfor` works on buttons and links only, so an image's label stays its `title`.
 
 `image-host/webview-options` gives both views scripts, command links to the view's own Show command, and `localResourceRoots`: the extension, workspace folders that aren't `file:`, and the file system roots, so local images anywhere can load. The roots are rebuilt when workspace folders change. Both views keep their page when hidden (`retainContextWhenHidden`).
 

@@ -329,6 +329,13 @@
     (is (= db copy-db)
         "Copying changes nothing in the Output view")))
 
+(deftest copy-stdout-test
+  (let [button #js {}]
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/copy-stdout button]]}
+           (sut/handle-action sut/initial-db [:output/ax.copy-stdout button]))
+        "Copies the stdout of the clicked button's block")))
+
 (deftest clear-output-view-forgets-errors-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
     (is (empty? (:output/errors (:uf/db (sut/handle-action db [:msg/clear-output-view])))))))

@@ -7,6 +7,7 @@
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
+   [clojure.walk :as walk]
    [garden.core :as garden]
    ["strip-ansi" :default strip-ansi]
    ["highlightjs-copy" :as CopyButtonPlugin]
@@ -152,41 +153,34 @@
       (.then #(some-> button show-copied!))
       (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
 
-(defn- stdout-copy-button
-  "A Copy output button for the stdout element `pre-element`, copying all of its text."
-  [^js pre-element]
-  (let [button (create-element "button" "output-copy-button" nil)]
-    (.. button -classList (add "output-stdout-copy"))
-    (set! (.-type button) "button")
-    (tooltip/attach! button "Copy output")
-    (.. button (setAttribute "aria-label" "Copy output"))
-    (.. button (setAttribute "data-copy-label" "Copy output"))
-    (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
-    button))
+(defn- copy-stdout!
+  "Copies the text of the stdout block of the Copy output `button`."
+  [^js button]
+  (copy-text! button (.. button -parentElement -textContent)))
 
-(defn create-and-append-stdout-element
-  "Creates a new stdout element, with a Copy output button, and appends it to the given DOM element."
-  [dom-element text-node category]
-  (let [pre-element (create-element "pre" "output-stdout" nil)]
-    (.. pre-element (appendChild (stdout-copy-button pre-element)))
-    (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
-    (.. dom-element (appendChild pre-element))
-    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
+(defn stdout-element
+  "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
+  [text category]
+  [:pre {:class ["output-stdout"] :data-output-element-type category}
+   [:button (merge {:type "button"
+                    :class ["output-copy-button" "output-stdout-copy"]
+                    :aria-label "Copy output"
+                    :data-copy-label "Copy output"
+                    :data-action (pr-str [[:output/ax.copy-stdout :event/target]])}
+                   (tooltip/attributes "Copy output"))]
+   text])
 
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
    in which case it appends the content to that element instead."
   [^js dom-element output category]
   (let [category (or category "evalOut")
-        text-node (js/document.createTextNode (strip-ansi output))]
-    (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= category (.. last-output-element -dataset -outputElementType))
-        (do
-          (.. last-output-element (appendChild text-node))
-          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node category))
-      (create-and-append-stdout-element dom-element text-node category))))
+        text (strip-ansi output)
+        ^js last-output-element (.-lastElementChild dom-element)
+        element (if (= category (some-> last-output-element (.getAttribute "data-output-element-type")))
+                  (doto last-output-element (.appendChild (js/document.createTextNode text)))
+                  (insert-hiccup! dom-element "beforeend" (stdout-element text category)))]
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)
@@ -642,6 +636,7 @@
     :fx/render-error (render-error! output-dom-element dispatch! (first args))
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
+    :fx/copy-stdout (copy-stdout! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-token-colors (set-token-colors! (first args))
@@ -707,10 +702,20 @@
   [^js _event]
   (throttled-scroll-to-bottom))
 
+(defn on-output-click
+  "Hides the page's tooltip and dispatches the actions in the `data-action` of the clicked element, or of
+   the nearest element around it that has one. `:event/target` in them stands for that element."
+  [^js event]
+  (when-let [^js element (some-> ^js (.-target event) (.closest "[data-action]"))]
+    (tooltip/hide!)
+    (run! dispatch! (walk/postwalk-replace {:event/target element}
+                                           (reader/read-string (.getAttribute element "data-action"))))))
+
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" handle-message))
-  (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
+  (.. output-dom-element (addEventListener "click" on-output-click)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
