@@ -7,9 +7,10 @@
 (def default-bundle "repl-output-ui/js/main.js")
 
 (def limit
-  "The most bytes the webview bundle may have. The bundle was about 761 KB with CodeMirror for the REPL
-   Input, which leaves room for small changes, but not for another library of CodeMirror's size."
-  900000)
+  "The most bytes the webview bundle may have. The bundle was about 868 KB with CodeMirror for the REPL
+   Input and Replicant and Garden for the views, which leaves room for small changes, but not for
+   another library of CodeMirror's size."
+  1000000)
 
 (defn within-limit?
   "Prints the size of `bundle` and returns true when it is within the limit."
