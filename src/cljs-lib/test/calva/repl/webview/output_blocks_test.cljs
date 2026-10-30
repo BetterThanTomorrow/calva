@@ -1,8 +1,12 @@
 (ns calva.repl.webview.output-blocks-test
   "The output blocks' hiccup."
   (:require
+   [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.fake-document]
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.stacktrace-fixtures :as fixtures]
    [calva.repl.webview.ui :as ui]
+   [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest is]]
    [lookup.core :as l]))
 
@@ -119,3 +123,53 @@
     (is (= ["{:a \"<<image-1 png 8 B>>\"\n" " :b 2}"]
            (map l/text (l/select :code.language-clojure hiccup))))
     (is (= 1 (count (l/select [:.output-images :.output-image-thumbnail] hiccup))))))
+
+(defn- error-entry
+  [unfolded?]
+  (stacktrace/error-entry {:id "e1"
+                           :meta {:meta/repl-session-key "clj"}
+                           :error/text "Execution error"
+                           :error/category "evalErr"
+                           :error/causes (mapv stacktrace/cause-data fixtures/runtime-chain)
+                           :error/unfolded? unfolded?}))
+
+(defn- action-of
+  [element]
+  (some-> (:data-action (l/attrs element)) reader/read-string))
+
+(deftest error-element-test
+  (let [hiccup (error-element/element (error-entry false))]
+    (is (= [{:class #{"output-error"}
+             :data-output-element-type "error"
+             :data-error-id "e1"
+             :data-error-category "evalErr"}]
+           (map written-attrs (l/select :.output-error hiccup))))
+    (is (= [[[:error/ax.toggle "e1"]] true]
+           ((juxt action-of (comp :data-plain-click l/attrs)) (first (l/select :.output-error-toggle hiccup))))
+        "The heading unfolds the stacktrace, and keeps its text selectable")
+    (is (= [[:error/ax.copy {:error/id "e1"}]]
+           (action-of (first (l/select :.output-error-copy hiccup)))))
+    (is (empty? (l/select :.output-error-causes hiccup))
+        "A folded error shows its text and its controls")))
+
+(deftest unfolded-error-element-test
+  (let [hiccup (error-element/element (error-entry true))
+        frames (l/select :li.output-error-frame hiccup)]
+    (is (seq (l/select :.output-error-causes hiccup)))
+    (is (= [[:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :all}]]
+           (action-of (first (l/select :.output-error-filter hiccup)))))
+    (is (seq frames)
+        "The root cause shows its frames")
+    (let [openable (filter #(contains? (:class (l/attrs %)) "output-error-frame-openable") frames)]
+      (is (seq openable))
+      (is (every? #(and (#{:error/ax.open-frame :error/ax.open-java-frame} (ffirst (action-of %)))
+                        (:data-plain-click (l/attrs %)))
+                  openable)
+          "An openable frame opens through its action, and keeps its text selectable"))))
+
+(deftest error-text-keeps-leading-line-break-test
+  (is (= ["\n\nboom"]
+         (map l/text (l/select :pre.output-error-text (error-element/element (assoc (error-entry false)
+                                                                                    :error/causes []
+                                                                                    :error/text "\nboom")))))
+      "HTML parsing drops a line break that starts a pre, so it is doubled"))

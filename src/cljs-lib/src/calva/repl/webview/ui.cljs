@@ -574,15 +574,16 @@
 (defn render-error!
   "Draws `error`, in place of its earlier element if there is one, keeping focus on the control
    that had it."
-  [^js dom-element dispatch {:error/keys [id] :as error}]
-  (let [new-element (error-element/create error dispatch)
+  [^js dom-element {:error/keys [id] :as error}]
+  (let [hiccup (error-element/element error)
         ^js existing (.querySelector dom-element (str "[data-error-id=\"" id "\"]"))]
     (if existing
-      (let [control (focused-control existing)]
-        (.replaceWith existing new-element)
+      (let [control (focused-control existing)
+            ^js new-element (insert-hiccup! existing "afterend" hiccup)]
+        (.remove existing)
         (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
-      (do (.. dom-element (appendChild new-element))
-          (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
+      (let [new-element (insert-hiccup! dom-element "beforeend" hiccup)]
+        (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
 (defn- copy-error-text!
   "Writes `text` to the clipboard and marks the error's copy button as copied. Runs in the click's
@@ -601,7 +602,7 @@
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
-    :fx/render-error (render-error! output-dom-element dispatch! (first args))
+    :fx/render-error (render-error! output-dom-element (first args))
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
     :fx/copy-stdout (copy-stdout! (first args))
@@ -671,14 +672,25 @@
   [^js _event]
   (throttled-scroll-to-bottom))
 
+(defn- ends-selection?
+  "True when the mouse click `event` ends a text selection in `element`."
+  [^js event ^js element]
+  (let [selection (js/window.getSelection)]
+    (and (pos? (.-detail event))
+         (not (.-isCollapsed selection))
+         (.containsNode selection element true))))
+
 (defn on-output-click
   "Hides the page's tooltip and dispatches the actions in the `data-action` of the clicked element, or of
-   the nearest element around it that has one. `:event/target` in them stands for that element."
+   the nearest element around it that has one. `:event/target` in them stands for that element. An
+   element with `data-plain-click` ignores a click that ends a text selection in it."
   [^js event]
   (when-let [^js element (some-> ^js (.-target event) (.closest "[data-action]"))]
     (tooltip/hide!)
-    (run! dispatch! (walk/postwalk-replace {:event/target element}
-                                           (reader/read-string (.getAttribute element "data-action"))))))
+    (when-not (and (some? (.getAttribute element "data-plain-click"))
+                   (ends-selection? event element))
+      (run! dispatch! (walk/postwalk-replace {:event/target element}
+                                             (reader/read-string (.getAttribute element "data-action")))))))
 
 (defn add-event-listeners
   [^js output-dom-element]
