@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.error-element :as error-element]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
@@ -59,45 +60,48 @@
   [container-element]
   (js/CustomEvent. "output-appended" #js {:detail {:container-element container-element}}))
 
+(defn insert-hiccup!
+  "Inserts the element of `hiccup` at `position` of `element`, `\"beforeend\"` or `\"afterend\"`, as
+   `insertAdjacentHTML` does, and returns the inserted element."
+  [^js element position hiccup]
+  (.insertAdjacentHTML element position (html/render hiccup))
+  (case position
+    "beforeend" (.-lastElementChild element)
+    "afterend" (.-nextElementSibling element)))
+
 (defn clojure-code-element
-  "Creates a code element for Clojure code, with the necessary classes and attributes for syntax highlighting,
-   and appends it to a pre element. Returns a map with the `:container-element` and the `:code-element`."
+  "Returns the hiccup of a `pre` with `clojure-code`, classed for highlight.js."
   [clojure-code]
-  (let [pre-element (js/document.createElement "pre")
-        code-element (js/document.createElement "code")
-        text-node (js/document.createTextNode clojure-code)]
-    (.. code-element -classList (add "language-clojure"))
-    (.. code-element (appendChild text-node))
-    (.. pre-element (appendChild code-element))
-    {:container-element pre-element
-     :code-element code-element}))
+  [:pre [:code {:class ["language-clojure"]} clojure-code]])
 
 (defn highlight-code!
   [^js code-element]
   (.. hljs (highlightElement code-element)))
 
+(defn- highlight-clojure-code!
+  "Colors the Clojure code in `element`."
+  [^js element]
+  (run! highlight-code! (.querySelectorAll element "code.language-clojure")))
+
+(defn evaluated-code-element
+  "Returns the hiccup of evaluated `code`, under its label."
+  [code]
+  [:div {:class ["evaluated-code-container"]}
+   [:span {:class ["border-text"]} "Evaluated code"]
+   (clojure-code-element code)])
+
 (defn append-evaluated-code
   "Appends evaluated code to the given dom element."
   [^js dom-element output]
-  (let [div (js/document.createElement "div")
-        span (js/document.createElement "span")
-        span-text-node (js/document.createTextNode "Evaluated code")
-        {:keys [container-element code-element]} (clojure-code-element output)]
-    (.. span -classList (add "border-text"))
-    (.. span (appendChild span-text-node))
-    (.. div -classList (add "evaluated-code-container"))
-    (.. div (appendChild span))
-    (.. div (appendChild container-element))
-    (.. dom-element (appendChild div))
-    (.. hljs (highlightElement code-element))
-    (.. dom-element (dispatchEvent (output-appended-event div)))))
+  (let [element (insert-hiccup! dom-element "beforeend" (evaluated-code-element output))]
+    (highlight-clojure-code! element)
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn append-eval-result
   [^js dom-element output]
-  (let [{:keys [code-element container-element]} (clojure-code-element output)]
-    (.. dom-element (appendChild container-element))
-    (.. hljs (highlightElement code-element))
-    (.. dom-element (dispatchEvent (output-appended-event container-element)))))
+  (let [element (insert-hiccup! dom-element "beforeend" (clojure-code-element output))]
+    (highlight-clojure-code! element)
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn create-element
   [tag class-name text]
@@ -467,17 +471,14 @@
   [^js dom-element {:keys [text raw images meta]}]
   (let [session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
         images (mapv #(cond-> % session-key (assoc :image/session-key session-key)) images)
+        code-el! (fn [code]
+                   (doto (insert-hiccup! (js/document.createElement "div") "beforeend" (clojure-code-element code))
+                     highlight-clojure-code!))
         entry (append-with-images! dom-element
                                    {:text text
                                     :images images
-                                    :create-raw-el! (fn []
-                                                      (let [raw-result (clojure-code-element raw)]
-                                                        (highlight-code! (:code-element raw-result))
-                                                        (:container-element raw-result)))
-                                    :create-text-el! (fn [segment-text]
-                                                       (let [{:keys [container-element code-element]} (clojure-code-element segment-text)]
-                                                         (highlight-code! code-element)
-                                                         container-element))})]
+                                    :create-raw-el! #(code-el! raw)
+                                    :create-text-el! code-el!})]
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn session-str
@@ -488,33 +489,22 @@
                 (some? shadow-runtime-id) (conj (str shadow-runtime-id)))]
     (str/join " " parts)))
 
-(defn create-ns-info-element
+(defn ns-info-element
+  "Returns the hiccup of the badges of who evaluated, in which session and namespace. The REPL
+   Input's evaluations, from `\"ui\"`, get no who badge."
   [{:meta/keys [who ns] :as meta-data}]
-  (let [container (js/document.createElement "div")
-        sess (session-str meta-data)]
-    (.. container -classList (add "ns-info-container"))
-    (.. container (setAttribute "data-output-element-type" "ns-info"))
-    (when (and who (not= who "ui"))
-      (let [who-badge (js/document.createElement "span")]
-        (.. who-badge -classList (add "ns-info-badge" "ns-info-who"))
-        (.. who-badge (appendChild (js/document.createTextNode who)))
-        (.. container (appendChild who-badge))))
-    (when (seq sess)
-      (let [sess-badge (js/document.createElement "span")]
-        (.. sess-badge -classList (add "ns-info-badge" "ns-info-session"))
-        (.. sess-badge (appendChild (js/document.createTextNode sess)))
-        (.. container (appendChild sess-badge))))
-    (when ns
-      (let [ns-badge (js/document.createElement "span")]
-        (.. ns-badge -classList (add "ns-info-badge" "ns-info-ns"))
-        (.. ns-badge (appendChild (js/document.createTextNode ns)))
-        (.. container (appendChild ns-badge))))
-    container))
+  (let [sess (session-str meta-data)]
+    [:div {:class ["ns-info-container"] :data-output-element-type "ns-info"}
+     (when (and who (not= who "ui"))
+       [:span {:class ["ns-info-badge" "ns-info-who"]} who])
+     (when (seq sess)
+       [:span {:class ["ns-info-badge" "ns-info-session"]} sess])
+     (when ns
+       [:span {:class ["ns-info-badge" "ns-info-ns"]} ns])]))
 
 (defn append-ns-info
   [^js dom-element meta-data]
-  (let [ns-info-el (create-ns-info-element meta-data)]
-    (.. dom-element (appendChild ns-info-el))
+  (let [ns-info-el (insert-hiccup! dom-element "beforeend" (ns-info-element meta-data))]
     (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
 
 (defn clear-output-dom

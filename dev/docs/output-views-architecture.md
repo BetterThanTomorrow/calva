@@ -49,7 +49,7 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 3. For a webview destination, `writeToWebview` calls `appendToReplOutputWebview` or `appendToReplOutputSidebar`. An error that comes with causes goes through `error-output.ts` instead (see Errors and stacktraces).
 4. In cljs-lib, `core/append` maps the category to a command name with `output-category->command-name`, adds the evaluation's `:meta` (who, namespace, session key, shadow-cljs build and runtime), and posts the message. For the Output View, `ensure-output-view-panel` creates the panel when there is none, so the first output to `output-view` opens it. For the Output Sidebar, `add-output-sidebar-message!` keeps the message in `output-sidebar-log`, and posts it when VS Code has resolved the view.
 5. In the webview, `ui/handle-message` reads the message and dispatches `[:msg/output message]`. `app-db/handle-action` returns an `ns-info` effect when the evaluation context differs from the last one, and the effect that appends the output.
-6. `ui/exec-effect!` builds the elements, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom.
+6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. The namespace info, evaluated code and results are hiccup, from `ns-info-element`, `evaluated-code-element` and `clojure-code-element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
 
 ### Output categories
 
@@ -112,7 +112,7 @@ Each view has three message listeners on the extension side: `image-host/listen-
 
 The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-context`, which decides when an `ns-info` line is drawn), the font scale, the error entries by id (`:output/errors`), and the REPL Input's keys. The output itself isn't in the db: the appended elements are the record of it. The image lookups in flight and the results whose raw form is built later are kept in atoms in `ui.cljs`.
 
-`ui.cljs` and `app_db.cljs` are loaded in the Node tests against `src/cljs-lib/test/calva/repl/webview/fake_document.cljs`. CodeMirror needs a real document when it loads, so nothing that requires CodeMirror goes into `ui.cljs`'s requires. The REPL Input's editor is wired in from `main.cljs`.
+`ui.cljs` and `app_db.cljs` are loaded in the Node tests against `src/cljs-lib/test/calva/repl/webview/fake_document.cljs`. The fake document can't parse HTML, so the tests that add output replace `ui/insert-hiccup!` with `fake-document/insert-hiccup!`, which builds the fake document's elements from the same hiccup. The output blocks' hiccup is tested as data in `output_blocks_test.cljs`, with `lookup`. CodeMirror needs a real document when it loads, so nothing that requires CodeMirror goes into `ui.cljs`'s requires. The REPL Input's editor is wired in from `main.cljs`.
 
 ## The page
 

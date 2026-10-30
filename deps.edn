@@ -15,6 +15,7 @@
  :aliases {:dev {:extra-deps {org.clojars.abhinav/snitch {:mvn/version "0.1.14"}}}
            :ci {:jvm-opts ["-Xmx2g"]}
            :test {:extra-deps {tortue/spy {:mvn/version "2.15.0"}
-                               nubank/matcher-combinators {:mvn/version "3.9.1"}}}}
+                               nubank/matcher-combinators {:mvn/version "3.9.1"}
+                               no.cjohansen/lookup {:mvn/version "2026.07.1"}}}}
  :paths ["src/cljs-lib/src"
          "src/cljs-lib/test"]}

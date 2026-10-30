@@ -1,11 +1,13 @@
 (ns calva.repl.webview.local-image-lookup-test
   "Request-id matching for local image lookups in the output webview."
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]
    [clojure.string :as str]))
+
+(use-fixtures :each (fn [f] (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!] (f))))
 
 (defn- attr
   [el k]

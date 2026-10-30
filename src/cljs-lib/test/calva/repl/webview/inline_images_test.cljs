@@ -1,9 +1,11 @@
 (ns calva.repl.webview.inline-images-test
   "Images sit inside the result, directly below the placeholder line."
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]))
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]))
+
+(use-fixtures :each (fn [f] (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!] (f))))
 
 (def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 
