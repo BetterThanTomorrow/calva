@@ -49,7 +49,7 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 3. For a webview destination, `writeToWebview` calls `appendToReplOutputWebview` or `appendToReplOutputSidebar`. An error that comes with causes goes through `error-output.ts` instead (see Errors and stacktraces).
 4. In cljs-lib, `core/append` maps the category to a command name with `output-category->command-name`, adds the evaluation's `:meta` (who, namespace, session key, shadow-cljs build and runtime), and posts the message. For the Output View, `ensure-output-view-panel` creates the panel when there is none, so the first output to `output-view` opens it. For the Output Sidebar, `add-output-sidebar-message!` keeps the message in `output-sidebar-log`, and posts it when VS Code has resolved the view.
 5. In the webview, `ui/handle-message` reads the message and dispatches `[:msg/output message]`. `app-db/handle-action` returns an `ns-info` effect when the evaluation context differs from the last one, and the effect that appends the output.
-6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. The namespace info, evaluated code, results and stdout are hiccup, from `ns-info-element`, `evaluated-code-element`, `clojure-code-element` and `stdout-element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
+6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. The namespace info, evaluated code, results, stdout and results with images are hiccup, from `ns-info-element`, `evaluated-code-element`, `clojure-code-element`, `stdout-element` and `images-form-element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
 
 ### Output categories
 
@@ -107,7 +107,7 @@ Each view has three message listeners on the extension side: `image-host/listen-
 
 - `:msg/*` actions come from the extension's messages.
 - `:error/ax.*` actions come from the controls of an error entry.
-- `:output/ax.*` actions come from the output blocks' controls: `:output/ax.copy-stdout` from a stdout block's Copy output button. A control's actions are EDN in its `data-action` attribute, with `:event/target` standing for the control. `on-output-click`, the one click listener on `#output`, reads the attribute of the nearest element that has one, hides the page's tooltip and dispatches the actions.
+- `:output/ax.*` actions come from the output blocks' controls: `:output/ax.copy-stdout` from a stdout block's Copy output button, and `:output/ax.copy-image` from a thumbnail's Copy image button. A control's actions are EDN in its `data-action` attribute, with `:event/target` standing for the control. `on-output-click`, the one click listener on `#output`, reads the attribute of the nearest element that has one, hides the page's tooltip and dispatches the actions.
 - `:repl-input/ax.*` actions go to `calva.repl.webview.input.actions/handle-action`.
 - `:fx/*` effects run in `ui.cljs`. Effects in another keyword namespace go to the handler registered for it with `register-effect-handler!`. `main.cljs` registers `"repl-input"` for the REPL Input's `:repl-input/fx.*` effects.
 
@@ -161,8 +161,8 @@ Images are found in results only (`show-result`), not in stdout.
 
 - `images.cljs` finds base64 image data URLs, replaces each with a `<<image-N TYPE SIZE>>` placeholder, and keeps the raw text for the raw form.
 - `image_refs.cljs` finds printed strings that are an image URL, a `file:` URI or an image file path.
-- `ui/create-image-element` draws a thumbnail with a Copy image button. A data URL loads at once. A local file waits for `resolve-local-image`, which `image_host.cljs` answers after a stat, with a webview URI. A relative path resolves against the project root of the session that produced the result, through the function `extension.ts` registers with `setSessionProjectRootUriFn`. A remote URL loads only with `images-including-remote-urls`.
-- The raw form of a result with images is built when the display first switches to raw.
+- `ui/image-element` returns the hiccup of a thumbnail with a Copy image button, and `images-form-element` places the thumbnails below the lines they're on. A thumbnail is `data-pending` until its image loads, and an image that can't be shown removes its thumbnail: `on-image-load` and `on-image-error` get the images' `load` and `error` events, which don't bubble, on `#output` in the capture phase. A data URL loads at once. A local file has its path in `data-local-src` and waits for `resolve-local-image`, which `image_host.cljs` answers after a stat, with a webview URI. A relative path resolves against the project root of the session that produced the result, through the function `extension.ts` registers with `setSessionProjectRootUriFn`. A remote URL is in `data-remote-src`, and becomes the `src` only with `images-including-remote-urls`. The Copy image button's action, `:output/ax.copy-image`, carries the image's type, kind and source, and the effect reads a data URL from the thumbnail's `src`.
+- The raw form of a result with images is added when the display first switches to raw.
 
 `calva.outputViewImageDisplay` is the setting. The command `calva.cycleOutputViewImageDisplay` overrides it for the session, cycling between `images` and `raw` only, so remote loading stays on the setting or an explicit command argument. `core.cljs` keeps the override, sets `calva:outputViewImageDisplay`, and posts `set-image-display` to every view.
 

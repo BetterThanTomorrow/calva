@@ -141,8 +141,11 @@
                     "switching to raw highlights the raw form once")))))))))
 
 (deftest append-keeps-entry-when-raw-form-throws-test
-  (testing "a throw while building the raw form leaves the images entry in the page"
-    (with-redefs [ui/post-to-host! (fn [_])]
+  (testing "a throw while adding the raw form leaves the images entry in the page"
+    (with-redefs [ui/post-to-host! (fn [_])
+                  ui/highlight-code! (fn [^js code]
+                                       (when (.closest code "[data-image-form=\"raw\"]")
+                                         (throw (js/Error. "raw boom"))))]
       (with-image-display!
         "raw"
         (fn []
@@ -152,21 +155,14 @@
                        :image/src "/tmp/cat.png"
                        :image/source "/tmp/cat.png"
                        :image/subtype "png"
-                       :image/mime "image/png"}
-                make-text-el! (fn [t]
-                                (let [pre (js/document.createElement "pre")]
-                                  (.. pre (appendChild (js/document.createTextNode t)))
-                                  pre))]
+                       :image/mime "image/png"}]
             (is (thrown? js/Error
-                         (ui/append-with-images!
-                          host
-                          {:text "/tmp/cat.png\n"
-                           :images [image]
-                           :create-raw-el! #(throw (js/Error. "raw boom"))
-                           :create-text-el! make-text-el!})))
+                         (ui/append-result-with-images host {:text "/tmp/cat.png\n"
+                                                             :raw "\"/tmp/cat.png\""
+                                                             :images [image]})))
             (is (= 1 (.-length (.-children host)))
                 "images form still lands when raw form throws")
-            (is (= ["images"] (form-kinds (aget (.-children host) 0))))))))))
+            (is (= "images" (first (form-kinds (aget (.-children host) 0)))))))))))
 
 (defn- first-local-img
   [^js entry]

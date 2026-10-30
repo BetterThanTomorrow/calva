@@ -104,14 +104,6 @@
     (highlight-clojure-code! element)
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 
-(defn create-element
-  [tag class-name text]
-  (let [element (js/document.createElement tag)]
-    (.. element -classList (add class-name))
-    (when text
-      (.. element (appendChild (js/document.createTextNode text))))
-    element))
-
 (defn data-url-blob
   [data-url mime]
   (let [binary (js/atob (subs data-url (inc (str/index-of data-url ","))))
@@ -244,10 +236,9 @@
         (.then #(show-copied! button))
         (.catch #(js/console.error "Cannot copy the image to the clipboard:" %)))))
 
-(defn- includes-remote-urls?
+(defn- image-display
   []
-  (= "images-including-remote-urls"
-     (some-> js/document .-body (.getAttribute "data-image-display"))))
+  (some-> js/document .-body (.getAttribute "data-image-display")))
 
 (defn- remove-thumbnail!
   "Removes `thumb` and, when that empties the `.output-images` row, removes the row too."
@@ -258,21 +249,28 @@
       (when-let [grandparent (.-parentNode parent)]
         (.removeChild grandparent parent)))))
 
-(defn- hide-until-load!
-  [^js thumb ^js img]
-  (set! (.. thumb -dataset -pending) "true")
-  (.addEventListener img "load"
-                     (fn []
-                       (set! (.. thumb -dataset -pending) "false"))
-                     #js {:once true})
-  (.addEventListener img "error"
-                     (fn []
-                       (remove-thumbnail! thumb))
-                     #js {:once true}))
+(defn- output-image
+  "Returns the thumbnail image that is the target of `event`, if it is one."
+  [^js event]
+  (let [^js target (.-target event)]
+    (when (some-> target (.matches "img.output-image"))
+      target)))
+
+(defn on-image-load
+  "Shows the thumbnail of a loaded image, which makes the output grow."
+  [^js event]
+  (when-let [img (output-image event)]
+    (set! (.. img -parentNode -dataset -pending) "false")
+    (.. event -currentTarget (dispatchEvent (output-appended-event img)))))
+
+(defn on-image-error
+  "Removes the thumbnail of an image that can't be shown."
+  [^js event]
+  (some-> (output-image event) .-parentNode remove-thumbnail!))
 
 (defn- raw-display?
   []
-  (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
+  (= "raw" (image-display)))
 
 (def max-local-image-lookups
   "Cap on in-flight local image lookups keyed by request id."
@@ -354,125 +352,94 @@
       (when (and img (img-src-unset? img))
         (resolve-local-image! img thumbnail src session-key)))))
 
-(defn create-image-element
-  "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
-   Data-URL, local, and remote images stay hidden until they load; a failure removes the thumbnail."
-  [{:image/keys [data-url kind src session-key] :as image}]
+(defn- image-src
+  "Returns the `src` the thumbnail of `image` has when it's added. A local image gets its `src` from
+   its lookup, and a remote image only while `display` includes remote URLs."
+  [{:image/keys [data-url kind src]} display]
+  (cond
+    data-url data-url
+    (= :local kind) nil
+    (= :remote kind) (when (= "images-including-remote-urls" display) src)
+    :else src))
+
+(defn image-element
+  "Returns the hiccup of the thumbnail of `image`, the full image scaled down by CSS, with its Copy
+   image button. A data URL, local or remote image is `data-pending` until it loads. `display` is the
+   image display."
+  [{:image/keys [data-url kind src] :as image} display]
   (let [label (images/label image)
-        thumbnail (create-element "div" "output-image-thumbnail" nil)
-        img (create-element "img" "output-image" nil)
-        button (create-element "button" "output-copy-button" nil)]
-    (.. button -classList (add "output-image-copy"))
-    (set! (.-alt img) label)
-    (set! (.-title img) label)
-    (when kind
-      (set! (.. img -dataset -imageKind) (name kind))
-      (set! (.. thumbnail -dataset -imageKind) (name kind)))
-    (set! (.-type button) "button")
-    (tooltip/attach! button "Copy image")
-    (.. button (setAttribute "aria-label" (str "Copy " label)))
-    (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
-    (.. button (addEventListener "click" #(copy-image! button img image)))
-    (.. thumbnail (appendChild img))
-    (.. thumbnail (appendChild button))
-    (cond
-      data-url (do (hide-until-load! thumbnail img)
-                   (set! (.-src img) data-url))
-      (= :local kind) (do (hide-until-load! thumbnail img)
-                          (set! (.-calvaLocalSrc img) src)
-                          (if (raw-display?)
-                            (queue-pending-local! img thumbnail src session-key)
-                            (resolve-local-image! img thumbnail src session-key)))
-      (= :remote kind) (do (set! (.-calvaRemoteSrc img) src)
-                           (hide-until-load! thumbnail img)
-                           (when (includes-remote-urls?)
-                             (set! (.-src img) src)))
-      :else (when src (set! (.-src img) src)))
-    thumbnail))
+        kind-name (some-> kind name)]
+    [:div {:class ["output-image-thumbnail"]
+           :data-image-kind kind-name
+           :data-pending (when (or data-url kind) "true")}
+     [:img {:class ["output-image"]
+            :alt label
+            :title label
+            :data-image-kind kind-name
+            :data-local-src (when (= :local kind) src)
+            :data-remote-src (when (= :remote kind) src)
+            :src (image-src image display)}]
+     [:button (merge {:type "button"
+                      :class ["output-copy-button" "output-image-copy"]
+                      :aria-label (str "Copy " label)
+                      :data-copy-label (str "Copy " label)
+                      :data-action (pr-str [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
+                                                                       (assoc :copy/button :event/target))]])}
+                     (tooltip/attributes "Copy image"))]]))
 
-(declare create-image-form-element)
+(defn- copy-image-of-button!
+  "Copies the image of the Copy image `button`. A data URL image's data is its `src`."
+  [{:copy/keys [^js button] :as image}]
+  (let [^js img (.querySelector (.-parentNode button) "img")]
+    (copy-image! button img (cond-> image
+                              (str/starts-with? (.-src img) "data:") (assoc :image/data-url (.-src img))))))
 
-(defn- ensure-raw-form!
-  "Builds the raw form on `entry` once, when a builder is still attached."
-  [^js entry]
-  (when-let [create-raw-el! (.-calvaCreateRawEl! entry)]
-    (set! (.-calvaCreateRawEl! entry) nil)
-    (.. entry (appendChild (create-image-form-element "raw" [(create-raw-el!)])))))
+(defn- segment-elements
+  "Returns the hiccup of a result's text segment as Clojure code, with the thumbnails of the images on its
+   lines below it."
+  [{:keys [text images]} display]
+  (list (when (seq text)
+          (clojure-code-element text))
+        (when (seq images)
+          [:div {:class ["output-images"]}
+           (for [image images]
+             (image-element image display))])))
 
-(defn- attach-raw-form!
-  [^js entry create-raw-el!]
-  (set! (.-calvaCreateRawEl! entry) create-raw-el!)
-  (if (raw-display?)
-    (ensure-raw-form! entry)
-    (swap! !lazy-raw-entries conj entry)))
+(defn images-form-element
+  "Returns the hiccup of the images form of a result, from its text `segments`."
+  [segments display]
+  [:div {:data-image-form "images"}
+   (for [segment segments]
+     (segment-elements segment display))])
 
-(defn create-image-form-element
-  [image-form children]
-  (let [element (js/document.createElement "div")]
-    (.. element (setAttribute "data-image-form" image-form))
-    (run! #(.. element (appendChild %)) children)
-    element))
+(defn- look-up-local-images!
+  "Looks up the local images in `element`, or queues them while the display is raw."
+  [^js element session-key]
+  (doseq [^js img (.querySelectorAll element "img[data-local-src]")
+          :let [thumbnail (.-parentNode img)
+                src (.getAttribute img "data-local-src")]]
+    (if (raw-display?)
+      (queue-pending-local! img thumbnail src session-key)
+      (resolve-local-image! img thumbnail src session-key))))
 
-(defn- append-segments!
-  "Appends each text segment and the images that belong directly below it. Returns the img elements
-   so the caller can listen for load."
-  [^js parent segments create-text-el!]
-  (reduce
-   (fn [imgs {:keys [text images]}]
-     (when (seq text)
-       (.. parent (appendChild (create-text-el! text))))
-     (if (seq images)
-       (let [wrap (create-element "div" "output-images" nil)
-             thumbs (mapv create-image-element images)]
-         (run! #(.. wrap (appendChild %)) thumbs)
-         (.. parent (appendChild wrap))
-         (into imgs (keep (fn [^js thumb]
-                            (first (filter (fn [^js child]
-                                             (= "IMG" (.-tagName child)))
-                                           (.-children thumb))))
-                          thumbs)))
-       imgs))
-   []
-   segments))
-
-(defn- listen-for-image-load!
-  [^js dom-element img-elements]
-  (run! (fn [^js img]
-          (.. img (addEventListener "load"
-                                    #(.. dom-element (dispatchEvent (output-appended-event img)))
-                                    #js {:once true})))
-        img-elements))
-
-(defn append-with-images!
-  "Appends an output entry that has images. The images form is built now. The raw form is built
-   when the display is already raw, or later when it switches to raw. The entry is appended before
-   the raw form is built, so a throw while building the raw form cannot drop the whole entry.
-   Returns the entry element."
-  [^js dom-element {:keys [text images create-raw-el! create-text-el!]}]
-  (let [entry (create-element "div" "output-with-images" nil)
-        images-form (js/document.createElement "div")]
-    (.. images-form (setAttribute "data-image-form" "images"))
-    (listen-for-image-load!
-     dom-element
-     (append-segments! images-form (images/segments-with-images text images) create-text-el!))
-    (.. entry (setAttribute "data-output-element-type" "images"))
-    (.. entry (appendChild images-form))
-    (.. dom-element (appendChild entry))
-    (attach-raw-form! entry create-raw-el!)
-    entry))
+(defn- add-raw-form!
+  "Adds the raw form, the result as printed, to the result `entry`."
+  [^js entry raw]
+  (highlight-clojure-code! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
 
 (defn append-result-with-images
+  "Appends a result with images. Its images form is added now. Its raw form is added after it when the
+   display is raw, or later, when the display turns raw."
   [^js dom-element {:keys [text raw images meta]}]
   (let [session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
-        images (mapv #(cond-> % session-key (assoc :image/session-key session-key)) images)
-        code-el! (fn [code]
-                   (doto (insert-hiccup! (js/document.createElement "div") "beforeend" (clojure-code-element code))
-                     highlight-clojure-code!))
-        entry (append-with-images! dom-element
-                                   {:text text
-                                    :images images
-                                    :create-raw-el! #(code-el! raw)
-                                    :create-text-el! code-el!})]
+        entry (insert-hiccup! dom-element "beforeend"
+                              [:div {:class ["output-with-images"] :data-output-element-type "images"}
+                               (images-form-element (images/segments-with-images text images) (image-display))])]
+    (highlight-clojure-code! entry)
+    (look-up-local-images! entry session-key)
+    (if (raw-display?)
+      (add-raw-form! entry raw)
+      (swap! !lazy-raw-entries conj [entry raw]))
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn session-str
@@ -566,9 +533,9 @@
       (.forEach imgs
                 (fn [^js img]
                   (when (and (= "images-including-remote-urls" image-display)
-                             (.-calvaRemoteSrc img)
+                             (.getAttribute img "data-remote-src")
                              (str/blank? (str (.-src img))))
-                    (set! (.-src img) (.-calvaRemoteSrc img))))))))
+                    (set! (.-src img) (.getAttribute img "data-remote-src"))))))))
 
 (defn- apply-local-src!
   "When leaving raw, resolve local images that were queued while in raw mode."
@@ -582,7 +549,8 @@
   (when (= "raw" image-display)
     (let [entries @!lazy-raw-entries]
       (reset! !lazy-raw-entries [])
-      (run! ensure-raw-form! entries)))
+      (doseq [[entry raw] entries]
+        (add-raw-form! entry raw))))
   (apply-remote-src! image-display)
   (apply-local-src! image-display))
 
@@ -637,6 +605,7 @@
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
     :fx/copy-stdout (copy-stdout! (first args))
+    :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-code-theme (set-code-theme! (first args))
     :fx/set-token-colors (set-token-colors! (first args))
@@ -715,7 +684,9 @@
   [^js output-dom-element]
   (.. js/window (addEventListener "message" handle-message))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
-  (.. output-dom-element (addEventListener "click" on-output-click)))
+  (.. output-dom-element (addEventListener "click" on-output-click))
+  (.. output-dom-element (addEventListener "load" on-image-load true))
+  (.. output-dom-element (addEventListener "error" on-image-error true)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)

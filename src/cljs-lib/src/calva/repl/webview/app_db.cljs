@@ -164,6 +164,10 @@
     {:uf/db db
      :uf/fxs [[:fx/copy-stdout payload]]}
 
+    :output/ax.copy-image
+    {:uf/db db
+     :uf/fxs [[:fx/copy-image payload]]}
+
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}

@@ -336,6 +336,13 @@
            (sut/handle-action sut/initial-db [:output/ax.copy-stdout button]))
         "Copies the stdout of the clicked button's block")))
 
+(deftest copy-image-test
+  (let [image {:image/mime "image/png" :copy/button #js {}}]
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/copy-image image]]}
+           (sut/handle-action sut/initial-db [:output/ax.copy-image image]))
+        "Copies the image of the clicked button")))
+
 (deftest clear-output-view-forgets-errors-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes runtime-causes}))]
     (is (empty? (:output/errors (:uf/db (sut/handle-action db [:msg/clear-output-view])))))))
