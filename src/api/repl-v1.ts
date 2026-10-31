@@ -115,6 +115,7 @@ export const evaluate = async (
     who: resolvedWho,
     shadowBuild,
     shadowRuntimeId,
+    evaluationId: resultOutput.nextEvaluationId(),
   };
 
   if (description) {
@@ -250,6 +251,7 @@ export const evaluateCode = async (
     sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
   const shadowRuntimeId =
     sessionSupportsRuntimes && connState ? connState.shadowCljsRuntimeId : undefined;
+  const evaluationId = resultOutput.nextEvaluationId();
 
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
@@ -258,6 +260,7 @@ export const evaluateCode = async (
       replSessionType: effectiveSessionKey,
       shadowBuild,
       shadowRuntimeId,
+      evaluationId,
     });
 
     if (output?.stdout) {
@@ -271,6 +274,7 @@ export const evaluateCode = async (
       replSessionType: effectiveSessionKey,
       shadowBuild,
       shadowRuntimeId,
+      evaluationId,
     });
 
     if (output?.stderr) {
@@ -300,6 +304,7 @@ export const evaluateCode = async (
         outputCategory: 'evaluatedCode',
         shadowBuild,
         shadowRuntimeId,
+        evaluationId,
       });
     }
   }
@@ -323,6 +328,7 @@ export const evaluateCode = async (
       replSessionType: effectiveSessionKey,
       shadowBuild,
       shadowRuntimeId,
+      evaluationId,
     });
   } catch (evalError) {
     let stacktrace;
@@ -348,6 +354,7 @@ export const evaluateCode = async (
         replSessionType: effectiveSessionKey,
         shadowBuild,
         shadowRuntimeId,
+        evaluationId,
       });
     }
   }

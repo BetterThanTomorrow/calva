@@ -35,6 +35,20 @@
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
       (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs result)))))
 
+  (testing ":msg/output of evaluations in an unchanged context"
+    (let [meta {:meta/who "tester" :meta/ns "my.ns" :meta/repl-session-key "clj" :meta/evaluation-id 2}
+          db {:output/last-context ["tester" "clj" nil nil "my.ns"] :output/last-evaluation 1}
+          output (fn [db command-name meta]
+                   (sut/handle-action db [:msg/output {:command/name command-name :output "42" :meta meta}]))
+          {db :uf/db :uf/keys [fxs]} (output db "show-stdout" meta)]
+      (is (= [:fx/append-ns-info meta] (first fxs))
+          "A new evaluation starts with the info line")
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs (output db "show-result" meta)))
+          "The rest of the evaluation's output has none")
+      (is (= [[:fx/append-stdout "42" "evalOut"]]
+             (:uf/fxs (output db "show-stdout" (dissoc meta :meta/evaluation-id))))
+          "Output from no evaluation shows it only when the context changed")))
+
   (testing ":msg/output with the extension's highlighting"
     (let [ranges [[0 2 "#79c0ff" nil]]
           payload {:command/name "show-result" :output "42" :output/highlighting ranges}

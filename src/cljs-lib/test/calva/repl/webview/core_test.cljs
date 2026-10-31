@@ -479,12 +479,14 @@
             :meta/ns "user"
             :meta/repl-session-key "clj"
             :meta/shadow-build "app"
-            :meta/shadow-runtime-id 1}
+            :meta/shadow-runtime-id 1
+            :meta/evaluation-id 7}
            (sut/options->meta (clj->js {:who "repl"
                                         :ns "user"
                                         :replSessionKey "clj"
                                         :shadowBuild "app"
-                                        :shadowRuntimeId 1})))))
+                                        :shadowRuntimeId 1
+                                        :evaluationId 7})))))
   (testing "Given options with no recognized keys, should return an empty map"
     (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
   (testing "Given options with shadow-runtime-id 0, should include it"

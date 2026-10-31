@@ -58,10 +58,17 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- with-context
-  "Returns `db` with the context of `meta`, and the effects that show the context when it changed."
-  [db meta]
-  (let [context-key (meta-context-key meta)]
-    (if (and context-key (not= context-key (:output/last-context db)))
+  "Returns `db` with the context and the evaluation of `meta`, and the effects that show the context when
+   it changed, or when a new evaluation starts."
+  [db {:meta/keys [evaluation-id] :as meta}]
+  (let [context-key (meta-context-key meta)
+        new-evaluation? (and (some? evaluation-id)
+                             (not= evaluation-id (:output/last-evaluation db)))
+        due? (or new-evaluation?
+                 (not= context-key (:output/last-context db)))
+        db (cond-> db
+             (some? evaluation-id) (assoc :output/last-evaluation evaluation-id))]
+    (if (and context-key due?)
       [(assoc db :output/last-context context-key) [[:fx/append-ns-info meta]]]
       [db []])))
 

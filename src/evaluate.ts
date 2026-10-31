@@ -211,7 +211,13 @@ function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: strin
 function sendEvaluation(options: EvaluationOptions) {
   const { code, session, ns, filePath, line, column, pprintOptions, stdin, who = 'ui' } = options;
   const sessionKey = sessionRegistry.resolveSessionKey(session);
-  const outputOptions = { ns, replSessionType: sessionKey, who, ...getShadowInfo(session) };
+  const outputOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...getShadowInfo(session),
+  };
   const err: string[] = [];
 
   const evaluation: nrepl.NReplEvaluation = session.eval(code, ns, {
@@ -925,12 +931,19 @@ async function loadFile(
   whoTracking.setCurrentWho(session.sessionId, who);
 
   const errorMessages = [];
+  const evalOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...shadowInfo,
+  };
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who, ...shadowInfo }),
+    stdout: (m) => output.appendEvalOut(m, evalOptions),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who, ...shadowInfo });
+      output.appendEvalErr(m, evalOptions);
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -940,7 +953,7 @@ async function loadFile(
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who, ...shadowInfo });
+      output.appendClojureEval(value, evalOptions);
     } else {
       output.appendLineEvalOut('No results from file evaluation.', { who, ...shadowInfo });
     }

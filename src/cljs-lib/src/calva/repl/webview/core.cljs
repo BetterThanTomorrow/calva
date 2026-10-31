@@ -530,6 +530,11 @@
    "otherErr" "show-stdout"
    "clojure" "show-result"})
 
+(defn- option
+  "Returns the option `k` of `options`, a map or a JS object."
+  [^js options k]
+  (if (map? options) (get options (keyword k)) (unchecked-get options k)))
+
 (defn options->meta
   [^js options]
   (when options
@@ -551,13 +556,15 @@
           shadow-runtime-id (or (and (map? options) (or (:meta/shadow-runtime-id options)
                                                         (:shadowRuntimeId options)
                                                         (:shadow-runtime-id options)))
-                                (and (some? options) (.-shadowRuntimeId options)))]
+                                (and (some? options) (.-shadowRuntimeId options)))
+          evaluation-id (option options "evaluationId")]
       (cond-> {}
         who (assoc :meta/who who)
         ns (assoc :meta/ns ns)
         repl-session-key (assoc :meta/repl-session-key repl-session-key)
         shadow-build (assoc :meta/shadow-build shadow-build)
-        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
+        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)
+        (some? evaluation-id) (assoc :meta/evaluation-id evaluation-id)))))
 
 (def ^:private printed-code-commands #{"show-result" "show-evaluated-code"})
 
