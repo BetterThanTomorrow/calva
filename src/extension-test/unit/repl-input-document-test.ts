@@ -21,6 +21,16 @@ describe('REPL Input document', () => {
     });
   });
 
+  it('moves the selections of a document, keeping its text', () => {
+    const doc = replInputDocument.stringDocument('(a b)', [[1, 1]]);
+    expectLib.expect(replInputDocument.withSelections(doc, [[1, 4]], [[[1, 1]]])).toBe(doc);
+    expectLib.expect(replInputDocument.documentState(doc)).toEqual({
+      text: '(a b)',
+      selections: [[1, 4]],
+      selectionsStack: [[[1, 1]]],
+    });
+  });
+
   it('gives the REPL Input the text and selections a Paredit command made', async () => {
     const doc = replInputDocument.stringDocument('(a b) c', [[4, 4]]);
     await paredit.forwardSlurpSexp(doc);

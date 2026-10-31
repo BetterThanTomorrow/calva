@@ -5,6 +5,7 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
+   [calva.repl.input.printed-code :as printed-code]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]
    [calva.repl.input.semantic-tokens :as semantic-tokens]
@@ -39,7 +40,7 @@
     (host/load-keybindings!)))
 
 (defn handle-message!
-  "Takes a message the REPL Input in `webview-host` posted."
+  "Takes a message the REPL Input, or the printed code's editor, in `webview-host` posted."
   [^js webview-host ^js message]
   (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
     (case command
@@ -59,7 +60,7 @@
       "repl-input-resolve-completion" (complete/resolve! msg)
       "repl-input-completion-active" (complete/active-changed! msg)
       "repl-input-reveal-definition" (reveal/reveal-definition! msg)
-      nil)))
+      (printed-code/handle-message! webview-host command msg))))
 
 (defn listen-for-messages!
   [^js webview-host]

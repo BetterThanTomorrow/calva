@@ -106,3 +106,13 @@
   (testing "gives back nothing for an empty record, or none"
     (is (nil? (sut/restored {:repl-input/text "" :repl-input/selections [[0 0]]})))
     (is (nil? (sut/restored nil)))))
+
+(deftest take-selections-test
+  (testing "takes the selections and the version, keeping the text"
+    (is (= (assoc record-41 :repl-input/version 42 :repl-input/selections [[0 5]])
+           (get (sut/take-selections records {:repl-input/id "output-view" :version 42 :selections [[0 5]]})
+                "output-view"))))
+  (testing "drops a change older than the record"
+    (is (= records (sut/take-selections records {:repl-input/id "output-view" :version 40 :selections [[0 5]]}))))
+  (testing "makes no record for a view without one"
+    (is (= records (sut/take-selections records {:repl-input/id "output-sidebar" :version 1 :selections [[0 0]]})))))

@@ -5,6 +5,7 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as messages]
+   [calva.repl.input.printed-code :as printed-code]
    [cljs.reader :as reader]
    [clojure.string :as string]))
 
@@ -24,6 +25,7 @@
 (defn fake-adapter [{:keys [contexts restored session-keys routes builds evaluations completions definition opened current-file-changes]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
+       :withSelections (fn [^js doc selections _selections-stack] (set! (.-selections doc) selections) doc)
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
        :cursorContexts (fn [^js doc] #js {"calva:cursorInComment" (string/starts-with? (.-text doc) ";")})
        :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
@@ -71,6 +73,7 @@
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})
+    (reset! printed-code/!documents {})
     (reset! evaluate/!running {})
     (reset! complete/!completions {})
     (f host)))

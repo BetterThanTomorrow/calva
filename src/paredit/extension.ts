@@ -547,6 +547,9 @@ function wrapPareditCommand<C extends PareditCommand>(command: C) {
       if (replInput.hasFocus()) {
         return replInput.editFocused((doc) => command.handler(doc, arg));
       }
+      if (replInput.printedCodeHasFocus()) {
+        return replInput.selectInFocusedPrintedCode((doc) => command.handler(doc, arg));
+      }
       const textEditor = window.activeTextEditor;
 
       utilities.assertIsDefined(textEditor, 'Expected window to have an activeTextEditor!');

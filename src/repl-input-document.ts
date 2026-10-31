@@ -18,15 +18,23 @@ const modelSelections = (selections: Selections) =>
 const plainSelections = (selections: model.ModelEditSelection[]): Selections =>
   selections.map(({ anchor, active }) => [anchor, active]);
 
+/** Gives `doc` the `selections` and the `selectionsStack`, and returns it. */
+export function withSelections(
+  doc: model.StringDocument,
+  selections: Selections,
+  selectionsStack: Selections[] = []
+): model.StringDocument {
+  doc.selections = modelSelections(selections);
+  doc.selectionsStack = selectionsStack.map(modelSelections);
+  return doc;
+}
+
 export function stringDocument(
   text: string,
   selections: Selections,
   selectionsStack: Selections[] = []
 ): model.StringDocument {
-  const doc = new model.StringDocument(text);
-  doc.selections = modelSelections(selections);
-  doc.selectionsStack = selectionsStack.map(modelSelections);
-  return doc;
+  return withSelections(new model.StringDocument(text), selections, selectionsStack);
 }
 
 export function documentState(doc: model.StringDocument): DocumentState {

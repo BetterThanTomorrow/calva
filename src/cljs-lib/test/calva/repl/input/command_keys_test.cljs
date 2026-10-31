@@ -91,6 +91,18 @@
     (is (= {:keys #{"ctrl+j" "ctrl+k"} :chords #{"ctrl+k"}}
            (sut/command-keys [] (sut/context {:repl-input/settings settings} record) ["ctrl+j" "ctrl+k ctrl+l"])))))
 
+(deftest focused-context-test
+  (let [keybindings (sut/parsed [{:command "paredit.forwardSexp" :key "ctrl+alt+right"
+                                  :when "calva:replInputFocused || calva:printedCodeFocused"}
+                                 {:command "paredit.slurpSexpForward" :key "ctrl+alt+."
+                                  :when "calva:replInputFocused"}])]
+    (is (= #{"ctrl+alt+right" "ctrl+alt+."}
+           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record) [])))
+        "The REPL Input has focus by default")
+    (is (= #{"ctrl+alt+right"}
+           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record "calva:printedCodeFocused") [])))
+        "Printed code has the keys whose when clauses hold with its own context key")))
+
 (deftest calva-keybindings-test
   (testing "VS Code's resolved keybindings for the manifest's commands, with the keys resolved for the keyboard layout"
     (is (= [(first resolved-keybindings)]

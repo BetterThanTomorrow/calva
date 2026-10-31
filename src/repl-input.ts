@@ -41,6 +41,18 @@ export function editFocused(f: (doc: model.StringDocument) => unknown): Promise<
   return cljsLib.replInputEditFocused(f);
 }
 
+/** True while Calva's commands reach printed code in an Output view: while it has focus, or is the last focused place. */
+export function printedCodeHasFocus(): boolean {
+  return cljsLib.printedCodeFocused();
+}
+
+/** Runs `f` on a copy of the focused printed code, and moves its selections as `f` moved them. A change to the text is dropped. */
+export function selectInFocusedPrintedCode(
+  f: (doc: model.StringDocument) => unknown
+): Promise<void> {
+  return cljsLib.printedCodeSelectFocused(f);
+}
+
 const editorCommands = [
   'undo',
   'redo',
@@ -252,6 +264,7 @@ function initReplInput() {
     setContext: (key: string, value: boolean) =>
       void vscode.commands.executeCommand('setContext', key, value),
     document: replInputDocument.stringDocument,
+    withSelections: replInputDocument.withSelections,
     documentState: replInputDocument.documentState,
     cursorContexts: replInputDocument.cursorContexts,
     brackets: (

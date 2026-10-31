@@ -16,10 +16,6 @@
    [calva.state :as state]
    [calva.util :as util]))
 
-(def focused-context "calva:replInputFocused")
-
-(def last-focused-context "calva:replInputLastFocused")
-
 (defn- focused-contexts
   "The context keys that hold only for the focused REPL Input: whether its completion list is open."
   [{:repl-input/keys [focused records settings]}]
@@ -41,7 +37,10 @@
    :repl-input.context/editor nil
    :repl-input.context/line nil
    :repl-input.history/entries []
-   :repl-input.history/walked []})
+   :repl-input.history/walked []
+   :printed-code/records {}
+   :printed-code/focused nil
+   :printed-code/last-focused nil})
 
 (defonce !state (atom initial-state))
 
@@ -122,18 +121,18 @@
   [{:repl-input/keys [text selections selections-stack]}]
   (.document ^js @!adapter text (clj->js selections) (clj->js (or selections-stack []))))
 
-(defn- document-state
+(defn document-state
   [doc]
   (let [{:keys [text selections selectionsStack]} (js->clj (.documentState ^js @!adapter doc) :keywordize-keys true)]
     {:text text
      :selections selections
      :selections-stack selectionsStack}))
 
-(defn- apply-cursor-contexts!
-  "Sets the focused REPL Input's cursor contexts that differ from the ones last set."
+(defn apply-cursor-contexts!
+  "Sets the cursor contexts of the place that has focus that differ from the ones last set."
   []
-  (let [{:repl-input/keys [focused records applied-cursor-contexts]} @!state]
-    (when-let [contexts (get-in records [focused :repl-input/cursor-contexts])]
+  (let [{:repl-input/keys [applied-cursor-contexts] :as state} @!state]
+    (when-let [contexts (:repl-input/cursor-contexts (focus/focused-record state))]
       (doseq [[k v] contexts
               :when (not= v (get applied-cursor-contexts k))]
         (set-context! k v))
@@ -175,26 +174,25 @@
   (some-> ^js @!adapter (.currentFileChanged (when last-focused (:repl-input.context/ns line)))))
 
 (defn- tell-other-views-not-last-focused!
-  "Tells the REPL Inputs other than the last focused one, so that only it takes the focus back when its
-   view gets the focus."
-  [{:repl-input/keys [records last-focused]}]
-  (doseq [id (keys records)
-          :when (not= id last-focused)]
+  "Tells the views other than the one of the last focused place, so that only that place takes the focus
+   back when its view gets the focus."
+  [state]
+  (doseq [id (keys @!views)
+          :when (not= id (focus/last-focused-view state))]
     (post-to-view! id {:command/name "repl-input-not-last-focused"})))
 
 (defn update-focus!
   [event]
-  (let [[before after] (swap-vals! !state #(-> %
-                                               (update :repl-input/focused focus/focused-after event)
-                                               (update :repl-input/last-focused focus/last-focused-after event)))
-        focused? (some? (:repl-input/focused after))]
-    (set-context-on-change! focused-context (:repl-input/focused before) (:repl-input/focused after))
-    (when (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
+  (let [[before after] (swap-vals! !state focus/places-after event)]
+    (set-context-on-change! focus/focused-context (:repl-input/focused before) (:repl-input/focused after))
+    (set-context-on-change! focus/printed-code-focused-context (:printed-code/focused before) (:printed-code/focused after))
+    (set-context-on-change! focus/printed-code-last-focused-context (:printed-code/last-focused before) (:printed-code/last-focused after))
+    (when (set-context-on-change! focus/last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
       (current-file-changed! after))
-    (when (and (:repl-input/last-focused after)
-               (not= (:repl-input/last-focused before) (:repl-input/last-focused after)))
+    (when (and (focus/last-focused-view after)
+               (not= (focus/last-focused-view before) (focus/last-focused-view after)))
       (tell-other-views-not-last-focused! after))
-    (if focused?
+    (if (or (:repl-input/focused after) (:printed-code/focused after))
       (apply-cursor-contexts!)
       (release-cursor-contexts!))
     (apply-focused-contexts!)))
@@ -449,14 +447,14 @@
   [{:repl-input/keys [focused last-focused]}]
   (or focused last-focused))
 
-(defn- focus-view!
-  "Gives the focus to the REPL Input `id` in its view."
-  [id]
+(defn reveal-view!
+  "Shows the view `id` with the focus, and posts it `message`, which gives the focus to a place in it."
+  [id message]
   (when-let [^js view (get @!views id)]
     (if (fn? (.-reveal view))
       (.reveal view js/undefined false)
       (.show view false))
-    (post-to-view! id focus-message)))
+    (post-to-view! id message)))
 
 (defn command-target!
   "Returns the id of the REPL Input that Calva's commands reach, and gives the focus back to it when it is
@@ -465,7 +463,7 @@
   (let [{:repl-input/keys [focused] :as state} @!state
         target (command-target state)]
     (when (and target (not focused))
-      (focus-view! target))
+      (reveal-view! target focus-message))
     target))
 
 (defn ^:export focused?

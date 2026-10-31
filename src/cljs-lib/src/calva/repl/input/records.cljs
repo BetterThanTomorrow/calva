@@ -21,6 +21,16 @@
     records
     (update records id merge (message->record change))))
 
+(defn take-selections
+  "Returns `records` with the `selections` of `change` in the record of its id, at its version, unless
+   there is no record or `change` is older than it. The text stays, as for printed code, which has none to
+   change."
+  [records {:repl-input/keys [id] :keys [version selections] :as change}]
+  (let [record (get records id)]
+    (if (or (nil? record) (stale? record change))
+      records
+      (update records id assoc :repl-input/version version :repl-input/selections selections))))
+
 (defn take-edit
   "Returns `records` with the REPL Input's record at the version after `version`, with the `text`,
    `selections` and `selections-stack` of an edit made from `version`. The edit is dropped when the
