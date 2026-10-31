@@ -23,8 +23,9 @@
           ["constant" "#000000"]]
          (sut/token-rules token-colors))
       "String selectors split on commas, arrays stay, and rules without a scope or a foreground drop")
-  (is (= [] (sut/token-rules [{"scope" "x" "settings" {"foreground" ""}}]))
-      "An empty foreground is no foreground"))
+  (is (= [] (sut/token-rules [{"scope" "x" "settings" {"foreground" ""}}
+                              {"scope" "y" "settings" {"foreground" 123}}]))
+      "An empty foreground, or one that isn't a string, is no foreground"))
 
 (deftest font-style-rules-test
   (is (= [["comment" "italic"] ["comment.line" ""]]

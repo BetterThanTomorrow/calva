@@ -45,7 +45,7 @@
   [token-colors]
   (for [{:strs [scope settings]} token-colors
         :let [foreground (get settings "foreground")]
-        :when (seq foreground)
+        :when (and (string? foreground) (seq foreground))
         selector (rule-scopes scope)]
     [selector foreground]))
 
