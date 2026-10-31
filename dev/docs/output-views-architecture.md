@@ -24,6 +24,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `code_highlight.cljs` | The classes that color code, one per color and font style, in one constructed stylesheet, and code's hiccup and DOM with them. The REPL Input uses them too |
 | | `copy_button.cljs` | The copy button, a Replicant alias every block with one uses |
 | | `input/*.cljs` | The REPL Input |
+| | `printed_code/*.cljs` | Printed code's editor, which a click puts in place of a printed code block, for Paredit to move and select in |
 | | `styles_reload.cljs` | A preload of the build in development: renders the views' styles into the page again after each code reload |
 | Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page as hiccup, turns output into messages, posts settings to every view |
 | | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page (`help-page`), and the log it replays |
@@ -131,6 +132,15 @@ Results, evaluated code, the code in errors and the completion docs are colored 
 5. A theme change asks for the colors of all code colored by the grammar again.
 
 The Output Sidebar's log keeps messages without their highlighting, so a page that shows the log later asks in the colors it has then.
+
+### Printed code's editor
+
+A click in a printed code block puts a read-only CodeMirror editor in its place, so Paredit's navigation and selection commands can move a cursor and selections in it. The page has one at a time.
+
+1. `printed-code.editor/clicked-block` takes the page's selection as offsets in the block's `code` element. A selection that reaches outside the block, as a drag across blocks makes, stays the page's own.
+2. The editor goes after the `code` element, which is hidden and keeps getting its colors, so the copy button and late semantic tokens keep working. `printed-code.editor/drawn!` remembers the colors each code element is drawn with (`ui/set-spans!` and `ui/append-code!` call it), for the editor to start with, and colors an open editor anew. It follows the word wrap setting.
+3. Focus moving to another place in the page draws the block again. The window losing the focus keeps the editor, and `input.editor/restore-focus!` gives it the focus back with the window, as it does the REPL Input. Clearing the output removes it. A drag that starts in the open editor selects inside it, since CodeMirror takes the press. A drag across blocks starts outside it.
+4. The editor posts `printed-code-focused` (with the text), `printed-code-changed` (the selections), `printed-code-blurred` and `printed-code-unmounted`, at versions that count up for as long as the page lives. The extension answers with `printed-code-selections`, `printed-code-brackets` (with the matched brackets and active guides at the cursors), `printed-code-command-keys` and `printed-code-focus`, each applied at the version it was made from. The extension side is in [REPL Input Architecture](repl-input-architecture.md), under Printed code.
 
 ## The page
 

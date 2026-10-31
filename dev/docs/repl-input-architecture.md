@@ -45,6 +45,7 @@ The namespaces are `calva.repl.input.<name>`.
 | `semantic-tokens` | Asking clojure-lsp for semantic tokens a pause after the text changes |
 | `definition`, `reveal` | Go to definition, and the kept code of evaluations |
 | `stdin` | stdin for evaluations from files, in an Output view's REPL Input |
+| `printed-code` | Printed code's record in each view, its command keys and brackets, and Paredit's moves in it |
 
 ### Webview side
 
@@ -223,6 +224,15 @@ The command palette takes the focus while the user stays in the REPL Input. So t
 
 While the REPL Input has the focus, the cursor contexts (`calva:cursorInComment` and the others) are the REPL Input's, from `cursor-doc/cursor-context.ts`. When it loses the focus, `whenContexts.setCursorContextIfChanged` gives them back to the active editor.
 
+## Printed code
+
+Printed code in the Output views gets a cursor for Paredit's navigation and selection commands (the page side is in [Output Views Architecture](output-views-architecture.md), under Printed code's editor). `input/printed_code.cljs` keeps a record of the focused printed code in each view in `:printed-code/records`, of the same shape as a REPL Input's record, and works with the REPL Input's focus, records and command keys:
+
+- Its focus events are `:printed-code-focus`, `:printed-code-blur` and `:printed-code-unmount`. `focus/places-after` follows both places: to the REPL Input, printed code getting the focus is the focus going elsewhere, and the other way round, so commands reach one place at a time. `calva:printedCodeFocused` and `calva:printedCodeLastFocused` follow printed code's focus, and the cursor contexts are those of the place that has the focus. The view goes into `!views` on focus, so printed code works with the REPL Input off.
+- `wrapPareditCommand` sends a command to printed code with `replInput.selectInFocusedPrintedCode` when no REPL Input is the command target. `printed-code/select-focused!` runs it on a `StringDocument` made once per block, since printed code can be long, and posts only the selections. A command that changed the text changes nothing. `replInput.hasFocus()` stays the REPL Input's, so evaluation never reaches printed code.
+- The navigation and selection commands' keybindings have `(editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused)`, and their enablement lets them run there, and from the palette while printed code is the last focused place. `editing-keybindings-test.ts` checks that no other command reaches printed code. The command keys are derived with `calva:printedCodeFocused` in place of `calva:replInputFocused`.
+- Each selection change paints the brackets again, with the matched brackets and active guides, for printed code no longer than the 50,000 characters that get colored.
+
 ## The REPL Input as the current editor
 
 While the REPL Input is the last focused place, it is the current editor, and Calva's current file is its source file. `currentFileUri()` in `src/current-file.ts` asks `replInputFocused()` and `replInputSourceFile()`, the source file on the context line, and `decideCurrentFileUri` in `current-file-decision.ts`, which is pure and unit tested, gives that file. So routing's default, the status bar, the REPL Sessions menu, the cljc target, and jack-in and connect picking a project root follow the REPL Input. `activeEditorDocument()` leaves it out, for the commands that work on a file's text.
@@ -234,7 +244,7 @@ A lock without a source file has no current file. It routes as Calva routes with
 ## Where to start
 
 - A message from the webview: post it from an action with `post` in `webview/input/actions.cljs`, and take it in `input/messages.cljs`.
-- A message to the webview: `host/post-to-view!`, a case in `ui/handle-message`, an action in `webview/input/actions.cljs`, and an effect in `editor/exec-effect!` when it changes CodeMirror. `post-to-view!` reaches only the views in `!views`, those with a mounted REPL Input.
+- A message to the webview: `host/post-to-view!`, a case in `ui/handle-message`, an action in `webview/input/actions.cljs`, and an effect in `editor/exec-effect!` when it changes CodeMirror. `post-to-view!` reaches only the views in `!views`, those with a mounted REPL Input or focused printed code.
 - A key: either a CodeMirror keymap in the webview, like the history keys in `editor.cljs`'s `extensions`, or a `calva.replInput.<name>` VS Code command with a keybinding, which runs a command in `commands/by-name` through `repl-input-run-command`. A local keymap needs no round trip, but the user can't rebind it, and it never sees a key that is among the command keys, since those are cancelled before CodeMirror's keymap. A VS Code command follows the user's keybindings and shows in the palette.
 - A Calva editing command in the REPL Input: commands that go through `wrapPareditCommand` already work. Others branch on `replInput.hasFocus()` and run on an `EditableDocument` with `replInput.editFocused`.
 - A keybinding for an editing or evaluation command: its `when` clause needs `(editorLangId == clojure && editorTextFocus || calva:replInputFocused)`, which `src/extension-test/unit/editing-keybindings-test.ts` checks. A context key the REPL Input's context doesn't have counts as unset, and `when_clause.cljs` reads only the operators Calva's keybindings use today.
