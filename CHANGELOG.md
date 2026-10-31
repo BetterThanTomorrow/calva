@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Make the output views use Semantic Tokens from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/3320)
+- Highlight grammar now styles keywords matching clojure-lsp's semantic tokens
+
 ## [2.0.606] - 2026-10-29
 
 - [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
