@@ -40,9 +40,7 @@
 
    [:body.word-wrap
     [:code.output-code {:white-space :pre-wrap
-                        :overflow-wrap :anywhere
-                        :padding-left "calc(1em + 1.5ch)"
-                        :text-indent "-1.5ch"}]]])
+                        :overflow-wrap :anywhere}]]])
 
 (def code
   "Printed code, in the editor's colors, with its copy button at the top right."
