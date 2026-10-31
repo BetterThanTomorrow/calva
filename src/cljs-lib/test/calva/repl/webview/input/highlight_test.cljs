@@ -22,7 +22,13 @@
 
 (deftest string-ranges-test
   (is (= [[1 4] [6 10]] (sut/string-ranges "(\"a\" #\"\\d\")"))
-      "Strings and regular expressions, an escaped character in one"))
+      "Strings and regular expressions, an escaped character in one")
+  (is (= [[4 7]] (sut/string-ranges "[\\\\ \"a\"]"))
+      "A backslash character literal before a string")
+  (is (= [[10 13]] (sut/string-ranges "[\\newline \"a\"]"))
+      "A named character literal before a string")
+  (is (= [] (sut/string-ranges "x ; \"a"))
+      "A comment at the end of the text, without a newline"))
 
 (deftest layered-test
   (testing "puts the semantic ranges over the grammar ranges, as runs of one color"

@@ -204,38 +204,61 @@
       (set! (.. code -dataset -ns) ns)
       (some->> session-key (set! (.. code -dataset -sessionKey))))))
 
-(defonce ^{:private true :doc "The grammar's ranges of each highlighted code element, by its id."}
+(defonce ^{:private true :doc "The grammar's ranges of each code element colored by the grammar, by its id."}
   !grammar-ranges (atom {}))
 
-(defonce ^:private !semantic-requests (atom {:codes [] :timer nil}))
+(defonce ^{:private true :doc "The key of the latest request for the semantic tokens of each code element, by its id."}
+  !semantic-keys (atom {}))
+
+(defonce ^:private !last-semantic-key (atom 0))
+
+(defonce ^{:private true :doc "The requests for semantic tokens waiting for a pause, and the pause's timer."}
+  !semantic-requests (atom {:codes [] :timer nil}))
+
+(def ^:private max-semantic-requests
+  "How many requests for semantic tokens wait for a pause, at most, before they are posted."
+  100)
+
+(defn- post-semantic-requests!
+  []
+  (let [[{:keys [codes timer]}] (reset-vals! !semantic-requests {:codes [] :timer nil})]
+    (some-> timer js/clearTimeout)
+    (when (seq codes)
+      (post-to-host! {:command "output-semantic-tokens"
+                      :output/codes codes}))))
+
+(defn- semantic-request!
+  "Returns the request for the semantic tokens of the `code` element colored with the grammar `ranges`,
+   `[key text ns session-key]`, its key new, so that an answer to an earlier request is left out."
+  [^js code ranges]
+  (let [id (code-id! code)
+        request-key (str id "@" (swap! !last-semantic-key inc))]
+    (swap! !grammar-ranges assoc id ranges)
+    (swap! !semantic-keys assoc id request-key)
+    [request-key (.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)]))
 
 (defn- request-semantic-tokens-later!
   "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar `ranges`,
-   with those of other code, a pause after the last request. Code without a namespace gets none."
+   with those of other code, a pause after the last request, or at once when many wait. Code without a
+   namespace gets none."
   [codes ranges]
-  (let [requested (for [^js code codes
-                        :let [ns (.. code -dataset -ns)]
-                        :when ns]
-                    (let [id (code-id! code)]
-                      (swap! !grammar-ranges assoc id ranges)
-                      [id (.-textContent code) ns (.. code -dataset -sessionKey)]))]
-    (when (seq requested)
+  (let [requests (mapv #(semantic-request! % ranges) (filter #(.. ^js % -dataset -ns) codes))]
+    (when (seq requests)
       (some-> (:timer @!semantic-requests) js/clearTimeout)
-      (swap! !semantic-requests
-             (fn [{:keys [codes]}]
-               {:codes (into codes requested)
-                :timer (js/setTimeout (fn []
-                                        (let [{:keys [codes]} @!semantic-requests]
-                                          (reset! !semantic-requests {:codes [] :timer nil})
-                                          (post-to-host! {:command "output-semantic-tokens"
-                                                          :output/codes codes})))
-                                      100)})))))
+      (if (>= (count (:codes (swap! !semantic-requests update :codes into requests))) max-semantic-requests)
+        (post-semantic-requests!)
+        (swap! !semantic-requests assoc :timer (js/setTimeout post-semantic-requests! 100))))))
 
 (defn- code-elements
-  "Returns the code elements with an id, by their id."
-  []
-  (into {} (map (fn [^js code] [(.. code -dataset -codeId) code]))
-        (array-seq (js/document.querySelectorAll "code[data-code-id]"))))
+  "Returns the code elements with the `ids`, by their id."
+  [ids]
+  (if (< (count ids) 20)
+    (into {} (keep (fn [id]
+                     (some->> (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))
+                              (vector id))))
+          ids)
+    (into {} (map (fn [^js code] [(.. code -dataset -codeId) code]))
+          (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
 
 (defn- set-spans!
   "Sets the children of the `code` element to its text colored with `ranges`."
@@ -250,33 +273,47 @@
   (request-semantic-tokens-later! [code] ranges))
 
 (defonce ^{:private true
-           :doc "The grammar's ranges of the latest code texts colored, so code drawn again, like an error's
+           :doc "The colors of the latest code texts colored, `{:grammar ranges :looks ranges}` by text, with
+                 `:looks` the semantic tokens layered over the grammar's, so code drawn again, like an error's
                  details, is colored at once."}
-  !ranges-by-text (atom {:ranges {} :texts []}))
+  !remembered (atom {:colors {} :texts []}))
 
 (def ^:private remembered-texts 100)
 
-(defn- remember-ranges!
-  [text ranges]
-  (swap! !ranges-by-text
+(defn- remember!
+  "Remembers the `colors` of `text`, forgetting the colors of the text remembered longest ago when there are more
+   than `remembered-texts`."
+  [text colors]
+  (swap! !remembered
          (fn [{:keys [texts] :as remembered}]
-           (let [texts (conj texts text)
+           (let [texts (if (contains? (:colors remembered) text) texts (conj texts text))
                  forgotten (drop-last remembered-texts texts)]
              (-> remembered
                  (assoc :texts (vec (take-last remembered-texts texts)))
-                 (update :ranges #(apply dissoc (assoc % text ranges) forgotten)))))))
+                 (update :colors #(apply dissoc (assoc % text colors) forgotten)))))))
+
+(defn- color-remembered!
+  "Colors the `code` element with the `colors` remembered for its text, asking for semantic tokens only when
+   the colors have none."
+  [^js code {:keys [grammar looks]}]
+  (cond
+    (empty? grammar) (set! (.. code -dataset -highlighted) "plain")
+    looks (do (set-spans! code looks)
+              (swap! !grammar-ranges assoc (code-id! code) grammar)
+              (set! (.. code -dataset -highlighted) "grammar"))
+    :else (color-with-grammar! code grammar)))
 
 (defn- request-missing-highlighting!
   "Gives the code in `element` the output's namespace, and colors the code that has no highlighting with the
-   ranges remembered for its text, or asks the extension for them."
+   colors remembered for its text, or asks the extension for them."
   [^js element]
   (stamp-context! element)
   (let [missing (remove #(.. ^js % -dataset -highlighted)
                         (array-seq (.querySelectorAll element "code.clojure-code")))
-        remembered (:ranges @!ranges-by-text)
+        remembered (:colors @!remembered)
         {known true unknown false} (group-by #(contains? remembered (.-textContent ^js %)) missing)]
     (doseq [^js code known]
-      (color-with-grammar! code (get remembered (.-textContent code))))
+      (color-remembered! code (get remembered (.-textContent code))))
     (request-highlighting! unknown)))
 
 (defn set-code-highlighting!
@@ -284,32 +321,41 @@
    grammar, as plain when it has no ranges, being too long, or as uncolored when the extension can't color it,
    without the theme or the grammar."
   [codes]
-  (let [elements (code-elements)]
+  (let [elements (code-elements (map first codes))]
     (doseq [[id ranges] codes
             :let [^js code (get elements id)]
             :when code]
       (cond
-        (seq ranges) (do (remember-ranges! (.-textContent code) ranges)
+        (seq ranges) (do (remember! (.-textContent code) {:grammar ranges})
                          (color-with-grammar! code ranges))
-        ranges (set! (.. code -dataset -highlighted) "plain")
+        ranges (do (remember! (.-textContent code) {:grammar []})
+                   (set! (.. code -dataset -highlighted) "plain"))
         :else (do (set! (.-textContent code) (.-textContent code))
                   (set! (.. code -dataset -highlighted) "uncolored"))))))
 
 (defn set-semantic-tokens!
-  "Lays the semantic `ranges` of `codes`, `[id ranges]` each, over the grammar's ranges of their code elements."
+  "Lays the semantic `ranges` of `codes`, `[request-key ranges]` each, over the grammar's ranges of their code
+   elements, for the latest request of each."
   [codes]
-  (let [elements (code-elements)]
-    (doseq [[id ranges] codes
-            :let [^js code (get elements id)
+  (let [current (filter (fn [[request-key]]
+                          (= request-key (get @!semantic-keys (first (str/split request-key #"@")))))
+                        codes)
+        elements (code-elements (map #(first (str/split (first %) #"@")) current))]
+    (doseq [[request-key ranges] current
+            :let [id (first (str/split request-key #"@"))
+                  ^js code (get elements id)
                   grammar (get @!grammar-ranges id)]
             :when (and code grammar (seq ranges))]
-      (set-spans! code (highlight/layered grammar ranges)))))
+      (let [looks (highlight/layered grammar ranges)]
+        (set-spans! code looks)
+        (remember! (.-textContent code) {:grammar grammar :looks looks})))))
 
 (defn- rehighlight-code!
   "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
    extension couldn't color, as when the color theme changed."
   [^js dom-element]
-  (reset! !ranges-by-text {:ranges {} :texts []})
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
   (request-highlighting! (concat (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))
                                  (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"uncolored\"]")))))
 
@@ -620,7 +666,8 @@
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
   (reset! !grammar-ranges {})
-  (reset! !ranges-by-text {:ranges {} :texts []})
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))

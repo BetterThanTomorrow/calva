@@ -292,12 +292,12 @@
 
 (defn set-code-theme!
   "Posts the webview `webview-panel` the colors of the active color theme of `color-theme-kind` that printed
-   code needs: the key of its palette, which tells when its code needs coloring again, and its color for
-   function names, which stack frames take."
+   code needs: the key of its palette and whether the grammar is loaded, which tells when its code needs
+   coloring again, and its color for function names, which stack frames take."
   [_context {:keys [color-theme-kind webview-panel]}]
   (let [palette (token-colors/active-theme-palette color-theme-kind)]
     (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                            :output/palette-key (hash palette)
+                                            :output/palette-key (hash [palette (some? @highlighting/!grammar)])
                                             :output/frame-name-color (highlighting/scope-color (:palette/token-rules palette)
                                                                                                ["entity.name.function.clojure"])})))
 
@@ -324,12 +324,22 @@
   (.. vscode -workspace
       (onDidChangeConfiguration
        (fn [^js event]
-         (when (.affectsConfiguration event "editor.tokenColorCustomizations")
+         (when (some #(.affectsConfiguration event %) ["editor.tokenColorCustomizations"
+                                                       "editor.semanticTokenColorCustomizations"
+                                                       "editor.semanticHighlighting"])
            (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
 
 (defn create-extensions-change-listener
   [{:keys [^js vscode/vscode]}]
   (.. vscode -extensions (onDidChange (fn [_] (token-colors/clear-theme-token-colors!)))))
+
+(defn- color-code-when-grammar-loads!
+  "Posts every view its code colors again when the grammar loads, so code printed before is colored."
+  [context]
+  (add-watch highlighting/!grammar ::output-views
+             (fn [_ _ before after]
+               (when (and after (not before))
+                 (post-code-theme-to-all-views! context (.. ^js @util/vscode -window -activeColorTheme -kind))))))
 
 (defn ^:export init-code-theme!
   []
@@ -337,7 +347,8 @@
     (when-let [^js vscode-context @util/vscode-context]
       (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
       (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context)))
-      (.. vscode-context -subscriptions (push (create-extensions-change-listener context))))))
+      (.. vscode-context -subscriptions (push (create-extensions-change-listener context)))
+      (color-code-when-grammar-loads! context))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}

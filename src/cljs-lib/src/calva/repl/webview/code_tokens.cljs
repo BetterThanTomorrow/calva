@@ -4,29 +4,38 @@
    clojure-lsp cycle covers it all."
   (:require
    [calva.repl.input.highlighting :as highlighting]
-   [calva.util :as util]))
+   [calva.util :as util]
+   [clojure.string :as string]))
 
 (defn- ns-document
-  "Returns an open Clojure document whose namespace `adapter` finds to be `ns`, or nil."
+  "Returns an open Clojure source file whose namespace `adapter` finds to be `ns`, or nil."
   [^js adapter ns]
   (some (fn [^js document]
           (when (and (= "clojure" (.-languageId document))
                      (= "file" (.. document -uri -scheme))
+                     (re-find #"\.clj[sc]?$" (.-fileName document))
                      (= ns (first (.editorNamespace adapter document js/undefined))))
             document))
         (when-let [^js workspace (some-> ^js @util/vscode .-workspace)]
           (array-seq (.-textDocuments workspace)))))
 
+(defn- line-count
+  [text]
+  (inc (count (re-seq #"\n" text))))
+
 (defn copy
   "Returns the copy with each of `codes`, `[id text]`, on lines of its own below `prefix`, as `{:text :lines}`,
    with `:lines` the line each code's id starts on."
   [prefix codes]
-  (reduce (fn [{:keys [text] :as copied} [id code]]
-            (-> copied
-                (assoc-in [:lines id] (inc (count (re-seq #"\n" text))))
-                (assoc :text (str text "\n" code))))
-          {:text prefix :lines {}}
-          codes))
+  (let [{:keys [parts lines]} (reduce (fn [{:keys [next-line] :as copied} [id code]]
+                                        (-> copied
+                                            (update :parts conj code)
+                                            (assoc-in [:lines id] next-line)
+                                            (assoc :next-line (+ next-line (line-count code)))))
+                                      {:parts [prefix] :lines {} :next-line (line-count prefix)}
+                                      codes)]
+    {:text (string/join "\n" parts)
+     :lines lines}))
 
 (defn- extension
   "Returns the extension of the copy for `document`, or for `session-key` when there is no document."
@@ -38,9 +47,14 @@
   "Returns `[id ranges]` for each of `codes`, `[id text]`, from the decoded semantic `tokens` of a copy where
    the codes start on the `lines` of their ids."
   [palette tokens lines codes]
-  (mapv (fn [[id code]]
-          [id (highlighting/semantic-ranges palette tokens (get lines id) code)])
-        codes))
+  (let [tokens-by-line (group-by first tokens)]
+    (mapv (fn [[id code]]
+            (let [line (get lines id)]
+              [id (highlighting/semantic-ranges palette
+                                                (mapcat tokens-by-line (range line (+ line (line-count code))))
+                                                line
+                                                code)]))
+          codes)))
 
 (defn tokens+
   "Returns a promise of `[id ranges]` for the printed `codes`, `[id text]` each, of the namespace `ns` in the
