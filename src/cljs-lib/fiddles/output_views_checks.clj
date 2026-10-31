@@ -40,10 +40,9 @@
             '[calva.repl.webview.ui :as ui]
             '[clojure.string :as str]))
 
-(def ^:private readers
-  "The page side of the checks, defined in `cljs.user` of each page."
+(def ^:private dom-readers
+  "The page side of the DOM check, defined in `cljs.user` of each page."
   '(do
-
      (defn ovc-attribute-value [attribute-name value]
        (cond
          (= "nonce" attribute-name) "<nonce>"
@@ -65,19 +64,30 @@
 
      (defn ovc-dom []
        (pr-str (ovc-node js/document.documentElement)))
+     :installed))
 
+(def ^:private style-readers
+  "The page side of the styles check, defined in `cljs.user` of each page."
+  '(do
      (defn ovc-declarations
        "The declarations of `css-text`, split at the semicolons outside quotes and parentheses."
        [css-text]
-       (loop [[c & more] (seq css-text) depth 0 quote nil current "" declarations #{}]
-         (cond
-           (nil? c) (cond-> declarations (not (str/blank? current)) (conj (str/trim current)))
-           quote (recur more depth (if (= c quote) nil quote) (str current c) declarations)
-           (#{"'" "\""} c) (recur more depth c (str current c) declarations)
-           (= "(" c) (recur more (inc depth) quote (str current c) declarations)
-           (= ")" c) (recur more (dec depth) quote (str current c) declarations)
-           (and (= ";" c) (zero? depth)) (recur more depth quote "" (conj declarations (str/trim current)))
-           :else (recur more depth quote (str current c) declarations))))
+       (let [{:keys [declarations current]}
+             (reduce (fn [{:keys [depth quote current] :as state} c]
+                       (cond
+                         quote (cond-> (update state :current str c)
+                                 (= c quote) (assoc :quote nil))
+                         (and (= ";" c) (zero? depth)) (-> state
+                                                           (update :declarations conj (str/trim current))
+                                                           (assoc :current ""))
+                         :else (-> state
+                                   (update :current str c)
+                                   (update :depth + (get {"(" 1 ")" -1} c 0))
+                                   (assoc :quote (#{"'" "\""} c)))))
+                     {:depth 0 :quote nil :current "" :declarations #{}}
+                     css-text)]
+         (cond-> declarations
+           (not (str/blank? current)) (conj (str/trim current)))))
 
      (defn ovc-rule [rule]
        (if (.-selectorText rule)
@@ -92,7 +102,11 @@
                         (filter #(some-> (.-ownerNode %) (.matches "link[href$='main.css'], style#calva-output-styles")))
                         first
                         ovc-sheet-rules)))
+     :installed))
 
+(def ^:private output-posters
+  "The page side of posting the fixed output, defined in `cljs.user` of each page."
+  '(do
      (defn ovc-post! [message]
        (ui/handle-message (js-obj "data" (pr-str message))))
 
@@ -144,7 +158,7 @@
   "Defines the page side of the checks in the Output view page `runtime-id`."
   [runtime-id]
   (webview-eval runtime-id requires)
-  (webview-eval runtime-id readers))
+  (run! #(webview-eval runtime-id %) [dom-readers style-readers output-posters]))
 
 (defn- settle! [] (Thread/sleep 1500))
 
