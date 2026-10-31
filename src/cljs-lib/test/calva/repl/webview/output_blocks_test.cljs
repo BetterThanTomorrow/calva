@@ -33,7 +33,7 @@
       "The REPL Input's evaluations show no who badge"))
 
 (deftest evaluated-code-element-test
-  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil))]
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil))]
     (is (seq (l/select :div.evaluated-code-container hiccup)))
     (is (= ["Evaluated code"] (map l/text (l/select :span.border-text hiccup))))
     (is (= ["(+ 1 2)"] (map l/text (l/select '[pre.output-code-block > code.output-code] hiccup)))
@@ -43,13 +43,13 @@
         "The code block's copy button copies its code")))
 
 (deftest clojure-code-element-test
-  (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]])]
+  (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]] [])]
     (is (= ["(" [:span {:class #{"code-color-ff7b72"}} "let"] " [x 1])"]
            (drop 2 (first (l/select :code.output-code hiccup))))
         "The code is colored with its ranges")
     (is (= "grammar" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
         "Code with ranges is marked as colored by the grammar")
-    (is (= "plain" (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x" []))))))
+    (is (= "plain" (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x" [] []))))))
         "Code with no ranges, as when it is too long, is marked as plain")
     (is (nil? (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x"))))))
         "Code without ranges waits for its highlighting")))

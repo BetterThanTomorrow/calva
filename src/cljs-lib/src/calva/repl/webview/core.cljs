@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.input.brackets :as brackets]
    [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
@@ -7,6 +8,7 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.printed-brackets :as printed-brackets]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
@@ -293,12 +295,15 @@
 
 (defn set-code-theme!
   "Posts the webview `webview-panel` the colors of the active color theme of `color-theme-kind` that printed
-   code needs: the key of its palette and whether the grammar is loaded, which tells when its code needs
-   coloring again, and its color for function names, which stack frames take."
+   code needs: the key of its palette, whether the grammar is loaded and the bracket settings, which tells
+   when its code needs coloring again, the bracket styles, and its color for function names, which stack
+   frames take."
   [_context {:keys [color-theme-kind webview-panel]}]
-  (let [palette (token-colors/active-theme-palette color-theme-kind)]
+  (let [palette (token-colors/active-theme-palette color-theme-kind)
+        settings (printed-brackets/settings)]
     (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                            :output/palette-key (hash [palette (some? @highlighting/!grammar)])
+                                            :output/palette-key (hash [palette (some? @highlighting/!grammar) settings])
+                                            :output/bracket-styles (brackets/bracket-styles settings)
                                             :output/frame-name-color (highlighting/scope-color (:palette/token-rules palette)
                                                                                                ["entity.name.function.clojure"])})))
 
@@ -327,7 +332,8 @@
        (fn [^js event]
          (when (some #(.affectsConfiguration event %) ["editor.tokenColorCustomizations"
                                                        "editor.semanticTokenColorCustomizations"
-                                                       "editor.semanticHighlighting"])
+                                                       "editor.semanticHighlighting"
+                                                       "calva.highlight"])
            (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
 
 (defn create-extensions-change-listener
@@ -380,12 +386,20 @@
            (unregister-webview! webview-panel)
            (input-host/view-disposed! "output-view"))))))
 
+(defn- printed-colors
+  "Returns `[ranges brackets]` for printed `text`: the grammar's ranges, nil before the grammar is loaded, and
+   the brackets when it has ranges."
+  [text settings]
+  (let [ranges (highlighting/printed-highlighting text)]
+    [ranges (when (seq ranges) (printed-brackets/brackets text settings))]))
+
 (defn code-highlighting-message
-  "Returns the message that posts the highlighting of the printed code `codes`, `[id text]` each, as
-   `[id ranges]`, the ranges nil before the grammar is loaded."
+  "Returns the message that posts the colors of the printed code `codes`, `[id text]` each, as
+   `[id ranges brackets]`, the ranges nil before the grammar is loaded."
   [codes]
-  {:command/name "output-highlighting"
-   :output/codes (mapv (fn [[id text]] [id (highlighting/printed-highlighting text)]) codes)})
+  (let [settings (printed-brackets/settings)]
+    {:command/name "output-highlighting"
+     :output/codes (mapv (fn [[id text]] (into [id] (printed-colors text settings))) codes)}))
 
 (def ^:private highlighting-chunk-length
   "How many characters of printed code the extension highlights before it lets other work run."
@@ -549,13 +563,14 @@
    and printed code's highlighting."
   [options command-name output-category message]
   (let [meta-data (options->meta options)
-        code-highlighting (when (and (printed-code-commands command-name) (string? message))
-                            (highlighting/printed-highlighting message))]
+        [code-highlighting code-brackets] (when (and (printed-code-commands command-name) (string? message))
+                                            (printed-colors message (printed-brackets/settings)))]
     (cond-> {:command/name command-name
              :output-category output-category
              :output message}
       (seq meta-data) (assoc :meta meta-data)
-      code-highlighting (assoc :output/highlighting code-highlighting))))
+      code-highlighting (assoc :output/highlighting code-highlighting)
+      code-brackets (assoc :output/brackets code-brackets))))
 
 (defn ^:export append
   [^js options message]

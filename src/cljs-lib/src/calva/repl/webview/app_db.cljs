@@ -26,7 +26,7 @@
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
    local paths resolve against the producing session's root. Other results are appended colored with
    `ranges`, the extension's highlighting of the text."
-  [output meta ranges]
+  [output meta ranges brackets]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
@@ -34,16 +34,16 @@
             (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
-      [[:fx/append-result output ranges]])))
+      [[:fx/append-result output ranges brackets]])))
 
 (defn- message-fxs
-  [{command-name :command/name ranges :output/highlighting :keys [output meta]} category]
+  [{command-name :command/name ranges :output/highlighting brackets :output/brackets :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta ranges)
-    "show-evaluated-code" [[:fx/append-evaluated-code output ranges]]
+    "show-result" (result-fxs output meta ranges brackets)
+    "show-evaluated-code" [[:fx/append-evaluated-code output ranges brackets]]
     []))
 
 (defn- meta-context-key
@@ -140,11 +140,12 @@
      :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
 
 (defn- handle-set-code-theme
-  "Sets the color of stack frames' function names, and colors the printed code again when the theme's palette
-   is another than the page had."
-  [db {palette-key :output/palette-key frame-name-color :output/frame-name-color}]
+  "Sets the color of stack frames' function names and the bracket styles, and colors the printed code again
+   when the theme's palette or the bracket settings are other than the page had."
+  [db {palette-key :output/palette-key frame-name-color :output/frame-name-color bracket-styles :output/bracket-styles}]
   {:uf/db (assoc db :output/palette-key palette-key)
-   :uf/fxs (cond-> [[:fx/set-frame-name-color frame-name-color]]
+   :uf/fxs (cond-> [[:fx/set-frame-name-color frame-name-color]
+                    [:fx/set-bracket-styles bracket-styles]]
              (and (contains? db :output/palette-key)
                   (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
 

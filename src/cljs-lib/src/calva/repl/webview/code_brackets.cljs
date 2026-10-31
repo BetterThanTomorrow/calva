@@ -63,9 +63,10 @@
              [(keyword property) v])))
 
 (defn- style-rules
-  "The rules for `class-name` from a decoration `style`, with its `light` and `dark` parts."
+  "The rules for `class-name` from a decoration `style`, with its `light` and `dark` parts, on spans, so they
+   win over the token colors' classes as Calva's decorations do in files."
   [class-name style]
-  (let [selector (str "." class-name)]
+  (let [selector (str "span." class-name)]
     (for [[selectors style] (cons [[selector] style]
                                   (for [[kind prefixes] theme-kind-selectors]
                                     [(map #(str % " " selector) prefixes) (get style kind)]))

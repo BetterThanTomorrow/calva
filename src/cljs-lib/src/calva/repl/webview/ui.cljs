@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.code-brackets :as code-brackets]
    [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
@@ -165,15 +166,15 @@
 
 (defn clojure-code-element
   "Returns the hiccup of a code block with `clojure-code` and its copy button, colored with `ranges`,
-   `[from to color styles]`, when it has them."
+   `[from to color styles]`, and marked with `marks`, `[from to class]`, when it has them."
   ([clojure-code]
-   (clojure-code-element clojure-code nil))
-  ([clojure-code ranges]
+   (clojure-code-element clojure-code nil nil))
+  ([clojure-code ranges marks]
    [:pre {:class ["output-code-block"]}
     (into [:code (cond-> {:class ["output-code" "clojure-code"]}
                    ranges (assoc :data-highlighted (if (seq ranges) "grammar" "plain")))]
-          (if ranges
-            (code-highlight/spans clojure-code ranges)
+          (if (seq ranges)
+            (code-highlight/spans clojure-code ranges marks)
             [clojure-code]))
     [copy-button/button {:class ["output-code-copy"]
                          :copy/label "Copy"
@@ -206,8 +207,9 @@
       (set! (.. code -dataset -ns) ns)
       (some->> session-key (set! (.. code -dataset -sessionKey))))))
 
-(defonce ^{:private true :doc "The grammar's ranges of each code element colored by the grammar, by its id."}
-  !grammar-ranges (atom {}))
+(defonce ^{:private true
+           :doc "The grammar's colors of each code element colored by the grammar, `{:ranges :marks}` by its id."}
+  !grammar-colors (atom {}))
 
 (defonce ^{:private true :doc "The key of the latest request for the semantic tokens of each code element, by its id."}
   !semantic-keys (atom {}))
@@ -230,21 +232,21 @@
                       :output/codes codes}))))
 
 (defn- semantic-request!
-  "Returns the request for the semantic tokens of the `code` element colored with the grammar `ranges`,
+  "Returns the request for the semantic tokens of the `code` element colored with the grammar's `colors`,
    `[key text ns session-key]`, its key new, so that an answer to an earlier request is left out."
-  [^js code ranges]
+  [^js code colors]
   (let [id (code-id! code)
         request-key (str id "@" (swap! !last-semantic-key inc))]
-    (swap! !grammar-ranges assoc id ranges)
+    (swap! !grammar-colors assoc id colors)
     (swap! !semantic-keys assoc id request-key)
     [request-key (.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)]))
 
 (defn- request-semantic-tokens-later!
-  "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar `ranges`,
+  "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar's `colors`,
    with those of other code, a pause after the last request, or at once when many wait. Code without a
    namespace gets none."
-  [codes ranges]
-  (let [requests (mapv #(semantic-request! % ranges) (filter #(.. ^js % -dataset -ns) codes))]
+  [codes colors]
+  (let [requests (mapv #(semantic-request! % colors) (filter #(.. ^js % -dataset -ns) codes))]
     (when (seq requests)
       (some-> (:timer @!semantic-requests) js/clearTimeout)
       (if (>= (count (:codes (swap! !semantic-requests update :codes into requests))) max-semantic-requests)
@@ -263,21 +265,22 @@
           (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
 
 (defn- set-spans!
-  "Sets the children of the `code` element to its text colored with `ranges`."
-  [^js code ranges]
-  (code-highlight/set-spans! code (.-textContent code) ranges))
+  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
+  [^js code ranges marks]
+  (code-highlight/set-spans! code (.-textContent code) ranges marks))
 
 (defn- color-with-grammar!
-  "Colors the `code` element with the grammar's `ranges`, and asks for its semantic tokens."
-  [^js code ranges]
-  (set-spans! code ranges)
+  "Colors the `code` element with the grammar's `colors`, `{:ranges :marks}`, and asks for its semantic
+   tokens."
+  [^js code {:keys [ranges marks] :as colors}]
+  (set-spans! code ranges marks)
   (set! (.. code -dataset -highlighted) "grammar")
-  (request-semantic-tokens-later! [code] ranges))
+  (request-semantic-tokens-later! [code] colors))
 
 (defonce ^{:private true
-           :doc "The colors of the latest code colored, `{:grammar ranges :looks ranges}` by its text, namespace
-                 and session, with `:looks` the semantic tokens layered over the grammar's, so code drawn again,
-                 like an error's details, is colored at once."}
+           :doc "The colors of the latest code colored, `{:ranges :marks :looks}` by its text, namespace and
+                 session, with `:looks` the semantic tokens layered over the grammar's `:ranges`, so code drawn
+                 again, like an error's details, is colored at once."}
   !remembered (atom {:colors {} :texts []}))
 
 (defn- remembered-key
@@ -302,13 +305,13 @@
 (defn- color-remembered!
   "Colors the `code` element with the `colors` remembered for its text, asking for semantic tokens only when
    the colors have none."
-  [^js code {:keys [grammar looks]}]
+  [^js code {:keys [ranges marks looks] :as colors}]
   (cond
-    (empty? grammar) (set! (.. code -dataset -highlighted) "plain")
-    looks (do (set-spans! code looks)
-              (swap! !grammar-ranges assoc (code-id! code) grammar)
+    (empty? ranges) (set! (.. code -dataset -highlighted) "plain")
+    looks (do (set-spans! code looks marks)
+              (swap! !grammar-colors assoc (code-id! code) (dissoc colors :looks))
               (set! (.. code -dataset -highlighted) "grammar"))
-    :else (color-with-grammar! code grammar)))
+    :else (color-with-grammar! code colors)))
 
 (defn- request-missing-highlighting!
   "Gives the code in `element` the output's namespace, and colors the code that has no highlighting with the
@@ -324,18 +327,19 @@
     (request-highlighting! unknown)))
 
 (defn set-code-highlighting!
-  "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, marking each as colored by the
-   grammar, as plain when it has no ranges, being too long, or as uncolored when the extension can't color it,
-   without the theme or the grammar."
+  "Colors the code elements of `codes`, `[id ranges brackets]` each, with their ranges and brackets, marking
+   each as colored by the grammar, as plain when it has no ranges, being too long, or as uncolored when the
+   extension can't color it, without the theme or the grammar."
   [codes]
   (let [elements (code-elements (map first codes))]
-    (doseq [[id ranges] codes
-            :let [^js code (get elements id)]
+    (doseq [[id ranges brackets] codes
+            :let [^js code (get elements id)
+                  colors {:ranges ranges :marks (code-brackets/mark-ranges brackets)}]
             :when code]
       (cond
-        (seq ranges) (do (remember! (remembered-key code) {:grammar ranges})
-                         (color-with-grammar! code ranges))
-        ranges (do (remember! (remembered-key code) {:grammar []})
+        (seq ranges) (do (remember! (remembered-key code) colors)
+                         (color-with-grammar! code colors))
+        ranges (do (remember! (remembered-key code) {:ranges []})
                    (set! (.. code -dataset -highlighted) "plain"))
         :else (do (set! (.-textContent code) (.-textContent code))
                   (set! (.. code -dataset -highlighted) "uncolored"))))))
@@ -351,11 +355,11 @@
     (doseq [[request-key ranges] current
             :let [id (first (str/split request-key #"@"))
                   ^js code (get elements id)
-                  grammar (get @!grammar-ranges id)]
+                  {grammar :ranges :keys [marks] :as colors} (get @!grammar-colors id)]
             :when (and code grammar (seq ranges))]
       (let [looks (highlight/layered grammar ranges)]
-        (set-spans! code looks)
-        (remember! (remembered-key code) {:grammar grammar :looks looks})))))
+        (set-spans! code looks marks)
+        (remember! (remembered-key code) (assoc colors :looks looks))))))
 
 (defn- rehighlight-code!
   "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
@@ -372,32 +376,37 @@
   (copy-text! button (.. button -parentElement (querySelector "code") -textContent)))
 
 (defn evaluated-code-element
-  "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` when it has them."
-  [code ranges]
+  "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` and marked with `marks` when
+   it has them."
+  [code ranges marks]
   [:div {:class ["evaluated-code-container"]}
    [:span {:class ["border-text"]} "Evaluated code"]
-   (clojure-code-element code ranges)])
+   (clojure-code-element code ranges marks)])
 
 (defn- append-code!
-  "Appends the `hiccup` of code colored with `ranges` to `dom-element`, and asks for the highlighting of the
-   code that has none."
-  [^js dom-element hiccup ranges]
+  "Appends the code of `hiccup-of`, called with its grammar's `colors`, to `dom-element`, and asks for the
+   highlighting of the code that has none, and for the semantic tokens of the code that has."
+  [^js dom-element hiccup-of {:keys [ranges] :as colors}]
   (some-> ranges code-highlight/add-classes!)
-  (let [element (insert-hiccup! dom-element "beforeend" hiccup)]
+  (let [element (insert-hiccup! dom-element "beforeend" (hiccup-of colors))]
     (request-missing-highlighting! element)
     (when (seq ranges)
-      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) ranges))
+      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) colors))
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn append-evaluated-code
-  "Appends evaluated `code` to `dom-element`, colored with `ranges` when it has them."
-  [^js dom-element code ranges]
-  (append-code! dom-element (evaluated-code-element code ranges) ranges))
+  "Appends evaluated `code` to `dom-element`, colored with `ranges` and its `brackets` when it has them."
+  [^js dom-element code ranges brackets]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (evaluated-code-element code ranges marks))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
 (defn append-eval-result
-  "Appends the printed `result` to `dom-element`, colored with `ranges` when it has them."
-  [^js dom-element result ranges]
-  (append-code! dom-element (clojure-code-element result ranges) ranges))
+  "Appends the printed `result` to `dom-element`, colored with `ranges` and its `brackets` when it has them."
+  [^js dom-element result ranges brackets]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (clojure-code-element result ranges marks))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -672,7 +681,7 @@
 (defn clear-output-dom
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
-  (reset! !grammar-ranges {})
+  (reset! !grammar-colors {})
   (reset! !remembered {:colors {} :texts []})
   (reset! !semantic-keys {})
   (reset! !pending-local-images [])
@@ -778,8 +787,9 @@
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
-    :fx/append-result (append-eval-result output-dom-element (first args) (second args))
-    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args) (second args))
+    :fx/append-result (apply append-eval-result output-dom-element args)
+    :fx/append-evaluated-code (apply append-evaluated-code output-dom-element args)
+    :fx/set-bracket-styles (some-> (first args) code-brackets/css code-brackets/set-css!)
     :fx/set-code-highlighting (set-code-highlighting! (first args))
     :fx/set-semantic-tokens (set-semantic-tokens! (first args))
     :fx/rehighlight-code (rehighlight-code! output-dom-element)

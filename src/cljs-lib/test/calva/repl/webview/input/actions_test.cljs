@@ -146,7 +146,7 @@
                                                 :word-separators "()[]{}"
                                                 :completion {:activate-on-typing? true :delay 10}}])]
       (is (= [[:repl-input/fx.set-close-brackets ["(" "\""]]
-              [:repl-input/fx.set-bracket-css ".code-bracket-0 {\n  color: #0098e6;\n}"]
+              [:repl-input/fx.set-bracket-css "span.code-bracket-0 {\n  color: #0098e6;\n}"]
               [:repl-input/fx.set-editing {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]{}"}]
               [:repl-input/fx.set-completion {:activate-on-typing? true :delay 10 :enabled? true}]]
              fxs)))))

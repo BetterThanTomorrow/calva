@@ -34,3 +34,12 @@
   (testing "keeps a range without a class as text"
     (is (= ["ab"] (sut/spans "ab" [])))
     (is (= ["a" "b"] (sut/spans "ab" [[0 1 nil nil]])))))
+
+(deftest spans-marks-test
+  (testing "lays the marks' classes over the ranges', splitting them where the marks start and end"
+    (is (= [[:span {:class "code-color-ff7b72 code-bracket-0"} "("]
+            [:span {:class "code-color-ff7b72"} "le"]
+            "t"
+            [:span {:class "code-comment-form"} " x"]
+            [:span {:class "code-comment-form code-bracket-0"} ")"]]
+           (sut/spans "(let x)" [[0 3 "#ff7b72" nil]] [[0 1 "code-bracket-0"] [4 7 "code-comment-form"] [6 7 "code-bracket-0"]])))))

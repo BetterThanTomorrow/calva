@@ -23,7 +23,7 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
       (is (= [[:fx/append-ns-info meta]
-              [:fx/append-result "42" nil]]
+              [:fx/append-result "42" nil nil]]
              (:uf/fxs result)))))
 
   (testing ":msg/output with unchanged context"
@@ -32,13 +32,13 @@
           payload {:command/name "show-result" :output "42" :meta meta}
           result (sut/handle-action db [:msg/output payload])]
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
-      (is (= [[:fx/append-result "42" nil]] (:uf/fxs result)))))
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs result)))))
 
   (testing ":msg/output with the extension's highlighting"
     (let [ranges [[0 2 "#79c0ff" nil]]
           payload {:command/name "show-result" :output "42" :output/highlighting ranges}
           result (sut/handle-action {:output/last-context nil} [:msg/output payload])]
-      (is (= [[:fx/append-result "42" ranges]] (:uf/fxs result))
+      (is (= [[:fx/append-result "42" ranges nil]] (:uf/fxs result))
           "The result is appended colored with its ranges")))
 
   (testing ":msg/output show-stdout with an output-category"
@@ -71,7 +71,8 @@
     (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:output/palette-key 1
                                                                          :output/frame-name-color "#d2a8ff"}])]
       (is (= (assoc sut/initial-db :output/palette-key 1) (:uf/db result)))
-      (is (= [[:fx/set-frame-name-color "#d2a8ff"]]
+      (is (= [[:fx/set-frame-name-color "#d2a8ff"]
+              [:fx/set-bracket-styles nil]]
              (:uf/fxs result))
           "Stack frames' function names take the theme's color for function names")))
   (testing ":msg/set-code-theme with the colors of another theme"
@@ -147,12 +148,12 @@
 
   (testing "a result without images is appended as before"
     (let [result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result" :output "42"}])]
-      (is (= [[:fx/append-result "42" nil]] (:uf/fxs result)))))
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs result)))))
 
   (testing "evaluated code is left raw"
     (let [payload {:command/name "show-evaluated-code" :output (str "\"" png-data-url "\"")}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"") nil]]
+      (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"") nil nil]]
              (:uf/fxs result)))))
 
   (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"

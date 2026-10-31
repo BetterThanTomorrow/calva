@@ -36,20 +36,20 @@
 (deftest rules-test
   (let [rules (set (sut/rules styles))]
     (testing "colors a bracket the same in every theme"
-      (is (contains? rules [".code-bracket-1" {:color "#0098e6"}])))
+      (is (contains? rules ["span.code-bracket-1" {:color "#0098e6"}])))
     (testing "colors a bracket by the theme's kind, for a light and dark pair"
-      (is (contains? rules ["body.vscode-light .code-bracket-0" "body.vscode-high-contrast-light .code-bracket-0" {:color "#000"}]))
-      (is (contains? rules ["body.vscode-dark .code-bracket-0" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .code-bracket-0" {:color "#ccc"}])))
+      (is (contains? rules ["body.vscode-light span.code-bracket-0" "body.vscode-high-contrast-light span.code-bracket-0" {:color "#000"}]))
+      (is (contains? rules ["body.vscode-dark span.code-bracket-0" "body.vscode-high-contrast:not(.vscode-high-contrast-light) span.code-bracket-0" {:color "#ccc"}])))
     (testing "styles the forms and brackets the way their decorations do in files"
-      (is (contains? rules ["body.vscode-dark .code-misplaced-bracket" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .code-misplaced-bracket" {:color "#ccc" :background-color "#933"}]))
-      (is (contains? rules ["body.vscode-light .code-matched-bracket" "body.vscode-high-contrast-light .code-matched-bracket" {:background-color "#d0d0d0"}]))
-      (is (contains? rules [".code-comment-form" {:font-style "italic"}]))
-      (is (contains? rules [".code-ignored-form" {:text-decoration "none; opacity: 0.5"}]))
-      (is (contains? rules [".code-ignored-top-level-form" {:text-decoration "none; opacity: 0.5"}])))))
+      (is (contains? rules ["body.vscode-dark span.code-misplaced-bracket" "body.vscode-high-contrast:not(.vscode-high-contrast-light) span.code-misplaced-bracket" {:color "#ccc" :background-color "#933"}]))
+      (is (contains? rules ["body.vscode-light span.code-matched-bracket" "body.vscode-high-contrast-light span.code-matched-bracket" {:background-color "#d0d0d0"}]))
+      (is (contains? rules ["span.code-comment-form" {:font-style "italic"}]))
+      (is (contains? rules ["span.code-ignored-form" {:text-decoration "none; opacity: 0.5"}]))
+      (is (contains? rules ["span.code-ignored-top-level-form" {:text-decoration "none; opacity: 0.5"}])))))
 
 (deftest css-test
   (let [css (sut/css styles)]
     (testing "renders the rules"
-      (is (string/includes? css ".code-bracket-1 {")))
+      (is (string/includes? css "span.code-bracket-1 {")))
     (testing "leaves out what CSS can't paint"
       (is (not (string/includes? css "overview"))))))

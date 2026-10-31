@@ -33,27 +33,66 @@
            seq
            (str/join " ")))
 
-(defn- span
-  "Returns the hiccup of the range `[from to color styles]` of `text`: a span with its classes, or the text
-   when it has none."
-  [text [from to color styles]]
-  (let [part (subs text from to)]
-    (if-let [class-name (look-class color styles)]
-      [:span {:class class-name} part]
-      part)))
+(defn- edges
+  "Returns where the `ranges` and the `marks` of `text` start and end, in order, with its start and end."
+  [text ranges marks]
+  (vec (into (sorted-set 0 (count text)) (mapcat (fn [[from to]] [from to])) (concat ranges marks))))
+
+(defn- range-index
+  "Returns the index in `ranges` of the first range that ends after `position`, from the index `i` on."
+  [ranges i position]
+  (if (and (< i (count ranges)) (<= (second (nth ranges i)) position))
+    (recur ranges (inc i) position)
+    i))
+
+(defn- active-marks
+  "Returns `[i active]`: the index in `marks`, sorted by start, of the first mark that starts after `position`,
+   from the index `i` on, and the marks over `position`, from those `active` before it and the ones it passes."
+  [marks i active position]
+  (loop [i i
+         active (filterv #(> (second %) position) active)]
+    (if (and (< i (count marks)) (<= (first (nth marks i)) position))
+      (recur (inc i) (conj active (nth marks i)))
+      [i active])))
+
+(defn- range-class
+  "Returns the classes of the range of `ranges` at the index `i`, when it covers `position`."
+  [ranges i position]
+  (when-let [[from _ color styles] (get ranges i)]
+    (when (<= from position)
+      (look-class color styles))))
+
+(defn segments
+  "Returns `[from to classes]` for each part of `text` between the edges of its `ranges`, `[from to color
+   styles]` in order, and its `marks`, `[from to class]`: the classes of the range and of the marks over it."
+  [text ranges marks]
+  (let [edges (edges text ranges marks)
+        ranges (vec ranges)
+        marks (vec (sort-by first marks))]
+    (loop [i 0
+           range-i 0
+           mark-i 0
+           active []
+           parts (transient [])]
+      (if (>= (inc i) (count edges))
+        (persistent! parts)
+        (let [from (nth edges i)
+              range-i (range-index ranges range-i from)
+              [mark-i active] (active-marks marks mark-i active from)
+              classes (remove nil? (cons (range-class ranges range-i from) (map #(nth % 2) active)))]
+          (recur (inc i) range-i mark-i active (conj! parts [from (nth edges (inc i)) classes])))))))
 
 (defn spans
-  "Returns the hiccup of `text` with the `ranges`, `[from to color styles]` in order, as spans with their
-   classes, and the text between them as it is."
-  [text ranges]
-  (let [[position parts] (reduce (fn [[position parts] [from to :as run]]
-                                   [to (cond-> parts
-                                         (< position from) (conj (subs text position from))
-                                         :always (conj (span text run)))])
-                                 [0 []]
-                                 ranges)]
-    (cond-> parts
-      (< position (count text)) (conj (subs text position)))))
+  "Returns the hiccup of `text` with its `ranges`, `[from to color styles]` in order, and its `marks`,
+   `[from to class]`, as spans with their classes, and the text with no class as it is."
+  ([text ranges]
+   (spans text ranges []))
+  ([text ranges marks]
+   (for [[from to classes] (segments text ranges marks)
+         :let [part (subs text from to)]]
+     (if (seq classes)
+       [:span {:class (str/join " " classes)} part]
+       part))))
 
 (defonce ^:private !sheet (atom nil))
 
@@ -93,7 +132,9 @@
       span)))
 
 (defn set-spans!
-  "Sets the children of `element` to `text` colored with `ranges`."
-  [^js element text ranges]
-  (add-classes! ranges)
-  (.apply (.-replaceChildren element) element (into-array (map part-node (spans text ranges)))))
+  "Sets the children of `element` to `text` colored with `ranges` and marked with `marks`."
+  ([^js element text ranges]
+   (set-spans! element text ranges []))
+  ([^js element text ranges marks]
+   (add-classes! ranges)
+   (.apply (.-replaceChildren element) element (into-array (map part-node (spans text ranges marks))))))
