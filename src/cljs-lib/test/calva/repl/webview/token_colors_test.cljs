@@ -22,19 +22,26 @@
           ["entity.name.function.clojure" "#d2a8ff"]
           ["constant" "#000000"]]
          (sut/token-rules token-colors))
-      "String selectors split on commas, arrays stay, and rules without a scope or a foreground drop"))
+      "String selectors split on commas, arrays stay, and rules without a scope or a foreground drop")
+  (is (= [] (sut/token-rules [{"scope" "x" "settings" {"foreground" ""}}]))
+      "An empty foreground is no foreground"))
 
-(deftest resolve-foreground-test
+(deftest font-style-rules-test
+  (is (= [["comment" "italic"] ["comment.line" ""]]
+         (sut/font-style-rules (conj token-colors {"scope" "comment.line" "settings" {"fontStyle" ""}})))
+      "Rules that set a font style, an empty one too"))
+
+(deftest resolve-setting-test
   (let [rules (sut/token-rules token-colors)]
-    (is (= "#ff7b72" (sut/resolve-foreground rules "storage.control.clojure"))
+    (is (= "#ff7b72" (sut/resolve-setting rules "storage.control.clojure"))
         "storage is a prefix of storage.control.clojure")
-    (is (= "#d2a8ff" (sut/resolve-foreground rules "entity.name.function.clojure"))
+    (is (= "#d2a8ff" (sut/resolve-setting rules "entity.name.function.clojure"))
         "The exact selector wins over its shorter prefix")
-    (is (= "#000000" (sut/resolve-foreground rules "constant.keyword.clojure"))
+    (is (= "#000000" (sut/resolve-setting rules "constant.keyword.clojure"))
         "On equal length the later rule wins")
-    (is (nil? (sut/resolve-foreground rules "string.quoted.double.clojure"))
+    (is (nil? (sut/resolve-setting rules "string.quoted.double.clojure"))
         "No matching selector, no foreground")
-    (is (nil? (sut/resolve-foreground rules "constantly.clojure"))
+    (is (nil? (sut/resolve-setting rules "constantly.clojure"))
         "A prefix matches on whole scope segments only")))
 
 (deftest hljs-colors-test
@@ -98,6 +105,18 @@
         "A theme with an id gets its rules by id")
     (is (empty? (sut/customization-rules nil (first themes)))
         "No customizations, no rules")))
+
+(deftest customization-groups-test
+  (is (= [{"scope" "comment" "settings" {"fontStyle" "italic"}}
+          {"scope" "punctuation.definition.comment" "settings" {"fontStyle" "italic"}}
+          {"scope" "string" "settings" {"foreground" "#555555"}}
+          {"scope" "meta.embedded.assembly" "settings" {"foreground" "#555555"}}
+          {"scope" "string.regexp" "settings" {"foreground" "#666666"}}]
+         (sut/customization-rules {"comments" {"fontStyle" "italic"}
+                                   "strings" "#555555"
+                                   "textMateRules" [{"scope" "string.regexp" "settings" {"foreground" "#666666"}}]}
+                                  (first themes)))
+      "Groups like comments and strings become rules for VS Code's scopes for them, a color or settings, before the TextMate rules"))
 
 (defn- write-theme!
   [file foreground]

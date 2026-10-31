@@ -32,8 +32,8 @@
 
 (defn- ranges+
   "Asks for clojure-lsp's semantic tokens for a copy below `document`'s text. Returns `{:ranges+ :cancel}`: a
-   promise of `[from to color]` in the request's text, or of nil without clojure-lsp or when cancelled, and the
-   function that cancels the request."
+   promise of `[from to color font-styles]` in the request's text, or of nil without clojure-lsp or when
+   cancelled, and the function that cancels the request."
   [^js adapter {:keys [text context palette]} ^js document]
   (let [{copy-text :text :keys [extension text-line]} (completion/copy context (some-> document .getText) text 0)
         ^js answer (.lspSemanticTokens adapter (some-> document .-uri) #js {:text copy-text :extension extension} text-line)]

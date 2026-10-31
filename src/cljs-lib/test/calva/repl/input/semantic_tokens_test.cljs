@@ -48,12 +48,12 @@
       (-> (request+ adapter "(foo)")
           (.then (fn [posted]
                    (testing "asks clojure-lsp and posts the text's ranges"
-                     (is (= [["(foo)" [[1 4 "#purple"]]]] posted))
+                     (is (= [["(foo)" [[1 4 "#purple" nil]]]] posted))
                      (is (= 1 @!asked)))
                    (request+ adapter "(foo)")))
           (.then (fn [posted]
                    (testing "posts the ranges it got again for the same request, without asking"
-                     (is (= [["(foo)" [[1 4 "#purple"]]]] posted))
+                     (is (= [["(foo)" [[1 4 "#purple" nil]]]] posted))
                      (is (= 1 @!asked)))
                    (request+ adapter "(foo) ")))
           (.then (fn [_]
@@ -140,7 +140,7 @@
            (js/setTimeout
             (fn []
               (testing "takes the answer to the last request when a cancelled, equal request gets none"
-                (is (= [["(foo)" [[1 4 "#purple"]]]] @!posted)))
+                (is (= [["(foo)" [[1 4 "#purple" nil]]]] @!posted)))
               (sut/forget! "v")
               (reset! highlighting/!grammar nil)
               (done))

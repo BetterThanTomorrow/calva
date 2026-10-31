@@ -32,10 +32,28 @@
    ["function.defaultLibrary" ["support.function"]]
    ["macro:clojure" ["storage.control.clojure" "keyword.control.clojure"]]])
 
+(def ^:private font-styles [:bold :italic :underline :strikethrough])
+
+(defn- font-style-parts
+  "Returns which of bold, italic, underline and strikethrough the TextMate `font-style`, like `italic bold`,
+   sets, the ones it doesn't name as false."
+  [font-style]
+  (into {} (map (fn [k] [k (string/includes? font-style (name k))])) font-styles))
+
 (defn scope-color
   "Returns the foreground of the innermost of `scopes` that one of `token-rules` matches."
   [token-rules scopes]
-  (some #(token-colors/resolve-foreground token-rules %) (reverse scopes)))
+  (some #(token-colors/resolve-setting token-rules %) (reverse scopes)))
+
+(defn scope-styles
+  "Returns the font styles, like `#{:italic}`, of the innermost of `scopes` that one of `font-style-rules` matches,
+   or nil when none matches or it sets none."
+  [font-style-rules scopes]
+  (some->> (some #(token-colors/resolve-setting font-style-rules %) (reverse scopes))
+           font-style-parts
+           (keep (fn [[style set?]] (when set? style)))
+           not-empty
+           set))
 
 (defn- selector-score
   "Returns VS Code's score for the semantic token `selector`, like `function.defaultLibrary:clojure`, on a
@@ -51,59 +69,89 @@
          (* 100 (count selector-modifiers))
          (if language 10 0)))))
 
-(defn- best-color
-  "Returns the color of the best scoring of `rules`, `[selector value]` in order, the later of equally scoring
-   ones, among those `color-of` gives a color for their value. Nil when none matches."
-  [rules color-of token-type modifiers]
-  (->> rules
-       (keep (fn [[selector value]]
-               (when-let [score (selector-score selector token-type modifiers)]
-                 (when-let [color (color-of value)]
-                   [score color]))))
-       (reduce (fn [best candidate]
-                 (if (>= (first candidate) (first best)) candidate best))
-               [-1 nil])
-       second))
+(defn- best-style
+  "Returns the style the `rules`, `[selector value]` in order, give a token of `token-type` with `modifiers`:
+   each property from the best scoring rule that sets it, the later of equally scoring ones. `style-of` gives
+   the style a rule's value sets."
+  [rules style-of token-type modifiers]
+  (first (reduce (fn [best [selector value]]
+                   (if-let [score (selector-score selector token-type modifiers)]
+                     (reduce-kv (fn [[style scores :as best] property setting]
+                                  (if (>= score (get scores property -1))
+                                    [(assoc style property setting) (assoc scores property score)]
+                                    best))
+                                best
+                                (style-of value))
+                     best))
+                 [{} {}]
+                 rules)))
 
-(defn semantic-color
-  "Returns the foreground files get for a semantic token of `token-type` with `modifiers`, as VS Code picks it:
-   from the semantic token rules, the user's after the theme's, else from the default rules."
-  [{:palette/keys [token-rules semantic-rules]} token-type modifiers]
-  (or (best-color semantic-rules
-                  #(if (string? %) % (get % "foreground"))
-                  token-type
-                  modifiers)
-      (best-color default-rules
-                  (fn [scopes] (some #(token-colors/resolve-foreground token-rules %) scopes))
-                  token-type
-                  modifiers)))
+(defn- rule-font-styles
+  "Returns the font styles a semantic token rule's `settings` set: all four from a `fontStyle`, else those of
+   `bold`, `italic`, `underline` and `strikethrough` it has."
+  [{font-style "fontStyle" :as settings}]
+  (if (string? font-style)
+    (font-style-parts font-style)
+    (into {} (filter (comp boolean? val)) (zipmap font-styles (map #(get settings (name %)) font-styles)))))
+
+(defn- rule-style
+  "Returns the style the value of a semantic token rule sets: a color, or a map with a `foreground`, and a
+   `fontStyle` or some of `bold`, `italic`, `underline` and `strikethrough`."
+  [value]
+  (if (string? value)
+    {:foreground value}
+    (cond-> (rule-font-styles value)
+      (get value "foreground") (assoc :foreground (get value "foreground")))))
+
+(defn- probed-style
+  "Returns the style of the first of `scopes` that a TextMate rule of `palette` sets a foreground or a font
+   style for, as VS Code probes the scopes of a default rule."
+  [{:palette/keys [token-rules font-style-rules]} scopes]
+  (some (fn [scope]
+          (let [foreground (token-colors/resolve-setting token-rules scope)
+                font-style (token-colors/resolve-setting font-style-rules scope)]
+            (when (or foreground font-style)
+              (merge (when foreground {:foreground foreground})
+                     (some-> font-style font-style-parts)))))
+        scopes))
+
+(defn semantic-style
+  "Returns the style files get for a semantic token of `token-type` with `modifiers`, as VS Code picks it: each
+   of `:foreground`, `:bold`, `:italic`, `:underline` and `:strikethrough` from the semantic token rules, the
+   user's after the theme's, else from the default rules. A property that no rule sets is left out."
+  [{:palette/keys [semantic-rules] :as palette} token-type modifiers]
+  (merge (best-style default-rules #(probed-style palette %) token-type modifiers)
+         (best-style semantic-rules rule-style token-type modifiers)))
 
 (defn- paint
-  [colors from to color]
-  (reduce #(assoc! %1 %2 color) colors (range from to)))
+  [looks from to look]
+  (reduce #(assoc! %1 %2 look) looks (range from to)))
 
-(defn- colored-runs
-  "Returns `[from to color]` for each run of one color in `colors`, one color per character, without the runs
-   that have none."
-  [colors]
-  (->> (map-indexed vector colors)
+(defn- runs
+  "Returns `[from to color styles]` for each run of one color and font styles in `looks`, a `[color styles]`
+   per character, without the runs that have neither."
+  [looks]
+  (->> (map-indexed vector looks)
        (partition-by second)
        (keep (fn [run]
-               (let [[from color] (first run)]
-                 (when color
-                   [from (inc (first (last run))) color]))))
+               (let [[from [color styles]] (first run)]
+                 (when (or color styles)
+                   [from (inc (first (last run))) color styles]))))
        vec))
 
 (defn highlighting
-  "Returns `[from to color]` for `text`, from its grammar `tokens` in the colors of `palette`."
-  [{:palette/keys [token-rules]} text tokens]
-  (let [color-of (memoize #(scope-color token-rules %))]
-    (colored-runs (persistent! (reduce (fn [colors [from to scopes]]
-                                         (if-let [color (color-of scopes)]
-                                           (paint colors from to color)
-                                           colors))
-                                       (transient (vec (repeat (count text) nil)))
-                                       tokens)))))
+  "Returns `[from to color styles]` for `text`, from its grammar `tokens` in the colors and font styles of
+   `palette`, with `styles` like `#{:italic}`, or nil."
+  [{:palette/keys [token-rules font-style-rules]} text tokens]
+  (let [look-of (memoize (fn [scopes]
+                           [(scope-color token-rules scopes) (scope-styles font-style-rules scopes)]))]
+    (runs (persistent! (reduce (fn [looks [from to scopes]]
+                                 (let [[color styles :as look] (look-of scopes)]
+                                   (if (or color styles)
+                                     (paint looks from to look)
+                                     looks)))
+                               (transient (vec (repeat (count text) nil)))
+                               tokens)))))
 
 (defn- line-starts
   [text]
@@ -125,17 +173,26 @@
        rest
        vec))
 
+(defn- token-look
+  "Returns `[color font-styles]` for a semantic token of `token-type` with `modifiers`, the font styles it sets
+   or unsets, like `{:italic true}`, or nil when it has neither, or is a comment."
+  [palette token-type modifiers]
+  (when (not= "comment" token-type)
+    (let [{:keys [foreground] :as style} (semantic-style palette token-type modifiers)
+          font-styles (not-empty (dissoc style :foreground))]
+      (when (or foreground font-styles)
+        [foreground font-styles]))))
+
 (defn semantic-ranges
-  "Returns `[from to color]` in `text` for the decoded semantic `tokens` of a copy where `text` starts on
-   line `text-line`. Leaves out comment tokens."
+  "Returns `[from to color font-styles]` in `text` for the decoded semantic `tokens` of a copy where `text`
+   starts on line `text-line`. Leaves out comment tokens."
   [palette tokens text-line text]
   (let [starts (line-starts text)]
     (vec (for [[line character length token-type modifiers] tokens
                :let [start (get starts (- line text-line))
-                     color (when (not= "comment" token-type)
-                             (semantic-color palette token-type modifiers))]
-               :when (and start color)]
-           [(+ start character) (+ start character length) color]))))
+                     [color font-styles :as look] (when start (token-look palette token-type modifiers))]
+               :when look]
+           [(+ start character) (+ start character length) color font-styles]))))
 
 (defn grammar-tokens
   "Returns `[from to scopes]` for each token `grammar` finds in `text`."
@@ -211,8 +268,8 @@
   (reset! !palette nil))
 
 (defn text-highlighting
-  "Returns `[from to color]` for `text` as files get it from Calva's grammar in the active color theme, or nil
-   before the grammar is loaded."
+  "Returns `[from to color styles]` for `text` as files get it from Calva's grammar in the active color theme,
+   or nil before the grammar is loaded."
   [text]
   (when-let [grammar @!grammar]
     (when-let [current (palette)]

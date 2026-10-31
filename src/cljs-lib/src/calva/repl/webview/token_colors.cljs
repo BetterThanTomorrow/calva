@@ -45,13 +45,23 @@
   [token-colors]
   (for [{:strs [scope settings]} token-colors
         :let [foreground (get settings "foreground")]
-        :when foreground
+        :when (seq foreground)
         selector (rule-scopes scope)]
     [selector foreground]))
 
-(defn resolve-foreground
-  "Returns the foreground of the rule whose scope selector is the longest prefix of `textmate-scope`.
-   Of equally long selectors, the last rule wins."
+(defn font-style-rules
+  "Returns `[scope-selector font-style]` for each scope selector in TextMate `token-colors` that sets a font
+   style. An empty font style is kept, since it clears the styles of shorter selectors."
+  [token-colors]
+  (for [{:strs [scope settings]} token-colors
+        :let [font-style (get settings "fontStyle")]
+        :when (string? font-style)
+        selector (rule-scopes scope)]
+    [selector font-style]))
+
+(defn resolve-setting
+  "Returns the setting of the rule, `[scope-selector setting]`, whose scope selector is the longest prefix of
+   `textmate-scope`. Of equally long selectors, the last rule wins."
   [rules textmate-scope]
   (->> rules
        (filter (fn [[selector _]]
@@ -70,7 +80,7 @@
   [token-colors]
   (let [rules (token-rules token-colors)]
     (into {} (for [[hljs-scope textmate-scope] hljs-scope->textmate-scope
-                   :let [foreground (resolve-foreground rules textmate-scope)]
+                   :let [foreground (resolve-setting rules textmate-scope)]
                    :when foreground]
                [hljs-scope foreground]))))
 
@@ -90,12 +100,35 @@
                             (some #{theme-name} [id label]))]
              theme))))
 
+(def ^:private token-group-scopes
+  "The scopes VS Code gives each group in `editor.tokenColorCustomizations`, like `comments`. VS Code's
+   `keyword - keyword.operator` is `keyword` here, since Calva's grammar has no `keyword.operator`."
+  [["comments" ["comment" "punctuation.definition.comment"]]
+   ["strings" ["string" "meta.embedded.assembly"]]
+   ["keywords" ["keyword" "keyword.control" "storage" "storage.type"]]
+   ["numbers" ["constant.numeric"]]
+   ["types" ["entity.name.type" "entity.name.class" "support.type" "support.class"]]
+   ["functions" ["entity.name.function" "support.function"]]
+   ["variables" ["variable" "entity.name.variable"]]])
+
+(defn- customization-object-rules
+  "Returns the TextMate rules of one `editor.tokenColorCustomizations` object: its groups, a color or settings
+   each, and then its `textMateRules`."
+  [customization]
+  (concat (for [[group scopes] token-group-scopes
+                :let [value (get customization group)]
+                :when value
+                scope scopes]
+            {"scope" scope "settings" (if (string? value) {"foreground" value} value)})
+          (get customization "textMateRules")))
+
 (defn customization-rules
   "Returns the TextMate rules in `editor.tokenColorCustomizations` that apply to `theme`, the theme's own last."
   [customizations {:theme/keys [id label]}]
-  (concat (get customizations "textMateRules")
-          (mapcat #(get-in customizations [(str "[" % "]") "textMateRules"])
-                  (distinct (remove nil? [id label])))))
+  (mapcat customization-object-rules
+          (cons customizations
+                (map #(get customizations (str "[" % "]"))
+                     (distinct (remove nil? [id label]))))))
 
 (defn- read-token-colors
   "Returns the `tokenColors` of the theme file at `theme-file`, after those of the files it includes."
@@ -218,8 +251,9 @@
 
 (defn active-theme-palette
   "Returns what the REPL Input's highlighting needs of the active color theme of `color-theme-kind`: the
-   TextMate rules with the user's, whether Clojure files get semantic highlighting, and the semantic token
-   rules in order, the user's after the theme's. Nil when the theme can't be found or read."
+   TextMate foreground and font style rules with the user's, whether Clojure files get semantic highlighting,
+   and the semantic token rules in order, the user's after the theme's. Nil when the theme can't be found or
+   read."
   [color-theme-kind]
   (when-let [^js vscode @util/vscode]
     (try
@@ -227,12 +261,14 @@
                                                               (theme-settings vscode color-theme-kind)
                                                               color-theme-kind)]
         (let [^js editor (.. vscode -workspace (getConfiguration "editor" #js {:languageId "clojure"}))
+              all-token-colors (concat (theme-token-colors file)
+                                       (customization-rules (user-customizations vscode) theme))
               {theme-semantic? :theme/semantic-highlighting?
                :theme/keys [semantic-token-colors]} (theme-semantics file)
               {:semantic/keys [enabled? rules]} (semantic-customization (.get editor "semanticTokenColorCustomizations")
                                                                         theme)]
-          {:palette/token-rules (vec (token-rules (concat (theme-token-colors file)
-                                                          (customization-rules (user-customizations vscode) theme))))
+          {:palette/token-rules (vec (token-rules all-token-colors))
+           :palette/font-style-rules (vec (font-style-rules all-token-colors))
            :palette/semantic? (semantic-highlighting? (.get editor "semanticHighlighting.enabled")
                                                       enabled?
                                                       theme-semantic?)
