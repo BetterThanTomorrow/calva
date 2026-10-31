@@ -47,3 +47,13 @@ export const completionAdapter = {
   resolveLspCompletion: (uri: vscode.Uri | undefined, item: CompletionItem) =>
     lspClient(uri)?.sendRequest(vscodeLsp.CompletionResolveRequest.type, item),
 };
+
+/** The function that asks clojure-lsp for the semantic tokens of the REPL Inputs' text, for cljs-lib. */
+export const highlightingAdapter = {
+  lspSemanticTokens: (uri: vscode.Uri | undefined, text: string, line: number) => {
+    const client = lspClient(uri);
+    return client
+      ? replInputCopy.semanticTokens(client, text, line, new vscode.CancellationTokenSource().token)
+      : Promise.resolve(undefined);
+  },
+};

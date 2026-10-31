@@ -272,6 +272,7 @@ function initReplInput() {
       whenContexts.setCurrentEditorContexts(replInputNs);
     },
     ...replInputCompletion.completionAdapter,
+    ...replInputCompletion.highlightingAdapter,
     ...replInputDefinition.definitionAdapter,
   });
 }

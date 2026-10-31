@@ -87,6 +87,42 @@ export function complete(
   );
 }
 
+/** Semantic tokens clojure-lsp gives, in LSP's relative encoding, with the legend that names their types. */
+export type CopySemanticTokens = { data: number[]; legend: vscodeLsp.SemanticTokensLegend };
+
+/**
+ * Asks for the semantic tokens of the lines from `line` on in a copy with `text`. A range request leaves out the
+ * comment tokens clojure-lsp gives ignored forms.
+ */
+export function semanticTokens(
+  client: vscodeLsp.LanguageClient,
+  text: string,
+  line: number,
+  token: vscode.CancellationToken
+): Promise<CopySemanticTokens | undefined> {
+  const legend = client.initializeResult?.capabilities.semanticTokensProvider?.legend;
+  if (!legend) {
+    return Promise.resolve(undefined);
+  }
+  const range = {
+    start: { line, character: 0 },
+    end: { line: text.split('\n').length, character: 0 },
+  };
+  return inCopy(
+    client,
+    { text, token },
+    async (uri) => {
+      const result = await client.sendRequest(
+        vscodeLsp.SemanticTokensRangeRequest.type,
+        { textDocument: { uri }, range },
+        token
+      );
+      return result ? { data: result.data, legend } : undefined;
+    },
+    undefined
+  );
+}
+
 /** A definition clojure-lsp reports: its uri, its zero-based line and character, and whether it is in the copy. */
 export type CopyDefinition = { uri: string; line: number; character: number; inCopy: boolean };
 

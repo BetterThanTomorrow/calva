@@ -113,6 +113,23 @@
       (is (= {:uf/db (assoc db :repl-input/version 3)}
              (sut/handle-action (assoc db :repl-input/version 3) [:repl-input/ax.set-brackets message]))))))
 
+(deftest set-highlighting-test
+  (let [db {:repl-input/id "output-view" :repl-input/version 2}]
+    (testing "hands the grammar layer to the editor for the REPL Input's version"
+      (is (= {:uf/db db
+              :uf/fxs [[:repl-input/fx.set-highlighting :grammar [[0 4 "#ff7b72"]]]]}
+             (sut/handle-action db [:repl-input/ax.set-highlighting {:repl-input/version 2
+                                                                     :repl-input/highlighting [[0 4 "#ff7b72"]]}]))))
+    (testing "hands the semantic layer to the editor for the REPL Input's version"
+      (is (= {:uf/db db
+              :uf/fxs [[:repl-input/fx.set-highlighting :semantic [[5 6 "#e6edf3"]]]]}
+             (sut/handle-action db [:repl-input/ax.set-semantic-tokens {:repl-input/version 2
+                                                                        :repl-input/semantic-tokens [[5 6 "#e6edf3"]]}]))))
+    (testing "drops layers computed for another version"
+      (is (= {:uf/db db}
+             (sut/handle-action db [:repl-input/ax.set-semantic-tokens {:repl-input/version 1
+                                                                        :repl-input/semantic-tokens [[5 6 "#e6edf3"]]}]))))))
+
 (deftest set-editor-settings-test
   (testing "hands the closing brackets, the bracket stylesheet, the editing settings and the completion settings to the editor"
     (let [{:uf/keys [fxs]} (sut/handle-action {:repl-input/id "output-view"}

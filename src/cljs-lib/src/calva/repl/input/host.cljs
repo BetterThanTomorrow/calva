@@ -8,8 +8,10 @@
    [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
    [calva.repl.input.focus :as focus]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.history :as history]
    [calva.repl.input.records :as records]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.repl.input.setting :as setting]
    [calva.state :as state]
    [calva.util :as util]))
@@ -212,17 +214,31 @@
   "The messages that post what the extension derives for a REPL Input, by the record key that holds it."
   {:repl-input/command-keys "repl-input-command-keys"
    :repl-input/editor-settings "repl-input-editor-settings"
-   :repl-input/brackets "repl-input-brackets"})
+   :repl-input/brackets "repl-input-brackets"
+   :repl-input/highlighting "repl-input-highlighting"})
 
 (defn- document-brackets
   [settings doc]
   (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
            :keywordize-keys true))
 
+(defn- post-semantic-tokens!
+  "Posts `ranges` to the REPL Input `id` at its current version, when its text is still the `text` they are for."
+  [id text ranges]
+  (let [{:repl-input/keys [version] record-text :repl-input/text} (get-in @!state [:repl-input/records id])]
+    (when (= text record-text)
+      (post-to-view! id {:command/name "repl-input-semantic-tokens"
+                         :repl-input/version version
+                         :repl-input/semantic-tokens ranges}))))
+
+(defn- request-semantic-tokens-later!
+  [id]
+  (semantic-tokens/request-later! id #(semantic-tokens/request! @!adapter @!state id (partial post-semantic-tokens! id))))
+
 (defn- derive-record!
-  "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
-   `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
-   what changed."
+  "Derives the cursor contexts, the command keys, the editor settings, the brackets and the highlighting of
+   the REPL Input `id` from its record and the settings, sets the cursor contexts when it has focus, posts
+   to it what changed, and asks for its semantic tokens after a pause."
   [id]
   (when-let [record (get-in @!state [:repl-input/records id])]
     (let [{:repl-input/keys [settings] :as state} @!state
@@ -231,7 +247,8 @@
           derived (assoc with-contexts
                          :repl-input/command-keys (command-keys-for state with-contexts)
                          :repl-input/editor-settings (config/editor-settings settings)
-                         :repl-input/brackets (document-brackets settings doc))]
+                         :repl-input/brackets (document-brackets settings doc)
+                         :repl-input/highlighting (highlighting/text-highlighting (:repl-input/text record)))]
       (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
         (apply-cursor-contexts!))
@@ -239,11 +256,18 @@
               :when (not= (get record k) (get derived k))]
         (post-to-view! id {:command/name command-name
                            :repl-input/version (:repl-input/version record)
-                           k (get derived k)})))))
+                           k (get derived k)}))
+      (request-semantic-tokens-later! id))))
 
 (defn- derive-records!
   []
   (run! derive-record! (keys (:repl-input/records @!state))))
+
+(defn highlighting-changed!
+  "Derives the REPL Inputs' highlighting anew, as when the grammar loaded or the color theme changed."
+  []
+  (highlighting/clear-palette!)
+  (derive-records!))
 
 (defn update-records!
   [f & args]
@@ -390,6 +414,7 @@
 (defn view-disposed!
   [view-id]
   (swap! !views dissoc view-id)
+  (semantic-tokens/forget! view-id)
   (update-records! records/remove-record view-id)
   (update-focus! [:dispose view-id]))
 

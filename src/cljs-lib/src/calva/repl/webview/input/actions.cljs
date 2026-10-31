@@ -243,6 +243,18 @@
 
     (handle-history-action db action)))
 
+(defn- handle-highlighting-action
+  "Handles the highlighting layers the extension posts, applied when they are for the current version."
+  [db [action-type payload :as action]]
+  (let [layer ({:repl-input/ax.set-highlighting [:grammar (:repl-input/highlighting payload)]
+                :repl-input/ax.set-semantic-tokens [:semantic (:repl-input/semantic-tokens payload)]}
+               action-type)]
+    (cond
+      (nil? layer) (handle-evaluation-action db action)
+      (= (:repl-input/version payload) (:repl-input/version db)) {:uf/db db
+                                                                  :uf/fxs [(into [:repl-input/fx.set-highlighting] layer)]}
+      :else {:uf/db db})))
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -304,4 +316,4 @@
       {:uf/db (assoc db :repl-input/height height)
        :uf/fxs [[:repl-input/fx.set-height height]]})
 
-    (handle-evaluation-action db action)))
+    (handle-highlighting-action db action)))

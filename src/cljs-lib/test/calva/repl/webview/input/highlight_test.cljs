@@ -38,3 +38,29 @@
     (testing "leaves quotes outside strings to bracket closing"
       (is (nil? (sut/typed-quote text 15)))
       (is (nil? (sut/typed-quote text 1))))))
+
+(deftest layered-test
+  (testing "puts the semantic ranges over the grammar ranges, as runs of one color"
+    (is (= [[0 2 "#a"] [2 4 "#b"] [4 6 "#a"]]
+           (sut/layered [[0 6 "#a"]] [[2 4 "#b"]]))))
+  (testing "leaves out what has no color, and joins neighbors of one color"
+    (is (= [[1 3 "#a"] [5 6 "#b"]]
+           (sut/layered [[1 2 "#a"] [2 3 "#a"]] [[5 6 "#b"]]))))
+  (testing "returns no runs without ranges"
+    (is (= [] (sut/layered nil nil)))))
+
+(deftest mapped-test
+  (let [insert-at-2 (fn [pos _assoc] (if (>= pos 2) (+ pos 3) pos))]
+    (testing "moves the ranges after an insertion"
+      (is (= [[0 1 "#a"] [5 7 "#b"]] (sut/mapped [[0 1 "#a"] [2 4 "#b"]] insert-at-2)))))
+  (testing "drops the ranges a deletion empties"
+    (is (= [[0 1 "#a"]] (sut/mapped [[0 1 "#a"] [2 4 "#b"]] (fn [pos _assoc] (min pos 2)))))))
+
+(deftest color-class-test
+  (testing "gives a hex color a class"
+    (is (= "repl-input-color-ff7b72" (sut/color-class "#FF7B72")))
+    (is (= "repl-input-color-ff7b72cc" (sut/color-class "#ff7b72cc"))))
+  (testing "gives no class for anything but a hex color"
+    (is (nil? (sut/color-class "red")))
+    (is (nil? (sut/color-class "#fff; } body { color: red")))
+    (is (nil? (sut/color-class nil)))))

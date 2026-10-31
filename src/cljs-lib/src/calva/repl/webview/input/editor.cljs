@@ -8,6 +8,7 @@
    [calva.repl.webview.input.definition :as definition]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.input.highlighting :as highlighting]
    [calva.repl.webview.input.history :as input-history]
    [calva.repl.webview.input.keys :as input-keys]
    [calva.repl.webview.input.stdin :as stdin]
@@ -26,22 +27,6 @@
   []
   (when-let [dom (some-> (mount-element) (.querySelector ".cm-editor"))]
     (.findFromDOM EditorView dom)))
-
-(defn- mark-decorations
-  [ranges]
-  (.set Decoration
-        (into-array (for [[from to class-name] ranges]
-                      (.range (.mark Decoration #js {:class class-name}) from to)))
-        true))
-
-(def highlighting
-  (.define StateField
-           #js {:create (fn [^js state] (mark-decorations (highlight/highlight-ranges (.. state -doc toString))))
-                :update (fn [decorations ^js transaction]
-                          (if (.-docChanged transaction)
-                            (mark-decorations (highlight/highlight-ranges (.. transaction -state -doc toString)))
-                            decorations))
-                :provide (fn [field] (.from (.-decorations EditorView) field))}))
 
 (def ^:private set-bracket-marks (.define StateEffect))
 
@@ -196,7 +181,7 @@
 (defn- extensions
   [dispatch!]
   #js [theme
-       highlighting
+       highlighting/field
        bracket-marks
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
@@ -374,7 +359,7 @@
 (defn- set-bracket-marks!
   [ranges]
   (when-let [^js view (editor-view)]
-    (.dispatch view #js {:effects (.of set-bracket-marks (mark-decorations ranges))})))
+    (.dispatch view #js {:effects (.of set-bracket-marks (highlighting/mark-decorations ranges))})))
 
 (defn- set-close-brackets!
   [brackets]
@@ -382,6 +367,10 @@
     (.dispatch view #js {:effects (.reconfigure close-brackets-compartment (close-brackets-extension brackets))})))
 
 (defonce ^:private !bracket-sheet (atom nil))
+
+(defn- set-highlighting!
+  [layer ranges]
+  (some-> (editor-view) (highlighting/set-layer! layer ranges)))
 
 (defn- set-bracket-css!
   [css]
@@ -441,6 +430,7 @@
     :repl-input/fx.set-command-keys (set-command-keys! (first args))
     :repl-input/fx.apply-edit (apply-edit! (first args))
     :repl-input/fx.set-brackets (set-bracket-marks! (first args))
+    :repl-input/fx.set-highlighting (apply set-highlighting! args)
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
     :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))

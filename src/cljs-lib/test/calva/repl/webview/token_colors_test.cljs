@@ -131,3 +131,25 @@
       (finally
         (sut/clear-theme-token-colors!)
         (fs/rmSync dir #js {:recursive true :force true})))))
+
+(deftest semantic-customization-test
+  (let [customizations {"enabled" true
+                        "rules" {"function" "#111111" "macro" "#111111"}
+                        "[GitHub Dark Default]" {"enabled" false
+                                                 "rules" {"macro" "#222222"}}}]
+    (is (= {:semantic/enabled? false
+            :semantic/rules {"function" "#111111" "macro" "#222222"}}
+           (sut/semantic-customization customizations (second themes)))
+        "The theme's own customization goes over the general one")
+    (is (= {:semantic/enabled? true
+            :semantic/rules {"function" "#111111" "macro" "#111111"}}
+           (sut/semantic-customization customizations (first themes)))
+        "Another theme gets the general customization")
+    (is (= {:semantic/rules {}} (sut/semantic-customization nil (first themes)))
+        "No customizations, no rules")))
+
+(deftest semantic-highlighting?-test
+  (is (true? (sut/semantic-highlighting? true false false)) "The setting turns it on")
+  (is (false? (sut/semantic-highlighting? false true true)) "The setting turns it off")
+  (is (false? (sut/semantic-highlighting? "configuredByTheme" false true)) "The user's customization goes over the theme")
+  (is (true? (sut/semantic-highlighting? "configuredByTheme" nil true)) "Else the theme decides"))

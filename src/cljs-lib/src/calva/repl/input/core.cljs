@@ -2,6 +2,7 @@
   "Turns the REPL Input on and off in the Output views, from the setting."
   (:require
    [calva.repl.input.config :as config]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as host]
    [calva.repl.input.recall :as recall]
    [calva.repl.input.reveal :as reveal]
@@ -47,6 +48,24 @@
   (.. ^js @util/vscode -window
       (onDidChangeActiveTerminal #(when % (host/terminal-focused!)))))
 
+(def ^:private highlighting-settings
+  ["workbench.colorTheme"
+   "editor.tokenColorCustomizations"
+   "editor.semanticTokenColorCustomizations"
+   "editor.semanticHighlighting.enabled"])
+
+(defn- create-highlighting-listeners
+  "Returns the listeners that derive the REPL Inputs' highlighting anew when the color theme, its
+   customizations or the installed themes change."
+  []
+  (let [^js vscode @util/vscode]
+    [(.. vscode -window (onDidChangeActiveColorTheme (fn [_] (host/highlighting-changed!))))
+     (.. vscode -workspace (onDidChangeConfiguration
+                            (fn [^js event]
+                              (when (some #(.affectsConfiguration event %) highlighting-settings)
+                                (host/highlighting-changed!)))))
+     (.. vscode -extensions (onDidChange (fn [_] (host/highlighting-changed!))))]))
+
 (defn ^:export init!
   "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
@@ -54,4 +73,8 @@
   (recall/load-history!)
   (reveal/load-evaluated-code!)
   (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener)))
-  (.. ^js @util/vscode-context -subscriptions (push (create-terminal-focus-listener))))
+  (.. ^js @util/vscode-context -subscriptions (push (create-terminal-focus-listener)))
+  (run! #(.. ^js @util/vscode-context -subscriptions (push %)) (create-highlighting-listeners))
+  (when-let [extension-path (.-extensionPath ^js @util/vscode-context)]
+    (.then (highlighting/load-grammar! extension-path)
+           #(host/highlighting-changed!))))

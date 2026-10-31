@@ -7,6 +7,7 @@
    [calva.repl.input.host :as host]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.trail :as trail]
    [calva.util :as util]))
 
@@ -31,6 +32,7 @@
   (let [restored (records/restored (get-in @host/!state [:repl-input/records id]))]
     (trail/log! (str "REPL Input mounted in " id))
     (swap! host/!views assoc id webview-host)
+    (semantic-tokens/forget! id)
     (host/take-record! records/take-mount msg)
     (some->> restored (merge {:restore? true}) (host/take-edit! id version))
     (mounted! id)
