@@ -273,16 +273,21 @@
   (request-semantic-tokens-later! [code] ranges))
 
 (defonce ^{:private true
-           :doc "The colors of the latest code texts colored, `{:grammar ranges :looks ranges}` by text, with
-                 `:looks` the semantic tokens layered over the grammar's, so code drawn again, like an error's
-                 details, is colored at once."}
+           :doc "The colors of the latest code colored, `{:grammar ranges :looks ranges}` by its text, namespace
+                 and session, with `:looks` the semantic tokens layered over the grammar's, so code drawn again,
+                 like an error's details, is colored at once."}
   !remembered (atom {:colors {} :texts []}))
+
+(defn- remembered-key
+  "Returns what the colors of the `code` element are remembered by: its text, namespace and session."
+  [^js code]
+  [(.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)])
 
 (def ^:private remembered-texts 100)
 
 (defn- remember!
-  "Remembers the `colors` of `text`, forgetting the colors of the text remembered longest ago when there are more
-   than `remembered-texts`."
+  "Remembers the `colors` of the code with the `remembered-key` `text`, forgetting the colors remembered longest
+   ago when there are more than `remembered-texts`."
   [text colors]
   (swap! !remembered
          (fn [{:keys [texts] :as remembered}]
@@ -311,9 +316,9 @@
   (let [missing (remove #(.. ^js % -dataset -highlighted)
                         (array-seq (.querySelectorAll element "code.clojure-code")))
         remembered (:colors @!remembered)
-        {known true unknown false} (group-by #(contains? remembered (.-textContent ^js %)) missing)]
+        {known true unknown false} (group-by #(contains? remembered (remembered-key %)) missing)]
     (doseq [^js code known]
-      (color-remembered! code (get remembered (.-textContent code))))
+      (color-remembered! code (get remembered (remembered-key code))))
     (request-highlighting! unknown)))
 
 (defn set-code-highlighting!
@@ -326,9 +331,9 @@
             :let [^js code (get elements id)]
             :when code]
       (cond
-        (seq ranges) (do (remember! (.-textContent code) {:grammar ranges})
+        (seq ranges) (do (remember! (remembered-key code) {:grammar ranges})
                          (color-with-grammar! code ranges))
-        ranges (do (remember! (.-textContent code) {:grammar []})
+        ranges (do (remember! (remembered-key code) {:grammar []})
                    (set! (.. code -dataset -highlighted) "plain"))
         :else (do (set! (.-textContent code) (.-textContent code))
                   (set! (.. code -dataset -highlighted) "uncolored"))))))
@@ -348,7 +353,7 @@
             :when (and code grammar (seq ranges))]
       (let [looks (highlight/layered grammar ranges)]
         (set-spans! code looks)
-        (remember! (.-textContent code) {:grammar grammar :looks looks})))))
+        (remember! (remembered-key code) {:grammar grammar :looks looks})))))
 
 (defn- rehighlight-code!
   "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
