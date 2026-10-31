@@ -12,7 +12,6 @@
                                                    {"scope" "entity.name.function" "settings" {"foreground" "#purple"}}
                                                    {"scope" "support" "settings" {"foreground" "#support"}}
                                                    {"scope" "variable.other" "settings" {"foreground" "#fg"}}])
-   :palette/semantic? true
    :palette/semantic-rules []})
 
 (def ^:private semantic-rules
@@ -49,35 +48,29 @@
   (testing "has no color for a type without a rule or scopes"
     (is (nil? (sut/semantic-color palette "property" [])))))
 
-(deftest keyword-tokens-test
-  (let [text ":a ::b :ns/c ::al/d ^:private x"
-        tokens [(token text 0 2 "constant.keyword.clojure")
-                (token text 3 6 "constant.keyword.clojure")
-                (token text 7 12 "constant.keyword.clojure")
-                (token text 13 19 "constant.keyword.clojure")
-                (token text 20 21 "meta.metadata.simple.clojure")
-                (token text 21 22 "meta.metadata.simple.clojure")
-                (token text 22 29 "meta.metadata.simple.clojure" "entity.name.variable.clojure")
-                (token text 30 31 "entity.name.variable.clojure")]]
-    (testing "gives the keywords' parts the types clojure-lsp gives files"
-      (is (= [[1 2 "keyword"]
-              [5 6 "keyword"]
-              [8 10 "type"] [10 11 "event"] [11 12 "keyword"]
-              [15 17 "type"] [17 18 "event"] [18 19 "keyword"]
-              [22 29 "keyword"]]
-             (sut/keyword-tokens text tokens))))))
-
 (deftest highlighting-test
   (let [text "(let [x :k])"
         tokens [(token text 1 4 "meta.expression.clojure" "storage.control.clojure")
                 (token text 6 7 "meta.expression.clojure" "entity.name.variable.clojure")
-                (token text 8 10 "meta.expression.clojure" "constant.keyword.clojure")]]
-    (testing "colors the grammar's tokens, and the keyword names as semantic tokens"
+                (token text 8 9 "meta.expression.clojure" "constant.keyword.clojure")
+                (token text 9 10 "meta.expression.clojure" "constant.keyword.clojure" "keyword.control.keyword.name.clojure")]]
+    (testing "colors each of the grammar's tokens by its innermost scope that a rule matches"
       (is (= [[1 4 "#red"] [6 7 "#orange"] [8 9 "#blue"] [9 10 "#red"]]
              (sut/highlighting palette text tokens))))
-    (testing "leaves the keywords to the grammar without semantic highlighting"
+    (testing "colors a keyword's name as the keyword when the theme has no rule for its own scope"
       (is (= [[1 4 "#red"] [6 7 "#orange"] [8 10 "#blue"]]
-             (sut/highlighting (assoc palette :palette/semantic? false) text tokens))))))
+             (sut/highlighting (update palette :palette/token-rules #(remove (fn [rule] (= "keyword" (first rule))) %))
+                               text
+                               tokens))))))
+
+(deftest keyword-parts-colors-test
+  (testing "colors the grammar's keyword parts as files color clojure-lsp's tokens for them"
+    (doseq [[scope token-type] [["keyword.control.keyword.name.clojure" "keyword"]
+                                ["entity.name.type.keyword.namespace.clojure" "type"]
+                                ["variable.other.event.keyword.separator.clojure" "event"]]]
+      (is (= (sut/semantic-color palette token-type [])
+             (sut/scope-color (:palette/token-rules palette) ["source.clojure" "constant.keyword.clojure" scope]))
+          token-type))))
 
 (def ^:private legend
   {:tokenTypes ["macro" "variable" "comment"] :tokenModifiers ["definition" "defaultLibrary"]})

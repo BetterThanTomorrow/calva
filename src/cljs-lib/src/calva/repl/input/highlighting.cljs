@@ -78,41 +78,6 @@
                   token-type
                   modifiers)))
 
-(defn- keyword-parts
-  "Returns `[from to token-type]` for the parts of the keyword from `from` to `to` in `text`, as clojure-lsp
-   gives them to files: the namespace as type, the slash as event, and the name as keyword."
-  [text from to]
-  (let [[_ colons ns-part name-part] (re-matches #"(::?)(?:([^/]+)/)?(.+)" (subs text from to))]
-    (cond
-      (nil? name-part) []
-      ns-part (let [ns-from (+ from (count colons))
-                    slash (+ ns-from (count ns-part))]
-                [[ns-from slash "type"] [slash (inc slash) "event"] [(inc slash) to "keyword"]])
-      :else [[(+ from (count colons)) to "keyword"]])))
-
-(defn- innermost?
-  [scope-prefix [_ _ scopes]]
-  (string/starts-with? (str (peek scopes)) scope-prefix))
-
-(defn keyword-tokens
-  "Returns `[from to token-type]` for the keywords in the grammar `tokens` of `text`, as clojure-lsp gives
-   them to files, the name after the colon of simple metadata included."
-  [text tokens]
-  (vec (mapcat (fn [[previous [from to :as token]]]
-                 (cond
-                   (innermost? "constant.keyword.clojure" token)
-                   (keyword-parts text from to)
-
-                   (and previous
-                        (innermost? "meta.metadata.simple.clojure" previous)
-                        (= ":" (subs text (first previous) (second previous)))
-                        (= (second previous) from)
-                        (innermost? "entity.name.variable.clojure" token))
-                   [[from to "keyword"]]
-
-                   :else []))
-               (map vector (cons nil tokens) tokens))))
-
 (defn- paint
   [colors from to color]
   (reduce #(assoc! %1 %2 color) colors (range from to)))
@@ -130,25 +95,15 @@
        vec))
 
 (defn highlighting
-  "Returns `[from to color]` for `text`, from its grammar `tokens` in the colors of `palette`, with the
-   keywords colored as semantic tokens when files get semantic highlighting."
-  [{:palette/keys [token-rules semantic?] :as palette} text tokens]
-  (let [color-of (memoize #(scope-color token-rules %))
-        grammar-colors (reduce (fn [colors [from to scopes]]
-                                 (if-let [color (color-of scopes)]
-                                   (paint colors from to color)
-                                   colors))
-                               (transient (vec (repeat (count text) nil)))
-                               tokens)
-        colors (if semantic?
-                 (reduce (fn [colors [from to token-type]]
-                           (if-let [color (semantic-color palette token-type [])]
-                             (paint colors from to color)
-                             colors))
-                         grammar-colors
-                         (keyword-tokens text tokens))
-                 grammar-colors)]
-    (colored-runs (persistent! colors))))
+  "Returns `[from to color]` for `text`, from its grammar `tokens` in the colors of `palette`."
+  [{:palette/keys [token-rules]} text tokens]
+  (let [color-of (memoize #(scope-color token-rules %))]
+    (colored-runs (persistent! (reduce (fn [colors [from to scopes]]
+                                         (if-let [color (color-of scopes)]
+                                           (paint colors from to color)
+                                           colors))
+                                       (transient (vec (repeat (count text) nil)))
+                                       tokens)))))
 
 (defn- line-starts
   [text]
