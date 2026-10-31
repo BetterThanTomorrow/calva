@@ -52,8 +52,10 @@
                         :minHeight "var(--repl-input-height, calc(2.8em + 10px))"
                         :maxHeight "var(--repl-input-height, 40vh)"}
                "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
+               ;; Scrolling stops at the REPL Input's ends, without scrolling the output
                ".cm-scroller" #js {:fontFamily "inherit"
-                                   :overflow "auto"}
+                                   :overflow "auto"
+                                   :overscrollBehavior "contain"}
                ".cm-content" #js {:caretColor "var(--vscode-editorCursor-foreground)"
                                   :padding "4px 0"}
                ".cm-cursor, .cm-dropCursor" #js {:borderLeftColor "var(--vscode-editorCursor-foreground)"}
