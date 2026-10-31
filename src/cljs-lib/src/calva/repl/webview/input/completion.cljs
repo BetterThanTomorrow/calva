@@ -9,8 +9,7 @@
    ["@codemirror/autocomplete" :refer [acceptCompletion autocompletion completionStatus moveCompletionSelection
                                        startCompletion]]
    ["@codemirror/state" :refer [Prec]]
-   ["@codemirror/view" :refer [EditorView keymap]]
-   ["highlight.js/lib/core" :as hljs]))
+   ["@codemirror/view" :refer [EditorView keymap]]))
 
 (defn word-start
   "Returns where the word that ends at `offset` in `text` starts, after a leading syntax quote."
@@ -50,7 +49,7 @@
 
 (defn- docs-element
   "Returns the element of the docs of a candidate: its `detail` and `documentation`, with their code colored
-   with the extension's `highlighting`, its ranges by the code's text, or with highlight.js without them."
+   with the extension's `highlighting`, its ranges by the code's text."
   [detail documentation highlighting]
   (let [blocks (input-completion/docs-blocks detail documentation)]
     (when (seq blocks)
@@ -58,10 +57,9 @@
         (doseq [[kind text] blocks]
           (let [child (js/document.createElement (if (= :code kind) "pre" "p"))
                 ranges (get highlighting text)]
-            (cond
-              (not= :code kind) (set! (.-textContent child) text)
-              ranges (code-highlight/set-spans! child text ranges)
-              :else (set! (.-innerHTML child) (.-value (.highlight hljs text #js {:language "clojure" :ignoreIllegals true}))))
+            (if (and (= :code kind) ranges)
+              (code-highlight/set-spans! child text ranges)
+              (set! (.-textContent child) text))
             (.appendChild element child)))
         element))))
 

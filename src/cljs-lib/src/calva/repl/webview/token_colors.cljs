@@ -6,19 +6,6 @@
    [calva.util :as util]
    [clojure.string :as string]))
 
-(def hljs-scope->textmate-scope
-  "The TextMate scope from Calva's Clojure grammar that colors what highlight.js gives each scope."
-  {"keyword" "storage.control.clojure"
-   "title" "entity.global.clojure"
-   "name" "entity.name.function.clojure"
-   "built_in" "entity.name.function.clojure"
-   "symbol" "constant.keyword.clojure"
-   "string" "string.quoted.double.clojure"
-   "number" "constant.numeric.long.clojure"
-   "comment" "comment.line.semicolon.clojure"
-   "literal" "constant.language.boolean.clojure"
-   "regex" "string.regexp.clojure"})
-
 (def color-theme-kind->ui-theme
   "The `uiTheme` a contributed theme declares, for each `vscode.ColorThemeKind` value."
   {1 "vs"
@@ -74,15 +61,6 @@
                    best))
                nil)
        second))
-
-(defn hljs-colors
-  "Returns highlight.js scope → foreground for the TextMate `token-colors`."
-  [token-colors]
-  (let [rules (token-rules token-colors)]
-    (into {} (for [[hljs-scope textmate-scope] hljs-scope->textmate-scope
-                   :let [foreground (resolve-setting rules textmate-scope)]
-                   :when foreground]
-               [hljs-scope foreground]))))
 
 (defn active-theme
   "Returns the theme in `themes` that the workbench settings make active for `color-theme-kind`."
@@ -212,21 +190,6 @@
 (defn- user-customizations
   [^js vscode]
   (js->clj (.. vscode -workspace (getConfiguration "editor") (get "tokenColorCustomizations"))))
-
-(defn active-theme-hljs-colors
-  "Returns highlight.js scope → foreground for the active color theme of `color-theme-kind`, with the user's
-   `editor.tokenColorCustomizations`, or nil when the theme can't be found or read."
-  [color-theme-kind]
-  (when-let [^js vscode @util/vscode]
-    (try
-      (when-let [{:theme/keys [file] :as theme} (active-theme (contributed-themes vscode)
-                                                              (theme-settings vscode color-theme-kind)
-                                                              color-theme-kind)]
-        (hljs-colors (concat (theme-token-colors file)
-                             (customization-rules (user-customizations vscode) theme))))
-      (catch :default e
-        (util/log-to-console :error "Cannot read the color theme's token colors:" e)
-        nil))))
 
 (defn semantic-customization
   "Returns the `enabled` and the `rules`, in their order, of `customizations`, the JS object of

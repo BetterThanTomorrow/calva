@@ -2,7 +2,6 @@
   "The hiccup of an error entry in an Output view: the error text with a control to unfold its causes
    and their frames. Its controls' actions are in their `data-action` attributes."
   (:require
-   ["highlight.js/lib/core" :as hljs]
    [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.tooltip :as tooltip]
@@ -74,7 +73,7 @@
                     location-element)
        location-element)
      [:span {:class ["output-error-frame-qualifier"]} (str qualifier "/")]
-     [:span {:class ["hljs-name"]} name]]))
+     [:span {:class ["output-error-frame-name"]} name]]))
 
 (defn- location-element
   [{:location/keys [label file-url line column]}]

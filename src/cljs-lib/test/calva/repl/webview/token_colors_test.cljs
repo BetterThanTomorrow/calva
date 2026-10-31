@@ -45,16 +45,6 @@
     (is (nil? (sut/resolve-setting rules "constantly.clojure"))
         "A prefix matches on whole scope segments only")))
 
-(deftest hljs-colors-test
-  (is (= {"keyword" "#ff7b72"
-          "name" "#d2a8ff"
-          "built_in" "#d2a8ff"
-          "symbol" "#000000"
-          "number" "#000000"
-          "literal" "#000000"}
-         (sut/hljs-colors token-colors))
-      "Scopes without a resolved foreground are left out"))
-
 (def themes
   [{:theme/id "Default Dark Modern" :theme/label "Dark Modern" :theme/ui-theme "vs-dark" :theme/file "dark_modern.json"}
    {:theme/label "GitHub Dark Default" :theme/ui-theme "vs-dark" :theme/file "dark-default.json"}

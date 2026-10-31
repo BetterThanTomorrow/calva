@@ -1,15 +1,14 @@
 (ns calva.repl.webview.styles.copy-buttons
-  "The styles of the copy buttons, the result blocks' from highlightjs-copy included."
+  "The styles of the copy buttons, which every block that has one shares."
   (:require [garden.stylesheet :as stylesheet]))
 
 (def copy-button
   "The copy button, with its icon."
-  [;; Every copy button in the Output views looks and behaves the same: the result, stdout, image
+  [;; Every copy button in the Output views looks and behaves the same: the code, stdout, image
    ;; and error copy buttons are icon buttons in the top right corner, outside the flow, showing on hover or
-   ;; focus. highlightjs-copy draws the result buttons, and its stylesheet loads after this one, so
-   ;; its rules are matched with `body` in front.
+   ;; focus.
 
-   [:.output-copy-button "body .hljs-copy-button"
+   [:.output-copy-button
     {:position :relative
      :box-sizing :border-box
      :width "32px"
@@ -41,18 +40,12 @@
 
 (def copied
   "The check a copy button shows once it copied."
-  [;; highlightjs-copy shows "Copied!" as text; every copy button shows a check instead
-
-   ["body .hljs-copy-button[data-copied=\"true\"]" {:width "32px"
-                                                    :text-indent "-9999px"}]
-
-   [".output-copy-button[data-copied=\"true\"]::before"
-    "body .hljs-copy-button[data-copied=\"true\"]::before"
+  [[".output-copy-button[data-copied=\"true\"]::before"
     {:mask-image "url('data:image/svg+xml;utf-8,<svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z\"/></svg>')"}]])
 
 (def showing
   "Where the copy buttons are, and when they show."
-  [[:.output-copy-button "body .hljs-copy-container[data-autohide=\"true\"]"
+  [[:.output-copy-button
     {:opacity 0
      :transform :none
      :transition [[:opacity "200ms" :ease-out] [:background-color "200ms" :ease]]}]
@@ -63,9 +56,6 @@
     ".output-error:hover .output-copy-button"
     ".output-copy-button:focus-visible"
     ".output-copy-button[data-copied=\"true\"]"
-    "body .hljs-copy-wrapper:hover .hljs-copy-container"
-    "body .hljs-copy-wrapper:focus-within .hljs-copy-container"
-    "body .hljs-copy-container:has([data-copied=\"true\"])"
     {:opacity 1}]
 
    [:.output-image-copy :.output-error-copy :.output-stdout-copy :.output-code-copy {:position :absolute
@@ -77,7 +67,4 @@
    [:.output-stdout {:position :relative}]
 
    (stylesheet/at-media {:prefers-reduced-motion nil}
-                        [:.output-copy-button
-                         "body .hljs-copy-button"
-                         "body .hljs-copy-container[data-autohide=\"true\"]"
-                         {:transition :none}])])
+                        [:.output-copy-button {:transition :none}])])

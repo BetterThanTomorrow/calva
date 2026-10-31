@@ -11,10 +11,7 @@
    [cljs.reader :as reader]
    [clojure.string :as str]
    [clojure.walk :as walk]
-   [garden.core :as garden]
-   ["strip-ansi" :default strip-ansi]
-   ["highlight.js/lib/core" :as hljs]
-   ["highlight.js/lib/languages/clojure" :as clojure]))
+   ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -284,18 +281,16 @@
 
 (defn set-code-highlighting!
   "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, marking each as colored by the
-   grammar, as plain when it has no ranges, or colored by highlight.js when the extension can't highlight."
+   grammar, or as plain when it has no ranges, as when it is too long or the extension can't highlight."
   [codes]
   (let [elements (code-elements)]
     (doseq [[id ranges] codes
             :let [^js code (get elements id)]
             :when code]
-      (cond
-        (seq ranges) (do (remember-ranges! (.-textContent code) ranges)
-                         (color-with-grammar! code ranges))
-        ranges (set! (.. code -dataset -highlighted) "plain")
-        :else (do (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true})))
-                  (set! (.. code -dataset -highlighted) "hljs"))))))
+      (if (seq ranges)
+        (do (remember-ranges! (.-textContent code) ranges)
+            (color-with-grammar! code ranges))
+        (set! (.. code -dataset -highlighted) "plain")))))
 
 (defn set-semantic-tokens!
   "Lays the semantic `ranges` of `codes`, `[id ranges]` each, over the grammar's ranges of their code elements."
@@ -626,49 +621,23 @@
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
 
-(defn update-theme-of-copy-buttons
+(defonce ^:private !frame-name-sheet (atom nil))
+
+(defn- frame-name-sheet
   []
-  (.. (js/document.querySelectorAll "div.hljs-copy-container")
-      (forEach (fn [^js copy-container-node]
-                 (let [parent-node (.. copy-container-node -parentNode)
-                       hljs-code-node (.. parent-node (querySelector "code.hljs"))
-                       code-computed-style (js/getComputedStyle hljs-code-node)
-                       code-background-color (.-backgroundColor code-computed-style)
-                       code-foreground-color (.-color code-computed-style)
-                       code-padding (.-padding code-computed-style)]
-                   (.. copy-container-node -style (setProperty "--hljs-theme-background" code-background-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-color" code-foreground-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
-
-(defn set-code-theme!
-  [code-theme]
-  (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
-    (.. code-theme-link-nodes (forEach (fn [^js node]
-                                         (let [current-code-theme (.. node -dataset -codeTheme)]
-                                           (if (= current-code-theme code-theme)
-                                             (.. node (removeAttribute "disabled"))
-                                             (.. node (setAttribute "disabled" "disabled")))))))
-    ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
-    (js/setTimeout update-theme-of-copy-buttons 100)))
-
-(defn token-colors-css
-  "Returns CSS that gives each highlight.js scope in `colors` its color, over the code theme's."
-  [colors]
-  (garden/css (for [[scope color] colors]
-                [(str ":root .hljs-" scope) {:color color}])))
-
-(defonce !token-colors-sheet (atom nil))
-
-(defn- token-colors-sheet
-  []
-  (or @!token-colors-sheet
+  (or @!frame-name-sheet
       (let [sheet (js/CSSStyleSheet.)]
         (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-        (reset! !token-colors-sheet sheet))))
+        (reset! !frame-name-sheet sheet))))
 
-(defn set-token-colors!
-  [colors]
-  (.replaceSync ^js (token-colors-sheet) (token-colors-css colors)))
+(defn set-frame-name-color!
+  "Gives the stack frames' function names the hex `color`, the theme's color for function names, or the text's
+   color for any other color."
+  [color]
+  (.replaceSync ^js (frame-name-sheet)
+                (if (code-highlight/color-class color)
+                  (str ":root { --calva-frame-name-color: " color "; }")
+                  "")))
 
 (defn set-word-wrap!
   [word-wrap]
@@ -765,8 +734,7 @@
     :fx/copy-stdout (copy-stdout! (first args))
     :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
-    :fx/set-code-theme (set-code-theme! (first args))
-    :fx/set-token-colors (set-token-colors! (first args))
+    :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
@@ -862,5 +830,4 @@
   (.. output-dom-element (addEventListener "error" #(on-image-error %) true)))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element)
-  (.. hljs (registerLanguage "clojure" clojure)))
+  (add-event-listeners output-dom-element))

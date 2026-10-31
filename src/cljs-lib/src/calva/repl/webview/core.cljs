@@ -228,37 +228,6 @@
     (when-let [listener (create-font-scale-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
-(def highlight-js-code-theme-stylesheet-data
-  "The highlight.js stylesheet of each code theme, as its path under `repl-output-ui/css`."
-  [["dark" ["vendor" "highlight.js" "github-dark.min.css"]]
-   ["light" ["vendor" "highlight.js" "github.min.css"]]
-   ["high-contrast" ["vendor" "highlight.js" "base16" "windows-high-contrast.min.css"]]
-   ["high-contrast-light" ["vendor" "highlight.js" "base16" "windows-high-contrast-light.min.css"]]])
-
-(def copy-button-stylesheet
-  "The path under `repl-output-ui/css` of the highlight.js copy button plugin's stylesheet."
-  ["vendor" "highlightjs-copy" "highlightjs-copy.min.css"])
-
-(defn highlight-js-code-theme-stylesheet-link
-  "Returns the link to the highlight.js stylesheet `href` of `theme`, disabled unless it is `code-theme`."
-  [code-theme [theme href]]
-  [:link {:rel "stylesheet" :href (str href) :data-code-theme theme :disabled (not= code-theme theme)}])
-
-(defn code-theme-for-kind
-  [^js color-theme-kind-enum color-theme-kind]
-  (condp = color-theme-kind
-    (.. color-theme-kind-enum -Dark) "dark"
-    (.. color-theme-kind-enum -Light) "light"
-    (.. color-theme-kind-enum -HighContrast) "high-contrast"
-    (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
-    nil))
-
-(defn code-theme-from-context
-  [{:keys [^js vscode/vscode]}]
-  (when vscode
-    (code-theme-for-kind (.-ColorThemeKind vscode)
-                         (.. vscode -window -activeColorTheme -kind))))
-
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 
@@ -278,7 +247,7 @@
 
 (defn page
   "Returns the page of an Output view, as hiccup."
-  [{:env/keys [is-debug]} {:keys [js-source styles code-theme-stylesheets copy-button-css-href csp-source code-theme greeting word-wrap? font-scale image-display script-nonce repl-input]}]
+  [{:env/keys [is-debug]} {:keys [js-source styles csp-source greeting word-wrap? font-scale image-display script-nonce repl-input]}]
   [:html {:lang "en" :style {:--calva-output-font-scale (str (or font-scale 1.0))}}
    [:head
     [:meta {:charset "UTF-8"}]
@@ -286,10 +255,7 @@
     [:meta {:http-equiv "Content-Security-Policy"
             :content (content-security-policy is-debug csp-source script-nonce)}]
     [:title "REPL Output"]
-    [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]
-    (for [stylesheet code-theme-stylesheets]
-      (highlight-js-code-theme-stylesheet-link code-theme stylesheet))
-    [:link {:rel "stylesheet" :href (str copy-button-css-href)}]]
+    [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
    [:body (cond-> {:data-image-display (or image-display default-image-display)}
             word-wrap? (assoc :class "word-wrap"))
     greeting
@@ -305,19 +271,6 @@
         js-path (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))]
     (.. ^js webview-panel -webview (asWebviewUri js-path))))
 
-(defn get-css-path
-  "Returns the uri of the stylesheet at the path `stylesheet` under `repl-output-ui/css`."
-  [{:keys [vscode/vscode]
-    vscode-context :vscode/context}
-   stylesheet]
-  (let [^js uri (.-Uri ^js vscode)]
-    (.apply (.-joinPath uri) uri (into-array (concat [(.-extensionUri ^js vscode-context) "repl-output-ui" "css"]
-                                                     stylesheet)))))
-
-(defn- stylesheet-href
-  [context ^js webview-panel stylesheet]
-  (.. webview-panel -webview (asWebviewUri (get-css-path context stylesheet))))
-
 (defn set-webview-html!
   [context
    {:keys [^js webview-panel view-kind]
@@ -328,13 +281,8 @@
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
         view-page (page context {:js-source js-source
                                  :styles (styles/css)
-                                 :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
-                                                                 [theme (stylesheet-href context webview-panel stylesheet)])
-                                                               highlight-js-code-theme-stylesheet-data)
-                                 :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
                                  :csp-source csp-source
                                  :script-nonce script-nonce
-                                 :code-theme (code-theme-from-context context)
                                  :greeting (greeting/for-view view-kind logo-href)
                                  :word-wrap? (word-wrap?)
                                  :font-scale (get-output-views-font-scale-setting)
@@ -343,21 +291,15 @@
     (set! (.. webview-panel -webview -html) (html/document view-page))))
 
 (defn set-code-theme!
-  "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based
-   on the given color theme kind, with the code colors of the active color theme."
-  [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
-  (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
-        code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)
-        palette (token-colors/active-theme-palette color-theme-kind)]
-    (if code-theme
-      (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :code-theme code-theme
-                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)
-                                              :output/palette-key (hash palette)})
-      (util/log-to-console
-       :error
-       "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
-       color-theme-kind))))
+  "Posts the webview `webview-panel` the colors of the active color theme of `color-theme-kind` that printed
+   code needs: the key of its palette, which tells when its code needs coloring again, and its color for
+   function names, which stack frames take."
+  [_context {:keys [color-theme-kind webview-panel]}]
+  (let [palette (token-colors/active-theme-palette color-theme-kind)]
+    (post-message-to-webview webview-panel {:command/name "set-code-theme"
+                                            :output/palette-key (hash palette)
+                                            :output/frame-name-color (highlighting/scope-color (:palette/token-rules palette)
+                                                                                               ["entity.name.function.clojure"])})))
 
 (defn post-code-theme-to-all-views!
   [context color-theme-kind]

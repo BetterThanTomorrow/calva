@@ -68,13 +68,12 @@
 
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"
-    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"
-                                                                         :token-colors {"keyword" "#ff7b72"}}])]
-      (is (= (assoc sut/initial-db :output/palette-key nil) (:uf/db result)))
-      (is (= [[:fx/set-code-theme "dark"]
-              [:fx/set-token-colors {"keyword" "#ff7b72"}]]
+    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:output/palette-key 1
+                                                                         :output/frame-name-color "#d2a8ff"}])]
+      (is (= (assoc sut/initial-db :output/palette-key 1) (:uf/db result)))
+      (is (= [[:fx/set-frame-name-color "#d2a8ff"]]
              (:uf/fxs result))
-          "The theme's code colors go over the code theme")))
+          "Stack frames' function names take the theme's color for function names")))
   (testing ":msg/set-code-theme with the colors of another theme"
     (let [first-theme (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
           same-theme (sut/handle-action (:uf/db first-theme) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
@@ -95,13 +94,7 @@
       (is (not-any? #{[:fx/rehighlight-code]} (:uf/fxs shown-again))
           "Showing the view again without a palette highlights nothing again")
       (is (some #{[:fx/rehighlight-code]} (:uf/fxs readable-again))
-          "Getting the palette back highlights the printed code again")))
-
-  (testing ":msg/set-code-theme without token colors"
-    (is (= [[:fx/set-code-theme "dark"]
-            [:fx/set-token-colors nil]]
-           (:uf/fxs (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"}])))
-        "Colors from an earlier theme go, and the code theme's colors show")))
+          "Getting the palette back highlights the printed code again"))))
 
 (def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 

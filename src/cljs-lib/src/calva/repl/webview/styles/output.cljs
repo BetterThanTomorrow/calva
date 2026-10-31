@@ -37,10 +37,10 @@
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
    [:body.word-wrap
-    [:code.hljs :code.output-code {:white-space :pre-wrap
-                                   :overflow-wrap :anywhere
-                                   :padding-left "calc(1em + 1.5ch)"
-                                   :text-indent "-1.5ch"}]]])
+    [:code.output-code {:white-space :pre-wrap
+                        :overflow-wrap :anywhere
+                        :padding-left "calc(1em + 1.5ch)"
+                        :text-indent "-1.5ch"}]]])
 
 (def code
   "Printed code, in the editor's colors, with its copy button at the top right."

@@ -140,12 +140,11 @@
      :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
 
 (defn- handle-set-code-theme
-  "Sets the code theme and its colors, and colors the printed code again when the theme's palette is another
-   than the page had."
-  [db {:keys [code-theme token-colors] palette-key :output/palette-key}]
+  "Sets the color of stack frames' function names, and colors the printed code again when the theme's palette
+   is another than the page had."
+  [db {palette-key :output/palette-key frame-name-color :output/frame-name-color}]
   {:uf/db (assoc db :output/palette-key palette-key)
-   :uf/fxs (cond-> [[:fx/set-code-theme code-theme]
-                    [:fx/set-token-colors token-colors]]
+   :uf/fxs (cond-> [[:fx/set-frame-name-color frame-name-color]]
              (and (contains? db :output/palette-key)
                   (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
 

@@ -24,13 +24,13 @@
                       [from to class-name])))
 
 (defn- highlighted
-  "Returns the field's value for `layers`, the extension's `:grammar` and `:semantic` ranges, or, before
-   the extension posted any, for highlight.js's ranges in `text`."
-  [layers text]
+  "Returns the field's value for `layers`, the extension's `:grammar` and `:semantic` ranges, with no
+   decorations before the extension posted any."
+  [layers]
   {:layers layers
    :decorations (if layers
                   (look-decorations (highlight/layered (:grammar layers) (:semantic layers)))
-                  (mark-decorations (highlight/highlight-ranges text)))})
+                  (.-none Decoration))})
 
 (defn- moved-layers
   [layers ^js transaction]
@@ -53,11 +53,11 @@
   "The REPL Input's highlighting, with the extension's layers moved along with the edits until it posts
    them anew."
   (.define StateField
-           #js {:create (fn [^js state] (highlighted nil (.. state -doc toString)))
+           #js {:create (fn [_] (highlighted nil))
                 :update (fn [{:keys [layers] :as value} ^js transaction]
                           (let [layers-after (posted-layers (moved-layers layers transaction) transaction)]
                             (if (or (.-docChanged transaction) (not= layers-after layers))
-                              (highlighted layers-after (.. transaction -state -doc toString))
+                              (highlighted layers-after)
                               value)))
                 :provide (fn [state-field]
                            (.from (.-decorations EditorView) state-field (fn [value] (:decorations value))))}))
