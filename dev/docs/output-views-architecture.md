@@ -31,7 +31,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `token_colors.cljs` | Reads the active color theme's token colors for highlight.js |
 | | `greeting.cljs` | The greeting at the top of each view |
 | | `html.cljs` | Renders hiccup to HTML with Replicant |
-| | `styles.cljs` | The views' own styles as Garden data, `rules`, and the Output Sidebar help page's, `help-rules`, with `css` and `help-css`, which render them |
+| | `styles.cljs` | The views' own styles as Garden data, `rules`, and the Output Sidebar help page's, `help-rules`, with `css` and `help-css`, which render them. `rules` puts together, in the order they apply, the rules of `styles/output.cljs`, `images.cljs`, `copy_buttons.cljs`, `repl_input.cljs` and `errors.cljs` |
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
@@ -120,7 +120,7 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 `core/page` builds the page for both views as hiccup, and `set-webview-html!` renders it with `html/document`. Replicant writes a double quote as `&#39;`, the entity of an apostrophe, so `html/render` writes those as `&quot;`. HTML parsing turns a carriage return into a line feed, so `html/render` writes carriage returns as `&#13;`, and output keeps them. A VS Code `Uri` goes into the hiccup as a string, since Replicant writes an attribute whose value isn't a string, a number or a keyword as a bare name. The page has:
 
 - A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the styles in the page. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
-- The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
+- The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` or a namespace under `styles/` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
 - The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
 - The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
