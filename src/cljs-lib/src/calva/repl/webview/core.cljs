@@ -104,12 +104,8 @@
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def image-display-modes
-  ["images" "raw" "images-including-remote-urls"])
-
-(def image-display-cycle-modes
-  "Modes the Cycle Output View Image Display command walks. Remote loading stays on the
-   setting and on an explicit command argument."
-  ["images" "raw"])
+  "The image display modes, in the order the Cycle Output View Image Display command walks them."
+  ["images" "images-including-remote-urls" "raw"])
 
 (def default-image-display
   "images")
@@ -141,14 +137,14 @@
 
 (defn next-image-display
   [current]
-  (let [n (count image-display-cycle-modes)
-        idx (or (->> image-display-cycle-modes
+  (let [n (count image-display-modes)
+        idx (or (->> image-display-modes
                      (keep-indexed (fn [i mode] (when (= mode current) i)))
                      first)
                 -1)]
     (if (neg? idx)
-      (first image-display-cycle-modes)
-      (nth image-display-cycle-modes (mod (inc idx) n)))))
+      (first image-display-modes)
+      (nth image-display-modes (mod (inc idx) n)))))
 
 (defn apply-image-display!
   [display]

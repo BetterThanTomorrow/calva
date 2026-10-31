@@ -842,14 +842,12 @@
         (is (spy/called-n-times? post-message-to-webview-spy 2))))))
 
 (deftest image-display-modes-start-at-default-test
-  (testing "valid modes still include remote; the cycle list is images then raw"
+  (testing "the modes, in the order the command cycles them, start at the default"
     (is (= "images" sut/default-image-display))
-    (is (= "images" (first sut/image-display-modes)))
-    (is (= ["images" "raw" "images-including-remote-urls"] sut/image-display-modes))
-    (is (= ["images" "raw"] sut/image-display-cycle-modes))))
+    (is (= ["images" "images-including-remote-urls" "raw"] sut/image-display-modes))))
 
 (deftest cycle-image-display-test
-  (testing "cycles remote setting to images, not through the cycle button path to remote"
+  (testing "cycles the remote setting to raw"
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom nil)
@@ -857,10 +855,10 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display)
-        (is (= "images" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "images"))
-        (is (spy/called-once-with? post-spy "images")))))
-  (testing "flips images to raw in the override, the context and all views"
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "cycles images to remote images in the override, the context and all views"
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom nil)
@@ -868,9 +866,9 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display)
-        (is (= "raw" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "raw"))
-        (is (spy/called-once-with? post-spy "raw")))))
+        (is (= "images-including-remote-urls" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images-including-remote-urls"))
+        (is (spy/called-once-with? post-spy "images-including-remote-urls")))))
   (testing "cycles raw back to images"
     (let [post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom "raw")
@@ -909,9 +907,9 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display nil)
-        (is (= "images" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "images"))
-        (is (spy/called-once-with? post-spy "images"))))))
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw"))))))
 
 (deftest create-image-display-change-listener-test
   (let [captured-handler (atom nil)
