@@ -70,10 +70,10 @@
    reading Calva's keybindings first when no REPL Input has."
   [^js webview-host {:repl-input/keys [id] :as msg}]
   (swap! host/!views assoc id webview-host)
-  (take-record! records/take-mount msg)
+  (take-record! records/take-focus msg)
   (host/update-focus! [:printed-code-focus id])
   (when (empty? (:repl-input/keybindings @host/!state))
-    (some-> (host/load-keybindings!) (.then #(derive! id)))))
+    (host/load-keybindings!)))
 
 (defn- unmounted!
   [id]
@@ -132,11 +132,35 @@
 
 (defn ^:export select-focused!
   "Runs `f` on a document with the text and selections of the printed code that Calva's commands reach, and
-   posts the selections `f` made to it. Returns a promise of when that is done."
+   posts the selections `f` made to it. Returns a promise of when that is done. When `f` fails, the document
+   is made anew next time."
   [f]
   (let [target (command-target!)]
     (if-let [record (get-in @host/!state [:printed-code/records target])]
       (let [doc (document record)]
-        (-> (js/Promise.resolve (f doc))
-            (.then (fn [_] (moved! target record doc)))))
+        (-> (js/Promise.resolve)
+            (.then (fn [_] (f doc)))
+            (.then (fn [_] (moved! target record doc)))
+            (.catch (fn [e]
+                      (swap! !documents dissoc target)
+                      (throw e)))))
       (js/Promise.resolve nil))))
+
+(defn- settings-changed?
+  [before after]
+  (not= (select-keys before [:repl-input/settings :repl-input/keybindings :repl-input/connected?])
+        (select-keys after [:repl-input/settings :repl-input/keybindings :repl-input/connected?])))
+
+(defn init!
+  "Derives the printed code's records anew when the settings, the keybindings or the connection change, and
+   forgets a view's printed code when the view goes."
+  []
+  (add-watch host/!state ::settings
+             (fn [_ _ before after]
+               (when (settings-changed? before after)
+                 (run! derive! (keys (:printed-code/records after))))))
+  (add-watch host/!views ::views
+             (fn [_ _ before after]
+               (doseq [id (remove (set (keys after)) (keys before))]
+                 (swap! host/!state update :printed-code/records records/remove-record id)
+                 (swap! !documents dissoc id)))))

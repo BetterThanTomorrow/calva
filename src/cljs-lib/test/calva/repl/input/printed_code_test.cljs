@@ -143,3 +143,54 @@
                          (testing "gives the focus back to the last focused printed code"
                            (is (= ["output-view"] (mapv :repl-input/id (posted-named posted "printed-code-focus")))))
                          (done))))))))))
+
+(deftest refocus-test
+  (with-fresh-host
+    (fn [host]
+      (with-view host
+        (fn []
+          (focus-printed-code! "output-view" "(a (b))" [[4 4]])
+          (swap! host/!state assoc-in [:printed-code/records "output-view" :repl-input/selections-stack] [[[4 4]]])
+          (post! {:command "printed-code-changed" :repl-input/id "output-view" :version 1 :selections [[3 6]]})
+          (post! {:command "printed-code-focused" :repl-input/id "output-view" :version 0 :text "(a (b))" :selections [[4 4]]})
+          (testing "a focus from before the latest change leaves the record as it is"
+            (is (= [1 [[3 6]]] ((juxt :repl-input/version :repl-input/selections)
+                                (get-in @host/!state [:printed-code/records "output-view"])))))
+          (post! {:command "printed-code-focused" :repl-input/id "output-view" :version 1 :text "(a (b))" :selections [[3 6]]})
+          (testing "the focus coming back keeps the selection history, for a range contraction"
+            (is (= [[[4 4]]] (get-in @host/!state [:printed-code/records "output-view" :repl-input/selections-stack])))))))))
+
+(deftest settings-and-views-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (sut/init!)
+          (swap! host/!state assoc :repl-input/keybindings
+                 (command-keys/parsed [{:command "paredit.forwardSexp"
+                                        :key "ctrl+alt+right"
+                                        :when "calva:printedCodeFocused && config.calva.keybindingsEnabled"}]))
+          (focus-printed-code! "output-view" "(a)" [[1 1]])
+          (host/settings-changed! {"calva.keybindingsEnabled" true})
+          (testing "derives the command keys anew when the settings change"
+            (is (= #{"ctrl+alt+right"}
+                   (:keys (:repl-input/command-keys (last (posted-named posted "printed-code-command-keys")))))))
+          (swap! host/!views dissoc "output-view")
+          (testing "forgets the printed code of a view that goes"
+            (is (= {} (:printed-code/records @host/!state)))
+            (is (= {} @sut/!documents))))))))
+
+(deftest failing-command-test
+  (async done
+    (with-fresh-host
+      (fn [host]
+        (with-view host
+          (fn []
+            (focus-printed-code! "output-view" "(a)" [[1 1]])
+            (-> (sut/select-focused! (fn [^js doc]
+                                       (set! (.-text doc) "(a b)")
+                                       (throw (js/Error. "failed"))))
+                (.catch (fn [_]
+                          (testing "a command that fails leaves no document behind with its changes"
+                            (is (= {} @sut/!documents)))
+                          (done))))))))))

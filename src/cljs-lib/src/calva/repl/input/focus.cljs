@@ -42,8 +42,8 @@
    :printed-code-unmount [:printed-code :unmount]})
 
 (defn place-event
-  "Returns `event` as the focus of `place`, `:repl-input` or `:printed-code`, takes it: an event about the
-   other place's focus is `[:other-focus]`, and any other event about the other place is `[:other]`."
+  "Returns `event` as `place`, `:repl-input` or `:printed-code`, takes it: an event about the other place
+   getting the focus is `[:other-focus]`, and any other event about the other place is `[:other]`."
   [place [event-type id :as event]]
   (if-let [[event-place place-event-type] (get place-events event-type)]
     (cond

@@ -56,6 +56,15 @@
   [records {:repl-input/keys [id] :as mount}]
   (assoc records id (message->record mount)))
 
+(defn take-focus
+  "Returns `records` with the record of printed code that got the focus: `focus` taken as `take-change`
+   takes a change when the record has the same text, keeping its selection history, or in place of the
+   record otherwise."
+  [records {:repl-input/keys [id] :keys [text] :as focus}]
+  (if (= text (get-in records [id :repl-input/text]))
+    (take-change records focus)
+    (take-mount records focus)))
+
 (defn remove-record
   [records id]
   (dissoc records id))

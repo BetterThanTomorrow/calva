@@ -4,6 +4,7 @@
    [calva.repl.input.config :as config]
    [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as host]
+   [calva.repl.input.printed-code :as printed-code]
    [calva.repl.input.recall :as recall]
    [calva.repl.input.reveal :as reveal]
    [calva.repl.webview.core :as webview]
@@ -70,6 +71,7 @@
   "Starts the REPL Input with the adapter's functions that call Calva's TypeScript code."
   [^js adapter]
   (host/set-adapter! adapter)
+  (printed-code/init!)
   (recall/load-history!)
   (reveal/load-evaluated-code!)
   (.. ^js @util/vscode-context -subscriptions (push (create-setting-change-listener)))
