@@ -63,7 +63,7 @@ function guidesDecorationType_(color, isActive: boolean): vscode.TextEditorDecor
           isActive ? '1.5px' : '0.5px'
         }; top: -1px; bottom: -1px;`,
         borderStyle: `solid; opacity: ${isActive ? '0.5' : '0.25'};`,
-        backgroundColor: color[0],
+        borderColor: color[0],
       },
       dark: {
         borderWidth: `0; border-right-width: ${
