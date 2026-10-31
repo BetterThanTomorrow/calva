@@ -63,8 +63,7 @@
           (-> (ranges+ adapter current (get-in state [:repl-input.context/editor :document]))
               (.then #(take-ranges! id current post! %))
               (.catch (fn [e]
-                        (js/console.error "Failed getting semantic tokens for the REPL Input:" e)
-                        (take-ranges! id current post! nil)))))
+                        (js/console.error "Failed getting semantic tokens for the REPL Input:" e)))))
 
       ranges
       (post! (:text current) ranges))))
