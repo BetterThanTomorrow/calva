@@ -120,18 +120,25 @@
                                      :theme/token-colors token-colors})
         token-colors))))
 
+(defn ordered-rules
+  "Returns the semantic token rules of the JS object `rules` as `[selector style]`, in their order."
+  [rules]
+  (if (object? rules)
+    (js->clj (js/Object.entries rules))
+    []))
+
 (defn- read-theme-semantics
-  "Returns the `semanticHighlighting` and `semanticTokenColors` of the theme file at `theme-file`, over those
-   of the files it includes."
+  "Returns the `semanticHighlighting` and the `semanticTokenColors` of the theme file at `theme-file`, the rules
+   after those of the files it includes."
   [theme-file]
-  (let [{:strs [include semanticHighlighting semanticTokenColors]}
-        (js->clj (jsonc/parse (str (fs/readFileSync theme-file "utf8"))))]
-    (cond-> (if include
+  (let [^js theme (jsonc/parse (str (fs/readFileSync theme-file "utf8")))
+        semantic? (.-semanticHighlighting theme)]
+    (cond-> (if-let [include (.-include theme)]
               (read-theme-semantics (path/join (path/dirname theme-file) include))
               {:theme/semantic-highlighting? false
-               :theme/semantic-token-colors {}})
-      (boolean? semanticHighlighting) (assoc :theme/semantic-highlighting? semanticHighlighting)
-      (map? semanticTokenColors) (update :theme/semantic-token-colors merge semanticTokenColors))))
+               :theme/semantic-token-colors []})
+      (boolean? semantic?) (assoc :theme/semantic-highlighting? semantic?)
+      :always (update :theme/semantic-token-colors into (ordered-rules (.-semanticTokenColors theme))))))
 
 (defonce !theme-semantics (atom nil))
 
@@ -189,16 +196,16 @@
         nil))))
 
 (defn semantic-customization
-  "Returns the `enabled` and `rules` of `editor.semanticTokenColorCustomizations` that apply to `theme`, the
-   theme's own over the general ones."
-  [customizations {:theme/keys [id label]}]
-  (reduce (fn [result scoped]
-            (cond-> result
-              (contains? scoped "enabled") (assoc :semantic/enabled? (get scoped "enabled"))
-              (map? (get scoped "rules")) (update :semantic/rules merge (get scoped "rules"))))
-          {:semantic/rules {}}
-          (cons customizations
-                (keep #(get customizations (str "[" % "]")) (distinct (remove nil? [id label]))))))
+  "Returns the `enabled` and the `rules`, in their order, of `customizations`, the JS object of
+   `editor.semanticTokenColorCustomizations`, that apply to `theme`: the general ones, then the theme's own."
+  [^js customizations {:theme/keys [id label]}]
+  (reduce (fn [result ^js scoped]
+            (cond-> (update result :semantic/rules into (ordered-rules (.-rules scoped)))
+              (boolean? (.-enabled scoped)) (assoc :semantic/enabled? (.-enabled scoped))))
+          {:semantic/rules []}
+          (when (object? customizations)
+            (cons customizations
+                  (keep #(unchecked-get customizations (str "[" % "]")) (distinct (remove nil? [id label])))))))
 
 (defn semantic-highlighting?
   "True when VS Code colors files with semantic tokens, by `editor.semanticHighlighting.enabled`, and when
@@ -211,26 +218,25 @@
 
 (defn active-theme-palette
   "Returns what the REPL Input's highlighting needs of the active color theme of `color-theme-kind`: the
-   TextMate rules with the user's, whether files get semantic highlighting, and the semantic token rules,
-   the user's over the theme's. Nil when the theme can't be found or read."
+   TextMate rules with the user's, whether Clojure files get semantic highlighting, and the semantic token
+   rules in order, the user's after the theme's. Nil when the theme can't be found or read."
   [color-theme-kind]
   (when-let [^js vscode @util/vscode]
     (try
       (when-let [{:theme/keys [file] :as theme} (active-theme (contributed-themes vscode)
                                                               (theme-settings vscode color-theme-kind)
                                                               color-theme-kind)]
-        (let [^js editor (.. vscode -workspace (getConfiguration "editor"))
+        (let [^js editor (.. vscode -workspace (getConfiguration "editor" #js {:languageId "clojure"}))
               {theme-semantic? :theme/semantic-highlighting?
                :theme/keys [semantic-token-colors]} (theme-semantics file)
-              {:semantic/keys [enabled? rules]} (semantic-customization
-                                                 (js->clj (.get editor "semanticTokenColorCustomizations"))
-                                                 theme)]
+              {:semantic/keys [enabled? rules]} (semantic-customization (.get editor "semanticTokenColorCustomizations")
+                                                                        theme)]
           {:palette/token-rules (vec (token-rules (concat (theme-token-colors file)
                                                           (customization-rules (user-customizations vscode) theme))))
            :palette/semantic? (semantic-highlighting? (.get editor "semanticHighlighting.enabled")
                                                       enabled?
                                                       theme-semantic?)
-           :palette/semantic-rules (merge semantic-token-colors rules)}))
+           :palette/semantic-rules (into semantic-token-colors rules)}))
       (catch :default e
         (util/log-to-console :error "Cannot read the color theme's semantic token colors:" e)
         nil))))

@@ -125,6 +125,12 @@
               :uf/fxs [[:repl-input/fx.set-highlighting :semantic [[5 6 "#e6edf3"]]]]}
              (sut/handle-action db [:repl-input/ax.set-semantic-tokens {:repl-input/version 2
                                                                         :repl-input/semantic-tokens [[5 6 "#e6edf3"]]}]))))
+    (testing "drops the semantic layer when files get no semantic highlighting"
+      (is (= [[:repl-input/fx.set-highlighting :grammar [[0 4 "#ff7b72"]]]
+              [:repl-input/fx.set-highlighting :semantic nil]]
+             (:uf/fxs (sut/handle-action db [:repl-input/ax.set-highlighting {:repl-input/version 2
+                                                                              :repl-input/highlighting [[0 4 "#ff7b72"]]
+                                                                              :repl-input/semantic? false}])))))
     (testing "drops layers computed for another version"
       (is (= {:uf/db db}
              (sut/handle-action db [:repl-input/ax.set-semantic-tokens {:repl-input/version 1

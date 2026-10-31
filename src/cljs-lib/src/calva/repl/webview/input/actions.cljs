@@ -243,17 +243,23 @@
 
     (handle-history-action db action)))
 
+(defn- highlighting-fxs
+  "Returns the effects that set the highlighting layers in a message from the extension: the grammar's, without
+   the semantic one when files get no semantic highlighting, or the semantic one."
+  [action-type {:repl-input/keys [highlighting semantic? semantic-tokens]}]
+  (case action-type
+    :repl-input/ax.set-highlighting (cond-> [[:repl-input/fx.set-highlighting :grammar highlighting]]
+                                      (false? semantic?) (conj [:repl-input/fx.set-highlighting :semantic nil]))
+    :repl-input/ax.set-semantic-tokens [[:repl-input/fx.set-highlighting :semantic semantic-tokens]]
+    nil))
+
 (defn- handle-highlighting-action
   "Handles the highlighting layers the extension posts, applied when they are for the current version."
   [db [action-type payload :as action]]
-  (let [layer ({:repl-input/ax.set-highlighting [:grammar (:repl-input/highlighting payload)]
-                :repl-input/ax.set-semantic-tokens [:semantic (:repl-input/semantic-tokens payload)]}
-               action-type)]
-    (cond
-      (nil? layer) (handle-evaluation-action db action)
-      (= (:repl-input/version payload) (:repl-input/version db)) {:uf/db db
-                                                                  :uf/fxs [(into [:repl-input/fx.set-highlighting] layer)]}
-      :else {:uf/db db})))
+  (if-let [fxs (highlighting-fxs action-type payload)]
+    (cond-> {:uf/db db}
+      (= (:repl-input/version payload) (:repl-input/version db)) (assoc :uf/fxs fxs))
+    (handle-evaluation-action db action)))
 
 (defn handle-action
   [db [action-type payload :as action]]

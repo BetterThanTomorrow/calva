@@ -214,8 +214,7 @@
   "The messages that post what the extension derives for a REPL Input, by the record key that holds it."
   {:repl-input/command-keys "repl-input-command-keys"
    :repl-input/editor-settings "repl-input-editor-settings"
-   :repl-input/brackets "repl-input-brackets"
-   :repl-input/highlighting "repl-input-highlighting"})
+   :repl-input/brackets "repl-input-brackets"})
 
 (defn- document-brackets
   [settings doc]
@@ -238,17 +237,17 @@
 (defn- derive-record!
   "Derives the cursor contexts, the command keys, the editor settings, the brackets and the highlighting of
    the REPL Input `id` from its record and the settings, sets the cursor contexts when it has focus, posts
-   to it what changed, and asks for its semantic tokens after a pause."
+   to it what changed and the highlighting, and asks for its semantic tokens after a pause."
   [id]
   (when-let [record (get-in @!state [:repl-input/records id])]
     (let [{:repl-input/keys [settings] :as state} @!state
           doc (document record)
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
-          derived (assoc with-contexts
-                         :repl-input/command-keys (command-keys-for state with-contexts)
-                         :repl-input/editor-settings (config/editor-settings settings)
-                         :repl-input/brackets (document-brackets settings doc)
-                         :repl-input/highlighting (highlighting/text-highlighting (:repl-input/text record)))]
+          derived (highlighting/with-text-highlighting
+                   (assoc with-contexts
+                          :repl-input/command-keys (command-keys-for state with-contexts)
+                          :repl-input/editor-settings (config/editor-settings settings)
+                          :repl-input/brackets (document-brackets settings doc)))]
       (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
         (apply-cursor-contexts!))
@@ -257,6 +256,7 @@
         (post-to-view! id {:command/name command-name
                            :repl-input/version (:repl-input/version record)
                            k (get derived k)}))
+      (some->> (highlighting/highlighting-message derived) (post-to-view! id))
       (request-semantic-tokens-later! id))))
 
 (defn- derive-records!
@@ -355,7 +355,8 @@
         [before after] (swap-vals! !state assoc :repl-input.context/line line)]
     (when (not= line (:repl-input.context/line before))
       (doseq [id (keys (:repl-input/records @!state))]
-        (post-to-view! id (context-line-message line)))
+        (post-to-view! id (context-line-message line))
+        (request-semantic-tokens-later! id))
       (refresh-history!))
     (tell-current-editor-changed! before after)
     current))

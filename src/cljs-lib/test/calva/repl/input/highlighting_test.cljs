@@ -10,15 +10,17 @@
                                                    {"scope" "storage" "settings" {"foreground" "#red"}}
                                                    {"scope" "entity.name" "settings" {"foreground" "#orange"}}
                                                    {"scope" "entity.name.function" "settings" {"foreground" "#purple"}}
+                                                   {"scope" "support" "settings" {"foreground" "#support"}}
                                                    {"scope" "variable.other" "settings" {"foreground" "#fg"}}])
    :palette/semantic? true
-   :palette/semantic-rules {}})
+   :palette/semantic-rules []})
 
 (def ^:private semantic-rules
-  {"function" "#f1"
-   "function.definition" {"foreground" "#f2"}
-   "*.definition" "#f3"
-   "variable:java" "#v1"})
+  [["function" "#f1"]
+   ["function.definition" {"foreground" "#f2"}]
+   ["macro.definition" "#f3"]
+   ["variable:java" "#v1"]
+   ["variable" {"italic" true}]])
 
 (defn- token
   [text from to & scopes]
@@ -30,15 +32,20 @@
     (is (= "#fg" (sut/semantic-color palette "variable" [])))
     (is (= "#red" (sut/semantic-color palette "keyword" [])))
     (is (= "#orange" (sut/semantic-color palette "type" []))))
-  (testing "colors macros with Calva's scopes"
+  (testing "colors macros with Calva's scopes for Clojure, over VS Code's default for macros"
     (is (= "#red" (sut/semantic-color palette "macro" []))))
-  (testing "prefers the most specific semantic token rule that matches"
+  (testing "colors default library functions with VS Code's default for the modifier"
+    (is (= "#support" (sut/semantic-color palette "function" ["defaultLibrary"]))))
+  (testing "prefers the semantic token rule with the highest score that matches"
     (let [with-rules (assoc palette :palette/semantic-rules semantic-rules)]
       (is (= "#f1" (sut/semantic-color with-rules "function" [])))
       (is (= "#f2" (sut/semantic-color with-rules "function" ["definition"])))
       (is (= "#f3" (sut/semantic-color with-rules "macro" ["definition"])))
       (is (= "#fg" (sut/semantic-color with-rules "variable" []))
-          "A rule for another language doesn't match")))
+          "A rule for another language, or without a foreground, leaves the token to the defaults")))
+  (testing "takes the later of equally scoring rules, as the user's come after the theme's"
+    (let [theme-then-user [["function" "#theme"] ["*.definition" "#user"]]]
+      (is (= "#user" (sut/semantic-color (assoc palette :palette/semantic-rules theme-then-user) "function" ["definition"])))))
   (testing "has no color for a type without a rule or scopes"
     (is (nil? (sut/semantic-color palette "property" [])))))
 
