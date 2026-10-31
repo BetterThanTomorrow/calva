@@ -275,6 +275,18 @@
     (when-let [current (palette)]
       (highlighting current text (grammar-tokens grammar text)))))
 
+(def ^:private max-printed-length
+  "The longest printed code that is highlighted. The grammar takes the extension host about 2.7 ms per 1,000
+   characters."
+  50000)
+
+(defn printed-highlighting
+  "Returns `[from to color styles]` for printed `text`, as `text-highlighting` does, or nil for text longer
+   than `max-printed-length`."
+  [text]
+  (when (<= (count text) max-printed-length)
+    (text-highlighting text)))
+
 (defn with-text-highlighting
   "Returns the REPL Input `record` with the highlighting of its text, computed anew only when the text, the
    palette or the grammar changed."

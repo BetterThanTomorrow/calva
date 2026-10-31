@@ -47,8 +47,7 @@
 (deftest stale-local-image-reply-after-clear-test
   (testing "a stale reply after clear and re-render applies nothing; the new reply wins"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -83,8 +82,7 @@
 (deftest unknown-local-image-reply-id-ignored-test
   (testing "an unknown reply id is ignored"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -109,8 +107,7 @@
 (deftest relative-local-image-posts-session-key-test
   (testing "a relative path posts resolve-local-image with the producing session key"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -127,8 +124,7 @@
 (deftest many-local-image-lookups-leave-nothing-behind-test
   (testing "many resolved lookups leave no waiters or host handlers behind"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []

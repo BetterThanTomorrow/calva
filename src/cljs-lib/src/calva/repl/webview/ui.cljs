@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.html :as html]
@@ -11,7 +12,6 @@
    [clojure.walk :as walk]
    [garden.core :as garden]
    ["strip-ansi" :default strip-ansi]
-   ["highlightjs-copy" :as CopyButtonPlugin]
    ["highlight.js/lib/core" :as hljs]
    ["highlight.js/lib/languages/clojure" :as clojure]))
 
@@ -70,40 +70,6 @@
   (case position
     "beforeend" (.-lastElementChild element)
     "afterend" (.-nextElementSibling element)))
-
-(defn clojure-code-element
-  "Returns the hiccup of a `pre` with `clojure-code`, classed for highlight.js."
-  [clojure-code]
-  [:pre [:code {:class ["language-clojure"]} clojure-code]])
-
-(defn highlight-code!
-  [^js code-element]
-  (.. hljs (highlightElement code-element)))
-
-(defn- highlight-clojure-code!
-  "Colors the Clojure code in `element`."
-  [^js element]
-  (run! highlight-code! (.querySelectorAll element "code.language-clojure")))
-
-(defn evaluated-code-element
-  "Returns the hiccup of evaluated `code`, under its label."
-  [code]
-  [:div {:class ["evaluated-code-container"]}
-   [:span {:class ["border-text"]} "Evaluated code"]
-   (clojure-code-element code)])
-
-(defn append-evaluated-code
-  "Appends evaluated code to the given dom element."
-  [^js dom-element output]
-  (let [element (insert-hiccup! dom-element "beforeend" (evaluated-code-element output))]
-    (highlight-clojure-code! element)
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
-
-(defn append-eval-result
-  [^js dom-element output]
-  (let [element (insert-hiccup! dom-element "beforeend" (clojure-code-element output))]
-    (highlight-clojure-code! element)
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn data-url-blob
   [data-url mime]
@@ -196,6 +162,103 @@
   (when-let [handler (get @!host-requests id)]
     (swap! !host-requests dissoc id)
     (handler payload)))
+
+(defn clojure-code-element
+  "Returns the hiccup of a code block with `clojure-code` and its copy button, colored with `ranges`,
+   `[from to color styles]`, when it has them."
+  ([clojure-code]
+   (clojure-code-element clojure-code nil))
+  ([clojure-code ranges]
+   [:pre {:class ["output-code-block"]}
+    (into [:code (cond-> {:class ["output-code"]}
+                   ranges (assoc :data-highlighted "true"))]
+          (if ranges
+            (code-highlight/spans clojure-code ranges)
+            [clojure-code]))
+    [copy-button/button {:class ["output-code-copy"]
+                         :copy/label "Copy"
+                         :copy/actions [[:output/ax.copy-code :event/target]]}]]))
+
+(defonce ^:private !last-code-id (atom 0))
+
+(defn- code-id!
+  "Returns the id of the `code` element, giving it one first when it has none."
+  [^js code]
+  (or (.. code -dataset -codeId)
+      (set! (.. code -dataset -codeId) (str (swap! !last-code-id inc)))))
+
+(defn- request-highlighting!
+  "Asks the extension for the highlighting of the `codes` elements."
+  [codes]
+  (when (seq codes)
+    (post-to-host! {:command "output-highlight"
+                    :output/codes (mapv (fn [^js code] [(code-id! code) (.-textContent code)]) codes)})))
+
+(defn- request-missing-highlighting!
+  "Asks the extension for the highlighting of the code in `element` that has none."
+  [^js element]
+  (request-highlighting! (remove #(.. ^js % -dataset -highlighted)
+                                 (array-seq (.querySelectorAll element "code.output-code")))))
+
+(defn- part-node
+  "Returns the DOM node of a part of `code-highlight/spans`: a text, or a span with its class."
+  [part]
+  (if (string? part)
+    (js/document.createTextNode part)
+    (let [[_ {:keys [class]} text] part
+          span (js/document.createElement "span")]
+      (set! (.-className span) class)
+      (set! (.-textContent span) text)
+      span)))
+
+(defn set-code-highlighting!
+  "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, or with highlight.js when
+   the extension has none for them."
+  [codes]
+  (doseq [[id ranges] codes
+          :let [^js code (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))]
+          :when code]
+    (if ranges
+      (do (code-highlight/add-classes! ranges)
+          (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges)))))
+      (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true}))))
+    (set! (.. code -dataset -highlighted) "true")))
+
+(defn- rehighlight-code!
+  "Asks the extension for the highlighting of all code in `dom-element`, as when the color theme changed."
+  [^js dom-element]
+  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.output-code"))))
+
+(defn- copy-code!
+  "Copies the code of the code block of the Copy `button`."
+  [^js button]
+  (copy-text! button (.. button -parentElement (querySelector "code") -textContent)))
+
+(defn evaluated-code-element
+  "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` when it has them."
+  [code ranges]
+  [:div {:class ["evaluated-code-container"]}
+   [:span {:class ["border-text"]} "Evaluated code"]
+   (clojure-code-element code ranges)])
+
+(defn- append-code!
+  "Appends the `hiccup` of code colored with `ranges` to `dom-element`, and asks for the highlighting of the
+   code that has none."
+  [^js dom-element hiccup ranges]
+  (some-> ranges code-highlight/add-classes!)
+  (let [element (insert-hiccup! dom-element "beforeend" hiccup)]
+    (request-missing-highlighting! element)
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
+
+(defn append-evaluated-code
+  "Appends evaluated `code` to `dom-element`, colored with `ranges` when it has them."
+  [^js dom-element code ranges]
+  (append-code! dom-element (evaluated-code-element code ranges) ranges))
+
+(defn append-eval-result
+  "Appends the printed `result` to `dom-element`, colored with `ranges` when it has them."
+  [^js dom-element result ranges]
+  (append-code! dom-element (clojure-code-element result ranges) ranges))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -421,7 +484,7 @@
 (defn- add-raw-form!
   "Adds the raw form, the result as printed, to the result `entry`."
   [^js entry raw]
-  (highlight-clojure-code! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
+  (request-missing-highlighting! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
 
 (defn append-result-with-images
   "Appends a result with images. Its images form is added now. Its raw form is added after it when the
@@ -431,7 +494,7 @@
         entry (insert-hiccup! dom-element "beforeend"
                               [:div {:class ["output-with-images"] :data-output-element-type "images"}
                                (images-form-element (images/segments-with-images text images) (image-display))])]
-    (highlight-clojure-code! entry)
+    (request-missing-highlighting! entry)
     (look-up-local-images! entry session-key)
     (if (raw-display?)
       (add-raw-form! entry raw)
@@ -594,8 +657,11 @@
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
-    :fx/append-result (append-eval-result output-dom-element (first args))
-    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/append-result (append-eval-result output-dom-element (first args) (second args))
+    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args) (second args))
+    :fx/set-code-highlighting (set-code-highlighting! (first args))
+    :fx/rehighlight-code (rehighlight-code! output-dom-element)
+    :fx/copy-code (copy-code! (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
     :fx/render-error (render-error! output-dom-element (first args))
@@ -635,6 +701,7 @@
        (case command-name
          "clear-output-view"    (dispatch! [:msg/clear-output-view])
          "set-code-theme"       (dispatch! [:msg/set-code-theme message-data])
+         "output-highlighting"  (dispatch! [:msg/output-highlighting message-data])
          "set-word-wrap"        (dispatch! [:msg/set-word-wrap message-data])
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
@@ -700,11 +767,4 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (.. hljs (registerLanguage "clojure" clojure))
-  (ensure-dom-content-loaded (fn []
-                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true})))
-                               ;; Added after the copy plugin, which adds the button it gives a tooltip
-                               (.. hljs (addPlugin #js {"after:highlightElement"
-                                                        (fn [^js result]
-                                                          (some-> (.. result -el -parentElement (querySelector ".hljs-copy-button"))
-                                                                  (tooltip/attach! "Copy")))})))))
+  (.. hljs (registerLanguage "clojure" clojure)))

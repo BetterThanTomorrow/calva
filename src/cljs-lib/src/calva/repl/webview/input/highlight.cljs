@@ -78,35 +78,6 @@
                    (into [from to] more))))
              ranges)))
 
-(defn color-class
-  "Returns the CSS class for the hex `color`, like `#ff7b72`, or nil for any other color."
-  [color]
-  (when-let [[_ hex] (re-matches #"#([0-9a-fA-F]{3,8})" (str color))]
-    (str "repl-input-color-" (str/lower-case hex))))
-
-(def style-classes
-  "The CSS class for each font style."
-  {:bold "repl-input-bold"
-   :italic "repl-input-italic"
-   :underline "repl-input-underline"
-   :strikethrough "repl-input-strikethrough"})
-
-(def font-style-css
-  "The CSS rules that give the font style classes their styles."
-  [".repl-input-bold { font-weight: bold; }"
-   ".repl-input-italic { font-style: italic; }"
-   ".repl-input-underline { text-decoration: underline; text-underline-position: under; }"
-   ".repl-input-strikethrough { text-decoration: line-through; }"
-   ".repl-input-underline.repl-input-strikethrough { text-decoration: underline line-through; text-underline-position: under; }"])
-
-(defn look-class
-  "Returns the CSS classes for `color` and the font `styles`, like `#{:italic}`, or nil when neither has one."
-  [color styles]
-  (some->> (cons (color-class color) (keep style-classes (sort styles)))
-           (remove nil?)
-           seq
-           (str/join " ")))
-
 (defn typed-quote
   "Returns `:step-over` when a quote typed at `offset` lands on the quote that closes a string in
    `text`, `:insert` when it lands elsewhere in a string, and nil outside strings."

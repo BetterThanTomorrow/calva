@@ -33,11 +33,24 @@
       "The REPL Input's evaluations show no who badge"))
 
 (deftest evaluated-code-element-test
-  (let [hiccup (ui/evaluated-code-element "(+ 1 2)")]
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil))]
     (is (seq (l/select :div.evaluated-code-container hiccup)))
     (is (= ["Evaluated code"] (map l/text (l/select :span.border-text hiccup))))
-    (is (= ["(+ 1 2)"] (map l/text (l/select '[pre > code.language-clojure] hiccup)))
-        "The code is in a pre, for highlight.js")))
+    (is (= ["(+ 1 2)"] (map l/text (l/select '[pre.output-code-block > code.output-code] hiccup)))
+        "The code is in a code block")
+    (is (= [[:output/ax.copy-code :event/target]]
+           (reader/read-string (:data-action (l/attrs (first (l/select :button.output-code-copy hiccup))))))
+        "The code block's copy button copies its code")))
+
+(deftest clojure-code-element-test
+  (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]])]
+    (is (= ["(" [:span {:class #{"code-color-ff7b72"}} "let"] " [x 1])"]
+           (drop 2 (first (l/select :code.output-code hiccup))))
+        "The code is colored with its ranges")
+    (is (= "true" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
+        "Code with ranges is marked as highlighted")
+    (is (nil? (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x"))))))
+        "Code without ranges waits for its highlighting")))
 
 (deftest stdout-element-test
   (let [hiccup (alias/expand (ui/stdout-element "hello\n" "evalErr"))
@@ -122,7 +135,7 @@
            (map first (l/children (first (l/select "[data-image-form]" hiccup)))))
         "The images of a line come right after it")
     (is (= ["{:a \"<<image-1 png 8 B>>\"\n" " :b 2}"]
-           (map l/text (l/select :code.language-clojure hiccup))))
+           (map l/text (l/select :code.output-code hiccup))))
     (is (= 1 (count (l/select [:.output-images :.output-image-thumbnail] hiccup))))))
 
 (defn- error-entry

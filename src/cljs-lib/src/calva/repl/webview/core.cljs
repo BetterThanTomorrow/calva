@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.greeting :as greeting]
@@ -345,11 +346,13 @@
    on the given color theme kind, with the code colors of the active color theme."
   [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
   (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
-        code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)]
+        code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)
+        palette (token-colors/active-theme-palette color-theme-kind)]
     (if code-theme
-      (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :code-theme code-theme
-                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)})
+      (post-message-to-webview webview-panel (cond-> {:command/name "set-code-theme"
+                                                      :code-theme code-theme
+                                                      :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)}
+                                               palette (assoc :output/palette-key (hash palette))))
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
@@ -422,6 +425,23 @@
            (unregister-webview! webview-panel)
            (input-host/view-disposed! "output-view"))))))
 
+(defn code-highlighting-message
+  "Returns the message that posts the highlighting of the printed code `codes`, `[id text]` each, as
+   `[id ranges]`, the ranges nil for code that isn't highlighted."
+  [codes]
+  {:command/name "output-highlighting"
+   :output/codes (mapv (fn [[id text]] [id (highlighting/printed-highlighting text)]) codes)})
+
+(defn listen-for-highlighting-requests!
+  "Answers the page in `webview-host` when it asks for the highlighting of printed code."
+  [^js webview-host]
+  (when-let [webview (some-> webview-host .-webview)]
+    (when (fn? (.-onDidReceiveMessage webview))
+      (.onDidReceiveMessage webview (fn [^js message]
+                                      (when (= "output-highlight" (.-command message))
+                                        (post-message-to-webview webview-host
+                                                                 (code-highlighting-message (js->clj (aget message "output/codes"))))))))))
+
 (defn listen-for-page-loaded!
   "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the
    page whether the REPL Input is on, which the page misses when the setting changed before it listened."
@@ -439,6 +459,7 @@
   (image-host/listen-for-webview-messages! webview-panel)
   (input-messages/listen-for-messages! webview-panel)
   (listen-for-page-loaded! webview-panel "output-view")
+  (listen-for-highlighting-requests! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -523,14 +544,20 @@
         shadow-build (assoc :meta/shadow-build shadow-build)
         (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
 
+(def ^:private printed-code-commands #{"show-result" "show-evaluated-code"})
+
 (defn output-message
-  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`."
+  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`,
+   and printed code's highlighting."
   [options command-name output-category message]
-  (let [meta-data (options->meta options)]
+  (let [meta-data (options->meta options)
+        code-highlighting (when (and (printed-code-commands command-name) (string? message))
+                            (highlighting/printed-highlighting message))]
     (cond-> {:command/name command-name
              :output-category output-category
              :output message}
-      (seq meta-data) (assoc :meta meta-data))))
+      (seq meta-data) (assoc :meta meta-data)
+      code-highlighting (assoc :output/highlighting code-highlighting))))
 
 (defn ^:export append
   [^js options message]

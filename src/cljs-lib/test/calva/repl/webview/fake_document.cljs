@@ -49,6 +49,9 @@
   "Gives the element `el` the methods that find, add and remove elements around it, and returns it."
   [^js el]
   (js/Object.defineProperty el "lastElementChild" #js {:get #(last (child-elements el))})
+  (js/Object.defineProperty el "textContent"
+                            #js {:get #(apply str (map (fn [^js child] (.-textContent child)) (.-children el)))
+                                 :set #(.splice (.-children el) 0 (.-length (.-children el)) #js {:nodeType 3 :textContent %})})
   (js/Object.defineProperty el "nextElementSibling"
                             #js {:get #(when-let [parent (.-parentNode el)]
                                          (second (drop-while (fn [child] (not (identical? child el)))

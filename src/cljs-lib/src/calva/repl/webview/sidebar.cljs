@@ -138,6 +138,7 @@
                (image-host/listen-for-webview-messages! webview-view)
                (input-messages/listen-for-messages! webview-view)
                (core/listen-for-page-loaded! webview-view "output-sidebar")
+               (core/listen-for-highlighting-requests! webview-view)
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)

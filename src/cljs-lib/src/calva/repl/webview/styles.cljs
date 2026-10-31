@@ -13,6 +13,7 @@
   "The views' styles, as Garden rules, in the order they apply."
   (concat output/page
           output/text
+          output/code
           output/greeting
           output/evaluated-code
           output/ns-info

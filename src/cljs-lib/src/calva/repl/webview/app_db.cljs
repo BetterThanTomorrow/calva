@@ -24,8 +24,9 @@
 (defn- result-fxs
   "A result with images, or with data URLs replaced by markers, is appended as both forms:
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
-   local paths resolve against the producing session's root."
-  [output meta]
+   local paths resolve against the producing session's root. Other results are appended colored with
+   `ranges`, the extension's highlighting of the text."
+  [output meta ranges]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
@@ -33,16 +34,16 @@
             (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
-      [[:fx/append-result output]])))
+      [[:fx/append-result output ranges]])))
 
 (defn- message-fxs
-  [{command-name :command/name :keys [output meta]} category]
+  [{command-name :command/name ranges :output/highlighting :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta)
-    "show-evaluated-code" [[:fx/append-evaluated-code output]]
+    "show-result" (result-fxs output meta ranges)
+    "show-evaluated-code" [[:fx/append-evaluated-code output ranges]]
     []))
 
 (defn- meta-context-key
@@ -168,14 +169,25 @@
     {:uf/db db
      :uf/fxs [[:fx/copy-image payload]]}
 
+    :output/ax.copy-code
+    {:uf/db db
+     :uf/fxs [[:fx/copy-code payload]]}
+
+    :msg/output-highlighting
+    {:uf/db db
+     :uf/fxs [[:fx/set-code-highlighting (:output/codes payload)]]}
+
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
     :msg/set-code-theme
-    {:uf/db db
-     :uf/fxs [[:fx/set-code-theme (:code-theme payload)]
-              [:fx/set-token-colors (:token-colors payload)]]}
+    (let [{palette-key :output/palette-key} payload
+          last-key (:output/palette-key db)]
+      {:uf/db (cond-> db palette-key (assoc :output/palette-key palette-key))
+       :uf/fxs (cond-> [[:fx/set-code-theme (:code-theme payload)]
+                        [:fx/set-token-colors (:token-colors payload)]]
+                 (and last-key (not= palette-key last-key)) (conj [:fx/rehighlight-code]))})
 
     :msg/set-word-wrap
     {:uf/db db

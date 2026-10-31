@@ -37,10 +37,22 @@
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
    [:body.word-wrap
-    [:code.hljs {:white-space :pre-wrap
-                 :overflow-wrap :anywhere
-                 :padding-left "calc(1em + 1.5ch)"
-                 :text-indent "-1.5ch"}]]])
+    [:code.hljs :code.output-code {:white-space :pre-wrap
+                                   :overflow-wrap :anywhere
+                                   :padding-left "calc(1em + 1.5ch)"
+                                   :text-indent "-1.5ch"}]]])
+
+(def code
+  "Printed code, in the editor's colors, with its copy button at the top right."
+  [[:.output-code-block {:position :relative}]
+
+   [:code.output-code {:display :block
+                       :overflow-x :auto
+                       :padding "1em"
+                       :font-family "var(--vscode-editor-font-family, monospace)"
+                       :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                       :color "var(--vscode-editor-foreground)"
+                       :background-color "var(--vscode-editor-background)"}]])
 
 (def greeting
   "The greeting at the top of the view."

@@ -58,6 +58,7 @@
      :transition [[:opacity "200ms" :ease-out] [:background-color "200ms" :ease]]}]
 
    [".output-image-thumbnail:hover .output-copy-button"
+    ".output-code-block:hover .output-copy-button"
     ".output-stdout:hover .output-copy-button"
     ".output-error:hover .output-copy-button"
     ".output-copy-button:focus-visible"
@@ -67,11 +68,11 @@
     "body .hljs-copy-container:has([data-copied=\"true\"])"
     {:opacity 1}]
 
-   [:.output-image-copy :.output-error-copy :.output-stdout-copy {:position :absolute
-                                                                  :top 0
-                                                                  :right 0}]
+   [:.output-image-copy :.output-error-copy :.output-stdout-copy :.output-code-copy {:position :absolute
+                                                                                     :top 0
+                                                                                     :right 0}]
 
-   [:.output-image-copy {:margin "8px"}]
+   [:.output-image-copy :.output-code-copy {:margin "8px"}]
 
    [:.output-stdout {:position :relative}]
 

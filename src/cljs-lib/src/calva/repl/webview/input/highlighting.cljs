@@ -1,7 +1,8 @@
 (ns calva.repl.webview.input.highlighting
   "The REPL Input's highlighting in CodeMirror: the extension's grammar and semantic token layers, moved along
-   with the edits, colored with a class for each color and styled with a class for each font style."
+   with the edits, colored and styled with the classes of `calva.repl.webview.code-highlight`."
   (:require
+   [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.input.highlight :as highlight]
    ["@codemirror/state" :refer [StateEffect StateField]]
    ["@codemirror/view" :refer [Decoration EditorView]]))
@@ -18,7 +19,7 @@
 (defn- look-decorations
   [ranges]
   (mark-decorations (for [[from to color styles] ranges
-                          :let [class-name (highlight/look-class color styles)]
+                          :let [class-name (code-highlight/look-class color styles)]
                           :when class-name]
                       [from to class-name])))
 
@@ -61,36 +62,8 @@
                 :provide (fn [state-field]
                            (.from (.-decorations EditorView) state-field (fn [value] (:decorations value))))}))
 
-(defonce ^:private !color-sheet (atom nil))
-
-(defonce ^{:private true :doc "The colors the color sheet has a class for."} !sheet-colors (atom #{}))
-
-(defn- color-sheet
-  "Returns the stylesheet with a class for each color, created with the classes for the font styles."
-  []
-  (or @!color-sheet
-      (let [sheet (js/CSSStyleSheet.)]
-        (doseq [rule highlight/font-style-css]
-          (.insertRule sheet rule (.. sheet -cssRules -length)))
-        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-        (reset! !color-sheet sheet))))
-
-(defn- add-color-classes!
-  "Adds a class to the color sheet for each color of `ranges` it has none for."
-  [ranges]
-  (when-let [new-colors (->> (map #(nth % 2) ranges)
-                             (filter highlight/color-class)
-                             distinct
-                             (remove @!sheet-colors)
-                             seq)]
-    (let [^js sheet (color-sheet)]
-      (doseq [color new-colors]
-        (.insertRule sheet (str "." (highlight/color-class color) " { color: " color "; }") (.. sheet -cssRules -length)))
-      (swap! !sheet-colors into new-colors))))
-
 (defn set-layer!
   "Sets the `layer`, `:grammar` or `:semantic`, of the highlighting in `view` to `ranges`."
   [^js view layer ranges]
-  (color-sheet)
-  (add-color-classes! ranges)
+  (code-highlight/add-classes! ranges)
   (.dispatch view #js {:effects (.of set-layer [layer ranges])}))
