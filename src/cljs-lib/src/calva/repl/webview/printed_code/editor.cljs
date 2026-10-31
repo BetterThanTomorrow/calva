@@ -46,7 +46,7 @@
                         :backgroundColor "var(--vscode-editor-background)"
                         :fontFamily "var(--vscode-editor-font-family, monospace)"
                         :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}
-               "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
+               "&.cm-focused" #js {:outline "none"}
                ".cm-scroller" #js {:fontFamily "inherit"
                                    :lineHeight "normal"}
                ".cm-content" #js {:caretColor "var(--vscode-editorCursor-foreground)"
