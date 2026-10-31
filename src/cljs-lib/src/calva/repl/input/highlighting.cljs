@@ -208,12 +208,12 @@
 (defonce !grammar (atom nil))
 
 (defn- onig-wasm-file
-  "Returns the path of the Oniguruma wasm the grammar needs, or nil when the extension at `extension-path`
-   doesn't have it."
+  "Returns the path of the Oniguruma wasm the grammar needs, in `out/` where a packaged extension has it, or
+   in `node_modules`, or nil when the extension at `extension-path` has neither."
   [extension-path]
-  (let [file (path/join extension-path "node_modules/vscode-oniguruma/release/onig.wasm")]
-    (when (fs/existsSync file)
-      file)))
+  (some #(when (fs/existsSync %) %)
+        [(path/join extension-path "out/onig.wasm")
+         (path/join extension-path "node_modules/vscode-oniguruma/release/onig.wasm")]))
 
 (defn- clojure-grammar+
   "Returns a promise of Calva's grammar from the extension at `extension-path`, once Oniguruma is loaded."
