@@ -4,34 +4,31 @@
             [garden.stylesheet :as stylesheet]))
 
 (def rules
-  "The views' styles, a Garden rule each. A rule's declarations are a map, so they come out in any order
+  "The views' styles, as Garden rules. A rule's declarations are a map, so they come out in any order
    beyond eight. A shorthand and a longhand it sets go in separate maps, in the order they apply."
-  [[":root"
-    {:--calva-output-font-scale "1"}]
+  [[":root" {:--calva-output-font-scale 1}]
 
-   ["body"
-    {:--calva-output-inset "20px"
-     :padding-inline "var(--calva-output-inset)"}]
+   [:body {:--calva-output-inset "20px"
+           :padding-inline "var(--calva-output-inset)"}]
 
    ["pre[data-output-element-type]"
     ".evaluated-code-container pre"
     ".evaluated-code-container code"
     ".output-element-container > pre"
     ".output-element-container > pre > code"
-    ".ns-info-container"
+    :.ns-info-container
     {:font-family "var(--vscode-editor-font-family, monospace)"
      :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}]
 
-   [".output-element-container"
-    {:padding-bottom "5px"}]
+   [:.output-element-container {:padding-bottom "5px"}]
 
    ["pre[data-output-element-type=\"stdout\"]"
     "pre[data-output-element-type=\"evalOut\"]"
     "pre[data-output-element-type=\"otherOut\"]"
     "pre[data-output-element-type=\"evalErr\"]"
     "pre[data-output-element-type=\"otherErr\"]"
-    {:white-space "pre-wrap"
-     :overflow-wrap "anywhere"}]
+    {:white-space :pre-wrap
+     :overflow-wrap :anywhere}]
 
    ["pre[data-output-element-type=\"otherOut\"]"
     {:color "var(--vscode-descriptionForeground, #858585)"}]
@@ -40,182 +37,147 @@
     "pre[data-output-element-type=\"otherErr\"]"
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
-   ["body.word-wrap code.hljs"
-    {:white-space "pre-wrap"
-     :overflow-wrap "anywhere"
-     :padding-left "calc(1em + 1.5ch)"
-     :text-indent "-1.5ch"}]
+   [:body.word-wrap
+    [:code.hljs {:white-space :pre-wrap
+                 :overflow-wrap :anywhere
+                 :padding-left "calc(1em + 1.5ch)"
+                 :text-indent "-1.5ch"}]]
 
-   [".output-greeting"
-    {:padding "4px 0 20px"}]
+   [:.output-greeting {:padding [["4px" 0 "20px"]]}
+    [:a {:color "var(--vscode-textLink-foreground)"}]
+    [:pre {:white-space :pre-wrap
+           :overflow-wrap :anywhere}]
+    [:img.calva-logo {:display :block
+                      :width "120px"
+                      :height :auto
+                      :margin-top "8px"}]]
 
-   [".output-greeting a"
-    {:color "var(--vscode-textLink-foreground)"}]
+   [:.evaluated-code-container {:border :solid
+                                :margin-top "30px"}]
 
-   [".output-greeting pre"
-    {:white-space "pre-wrap"
-     :overflow-wrap "anywhere"}]
+   [:.border-text {:display :block
+                   :float :left
+                   :clear :left
+                   :padding-left "10px"
+                   :padding-right "10px"
+                   :margin-top "-10px"
+                   :margin-left "10px"
+                   :background-color "var(--vscode-editor-background)"}]
 
-   [".output-greeting img.calva-logo"
-    {:display "block"
-     :width "120px"
-     :height "auto"
-     :margin-top "8px"}]
+   [:.ns-info-container {:display :flex
+                         :align-items :center
+                         :gap "4px"
+                         :margin-top "14px"
+                         :margin-bottom "2px"
+                         :line-height 1.2}]
 
-   [".evaluated-code-container"
-    {:border "solid"
-     :margin-top "30px"}]
+   [:.ns-info-prefix {:color "var(--vscode-editorLineNumber-foreground, #858585)"
+                      :margin-right "2px"
+                      :font-weight :bold}]
 
-   [".border-text"
-    {:display "block"
-     :float "left"
-     :clear "left"
-     :padding-left "10px"
-     :padding-right "10px"
-     :margin-top "-10px"
-     :margin-left "10px"
-     :background-color "var(--vscode-editor-background)"}]
+   [:.ns-info-badge {:padding [["1px" "6px"]]
+                     :border-radius "2px"
+                     :font-size "0.9em"
+                     :white-space :nowrap
+                     :border [["1px" :solid "var(--vscode-contrastBorder, transparent)"]]}]
 
-   [".ns-info-container"
-    {:display "flex"
-     :align-items "center"
-     :gap "4px"
-     :margin-top "14px"
-     :margin-bottom "2px"
-     :line-height "1.2"}]
+   [:.ns-info-who {:background-color "#00bcd4"
+                   :color "#000000"
+                   :font-weight 500}]
 
-   [".ns-info-prefix"
-    {:color "var(--vscode-editorLineNumber-foreground, #858585)"
-     :margin-right "2px"
-     :font-weight "bold"}]
+   [:.ns-info-session {:background-color "var(--vscode-badge-background, #4d4d4d)"
+                       :color "var(--vscode-badge-foreground, #ffffff)"}]
 
-   [".ns-info-badge"
-    {:padding "1px 6px"
-     :border-radius "2px"
-     :font-size "0.9em"
-     :white-space "nowrap"
-     :border "1px solid var(--vscode-contrastBorder, transparent)"}]
-
-   [".ns-info-who"
-    {:background-color "#00bcd4"
-     :color "#000000"
-     :font-weight "500"}]
-
-   [".ns-info-session"
-    {:background-color "var(--vscode-badge-background, #4d4d4d)"
-     :color "var(--vscode-badge-foreground, #ffffff)"}]
-
-   [".ns-info-ns"
-    {:background-color "var(--vscode-editor-foreground, #cccccc)"
-     :color "var(--vscode-editor-background, #1e1e1e)"
-     :font-weight "500"}]
+   [:.ns-info-ns {:background-color "var(--vscode-editor-foreground, #cccccc)"
+                  :color "var(--vscode-editor-background, #1e1e1e)"
+                  :font-weight 500}]
 
    ["body[data-image-display=\"raw\"] [data-image-form=\"images\"]"
     "body:not([data-image-display=\"raw\"]) [data-image-form=\"raw\"]"
-    {:display "none"}]
+    {:display :none}]
 
    ;; Adjacent result segments in the images form share one printed result. Drop the browser
    ;; pre/code margins and theme padding between them so a removed or pending image row leaves
    ;; no gap.
 
-   ["[data-image-form=\"images\"] > pre:not(:first-child)"
-    {:margin-top "0"}]
-
-   ["[data-image-form=\"images\"] > pre:not(:last-child)"
-    {:margin-bottom "0"}]
-
-   ["[data-image-form=\"images\"] > pre:not(:first-child) > code"
-    {:padding-top "0"}]
-
-   ["[data-image-form=\"images\"] > pre:not(:last-child) > code"
-    {:padding-bottom "0"}]
+   ["[data-image-form=\"images\"] > pre"
+    ["&:not(:first-child)" {:margin-top 0}]
+    ["&:not(:last-child)" {:margin-bottom 0}]
+    ["&:not(:first-child) > code" {:padding-top 0}]
+    ["&:not(:last-child) > code" {:padding-bottom 0}]]
 
    [".output-image-thumbnail[data-pending=\"true\"]"
     "body[data-image-display=\"images\"] .output-image-thumbnail:has([data-image-kind=\"remote\"])"
-    {:display "none"}]
+    {:display :none}]
 
-   [".output-images"
-    {:display "flex"
-     :flex-direction "column"
-     :align-items "flex-start"
-     :gap "8px"
-     :margin-block "4px 8px"
-     ;; margin-inline: calc(-1 * var(--calva-output-inset))
-     :box-sizing "border-box"}]
+   [:.output-images {:display :flex
+                     :flex-direction :column
+                     :align-items :flex-start
+                     :gap "8px"
+                     :margin-block [["4px" "8px"]]
+                     ;; margin-inline: calc(-1 * var(--calva-output-inset))
+                     :box-sizing :border-box}]
 
    [".output-images:not(:has(.output-image-thumbnail:not([data-pending=\"true\"])))"
-    {:display "none"}]
+    {:display :none}]
 
    ["body[data-image-display=\"images\"] .output-images:not(:has(.output-image-thumbnail:not([data-pending=\"true\"]):not([data-image-kind=\"remote\"])))"
-    {:display "none"}]
+    {:display :none}]
 
-   [".output-image-thumbnail"
-    {:position "relative"
-     :display "flex"
-     :align-items "flex-start"
-     :gap "4px"
-     :max-width "100%"}]
+   [:.output-image-thumbnail {:position :relative
+                              :display :flex
+                              :align-items :flex-start
+                              :gap "4px"
+                              :max-width "100%"}]
 
    ;; Every copy button in the Output views looks and behaves the same: the result, stdout, image
    ;; and error copy buttons are icon buttons in the top right corner, outside the flow, showing on hover or
    ;; focus. highlightjs-copy draws the result buttons, and its stylesheet loads after this one, so
    ;; its rules are matched with `body` in front.
 
-   [".output-copy-button"
-    "body .hljs-copy-button"
-    {:position "relative"
-     :box-sizing "border-box"
+   [:.output-copy-button "body .hljs-copy-button"
+    {:position :relative
+     :box-sizing :border-box
      :width "32px"
      :height "32px"
-     :padding "0"
-     :overflow "hidden"
+     :padding 0
+     :overflow :hidden
      :text-indent "-9999px"
-     :border "1px solid color-mix(in srgb, var(--vscode-foreground, #cccccc), transparent 80%)"
+     :border [["1px" :solid "color-mix(in srgb, var(--vscode-foreground, #cccccc), transparent 80%)"]]
      :border-radius "0.25rem"
      :background-color "var(--vscode-editor-background, #1e1e1e)"
      :color "var(--vscode-foreground, #cccccc)"
-     :cursor "pointer"
-     :transition "background-color 200ms ease"}]
-
-   [".output-copy-button:hover"
-    "body .hljs-copy-button:hover"
-    {:background-color "color-mix(in srgb, var(--vscode-foreground, #cccccc), var(--vscode-editor-background, #1e1e1e) 90%)"}]
-
-   [".output-copy-button:focus-visible"
-    "body .hljs-copy-button:focus-visible"
-    {:outline "1px solid var(--vscode-focusBorder, #007fd4)"
-     :outline-offset "-1px"}]
-
-   [".output-copy-button::before"
-    "body .hljs-copy-button::before"
-    {:content "\"\""
-     :position "absolute"
-     :top "50%"
-     :left "50%"
-     :width "1rem"
-     :height "1rem"
-     :transform "translate(-50%, -50%)"
-     :background-color "currentColor"
-     :mask-image "url('data:image/svg+xml;utf-8,<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M6 5C5.73478 5 5.48043 5.10536 5.29289 5.29289C5.10536 5.48043 5 5.73478 5 6V20C5 20.2652 5.10536 20.5196 5.29289 20.7071C5.48043 20.8946 5.73478 21 6 21H18C18.2652 21 18.5196 20.8946 18.7071 20.7071C18.8946 20.5196 19 20.2652 19 20V6C19 5.73478 18.8946 5.48043 18.7071 5.29289C18.5196 5.10536 18.2652 5 18 5H16C15.4477 5 15 4.55228 15 4C15 3.44772 15.4477 3 16 3H18C18.7956 3 19.5587 3.31607 20.1213 3.87868C20.6839 4.44129 21 5.20435 21 6V20C21 20.7957 20.6839 21.5587 20.1213 22.1213C19.5587 22.6839 18.7957 23 18 23H6C5.20435 23 4.44129 22.6839 3.87868 22.1213C3.31607 21.5587 3 20.7957 3 20V6C3 5.20435 3.31607 4.44129 3.87868 3.87868C4.44129 3.31607 5.20435 3 6 3H8C8.55228 3 9 3.44772 9 4C9 4.55228 8.55228 5 8 5H6Z\" fill=\"black\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7 3C7 1.89543 7.89543 1 9 1H15C16.1046 1 17 1.89543 17 3V5C17 6.10457 16.1046 7 15 7H9C7.89543 7 7 6.10457 7 5V3ZM15 3H9V5H15V3Z\" fill=\"black\"/></svg>')"
-     :mask-repeat "no-repeat"
-     :mask-size "contain"
-     :mask-position "center center"}]
+     :cursor :pointer
+     :transition [[:background-color "200ms" :ease]]}
+    [:&:hover {:background-color "color-mix(in srgb, var(--vscode-foreground, #cccccc), var(--vscode-editor-background, #1e1e1e) 90%)"}]
+    [:&:focus-visible {:outline [["1px" :solid "var(--vscode-focusBorder, #007fd4)"]]
+                       :outline-offset "-1px"}]
+    ["&::before" {:content "\"\""
+                  :position :absolute
+                  :top "50%"
+                  :left "50%"
+                  :width "1rem"
+                  :height "1rem"
+                  :transform "translate(-50%, -50%)"
+                  :background-color :currentColor
+                  :mask-image "url('data:image/svg+xml;utf-8,<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M6 5C5.73478 5 5.48043 5.10536 5.29289 5.29289C5.10536 5.48043 5 5.73478 5 6V20C5 20.2652 5.10536 20.5196 5.29289 20.7071C5.48043 20.8946 5.73478 21 6 21H18C18.2652 21 18.5196 20.8946 18.7071 20.7071C18.8946 20.5196 19 20.2652 19 20V6C19 5.73478 18.8946 5.48043 18.7071 5.29289C18.5196 5.10536 18.2652 5 18 5H16C15.4477 5 15 4.55228 15 4C15 3.44772 15.4477 3 16 3H18C18.7956 3 19.5587 3.31607 20.1213 3.87868C20.6839 4.44129 21 5.20435 21 6V20C21 20.7957 20.6839 21.5587 20.1213 22.1213C19.5587 22.6839 18.7957 23 18 23H6C5.20435 23 4.44129 22.6839 3.87868 22.1213C3.31607 21.5587 3 20.7957 3 20V6C3 5.20435 3.31607 4.44129 3.87868 3.87868C4.44129 3.31607 5.20435 3 6 3H8C8.55228 3 9 3.44772 9 4C9 4.55228 8.55228 5 8 5H6Z\" fill=\"black\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7 3C7 1.89543 7.89543 1 9 1H15C16.1046 1 17 1.89543 17 3V5C17 6.10457 16.1046 7 15 7H9C7.89543 7 7 6.10457 7 5V3ZM15 3H9V5H15V3Z\" fill=\"black\"/></svg>')"
+                  :mask-repeat :no-repeat
+                  :mask-size :contain
+                  :mask-position [[:center :center]]}]]
 
    ;; highlightjs-copy shows "Copied!" as text; every copy button shows a check instead
 
-   ["body .hljs-copy-button[data-copied=\"true\"]"
-    {:width "32px"
-     :text-indent "-9999px"}]
+   ["body .hljs-copy-button[data-copied=\"true\"]" {:width "32px"
+                                                    :text-indent "-9999px"}]
 
    [".output-copy-button[data-copied=\"true\"]::before"
     "body .hljs-copy-button[data-copied=\"true\"]::before"
     {:mask-image "url('data:image/svg+xml;utf-8,<svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z\"/></svg>')"}]
 
-   [".output-copy-button"
-    "body .hljs-copy-container[data-autohide=\"true\"]"
-    {:opacity "0"
-     :transform "none"
-     :transition "opacity 200ms ease-out, background-color 200ms ease"}]
+   [:.output-copy-button "body .hljs-copy-container[data-autohide=\"true\"]"
+    {:opacity 0
+     :transform :none
+     :transition [[:opacity "200ms" :ease-out] [:background-color "200ms" :ease]]}]
 
    [".output-image-thumbnail:hover .output-copy-button"
     ".output-stdout:hover .output-copy-button"
@@ -225,509 +187,396 @@
     "body .hljs-copy-wrapper:hover .hljs-copy-container"
     "body .hljs-copy-wrapper:focus-within .hljs-copy-container"
     "body .hljs-copy-container:has([data-copied=\"true\"])"
-    {:opacity "1"}]
+    {:opacity 1}]
 
-   [".output-image-copy"
-    ".output-error-copy"
-    ".output-stdout-copy"
-    {:position "absolute"
-     :top "0"
-     :right "0"}]
+   [:.output-image-copy :.output-error-copy :.output-stdout-copy {:position :absolute
+                                                                  :top 0
+                                                                  :right 0}]
 
-   [".output-image-copy"
-    {:margin "8px"}]
+   [:.output-image-copy {:margin "8px"}]
 
-   [".output-stdout"
-    {:position "relative"}]
+   [:.output-stdout {:position :relative}]
 
    (stylesheet/at-media {:prefers-reduced-motion nil}
-                        [".output-copy-button"
+                        [:.output-copy-button
                          "body .hljs-copy-button"
                          "body .hljs-copy-container[data-autohide=\"true\"]"
-                         {:transition "none"}])
-
-   [".output-image"
-    {:display "block"
-     :box-sizing "border-box"
-     :max-width "100%"
-     :max-height "400px"
-     :width "auto"
-     :height "auto"
-     :object-fit "contain"
-     :border "1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"}]
-
-   ["body.repl-input-on"
-    {:display "flex"
-     :flex-direction "column"
-     :box-sizing "border-box"
-     :min-height "100vh"}]
-
-   ["body.repl-input-on #output"
-    {:flex-grow "1"}]
-
-   ;; VS Code draws the border between two views under the right one's webview, along its left edge
-
-   ["body.repl-input-on #repl-input"
-    {:position "sticky"
-     :bottom "0"
-     :margin-left "calc(1px - var(--calva-output-inset))"
-     :margin-right "calc(-1 * var(--calva-output-inset))"
-     :padding "6px var(--calva-output-inset) 6px calc(var(--calva-output-inset) - 1px)"
-     :background-color "var(--vscode-editor-background)"
-     :border-top "1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"}]
-
-   ["body.repl-input-on #repl-input[data-repl-input-id=\"output-sidebar\"]"
-    {:background-color "var(--vscode-sideBar-background, var(--vscode-editor-background))"}]
-
-   [".repl-input-sash"
-    {:position "absolute"
-     :z-index "35"
-     :top "-3px"
-     :left "0"
-     :right "0"
-     :height "4px"
-     :cursor "ns-resize"
-     :touch-action "none"}]
-
-   [".repl-input-sash.mac"
-    {:cursor "row-resize"}]
-
-   [".repl-input-sash::before"
-    {:content "\"\""
-     :position "absolute"
-     :inset "0"
-     :pointer-events "none"
-     :background-color "transparent"
-     :transition "background-color 0.1s ease-out"}]
-
-   [".repl-input-sash:hover::before"
-    {:background-color "var(--vscode-sash-hoverBorder)"
-     :transition-delay "300ms"}]
-
-   [".repl-input-sash.active::before"
-    {:background-color "var(--vscode-sash-hoverBorder)"
-     :transition-delay "0s"}]
-
-   ["body.repl-input-on .output-greeting-read-only"
-    {:display "none"}]
-
-   [".repl-input-context"
-    {:display "flex"
-     :align-items "center"
-     :gap "0.4em"
-     :padding-bottom "4px"
-     :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"}]
-
-   [".repl-input-context-line"
-    {:display "flex"
-     :flex-grow "1"
-     :min-width "0"
-     :overflow "hidden"
-     :gap "0 0.4em"
-     :white-space "nowrap"
-     :color "var(--vscode-descriptionForeground)"}]
-
-   [".repl-input-context-button"
-    {:display "flex"
-     :flex-shrink "0"
-     :margin "-3px 0"
-     :padding "2px"
-     :color "var(--vscode-icon-foreground, var(--vscode-foreground))"
-     :background "none"
-     :border "none"
-     :border-radius "5px"
-     :cursor "pointer"}]
-
-   [".repl-input-context-button[hidden]"
-    {:display "none"}]
-
-   [".repl-input-context-button:hover"
-    {:background-color "var(--vscode-toolbar-hoverBackground)"}]
-
-   [".repl-input-context-button:focus-visible"
-    {:outline "1px solid var(--vscode-focusBorder)"
-     :outline-offset "-1px"}]
-
-   [".repl-input-context-icon"
-    {:width "16px"
-     :height "16px"
-     :fill "currentColor"
-     :fill-rule "evenodd"}]
-
-   [".repl-input-indicator"
-    {:flex-shrink "1"
-     :align-items "center"
-     :gap "4px"
-     :min-width "0"
-     :padding "2px 4px 2px 2px"
-     :font "inherit"
-     :white-space "nowrap"}]
-
-   [".repl-input-indicator[data-mode=\"following\"]"
-    {:cursor "default"}]
-
-   [".repl-input-indicator[data-mode=\"following\"]:hover"
-    {:background "none"}]
-
-   [".repl-input-indicator .repl-input-context-ns"
-    {:min-width "0"
-     :overflow "hidden"
-     :text-overflow "ellipsis"}]
-
-   [".repl-input-indicator-chevron"
-    {:flex-shrink "0"}]
-
-   [".repl-input-evaluate"
-    {:color "var(--vscode-debugIcon-startForeground)"}]
-
-   [".repl-input-context-button[aria-disabled=\"true\"]"
-    {:opacity "0.4"
-     :cursor "default"}]
-
-   [".repl-input-context-button[aria-disabled=\"true\"]:hover"
-    {:background "none"}]
-
-   [".repl-input-context-line > span::before"
-    {:content "\"· \""}]
-
-   [".repl-input-context-ns"
-    {:color "var(--vscode-foreground)"}]
-
-   [".repl-input-context-connect"
-    {:flex-shrink "0"
-     :cursor "pointer"
-     :color "var(--vscode-textLink-foreground)"}]
-
-   [".repl-input-context-connect::before"
-    {:display "inline-block"
-     :white-space "pre"
-     :color "var(--vscode-descriptionForeground)"}]
-
-   [".repl-input-context-connect:hover"
-    {:color "var(--vscode-textLink-activeForeground)"
-     :text-decoration "underline"}]
-
-   [".repl-input-evaluation-bar"
-    {:display "flex"
-     :align-items "center"
-     :justify-content "space-between"
-     :gap "0.5em"
-     :margin-bottom "4px"
-     :padding "2px 6px"
-     :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
-     :color "var(--vscode-foreground)"
-     :background-color "var(--vscode-editorWidget-background)"
-     :border-left "2px solid var(--vscode-progressBar-background)"}]
-
-   [".repl-input-evaluation-bar[hidden]"
-    {:display "none"}]
-
-   [".repl-input-interrupt"
-    {:padding "1px 8px"
-     :font "inherit"
-     :color "var(--vscode-button-secondaryForeground)"
-     :background-color "var(--vscode-button-secondaryBackground)"
-     :border "none"
-     :border-radius "2px"
-     :cursor "pointer"}]
-
-   [".repl-input-interrupt:hover"
-    {:background-color "var(--vscode-button-secondaryHoverBackground)"}]
-
-   [".repl-input-stdin"
-    {:display "flex"
-     :align-items "center"
-     :gap "4px"
-     :margin-bottom "6px"
-     :font-family "var(--vscode-editor-font-family, monospace)"
-     :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}]
-
-   [".repl-input-stdin[hidden]"
-    {:display "none"}]
-
-   [".repl-input-stdin input"
-    {:flex-grow "1"
-     :min-width "0"
-     :padding "3px 4px"
-     :font "inherit"
-     :color "var(--vscode-input-foreground)"
-     :background-color "var(--vscode-input-background)"
-     :border "1px solid var(--vscode-input-border, transparent)"}]
-
-   [".repl-input-stdin input:focus"
-    {:outline "1px solid var(--vscode-focusBorder)"
-     :outline-offset "-1px"}]
-
-   [".repl-input-stdin input::placeholder"
-    {:color "var(--vscode-input-placeholderForeground)"}]
-
-   [".repl-input-stdin-icon"
-    {:flex-shrink "0"
-     :width "16px"
-     :height "16px"
-     :fill "currentColor"}]
-
-   [".repl-input-stdin-prompt"
-    {:color "var(--vscode-icon-foreground, var(--vscode-foreground))"}]
-
-   [".repl-input-stdin-stop"
-    {:display "flex"
-     :padding "3px"
-     :color "var(--vscode-icon-foreground, var(--vscode-foreground))"
-     :background "none"
-     :border "none"
-     :border-radius "5px"
-     :cursor "pointer"}]
-
-   [".repl-input-stdin-stop:hover"
-    {:background-color "var(--vscode-toolbar-hoverBackground)"}]
-
-   ["[interestfor]"
-    {:interest-delay-start "500ms"
-     :interest-delay-end "100ms"}]
-
-   [".output-tooltip"
-    {:position-area "top"
-     :position-try-fallbacks "bottom"
-     :inset "auto"
-     :width "max-content"
-     :max-width "calc(100vw - 8px)"
-     :margin "4px"
-     :padding "4px 8px"
-     :box-sizing "border-box"
-     :font-family "var(--vscode-font-family)"
-     :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
-     :line-height "1.4"
-     :white-space "normal"
-     :color "var(--vscode-editorHoverWidget-foreground)"
-     :background-color "var(--vscode-editorHoverWidget-background)"
-     :border "1px solid var(--vscode-editorHoverWidget-border)"
-     :border-radius "3px"
-     :box-shadow "0 2px 8px var(--vscode-widget-shadow)"}]
-
-   [".repl-input-menu"
-    {:position-area "bottom span-right"
-     :position-try-fallbacks "top span-right, bottom span-left, top span-left"
-     :inset "auto"
-     :max-width "calc(100vw - 8px)"
-     :margin "2px 0"
-     :padding "4px"
-     :box-sizing "border-box"
-     :font-family "var(--vscode-font-family)"
-     :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
-     :color "var(--vscode-menu-foreground)"
-     :background-color "var(--vscode-menu-background)"
-     :border "1px solid var(--vscode-menu-border, transparent)"
-     :border-radius "5px"
-     :box-shadow "0 2px 8px var(--vscode-widget-shadow)"}]
-
-   [".repl-input-menu-item"
-    {:display "flex"
-     :align-items "center"
-     :gap "6px"
-     :width "100%"
-     :padding "3px 8px"
-     :font "inherit"
-     :white-space "nowrap"
-     :text-align "start"
-     :color "inherit"
-     :background "none"
-     :border "none"
-     :border-radius "3px"
-     :cursor "pointer"}]
-
-   [".repl-input-menu-item:hover"
-    ".repl-input-menu-item:focus"
-    {:color "var(--vscode-menu-selectionForeground)"
-     :background-color "var(--vscode-menu-selectionBackground)"
-     :outline "1px solid var(--vscode-menu-selectionBorder, transparent)"
-     :outline-offset "-1px"}]
-
-   [".repl-input-menu-ns"
-    {:min-width "0"
-     :overflow "hidden"
-     :text-overflow "ellipsis"}]
-
-   [".repl-input-menu-session"
-    ".repl-input-menu-detail"
-    {:flex-shrink "0"
-     :opacity "0.7"}]
-
-   [".repl-input-menu-session:empty"
-    {:display "none"}]
-
-   [".output-error"
-    {:position "relative"
-     :font-family "var(--vscode-editor-font-family, monospace)"
-     :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
-     :margin-block "4px"}]
-
-   [".output-error button:where(:not(.output-copy-button))"
-    {:display "flex"
-     :align-items "flex-start"
-     :gap "2px"
-     :width "100%"
-     :padding "0"
-     :border "none"
-     :background "transparent"
-     :color "inherit"
-     :font "inherit"
-     :text-align "start"
-     :cursor "pointer"}]
-
-   [".output-error-toggle"
-    ".output-error-cause-toggle"
-    {:display "flex"
-     :align-items "flex-start"
-     :gap "2px"
-     :cursor "pointer"}]
-
-   [".output-error .output-error-chevron-button"
-    {:flex "none"
-     :width "auto"}]
-
-   [".output-error-frame-openable"
-    {:cursor "pointer"}]
-
-   [".output-error button:where(:not(.output-copy-button)):focus-visible"
-    {:outline "1px solid var(--vscode-focusBorder, #007fd4)"
-     :outline-offset "1px"}]
-
-   [".output-error-chevron"
-    {:flex "none"
-     :width "16px"
-     :height "1.4em"
-     :fill "var(--vscode-icon-foreground, #c5c5c5)"
-     :transition "transform 0.1s ease-out"}]
-
-   [".output-error button[aria-expanded=\"true\"] > .output-error-chevron"
-    {:transform "rotate(90deg)"}]
-
-   [".output-error-text"
-    {:margin "0"
-     :white-space "pre-wrap"
-     :overflow-wrap "anywhere"
-     :font "inherit"}]
-
-   [".output-error[data-error-category=\"evalErr\"] .output-error-text"
-    ".output-error[data-error-category=\"otherErr\"] .output-error-text"
-    {:color "var(--vscode-errorForeground, #f48771)"}]
-
-   [".output-error[data-error-category=\"otherOut\"] .output-error-text"
-    {:color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error-causes"
-    {:margin-inline-start "18px"
-     :padding-block "2px 6px"}]
-
-   [".output-error-cause"
-    {:margin-block-start "6px"}]
-
-   [".output-error-cause-heading"
-    {:overflow-wrap "anywhere"}]
-
-   [".output-error-frame-count"
-    {:flex "none"
-     :margin-inline-start "1ch"
-     :color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error-detail"
-    {:margin "2px 0 2px 18px"
-     :white-space "pre-wrap"
-     :overflow-wrap "anywhere"
-     :font "inherit"
-     :color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error-code"
-    {:padding "0"
-     :background "none"
-     :font "inherit"}]
-
-   [".output-error-frames"
-    {:margin "2px 0 0 18px"
-     :padding "0"
-     :list-style "none"}]
-
-   [".output-error-frame"
-    {:line-height "1.4"}]
-
-   [".output-error-frame span"
-    {:overflow-wrap "anywhere"}]
-
-   [".output-error-frame-location"
-    {:display "inline-block"
-     :min-width "24ch"
-     :margin-inline-end "1ch"
-     :white-space "nowrap"}]
-
-   [".output-error-frame-qualifier"
-    {:color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error .output-error-frame-link"
-    {:display "inline"
-     :width "auto"
-     :color "var(--vscode-textLink-foreground, #3794ff)"}]
-
-   [".output-error .output-error-frame-link:hover .output-error-frame-location"
-    {:text-decoration "underline"}]
-
-   [".output-error-filters"
-    {:display "flex"
-     :flex-direction "column"
-     :gap "4px"
-     :margin-block "4px 2px"
-     :font-family "var(--vscode-font-family, sans-serif)"
-     :font-size "calc(var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"}]
-
-   [".output-error-filter-row"
-    {:display "flex"
-     :flex-wrap "wrap"
-     :align-items "center"
-     :gap "2px 4px"}]
-
-   [".output-error-switch"
-    {:display "inline-flex"
-     :margin-inline-end "8px"
-     :border "1px solid var(--vscode-input-border, var(--vscode-widget-border, #454545))"
-     :border-radius "3px"}]
-
-   [".output-error-filter-label"
-    {:margin-inline-end "4px"
-     :color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error .output-error-filter"
-    {:display "inline-flex"
-     :width "auto"
-     :padding "1px 6px"
-     :border "1px solid transparent"
-     :border-radius "3px"
-     :color "var(--vscode-foreground, #cccccc)"}]
-
-   [".output-error .output-error-switch .output-error-filter"
-    {:border-radius "0"}]
-
-   [".output-error .output-error-filter:hover"
-    {:background-color "var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31))"}]
-
-   [".output-error .output-error-filter[aria-pressed=\"true\"]"
-    {:background-color "var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.4))"
-     :border-color "var(--vscode-inputOption-activeBorder, #007acc)"
-     :color "var(--vscode-inputOption-activeForeground, #ffffff)"}]
-
-   [".output-error-hidden-count"
-    {:color "var(--vscode-descriptionForeground, #858585)"}]
-
-   [".output-error-location"
-    {:margin-block "2px 4px"}]
-
-   [".output-error .output-error-location-link"
-    {:display "inline"
-     :width "auto"
-     :margin-block "2px 4px"
-     :color "var(--vscode-textLink-foreground, #3794ff)"}]
-
-   [".output-error .output-error-location-link:hover"
-    {:text-decoration "underline"}]])
+                         {:transition :none}])
+
+   [:.output-image {:display :block
+                    :box-sizing :border-box
+                    :max-width "100%"
+                    :max-height "400px"
+                    :width :auto
+                    :height :auto
+                    :object-fit :contain
+                    :border [["1px" :solid "var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"]]}]
+
+   [:body.repl-input-on {:display :flex
+                         :flex-direction :column
+                         :box-sizing :border-box
+                         :min-height "100vh"}
+    [:#output {:flex-grow 1}]
+    ;; VS Code draws the border between two views under the right one's webview, along its left edge
+    [:#repl-input {:position :sticky
+                   :bottom 0
+                   :margin-left "calc(1px - var(--calva-output-inset))"
+                   :margin-right "calc(-1 * var(--calva-output-inset))"
+                   :padding [["6px" "var(--calva-output-inset)" "6px" "calc(var(--calva-output-inset) - 1px)"]]
+                   :background-color "var(--vscode-editor-background)"
+                   :border-top [["1px" :solid "var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"]]}
+     ["&[data-repl-input-id=\"output-sidebar\"]"
+      {:background-color "var(--vscode-sideBar-background, var(--vscode-editor-background))"}]]]
+
+   [:.repl-input-sash {:position :absolute
+                       :z-index 35
+                       :top "-3px"
+                       :left 0
+                       :right 0
+                       :height "4px"
+                       :cursor :ns-resize
+                       :touch-action :none}
+    [:&.mac {:cursor :row-resize}]
+    ["&::before" {:content "\"\""
+                  :position :absolute
+                  :inset 0
+                  :pointer-events :none
+                  :background-color :transparent
+                  :transition [[:background-color "0.1s" :ease-out]]}]
+    ["&:hover::before" {:background-color "var(--vscode-sash-hoverBorder)"
+                        :transition-delay "300ms"}]
+    ["&.active::before" {:background-color "var(--vscode-sash-hoverBorder)"
+                         :transition-delay "0s"}]]
+
+   [:body.repl-input-on
+    [:.output-greeting-read-only {:display :none}]]
+
+   [:.repl-input-context {:display :flex
+                          :align-items :center
+                          :gap "0.4em"
+                          :padding-bottom "4px"
+                          :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"}]
+
+   [:.repl-input-context-line {:display :flex
+                               :flex-grow 1
+                               :min-width 0
+                               :overflow :hidden
+                               :gap [[0 "0.4em"]]
+                               :white-space :nowrap
+                               :color "var(--vscode-descriptionForeground)"}]
+
+   [:.repl-input-context-button {:display :flex
+                                 :flex-shrink 0
+                                 :margin [["-3px" 0]]
+                                 :padding "2px"
+                                 :color "var(--vscode-icon-foreground, var(--vscode-foreground))"
+                                 :background :none
+                                 :border :none
+                                 :border-radius "5px"
+                                 :cursor :pointer}
+    ["&[hidden]" {:display :none}]
+    [:&:hover {:background-color "var(--vscode-toolbar-hoverBackground)"}]
+    [:&:focus-visible {:outline [["1px" :solid "var(--vscode-focusBorder)"]]
+                       :outline-offset "-1px"}]]
+
+   [:.repl-input-context-icon {:width "16px"
+                               :height "16px"
+                               :fill :currentColor
+                               :fill-rule :evenodd}]
+
+   [:.repl-input-indicator {:flex-shrink 1
+                            :align-items :center
+                            :gap "4px"
+                            :min-width 0
+                            :padding [["2px" "4px" "2px" "2px"]]
+                            :font :inherit
+                            :white-space :nowrap}
+    ["&[data-mode=\"following\"]" {:cursor :default}
+     [:&:hover {:background :none}]]
+    [:.repl-input-context-ns {:min-width 0
+                              :overflow :hidden
+                              :text-overflow :ellipsis}]]
+
+   [:.repl-input-indicator-chevron {:flex-shrink 0}]
+
+   [:.repl-input-evaluate {:color "var(--vscode-debugIcon-startForeground)"}]
+
+   [".repl-input-context-button[aria-disabled=\"true\"]" {:opacity 0.4
+                                                          :cursor :default}
+    [:&:hover {:background :none}]]
+
+   [:.repl-input-context-line
+    ["> span::before" {:content "\"· \""}]]
+
+   [:.repl-input-context-ns {:color "var(--vscode-foreground)"}]
+
+   [:.repl-input-context-connect {:flex-shrink 0
+                                  :cursor :pointer
+                                  :color "var(--vscode-textLink-foreground)"}
+    ["&::before" {:display :inline-block
+                  :white-space :pre
+                  :color "var(--vscode-descriptionForeground)"}]
+    [:&:hover {:color "var(--vscode-textLink-activeForeground)"
+               :text-decoration :underline}]]
+
+   [:.repl-input-evaluation-bar {:display :flex
+                                 :align-items :center
+                                 :justify-content :space-between
+                                 :gap "0.5em"
+                                 :margin-bottom "4px"
+                                 :padding [["2px" "6px"]]
+                                 :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
+                                 :color "var(--vscode-foreground)"
+                                 :background-color "var(--vscode-editorWidget-background)"
+                                 :border-left [["2px" :solid "var(--vscode-progressBar-background)"]]}
+    ["&[hidden]" {:display :none}]]
+
+   [:.repl-input-interrupt {:padding [["1px" "8px"]]
+                            :font :inherit
+                            :color "var(--vscode-button-secondaryForeground)"
+                            :background-color "var(--vscode-button-secondaryBackground)"
+                            :border :none
+                            :border-radius "2px"
+                            :cursor :pointer}
+    [:&:hover {:background-color "var(--vscode-button-secondaryHoverBackground)"}]]
+
+   [:.repl-input-stdin {:display :flex
+                        :align-items :center
+                        :gap "4px"
+                        :margin-bottom "6px"
+                        :font-family "var(--vscode-editor-font-family, monospace)"
+                        :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}
+    ["&[hidden]" {:display :none}]
+    [:input {:flex-grow 1
+             :min-width 0
+             :padding [["3px" "4px"]]
+             :font :inherit
+             :color "var(--vscode-input-foreground)"
+             :background-color "var(--vscode-input-background)"
+             :border [["1px" :solid "var(--vscode-input-border, transparent)"]]}
+     [:&:focus {:outline [["1px" :solid "var(--vscode-focusBorder)"]]
+                :outline-offset "-1px"}]
+     ["&::placeholder" {:color "var(--vscode-input-placeholderForeground)"}]]]
+
+   [:.repl-input-stdin-icon {:flex-shrink 0
+                             :width "16px"
+                             :height "16px"
+                             :fill :currentColor}]
+
+   [:.repl-input-stdin-prompt {:color "var(--vscode-icon-foreground, var(--vscode-foreground))"}]
+
+   [:.repl-input-stdin-stop {:display :flex
+                             :padding "3px"
+                             :color "var(--vscode-icon-foreground, var(--vscode-foreground))"
+                             :background :none
+                             :border :none
+                             :border-radius "5px"
+                             :cursor :pointer}
+    [:&:hover {:background-color "var(--vscode-toolbar-hoverBackground)"}]]
+
+   ["[interestfor]" {:interest-delay-start "500ms"
+                     :interest-delay-end "100ms"}]
+
+   [:.output-tooltip {:position-area :top
+                      :position-try-fallbacks :bottom
+                      :inset :auto
+                      :width :max-content
+                      :max-width "calc(100vw - 8px)"
+                      :margin "4px"
+                      :padding [["4px" "8px"]]
+                      :box-sizing :border-box
+                      :font-family "var(--vscode-font-family)"
+                      :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
+                      :line-height 1.4
+                      :white-space :normal
+                      :color "var(--vscode-editorHoverWidget-foreground)"
+                      :background-color "var(--vscode-editorHoverWidget-background)"
+                      :border [["1px" :solid "var(--vscode-editorHoverWidget-border)"]]
+                      :border-radius "3px"
+                      :box-shadow [[0 "2px" "8px" "var(--vscode-widget-shadow)"]]}]
+
+   [:.repl-input-menu {:position-area [[:bottom :span-right]]
+                       :position-try-fallbacks [[:top :span-right] [:bottom :span-left] [:top :span-left]]
+                       :inset :auto
+                       :max-width "calc(100vw - 8px)"
+                       :margin [["2px" 0]]
+                       :padding "4px"
+                       :box-sizing :border-box
+                       :font-family "var(--vscode-font-family)"
+                       :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
+                       :color "var(--vscode-menu-foreground)"
+                       :background-color "var(--vscode-menu-background)"
+                       :border [["1px" :solid "var(--vscode-menu-border, transparent)"]]
+                       :border-radius "5px"
+                       :box-shadow [[0 "2px" "8px" "var(--vscode-widget-shadow)"]]}]
+
+   [:.repl-input-menu-item {:display :flex
+                            :align-items :center
+                            :gap "6px"
+                            :width "100%"
+                            :padding [["3px" "8px"]]
+                            :font :inherit
+                            :white-space :nowrap
+                            :text-align :start
+                            :color :inherit
+                            :background :none
+                            :border :none
+                            :border-radius "3px"
+                            :cursor :pointer}
+    [:&:hover :&:focus {:color "var(--vscode-menu-selectionForeground)"
+                        :background-color "var(--vscode-menu-selectionBackground)"
+                        :outline [["1px" :solid "var(--vscode-menu-selectionBorder, transparent)"]]
+                        :outline-offset "-1px"}]]
+
+   [:.repl-input-menu-ns {:min-width 0
+                          :overflow :hidden
+                          :text-overflow :ellipsis}]
+
+   [:.repl-input-menu-session :.repl-input-menu-detail {:flex-shrink 0
+                                                        :opacity 0.7}]
+
+   [:.repl-input-menu-session
+    [:&:empty {:display :none}]]
+
+   [:.output-error {:position :relative
+                    :font-family "var(--vscode-editor-font-family, monospace)"
+                    :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                    :margin-block "4px"}
+    ["button:where(:not(.output-copy-button))" {:display :flex
+                                                :align-items :flex-start
+                                                :gap "2px"
+                                                :width "100%"
+                                                :padding 0
+                                                :border :none
+                                                :background :transparent
+                                                :color :inherit
+                                                :font :inherit
+                                                :text-align :start
+                                                :cursor :pointer}]]
+
+   [:.output-error-toggle :.output-error-cause-toggle {:display :flex
+                                                       :align-items :flex-start
+                                                       :gap "2px"
+                                                       :cursor :pointer}]
+
+   [:.output-error
+    [:.output-error-chevron-button {:flex :none
+                                    :width :auto}]]
+
+   [:.output-error-frame-openable {:cursor :pointer}]
+
+   [:.output-error
+    ["button:where(:not(.output-copy-button)):focus-visible" {:outline [["1px" :solid "var(--vscode-focusBorder, #007fd4)"]]
+                                                              :outline-offset "1px"}]]
+
+   [:.output-error-chevron {:flex :none
+                            :width "16px"
+                            :height "1.4em"
+                            :fill "var(--vscode-icon-foreground, #c5c5c5)"
+                            :transition [[:transform "0.1s" :ease-out]]}]
+
+   [:.output-error
+    ["button[aria-expanded=\"true\"] > .output-error-chevron" {:transform "rotate(90deg)"}]]
+
+   [:.output-error-text {:margin 0
+                         :white-space :pre-wrap
+                         :overflow-wrap :anywhere
+                         :font :inherit}]
+
+   [".output-error[data-error-category=\"evalErr\"]"
+    ".output-error[data-error-category=\"otherErr\"]"
+    [:.output-error-text {:color "var(--vscode-errorForeground, #f48771)"}]]
+
+   [".output-error[data-error-category=\"otherOut\"]"
+    [:.output-error-text {:color "var(--vscode-descriptionForeground, #858585)"}]]
+
+   [:.output-error-causes {:margin-inline-start "18px"
+                           :padding-block [["2px" "6px"]]}]
+
+   [:.output-error-cause {:margin-block-start "6px"}]
+
+   [:.output-error-cause-heading {:overflow-wrap :anywhere}]
+
+   [:.output-error-frame-count {:flex :none
+                                :margin-inline-start "1ch"
+                                :color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error-detail {:margin [["2px" 0 "2px" "18px"]]
+                           :white-space :pre-wrap
+                           :overflow-wrap :anywhere
+                           :font :inherit
+                           :color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error-code {:padding 0
+                         :background :none
+                         :font :inherit}]
+
+   [:.output-error-frames {:margin [["2px" 0 0 "18px"]]
+                           :padding 0
+                           :list-style :none}]
+
+   [:.output-error-frame {:line-height 1.4}
+    [:span {:overflow-wrap :anywhere}]]
+
+   [:.output-error-frame-location {:display :inline-block
+                                   :min-width "24ch"
+                                   :margin-inline-end "1ch"
+                                   :white-space :nowrap}]
+
+   [:.output-error-frame-qualifier {:color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error
+    [:.output-error-frame-link {:display :inline
+                                :width :auto
+                                :color "var(--vscode-textLink-foreground, #3794ff)"}
+     [:&:hover
+      [:.output-error-frame-location {:text-decoration :underline}]]]]
+
+   [:.output-error-filters {:display :flex
+                            :flex-direction :column
+                            :gap "4px"
+                            :margin-block [["4px" "2px"]]
+                            :font-family "var(--vscode-font-family, sans-serif)"
+                            :font-size "calc(var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"}]
+
+   [:.output-error-filter-row {:display :flex
+                               :flex-wrap :wrap
+                               :align-items :center
+                               :gap [["2px" "4px"]]}]
+
+   [:.output-error-switch {:display :inline-flex
+                           :margin-inline-end "8px"
+                           :border [["1px" :solid "var(--vscode-input-border, var(--vscode-widget-border, #454545))"]]
+                           :border-radius "3px"}]
+
+   [:.output-error-filter-label {:margin-inline-end "4px"
+                                 :color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error
+    [:.output-error-filter {:display :inline-flex
+                            :width :auto
+                            :padding [["1px" "6px"]]
+                            :border [["1px" :solid :transparent]]
+                            :border-radius "3px"
+                            :color "var(--vscode-foreground, #cccccc)"}]
+    [:.output-error-switch
+     [:.output-error-filter {:border-radius 0}]]
+    [:.output-error-filter
+     [:&:hover {:background-color "var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31))"}]
+     ["&[aria-pressed=\"true\"]" {:background-color "var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.4))"
+                                  :border-color "var(--vscode-inputOption-activeBorder, #007acc)"
+                                  :color "var(--vscode-inputOption-activeForeground, #ffffff)"}]]]
+
+   [:.output-error-hidden-count {:color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error-location {:margin-block [["2px" "4px"]]}]
+
+   [:.output-error
+    [:.output-error-location-link {:display :inline
+                                   :width :auto
+                                   :margin-block [["2px" "4px"]]
+                                   :color "var(--vscode-textLink-foreground, #3794ff)"}
+     [:&:hover {:text-decoration :underline}]]]])
 
 (defn css
   "Returns the Output views' styles as CSS."
@@ -736,17 +585,13 @@
 
 (def help-rules
   "The styles of the Output Sidebar's help page."
-  [["body"
-    {:color "var(--vscode-foreground)"
-     :background "var(--vscode-editor-background)"
-     :font-family "var(--vscode-font-family)"
-     :padding "16px"}]
-   ["h1"
-    {:font-size "1.2em"}]
-   ["pre"
-    {:white-space "pre-wrap"}]
-   ["a"
-    {:color "var(--vscode-textLink-foreground)"}]])
+  [[:body {:color "var(--vscode-foreground)"
+           :background "var(--vscode-editor-background)"
+           :font-family "var(--vscode-font-family)"
+           :padding "16px"}]
+   [:h1 {:font-size "1.2em"}]
+   [:pre {:white-space :pre-wrap}]
+   [:a {:color "var(--vscode-textLink-foreground)"}]])
 
 (defn help-css
   "Returns the styles of the Output Sidebar's help page as CSS."
