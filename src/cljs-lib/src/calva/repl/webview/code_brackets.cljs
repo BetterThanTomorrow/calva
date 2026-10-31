@@ -96,7 +96,7 @@
 
 (defn- guide-rules
   "The rules that draw the guide of `color` for `color-index`, a line at the left edge of the character it
-   marks, through the line's height, as Calva draws guides in files: thin, and thicker for the active guide."
+   marks, the line's height, as Calva draws guides in files: thin, and thicker for the active guide."
   [color-index color]
   (for [active? [false true]
         :let [class-name (guide-class color-index active?)
@@ -105,8 +105,8 @@
                       [(str "span." class-name "::before") {:content "\"\""
                                                             :position :absolute
                                                             :left 0
-                                                            :top "-0.25em"
-                                                            :bottom "-0.25em"
+                                                            :top "calc(50% - 0.5lh)"
+                                                            :height "1lh"
                                                             :border-left [[(if active? "1.5px" "0.5px") :solid]]
                                                             :opacity (if active? 0.5 0.25)
                                                             :pointer-events :none}]]
@@ -129,11 +129,15 @@
 
 (defonce ^:private !sheet (atom nil))
 
+(defonce ^:private !css (atom nil))
+
 (defn set-css!
-  "Sets the page's bracket stylesheet to `css`."
+  "Sets the page's bracket stylesheet to `css`, unless it has it already."
   [css]
-  (let [^js sheet (or @!sheet
-                      (let [sheet (js/CSSStyleSheet.)]
-                        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-                        (reset! !sheet sheet)))]
-    (.replaceSync sheet css)))
+  (when (not= css @!css)
+    (let [^js sheet (or @!sheet
+                        (let [sheet (js/CSSStyleSheet.)]
+                          (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
+                          (reset! !sheet sheet)))]
+      (.replaceSync sheet css)
+      (reset! !css css))))

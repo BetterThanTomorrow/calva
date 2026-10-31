@@ -302,7 +302,7 @@
   (let [palette (token-colors/active-theme-palette color-theme-kind)
         settings (printed-brackets/settings)]
     (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                            :output/palette-key (hash [palette (some? @highlighting/!grammar) settings])
+                                            :output/palette-key (hash [palette (some? @highlighting/!grammar) (brackets/rainbow-options settings)])
                                             :output/bracket-styles (brackets/bracket-styles settings)
                                             :output/frame-name-color (highlighting/scope-color (:palette/token-rules palette)
                                                                                                ["entity.name.function.clojure"])})))

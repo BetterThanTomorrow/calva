@@ -242,7 +242,7 @@
                       token-colors/active-theme-palette (fn [kind] (when (= 0 kind) palette))]
           (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
           (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                :output/palette-key (hash [palette (some? @highlighting/!grammar) nil])
+                                                                                :output/palette-key (hash [palette (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
                                                                                 :output/bracket-styles (brackets/bracket-styles nil)
                                                                                 :output/frame-name-color "#d2a8ff"})))))
     (testing "posts no color for a theme it can't read"
@@ -251,7 +251,7 @@
                       token-colors/active-theme-palette (constantly nil)]
           (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
           (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                :output/palette-key (hash [nil (some? @highlighting/!grammar) nil])
+                                                                                :output/palette-key (hash [nil (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
                                                                                 :output/bracket-styles (brackets/bracket-styles nil)
                                                                                 :output/frame-name-color nil})))))))
 

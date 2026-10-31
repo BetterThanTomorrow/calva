@@ -52,7 +52,7 @@
   (loop [i i
          active (filterv #(> (second %) position) active)]
     (if (and (< i (count marks)) (<= (first (nth marks i)) position))
-      (recur (inc i) (conj active (nth marks i)))
+      (recur (inc i) (cond-> active (> (second (nth marks i)) position) (conj (nth marks i))))
       [i active])))
 
 (defn- range-class

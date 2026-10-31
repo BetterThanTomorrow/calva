@@ -181,11 +181,19 @@
   []
   (.. js/document -body -classList (contains "word-wrap")))
 
+(defn- show-latest-output!
+  "Scrolls the output to its bottom, after the page's scrolling moved between the page and the output's own
+   scroller."
+  []
+  (some-> (js/document.getElementById "output")
+          (.dispatchEvent (js/CustomEvent. "output-appended" #js {:detail #js {}}))))
+
 (defn- extensions
   [dispatch!]
   #js [theme
-       highlighting/field
+       ;; Registered first, the bracket marks are the inner spans, so the rainbow colors win over token colors
        bracket-marks
+       highlighting/field
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
        (.of editing-compartment #js [])
@@ -332,6 +340,7 @@
     (EditorView. #js {:state state :parent element})
     (set-height! height)
     (.. js/document -body -classList (add "repl-input-on"))
+    (show-latest-output!)
     (dispatch! [:repl-input/ax.mounted (state-payload state)])))
 
 (defn- unmount!
@@ -339,7 +348,8 @@
   (some-> (editor-view) .destroy)
   (some-> (mount-element) replicant/unmount)
   (set! (.-textContent (mount-element)) "")
-  (.. js/document -body -classList (remove "repl-input-on")))
+  (.. js/document -body -classList (remove "repl-input-on"))
+  (show-latest-output!))
 
 (defn- set-command-keys!
   [command-keys]

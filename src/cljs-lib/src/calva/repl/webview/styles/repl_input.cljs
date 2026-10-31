@@ -15,6 +15,8 @@
     ;; VS Code draws the border between two views under the right one's webview, along its left edge
     [:#repl-input {:position :relative
                    :flex :none
+                   :max-height "100vh"
+                   :overflow-y :auto
                    :margin-left "1px"
                    :padding [["6px" "var(--calva-output-inset)" "6px" "calc(var(--calva-output-inset) - 1px)"]]
                    :background-color "var(--vscode-editor-background)"

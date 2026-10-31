@@ -165,10 +165,11 @@ export function brackets(
   });
   const { misplaced, commentForms, ignoredForms, topLevelIgnoredForms } = rainbow;
   const selections = doc.selections.map(({ anchor, active }): Range => [anchor, active]);
+  const sortedSelections = selections.map(([a, b]): Range => [Math.min(a, b), Math.max(a, b)]);
   return {
     guides: guides ? guideOffsets(rainbow.guides) : [],
     activeGuides: activeGuides
-      ? guideOffsets(rainbowBrackets.activeGuides(doc.model, rainbow, selections))
+      ? guideOffsets(rainbowBrackets.activeGuides(doc.model, rainbow, sortedSelections))
       : [],
     brackets: rainbow.brackets.map(({ range: [start, end], colorIndex }) => [
       start,

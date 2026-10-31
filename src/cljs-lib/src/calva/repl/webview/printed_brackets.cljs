@@ -13,14 +13,23 @@
     (let [^js config (.. vscode -workspace getConfiguration)]
       (into {} (map (fn [k] [k (js->clj (.get config k))])) brackets/highlight-settings))))
 
+(defonce ^{:private true :doc "The last printed text painted, with its settings, and its brackets, as each Output view asks."}
+  !last-painted (atom nil))
+
 (defn brackets
   "Returns the brackets, the forms and the indent guides the painter marks in printed `text` under the
    `settings`, as the REPL Input gets them, without matched brackets and the guides of the forms around a
    cursor, since printed code has no cursor. Nil without the adapter."
   [text settings]
   (when-let [^js adapter @input-host/!adapter]
-    (-> (.brackets adapter
-                   (.document adapter text #js [#js [0 0]])
-                   (clj->js (assoc (brackets/rainbow-options settings) :activeGuides false)))
-        (js->clj :keywordize-keys true)
-        (dissoc :matched))))
+    (let [painted [text settings]
+          {last-painted :painted :keys [brackets]} @!last-painted]
+      (if (= painted last-painted)
+        brackets
+        (:brackets (reset! !last-painted
+                           {:painted painted
+                            :brackets (-> (.brackets adapter
+                                                     (.document adapter text #js [#js [0 0]])
+                                                     (clj->js (assoc (brackets/rainbow-options settings) :activeGuides false)))
+                                          (js->clj :keywordize-keys true)
+                                          (dissoc :matched))}))))))
