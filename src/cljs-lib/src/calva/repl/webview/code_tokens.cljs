@@ -14,7 +14,8 @@
                      (= "file" (.. document -uri -scheme))
                      (= ns (first (.editorNamespace adapter document js/undefined))))
             document))
-        (some-> ^js @util/vscode .-workspace .-textDocuments array-seq)))
+        (when-let [^js workspace (some-> ^js @util/vscode .-workspace)]
+          (array-seq (.-textDocuments workspace)))))
 
 (defn copy
   "Returns the copy with each of `codes`, `[id text]`, on lines of its own below `prefix`, as `{:text :lines}`,
