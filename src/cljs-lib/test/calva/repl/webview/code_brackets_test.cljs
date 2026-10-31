@@ -1,18 +1,18 @@
-(ns calva.repl.webview.input.brackets-test
+(ns calva.repl.webview.code-brackets-test
   (:require
-   [calva.repl.webview.input.brackets :as sut]
+   [calva.repl.webview.code-brackets :as sut]
    [cljs.test :refer-macros [deftest testing is]]
    [clojure.string :as string]))
 
 (deftest mark-ranges-test
   (testing "marks each range with the class that paints it"
-    (is (= #{[0 1 "repl-input-bracket-0"]
-             [5 6 "repl-input-bracket-1"]
-             [7 8 "repl-input-misplaced-bracket"]
-             [0 6 "repl-input-comment-form"]
-             [2 4 "repl-input-ignored-form"]
-             [9 12 "repl-input-ignored-top-level-form"]
-             [0 1 "repl-input-matched-bracket"]}
+    (is (= #{[0 1 "code-bracket-0"]
+             [5 6 "code-bracket-1"]
+             [7 8 "code-misplaced-bracket"]
+             [0 6 "code-comment-form"]
+             [2 4 "code-ignored-form"]
+             [9 12 "code-ignored-top-level-form"]
+             [0 1 "code-matched-bracket"]}
            (set (sut/mark-ranges {:brackets [[0 1 0] [5 6 1]]
                                   :misplaced [[7 8]]
                                   :commentForms [[0 6]]
@@ -36,20 +36,20 @@
 (deftest rules-test
   (let [rules (set (sut/rules styles))]
     (testing "colors a bracket the same in every theme"
-      (is (contains? rules [".repl-input-bracket-1" {:color "#0098e6"}])))
+      (is (contains? rules [".code-bracket-1" {:color "#0098e6"}])))
     (testing "colors a bracket by the theme's kind, for a light and dark pair"
-      (is (contains? rules ["body.vscode-light .repl-input-bracket-0" "body.vscode-high-contrast-light .repl-input-bracket-0" {:color "#000"}]))
-      (is (contains? rules ["body.vscode-dark .repl-input-bracket-0" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .repl-input-bracket-0" {:color "#ccc"}])))
+      (is (contains? rules ["body.vscode-light .code-bracket-0" "body.vscode-high-contrast-light .code-bracket-0" {:color "#000"}]))
+      (is (contains? rules ["body.vscode-dark .code-bracket-0" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .code-bracket-0" {:color "#ccc"}])))
     (testing "styles the forms and brackets the way their decorations do in files"
-      (is (contains? rules ["body.vscode-dark .repl-input-misplaced-bracket" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .repl-input-misplaced-bracket" {:color "#ccc" :background-color "#933"}]))
-      (is (contains? rules ["body.vscode-light .repl-input-matched-bracket" "body.vscode-high-contrast-light .repl-input-matched-bracket" {:background-color "#d0d0d0"}]))
-      (is (contains? rules [".repl-input-comment-form" {:font-style "italic"}]))
-      (is (contains? rules [".repl-input-ignored-form" {:text-decoration "none; opacity: 0.5"}]))
-      (is (contains? rules [".repl-input-ignored-top-level-form" {:text-decoration "none; opacity: 0.5"}])))))
+      (is (contains? rules ["body.vscode-dark .code-misplaced-bracket" "body.vscode-high-contrast:not(.vscode-high-contrast-light) .code-misplaced-bracket" {:color "#ccc" :background-color "#933"}]))
+      (is (contains? rules ["body.vscode-light .code-matched-bracket" "body.vscode-high-contrast-light .code-matched-bracket" {:background-color "#d0d0d0"}]))
+      (is (contains? rules [".code-comment-form" {:font-style "italic"}]))
+      (is (contains? rules [".code-ignored-form" {:text-decoration "none; opacity: 0.5"}]))
+      (is (contains? rules [".code-ignored-top-level-form" {:text-decoration "none; opacity: 0.5"}])))))
 
 (deftest css-test
   (let [css (sut/css styles)]
     (testing "renders the rules"
-      (is (string/includes? css ".repl-input-bracket-1 {")))
+      (is (string/includes? css ".code-bracket-1 {")))
     (testing "leaves out what CSS can't paint"
       (is (not (string/includes? css "overview"))))))

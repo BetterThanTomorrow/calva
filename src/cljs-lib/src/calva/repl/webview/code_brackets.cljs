@@ -1,19 +1,19 @@
-(ns calva.repl.webview.input.brackets
-  "The REPL Input's rainbow brackets, painted by class from a stylesheet with the colors and styles
-   Calva paints files with."
+(ns calva.repl.webview.code-brackets
+  "Calva's rainbow brackets and the forms it marks, in the REPL Input and the printed code, painted by class
+   from a stylesheet with the colors and styles Calva paints files with."
   (:require
    [garden.core :as garden]))
 
 (defn- bracket-class
   [color-index]
-  (str "repl-input-bracket-" color-index))
+  (str "code-bracket-" color-index))
 
 (def ^:private classes
-  {:misplaced "repl-input-misplaced-bracket"
-   :matched "repl-input-matched-bracket"
-   :comment-form "repl-input-comment-form"
-   :ignored-form "repl-input-ignored-form"
-   :ignored-top-level-form "repl-input-ignored-top-level-form"})
+  {:misplaced "code-misplaced-bracket"
+   :matched "code-matched-bracket"
+   :comment-form "code-comment-form"
+   :ignored-form "code-ignored-form"
+   :ignored-top-level-form "code-ignored-top-level-form"})
 
 (defn mark-ranges
   "Returns `[from to class]` for each range in `brackets`, as the extension computed them."
@@ -91,3 +91,14 @@
   "The stylesheet that paints the classes of `mark-ranges` with `bracket-styles`."
   [bracket-styles]
   (garden/css (rules bracket-styles)))
+
+(defonce ^:private !sheet (atom nil))
+
+(defn set-css!
+  "Sets the page's bracket stylesheet to `css`."
+  [css]
+  (let [^js sheet (or @!sheet
+                      (let [sheet (js/CSSStyleSheet.)]
+                        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
+                        (reset! !sheet sheet)))]
+    (.replaceSync sheet css)))

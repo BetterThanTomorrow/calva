@@ -60,7 +60,7 @@ The namespaces are `calva.repl.webview.input.<name>`.
 | `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, the context line with the namespace indicator, its menu and the play button, and the evaluation bar. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
 | `completion` | CodeMirror's completion, fed with the extension's candidates |
 | `highlighting`, `highlight` | The CodeMirror field with the extension's highlighting layers, colored with the classes of `calva.repl.webview.code-highlight`, and the pure parts: layering, moving ranges along with edits, and where the strings are, for a typed quote |
-| `stdin`, `brackets`, `edit`, `definition` | The stdin input, as hiccup, bracket classes, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
+| `stdin`, `edit`, `definition` | The stdin input, as hiccup, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
 
 ### Extension side, TS
 
@@ -123,7 +123,7 @@ A key typed while an edit is on its way makes that edit stale, and the webview d
 4. `host/edit-focused!` makes a `StringDocument` from the record (`repl-input-document.ts`), runs the handler on it, and when the text or selections changed, `take-edit!` posts `repl-input-edit`.
 5. `host/derive-record!` derives the cursor contexts, the command keys, the editor settings, the brackets and the highlighting for the new text, sets the cursor contexts while the REPL Input has the focus, posts what changed and the highlighting, and asks for semantic tokens after a pause (see Highlighting).
 
-Every change from the webview derives the record the same way. The brackets come from the rainbow painter Calva paints files with, and the webview paints them by class from a stylesheet with the bracket colors.
+Every change from the webview derives the record the same way. The brackets come from the rainbow painter Calva paints files with, and the webview paints them by class from a stylesheet with the bracket colors (`calva.repl.webview.code-brackets`, which the printed code uses too).
 
 The command keys come from `config/read-keybindings+`: VS Code's resolved keybindings, `vscode://defaultsettings/keybindings.json`, which have the keys for the user's keyboard layout, or the manifest's keys for the platform when those can't be read. `command-keys/command-keys` keeps the keys of the bindings whose `when` clause holds in the REPL Input's context: the settings (as `config.*`), `paredit:keyMap`, the cursor contexts, `calva:replInputFocused`, `calva:connected` and `editorHasMultipleSelections`. The keys in `calva.outputViews.replInputCommandKeys` are added, for users' own keybindings.
 

@@ -1,7 +1,7 @@
 (ns calva.repl.webview.input.actions
   "The REPL Input's actions in the Output view's page."
   (:require
-   [calva.repl.webview.input.brackets :as brackets]
+   [calva.repl.webview.code-brackets :as brackets]
    [calva.repl.webview.input.history :as history]
    [calva.repl.webview.input.keys :as input-keys]))
 

@@ -105,9 +105,9 @@
         message {:repl-input/version 2 :repl-input/brackets {:brackets [[0 1 0] [2 3 0]] :matched [[0 1]]}}]
     (testing "marks the brackets computed for the REPL Input's version"
       (is (= {:uf/db db
-              :uf/fxs [[:repl-input/fx.set-brackets [[0 1 "repl-input-bracket-0"]
-                                                     [2 3 "repl-input-bracket-0"]
-                                                     [0 1 "repl-input-matched-bracket"]]]]}
+              :uf/fxs [[:repl-input/fx.set-brackets [[0 1 "code-bracket-0"]
+                                                     [2 3 "code-bracket-0"]
+                                                     [0 1 "code-matched-bracket"]]]]}
              (sut/handle-action db [:repl-input/ax.set-brackets message]))))
     (testing "drops brackets computed for another version"
       (is (= {:uf/db (assoc db :repl-input/version 3)}
@@ -146,7 +146,7 @@
                                                 :word-separators "()[]{}"
                                                 :completion {:activate-on-typing? true :delay 10}}])]
       (is (= [[:repl-input/fx.set-close-brackets ["(" "\""]]
-              [:repl-input/fx.set-bracket-css ".repl-input-bracket-0 {\n  color: #0098e6;\n}"]
+              [:repl-input/fx.set-bracket-css ".code-bracket-0 {\n  color: #0098e6;\n}"]
               [:repl-input/fx.set-editing {:multi-cursor-modifier "ctrlCmd" :word-separators "()[]{}"}]
               [:repl-input/fx.set-completion {:activate-on-typing? true :delay 10 :enabled? true}]]
              fxs)))))

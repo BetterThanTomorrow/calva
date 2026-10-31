@@ -2,6 +2,7 @@
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element, and the controls
    around it, rendered there with Replicant."
   (:require
+   [calva.repl.webview.code-brackets :as code-brackets]
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.completion :as completion]
    [calva.repl.webview.input.context :as context]
@@ -368,19 +369,9 @@
   (when-let [^js view (editor-view)]
     (.dispatch view #js {:effects (.reconfigure close-brackets-compartment (close-brackets-extension brackets))})))
 
-(defonce ^:private !bracket-sheet (atom nil))
-
 (defn- set-highlighting!
   [layer ranges]
   (some-> (editor-view) (highlighting/set-layer! layer ranges)))
-
-(defn- set-bracket-css!
-  [css]
-  (let [^js sheet (or @!bracket-sheet
-                      (let [sheet (js/CSSStyleSheet.)]
-                        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-                        (reset! !bracket-sheet sheet)))]
-    (.replaceSync sheet css)))
 
 (defn- set-line-wrapping!
   [wrap?]
@@ -434,7 +425,7 @@
     :repl-input/fx.set-brackets (set-bracket-marks! (first args))
     :repl-input/fx.set-highlighting (apply set-highlighting! args)
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
-    :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
+    :repl-input/fx.set-bracket-css (code-brackets/set-css! (first args))
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))
     :repl-input/fx.set-line-wrapping (set-line-wrapping! (first args))
     :repl-input/fx.run-command (run-command! (first args))
