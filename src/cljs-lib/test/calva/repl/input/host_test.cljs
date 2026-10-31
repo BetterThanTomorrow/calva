@@ -3,6 +3,7 @@
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.host :as sut]
    [calva.repl.input.host-fixtures :refer [last-context-line mount-focused! post! posted-named with-fresh-host with-view]]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.util :as util]
    [cljs.test :refer-macros [async deftest testing is]]))
 
@@ -420,3 +421,27 @@
           (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
           (testing "starts a REPL Input empty in a view that was disposed"
             (is (= [] (posted-named posted "repl-input-edit")))))))))
+
+(deftest followed-file-semantic-tokens-test
+  (with-fresh-host
+    (fn [host]
+      (with-view host
+        (fn []
+          (let [document #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.clj" :version 1}
+                other #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljc" :version 1}
+                pending? #(some? (get-in @@#'semantic-tokens/!requests ["output-view" :timer]))]
+            (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+            (sut/editor-moved! document #js {})
+            (semantic-tokens/forget! "output-view")
+            (sut/editor-moved! document #js {})
+            (testing "asks for nothing when the cursor moves in the followed file"
+              (is (not (pending?))))
+            (set! (.-version document) 2)
+            (sut/editor-moved! document #js {})
+            (testing "asks for the semantic tokens again when the followed file's text changed"
+              (is (pending?)))
+            (semantic-tokens/forget! "output-view")
+            (sut/editor-moved! other #js {})
+            (testing "asks for the semantic tokens again when another file with the same namespace is followed"
+              (is (pending?)))
+            (semantic-tokens/forget! "output-view")))))))

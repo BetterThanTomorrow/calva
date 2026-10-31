@@ -52,8 +52,12 @@ export const completionAdapter = {
 export const highlightingAdapter = {
   lspSemanticTokens: (uri: vscode.Uri | undefined, text: string, line: number) => {
     const client = lspClient(uri);
-    return client
-      ? replInputCopy.semanticTokens(client, text, line, new vscode.CancellationTokenSource().token)
-      : Promise.resolve(undefined);
+    const cancellation = new vscode.CancellationTokenSource();
+    return {
+      tokens: client
+        ? replInputCopy.semanticTokens(client, text, line, cancellation.token)
+        : Promise.resolve(undefined),
+      cancel: () => cancellation.cancel(),
+    };
   },
 };

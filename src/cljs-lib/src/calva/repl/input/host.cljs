@@ -367,10 +367,16 @@
     (refresh-context!)))
 
 (defn ^:export editor-moved!
-  "Follows the Clojure editor with `document`, now at `position`."
-  [document position]
-  (swap! !state assoc :repl-input.context/editor {:document document :position position})
-  (refresh-mounted-context!))
+  "Follows the Clojure editor with `document`, now at `position`. Asks for the REPL Inputs' semantic tokens
+   again when the followed document, or its text, changed, since they come from a copy below its text."
+  [^js document position]
+  (let [[before _] (swap-vals! !state assoc :repl-input.context/editor {:document document
+                                                                        :version (.-version document)
+                                                                        :position position})]
+    (refresh-mounted-context!)
+    (when (not= [document (.-version document)]
+                ((juxt :document :version) (:repl-input.context/editor before)))
+      (run! request-semantic-tokens-later! (keys (:repl-input/records @!state))))))
 
 (defn ^:export routing-changed!
   "Updates the context line and the history's sessions after sessions connected, disconnected or changed

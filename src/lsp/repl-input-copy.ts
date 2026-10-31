@@ -92,7 +92,7 @@ export type CopySemanticTokens = { data: number[]; legend: vscodeLsp.SemanticTok
 
 /**
  * Asks for the semantic tokens of the lines from `line` on in a copy with `text`. A range request leaves out the
- * comment tokens clojure-lsp gives ignored forms.
+ * comment tokens clojure-lsp gives ignored forms. Resolves to `undefined` when `token` is cancelled.
  */
 export function semanticTokens(
   client: vscodeLsp.LanguageClient,
@@ -120,7 +120,12 @@ export function semanticTokens(
       return result ? { data: result.data, legend } : undefined;
     },
     undefined
-  );
+  ).catch((error) => {
+    if (token.isCancellationRequested) {
+      return undefined;
+    }
+    throw error;
+  });
 }
 
 /** A definition clojure-lsp reports: its uri, its zero-based line and character, and whether it is in the copy. */
