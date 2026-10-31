@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
@@ -154,12 +155,9 @@
   "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
   [text category]
   [:pre {:class ["output-stdout"] :data-output-element-type category}
-   [:button (merge {:type "button"
-                    :class ["output-copy-button" "output-stdout-copy"]
-                    :aria-label "Copy output"
-                    :data-copy-label "Copy output"
-                    :data-action (pr-str [[:output/ax.copy-stdout :event/target]])}
-                   (tooltip/attributes "Copy output"))]
+   [copy-button/button {:class ["output-stdout-copy"]
+                        :copy/label "Copy output"
+                        :copy/actions [[:output/ax.copy-stdout :event/target]]}]
    text])
 
 (defn append-stdout
@@ -379,13 +377,11 @@
             :data-local-src (when (= :local kind) src)
             :data-remote-src (when (= :remote kind) src)
             :src (image-src image display)}]
-     [:button (merge {:type "button"
-                      :class ["output-copy-button" "output-image-copy"]
-                      :aria-label (str "Copy " label)
-                      :data-copy-label (str "Copy " label)
-                      :data-action (pr-str [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
-                                                                       (assoc :copy/button :event/target))]])}
-                     (tooltip/attributes "Copy image"))]]))
+     [copy-button/button {:class ["output-image-copy"]
+                          :copy/label (str "Copy " label)
+                          :copy/tooltip "Copy image"
+                          :copy/actions [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
+                                                                    (assoc :copy/button :event/target))]]}]]))
 
 (defn- copy-image-of-button!
   "Copies the image of the Copy image `button`. A data URL image's data is its `src`."

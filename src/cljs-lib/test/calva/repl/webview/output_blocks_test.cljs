@@ -8,7 +8,8 @@
    [calva.repl.webview.ui :as ui]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest is]]
-   [lookup.core :as l]))
+   [lookup.core :as l]
+   [replicant.alias :as alias]))
 
 (defn- written-attrs
   "Returns the attributes of `element` that Replicant writes, those with a value."
@@ -39,7 +40,7 @@
         "The code is in a pre, for highlight.js")))
 
 (deftest stdout-element-test
-  (let [hiccup (ui/stdout-element "hello\n" "evalErr")
+  (let [hiccup (alias/expand (ui/stdout-element "hello\n" "evalErr"))
         [pre] (l/select :pre hiccup)]
     (is (= {:class #{"output-stdout"} :data-output-element-type "evalErr"} (l/attrs pre)))
     (is (= [:button "hello\n"] (map #(if (vector? %) (first %) %) (l/children pre)))
@@ -78,10 +79,10 @@
 
 (defn- img-attrs
   [image display]
-  (written-attrs (first (l/select :img (ui/image-element image display)))))
+  (written-attrs (first (l/select :img (alias/expand (ui/image-element image display))))))
 
 (deftest image-element-test
-  (let [hiccup (ui/image-element data-url-image "images")]
+  (let [hiccup (alias/expand (ui/image-element data-url-image "images"))]
     (is (= [{:class #{"output-image-thumbnail"} :data-pending "true"}]
            (map written-attrs (l/select :.output-image-thumbnail hiccup)))
         "The thumbnail waits for its image to load")
@@ -138,7 +139,7 @@
   (some-> (:data-action (l/attrs element)) reader/read-string))
 
 (deftest error-element-test
-  (let [hiccup (error-element/element (error-entry false))]
+  (let [hiccup (alias/expand (error-element/element (error-entry false)))]
     (is (= [{:class #{"output-error"}
              :data-output-element-type "error"
              :data-error-id "e1"
@@ -153,7 +154,7 @@
         "A folded error shows no causes")))
 
 (deftest unfolded-error-element-test
-  (let [hiccup (error-element/element (error-entry true))
+  (let [hiccup (alias/expand (error-element/element (error-entry true)))
         frames (l/select :li.output-error-frame hiccup)]
     (is (seq (l/select :.output-error-causes hiccup)))
     (is (= [[:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :all}]]

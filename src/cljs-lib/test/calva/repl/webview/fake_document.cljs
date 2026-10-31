@@ -9,7 +9,8 @@
    `insert-hiccup!` stands in for `calva.repl.webview.ui/insert-hiccup!`, which needs HTML parsing.
    Selectors are tags, classes and attributes, without combinators."
   (:require
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [replicant.alias :as alias]))
 
 (def ^:private reflected-properties #{"id" "src" "alt" "title" "type"})
 
@@ -136,10 +137,10 @@
     el))
 
 (defn insert-hiccup!
-  "Inserts the element of `hiccup` at `position` of `element`, as `calva.repl.webview.ui/insert-hiccup!`
-   does, and returns it."
+  "Inserts the element of `hiccup`, its aliases expanded, at `position` of `element`, as
+   `calva.repl.webview.ui/insert-hiccup!` does, and returns it."
   [^js element position hiccup]
-  (let [new-element (hiccup-element hiccup)]
+  (let [new-element (hiccup-element (alias/expand hiccup))]
     (case position
       "beforeend" (.appendChild element new-element)
       "afterend" (.after element new-element))

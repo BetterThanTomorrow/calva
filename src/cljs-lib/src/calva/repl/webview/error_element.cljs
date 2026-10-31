@@ -3,6 +3,7 @@
    and their frames. Its controls' actions are in their `data-action` attributes."
   (:require
    ["highlight.js/lib/core" :as hljs]
+   [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.tooltip :as tooltip]
    [clojure.string :as string]))
@@ -169,13 +170,10 @@
 (defn- copy-button
   "The button that copies the error with the frames its filter shows."
   [{:error/keys [id]}]
-  [:button (merge {:type "button"
-                   :class ["output-copy-button" "output-error-copy"]
-                   :aria-label "Copy error"
-                   :data-copy-label "Copy error"
-                   :data-control "copy"
-                   :data-action (actions [:error/ax.copy {:error/id id}])}
-                  (tooltip/attributes "Copy error"))])
+  [copy-button/button {:class ["output-error-copy"]
+                       :data-control "copy"
+                       :copy/label "Copy error"
+                       :copy/actions [[:error/ax.copy {:error/id id}]]}])
 
 (defn element
   "Returns the hiccup of `error`. An error whose causes have no frames, or haven't arrived, shows its
