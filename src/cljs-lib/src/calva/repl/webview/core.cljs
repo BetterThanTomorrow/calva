@@ -258,8 +258,9 @@
     [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
    [:body (cond-> {:data-image-display (or image-display default-image-display)}
             word-wrap? (assoc :class "word-wrap"))
-    greeting
-    [:div {:id "output" :class "output-element-container"}]
+    [:div {:id "output-scroller"}
+     greeting
+     [:div {:id "output" :class "output-element-container"}]]
     (when repl-input (repl-input-element repl-input))
     [:script {:nonce script-nonce :src (str js-source)}]]])
 

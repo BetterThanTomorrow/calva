@@ -47,8 +47,10 @@
         (reset! called-during-timeout? true)))))
 
 (defn scroll-to-bottom
-  "Scrolls to the bottom of the the given dom element."
+  "Scrolls the output to its bottom, in the page, or in its own scroller when the REPL Input is below it."
   []
+  (when-let [^js scroller (js/document.getElementById "output-scroller")]
+    (set! (.-scrollTop scroller) (.-scrollHeight scroller)))
   (js/scrollTo 0 js/document.documentElement.scrollHeight))
 
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.

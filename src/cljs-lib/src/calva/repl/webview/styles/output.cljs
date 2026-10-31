@@ -6,7 +6,9 @@
   [[":root" {:--calva-output-font-scale 1}]
 
    [:body {:--calva-output-inset "20px"
-           :padding-inline "var(--calva-output-inset)"}]
+           :padding-inline 0}]
+
+   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}]
 
    ["pre[data-output-element-type]"
     ".evaluated-code-container pre"

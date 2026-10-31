@@ -2,17 +2,20 @@
   "The styles of the REPL Input around its code editor.")
 
 (def layout
-  "The REPL Input at the bottom of the page, with its sash."
+  "The REPL Input at the bottom of the page, below the output, which scrolls on its own, with its sash."
   [[:body.repl-input-on {:display :flex
                          :flex-direction :column
                          :box-sizing :border-box
-                         :min-height "100vh"}
-    [:#output {:flex-grow 1}]
+                         :height "100vh"
+                         :margin 0
+                         :overflow :hidden}
+    [:#output-scroller {:flex [[1 1 :auto]]
+                        :min-height 0
+                        :overflow-y :auto}]
     ;; VS Code draws the border between two views under the right one's webview, along its left edge
-    [:#repl-input {:position :sticky
-                   :bottom 0
-                   :margin-left "calc(1px - var(--calva-output-inset))"
-                   :margin-right "calc(-1 * var(--calva-output-inset))"
+    [:#repl-input {:position :relative
+                   :flex :none
+                   :margin-left "1px"
                    :padding [["6px" "var(--calva-output-inset)" "6px" "calc(var(--calva-output-inset) - 1px)"]]
                    :background-color "var(--vscode-editor-background)"
                    :border-top [["1px" :solid "var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"]]}

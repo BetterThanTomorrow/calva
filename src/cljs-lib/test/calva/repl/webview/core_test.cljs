@@ -144,12 +144,14 @@
           page (sut/page {:env/is-debug false} (assoc page-args :js-source (uri "js-uri")))]
       (is (= "js-uri" (:src (attributes (first (elements page :script))))))
       (is (empty? (elements page :link)) "The page links no stylesheets")))
-  (testing "the greeting comes before the output, not inside it"
+  (testing "the greeting comes before the output, not inside it, both in the scroller the REPL Input goes below"
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :greeting [:div "Ahoy"]))
                                             :body))]
-      (is (= [[:div "Ahoy"] [:div {:id "output" :class "output-element-container"}]]
-             (take 2 children)))))
+      (is (= [:div {:id "output-scroller"}
+              [:div "Ahoy"]
+              [:div {:id "output" :class "output-element-container"}]]
+             (first children)))))
   (testing "the body has the word-wrap class only with word wrap on"
     (is (= "word-wrap" (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? true)) :body))))))
     (is (nil? (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? false)) :body)))))))
@@ -163,14 +165,15 @@
            (:style (attributes (sut/page {:env/is-debug false} page-args)))))))
 
 (deftest page-repl-input-test
-  (testing "puts the REPL Input element after the output, with its state"
+  (testing "puts the REPL Input element after the output's scroller, with its state"
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :repl-input {:repl-input/id "output-view"
                                                                                     :repl-input/enabled? true}))
                                             :body))]
-      (is (= [[:div {:id "output" :class "output-element-container"}]
-              [:div {:id "repl-input" :data-repl-input-id "output-view" :data-repl-input-enabled "true"}]]
-             (take 2 (remove nil? children))))))
+      (is (= ["output-scroller" "repl-input"]
+             (map (comp :id second) (take 2 (remove nil? children)))))
+      (is (= {:id "repl-input" :data-repl-input-id "output-view" :data-repl-input-enabled "true"}
+             (second (second (remove nil? children)))))))
   (testing "puts no REPL Input element without REPL Input state"
     (is (empty? (filter #(= "repl-input" (:id (attributes %)))
                         (elements (sut/page {:env/is-debug false} page-args) :div))))))
