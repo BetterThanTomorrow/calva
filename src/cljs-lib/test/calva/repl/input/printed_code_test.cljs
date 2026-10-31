@@ -93,6 +93,21 @@
                      :repl-input/command-keys {:keys #{"ctrl+alt+right"} :chords #{}}}]
                    (posted-named posted "printed-code-command-keys")))))))))
 
+(deftest brackets-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (focus-printed-code! "output-view" "(a)" [[1 1]])
+          (post! {:command "printed-code-changed" :repl-input/id "output-view" :version 1 :selections [[2 2]]})
+          (testing "posts the brackets at the cursors, for the version they are for"
+            (is (= [0 "(a)"] ((juxt :version (comp :text :brackets)) (first (posted-named posted "printed-code-brackets")))))
+            (is (= 1 (count (posted-named posted "printed-code-brackets")))
+                "and only when they change"))
+          (focus-printed-code! "output-sidebar" (apply str (repeat 50001 "a")) [[0 0]])
+          (testing "posts no brackets for printed code too long to get colored"
+            (is (= ["output-view"] (mapv :repl-input/id (posted-named posted "printed-code-brackets"))))))))))
+
 (deftest select-focused!-test
   (async done
     (with-fresh-host

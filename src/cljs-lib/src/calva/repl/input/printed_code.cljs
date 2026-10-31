@@ -1,9 +1,11 @@
 (ns calva.repl.input.printed-code
   "The extension's side of the printed code's editor in the Output views: the record of its text and
-   selections in each view, the keys it leaves to VS Code, and Paredit's moves and selections in it."
+   selections in each view, the keys it leaves to VS Code, its brackets and guides at its cursors, and
+   Paredit's moves and selections in it."
   (:require
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.focus :as focus]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as host]
    [calva.repl.input.records :as records]))
 
@@ -27,20 +29,35 @@
                              (command-keys/context state record focus/printed-code-focused-context)
                              (get settings command-keys/user-keys-setting)))
 
+(defn- brackets
+  "The brackets of `doc`, with the active guides and the brackets matched at its cursors, when its `text` is
+   no longer than the printed code that gets colored."
+  [{:repl-input/keys [settings]} text doc]
+  (when (<= (count text) highlighting/max-printed-length)
+    (host/document-brackets settings doc)))
+
 (defn- derive!
-  "Derives the cursor contexts and the command keys of the printed code in the view `id`, sets the cursor
-   contexts while it has focus, and posts the command keys to it when they changed."
+  "Derives the cursor contexts, the command keys and the brackets of the printed code in the view `id`, sets
+   the cursor contexts while it has focus, and posts the command keys and the brackets to it when they
+   changed."
   [id]
-  (when-let [record (get-in @host/!state [:printed-code/records id])]
-    (let [with-contexts (assoc record :repl-input/cursor-contexts
-                               (js->clj (.cursorContexts ^js @host/!adapter (document record))))
-          derived (assoc with-contexts :repl-input/command-keys (command-keys-for @host/!state with-contexts))]
+  (when-let [{:repl-input/keys [text version] :as record} (get-in @host/!state [:printed-code/records id])]
+    (let [state @host/!state
+          doc (document record)
+          with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @host/!adapter doc)))
+          derived (assoc with-contexts
+                         :repl-input/command-keys (command-keys-for state with-contexts)
+                         :repl-input/brackets (brackets state text doc))]
       (swap! host/!state assoc-in [:printed-code/records id] derived)
       (when (= id (:printed-code/focused @host/!state))
         (host/apply-cursor-contexts!))
       (when (not= (:repl-input/command-keys record) (:repl-input/command-keys derived))
         (host/post-to-view! id {:command/name "printed-code-command-keys"
-                                :repl-input/command-keys (:repl-input/command-keys derived)})))))
+                                :repl-input/command-keys (:repl-input/command-keys derived)}))
+      (when (not= (:repl-input/brackets record) (:repl-input/brackets derived))
+        (host/post-to-view! id {:command/name "printed-code-brackets"
+                                :version version
+                                :brackets (:repl-input/brackets derived)})))))
 
 (defn- take-record!
   [f {:repl-input/keys [id] :as msg}]

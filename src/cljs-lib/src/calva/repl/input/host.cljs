@@ -214,7 +214,7 @@
    :repl-input/editor-settings "repl-input-editor-settings"
    :repl-input/brackets "repl-input-brackets"})
 
-(defn- document-brackets
+(defn document-brackets
   [settings doc]
   (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
            :keywordize-keys true))

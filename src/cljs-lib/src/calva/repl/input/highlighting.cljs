@@ -276,7 +276,7 @@
     (when-let [current (palette)]
       (highlighting current text (grammar-tokens grammar text)))))
 
-(def ^:private max-printed-length
+(def max-printed-length
   "The longest printed code that is highlighted. The grammar takes the extension host about 2.7 ms per 1,000
    characters."
   50000)
