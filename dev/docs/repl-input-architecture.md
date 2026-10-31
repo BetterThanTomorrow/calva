@@ -232,6 +232,7 @@ Printed code in the Output views gets a cursor for Paredit's navigation and sele
 - `wrapPareditCommand` sends a command to printed code with `replInput.selectInFocusedPrintedCode` when no REPL Input is the command target. `printed-code/select-focused!` runs it on a `StringDocument` made once per block, since printed code can be long, and posts only the selections. A command that changed the text changes nothing. `replInput.hasFocus()` stays the REPL Input's, so evaluation never reaches printed code.
 - The navigation and selection commands' keybindings have `(editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused)`, and their enablement lets them run there, and from the palette while printed code is the last focused place. `editing-keybindings-test.ts` checks that no other command reaches printed code. The command keys are derived with `calva:printedCodeFocused` in place of `calva:replInputFocused`.
 - Each selection change paints the brackets again, with the matched brackets and active guides, for printed code no longer than the 50,000 characters that get colored.
+- A focus from another editor than the record's replaces the record, and a view's printed code is forgotten when its editor unmounts, its page loads, or the view goes.
 
 ## The REPL Input as the current editor
 

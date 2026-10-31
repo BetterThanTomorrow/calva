@@ -10,31 +10,33 @@
   [db command & {:as more}]
   [:fx/post-to-host (merge {:command command :repl-input/id (:repl-input/id db)} more)])
 
-(defn- at-version?
-  [db {:keys [version]}]
-  (= version (:printed-code/version db)))
+(defn- current?
+  "True when `answer` from the extension is for the editor open now, at its version. The extension can answer
+   an earlier editor after a click opened another."
+  [db {:keys [editor version]}]
+  (= [editor version] [(:printed-code/editor db) (:printed-code/version db)]))
 
-(def ^:private next-version
-  "The editor's versions count up for as long as the page lives, so the extension's answers for an earlier
-   editor never match a later one."
-  (fnil inc 0))
+(def ^:private next-count (fnil inc 0))
 
 (defn handle-action
   [db [action-type payload]]
   (case action-type
     :printed-code/ax.clicked
-    {:uf/db (update db :printed-code/version next-version)
+    {:uf/db (-> db
+                (update :printed-code/editor next-count)
+                (update :printed-code/version next-count))
      :uf/fxs [[:printed-code/fx.mount payload]]}
 
     :printed-code/ax.focused
     {:uf/db db
      :uf/fxs [(post db "printed-code-focused"
+                    :editor (:printed-code/editor db)
                     :version (:printed-code/version db)
                     :text (:text payload)
                     :selections (:selections payload))]}
 
     :printed-code/ax.changed
-    (let [version (next-version (:printed-code/version db))]
+    (let [version (next-count (:printed-code/version db))]
       {:uf/db (assoc db :printed-code/version version)
        :uf/fxs [(post db "printed-code-changed" :version version :selections (:selections payload))]})
 
@@ -48,11 +50,11 @@
 
     :printed-code/ax.select
     (cond-> {:uf/db db}
-      (at-version? db payload) (assoc :uf/fxs [[:printed-code/fx.set-selections (:selections payload)]]))
+      (current? db payload) (assoc :uf/fxs [[:printed-code/fx.set-selections (:selections payload)]]))
 
     :printed-code/ax.set-brackets
     (cond-> {:uf/db db}
-      (at-version? db payload) (assoc :uf/fxs [[:printed-code/fx.set-marks (brackets/mark-ranges (:brackets payload))]]))
+      (current? db payload) (assoc :uf/fxs [[:printed-code/fx.set-marks (brackets/mark-ranges (:brackets payload))]]))
 
     :printed-code/ax.set-command-keys
     {:uf/db db

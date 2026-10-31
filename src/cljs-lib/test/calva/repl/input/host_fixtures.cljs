@@ -74,6 +74,8 @@
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})
     (reset! printed-code/!documents {})
+    (remove-watch input-host/!state ::printed-code/settings)
+    (remove-watch input-host/!views ::printed-code/views)
     (reset! evaluate/!running {})
     (reset! complete/!completions {})
     (f host)))

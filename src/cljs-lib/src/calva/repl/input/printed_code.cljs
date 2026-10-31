@@ -41,7 +41,7 @@
    the cursor contexts while it has focus, and posts the command keys and the brackets to it when they
    changed."
   [id]
-  (when-let [{:repl-input/keys [text version] :as record} (get-in @host/!state [:printed-code/records id])]
+  (when-let [{:repl-input/keys [text version] :printed-code/keys [editor] :as record} (get-in @host/!state [:printed-code/records id])]
     (let [state @host/!state
           doc (document record)
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @host/!adapter doc)))
@@ -56,6 +56,7 @@
                                 :repl-input/command-keys (:repl-input/command-keys derived)}))
       (when (not= (:repl-input/brackets record) (:repl-input/brackets derived))
         (host/post-to-view! id {:command/name "printed-code-brackets"
+                                :editor editor
                                 :version version
                                 :brackets (:repl-input/brackets derived)})))))
 
@@ -75,7 +76,8 @@
   (when (empty? (:repl-input/keybindings @host/!state))
     (host/load-keybindings!)))
 
-(defn- unmounted!
+(defn forget!
+  "Forgets the printed code in the view `id`, as when its editor goes, or its page loads anew."
   [id]
   (swap! host/!state update :printed-code/records records/remove-record id)
   (swap! !documents dissoc id)
@@ -88,7 +90,7 @@
     "printed-code-focused" (focused! webview-host msg)
     "printed-code-changed" (take-record! records/take-selections msg)
     "printed-code-blurred" (host/update-focus! [:printed-code-blur id])
-    "printed-code-unmounted" (unmounted! id)
+    "printed-code-unmounted" (forget! id)
     nil))
 
 (defn- command-target
@@ -116,7 +118,7 @@
   "Posts the selections that a command made in `doc` from `record` of the printed code in the view `id`,
    when they moved. A command that changed the text has its change dropped, and the document made anew
    next time."
-  [id {:repl-input/keys [version text selections selections-stack]} doc]
+  [id {:repl-input/keys [version text selections selections-stack] :printed-code/keys [editor]} doc]
   (let [after (host/document-state doc)]
     (cond
       (not= text (:text after))
@@ -126,6 +128,7 @@
       (let [[old new] (swap-vals! host/!state update :printed-code/records records/take-edit id version after)]
         (when (not= old new)
           (host/post-to-view! id {:command/name "printed-code-selections"
+                                  :editor editor
                                   :version version
                                   :selections (:selections after)})
           (derive! id))))))

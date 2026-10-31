@@ -4,6 +4,7 @@
    [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
+   [calva.repl.input.printed-code :as printed-code]
    [calva.repl.webview.code-tokens :as code-tokens]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
@@ -455,14 +456,16 @@
                                           nil)))))))
 
 (defn listen-for-page-loaded!
-  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the
-   page whether the REPL Input is on, which the page misses when the setting changed before it listened."
+  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line, forgets the
+   printed code of the page before, and posts the page whether the REPL Input is on, which the page misses
+   when the setting changed before it listened."
   [^js webview-host view-id]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
       (.onDidReceiveMessage webview (fn [^js message]
                                       (when (= "page-loaded" (.-command message))
                                         (trail/log! (str view-id " page loaded"))
+                                        (printed-code/forget! view-id)
                                         (post-message-to-webview webview-host (input-host/enabled-message view-id))))))))
 
 (defn initialize-webview-panel

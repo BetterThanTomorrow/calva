@@ -58,12 +58,12 @@
 
 (defn take-focus
   "Returns `records` with the record of printed code that got the focus: `focus` taken as `take-change`
-   takes a change when the record has the same text, keeping its selection history, or in place of the
-   record otherwise."
-  [records {:repl-input/keys [id] :keys [text] :as focus}]
-  (if (= text (get-in records [id :repl-input/text]))
+   takes a change when the record is of the same editor and text, keeping its selection history, or in
+   place of the record otherwise."
+  [records {:repl-input/keys [id] :keys [editor text] :as focus}]
+  (if (= [editor text] ((juxt :printed-code/editor :repl-input/text) (get records id)))
     (take-change records focus)
-    (take-mount records focus)))
+    (assoc-in (take-mount records focus) [id :printed-code/editor] editor)))
 
 (defn remove-record
   [records id]
