@@ -79,7 +79,12 @@
                                           high-contrast)))
         "is used when workbench.colorTheme is of another kind, as when the OS is in high contrast"))
   (is (nil? (sut/active-theme themes {:workbench/color-theme "GitHub Dark Default"} light))
-      "No theme of the active kind, no theme"))
+      "No theme of the active kind, no theme")
+  (is (= "GitHub Light Default"
+         (:theme/label (sut/active-theme themes {:workbench/color-theme "Not Installed"
+                                                 :workbench/default-themes ["Default Dark Modern" "GitHub Light Default"]}
+                                         light)))
+      "A theme that isn't there falls back to the settings' default theme of the active kind, as VS Code does"))
 
 (deftest customization-rules-test
   (let [customizations {"textMateRules" [{"scope" "comment" "settings" {"foreground" "#111111"}}]

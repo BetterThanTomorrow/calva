@@ -281,16 +281,19 @@
 
 (defn set-code-highlighting!
   "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, marking each as colored by the
-   grammar, or as plain when it has no ranges, as when it is too long or the extension can't highlight."
+   grammar, as plain when it has no ranges, being too long, or as uncolored when the extension can't color it,
+   without the theme or the grammar."
   [codes]
   (let [elements (code-elements)]
     (doseq [[id ranges] codes
             :let [^js code (get elements id)]
             :when code]
-      (if (seq ranges)
-        (do (remember-ranges! (.-textContent code) ranges)
-            (color-with-grammar! code ranges))
-        (set! (.. code -dataset -highlighted) "plain")))))
+      (cond
+        (seq ranges) (do (remember-ranges! (.-textContent code) ranges)
+                         (color-with-grammar! code ranges))
+        ranges (set! (.. code -dataset -highlighted) "plain")
+        :else (do (set! (.-textContent code) (.-textContent code))
+                  (set! (.. code -dataset -highlighted) "uncolored"))))))
 
 (defn set-semantic-tokens!
   "Lays the semantic `ranges` of `codes`, `[id ranges]` each, over the grammar's ranges of their code elements."
@@ -303,11 +306,12 @@
       (set-spans! code (highlight/layered grammar ranges)))))
 
 (defn- rehighlight-code!
-  "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, as when the
-   color theme changed."
+  "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
+   extension couldn't color, as when the color theme changed."
   [^js dom-element]
   (reset! !ranges-by-text {:ranges {} :texts []})
-  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))))
+  (request-highlighting! (concat (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))
+                                 (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"uncolored\"]")))))
 
 (defn- copy-code!
   "Copies the code of the code block of the Copy `button`."

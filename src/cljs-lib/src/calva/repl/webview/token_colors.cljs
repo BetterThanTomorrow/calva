@@ -63,15 +63,17 @@
        second))
 
 (defn active-theme
-  "Returns the theme in `themes` that the workbench settings make active for `color-theme-kind`."
+  "Returns the theme in `themes` that the workbench settings make active for `color-theme-kind`, or, when they
+   name no theme there is, the settings' default theme, as VS Code falls back to."
   [themes
-   {:workbench/keys [color-theme preferred-color-theme]
+   {:workbench/keys [color-theme preferred-color-theme default-themes]
     :window/keys [auto-detect-color-scheme?]}
    color-theme-kind]
   (let [ui-theme (color-theme-kind->ui-theme color-theme-kind)
-        theme-names (if auto-detect-color-scheme?
-                      [preferred-color-theme color-theme]
-                      [color-theme preferred-color-theme])]
+        theme-names (concat (if auto-detect-color-scheme?
+                              [preferred-color-theme color-theme]
+                              [color-theme preferred-color-theme])
+                            default-themes)]
     (first (for [theme-name theme-names
                  {:theme/keys [id label] :as theme} themes
                  :when (and (= ui-theme (:theme/ui-theme theme))
@@ -182,9 +184,12 @@
 
 (defn- theme-settings
   [^js vscode color-theme-kind]
-  (let [workbench (.. vscode -workspace (getConfiguration "workbench"))]
+  (let [^js workbench (.. vscode -workspace (getConfiguration "workbench"))
+        preferred-setting (color-theme-kind->preferred-setting color-theme-kind)]
     {:workbench/color-theme (.get workbench "colorTheme")
-     :workbench/preferred-color-theme (.get workbench (color-theme-kind->preferred-setting color-theme-kind))
+     :workbench/preferred-color-theme (.get workbench preferred-setting)
+     :workbench/default-themes [(some-> (.inspect workbench "colorTheme") .-defaultValue)
+                                (some-> (.inspect workbench preferred-setting) .-defaultValue)]
      :window/auto-detect-color-scheme? (.. vscode -workspace (getConfiguration "window") (get "autoDetectColorScheme"))}))
 
 (defn- user-customizations
