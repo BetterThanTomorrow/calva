@@ -154,8 +154,9 @@
                                tokens)))))
 
 (defn- line-starts
+  "Returns the offset in `text` that each of its lines starts at."
   [text]
-  (vec (reductions + 0 (map (comp inc count) (string/split text #"\n" -1)))))
+  (vec (butlast (reductions + 0 (map (comp inc count) (string/split text #"\n" -1))))))
 
 (defn decode
   "Returns `[line character length token-type modifiers]` for each semantic token in `data`, LSP's relative
@@ -185,7 +186,7 @@
 
 (defn semantic-ranges
   "Returns `[from to color font-styles]` in `text` for the decoded semantic `tokens` of a copy where `text`
-   starts on line `text-line`. Leaves out comment tokens."
+   starts on line `text-line`. Leaves out comment tokens, and tokens on lines before or after `text`."
   [palette tokens text-line text]
   (let [starts (line-starts text)]
     (vec (for [[line character length token-type modifiers] tokens

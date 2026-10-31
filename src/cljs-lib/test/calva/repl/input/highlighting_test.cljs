@@ -87,6 +87,9 @@
     (testing "places the tokens from the line where the text starts, and colors them"
       (is (= [[1 4 "#red" nil] [6 7 "#fg" nil] [13 14 "#fg" nil]]
              (sut/semantic-ranges palette [[3 1 3 "macro" []] [3 6 1 "variable" ["definition"]] [4 2 1 "variable" []]] 3 text))))
+    (testing "leaves out tokens after the text, as of code below it in the copy"
+      (is (= [[1 4 "#red" nil]]
+             (sut/semantic-ranges palette [[3 1 3 "macro" []] [5 1 3 "macro" []]] 3 text))))
     (testing "leaves out tokens before the text and comment tokens"
       (is (= [[6 7 "#fg" nil]]
              (sut/semantic-ranges palette [[0 0 4 "macro" []] [3 0 4 "comment" []] [3 6 1 "variable" []]] 3 text))))))

@@ -177,6 +177,10 @@
     {:uf/db db
      :uf/fxs [[:fx/set-code-highlighting (:output/codes payload)]]}
 
+    :msg/output-semantic-tokens
+    {:uf/db db
+     :uf/fxs [[:fx/set-semantic-tokens (:output/codes payload)]]}
+
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}

@@ -58,6 +58,14 @@
               [:repl-input/fx.set-line-wrapping true]]
              (:uf/fxs result))))))
 
+(deftest handle-action-printed-code-test
+  (testing ":msg/output-highlighting colors the printed code"
+    (is (= [[:fx/set-code-highlighting [["1" [[0 1 "#a" nil]]]]]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/output-highlighting {:output/codes [["1" [[0 1 "#a" nil]]]]}])))))
+  (testing ":msg/output-semantic-tokens lays semantic tokens over the printed code"
+    (is (= [[:fx/set-semantic-tokens [["1" [[0 1 "#b" nil]]]]]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/output-semantic-tokens {:output/codes [["1" [[0 1 "#b" nil]]]]}]))))))
+
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"
     (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"

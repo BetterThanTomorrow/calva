@@ -3,6 +3,7 @@
    [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
+   [calva.repl.webview.code-tokens :as code-tokens]
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
@@ -432,15 +433,31 @@
   {:command/name "output-highlighting"
    :output/codes (mapv (fn [[id text]] [id (highlighting/printed-highlighting text)]) codes)})
 
+(defn- post-semantic-tokens!
+  "Posts the page in `webview-host` the semantic tokens of the printed `codes`, `[id text ns session-key]`
+   each, asking clojure-lsp once for the codes of each namespace and session."
+  [^js webview-host codes]
+  (doseq [[[ns session-key] group] (group-by (fn [[_ _ ns session-key]] [ns session-key]) codes)]
+    (-> (code-tokens/tokens+ @input-host/!adapter ns session-key (mapv (fn [[id text]] [id text]) group))
+        (.then (fn [ranges]
+                 (when (seq ranges)
+                   (post-message-to-webview webview-host {:command/name "output-semantic-tokens"
+                                                          :output/codes ranges}))))
+        (.catch (fn [e]
+                  (js/console.error "Failed getting semantic tokens for printed code:" e))))))
+
 (defn listen-for-highlighting-requests!
-  "Answers the page in `webview-host` when it asks for the highlighting of printed code."
+  "Answers the page in `webview-host` when it asks for the highlighting, or the semantic tokens, of printed
+   code."
   [^js webview-host]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
       (.onDidReceiveMessage webview (fn [^js message]
-                                      (when (= "output-highlight" (.-command message))
-                                        (post-message-to-webview webview-host
-                                                                 (code-highlighting-message (js->clj (aget message "output/codes"))))))))))
+                                      (let [codes (js->clj (aget message "output/codes"))]
+                                        (case (.-command message)
+                                          "output-highlight" (post-message-to-webview webview-host (code-highlighting-message codes))
+                                          "output-semantic-tokens" (post-semantic-tokens! webview-host codes)
+                                          nil)))))))
 
 (defn listen-for-page-loaded!
   "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the

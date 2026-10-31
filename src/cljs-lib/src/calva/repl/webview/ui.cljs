@@ -6,6 +6,7 @@
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -194,11 +195,52 @@
     (post-to-host! {:command "output-highlight"
                     :output/codes (mapv (fn [^js code] [(code-id! code) (.-textContent code)]) codes)})))
 
-(defn- request-missing-highlighting!
-  "Asks the extension for the highlighting of the code in `element` that has none."
+(defonce ^{:private true :doc "The namespace and session of the output, from its latest namespace header."}
+  !context (atom nil))
+
+(defn- stamp-context!
+  "Gives the code in `element` that has no namespace the output's current namespace and session."
   [^js element]
+  (let [{:keys [ns session-key]} @!context]
+    (doseq [^js code (array-seq (.querySelectorAll element "code.output-code"))
+            :when (and ns (not (.. code -dataset -ns)))]
+      (set! (.. code -dataset -ns) ns)
+      (some->> session-key (set! (.. code -dataset -sessionKey))))))
+
+(defn- request-missing-highlighting!
+  "Gives the code in `element` the output's namespace, and asks the extension for the highlighting of the
+   code that has none."
+  [^js element]
+  (stamp-context! element)
   (request-highlighting! (remove #(.. ^js % -dataset -highlighted)
                                  (array-seq (.querySelectorAll element "code.output-code")))))
+
+(defonce ^{:private true :doc "The grammar's ranges of each highlighted code element, by its id."}
+  !grammar-ranges (atom {}))
+
+(defonce ^:private !semantic-requests (atom {:codes [] :timer nil}))
+
+(defn- request-semantic-tokens-later!
+  "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar `ranges`,
+   with those of other code, a pause after the last request. Code without a namespace gets none."
+  [codes ranges]
+  (let [requested (for [^js code codes
+                        :let [ns (.. code -dataset -ns)]
+                        :when ns]
+                    (let [id (code-id! code)]
+                      (swap! !grammar-ranges assoc id ranges)
+                      [id (.-textContent code) ns (.. code -dataset -sessionKey)]))]
+    (when (seq requested)
+      (some-> (:timer @!semantic-requests) js/clearTimeout)
+      (swap! !semantic-requests
+             (fn [{:keys [codes]}]
+               {:codes (into codes requested)
+                :timer (js/setTimeout (fn []
+                                        (let [{:keys [codes]} @!semantic-requests]
+                                          (reset! !semantic-requests {:codes [] :timer nil})
+                                          (post-to-host! {:command "output-semantic-tokens"
+                                                          :output/codes codes})))
+                                      100)})))))
 
 (defn- part-node
   "Returns the DOM node of a part of `code-highlight/spans`: a text, or a span with its class."
@@ -220,9 +262,21 @@
           :when code]
     (if ranges
       (do (code-highlight/add-classes! ranges)
-          (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges)))))
+          (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges))))
+          (request-semantic-tokens-later! [code] ranges))
       (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true}))))
     (set! (.. code -dataset -highlighted) "true")))
+
+(defn set-semantic-tokens!
+  "Lays the semantic `ranges` of `codes`, `[id ranges]` each, over the grammar's ranges of their code elements."
+  [codes]
+  (doseq [[id ranges] codes
+          :let [^js code (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))
+                grammar (get @!grammar-ranges id)]
+          :when (and code grammar (seq ranges))]
+    (let [looks (highlight/layered grammar ranges)]
+      (code-highlight/add-classes! looks)
+      (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) looks)))))))
 
 (defn- rehighlight-code!
   "Asks the extension for the highlighting of all code in `dom-element`, as when the color theme changed."
@@ -248,6 +302,8 @@
   (some-> ranges code-highlight/add-classes!)
   (let [element (insert-hiccup! dom-element "beforeend" hiccup)]
     (request-missing-highlighting! element)
+    (when ranges
+      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.output-code")) ranges))
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn append-evaluated-code
@@ -523,13 +579,17 @@
        [:span {:class ["ns-info-badge" "ns-info-ns"]} ns])]))
 
 (defn append-ns-info
+  "Appends the namespace header of `meta-data`, the namespace and session of the output after it."
   [^js dom-element meta-data]
+  (reset! !context {:ns (or (:meta/ns meta-data) (:ns meta-data))
+                    :session-key (or (:meta/repl-session-key meta-data) (:repl-session-key meta-data))})
   (let [ns-info-el (insert-hiccup! dom-element "beforeend" (ns-info-element meta-data))]
     (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
 
 (defn clear-output-dom
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
+  (reset! !grammar-ranges {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
@@ -660,6 +720,7 @@
     :fx/append-result (append-eval-result output-dom-element (first args) (second args))
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args) (second args))
     :fx/set-code-highlighting (set-code-highlighting! (first args))
+    :fx/set-semantic-tokens (set-semantic-tokens! (first args))
     :fx/rehighlight-code (rehighlight-code! output-dom-element)
     :fx/copy-code (copy-code! (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
@@ -702,6 +763,7 @@
          "clear-output-view"    (dispatch! [:msg/clear-output-view])
          "set-code-theme"       (dispatch! [:msg/set-code-theme message-data])
          "output-highlighting"  (dispatch! [:msg/output-highlighting message-data])
+         "output-semantic-tokens" (dispatch! [:msg/output-semantic-tokens message-data])
          "set-word-wrap"        (dispatch! [:msg/set-word-wrap message-data])
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
