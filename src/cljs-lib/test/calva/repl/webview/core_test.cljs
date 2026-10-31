@@ -284,7 +284,8 @@
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :code-theme "dark"
-                                                                                  :token-colors nil})))))
+                                                                                  :token-colors nil
+                                                                                  :output/palette-key (hash nil)})))))
       (testing "when the ColorThemeKind is Light, should set the code theme to light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
@@ -292,7 +293,8 @@
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :code-theme "light"
-                                                                                  :token-colors nil})))))
+                                                                                  :token-colors nil
+                                                                                  :output/palette-key (hash nil)})))))
       (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
@@ -300,7 +302,8 @@
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :code-theme "high-contrast"
-                                                                                  :token-colors nil})))))
+                                                                                  :token-colors nil
+                                                                                  :output/palette-key (hash nil)})))))
       (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
         (let [post-message-to-webview-spy (spy/spy)]
           (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
@@ -308,7 +311,8 @@
                                           :webview-panel webview-panel})
             (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                                   :code-theme "high-contrast-light"
-                                                                                  :token-colors nil})))))
+                                                                                  :token-colors nil
+                                                                                  :output/palette-key (hash nil)})))))
       (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
         (let [log-to-console-spy (spy/spy)
               color-theme-kind 99]
@@ -335,7 +339,8 @@
                                       :webview-panel webview-panel})
         (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
                                                                               :code-theme "dark"
-                                                                              :token-colors {"keyword" "#ff7b72"}}))))))
+                                                                              :token-colors {"keyword" "#ff7b72"}
+                                                                                  :output/palette-key (hash nil)}))))))
 
 (deftest post-code-theme-to-all-views!-test
   (testing "sets the code theme of every registered webview"

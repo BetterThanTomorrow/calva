@@ -142,3 +142,10 @@
                                 "foo x"))))
   (testing "leaves out a token with neither a color nor font styles"
     (is (= [] (sut/semantic-ranges palette [[0 0 3 "property" []]] 0 "foo")))))
+
+(deftest printed-highlighting-test
+  (testing "has no ranges for printed text longer than the limit, so the page shows it plain"
+    (is (= [] (sut/printed-highlighting (apply str (repeat 50001 "x"))))))
+  (testing "has none before the grammar is loaded"
+    (reset! sut/!grammar nil)
+    (is (nil? (sut/printed-highlighting "(foo)")))))

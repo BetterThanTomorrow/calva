@@ -281,12 +281,21 @@
    characters."
   50000)
 
+(defonce ^{:private true :doc "The last printed text highlighted, and its highlighting, as each Output view asks."}
+  !last-printed (atom nil))
+
 (defn printed-highlighting
-  "Returns `[from to color styles]` for printed `text`, as `text-highlighting` does, or nil for text longer
-   than `max-printed-length`."
+  "Returns `[from to color styles]` for printed `text`, as `text-highlighting` does, or no ranges for text
+   longer than `max-printed-length`. Highlights the same text in the same colors once, though both Output
+   views ask."
   [text]
-  (when (<= (count text) max-printed-length)
-    (text-highlighting text)))
+  (if (> (count text) max-printed-length)
+    []
+    (let [printed [text (palette) @!grammar]
+          {last-printed :printed :keys [ranges]} @!last-printed]
+      (if (= printed last-printed)
+        ranges
+        (:ranges (reset! !last-printed {:printed printed :ranges (text-highlighting text)}))))))
 
 (defn with-text-highlighting
   "Returns the REPL Input `record` with the highlighting of its text, computed anew only when the text, the

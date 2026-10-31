@@ -350,10 +350,10 @@
         code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)
         palette (token-colors/active-theme-palette color-theme-kind)]
     (if code-theme
-      (post-message-to-webview webview-panel (cond-> {:command/name "set-code-theme"
-                                                      :code-theme code-theme
-                                                      :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)}
-                                               palette (assoc :output/palette-key (hash palette))))
+      (post-message-to-webview webview-panel {:command/name "set-code-theme"
+                                              :code-theme code-theme
+                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)
+                                              :output/palette-key (hash palette)})
       (util/log-to-console
        :error
        "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
@@ -428,10 +428,37 @@
 
 (defn code-highlighting-message
   "Returns the message that posts the highlighting of the printed code `codes`, `[id text]` each, as
-   `[id ranges]`, the ranges nil for code that isn't highlighted."
+   `[id ranges]`, the ranges nil before the grammar is loaded."
   [codes]
   {:command/name "output-highlighting"
    :output/codes (mapv (fn [[id text]] [id (highlighting/printed-highlighting text)]) codes)})
+
+(def ^:private highlighting-chunk-length
+  "How many characters of printed code the extension highlights before it lets other work run."
+  20000)
+
+(defn- code-chunks
+  "Returns `codes`, `[id text]` each, in chunks of about `highlighting-chunk-length` characters."
+  [codes]
+  (->> codes
+       (reduce (fn [chunks [_ text :as code]]
+                 (let [{:keys [length]} (peek chunks)]
+                   (if (and length (< length highlighting-chunk-length))
+                     (conj (pop chunks) (-> (peek chunks)
+                                            (update :codes conj code)
+                                            (update :length + (count text))))
+                     (conj chunks {:codes [code] :length (count text)}))))
+               [])
+       (map :codes)))
+
+(defn- post-code-highlighting!
+  "Posts the page in `webview-host` the highlighting of the printed code of `chunks`, a chunk at a time,
+   letting other work run between the chunks."
+  [^js webview-host chunks]
+  (when-let [[chunk & more] (seq chunks)]
+    (post-message-to-webview webview-host (code-highlighting-message chunk))
+    (when more
+      (js/setTimeout #(post-code-highlighting! webview-host more) 0))))
 
 (defn- post-semantic-tokens!
   "Posts the page in `webview-host` the semantic tokens of the printed `codes`, `[id text ns session-key]`
@@ -455,7 +482,7 @@
       (.onDidReceiveMessage webview (fn [^js message]
                                       (let [codes (js->clj (aget message "output/codes"))]
                                         (case (.-command message)
-                                          "output-highlight" (post-message-to-webview webview-host (code-highlighting-message codes))
+                                          "output-highlight" (post-code-highlighting! webview-host (code-chunks codes))
                                           "output-semantic-tokens" (post-semantic-tokens! webview-host codes)
                                           nil)))))))
 

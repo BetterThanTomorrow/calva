@@ -100,9 +100,11 @@
       (reset! output-sidebar-log #queue []))))
 
 (defn add-output-sidebar-message!
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later, without the
+   highlighting of printed code, which that page asks for in the colors it has then."
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log add-to-log message)
+    (swap! output-sidebar-log add-to-log (dissoc message :output/highlighting))
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 

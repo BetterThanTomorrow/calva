@@ -172,7 +172,7 @@
   ([clojure-code ranges]
    [:pre {:class ["output-code-block"]}
     (into [:code (cond-> {:class ["output-code"]}
-                   ranges (assoc :data-highlighted "true"))]
+                   ranges (assoc :data-highlighted (if (seq ranges) "grammar" "plain")))]
           (if ranges
             (code-highlight/spans clojure-code ranges)
             [clojure-code]))
@@ -253,35 +253,49 @@
       (set! (.-textContent span) text)
       span)))
 
+(defn- code-elements
+  "Returns the code elements with an id, by their id."
+  []
+  (into {} (map (fn [^js code] [(.. code -dataset -codeId) code]))
+        (array-seq (js/document.querySelectorAll "code[data-code-id]"))))
+
+(defn- set-spans!
+  "Sets the children of the `code` element to its text colored with `ranges`."
+  [^js code ranges]
+  (code-highlight/add-classes! ranges)
+  (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges)))))
+
 (defn set-code-highlighting!
-  "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, or with highlight.js when
-   the extension has none for them."
+  "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, marking each as colored by the
+   grammar, as plain when it has no ranges, or colored by highlight.js when the extension can't highlight."
   [codes]
-  (doseq [[id ranges] codes
-          :let [^js code (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))]
-          :when code]
-    (if ranges
-      (do (code-highlight/add-classes! ranges)
-          (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges))))
-          (request-semantic-tokens-later! [code] ranges))
-      (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true}))))
-    (set! (.. code -dataset -highlighted) "true")))
+  (let [elements (code-elements)]
+    (doseq [[id ranges] codes
+            :let [^js code (get elements id)]
+            :when code]
+      (cond
+        (seq ranges) (do (set-spans! code ranges)
+                         (set! (.. code -dataset -highlighted) "grammar")
+                         (request-semantic-tokens-later! [code] ranges))
+        ranges (set! (.. code -dataset -highlighted) "plain")
+        :else (do (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true})))
+                  (set! (.. code -dataset -highlighted) "hljs"))))))
 
 (defn set-semantic-tokens!
   "Lays the semantic `ranges` of `codes`, `[id ranges]` each, over the grammar's ranges of their code elements."
   [codes]
-  (doseq [[id ranges] codes
-          :let [^js code (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))
-                grammar (get @!grammar-ranges id)]
-          :when (and code grammar (seq ranges))]
-    (let [looks (highlight/layered grammar ranges)]
-      (code-highlight/add-classes! looks)
-      (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) looks)))))))
+  (let [elements (code-elements)]
+    (doseq [[id ranges] codes
+            :let [^js code (get elements id)
+                  grammar (get @!grammar-ranges id)]
+            :when (and code grammar (seq ranges))]
+      (set-spans! code (highlight/layered grammar ranges)))))
 
 (defn- rehighlight-code!
-  "Asks the extension for the highlighting of all code in `dom-element`, as when the color theme changed."
+  "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, as when the
+   color theme changed."
   [^js dom-element]
-  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.output-code"))))
+  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.output-code[data-highlighted=\"grammar\"]"))))
 
 (defn- copy-code!
   "Copies the code of the code block of the Copy `button`."
@@ -302,7 +316,7 @@
   (some-> ranges code-highlight/add-classes!)
   (let [element (insert-hiccup! dom-element "beforeend" hiccup)]
     (request-missing-highlighting! element)
-    (when ranges
+    (when (seq ranges)
       (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.output-code")) ranges))
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 

@@ -139,6 +139,16 @@
     {:uf/db new-db
      :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
 
+(defn- handle-set-code-theme
+  "Sets the code theme and its colors, and colors the printed code again when the theme's palette is another
+   than the page had."
+  [db {:keys [code-theme token-colors] palette-key :output/palette-key}]
+  {:uf/db (assoc db :output/palette-key palette-key)
+   :uf/fxs (cond-> [[:fx/set-code-theme code-theme]
+                    [:fx/set-token-colors token-colors]]
+             (and (contains? db :output/palette-key)
+                  (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -186,12 +196,7 @@
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
     :msg/set-code-theme
-    (let [{palette-key :output/palette-key} payload
-          last-key (:output/palette-key db)]
-      {:uf/db (cond-> db palette-key (assoc :output/palette-key palette-key))
-       :uf/fxs (cond-> [[:fx/set-code-theme (:code-theme payload)]
-                        [:fx/set-token-colors (:token-colors payload)]]
-                 (and last-key (not= palette-key last-key)) (conj [:fx/rehighlight-code]))})
+    (handle-set-code-theme db payload)
 
     :msg/set-word-wrap
     {:uf/db db

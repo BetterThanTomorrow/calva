@@ -70,7 +70,7 @@
   (testing ":msg/set-code-theme"
     (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"
                                                                          :token-colors {"keyword" "#ff7b72"}}])]
-      (is (= sut/initial-db (:uf/db result)))
+      (is (= (assoc sut/initial-db :output/palette-key nil) (:uf/db result)))
       (is (= [[:fx/set-code-theme "dark"]
               [:fx/set-token-colors {"keyword" "#ff7b72"}]]
              (:uf/fxs result))
@@ -85,6 +85,17 @@
           "The same colors, as when a view shows again, highlight nothing again")
       (is (some #{[:fx/rehighlight-code]} (:uf/fxs other-theme))
           "Other colors highlight the printed code again")))
+  (testing ":msg/set-code-theme with a theme that has no palette"
+    (let [first-theme (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
+          unreadable (sut/handle-action (:uf/db first-theme) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 0}])
+          shown-again (sut/handle-action (:uf/db unreadable) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 0}])
+          readable-again (sut/handle-action (:uf/db shown-again) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])]
+      (is (some #{[:fx/rehighlight-code]} (:uf/fxs unreadable))
+          "Losing the palette highlights the printed code again")
+      (is (not-any? #{[:fx/rehighlight-code]} (:uf/fxs shown-again))
+          "Showing the view again without a palette highlights nothing again")
+      (is (some #{[:fx/rehighlight-code]} (:uf/fxs readable-again))
+          "Getting the palette back highlights the printed code again")))
 
   (testing ":msg/set-code-theme without token colors"
     (is (= [[:fx/set-code-theme "dark"]

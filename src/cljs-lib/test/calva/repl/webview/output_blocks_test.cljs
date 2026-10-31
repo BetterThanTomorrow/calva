@@ -47,8 +47,10 @@
     (is (= ["(" [:span {:class #{"code-color-ff7b72"}} "let"] " [x 1])"]
            (drop 2 (first (l/select :code.output-code hiccup))))
         "The code is colored with its ranges")
-    (is (= "true" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
-        "Code with ranges is marked as highlighted")
+    (is (= "grammar" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
+        "Code with ranges is marked as colored by the grammar")
+    (is (= "plain" (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x" []))))))
+        "Code with no ranges, as when it is too long, is marked as plain")
     (is (nil? (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x"))))))
         "Code without ranges waits for its highlighting")))
 

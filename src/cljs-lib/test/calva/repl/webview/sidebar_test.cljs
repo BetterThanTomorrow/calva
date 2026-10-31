@@ -123,6 +123,19 @@
                         :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
 
+(deftest log-without-highlighting-test
+  (let [post-message-to-webview-spy (spy/spy)
+        message {:command/name "show-result" :output "42" :output/highlighting [[0 2 "#79c0ff" nil]]}]
+    (with-redefs [sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
+                  sut/output-sidebar-webview-view (atom {:some "view"})
+                  sut/output-sidebar-log (atom [])
+                  core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+      (sut/add-output-sidebar-message! message)
+      (is (spy/called-once-with? post-message-to-webview-spy {:some "view"} message)
+          "The sidebar gets the printed code with its highlighting")
+      (is (= [(dissoc message :output/highlighting)] @sut/output-sidebar-log)
+          "The log keeps it without, for a page that shows the log later to ask in its own colors"))))
+
 (deftest add-to-log-test
   (let [log (reduce sut/add-to-log #queue [] (range (+ 2 sut/log-kept-count)))]
     (is (= sut/log-kept-count (count log))
