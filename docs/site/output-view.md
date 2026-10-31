@@ -80,16 +80,7 @@ To copy code or printed output in the output views, hover your cursor over the c
 
 ## Theming
 
-[highlight.js](https://highlightjs.org/) is used for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
-
-| ColorThemeKind | hightlight.js theme |
-| -------------- | ------------------- |
-| Dark | github-dark |
-| Light | github |
-| HighContrast | windows-high-contrast |
-| HighContrastLight | windows-high-contrast-light |
-
-![The output view code highlight theme changes as the VS Code theme changes](images/output-view/theme-changing.gif)
+Theming should generally just work.
 
 ## It's readonly
 

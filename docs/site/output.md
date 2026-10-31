@@ -87,7 +87,7 @@ The table below lists the features of the different output destinations.
 | Paredit navigation and selection | ✅ | ❌ * | ❌ * | ❌ | ❌ |
 | Button to copy specific output | ❌ | ✅ | ✅ | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Syntax highlighting matches editor | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Syntax highlighting matches editor | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Supports input | ✅ | ❌ * | ❌ * |  ❌ | ❌ * |
 | ANSI Escape sequences (TUI things) | ❌ | ❌ * | ❌ * | ❌ | ✅ |
 | Handles high volume output well | ❌ | ✅ | ✅ | ✅ | ✅ |
