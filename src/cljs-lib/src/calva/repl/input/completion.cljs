@@ -55,16 +55,26 @@
    :accept-on-enter? (accepts-enter? settings)
    :icons? (not (false? (get settings "editor.suggest.showIcons")))})
 
+(defn- copy-extension
+  "Returns the extension of `source-file` when it is a Clojure source file, else `cljs` in a ClojureScript
+   session, like `cljs` or `cljs:2`, else `clj`."
+  [source-file session-key]
+  (or (some->> source-file (re-find #"\.(clj|cljs|cljc)$") second)
+      (when (some-> session-key (string/starts-with? "cljs")) "cljs")
+      "clj"))
+
 (defn copy
   "Returns the copy that clojure-lsp completes in, with the cursor at `offset` in `text` as its `:line` and
-   `:character` there, and the line where `text` starts as `:text-line`. The copy is the followed file's
-   `editor-text`, or the `ns` form of a locked `context` or of a context without a file, and then `text`."
-  [{:repl-input.context/keys [ns-form locked?]} editor-text text offset]
+   `:character` there, the line where `text` starts as `:text-line`, and the extension of the context's source
+   file as its `:extension`. The copy is the followed file's `editor-text`, or the `ns` form of a locked
+   `context` or of a context without a file, and then `text`."
+  [{:repl-input.context/keys [ns-form locked? source-file session-key]} editor-text text offset]
   (let [prefix (if (and editor-text (not locked?)) editor-text ns-form)
         before (subs text 0 offset)
         text-line (inc (count (re-seq #"\n" prefix)))]
     {:text (str prefix "\n" text)
      :text-line text-line
+     :extension (copy-extension source-file session-key)
      :line (+ text-line (count (re-seq #"\n" before)))
      :character (- offset (inc (.lastIndexOf before "\n")))}))
 

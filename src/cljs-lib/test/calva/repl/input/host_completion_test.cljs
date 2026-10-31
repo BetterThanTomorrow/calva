@@ -46,9 +46,10 @@
             (testing "asks clojure-lsp at the cursor's place in the copy of the followed file and the REPL Input"
               (is (= [{:uri "file:///pirate/src/pirate/core.clj"
                        :text "(ns pirate.core\n  (:require [clojure.string :as string]))\n\n(string/upp)"
+                       :extension "clj"
                        :line 3
                        :character 11}]
-                     (mapv #(select-keys % [:uri :text :line :character]) (calls completions :lsp)))))
+                     (mapv #(select-keys % [:uri :text :extension :line :character]) (calls completions :lsp)))))
             ((:resolve (first (calls completions :repl))) #js [upper-case-repl])
             (after-promises
              (fn []
@@ -150,7 +151,8 @@
             (post! {:command "repl-input-complete" :repl-input/id "output-view" :request 1 :text "(render)" :offset 7})
             (testing "a locked context completes in its namespace and session, below its `ns` form"
               (is (= [["pirate.ui" "cljs"]] (mapv (juxt :ns :session-key) (calls completions :repl))))
-              (is (= [["(in-ns 'pirate.ui)\n(render)" 1 7]] (mapv (juxt :text :line :character) (calls completions :lsp)))))
+              (is (= [["(in-ns 'pirate.ui)\n(render)" "cljs" 1 7]] (mapv (juxt :text :extension :line :character) (calls completions :lsp)))
+                  "in a copy with the extension of the lock's source file"))
             (post! {:command "repl-input-complete" :repl-input/id "output-view" :request 2 :text ";; ren" :offset 6})
             (after-promises
              (fn []

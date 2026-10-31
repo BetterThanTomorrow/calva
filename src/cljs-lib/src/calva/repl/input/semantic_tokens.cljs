@@ -20,7 +20,9 @@
   (let [text (get-in state [:repl-input/records id :repl-input/text])
         {:repl-input.context/keys [locked?] :as context} (select-keys (:repl-input.context/line state)
                                                                        [:repl-input.context/ns-form
-                                                                        :repl-input.context/locked?])
+                                                                        :repl-input.context/locked?
+                                                                        :repl-input.context/source-file
+                                                                        :repl-input.context/session-key])
         ^js document (get-in state [:repl-input.context/editor :document])]
     (when (and @highlighting/!grammar (:palette/semantic? palette) (not (string/blank? text)))
       {:text text
@@ -33,8 +35,8 @@
    promise of `[from to color]` in the request's text, or of nil without clojure-lsp or when cancelled, and the
    function that cancels the request."
   [^js adapter {:keys [text context palette]} ^js document]
-  (let [{copy-text :text :keys [text-line]} (completion/copy context (some-> document .getText) text 0)
-        ^js answer (.lspSemanticTokens adapter (some-> document .-uri) copy-text text-line)]
+  (let [{copy-text :text :keys [extension text-line]} (completion/copy context (some-> document .getText) text 0)
+        ^js answer (.lspSemanticTokens adapter (some-> document .-uri) #js {:text copy-text :extension extension} text-line)]
     {:cancel (.-cancel answer)
      :ranges+ (.then (.-tokens answer)
                      (fn [^js result]

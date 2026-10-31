@@ -46,6 +46,16 @@
   (testing "the REPL Input's text starts on the line after the ns form"
     (is (= 1 (:text-line (sut/copy locked nil "(foo)" 0))))))
 
+(deftest copy-extension
+  (testing "the extension of the context's source file, so clojure-lsp analyzes the copy as that file"
+    (is (= "cljs" (:extension (sut/copy (assoc following :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs") nil "" 0))))
+    (is (= "cljc" (:extension (sut/copy (assoc locked :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljc") nil "" 0)))))
+  (testing "cljs without a Clojure source file in a ClojureScript session"
+    (is (= "cljs" (:extension (sut/copy (assoc locked :repl-input.context/session-key "cljs:2") nil "" 0)))))
+  (testing "clj for another source file, or none"
+    (is (= "clj" (:extension (sut/copy (assoc following :repl-input.context/source-file "file:///pirate/bb.edn") nil "" 0))))
+    (is (= "clj" (:extension (sut/copy following nil "" 0))))))
+
 (deftest suggests?
   (testing "an explicit request always completes"
     (is (true? (sut/suggests? {"editor.quickSuggestions" false} {} true))))

@@ -42,8 +42,8 @@
   "Asks clojure-lsp to complete at `offset` in `text`, in a copy below the followed `document` or the `ns`
    form of `context`. Returns the adapter's `{items cancel}`."
   [context ^js document {:keys [text offset]}]
-  (let [{copy-text :text :keys [line character]} (completion/copy context (some-> document .getText) text offset)]
-    (.lspCompletions ^js @host/!adapter (some-> document .-uri) copy-text line character)))
+  (let [{copy-text :text :keys [extension line character]} (completion/copy context (some-> document .getText) text offset)]
+    (.lspCompletions ^js @host/!adapter (some-> document .-uri) #js {:text copy-text :extension extension} line character)))
 
 (defn- request!
   "Asks the REPL and clojure-lsp for the candidates at `offset` in `text` of `doc`, for the `request` from the
