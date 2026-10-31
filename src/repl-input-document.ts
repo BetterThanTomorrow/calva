@@ -128,6 +128,8 @@ export function applyChanges(
 
 export type Range = [start: number, end: number];
 
+type Guide = [offset: number, colorIndex: number];
+
 export type Brackets = {
   brackets: [start: number, end: number, colorIndex: number][];
   misplaced: Range[];
@@ -135,19 +137,39 @@ export type Brackets = {
   ignoredForms: Range[];
   topLevelIgnoredForms: Range[];
   matched: Range[];
+  guides: Guide[];
+  activeGuides: Guide[];
 };
 
-/** The rainbow brackets of the whole of `doc`, and the brackets matched at its cursors, the way Calva paints them in files. */
+export type BracketsOptions = Omit<rainbowBrackets.RainbowOptions, 'guides'> & {
+  guides?: boolean;
+  activeGuides?: boolean;
+};
+
+function guideOffsets(guides: rainbowBrackets.ColoredRange[]): Guide[] {
+  return guides.map(({ range: [offset], colorIndex }) => [offset, colorIndex]);
+}
+
+/**
+ * The rainbow brackets of the whole of `doc`, the brackets matched at its cursors, and, when the options ask
+ * for them, the indent guides and the guides of the forms around its cursors, the way Calva paints them in
+ * files.
+ */
 export function brackets(
   doc: model.StringDocument,
-  options: Omit<rainbowBrackets.RainbowOptions, 'guides'>
+  { guides = false, activeGuides = false, ...options }: BracketsOptions
 ): Brackets {
   const rainbow = rainbowBrackets.rainbowBrackets(doc.model, [[0, doc.model.maxOffset]], {
     ...options,
-    guides: false,
+    guides: guides || activeGuides,
   });
   const { misplaced, commentForms, ignoredForms, topLevelIgnoredForms } = rainbow;
+  const selections = doc.selections.map(({ anchor, active }): Range => [anchor, active]);
   return {
+    guides: guides ? guideOffsets(rainbow.guides) : [],
+    activeGuides: activeGuides
+      ? guideOffsets(rainbowBrackets.activeGuides(doc.model, rainbow, selections))
+      : [],
     brackets: rainbow.brackets.map(({ range: [start, end], colorIndex }) => [
       start,
       end,
@@ -157,10 +179,7 @@ export function brackets(
     commentForms,
     ignoredForms,
     topLevelIgnoredForms,
-    matched: rainbowBrackets.matchedBrackets(
-      rainbow,
-      doc.selections.map(({ anchor, active }) => [anchor, active])
-    ),
+    matched: rainbowBrackets.matchedBrackets(rainbow, selections),
   };
 }
 

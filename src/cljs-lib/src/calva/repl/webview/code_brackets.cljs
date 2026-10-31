@@ -15,17 +15,25 @@
    :ignored-form "code-ignored-form"
    :ignored-top-level-form "code-ignored-top-level-form"})
 
+(defn- guide-class
+  [color-index active?]
+  (str (if active? "code-active-guide-" "code-guide-") color-index))
+
 (defn mark-ranges
-  "Returns `[from to class]` for each range in `brackets`, as the extension computed them."
-  [{:keys [brackets misplaced commentForms ignoredForms topLevelIgnoredForms matched]}]
-  (let [classed (fn [k ranges] (for [[from to] ranges] [from to (classes k)]))]
+  "Returns `[from to class]` for each range in `brackets`, as the extension computed them. A guide marks the
+   character at its column."
+  [{:keys [brackets misplaced commentForms ignoredForms topLevelIgnoredForms matched guides activeGuides]}]
+  (let [classed (fn [k ranges] (for [[from to] ranges] [from to (classes k)]))
+        guided (fn [active? guides] (for [[offset color-index] guides] [offset (inc offset) (guide-class color-index active?)]))]
     (filterv (fn [[from to]] (< from to))
              (concat (for [[from to color-index] brackets] [from to (bracket-class color-index)])
                      (classed :misplaced misplaced)
                      (classed :comment-form commentForms)
                      (classed :ignored-form ignoredForms)
                      (classed :ignored-top-level-form topLevelIgnoredForms)
-                     (classed :matched matched)))))
+                     (classed :matched matched)
+                     (guided false guides)
+                     (guided true activeGuides)))))
 
 (def ^:private css-properties
   "The decoration style properties CSS can paint, and their CSS names."
@@ -80,13 +88,39 @@
     {"light" {"color" (first color)} "dark" {"color" (second color)}}
     {"color" color}))
 
+(defn- border-color-style
+  [color]
+  (if (sequential? color)
+    {"light" {"borderColor" (first color)} "dark" {"borderColor" (second color)}}
+    {"borderColor" color}))
+
+(defn- guide-rules
+  "The rules that draw the guide of `color` for `color-index`, a line at the left edge of the character it
+   marks, through the line's height, as Calva draws guides in files: thin, and thicker for the active guide."
+  [color-index color]
+  (for [active? [false true]
+        :let [class-name (guide-class color-index active?)
+              color-rules (style-rules (str class-name "::before") (border-color-style color))]
+        rule (concat [[(str "span." class-name) {:position :relative}]
+                      [(str "span." class-name "::before") {:content "\"\""
+                                                            :position :absolute
+                                                            :left 0
+                                                            :top "-0.25em"
+                                                            :bottom "-0.25em"
+                                                            :border-left [[(if active? "1.5px" "0.5px") :solid]]
+                                                            :opacity (if active? 0.5 0.25)
+                                                            :pointer-events :none}]]
+                     color-rules)]
+    rule))
+
 (defn rules
   "Returns the Garden rules that paint the classes of `mark-ranges` with `bracket-styles`."
-  [{:keys [bracket-colors] :as bracket-styles}]
+  [{:keys [bracket-colors guide-colors] :as bracket-styles}]
   (vec (concat (apply concat (map-indexed (fn [i color] (style-rules (bracket-class i) (color-style color)))
                                           bracket-colors))
                (mapcat (fn [[k class-name]] (style-rules class-name (get bracket-styles k)))
-                       classes))))
+                       classes)
+               (apply concat (map-indexed guide-rules guide-colors)))))
 
 (defn css
   "The stylesheet that paints the classes of `mark-ranges` with `bracket-styles`."

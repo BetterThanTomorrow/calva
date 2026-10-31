@@ -14,12 +14,13 @@
       (into {} (map (fn [k] [k (js->clj (.get config k))])) brackets/highlight-settings))))
 
 (defn brackets
-  "Returns the brackets and the forms the painter marks in printed `text` under the `settings`, as the
-   REPL Input gets them, without matched brackets, since printed code has no cursor. Nil without the adapter."
+  "Returns the brackets, the forms and the indent guides the painter marks in printed `text` under the
+   `settings`, as the REPL Input gets them, without matched brackets and the guides of the forms around a
+   cursor, since printed code has no cursor. Nil without the adapter."
   [text settings]
   (when-let [^js adapter @input-host/!adapter]
     (-> (.brackets adapter
                    (.document adapter text #js [#js [0 0]])
-                   (clj->js (brackets/rainbow-options settings)))
+                   (clj->js (assoc (brackets/rainbow-options settings) :activeGuides false)))
         (js->clj :keywordize-keys true)
         (dissoc :matched))))

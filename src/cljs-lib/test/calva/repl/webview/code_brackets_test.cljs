@@ -53,3 +53,14 @@
       (is (string/includes? css "span.code-bracket-1 {")))
     (testing "leaves out what CSS can't paint"
       (is (not (string/includes? css "overview"))))))
+
+(deftest guides-test
+  (testing "marks the character at a guide's column, thin or active"
+    (is (= [[4 5 "code-guide-1"] [9 10 "code-active-guide-0"]]
+           (sut/mark-ranges {:guides [[4 1]] :activeGuides [[9 0]]}))))
+  (testing "draws a guide in its bracket color at the left edge of the character, thicker when active"
+    (let [rules (set (sut/rules {:guide-colors ["#0098e6"]}))]
+      (is (contains? rules ["span.code-guide-0::before" {:border-color "#0098e6"}]))
+      (is (some (fn [[selector {:keys [border-left opacity]}]]
+                  (and (= "span.code-active-guide-0::before" selector) (= [["1.5px" :solid]] border-left) (= 0.5 opacity)))
+                rules)))))
