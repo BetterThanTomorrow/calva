@@ -29,9 +29,10 @@
   (when-let [dom (some-> (mount-element) (.querySelector ".cm-editor"))]
     (.findFromDOM EditorView dom)))
 
-(def ^:private set-bracket-marks (.define StateEffect))
+(def set-bracket-marks (.define StateEffect))
 
-(def ^:private bracket-marks
+(def bracket-marks
+  "The bracket marks, moved along with the edits until `set-bracket-marks` sets them anew."
   (.define StateField
            #js {:create (fn [_] (.-none Decoration))
                 :update (fn [^js decorations ^js transaction]
@@ -84,7 +85,7 @@
    :meta? (.-metaKey event)
    :composing? (.-isComposing event)})
 
-(defn- command-keys-handler
+(defn command-keys-handler
   "Leaves the `command-keys` to VS Code, before CodeMirror's keymap sees them."
   [command-keys]
   (let [!pending-chord? (volatile! false)]
@@ -171,12 +172,12 @@
 
 (defonce ^:private line-wrapping-compartment (Compartment.))
 
-(defn- line-wrapping
+(defn line-wrapping
   "Wraps the lines when `wrap?`."
   [wrap?]
   (if wrap? (.-lineWrapping EditorView) #js []))
 
-(defn- output-word-wrap?
+(defn output-word-wrap?
   "True while the Output view wraps its output."
   []
   (.. js/document -body -classList (contains "word-wrap")))
@@ -258,26 +259,28 @@
 
 (defonce ^:private !window-focus (atom {:listening? false :last-focused nil :pointer-down-at 0}))
 
-(defn- in-repl-input?
+(defn- keeps-focus?
+  "True when `element` is in the REPL Input or in the printed code's editor, the places that get the focus
+   back when the window gets it."
   [^js element]
-  (boolean (some-> (mount-element) (.contains element))))
+  (boolean (some-> element (.closest "#repl-input, .printed-code-editor"))))
 
 (defn- remember-focus!
   [^js event]
-  (swap! !window-focus assoc :last-focused (when (in-repl-input? (.-target event)) (.-target event))))
+  (swap! !window-focus assoc :last-focused (when (keeps-focus? (.-target event)) (.-target event))))
 
 (defn- forget-focus-moved-within-page!
-  "Forgets the REPL Input's element when the focus left it for another place in the page. When the window
-   lost the focus, the element is kept, since the window gets the focus back without it."
+  "Forgets the element that keeps the focus when the focus left it for another place in the page. When the
+   window lost the focus, the element is kept, since the window gets the focus back without it."
   [^js event]
-  (when (in-repl-input? (.-target event))
+  (when (keeps-focus? (.-target event))
     (js/setTimeout #(when (and (js/document.hasFocus)
-                               (not (in-repl-input? js/document.activeElement)))
+                               (not (keeps-focus? js/document.activeElement)))
                       (swap! !window-focus assoc :last-focused nil))
                    0)))
 
 (defn- restore-focus!
-  "Gives the focus back to the REPL Input's element that had it before the window lost the focus. After
+  "Gives the focus back to the element that kept it before the window lost the focus. After
    the command palette closes, VS Code focuses the view, and the page's body gets the focus. A pointer press
    focuses the window too, and then the press decides where the focus goes."
   []
@@ -288,7 +291,7 @@
                (contains? #{nil js/document.body} js/document.activeElement))
       (.focus last-focused))))
 
-(defn- listen-for-window-focus!
+(defn listen-for-window-focus!
   []
   (when-not (:listening? @!window-focus)
     (swap! !window-focus assoc :listening? true)
@@ -399,7 +402,7 @@
     (when-let [command (get commands/by-name command-name)]
       (command view))))
 
-(defn- focus-now-or-later!
+(defn focus-now-or-later!
   "Focuses `target` now, or when the view gets the focus, since revealing the view gives it the focus
    after the extension asks."
   [^js target]

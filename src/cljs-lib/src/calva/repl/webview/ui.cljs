@@ -8,6 +8,7 @@
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -267,6 +268,7 @@
 (defn- set-spans!
   "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
   [^js code ranges marks]
+  (printed-code-editor/drawn! code {:ranges ranges :marks marks})
   (code-highlight/set-spans! code (.-textContent code) ranges marks))
 
 (defn- color-with-grammar!
@@ -389,6 +391,9 @@
   [^js dom-element hiccup-of {:keys [ranges] :as colors}]
   (some-> ranges code-highlight/add-classes!)
   (let [element (insert-hiccup! dom-element "beforeend" (hiccup-of colors))]
+    (when (seq ranges)
+      (doseq [code (array-seq (.querySelectorAll element "code.clojure-code"))]
+        (printed-code-editor/drawn! code (select-keys colors [:ranges :marks]))))
     (request-missing-highlighting! element)
     (when (seq ranges)
       (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) colors))

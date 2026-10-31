@@ -15,7 +15,8 @@
     (let [db {:output/last-context ["who" "session" "build" 1 "my.ns"]}
           result (sut/handle-action db [:msg/clear-output-view])]
       (is (nil? (get-in result [:uf/db :output/last-context])))
-      (is (= [[:fx/clear-dom]] (:uf/fxs result)))))
+      (is (= [[:printed-code/fx.unmount] [:fx/clear-dom]] (:uf/fxs result))
+          "The printed code's editor goes before the output it stands in")))
 
   (testing ":msg/output with new context"
     (let [meta {:meta/who "tester" :meta/ns "my.ns" :meta/repl-session-key "clj"}

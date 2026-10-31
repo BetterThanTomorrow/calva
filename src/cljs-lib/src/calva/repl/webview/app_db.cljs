@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.actions :as input-actions]
+   [calva.repl.webview.printed-code.actions :as printed-code-actions]
    [calva.repl.webview.stacktrace :as stacktrace]))
 
 (def initial-db
@@ -156,7 +157,8 @@
     {:uf/db  (-> db
                  (assoc :output/last-context nil)
                  (dissoc :output/errors))
-     :uf/fxs [[:fx/clear-dom]]}
+     :uf/fxs [[:printed-code/fx.unmount]
+              [:fx/clear-dom]]}
 
     :msg/output
     (handle-output db payload)
@@ -206,6 +208,7 @@
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)
 
-    (if (= "repl-input" (namespace action-type))
-      (input-actions/handle-action db action)
+    (case (namespace action-type)
+      "repl-input" (input-actions/handle-action db action)
+      "printed-code" (printed-code-actions/handle-action db action)
       {:uf/db db})))
