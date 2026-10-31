@@ -203,7 +203,8 @@
     :msg/set-word-wrap
     {:uf/db db
      :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]
-              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]]}
+              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]
+              [:printed-code/fx.set-line-wrapping (:word-wrap payload)]]}
 
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)

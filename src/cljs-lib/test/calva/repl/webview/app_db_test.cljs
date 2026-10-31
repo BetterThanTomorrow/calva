@@ -52,11 +52,12 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
 
-  (testing ":msg/set-word-wrap wraps the output and the REPL Input"
+  (testing ":msg/set-word-wrap wraps the output, the REPL Input and printed code's editor"
     (let [result (sut/handle-action sut/initial-db [:msg/set-word-wrap {:word-wrap true}])]
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-word-wrap true]
-              [:repl-input/fx.set-line-wrapping true]]
+              [:repl-input/fx.set-line-wrapping true]
+              [:printed-code/fx.set-line-wrapping true]]
              (:uf/fxs result))))))
 
 (deftest handle-action-printed-code-test

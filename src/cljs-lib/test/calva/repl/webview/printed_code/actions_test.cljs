@@ -10,10 +10,12 @@
   [:fx/post-to-host (merge {:command command :repl-input/id "output-view"} more)])
 
 (deftest clicked-test
-  (is (= {:uf/db (assoc db :printed-code/version 0)
+  (is (= {:uf/db (assoc db :printed-code/version 3)
           :uf/fxs [[:printed-code/fx.mount {:code :the-code :selections [[3 3]]}]]}
          (sut/handle-action db [:printed-code/ax.clicked {:code :the-code :selections [[3 3]]}]))
-      "A click mounts the editor, starting at version 0"))
+      "A click mounts the editor at a new version, so answers for an earlier editor don't match it")
+  (is (= 1 (:printed-code/version (:uf/db (sut/handle-action {} [:printed-code/ax.clicked {}]))))
+      "The first editor in the page starts the versions"))
 
 (deftest focus-and-changes-test
   (is (= [(post "printed-code-focused" :version 2 :text "(a)" :selections [[1 1]])]
@@ -27,7 +29,8 @@
   (is (= [(post "printed-code-blurred")]
          (:uf/fxs (sut/handle-action db [:printed-code/ax.blurred]))))
   (let [{unmounted-db :uf/db :uf/keys [fxs]} (sut/handle-action db [:printed-code/ax.unmounted])]
-    (is (not (contains? unmounted-db :printed-code/version)))
+    (is (= db unmounted-db)
+        "The version stays, for the next editor to count on from")
     (is (= [(post "printed-code-unmounted")] fxs))))
 
 (deftest from-the-extension-test

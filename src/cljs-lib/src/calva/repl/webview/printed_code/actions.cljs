@@ -14,11 +14,16 @@
   [db {:keys [version]}]
   (= version (:printed-code/version db)))
 
+(def ^:private next-version
+  "The editor's versions count up for as long as the page lives, so the extension's answers for an earlier
+   editor never match a later one."
+  (fnil inc 0))
+
 (defn handle-action
   [db [action-type payload]]
   (case action-type
     :printed-code/ax.clicked
-    {:uf/db (assoc db :printed-code/version 0)
+    {:uf/db (update db :printed-code/version next-version)
      :uf/fxs [[:printed-code/fx.mount payload]]}
 
     :printed-code/ax.focused
@@ -29,7 +34,7 @@
                     :selections (:selections payload))]}
 
     :printed-code/ax.changed
-    (let [version (inc (:printed-code/version db))]
+    (let [version (next-version (:printed-code/version db))]
       {:uf/db (assoc db :printed-code/version version)
        :uf/fxs [(post db "printed-code-changed" :version version :selections (:selections payload))]})
 
@@ -38,7 +43,7 @@
      :uf/fxs [(post db "printed-code-blurred")]}
 
     :printed-code/ax.unmounted
-    {:uf/db (dissoc db :printed-code/version)
+    {:uf/db db
      :uf/fxs [(post db "printed-code-unmounted")]}
 
     :printed-code/ax.select

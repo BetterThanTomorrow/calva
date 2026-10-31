@@ -19,11 +19,6 @@
 (defonce ^:private ^{:doc "The colors each printed code element is drawn with, `{:ranges :marks}`, by the element."}
   !drawn-colors (js/WeakMap.))
 
-(defn drawn!
-  "Remembers that the printed `code` element is drawn with `colors`, `{:ranges :marks}`, for its editor to
-   start with."
-  [^js code colors]
-  (.set !drawn-colors code colors))
 
 (defn clicked-block
   "Returns `{:code :selections :colors}` for a click `event` in a printed code block, with the page's
@@ -57,6 +52,8 @@
                #js {:backgroundColor "var(--vscode-editor-selectionBackground)"}}))
 
 (defonce ^:private command-keys-compartment (Compartment.))
+
+(defonce ^:private line-wrapping-compartment (Compartment.))
 
 (defonce ^:private ^{:doc "The editor, `{:view :code}`, with the `code` element it stands in for, or nil."}
   !editor (atom nil))
@@ -99,7 +96,7 @@
        (.of command-keys-compartment #js [])
        (drawSelection)
        (.of keymap commands/keymap)
-       (input-editor/line-wrapping (input-editor/output-word-wrap?))
+       (.of line-wrapping-compartment (input-editor/line-wrapping (input-editor/output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
        (.of (.-updateListener EditorView)
             (fn [^js update]
@@ -138,6 +135,20 @@
     (set-marks! view marks)
     (.focus view)))
 
+(defn drawn!
+  "Remembers that the printed `code` element is drawn with `colors`, `{:ranges :marks}`, for its editor to
+   start with, and colors the editor standing in for it. The editor's bracket marks come from the extension
+   while it is open."
+  [^js code {:keys [ranges] :as colors}]
+  (.set !drawn-colors code colors)
+  (when-let [^js view (when (= code (:code @!editor)) (:view @!editor))]
+    (highlighting/set-layer! view :grammar ranges)))
+
+(defn- set-line-wrapping!
+  [wrap?]
+  (when-let [^js view (:view @!editor)]
+    (.dispatch view #js {:effects (.reconfigure line-wrapping-compartment (input-editor/line-wrapping wrap?))})))
+
 (defn- set-selections!
   [selections]
   (when-let [^js view (:view @!editor)]
@@ -158,4 +169,5 @@
     :printed-code/fx.set-selections (set-selections! (first args))
     :printed-code/fx.set-marks (some-> (:view @!editor) (set-marks! (first args)))
     :printed-code/fx.set-command-keys (set-command-keys! (first args))
+    :printed-code/fx.set-line-wrapping (set-line-wrapping! (first args))
     :printed-code/fx.focus (some-> (:view @!editor) input-editor/focus-now-or-later!)))
