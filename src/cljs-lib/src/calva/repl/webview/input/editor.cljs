@@ -42,8 +42,8 @@
 
 (def theme
   (.theme EditorView
-          #js {"&" #js {:color "var(--vscode-input-foreground)"
-                        :backgroundColor "var(--vscode-input-background)"
+          #js {"&" #js {:color "var(--vscode-editor-foreground)"
+                        :backgroundColor "var(--vscode-editor-background)"
                         :border "1px solid var(--vscode-input-border, transparent)"
                         :fontFamily "var(--vscode-editor-font-family, monospace)"
                         :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
