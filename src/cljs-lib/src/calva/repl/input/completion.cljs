@@ -112,3 +112,29 @@
   "Returns the markdown `docs` of a candidate up to the end of its docstring."
   [docs]
   (some-> docs (string/split after-docstring 2) first string/trimr))
+
+(defn doc-blocks
+  "Splits the markdown `docs` into `[:code text]` for its fenced code blocks and `[:text text]` for each
+   paragraph of the rest."
+  [docs]
+  (->> (string/split docs #"```")
+       (map-indexed (fn [i part]
+                      (if (odd? i)
+                        [[:code (string/trimr (string/replace-first part #"^[^\n]*\n" ""))]]
+                        (for [paragraph (string/split part #"\n\s*\n")]
+                          [:text (string/trim paragraph)]))))
+       (apply concat)
+       (remove (comp string/blank? second))))
+
+(defn docs-blocks
+  "Returns the blocks of the docs of a candidate, `[:code text]` for its `detail` and the fenced code blocks of
+   its markdown `documentation`, and `[:text text]` for the paragraphs of the rest."
+  [detail documentation]
+  (cond-> []
+    (seq detail) (conj [:code detail])
+    (seq documentation) (into (doc-blocks documentation))))
+
+(defn docs-code
+  "Returns the texts of the code in the docs of a candidate, its `detail` and `documentation`."
+  [detail documentation]
+  (keep (fn [[kind text]] (when (= :code kind) text)) (docs-blocks detail documentation)))

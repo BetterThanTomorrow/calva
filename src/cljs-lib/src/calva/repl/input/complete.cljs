@@ -3,6 +3,7 @@
    the context keys while a REPL Input's completion list is open."
   (:require
    [calva.repl.input.completion :as completion]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as host]))
 
 (defonce ^{:doc "The request in flight, as `[id request]` with the function that cancels its clojure-lsp part,
@@ -92,6 +93,20 @@
       (.resolveReplCompletion adapter session-key ns item)
       (.resolveLspCompletion adapter uri item))))
 
+(defn docs-message
+  "Returns the message that posts the docs of the candidate at `index` in the answer to `request`: its
+   `detail` and `documentation`, with the highlighting of their code, its ranges by the code's text."
+  [request index detail documentation]
+  {:command/name "repl-input-completion-docs"
+   :repl-input.completion/request request
+   :repl-input.completion/index index
+   :repl-input.completion/detail detail
+   :repl-input.completion/documentation documentation
+   :repl-input.completion/highlighting (into {}
+                                             (keep (fn [code]
+                                                     (some->> (highlighting/text-highlighting code) (vector code))))
+                                             (completion/docs-code detail documentation))})
+
 (defn resolve!
   "Posts the docs of the candidate at `index` in the answer to `request` from the REPL Input `id`, or none
    when that REPL Input has been answered since."
@@ -102,11 +117,9 @@
           (items+ #(resolve-item+ @host/!adapter item answer))
           (js/Promise.resolve nil))
         (.then (fn [resolved]
-                 (host/post-to-view! id {:command/name "repl-input-completion-docs"
-                                         :repl-input.completion/request request
-                                         :repl-input.completion/index index
-                                         :repl-input.completion/detail (some-> ^js resolved .-detail)
-                                         :repl-input.completion/documentation (documentation resolved)}))))))
+                 (host/post-to-view! id (docs-message request index
+                                                      (some-> ^js resolved .-detail)
+                                                      (documentation resolved))))))))
 
 (defn active-changed!
   "Takes whether the completion list of the REPL Input `id` is `active?`, and sets the completion context

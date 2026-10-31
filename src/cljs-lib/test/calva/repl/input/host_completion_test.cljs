@@ -28,7 +28,7 @@
 
 (defn- resolved-docs
   [posted]
-  (into #{} (map #(dissoc % :command/name :repl-input/id))
+  (into #{} (map #(dissoc % :command/name :repl-input/id :repl-input.completion/highlighting))
         (posted-named posted "repl-input-completion-docs")))
 
 (deftest complete-test

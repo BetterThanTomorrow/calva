@@ -171,7 +171,7 @@
    (clojure-code-element clojure-code nil))
   ([clojure-code ranges]
    [:pre {:class ["output-code-block"]}
-    (into [:code (cond-> {:class ["output-code"]}
+    (into [:code (cond-> {:class ["output-code" "clojure-code"]}
                    ranges (assoc :data-highlighted (if (seq ranges) "grammar" "plain")))]
           (if ranges
             (code-highlight/spans clojure-code ranges)
@@ -202,18 +202,10 @@
   "Gives the code in `element` that has no namespace the output's current namespace and session."
   [^js element]
   (let [{:keys [ns session-key]} @!context]
-    (doseq [^js code (array-seq (.querySelectorAll element "code.output-code"))
+    (doseq [^js code (array-seq (.querySelectorAll element "code.clojure-code"))
             :when (and ns (not (.. code -dataset -ns)))]
       (set! (.. code -dataset -ns) ns)
       (some->> session-key (set! (.. code -dataset -sessionKey))))))
-
-(defn- request-missing-highlighting!
-  "Gives the code in `element` the output's namespace, and asks the extension for the highlighting of the
-   code that has none."
-  [^js element]
-  (stamp-context! element)
-  (request-highlighting! (remove #(.. ^js % -dataset -highlighted)
-                                 (array-seq (.querySelectorAll element "code.output-code")))))
 
 (defonce ^{:private true :doc "The grammar's ranges of each highlighted code element, by its id."}
   !grammar-ranges (atom {}))
@@ -242,17 +234,6 @@
                                                           :output/codes codes})))
                                       100)})))))
 
-(defn- part-node
-  "Returns the DOM node of a part of `code-highlight/spans`: a text, or a span with its class."
-  [part]
-  (if (string? part)
-    (js/document.createTextNode part)
-    (let [[_ {:keys [class]} text] part
-          span (js/document.createElement "span")]
-      (set! (.-className span) class)
-      (set! (.-textContent span) text)
-      span)))
-
 (defn- code-elements
   "Returns the code elements with an id, by their id."
   []
@@ -262,8 +243,44 @@
 (defn- set-spans!
   "Sets the children of the `code` element to its text colored with `ranges`."
   [^js code ranges]
-  (code-highlight/add-classes! ranges)
-  (.apply (.-replaceChildren code) code (into-array (map part-node (code-highlight/spans (.-textContent code) ranges)))))
+  (code-highlight/set-spans! code (.-textContent code) ranges))
+
+(defn- color-with-grammar!
+  "Colors the `code` element with the grammar's `ranges`, and asks for its semantic tokens."
+  [^js code ranges]
+  (set-spans! code ranges)
+  (set! (.. code -dataset -highlighted) "grammar")
+  (request-semantic-tokens-later! [code] ranges))
+
+(defonce ^{:private true
+           :doc "The grammar's ranges of the latest code texts colored, so code drawn again, like an error's
+                 details, is colored at once."}
+  !ranges-by-text (atom {:ranges {} :texts []}))
+
+(def ^:private remembered-texts 100)
+
+(defn- remember-ranges!
+  [text ranges]
+  (swap! !ranges-by-text
+         (fn [{:keys [texts] :as remembered}]
+           (let [texts (conj texts text)
+                 forgotten (drop-last remembered-texts texts)]
+             (-> remembered
+                 (assoc :texts (vec (take-last remembered-texts texts)))
+                 (update :ranges #(apply dissoc (assoc % text ranges) forgotten)))))))
+
+(defn- request-missing-highlighting!
+  "Gives the code in `element` the output's namespace, and colors the code that has no highlighting with the
+   ranges remembered for its text, or asks the extension for them."
+  [^js element]
+  (stamp-context! element)
+  (let [missing (remove #(.. ^js % -dataset -highlighted)
+                        (array-seq (.querySelectorAll element "code.clojure-code")))
+        remembered (:ranges @!ranges-by-text)
+        {known true unknown false} (group-by #(contains? remembered (.-textContent ^js %)) missing)]
+    (doseq [^js code known]
+      (color-with-grammar! code (get remembered (.-textContent code))))
+    (request-highlighting! unknown)))
 
 (defn set-code-highlighting!
   "Colors the code elements of `codes`, `[id ranges]` each, with their ranges, marking each as colored by the
@@ -274,9 +291,8 @@
             :let [^js code (get elements id)]
             :when code]
       (cond
-        (seq ranges) (do (set-spans! code ranges)
-                         (set! (.. code -dataset -highlighted) "grammar")
-                         (request-semantic-tokens-later! [code] ranges))
+        (seq ranges) (do (remember-ranges! (.-textContent code) ranges)
+                         (color-with-grammar! code ranges))
         ranges (set! (.. code -dataset -highlighted) "plain")
         :else (do (set! (.-innerHTML code) (.-value (.highlight hljs (.-textContent code) #js {:language "clojure" :ignoreIllegals true})))
                   (set! (.. code -dataset -highlighted) "hljs"))))))
@@ -295,7 +311,8 @@
   "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, as when the
    color theme changed."
   [^js dom-element]
-  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.output-code[data-highlighted=\"grammar\"]"))))
+  (reset! !ranges-by-text {:ranges {} :texts []})
+  (request-highlighting! (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))))
 
 (defn- copy-code!
   "Copies the code of the code block of the Copy `button`."
@@ -317,7 +334,7 @@
   (let [element (insert-hiccup! dom-element "beforeend" hiccup)]
     (request-missing-highlighting! element)
     (when (seq ranges)
-      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.output-code")) ranges))
+      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) ranges))
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn append-evaluated-code
@@ -604,6 +621,7 @@
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
   (reset! !grammar-ranges {})
+  (reset! !ranges-by-text {:ranges {} :texts []})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
@@ -714,8 +732,10 @@
       (let [control (focused-control existing)
             ^js new-element (insert-hiccup! existing "afterend" hiccup)]
         (.remove existing)
+        (request-missing-highlighting! new-element)
         (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
       (let [new-element (insert-hiccup! dom-element "beforeend" hiccup)]
+        (request-missing-highlighting! new-element)
         (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
 (defn- copy-error-text!

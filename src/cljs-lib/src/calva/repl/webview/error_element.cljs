@@ -50,11 +50,10 @@
   (str n (if (= 1 n) " frame" " frames")))
 
 (defn- clojure-detail
-  "A detail that is Clojure code, with the theme's token colors."
+  "A detail that is Clojure code, which the page colors."
   [code]
   [:pre {:class ["output-error-detail"]}
-   [:code {:class ["output-error-code"]
-           :innerHTML (.-value (.highlight hljs code #js {:language "clojure" :ignoreIllegals true}))}]])
+   [:code {:class ["output-error-code" "clojure-code"]} code]])
 
 (defn- frame-action
   [{:error/keys [session-key]} {:frame/keys [file-url java?] :as parts}]

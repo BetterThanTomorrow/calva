@@ -118,3 +118,19 @@
          (sut/arglists-and-docstring "Converts string to all upper-case."))
       "Keeps docs that have nothing to leave out")
   (is (nil? (sut/arglists-and-docstring nil))))
+
+(deftest doc-blocks
+  (is (= [[:code "(upper-case s)"] [:text "Converts string to all upper-case."]]
+         (sut/doc-blocks "```clojure\n(upper-case s)\n```\n\nConverts string to all upper-case.\n"))
+      "Fenced code, then text")
+  (is (= [[:text "Returns its argument."]]
+         (sut/doc-blocks "Returns its argument."))
+      "Text without fences")
+  (is (= [[:text "Returns a lazy sequence\n  of f applied."] [:text "Returns a transducer\n  without a collection."]]
+         (sut/doc-blocks "Returns a lazy sequence\n  of f applied.\n\n  Returns a transducer\n  without a collection."))
+      "A paragraph for each run of lines between blank lines"))
+
+(deftest docs-code
+  (is (= ["string/upper-case" "(upper-case s)"]
+         (sut/docs-code "string/upper-case" "```clojure\n(upper-case s)\n```\n\nConverts string to all upper-case.\n"))
+      "The detail, then the documentation's fenced code"))
