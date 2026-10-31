@@ -6,6 +6,8 @@ Changes to Calva.
 
 - [Make the output views use Semantic Tokens from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/3320)
 - Highlight grammar now styles keywords matching clojure-lsp's semantic tokens
+- [Support Calva rainbow brackets in the output view](https://github.com/BetterThanTomorrow/calva/issues/3321)
+- [Support Calva rainbow indent guides in the output views](https://github.com/BetterThanTomorrow/calva/issues/3322)
 
 ## [2.0.606] - 2026-10-29
 
