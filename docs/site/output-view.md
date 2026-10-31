@@ -52,7 +52,7 @@ How the output views show images can be configured via the `calva.outputViewImag
 * `"raw"` – no images are rendered.
 * `"images-including-remote-urls"` – Images are rendered for data URLs, local files, and remote URLs.
 
-The command: **Calva: Cycle Output View Image Display** cycles in-session between `"images"` and `"raw"` across both views, if issued with no argument. Remote loading (`"images-including-remote-urls"`) is only reached through the setting or by passing that mode as an argument to the command.
+The command: **Calva: Cycle Output View Image Display** cycles in-session between the different display modes, if issued with no argument.
 
 The output window, output file and terminal always show the raw text.
 
