@@ -49,11 +49,9 @@ suite('Annotations suite', () => {
       rangesOrOptions: readonly vscode.DecorationOptions[]
     ];
 
-    await testUtil.captureScreenshot(suite, 'decorateResults-empty-1st-line', 1000);
-
     // The expectation is that all whitespace is removed at the front.
     //
-    // Only Line2 should be displayed in the screenshot above, even though Line3 is still in the text.
+    // Only Line2 is displayed in the editor, even though Line3 is still in the text.
     assert.strictEqual(
       args[1][0].renderOptions.after.contentText,
       '\u00A0=>\u00A0Line2\u00A0exception\u00A0message\nLine3\u00A0error\u00A0'
