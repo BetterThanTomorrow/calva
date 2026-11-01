@@ -152,6 +152,9 @@
     :repl-input/ax.recall
     (show-history db (history/recalled db payload))
 
+    :repl-input/ax.mode-chosen
+    {:uf/db (history/chosen db)}
+
     (handle-completion-action db action)))
 
 (defn- follow-editor
@@ -166,14 +169,15 @@
 
 (defn- click-namespace-indicator
   "Opens or closes the namespace menu while a recalled history entry locks the context, follows the editor
-   while otherwise locked, and does nothing while following the editor. The shown history entry keeps the
-   mode from then on."
+   while otherwise locked, and does nothing else while following the editor. The history entries shown here
+   and in the other views keep the mode from then on."
   [db]
-  (let [chosen (history/chosen db)]
-    (if (history/recalled-lock chosen)
-      {:uf/db chosen
-       :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
-      (follow-editor chosen))))
+  (let [chosen (history/chosen db)
+        {:uf/keys [fxs] :as clicked} (if (history/recalled-lock chosen)
+                                       {:uf/db chosen
+                                        :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
+                                       (follow-editor chosen))]
+    (assoc clicked :uf/fxs (into [(post chosen "repl-input-mode-chosen")] fxs))))
 
 (defn- evaluate
   "Asks the extension to evaluate the REPL Input while a session answers to the context."

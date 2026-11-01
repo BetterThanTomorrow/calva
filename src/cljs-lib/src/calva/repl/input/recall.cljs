@@ -7,6 +7,14 @@
    [calva.repl.input.host :as host]
    [calva.util :as util]))
 
+(defn mode-chosen!
+  "Tells the REPL Inputs other than `id`, or all of them without one, that the user chose the mode of the
+   context, which the history entries they show keep from then on."
+  [id]
+  (doseq [other (keys (:repl-input/records @host/!state))
+          :when (not= id other)]
+    (host/post-to-view! other {:command/name "repl-input-mode-chosen"})))
+
 (defn load-history!
   []
   (swap! host/!state assoc :repl-input.history/entries (history/from-stored (config/history))))

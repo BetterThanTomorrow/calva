@@ -48,16 +48,35 @@
                                                          :repl-input.context/source-file])))
 
 (defn lock-after
-  "Returns the lock after code was evaluated in `context`: the namespace of the code's `ns` or `in-ns`
-   form, `code-namespace` as `[ns ns-form]`, with the context's source file, when the evaluation
-   `succeeded?`. Else `lock`."
+  "Returns the lock after code was evaluated in `context`, when the evaluation `succeeded?` and the code
+   has an `ns` or `in-ns` form, `code-namespace` as `[ns ns-form]`: none when that is the followed
+   editor's namespace, else that namespace with the context's source file. Else `lock`."
   [lock context code-namespace succeeded?]
-  (if-let [[ns ns-form] (when succeeded? code-namespace)]
-    (as-lock (assoc lock
-                    :repl-input.context/ns ns
-                    :repl-input.context/ns-form ns-form
-                    :repl-input.context/source-file (:repl-input.context/source-file context)))
+  (let [[ns ns-form] (when succeeded? code-namespace)]
+    (cond
+      (nil? ns) lock
+      (= ns (:repl-input.context/editor-ns context)) nil
+      :else (as-lock (assoc lock
+                            :repl-input.context/ns ns
+                            :repl-input.context/ns-form ns-form
+                            :repl-input.context/source-file (:repl-input.context/source-file context))))))
+
+(defn lock-after-move
+  "Returns `lock`, or nil when the editor moved into its namespace, from `editor-ns-before` to `editor-ns`."
+  [lock editor-ns-before editor-ns]
+  (when-not (and (= editor-ns (:repl-input.context/ns lock))
+                 (not= editor-ns-before editor-ns))
     lock))
+
+(defn editor-moved
+  "Returns `state` following `editor`, with the lock after the move from the editor before. An editor
+   keeps its namespace as `:ns`, and before any editor the namespace is `user`."
+  [{editor-before :repl-input.context/editor :as state} editor]
+  (-> state
+      (assoc :repl-input.context/editor editor)
+      (update :repl-input.context/lock lock-after-move
+              (:ns editor-before (:repl-input.context/ns user-namespace))
+              (:ns editor))))
 
 (defn with-builds
   "Returns `context` with the build that `build` gives for its session, and for the editor's session."

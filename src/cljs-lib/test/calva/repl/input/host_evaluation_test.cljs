@@ -46,6 +46,27 @@
                              (is (false? (:repl-input.context/locked? (last-context-line posted)))))
                            (done)))))))))))
 
+(deftest evaluate-followed-namespace-test
+  (async done
+    (with-fresh-host
+      (fn [{:keys [posted evaluations] :as host}]
+        (with-view host
+          (fn []
+            (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+            (mount-focused! "output-view" "(ns pirate.lib)")
+            (input-host/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljs"} #js {})
+            (let [evaluated (sut/evaluate-focused!)]
+              (testing "tells the other view that the user chose the mode when an evaluation starts"
+                (is (= ["output-sidebar"]
+                       (mapv :repl-input/id (posted-named posted "repl-input-mode-chosen")))))
+              ((:resolve (first @evaluations)) #js {:succeeded true})
+              (.then evaluated
+                     (fn [_]
+                       (testing "keeps following the editor after an ns form of the followed editor's namespace"
+                         (is (= {:repl-input.context/ns "pirate.lib" :repl-input.context/session-key "cljs" :repl-input.context/locked? false}
+                                (last-context-line posted))))
+                       (done))))))))))
+
 (deftest evaluate-focused!-not-connected-test
   (async done
     (with-fresh-host

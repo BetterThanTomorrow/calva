@@ -368,9 +368,8 @@
   "Follows the Clojure editor with `document`, now at `position`. Asks for the REPL Inputs' semantic tokens
    again when the followed document, or its text, changed, since they come from a copy below its text."
   [^js document position]
-  (let [[before _] (swap-vals! !state assoc :repl-input.context/editor {:document document
-                                                                        :version (.-version document)
-                                                                        :position position})]
+  (let [editor {:document document :version (.-version document) :position position}
+        [before _] (swap-vals! !state context/editor-moved (assoc editor :ns (:repl-input.context/ns (editor-namespace editor))))]
     (refresh-mounted-context!)
     (when (not= [document (.-version document)]
                 ((juxt :document :version) (:repl-input.context/editor before)))

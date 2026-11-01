@@ -6,6 +6,7 @@
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
    [calva.repl.input.printed-code :as printed-code]
+   [calva.repl.input.recall :as recall]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]
    [calva.repl.input.semantic-tokens :as semantic-tokens]
@@ -39,6 +40,12 @@
     (mounted! id)
     (host/load-keybindings!)))
 
+(defn ^:export follow-editor-chosen!
+  "Follows the editor as the user chose, which the history entries the REPL Inputs show keep from then on."
+  []
+  (recall/mode-chosen! nil)
+  (host/follow-editor!))
+
 (defn handle-message!
   "Takes a message the REPL Input, or the printed code's editor, in `webview-host` posted."
   [^js webview-host ^js message]
@@ -56,6 +63,7 @@
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-send-line" (evaluate/send-line! id (:line msg))
       "repl-input-lock" (host/lock! (:lock msg))
+      "repl-input-mode-chosen" (recall/mode-chosen! id)
       "repl-input-complete" (complete/complete! msg)
       "repl-input-resolve-completion" (complete/resolve! msg)
       "repl-input-completion-active" (complete/active-changed! msg)

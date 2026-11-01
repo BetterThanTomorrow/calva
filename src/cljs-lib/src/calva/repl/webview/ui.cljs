@@ -870,6 +870,7 @@
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
          "repl-input-history"   (dispatch! [:repl-input/ax.set-history (:repl-input.history/entries message-data)])
          "repl-input-recall"    (dispatch! [:repl-input/ax.recall (:repl-input.history/position message-data)])
+         "repl-input-mode-chosen" (dispatch! [:repl-input/ax.mode-chosen])
          "printed-code-selections" (dispatch! [:printed-code/ax.select message-data])
          "printed-code-brackets" (dispatch! [:printed-code/ax.set-brackets message-data])
          "printed-code-command-keys" (dispatch! [:printed-code/ax.set-command-keys (:repl-input/command-keys message-data)])

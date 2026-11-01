@@ -313,14 +313,18 @@
         locked (assoc db :repl-input/context-line locked-line)
         recalled (-> (sut/handle-action following [:repl-input/ax.walk-history :back])
                      :uf/db
-                     (assoc :repl-input/context-line locked-line))]
-    (testing "does nothing on a click while following the editor"
-      (is (= {:uf/db following} (sut/handle-action following [:repl-input/ax.click-namespace-indicator]))))
+                     (assoc :repl-input/context-line locked-line))
+        chosen-post [:fx/post-to-host {:command "repl-input-mode-chosen" :repl-input/id "output-view"}]]
+    (testing "only tells the other views that the mode was chosen on a click while following the editor"
+      (is (= {:uf/db following :uf/fxs [chosen-post]}
+             (sut/handle-action following [:repl-input/ax.click-namespace-indicator]))))
     (testing "follows the editor on a click while locked"
-      (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
+      (is (= [chosen-post
+              [:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action locked [:repl-input/ax.click-namespace-indicator])))))
     (testing "opens or closes the menu on a click while locked by a recalled history entry, and its other choice follows the editor"
-      (is (= [[:repl-input/fx.toggle-namespace-menu]]
+      (is (= [chosen-post
+              [:repl-input/fx.toggle-namespace-menu]]
              (:uf/fxs (sut/handle-action recalled [:repl-input/ax.click-namespace-indicator]))))
       (is (= [[:fx/post-to-host {:command "repl-input-follow-editor" :repl-input/id "output-view"}]]
              (:uf/fxs (sut/handle-action recalled [:repl-input/ax.follow-editor])))))
@@ -378,6 +382,12 @@
             following-elsewhere (assoc following-line :repl-input.context/ns "pirate.ui" :repl-input.context/editor-ns "pirate.ui")]
         (is (= [[:shown following-elsewhere nil]]
                (shown (sut/handle-action followed [:repl-input/ax.set-context-line following-elsewhere]))))))
+    (testing "changes nothing on an editor change after the mode was chosen in another view"
+      (let [chosen-elsewhere (:uf/db (sut/handle-action recalled [:repl-input/ax.mode-chosen]))]
+        (is (= [[:shown in-entry-ns entry-lock]]
+               (shown (sut/handle-action chosen-elsewhere [:repl-input/ax.set-context-line in-entry-ns]))))))
+    (testing "changes nothing when the mode was chosen in another view while no history entry is shown"
+      (is (= {:uf/db db} (sut/handle-action db [:repl-input/ax.mode-chosen]))))
     (testing "changes nothing on an editor change once an evaluation has started"
       (let [evaluating (:uf/db (sut/handle-action recalled [:repl-input/ax.set-evaluation :running]))]
         (is (= [[:shown in-entry-ns entry-lock]]

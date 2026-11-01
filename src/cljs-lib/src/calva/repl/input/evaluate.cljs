@@ -58,6 +58,7 @@
                     :code-namespace (js->clj (.nsFromText adapter code))}]
     (reveal/keep-code! evaluation-id code line column)
     (update-evaluations! id evaluations/started evaluation-id)
+    (recall/mode-chosen! id)
     (-> (.evaluate adapter #js {:code code
                                 :ns ns
                                 :nsForm ns-form
