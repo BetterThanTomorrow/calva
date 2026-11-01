@@ -35,7 +35,7 @@
 <li><code>&quot;raw&quot;</code> – no images are rendered.</li>
 <li><code>&quot;images-including-remote-urls&quot;</code> – Images are rendered for data URLs, local files, and remote URLs.</li>
 </ul>
-<p>The command: <strong>Calva: Cycle Output View Image Display</strong> cycles in-session between <code>&quot;images&quot;</code> and <code>&quot;raw&quot;</code> across both views, if issued with no argument. Remote loading (<code>&quot;images-including-remote-urls&quot;</code>) is only reached through the setting or by passing that mode as an argument to the command.</p>
+<p>The command: <strong>Calva: Cycle Output View Image Display</strong> cycles in-session between the different display modes, if issued with no argument.</p>
 <p>The output window, output file and terminal always show the raw text.</p>
 <h2 id="errors-and-stacktraces">Errors and Stacktraces<a href="#errors-and-stacktraces" title="Permanent link" class="headerlink">#</a></h2>
 <p>When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames. The view start with showing a trace filtered from <code>Tooling</code> and <code>Duplicates</code>.</p>
@@ -49,34 +49,7 @@
 <p>To copy code or printed output in the output views, hover your cursor over the code snippet or output you want to copy. A &quot;copy&quot; button will appear in its top right corner. Click it to copy the text to your clipboard.</p>
 <p><img src="../images/output-view/copy-button.gif" alt="Copy button appearing and being clicked, then changing to Copied" /></p>
 <h2 id="theming">Theming<a href="#theming" title="Permanent link" class="headerlink">#</a></h2>
-<p><a href="https://highlightjs.org/">highlight.js</a> is used for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code <a href="https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind">ColorThemeKind</a>:</p>
-<table>
-<thead>
-<tr>
-<th>ColorThemeKind</th>
-<th>hightlight.js theme</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Dark</td>
-<td>github-dark</td>
-</tr>
-<tr>
-<td>Light</td>
-<td>github</td>
-</tr>
-<tr>
-<td>HighContrast</td>
-<td>windows-high-contrast</td>
-</tr>
-<tr>
-<td>HighContrastLight</td>
-<td>windows-high-contrast-light</td>
-</tr>
-</tbody>
-</table>
-<p><img src="../images/output-view/theme-changing.gif" alt="The output view code highlight theme changes as the VS Code theme changes" /></p>
+<p>Theming should generally just work.</p>
 <h2 id="its-readonly">It's readonly<a href="#its-readonly" title="Permanent link" class="headerlink">#</a></h2>
 <p>You may be used to typing &quot;into the REPL,&quot; meaning typing into a terminal REPL or the <a href="../repl-window/">the editor-based REPL window</a>. But with Clojure and Calva, we can evaluate code directly from code files. Using <code>comment</code> forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.</p>
 <div class="admonition tip"><p class="admonition-title">Quickly create Rich Comments with a Calva command</p><p>Use the Calva command &quot;Add Rich Comment,&quot; which will add a <code>comment</code> form right below the form your cursor is currently at. Memorize the keyboard shortcut for this, and you can very easily create Rich Comments near the code you're working on to try out code in the REPL before adding it to your actual code.</p>
