@@ -84,7 +84,7 @@ The table below lists the features of the different output destinations.
 | Image display | ❌ | ✅ | ✅ | ❌ | ❌ |
 | Clickable stack traces | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Filterable stack traces | ❌ | ✅ | ✅ | ❌ | ❌ |
-| Paredit navigation and selection | ✅ | ❌ * | ❌ * | ❌ | ❌ |
+| Paredit navigation and selection | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Button to copy specific output | ❌ | ✅ | ✅ | ❌ | ❌ |
 | Syntax highlighting | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Syntax highlighting matches editor | ✅ | ✅ | ✅ | ❌ | ❌ |
