@@ -17,7 +17,7 @@ import * as output from './results-output/output';
  */
 type RuntimeSession = { buildId: string; session: Promise<nrepl.NReplSession> };
 
-type RuntimeEvaluation = Pick<nrepl.NReplEvaluation, 'out' | 'err' | 'value'>;
+type RuntimeEvaluation = Pick<nrepl.NReplEvaluation, 'out' | 'err' | 'value' | 'finished'>;
 
 const runtimeSessions = new Map<string, RuntimeSession>();
 const runningEvaluations = new Map<string, RuntimeEvaluation[]>();
@@ -35,9 +35,11 @@ async function createSessionForRuntime(
   }
   const session = await cljSession.clone();
   session.replType = 'cljs';
+  // `node-repl` and `browser-repl` build ids come without the colon
+  const buildKeyword = `:${buildId.replace(/^:/, '')}`;
   try {
     const selected = await session.eval(
-      `(shadow.cljs.devtools.api/repl ${buildId} {:runtime-id ${runtimeId}})`,
+      `(shadow.cljs.devtools.api/repl ${buildKeyword} {:runtime-id ${runtimeId}})`,
       'user'
     ).value;
     if (!selected?.startsWith('[:selected')) {
@@ -118,10 +120,11 @@ function appendToOutputView(clientKey: string, runtimeId: number, stream: string
 
 /**
  * Routes a `:runtime-print` shadow-remote message, and ignores other messages. A print goes to the
- * oldest tracked evaluation in its runtime, which is the one running, since a session evaluates
- * one message at a time. Without one, it goes to the Output view. Prints from the connection's
- * selected runtime reach its evaluations through the eval itself, so outside a tracked evaluation
- * they are skipped. The prints and the eval's value reach Calva on separate paths, so a print can
+ * oldest unfinished tracked evaluation in its runtime, which is the one running, since a session
+ * evaluates one message at a time. A finished evaluation stays tracked until its value settles, so
+ * a print read together with its reply would otherwise land there. Without such an evaluation, it
+ * goes to the Output view. Prints from the connection's selected runtime reach its evaluations
+ * through the eval itself, so outside a tracked evaluation they are skipped. The prints and the eval's value reach Calva on separate paths, so a print can
  * arrive after the value, and then goes to the Output view.
  */
 export function handleRuntimePrint(
@@ -131,7 +134,7 @@ export function handleRuntimePrint(
   if (op !== 'runtime-print') {
     return;
   }
-  const [evaluation] = runningEvaluations.get(runtimeKey(clientKey, from)) ?? [];
+  const evaluation = runningEvaluations.get(runtimeKey(clientKey, from))?.find((e) => !e.finished);
   if (evaluation) {
     if (stream === 'stderr') {
       evaluation.err(text);

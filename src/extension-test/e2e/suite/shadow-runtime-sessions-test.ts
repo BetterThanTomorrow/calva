@@ -30,6 +30,15 @@ const mockShadowRuntimes = [
     sinceInst: 12345688,
     sinceDescription: 'some other time',
   },
+  {
+    runtimeId: 44,
+    description: 'Mock Node REPL',
+    buildId: 'node-repl',
+    host: 'localhost',
+    workerId: 2,
+    sinceInst: 12345698,
+    sinceDescription: 'a third time',
+  },
 ];
 
 type RuntimeEval = (code: string, ns: string, opts: any) => any;
@@ -126,6 +135,7 @@ const setUpTargetRuntimeConnection = (
     cleanUp: () => {
       runtimeSessions.closeSessionForRuntime(clientKey, 42);
       runtimeSessions.closeSessionForRuntime(clientKey, 43);
+      runtimeSessions.closeSessionForRuntime(clientKey, 44);
       (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = originalGetShadowRuntimesAllBuilds;
     },
   };
@@ -139,6 +149,7 @@ const createRuntimeEvaluation = (ns: string, opts: any, value: Promise<string>) 
   const evaluation = {
     value,
     ns,
+    finished: false,
     outPut: '',
     errorOutput: '',
     out: (message: string) => {
@@ -158,6 +169,51 @@ const runtimePrint = (clientKey: string, from: number, stream: string, text: str
     { data: `{:op :runtime-print :stream :${stream} :text "${text}" :from ${from}}` },
     clientKey
   );
+
+type QueuedSteps = (
+  print: (text: string) => Promise<void>,
+  finish: ((value: string) => void)[],
+  first: ReturnType<typeof replApi.evaluate>
+) => Promise<void> | void;
+
+/**
+ * Starts two evaluations targeting runtime 43, the second waiting behind the first, runs `steps`,
+ * and asserts the stdout of each. `print` sends a print from runtime 43, and `finish` finishes an
+ * evaluation, which, like `NReplEvaluation`, marks it finished before its value settles.
+ */
+const assertQueuedOutputs = async (
+  name: string,
+  steps: QueuedSteps,
+  expectedOutputs: [string, string]
+) => {
+  const clientKey = `test-client-target-runtime-${name}`;
+  const sessionKey = `shadow-runtime-sessions/target-runtime-${name}`;
+  const finish: ((value: string) => void)[] = [];
+  const connection = setUpTargetRuntimeConnection(clientKey, sessionKey, (_code, ns, opts) => {
+    let resolveValue: (value: string) => void;
+    const evaluation = createRuntimeEvaluation(
+      ns,
+      opts,
+      new Promise<string>((resolve) => (resolveValue = resolve))
+    );
+    finish.push((value) => {
+      evaluation.finished = true;
+      resolveValue(value);
+    });
+    return evaluation;
+  });
+  const evaluate = (code: string) =>
+    replApi.evaluate(code, { sessionKey, ns: 'cljs.user', targetRuntimeId: 43 });
+  const first = evaluate('(println "first")');
+  const second = evaluate('(println "second")');
+  try {
+    await testUtil.waitForCondition(() => finish.length === 2);
+    await steps((text) => runtimePrint(clientKey, 43, 'stdout', text), finish, first);
+    assert.deepStrictEqual([(await first).output, (await second).output], expectedOutputs);
+  } finally {
+    connection.cleanUp();
+  }
+};
 
 describe('Shadow runtime sessions suite', () => {
   let initialConnectionState: boolean | undefined;
@@ -255,6 +311,28 @@ describe('Shadow runtime sessions suite', () => {
     }
   });
 
+  it('sets up the session with the build id as a keyword when it is displayed without the colon', async () => {
+    const connection = setUpTargetRuntimeConnection(
+      'test-client-target-runtime-node-repl',
+      'shadow-runtime-sessions/target-runtime-node-repl',
+      (_code, ns, opts) => createRuntimeEvaluation(ns, opts, Promise.resolve('nil'))
+    );
+
+    try {
+      await replApi.evaluate('(inc 1)', {
+        sessionKey: 'shadow-runtime-sessions/target-runtime-node-repl',
+        ns: 'cljs.user',
+        targetRuntimeId: 44,
+      });
+
+      assert.deepStrictEqual(connection.replCalls, [
+        '(shadow.cljs.devtools.api/repl :node-repl {:runtime-id 44})',
+      ]);
+    } finally {
+      connection.cleanUp();
+    }
+  });
+
   it('sends prints from the targeted runtime to its evaluation, and later prints to the output', async () => {
     const clientKey = 'test-client-target-runtime-prints';
     const sessionKey = 'shadow-runtime-sessions/target-runtime-prints';
@@ -306,37 +384,27 @@ describe('Shadow runtime sessions suite', () => {
     }
   });
 
-  it('sends prints to the running evaluation, not to one waiting behind it', async () => {
-    const clientKey = 'test-client-target-runtime-queued';
-    const sessionKey = 'shadow-runtime-sessions/target-runtime-queued';
-    const finish: ((value: string) => void)[] = [];
-    const connection = setUpTargetRuntimeConnection(clientKey, sessionKey, (_code, ns, opts) =>
-      createRuntimeEvaluation(ns, opts, new Promise<string>((resolve) => finish.push(resolve)))
-    );
+  it('sends prints to the running evaluation, not to one waiting behind it', () =>
+    assertQueuedOutputs(
+      'queued',
+      async (print, finish, first) => {
+        await print('first');
+        finish[0]('nil');
+        await first;
+        await print('second');
+        finish[1]('nil');
+      },
+      ['first', 'second']
+    ));
 
-    try {
-      const first = replApi.evaluate('(println "first")', {
-        sessionKey,
-        ns: 'cljs.user',
-        targetRuntimeId: 43,
-      });
-      const second = replApi.evaluate('(println "second")', {
-        sessionKey,
-        ns: 'cljs.user',
-        targetRuntimeId: 43,
-      });
-      await testUtil.waitForCondition(() => finish.length === 2);
-
-      await runtimePrint(clientKey, 43, 'stdout', 'first');
-      finish[0]('nil');
-      await first;
-      await runtimePrint(clientKey, 43, 'stdout', 'second');
-      finish[1]('nil');
-
-      assert.strictEqual((await first).output, 'first');
-      assert.strictEqual((await second).output, 'second');
-    } finally {
-      connection.cleanUp();
-    }
-  });
+  it('sends a print read together with the previous reply to the next evaluation', () =>
+    assertQueuedOutputs(
+      'coalesced',
+      (print, finish) => {
+        finish[0]('nil');
+        void print('second');
+        finish[1]('nil');
+      },
+      ['', 'second']
+    ));
 });
