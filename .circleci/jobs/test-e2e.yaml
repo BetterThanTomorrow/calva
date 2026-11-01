@@ -34,10 +34,6 @@ steps:
   - npm run compile-test
 
 - !:cmd
-  - Apt install missing dependencies
-  - sudo apt update && sudo apt install -y imagemagick
-
-- !:cmd
   - Run Extension Tests
   - suites=$(circleci tests glob "$PWD/out/extension-test/e2e/suite/*-test.js" |
              circleci tests split --split-by=timings |
@@ -63,7 +59,3 @@ steps:
 - store_artifacts:
     path: ~/calva/junit
     destination: junit
-
-- store_artifacts:
-    path: ~/calva/out/extension-test/e2e/screenshots
-    destination: e2e-screenshots
