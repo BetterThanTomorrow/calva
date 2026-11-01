@@ -38,7 +38,7 @@ The namespaces are `calva.repl.input.<name>`.
 | `config` | Reads the settings, the resolved keybindings, the stored history and the kept code |
 | `command-keys`, `when-clause` | Which keys VS Code gets, from the keybindings and their `when` clauses, pure |
 | `brackets` | Which brackets close themselves, and the bracket styles, pure |
-| `evaluate`, `evaluations` | Evaluating, stdin, interrupting, and the evaluation bar |
+| `evaluate`, `evaluations` | Evaluating, stdin, interrupting, and what the REPL Input shows of its evaluations |
 | `history`, `recall` | The history entries, and recalling them |
 | `complete`, `completion` | Completion requests, and the copy clojure-lsp completes in |
 | `highlighting` | The grammar, and the theme's colors for its tokens and for semantic tokens, pure but for loading the grammar |
@@ -58,7 +58,7 @@ The namespaces are `calva.repl.webview.input.<name>`.
 | `keys` | Which keydowns to leave to VS Code |
 | `commands` | CodeMirror's keymap, and the named commands that VS Code's keys run through Calva's keybindings |
 | `history` | Walking the history, and the lock or following that a shown entry asks for |
-| `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, the context line with the namespace indicator, its menu and the play button, and the evaluation bar. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
+| `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, and the context line with the namespace indicator, its menu, the spinner and stop button that show while an evaluation runs, and the play button. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
 | `completion` | CodeMirror's completion, fed with the extension's candidates |
 | `highlighting`, `highlight` | The CodeMirror field with the extension's highlighting layers, colored with the classes of `calva.repl.webview.code-highlight`, and the pure parts: layering, moving ranges along with edits, and where the strings are, for a typed quote |
 | `stdin`, `edit`, `definition` | The stdin input, as hiccup, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
@@ -92,7 +92,7 @@ In the webview, the REPL Input's state is in the Output view's db, under `:repl-
 
 1. `core/page` puts `#repl-input`, `core/repl-input-element`, in every Output view's page, with the data from `host/html-state`: the view id, and whether the REPL Input is on.
 2. `main.cljs` dispatches `:repl-input/ax.init`. When it is on, `:repl-input/fx.mount` creates the `EditorView`, and `:repl-input/ax.mounted` posts `repl-input-mounted`.
-3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluation bar, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
+3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluations, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
 
 A change of the setting posts `repl-input-enabled`, which mounts or unmounts the editor in the page as it is. For the Output Sidebar that holds while it is an Output Destination; otherwise `apply-to-output-sidebar!` sets its page again, the help page or the REPL Input alone. Setting the page's HTML again, as the Output Sidebar does when it switches to or from its help page, mounts a new REPL Input. `host/view-page-set!` forgets the view first and keeps its record, and when the new REPL Input mounts, `messages/take-mount!` gives it the record's text and selections back with a `repl-input-edit`. A disposed view, `host/view-disposed!`, drops the record, so its REPL Input starts empty.
 
@@ -154,20 +154,20 @@ The context line, as the views get it, is `(:repl-input.context/line @calva.repl
 1. `alt+enter` runs `calva.replInput.evaluateTopLevelForm`, which picks the top-level form at the cursor. `ctrl+alt+c enter` and the play button evaluate all the text (`calva.replInput.evaluate`, and the webview's `repl-input-evaluate`).
 2. `evaluate.cljs` works the context out. Without a connected session, it says so in a message and evaluates nothing.
 3. When the code is all of the text, the REPL Input is cleared. The code is added to the history.
-4. The evaluation gets an id, `reveal/keep-code!` keeps its code, and the evaluation bar says it runs.
+4. The evaluation gets an id, `reveal/keep-code!` keeps its code, and the context line shows the spinner and the stop button.
 5. The adapter's `evaluate`, `evaluateCode` in `repl-input.ts`, gets the session by its key and calls `evaluate.evaluateInNamespace` around `evaluate.evaluateToOutputDestinations`, the functions evaluations from files use. It evaluates the `ns` form first unless the session last evaluated in the namespace, and leaves the REPL window's session and namespace where the evaluation ended, as files do. The code is sent with the file name `calva-repl-input/<id>.clj` and the line and column where it starts in the REPL Input, and echoed to the Output Destinations when `calva.evaluationSendCodeToOutputWindow` is on.
 6. Results, stdout and errors go to the Output Destinations, like any evaluation's. A REPL Input in a view that isn't an Output Destination shows none of them.
-7. When it's done, the context may lock (see Context and routing), and the evaluation bar updates.
+7. When it's done, the context may lock (see Context and routing), and the spinner and the stop button hide once no evaluation from the REPL Input runs.
 
 The file name matters twice. cider-nrepl's `eval` fails without one, and go to definition finds the evaluation by it (`definition/evaluation-file` and `evaluation-id`).
 
 The other evaluation commands from files work on the REPL Input while it has the focus: `extension.ts` wraps them with `replInput.evaluatingWhenFocused(pick, …)`, which evaluates what `pick` takes from the REPL Input's `StringDocument`. The picks are those of `util/cursor-get-text.ts`, which files use too, through `util/get-text.ts` at a document position. With no form to pick, as between two top-level forms for the enclosing form, a pick is the whole document, without a range, as in a file, so the REPL Input evaluates all of its text there. They keep the text and don't add to the history. Custom REPL commands go through `runningSnippetWhenFocused`, with the REPL Input's text and context (`replInputSnippetEvaluation` in `custom-snippets-catalog.ts`).
 
-`calva.replInput.interrupt` interrupts the view's running evaluations, through the `NReplEvaluation` each one handed back when it was sent.
+`calva.replInput.interrupt` and the stop button interrupt the view's running evaluations, through the `NReplEvaluation` each one handed back when it was sent.
 
 ### stdin
 
-- An evaluation from the REPL Input reads stdin in the view's stdin input. `evaluate/read-stdin+` shows it through the evaluation bar, and the webview posts the line with `repl-input-send-line`.
+- An evaluation from the REPL Input reads stdin in the view's stdin input. `evaluate/read-stdin+` shows the stdin input, with its own stop button, in place of the spinner and the context line's stop button, and the webview posts the line with `repl-input-send-line`.
 - An evaluation from a file reads stdin in the Output Sidebar's REPL Input while the setting has it on, else in the Output View's while the setting has that on, and otherwise with the input box. Evaluations from the REPL window use the input box. `stdinFor` in `evaluate.ts` picks the view with `stdinViewId` in `repl-input-stdin.ts`, and `calva.repl.input.stdin/read-line+` reveals that view and waits for the line in its stdin input.
 
 ## History

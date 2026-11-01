@@ -17,11 +17,11 @@
 (defn evaluation-message
   [id]
   {:command/name "repl-input-evaluation"
-   :repl-input/evaluation (evaluations/bar (:repl-input/evaluations @host/!state) id)})
+   :repl-input/evaluation (evaluations/shown (:repl-input/evaluations @host/!state) id)})
 
 (defn update-evaluations!
-  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its evaluation
-   bar and its stdin input."
+  "Updates the evaluations of the REPL Input `id` with `f` and `args`, and shows them in its context line
+   and its stdin input."
   [id f & args]
   (apply swap! host/!state update :repl-input/evaluations f id args)
   (host/post-to-view! id (evaluation-message id)))

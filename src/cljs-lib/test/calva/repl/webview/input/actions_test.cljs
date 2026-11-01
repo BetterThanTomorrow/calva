@@ -211,7 +211,7 @@
 
 (deftest evaluation-test
   (let [db {:repl-input/id "output-view" :repl-input/enabled? true :repl-input/completion-settings {:delay 10}}]
-    (testing "shows the evaluation bar the extension posts"
+    (testing "shows the evaluation the extension posts"
       (is (= {:uf/db (assoc db :repl-input/evaluation :running)
               :uf/fxs [(render-fx (assoc db :repl-input/evaluation :running))]}
              (sut/handle-action db [:repl-input/ax.set-evaluation :running]))))

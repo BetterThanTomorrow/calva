@@ -1,5 +1,6 @@
 (ns calva.repl.webview.styles.repl-input
-  "The styles of the REPL Input around its code editor.")
+  "The styles of the REPL Input around its code editor."
+  (:require [garden.stylesheet :as stylesheet]))
 
 (def layout
   "The REPL Input at the bottom of the page, below the output, which scrolls on its own, with its sash."
@@ -119,28 +120,18 @@
     [:&:hover {:color "var(--vscode-textLink-activeForeground)"
                :text-decoration :underline}]]])
 
-(def evaluation-bar
-  "The bar shown while an evaluation runs."
-  [[:.repl-input-evaluation-bar {:display :flex
-                                 :align-items :center
-                                 :justify-content :space-between
-                                 :gap "0.5em"
-                                 :margin-bottom "4px"
-                                 :padding [["2px" "6px"]]
-                                 :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
-                                 :color "var(--vscode-foreground)"
-                                 :background-color "var(--vscode-editorWidget-background)"
-                                 :border-left [["2px" :solid "var(--vscode-progressBar-background)"]]}
-    ["&[hidden]" {:display :none}]]
+(def running
+  "The spinner and the stop button shown while an evaluation runs. The spinner turns as VS Code's loading
+   icon does."
+  [(stylesheet/at-keyframes "repl-input-spin" [:to {:transform "rotate(360deg)"}])
 
-   [:.repl-input-interrupt {:padding [["1px" "8px"]]
-                            :font :inherit
-                            :color "var(--vscode-button-secondaryForeground)"
-                            :background-color "var(--vscode-button-secondaryBackground)"
-                            :border :none
-                            :border-radius "2px"
-                            :cursor :pointer}
-    [:&:hover {:background-color "var(--vscode-button-secondaryHoverBackground)"}]]])
+   [:.repl-input-spinner {:display :flex
+                          :flex-shrink 0
+                          :color "var(--vscode-icon-foreground, var(--vscode-foreground))"}
+    ["&[hidden]" {:display :none}]
+    [:svg {:animation [["repl-input-spin" "1s" "cubic-bezier(0.53, 0.21, 0.29, 0.67)" :infinite]]}]]
+
+   [:.repl-input-stop {:color "var(--vscode-debugIcon-stopForeground)"}]])
 
 (def stdin
   "The stdin input."

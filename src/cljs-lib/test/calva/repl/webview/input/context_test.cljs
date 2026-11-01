@@ -78,7 +78,7 @@
   (filter string? (tree-seq #(or (vector? %) (seq? %)) #(if (vector? %) (rest %) %) hiccup)))
 
 (deftest row-test
-  (let [row (without-handlers (sut/row following-line nil false))]
+  (let [row (without-handlers (sut/row following-line nil false nil))]
     (testing "shows the followed namespace in the indicator, with the tooltip that says it follows the editor"
       (is (= {:class ["repl-input-context-button" "repl-input-indicator"]
               :hidden false
@@ -93,18 +93,18 @@
       (is (= "Connect a REPL to enable evaluations" (:aria-description (second (element row "repl-input-evaluate")))))
       (is (= ["Connect a REPL"] (texts (element row "repl-input-context-line"))))))
   (testing "enables the play button, and offers nothing to connect, while a session answers"
-    (let [row (without-handlers (sut/row (assoc following-line :repl-input.context/connected? true) nil false))]
+    (let [row (without-handlers (sut/row (assoc following-line :repl-input.context/connected? true) nil false nil))]
       (is (= "false" (:aria-disabled (second (element row "repl-input-evaluate")))))
       (is (= "Evaluate REPL Input" (:aria-description (second (element row "repl-input-evaluate")))))
       (is (empty? (texts (element row "repl-input-context-line"))))))
   (testing "hides the indicator until the context line has a namespace"
-    (is (true? (:hidden (second (element (sut/row nil nil false) "repl-input-indicator"))))))
+    (is (true? (:hidden (second (element (sut/row nil nil false nil) "repl-input-indicator"))))))
   (testing "makes the indicator a selector with a chevron, whose menu shows the choices, while a recalled entry locks the context"
     (let [locked-line (assoc pirate-lock
                              :repl-input.context/locked? true
                              :repl-input.context/editor-ns "user"
                              :repl-input.context/editor-session-key "cljs")
-          row (without-handlers (sut/row locked-line pirate-lock true))
+          row (without-handlers (sut/row locked-line pirate-lock true nil))
           indicator (element row "repl-input-indicator")]
       (is (= "menu" (:aria-haspopup (second indicator))))
       (is (= "true" (:aria-expanded (second indicator))) "The indicator tells that its menu is open")
@@ -112,26 +112,38 @@
       (is (= ["pirate.ui" "" "from the history" "user" "" "following the editor"]
              (texts (element row "repl-input-menu")))))))
 
-(deftest evaluation-bar-test
-  (is (false? (:hidden (second (sut/evaluation-bar :running)))) "Shows while an evaluation runs")
-  (is (true? (:hidden (second (sut/evaluation-bar :reading-stdin)))) "Hides while the evaluation reads stdin")
-  (is (true? (:hidden (second (sut/evaluation-bar nil))))))
+(deftest running-test
+  (let [shown (fn [evaluation]
+                (let [row (without-handlers (sut/row following-line nil false evaluation))]
+                  (mapv #(not (:hidden (second (element row %)))) ["repl-input-spinner" "repl-input-stop"])))]
+    (is (= [true true] (shown :running)) "Shows the spinner and the stop button while an evaluation runs")
+    (is (= [false false] (shown :reading-stdin)) "Hides them while the evaluation reads stdin, which has its own stop button")
+    (is (= [false false] (shown nil))))
+  (testing "puts the spinner and the stop button before the play button"
+    (is (= ["repl-input-spinner" ["repl-input-context-button" "repl-input-stop"] ["repl-input-context-button" "repl-input-evaluate"]]
+           (->> (sut/row following-line nil false :running)
+                (drop 2)
+                (mapcat #(if (seq? %) % [%]))
+                (map (comp :class second))
+                (take-last 3)))))
+  (testing "interrupts the REPL Input's evaluations"
+    (is (= [[:repl-input/ax.interrupt]]
+           (get-in (element (sut/row following-line nil false :running) "repl-input-stop") [1 :on :click])))))
 
 (deftest controls-test
   (let [state {:repl-input/context-line following-line
                :repl-input/evaluation :reading-stdin
                :repl-input/dragging? true}
-        [sash stdin-row context-row bar] (without-handlers (sut/controls state {:mac? true}))]
-    (testing "puts the sash, the stdin input, the context line and the evaluation bar in order"
+        [sash stdin-row context-row] (without-handlers (sut/controls state {:mac? true}))]
+    (testing "puts the sash, the stdin input and the context line in order"
       (is (= ["repl-input-sash" "mac" "active"] (:class (second sash))) "The sash shows that it is dragged")
       (is (= "repl-input-stdin" (:class (second stdin-row))))
-      (is (= "repl-input-context" (:class (second context-row))))
-      (is (= "repl-input-evaluation-bar" (:class (second bar)))))
-    (testing "shows the stdin input, and hides the evaluation bar, while the evaluation reads stdin"
+      (is (= "repl-input-context" (:class (second context-row)))))
+    (testing "shows the stdin input, and hides the stop button, while the evaluation reads stdin"
       (is (false? (:hidden (second stdin-row))))
-      (is (true? (:hidden (second bar)))))
+      (is (true? (:hidden (second (element context-row "repl-input-stop"))))))
     (testing "hides the stdin input when no evaluation reads stdin"
       (is (true? (:hidden (second (second (sut/controls {} {}))))))))
   (testing "dispatches the menu's toggle with whether it opened"
     (is (= [[:repl-input/ax.namespace-menu-toggled :event/open?]]
-           (get-in (element (sut/row following-line nil false) "repl-input-menu") [1 :on :toggle])))))
+           (get-in (element (sut/row following-line nil false nil) "repl-input-menu") [1 :on :toggle])))))

@@ -184,8 +184,8 @@
     {:uf/db db}))
 
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, its namespace indicator and play button, the evaluation bar and
-   the stdin input."
+  "Handles the actions of the context line, its namespace indicator, its play and stop
+   buttons, and the stdin input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line

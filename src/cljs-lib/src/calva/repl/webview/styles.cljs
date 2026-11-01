@@ -26,7 +26,7 @@
           repl-input/layout
           repl-input/context-line
           repl-input/context-line-controls
-          repl-input/evaluation-bar
+          repl-input/running
           repl-input/stdin
           output/tooltip
           repl-input/menu

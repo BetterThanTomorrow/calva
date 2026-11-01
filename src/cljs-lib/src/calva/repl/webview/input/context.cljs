@@ -1,6 +1,6 @@
 (ns calva.repl.webview.input.context
-  "The context line above the REPL Input, with its namespace indicator and menu and its play button, and
-   the evaluation bar."
+  "The context line above the REPL Input, with its namespace indicator and menu, its play button, and the
+   spinner and stop button that show while an evaluation runs."
   (:require
    [calva.repl.webview.input.stdin :as stdin]
    [calva.repl.webview.tooltip :as tooltip]))
@@ -12,6 +12,12 @@
 (def ^:private evaluate-title "Evaluate REPL Input")
 
 (def ^:private connect-title "Connect a REPL to enable evaluations")
+
+(def ^:private interrupt-title "Interrupt REPL Input Evaluation")
+
+(def ^:private loading-path
+  "The codicon `loading`."
+  "M13.5 8.5C13.224 8.5 13 8.276 13 8C13 5.243 10.757 3 8 3C5.243 3 3 5.243 3 8C3 8.276 2.776 8.5 2.5 8.5C2.224 8.5 2 8.276 2 8C2 4.691 4.691 2 8 2C11.309 2 14 4.691 14 8C14 8.276 13.776 8.5 13.5 8.5Z")
 
 (def ^:private play-path
   "The codicon `play`."
@@ -186,11 +192,26 @@
                      [:span {:class "repl-input-context-ns"} ns]]
               selector? (conj (stdin/icon ["repl-input-context-icon" "repl-input-indicator-chevron"] chevron-down-path)))))))
 
+(defn- running
+  "Returns the spinner and the stop button, shown while the `evaluation` is `:running`, as hiccup."
+  [evaluation]
+  (let [hidden? (not= :running evaluation)]
+    (list [:span {:class "repl-input-spinner" :hidden hidden? :role "img" :aria-label "Evaluating"}
+           (stdin/icon ["repl-input-context-icon"] loading-path)]
+          [:button (merge {:class ["repl-input-context-button" "repl-input-stop"]
+                           :hidden hidden?
+                           :aria-label interrupt-title
+                           :on {:mousedown prevent-default
+                                :click [[:repl-input/ax.interrupt]]}}
+                          (tooltip/attributes interrupt-title))
+           (stdin/icon ["repl-input-context-icon"] stdin/debug-stop-path)])))
+
 (defn row
   "Returns the context line for the `context-line` and the `recalled-lock`, the lock of a recalled history
    entry from another context, as hiccup: the namespace indicator and its menu, a link that connects a REPL
-   while no session answers to the line's key, and the play button, disabled while no session answers."
-  [{:repl-input.context/keys [connected?] :as context-line} recalled-lock menu-open?]
+   while no session answers to the line's key, the spinner and the stop button while the `evaluation` runs,
+   and the play button, disabled while no session answers."
+  [{:repl-input.context/keys [connected?] :as context-line} recalled-lock menu-open? evaluation]
   (let [{:repl-input.indicator/keys [choices] :as shown} (indicator context-line recalled-lock)]
     [:div {:class "repl-input-context"}
      (indicator-button shown menu-open?)
@@ -201,6 +222,7 @@
                 :role "button"
                 :on {:click [[:repl-input/ax.connect]]}}
          "Connect a REPL"])]
+     (running evaluation)
      [:button (merge {:class ["repl-input-context-button" "repl-input-evaluate"]
                       :aria-label evaluate-title
                       :aria-disabled (str (not connected?))
@@ -208,13 +230,6 @@
                            :click [[:repl-input/ax.evaluate]]}}
                      (tooltip/attributes (if connected? evaluate-title connect-title)))
       (stdin/icon ["repl-input-context-icon"] play-path)]]))
-
-(defn evaluation-bar
-  "Returns the evaluation bar, shown while the `evaluation` is `:running`, as hiccup."
-  [evaluation]
-  [:div {:class "repl-input-evaluation-bar" :hidden (not= :running evaluation)}
-   [:span {:class "repl-input-evaluation-text"} "Evaluating…"]
-   [:button {:class "repl-input-interrupt" :on {:click [[:repl-input/ax.interrupt]]}} "Interrupt"]])
 
 (defn close-menu-without-choices!
   "Closes the namespace menu when the `context-line` and the `recalled-lock` give it no choices."
@@ -226,11 +241,10 @@
 
 (defn controls
   "Returns the REPL Input's parts around its code editor for the controls' `state`, as hiccup: the sash,
-   which calls `on-sash-pointerdown` when pressed, the stdin input, the context line and the evaluation bar."
+   which calls `on-sash-pointerdown` when pressed, the stdin input and the context line."
   [{:repl-input/keys [context-line recalled-lock evaluation namespace-menu-open? dragging?]}
    {:keys [mac? on-sash-pointerdown on-stdin-keydown]}]
   (list [:div {:class (cond-> ["repl-input-sash"] mac? (conj "mac") dragging? (conj "active"))
                :on {:pointerdown on-sash-pointerdown}}]
         (stdin/row (= :reading-stdin evaluation) on-stdin-keydown)
-        (row context-line recalled-lock namespace-menu-open?)
-        (evaluation-bar evaluation)))
+        (row context-line recalled-lock namespace-menu-open? evaluation)))

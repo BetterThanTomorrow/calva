@@ -13,7 +13,7 @@
    [calva.util :as util]))
 
 (defn- mounted!
-  "Posts the context line, the history and the evaluation bar to the REPL Input `id`, and gives its stdin
+  "Posts the context line, the history and the evaluations to the REPL Input `id`, and gives its stdin
    input the focus when an evaluation waits there for a line from stdin. Refreshing the context already
    posts a history that changed."
   [id]

@@ -33,8 +33,8 @@
           (when reading-stdin? evaluation-id))
         (get evaluations id)))
 
-(defn bar
-  "Returns what the evaluation bar of the REPL Input `id` shows: `:reading-stdin`, `:running`, or nil."
+(defn shown
+  "Returns what the REPL Input `id` shows of its evaluations: `:reading-stdin`, `:running`, or nil."
   [evaluations id]
   (cond
     (waiting-for-stdin evaluations id) :reading-stdin
