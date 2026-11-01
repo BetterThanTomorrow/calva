@@ -14,8 +14,7 @@
                         :min-height 0
                         :overflow-y :auto}]
     ;; VS Code draws the border between two views under the right one's webview, along its left edge
-    [:#repl-input {:position :relative
-                   :flex :none
+    [:#repl-input {:flex :none
                    :max-height "100vh"
                    :overflow-y :auto
                    :margin-left "1px"
@@ -25,9 +24,11 @@
      ["&[data-repl-input-id=\"output-sidebar\"]"
       {:background-color "var(--vscode-sideBar-background, var(--vscode-editor-background))"}]]]
 
+   ;; The sash is placed against the page, so the REPL Input's scrolling leaves it whole. It stays where it
+   ;; would be in the REPL Input, moved up through its padding and border to straddle the border as VS Code's do.
    [:.repl-input-sash {:position :absolute
                        :z-index 35
-                       :top "-3px"
+                       :margin-top "calc(-6px - 1px - 2px)"
                        :left 0
                        :right 0
                        :height "4px"
