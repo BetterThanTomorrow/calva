@@ -22,30 +22,28 @@
           ["entity.name.function.clojure" "#d2a8ff"]
           ["constant" "#000000"]]
          (sut/token-rules token-colors))
-      "String selectors split on commas, arrays stay, and rules without a scope or a foreground drop"))
+      "String selectors split on commas, arrays stay, and rules without a scope or a foreground drop")
+  (is (= [] (sut/token-rules [{"scope" "x" "settings" {"foreground" ""}}
+                              {"scope" "y" "settings" {"foreground" 123}}]))
+      "An empty foreground, or one that isn't a string, is no foreground"))
 
-(deftest resolve-foreground-test
+(deftest font-style-rules-test
+  (is (= [["comment" "italic"] ["comment.line" ""]]
+         (sut/font-style-rules (conj token-colors {"scope" "comment.line" "settings" {"fontStyle" ""}})))
+      "Rules that set a font style, an empty one too"))
+
+(deftest resolve-setting-test
   (let [rules (sut/token-rules token-colors)]
-    (is (= "#ff7b72" (sut/resolve-foreground rules "storage.control.clojure"))
+    (is (= "#ff7b72" (sut/resolve-setting rules "storage.control.clojure"))
         "storage is a prefix of storage.control.clojure")
-    (is (= "#d2a8ff" (sut/resolve-foreground rules "entity.name.function.clojure"))
+    (is (= "#d2a8ff" (sut/resolve-setting rules "entity.name.function.clojure"))
         "The exact selector wins over its shorter prefix")
-    (is (= "#000000" (sut/resolve-foreground rules "constant.keyword.clojure"))
+    (is (= "#000000" (sut/resolve-setting rules "constant.keyword.clojure"))
         "On equal length the later rule wins")
-    (is (nil? (sut/resolve-foreground rules "string.quoted.double.clojure"))
+    (is (nil? (sut/resolve-setting rules "string.quoted.double.clojure"))
         "No matching selector, no foreground")
-    (is (nil? (sut/resolve-foreground rules "constantly.clojure"))
+    (is (nil? (sut/resolve-setting rules "constantly.clojure"))
         "A prefix matches on whole scope segments only")))
-
-(deftest hljs-colors-test
-  (is (= {"keyword" "#ff7b72"
-          "name" "#d2a8ff"
-          "built_in" "#d2a8ff"
-          "symbol" "#000000"
-          "number" "#000000"
-          "literal" "#000000"}
-         (sut/hljs-colors token-colors))
-      "Scopes without a resolved foreground are left out"))
 
 (def themes
   [{:theme/id "Default Dark Modern" :theme/label "Dark Modern" :theme/ui-theme "vs-dark" :theme/file "dark_modern.json"}
@@ -81,7 +79,12 @@
                                           high-contrast)))
         "is used when workbench.colorTheme is of another kind, as when the OS is in high contrast"))
   (is (nil? (sut/active-theme themes {:workbench/color-theme "GitHub Dark Default"} light))
-      "No theme of the active kind, no theme"))
+      "No theme of the active kind, no theme")
+  (is (= "GitHub Light Default"
+         (:theme/label (sut/active-theme themes {:workbench/color-theme "Not Installed"
+                                                 :workbench/default-themes ["Default Dark Modern" "GitHub Light Default"]}
+                                         light)))
+      "A theme that isn't there falls back to the settings' default theme of the active kind, as VS Code does"))
 
 (deftest customization-rules-test
   (let [customizations {"textMateRules" [{"scope" "comment" "settings" {"foreground" "#111111"}}]
@@ -98,6 +101,18 @@
         "A theme with an id gets its rules by id")
     (is (empty? (sut/customization-rules nil (first themes)))
         "No customizations, no rules")))
+
+(deftest customization-groups-test
+  (is (= [{"scope" "comment" "settings" {"fontStyle" "italic"}}
+          {"scope" "punctuation.definition.comment" "settings" {"fontStyle" "italic"}}
+          {"scope" "string" "settings" {"foreground" "#555555"}}
+          {"scope" "meta.embedded.assembly" "settings" {"foreground" "#555555"}}
+          {"scope" "string.regexp" "settings" {"foreground" "#666666"}}]
+         (sut/customization-rules {"comments" {"fontStyle" "italic"}
+                                   "strings" "#555555"
+                                   "textMateRules" [{"scope" "string.regexp" "settings" {"foreground" "#666666"}}]}
+                                  (first themes)))
+      "Groups like comments and strings become rules for VS Code's scopes for them, a color or settings, before the TextMate rules"))
 
 (defn- write-theme!
   [file foreground]
@@ -131,3 +146,31 @@
       (finally
         (sut/clear-theme-token-colors!)
         (fs/rmSync dir #js {:recursive true :force true})))))
+
+(deftest semantic-customization-test
+  (let [customizations (clj->js {"enabled" true
+                                 "rules" {"function" "#111111" "macro" "#111111"}
+                                 "[GitHub Dark Default]" {"enabled" false
+                                                          "rules" {"macro" {"foreground" "#222222"}}}})]
+    (is (= {:semantic/enabled? false
+            :semantic/rules [["function" "#111111"] ["macro" "#111111"] ["macro" {"foreground" "#222222"}]]}
+           (sut/semantic-customization customizations (second themes)))
+        "The theme's own customization comes after the general one")
+    (is (= {:semantic/enabled? true
+            :semantic/rules [["function" "#111111"] ["macro" "#111111"]]}
+           (sut/semantic-customization customizations (first themes)))
+        "Another theme gets the general customization")
+    (is (= {:semantic/rules []} (sut/semantic-customization nil (first themes)))
+        "No customizations, no rules")))
+
+(deftest ordered-rules-test
+  (is (= [["k" "#1"] ["a" "#2"] ["z" {"foreground" "#3"}]]
+         (sut/ordered-rules #js {:k "#1" :a "#2" :z #js {:foreground "#3"}}))
+      "Keeps the rules in their order")
+  (is (= [] (sut/ordered-rules nil)) "No rules"))
+
+(deftest semantic-highlighting?-test
+  (is (true? (sut/semantic-highlighting? true false false)) "The setting turns it on")
+  (is (false? (sut/semantic-highlighting? false true true)) "The setting turns it off")
+  (is (false? (sut/semantic-highlighting? "configuredByTheme" false true)) "The user's customization goes over the theme")
+  (is (true? (sut/semantic-highlighting? "configuredByTheme" nil true)) "Else the theme decides"))

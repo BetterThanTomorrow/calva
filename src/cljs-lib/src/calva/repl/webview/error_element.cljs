@@ -2,7 +2,7 @@
   "The hiccup of an error entry in an Output view: the error text with a control to unfold its causes
    and their frames. Its controls' actions are in their `data-action` attributes."
   (:require
-   ["highlight.js/lib/core" :as hljs]
+   [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.tooltip :as tooltip]
    [clojure.string :as string]))
@@ -49,11 +49,10 @@
   (str n (if (= 1 n) " frame" " frames")))
 
 (defn- clojure-detail
-  "A detail that is Clojure code, with the theme's token colors."
+  "A detail that is Clojure code, which the page colors."
   [code]
   [:pre {:class ["output-error-detail"]}
-   [:code {:class ["output-error-code"]
-           :innerHTML (.-value (.highlight hljs code #js {:language "clojure" :ignoreIllegals true}))}]])
+   [:code {:class ["output-error-code" "clojure-code"]} code]])
 
 (defn- frame-action
   [{:error/keys [session-key]} {:frame/keys [file-url java?] :as parts}]
@@ -74,7 +73,7 @@
                     location-element)
        location-element)
      [:span {:class ["output-error-frame-qualifier"]} (str qualifier "/")]
-     [:span {:class ["hljs-name"]} name]]))
+     [:span {:class ["output-error-frame-name"]} name]]))
 
 (defn- location-element
   [{:location/keys [label file-url line column]}]
@@ -169,13 +168,10 @@
 (defn- copy-button
   "The button that copies the error with the frames its filter shows."
   [{:error/keys [id]}]
-  [:button (merge {:type "button"
-                   :class ["output-copy-button" "output-error-copy"]
-                   :aria-label "Copy error"
-                   :data-copy-label "Copy error"
-                   :data-control "copy"
-                   :data-action (actions [:error/ax.copy {:error/id id}])}
-                  (tooltip/attributes "Copy error"))])
+  [copy-button/button {:class ["output-error-copy"]
+                       :data-control "copy"
+                       :copy/label "Copy error"
+                       :copy/actions [[:error/ax.copy {:error/id id}]]}])
 
 (defn element
   "Returns the hiccup of `error`. An error whose causes have no frames, or haven't arrived, shows its

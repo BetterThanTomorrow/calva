@@ -17,7 +17,7 @@
 
 (deftest rainbow-options-test
   (testing "counts the bracket colors, and follows cycleBracketColors"
-    (is (= {:colorCount 3 :cycleBracketColors false}
+    (is (= {:colorCount 3 :cycleBracketColors false :guides false :activeGuides false}
            (sut/rainbow-options {"calva.highlight.bracketColors" [["#000" "#ccc"] "#0098e6" "#e16d6d"]
                                  "calva.highlight.cycleBracketColors" false}))))
   (testing "has at least one color index"
@@ -35,6 +35,7 @@
 (deftest bracket-styles-test
   (testing "falls back on the styles Calva paints files with"
     (is (= {:bracket-colors [["#000" "#ccc"] "#0098e6"]
+            :guide-colors [["#000" "#ccc"] "#0098e6"]
             :misplaced {"light" {"color" "#fff" "backgroundColor" "#c33"}
                         "dark" {"color" "#ccc" "backgroundColor" "#933"}}
             :matched {"light" {"backgroundColor" "#d0d0d0"}

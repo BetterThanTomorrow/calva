@@ -14,7 +14,9 @@
    "calva.highlight.matchedBracketStyle"
    "calva.highlight.commentFormStyle"
    "calva.highlight.ignoredFormStyle"
-   "calva.highlight.ignoredTopLevelFormStyle"])
+   "calva.highlight.ignoredTopLevelFormStyle"
+   "calva.highlight.rainbowIndentGuides"
+   "calva.highlight.highlightActiveIndent"])
 
 (defn close-brackets
   [settings]
@@ -27,10 +29,13 @@
   (get settings (str "calva.highlight." k)))
 
 (defn rainbow-options
-  "The options for Calva's rainbow bracket function."
+  "The options for Calva's rainbow bracket function, with whether it gives the indent guides and the guides of
+   the forms around the cursors."
   [settings]
   {:colorCount (max 1 (count (highlight-setting settings "bracketColors")))
-   :cycleBracketColors (boolean (highlight-setting settings "cycleBracketColors"))})
+   :cycleBracketColors (boolean (highlight-setting settings "cycleBracketColors"))
+   :guides (boolean (highlight-setting settings "rainbowIndentGuides"))
+   :activeGuides (boolean (highlight-setting settings "highlightActiveIndent"))})
 
 (def ^:private default-styles
   {:misplaced {"light" {"color" "#fff" "backgroundColor" "#c33"}
@@ -49,6 +54,7 @@
     {:bracket-colors (if (highlight-setting settings "enableBracketColors")
                        (vec (highlight-setting settings "bracketColors"))
                        [])
+     :guide-colors (vec (highlight-setting settings "bracketColors"))
      :misplaced (style "misplacedBracketStyle" (:misplaced default-styles))
      :matched (style "matchedBracketStyle" (:matched default-styles))
      :comment-form (style "commentFormStyle" (:comment-form default-styles))

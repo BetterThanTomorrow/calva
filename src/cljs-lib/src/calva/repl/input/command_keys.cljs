@@ -43,15 +43,18 @@
         keybindings))
 
 (defn context
-  "The context while the REPL Input of `record` has focus, under the `settings`, a map from setting keys to
-   values, and while the REPL is `connected?`."
-  [{:repl-input/keys [settings connected?]} {:repl-input/keys [cursor-contexts selections]}]
-  (merge (update-keys settings #(str "config." %))
-         (update-vals context-settings settings)
-         cursor-contexts
-         {"calva:replInputFocused" true
-          "calva:connected" (boolean connected?)
-          "editorHasMultipleSelections" (< 1 (count selections))}))
+  "The context while the REPL Input of `record` has focus, or the printed code of `record` with the
+   `focused-context` `calva:printedCodeFocused`, under the `settings`, a map from setting keys to values,
+   and while the REPL is `connected?`."
+  ([state record]
+   (context state record "calva:replInputFocused"))
+  ([{:repl-input/keys [settings connected?]} {:repl-input/keys [cursor-contexts selections]} focused-context]
+   (merge (update-keys settings #(str "config." %))
+          (update-vals context-settings settings)
+          cursor-contexts
+          {focused-context true
+           "calva:connected" (boolean connected?)
+           "editorHasMultipleSelections" (< 1 (count selections))})))
 
 (defn command-keys
   "Returns `{:keys :chords}`. `:keys` has the first key of each of the parsed `keybindings` that hold in

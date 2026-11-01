@@ -2286,151 +2286,151 @@
         "category": "Calva Paredit",
         "command": "paredit.forwardSexp",
         "title": "Move Cursor Forward Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexp",
         "title": "Move Cursor Backward Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardSexpOrUp",
         "title": "Move Cursor Forward or Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardSexpOrUp",
         "title": "Move Cursor Backward or Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardDownSexp",
         "title": "Move Cursor Forward Down Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardDownSexp",
         "title": "Move Cursor Backward Down Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.backwardUpSexp",
         "title": "Move Cursor Backward Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.forwardUpSexp",
         "title": "Move Cursor Forward Up Sexp/Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.closeList",
         "title": "Move Cursor Forward to List End/Close",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.openList",
         "title": "Backward to List Start/Open",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "calva.selectCurrentForm",
         "title": "Select Current Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardSexp",
         "title": "Select Forward Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectRight",
         "title": "Select Right",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardSexp",
         "title": "Select Backward Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardDownSexp",
         "title": "Select Forward Down Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardDownSexp",
         "title": "Select Backward Down Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardUpSexp",
         "title": "Select Backward Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardUpSexp",
         "title": "Select Forward Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectBackwardSexpOrUp",
         "title": "Select Backward Or Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectForwardSexpOrUp",
         "title": "Select Forward Or Up Sexp",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectCloseList",
         "title": "Select Forward to List End/Close",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.selectOpenList",
         "title": "Select Backward to List Start/Open",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.rangeForDefun",
         "title": "Select Current Top Level (aka defun) Form",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.sexpRangeExpansion",
         "title": "Expand Selection",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
         "command": "paredit.sexpRangeContraction",
         "title": "Shrink Selection",
-        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:printedCodeFocused || calva:replInputLastFocused && inQuickOpen || calva:printedCodeLastFocused && inQuickOpen"
       },
       {
         "category": "Calva Paredit",
@@ -2992,7 +2992,7 @@
       {
         "command": "calva.selectCurrentForm",
         "key": "ctrl+alt+c ctrl+s",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused)"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused)"
       },
       {
         "command": "calva.clearInlineResults",
@@ -3140,128 +3140,128 @@
         "mac": "ctrl+left",
         "win": "alt+left",
         "linux": "alt+left",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
       },
       {
         "command": "paredit.backwardSexp",
         "mac": "alt+left",
         "win": "ctrl+left",
         "linux": "ctrl+left",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
       },
       {
         "command": "paredit.forwardSexp",
         "mac": "ctrl+right",
         "win": "alt+right",
         "linux": "alt+right",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
       },
       {
         "command": "paredit.forwardSexp",
         "mac": "alt+right",
         "win": "ctrl+right",
         "linux": "ctrl+right",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
       },
       {
         "command": "paredit.forwardDownSexp",
         "key": "ctrl+down",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.backwardDownSexp",
         "key": "ctrl+alt+up",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.forwardUpSexp",
         "key": "ctrl+alt+down",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.backwardUpSexp",
         "key": "ctrl+up",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.closeList",
         "key": "ctrl+end",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.openList",
         "key": "ctrl+home",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectForwardSexp",
         "mac": "shift+alt+right",
         "win": "shift+ctrl+right",
         "linux": "shift+ctrl+right",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectRight",
         "mac": "ctrl+shift+k",
         "win": "ctrl+k ctrl+shift+k",
         "linux": "ctrl+k ctrl+shift+k",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectBackwardSexp",
         "mac": "shift+alt+left",
         "win": "shift+ctrl+left",
         "linux": "shift+ctrl+left",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment && !calva:cursorAfterComment && !calva:cursorBeforeComment"
       },
       {
         "command": "paredit.selectForwardDownSexp",
         "key": "ctrl+shift+down",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectBackwardDownSexp",
         "key": "ctrl+shift+alt+up",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectForwardUpSexp",
         "key": "ctrl+shift+alt+down",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectBackwardUpSexp",
         "key": "ctrl+shift+up",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectCloseList",
         "key": "ctrl+shift+end",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.selectOpenList",
         "key": "ctrl+shift+home",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.rangeForDefun",
         "key": "ctrl+alt+w space",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.sexpRangeExpansion",
         "mac": "ctrl+w",
         "win": "shift+alt+right",
         "linux": "shift+alt+right",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
       },
       {
         "command": "paredit.sexpRangeContraction",
         "mac": "ctrl+shift+w",
         "win": "shift+alt+left",
         "linux": "shift+alt+left",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
       },
       {
         "command": "paredit.slurpSexpForward",
@@ -4518,7 +4518,7 @@
     "watch-cljs": "clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,\"1.3.1\"},cider/cider-nrepl {:mvn/version,\"0.55.4\"}}}' -M:dev:test -m nrepl.cmdline --middleware \"[cider.nrepl/cider-middleware shadow.cljs.devtools.server.nrepl/middleware]\"",
     "watch-ts-with-strict-nulls": "npx tsc --watch --project ./tsconfig.json --strictNullChecks",
     "release-cljs": "npx shadow-cljs release -A:ci:test :calva-lib :test :repl-output-ui",
-    "release": "webpack --mode production",
+    "release": "webpack --mode production && node -e \"require('fs').copyFileSync('node_modules/vscode-oniguruma/release/onig.wasm', 'out/onig.wasm')\"",
     "prerelease": "npm run precompile && npm run release-cljs",
     "compile-test": "tsc -p ./",
     "postrelease": "",
@@ -4558,8 +4558,6 @@
     "find": "0.2.9",
     "follow-redirects": "^1.15.4",
     "get-port": "^5.1.1",
-    "highlight.js": "^11.11.1",
-    "highlightjs-copy": "^1.0.6",
     "jsonc-parser": "^3.3.1",
     "jszip": "3.8.0",
     "lodash": "^4.17.19",

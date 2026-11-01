@@ -58,3 +58,21 @@
   (testing "the other view being hidden or going inactive keeps it"
     (is (= "output-view" (sut/last-focused-after "output-view" [:hide "output-sidebar"])))
     (is (= "output-sidebar" (sut/last-focused-after "output-sidebar" [:deactivate "output-view"])))))
+
+(deftest place-event-test
+  (testing "an event about a place is itself for that place"
+    (is (= [:focus "output-view"] (sut/place-event :repl-input [:focus "output-view"])))
+    (is (= [:focus "output-view"] (sut/place-event :printed-code [:printed-code-focus "output-view"])))
+    (is (= [:blur "output-view"] (sut/place-event :printed-code [:printed-code-blur "output-view"])))
+    (is (= [:unmount "output-view"] (sut/place-event :printed-code [:printed-code-unmount "output-view"]))))
+  (testing "the other place getting the focus ends the focus and the last focused place"
+    (is (= [:other-focus] (sut/place-event :repl-input [:printed-code-focus "output-view"])))
+    (is (nil? (sut/focused-after "output-view" (sut/place-event :repl-input [:printed-code-focus "output-view"]))))
+    (is (nil? (sut/last-focused-after "output-view" (sut/place-event :printed-code [:focus "output-sidebar"])))))
+  (testing "the other place losing the focus, or going, leaves them"
+    (is (= "output-view" (sut/focused-after "output-view" (sut/place-event :repl-input [:printed-code-blur "output-view"]))))
+    (is (= "output-view" (sut/last-focused-after "output-view" (sut/place-event :repl-input [:printed-code-unmount "output-view"]))))
+    (is (= "output-view" (sut/last-focused-after "output-view" (sut/place-event :printed-code [:unmount "output-view"])))))
+  (testing "events about the views, the editors and the terminals reach both places"
+    (is (= [:hide "output-view"] (sut/place-event :printed-code [:hide "output-view"])))
+    (is (= [:text-editor-focus] (sut/place-event :printed-code [:text-editor-focus])))))

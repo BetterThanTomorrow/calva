@@ -1,7 +1,7 @@
 (ns calva.repl.webview.input.actions
   "The REPL Input's actions in the Output view's page."
   (:require
-   [calva.repl.webview.input.brackets :as brackets]
+   [calva.repl.webview.code-brackets :as brackets]
    [calva.repl.webview.input.history :as history]
    [calva.repl.webview.input.keys :as input-keys]))
 
@@ -152,6 +152,9 @@
     :repl-input/ax.recall
     (show-history db (history/recalled db payload))
 
+    :repl-input/ax.mode-chosen
+    {:uf/db (history/chosen db)}
+
     (handle-completion-action db action)))
 
 (defn- follow-editor
@@ -166,14 +169,15 @@
 
 (defn- click-namespace-indicator
   "Opens or closes the namespace menu while a recalled history entry locks the context, follows the editor
-   while otherwise locked, and does nothing while following the editor. The shown history entry keeps the
-   mode from then on."
+   while otherwise locked, and does nothing else while following the editor. The history entries shown here
+   and in the other views keep the mode from then on."
   [db]
-  (let [chosen (history/chosen db)]
-    (if (history/recalled-lock chosen)
-      {:uf/db chosen
-       :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
-      (follow-editor chosen))))
+  (let [chosen (history/chosen db)
+        {:uf/keys [fxs] :as clicked} (if (history/recalled-lock chosen)
+                                       {:uf/db chosen
+                                        :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
+                                       (follow-editor chosen))]
+    (assoc clicked :uf/fxs (into [(post chosen "repl-input-mode-chosen")] fxs))))
 
 (defn- evaluate
   "Asks the extension to evaluate the REPL Input while a session answers to the context."
@@ -184,8 +188,8 @@
     {:uf/db db}))
 
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, its namespace indicator and play button, the evaluation bar and
-   the stdin input."
+  "Handles the actions of the context line, its namespace indicator, its play and stop
+   buttons, and the stdin input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -242,6 +246,24 @@
      :uf/fxs [(post db "repl-input-send-line" :line payload)]}
 
     (handle-history-action db action)))
+
+(defn- highlighting-fxs
+  "Returns the effects that set the highlighting layers in a message from the extension: the grammar's, without
+   the semantic one when files get no semantic highlighting, or the semantic one."
+  [action-type {:repl-input/keys [highlighting semantic? semantic-tokens]}]
+  (case action-type
+    :repl-input/ax.set-highlighting (cond-> [[:repl-input/fx.set-highlighting :grammar highlighting]]
+                                      (false? semantic?) (conj [:repl-input/fx.set-highlighting :semantic nil]))
+    :repl-input/ax.set-semantic-tokens [[:repl-input/fx.set-highlighting :semantic semantic-tokens]]
+    nil))
+
+(defn- handle-highlighting-action
+  "Handles the highlighting layers the extension posts, applied when they are for the current version."
+  [db [action-type payload :as action]]
+  (if-let [fxs (highlighting-fxs action-type payload)]
+    (cond-> {:uf/db db}
+      (= (:repl-input/version payload) (:repl-input/version db)) (assoc :uf/fxs fxs))
+    (handle-evaluation-action db action)))
 
 (defn handle-action
   [db [action-type payload :as action]]
@@ -304,4 +326,4 @@
       {:uf/db (assoc db :repl-input/height height)
        :uf/fxs [[:repl-input/fx.set-height height]]})
 
-    (handle-evaluation-action db action)))
+    (handle-highlighting-action db action)))

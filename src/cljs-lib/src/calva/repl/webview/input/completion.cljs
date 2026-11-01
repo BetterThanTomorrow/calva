@@ -2,13 +2,14 @@
   "The REPL Input's completion list and docs panel, in the suggest widget's colors, with the candidates and
    the docs the extension answers with."
   (:require
+   [calva.repl.input.completion :as input-completion]
+   [calva.repl.webview.code-highlight :as code-highlight]
    [calva.words :as words]
    [clojure.string :as string]
    ["@codemirror/autocomplete" :refer [acceptCompletion autocompletion completionStatus moveCompletionSelection
                                        startCompletion]]
    ["@codemirror/state" :refer [Prec]]
-   ["@codemirror/view" :refer [EditorView keymap]]
-   ["highlight.js/lib/core" :as hljs]))
+   ["@codemirror/view" :refer [EditorView keymap]]))
 
 (defn word-start
   "Returns where the word that ends at `offset` in `text` starts, after a leading syntax quote."
@@ -36,19 +37,6 @@
                 (= from (:from restart))
                 (valid-for? (:prefix restart) (subs text from offset)))))
 
-(defn doc-blocks
-  "Splits the markdown `docs` into `[:code text]` for its fenced code blocks and `[:text text]` for each
-   paragraph of the rest."
-  [docs]
-  (->> (string/split docs #"```")
-       (map-indexed (fn [i part]
-                      (if (odd? i)
-                        [[:code (string/trimr (string/replace-first part #"^[^\n]*\n" ""))]]
-                        (for [paragraph (string/split part #"\n\s*\n")]
-                          [:text (string/trim paragraph)]))))
-       (apply concat)
-       (remove (comp string/blank? second))))
-
 (defn open?
   "True while the completion list shows in `state`."
   [^js state]
@@ -60,16 +48,17 @@
   !requests (atom {:last 0 :pending {} :shown nil :restart nil :docs {}}))
 
 (defn- docs-element
-  [detail documentation]
-  (let [blocks (cond-> []
-                 (seq detail) (conj [:code detail])
-                 (seq documentation) (into (doc-blocks documentation)))]
+  "Returns the element of the docs of a candidate: its `detail` and `documentation`, with their code colored
+   with the extension's `highlighting`, its ranges by the code's text."
+  [detail documentation highlighting]
+  (let [blocks (input-completion/docs-blocks detail documentation)]
     (when (seq blocks)
       (let [element (js/document.createElement "div")]
         (doseq [[kind text] blocks]
-          (let [child (js/document.createElement (if (= :code kind) "pre" "p"))]
-            (if (= :code kind)
-              (set! (.-innerHTML child) (.-value (.highlight hljs text #js {:language "clojure" :ignoreIllegals true})))
+          (let [child (js/document.createElement (if (= :code kind) "pre" "p"))
+                ranges (get highlighting text)]
+            (if (and (= :code kind) ranges)
+              (code-highlight/set-spans! child text ranges)
               (set! (.-textContent child) text))
             (.appendChild element child)))
         element))))
@@ -85,10 +74,10 @@
 
 (defn deliver-docs!
   "Shows the docs the extension resolved for a candidate, unless the list moved on."
-  [{:repl-input.completion/keys [request index detail documentation]}]
+  [{:repl-input.completion/keys [request index detail documentation highlighting]}]
   (when-let [resolve (get-in @!requests [:docs [request index]])]
     (swap! !requests update :docs dissoc [request index])
-    (resolve (docs-element detail documentation))))
+    (resolve (docs-element detail documentation highlighting))))
 
 (defn- result
   "CodeMirror's result for the `options` answering `request`. While a final answer waits to replace the

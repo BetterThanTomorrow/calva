@@ -1,12 +1,19 @@
 (ns calva.repl.webview.styles.output
-  "The styles of the page and of the output blocks that are text.")
+  "The styles of the page and of the output blocks that are text."
+  (:require [garden.stylesheet :as stylesheet]))
 
 (def page
   "The page, its fonts and its output."
   [[":root" {:--calva-output-font-scale 1}]
 
    [:body {:--calva-output-inset "20px"
-           :padding-inline "var(--calva-output-inset)"}]
+           :padding-inline 0}]
+
+   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}]
+   ;; Over the last pixels of the output, so the end shows a little before the very bottom, also in the scroller
+   [:#output-end {:height "4px"
+                  :margin-top "-4px"
+                  :pointer-events :none}]
 
    ["pre[data-output-element-type]"
     ".evaluated-code-container pre"
@@ -37,10 +44,20 @@
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
    [:body.word-wrap
-    [:code.hljs {:white-space :pre-wrap
-                 :overflow-wrap :anywhere
-                 :padding-left "calc(1em + 1.5ch)"
-                 :text-indent "-1.5ch"}]]])
+    [:code.output-code {:white-space :pre-wrap
+                        :overflow-wrap :anywhere}]]])
+
+(def code
+  "Printed code, in the editor's colors, with its copy button at the top right."
+  [[:.output-code-block {:position :relative}]
+
+   [:code.output-code {:display :block
+                       :overflow-x :auto
+                       :padding "1em"
+                       :font-family "var(--vscode-editor-font-family, monospace)"
+                       :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                       :color "var(--vscode-editor-foreground)"
+                       :background-color "var(--vscode-editor-background)"}]])
 
 (def greeting
   "The greeting at the top of the view."
@@ -65,7 +82,19 @@
                    :padding-right "10px"
                    :margin-top "-10px"
                    :margin-left "10px"
-                   :background-color "var(--vscode-editor-background)"}]])
+                   :background-color "var(--vscode-editor-background)"}]
+
+   [:.evaluated-code-spinner {:width "1em"
+                              :height "1em"
+                              :margin-left "0.4em"
+                              :vertical-align "-0.15em"
+                              :fill "var(--vscode-icon-foreground, var(--vscode-foreground))"}]])
+
+(def spinner
+  "The spinner of a running evaluation, which turns as VS Code's loading icon does."
+  [(stylesheet/at-keyframes "evaluation-spin" [:to {:transform "rotate(360deg)"}])
+
+   [:.evaluation-spinner {:animation [["evaluation-spin" "1s" "cubic-bezier(0.53, 0.21, 0.29, 0.67)" :infinite]]}]])
 
 (def ns-info
   "The badges of who evaluated, in which session and namespace."

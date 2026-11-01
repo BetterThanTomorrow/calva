@@ -1,6 +1,7 @@
 (ns calva.repl.webview.main
   (:require
    [calva.repl.webview.input.editor :as input-editor]
+   [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.tooltip :as tooltip]
    [calva.repl.webview.ui :as ui]))
 
@@ -15,5 +16,8 @@
   (.append js/document.body (tooltip/element))
   (ui/main)
   (ui/register-effect-handler! "repl-input" input-editor/exec-effect!)
+  (ui/register-effect-handler! "printed-code" printed-code-editor/exec-effect!)
+  (.addEventListener ui/output-dom-element "click"
+                     #(some->> (printed-code-editor/clicked-block %) (vector :printed-code/ax.clicked) ui/dispatch!))
   (ui/post-to-host! {:command "page-loaded"})
   (init-repl-input!))

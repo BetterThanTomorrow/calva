@@ -10,28 +10,28 @@
   (testing "is after the last id when two evaluations start in the same millisecond"
     (is (= 1700000000001 (sut/next-id 1700000000000 1700000000000)))))
 
-(deftest bar-test
+(deftest shown-test
   (testing "shows nothing while no evaluation runs"
-    (is (nil? (sut/bar {} "output-view"))))
+    (is (nil? (sut/shown {} "output-view"))))
 
   (testing "shows that an evaluation runs, only for the REPL Input that started it"
     (let [evaluations (sut/started {} "output-view" 1)]
-      (is (= :running (sut/bar evaluations "output-view")))
-      (is (nil? (sut/bar evaluations "output-sidebar")))))
+      (is (= :running (sut/shown evaluations "output-view")))
+      (is (nil? (sut/shown evaluations "output-sidebar")))))
 
   (testing "shows that stdin is read while an evaluation waits for a line"
     (is (= :reading-stdin (-> {}
                               (sut/started "output-view" 1)
                               (sut/started "output-view" 2)
                               (sut/reading-stdin "output-view" 2 true)
-                              (sut/bar "output-view")))))
+                              (sut/shown "output-view")))))
 
   (testing "goes back to running when the line is sent"
     (is (= :running (-> {}
                         (sut/started "output-view" 1)
                         (sut/reading-stdin "output-view" 1 true)
                         (sut/reading-stdin "output-view" 1 false)
-                        (sut/bar "output-view")))))
+                        (sut/shown "output-view")))))
 
   (testing "shows nothing when the evaluations have finished"
     (is (= {} (-> {}

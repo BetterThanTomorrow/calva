@@ -20,12 +20,17 @@ export const definitionAdapter = {
   definitionPriority: (): string[] => config.getConfig().definitionProviderPriority,
   replDefinition: (sessionKey: string, ns: string, doc: model.EditableDocument, offset: number) =>
     replDefinition.replDefinition(sessionRegistry.getSession(sessionKey), ns, doc, offset),
-  lspDefinition: (uri: vscode.Uri | undefined, text: string, line: number, character: number) => {
+  lspDefinition: (
+    uri: vscode.Uri | undefined,
+    copy: replInputCopy.Copy,
+    line: number,
+    character: number
+  ) => {
     const client = lspClient(uri);
     return client
       ? replInputCopy.definition(
           client,
-          text,
+          copy,
           { line, character },
           new vscode.CancellationTokenSource().token
         )

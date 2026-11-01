@@ -54,10 +54,10 @@
   "Asks clojure-lsp for the definition at `offset` in `text`, in a copy below the followed `document` or the
    `ns` form of `context`."
   [{:repl-input.context/keys [locked?] :as context} ^js document text offset]
-  (let [{copy-text :text :keys [line character text-line]} (completion/copy context (some-> document .getText) text offset)
+  (let [{copy-text :text :keys [extension line character text-line]} (completion/copy context (some-> document .getText) text offset)
         copy {:text-line text-line
               :document-uri (when (and document (not locked?)) (str (.-uri document)))}]
-    (.then (target+ #(.lspDefinition ^js @host/!adapter (some-> document .-uri) copy-text line character))
+    (.then (target+ #(.lspDefinition ^js @host/!adapter (some-> document .-uri) #js {:text copy-text :extension extension} line character))
            #(definition/lsp-target copy (some-> % (js->clj :keywordize-keys true))))))
 
 (defn- first-target+

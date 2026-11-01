@@ -26,12 +26,17 @@ export const completionAdapter = {
     offset: number
   ): Promise<CompletionItem[]> =>
     replCompletion.replCompletions(sessionRegistry.getSession(sessionKey), ns, doc, offset),
-  lspCompletions: (uri: vscode.Uri | undefined, text: string, line: number, character: number) => {
+  lspCompletions: (
+    uri: vscode.Uri | undefined,
+    copy: replInputCopy.Copy,
+    line: number,
+    character: number
+  ) => {
     const client = lspClient(uri);
     const cancellation = new vscode.CancellationTokenSource();
     return {
       items: client
-        ? replInputCopy.complete(client, text, { line, character }, cancellation.token)
+        ? replInputCopy.complete(client, copy, { line, character }, cancellation.token)
         : Promise.resolve([]),
       cancel: () => cancellation.cancel(),
     };
@@ -46,4 +51,18 @@ export const completionAdapter = {
     ),
   resolveLspCompletion: (uri: vscode.Uri | undefined, item: CompletionItem) =>
     lspClient(uri)?.sendRequest(vscodeLsp.CompletionResolveRequest.type, item),
+};
+
+/** The function that asks clojure-lsp for the semantic tokens of the REPL Inputs' text, for cljs-lib. */
+export const highlightingAdapter = {
+  lspSemanticTokens: (uri: vscode.Uri | undefined, copy: replInputCopy.Copy, line: number) => {
+    const client = lspClient(uri);
+    const cancellation = new vscode.CancellationTokenSource();
+    return {
+      tokens: client
+        ? replInputCopy.semanticTokens(client, copy, line, cancellation.token)
+        : Promise.resolve(undefined),
+      cancel: () => cancellation.cancel(),
+    };
+  },
 };

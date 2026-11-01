@@ -21,21 +21,26 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `error_element.cljs`, `stacktrace.cljs` | Errors with their causes and frames. `stacktrace` is pure and is used on the extension side too |
 | | `images.cljs`, `image_refs.cljs` | Finds image data URLs, image URLs and image file paths in results |
 | | `tooltip.cljs` | The tooltip of every control in the page |
+| | `code_highlight.cljs` | The classes that color code, one per color and font style, in one constructed stylesheet, and code's hiccup and DOM with them. The REPL Input uses them too |
+| | `copy_button.cljs` | The copy button, a Replicant alias every block with one uses |
+| | `spinner.cljs` | The spinner of a running evaluation, after an evaluated code block's label and on the REPL Input's context line, and removing it when the evaluation ends |
+| | `auto_scroll.cljs` | Auto scrolling: whether appended output scrolls the output to its end |
 | | `input/*.cljs` | The REPL Input |
+| | `printed_code/*.cljs` | Printed code's editor, which a click puts in place of a printed code block, for Paredit to move and select in |
 | | `styles_reload.cljs` | A preload of the build in development: renders the views' styles into the page again after each code reload |
-| | `repl-output-ui/css/vendor/` | The highlight.js theme stylesheets and the copy button plugin's stylesheet, copied from their npm packages, with their licenses |
 | Extension, cljs-lib (build `:calva-lib`) | `src/cljs-lib/src/calva/repl/webview/core.cljs` | Creates the Output View panel, builds the page as hiccup, turns output into messages, posts settings to every view |
 | | `sidebar.cljs` | The Output Sidebar's webview view provider, its help page (`help-page`), and the log it replays |
 | | `image_host.cljs` | Webview options, local image lookups, fetching remote images for Copy image |
 | | `frame_host.cljs` | Opens the file of a clicked stacktrace frame |
-| | `token_colors.cljs` | Reads the active color theme's token colors for highlight.js |
+| | `token_colors.cljs` | Reads the active color theme's token colors, font styles and semantic token colors |
+| | `code_tokens.cljs` | clojure-lsp's semantic tokens for printed code |
 | | `greeting.cljs` | The greeting at the top of each view |
 | | `html.cljs` | Renders hiccup to HTML with Replicant |
 | | `styles.cljs` | The views' own styles as Garden data, `rules`, and the Output Sidebar help page's, `help-rules`, with `css` and `help-css`, which render them. `rules` puts together, in the order they apply, the rules of `styles/output.cljs`, `images.cljs`, `copy_buttons.cljs`, `repl_input.cljs` and `errors.cljs` |
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
-| | `src/results-output/evaluated-code.ts` | The echo of evaluated code |
+| | `src/results-output/evaluated-code.ts` | The echo of evaluated code, dedented from the column the code starts at in its file, and which Output views show the code of each running evaluation, so they hear when it ends |
 | | `src/results-output/output-destinations.ts` | Destination names and normalizing, without `vscode` |
 | | `src/results-output/output-sidebar.ts` | Registers the sidebar's provider as `calva.output-sidebar` |
 | | `src/extension.ts` | Calls the `init*` exports at activation and registers the commands |
@@ -48,15 +53,15 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 2. `output.ts` reads the destinations for the output's category from `calva.outputDestinations` (table below), and emits the message to the `subscribe` listeners once.
 3. For a webview destination, `writeToWebview` calls `appendToReplOutputWebview` or `appendToReplOutputSidebar`. An error that comes with causes goes through `error-output.ts` instead (see Errors and stacktraces).
 4. In cljs-lib, `core/append` maps the category to a command name with `output-category->command-name`, adds the evaluation's `:meta` (who, namespace, session key, shadow-cljs build and runtime), and posts the message. For the Output View, `ensure-output-view-panel` creates the panel when there is none, so the first output to `output-view` opens it. For the Output Sidebar, `add-output-sidebar-message!` keeps the message in `output-sidebar-log`, and posts it when VS Code has resolved the view.
-5. In the webview, `ui/handle-message` reads the message and dispatches `[:msg/output message]`. `app-db/handle-action` returns an `ns-info` effect when the evaluation context differs from the last one, and the effect that appends the output.
-6. `ui/exec-effect!` adds the output to the page, highlights code with highlight.js, and fires `output-appended`, which scrolls to the bottom. Each output block is hiccup: the namespace info, evaluated code, results, stdout and results with images from `ns-info-element`, `evaluated-code-element`, `clojure-code-element`, `stdout-element` and `images-form-element`, and errors from `error-element/element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
+5. In the webview, `ui/handle-message` reads the message and dispatches `[:msg/output message]`. `app-db/handle-action` returns an `ns-info` effect when a new evaluation starts (the extension numbers each evaluation, `evaluationId`, which reaches the page as `:meta/evaluation-id`) or the evaluation context differs from the last one, and the effect that appends the output. The text destinations decide their info line the same way, in `src/results-output/info-line.ts`.
+6. `ui/exec-effect!` adds the output to the page, colors code (see Printed code), and fires `output-appended`, which scrolls to the bottom while auto scrolling is on (see The page). Each output block is hiccup: the namespace info, evaluated code, results, stdout and results with images from `ns-info-element`, `evaluated-code-element`, `clojure-code-element`, `stdout-element` and `images-form-element`, and errors from `error-element/element`. `insert-hiccup!` renders a block's hiccup with `html/render`, inserts it with `insertAdjacentHTML`, and returns the inserted element.
 
 ### Output categories
 
 | Category | Written by | Destinations from | Command name | Drawn as |
 | --- | --- | --- | --- | --- |
 | `evalResults` | `appendClojureEval` | `evalResults` | `show-result` | Highlighted code, with images when it has some |
-| `evaluatedCode` | `appendEvaluatedCode` | `evalResults` | `show-evaluated-code` | An "Evaluated code" block |
+| `evaluatedCode` | `appendEvaluatedCode` | `evalResults` | `show-evaluated-code` | An "Evaluated code" block, with a spinner after its label until the evaluation ends |
 | `clojure` | `appendClojureOther` | `otherOutput` | `show-result` | Highlighted code |
 | `evalOut`, `evalErr` | `appendEvalOut`, `appendEvalErr` and their `appendLine*` | `evalOutput` | `show-stdout` | A `pre` with the category in `data-output-element-type` |
 | `otherOut`, `otherErr` | `appendOtherOut`, `appendOtherErr` and their `appendLine*` | `otherOutput` | `show-stdout` | Same as above |
@@ -78,14 +83,16 @@ Both directions carry Clojure data, in different encodings:
 - Extension to webview: an EDN string. `post-message-to-webview` posts `(pr-str message)` and `ui/handle-message` reads it with `cljs.reader/read-string`. The message is a map with `:command/name`, and what it posts has to print as EDN.
 - Webview to extension: a JS object with a `command` key. `ui/post-to-host!` converts with `clj->js` and a keyword function that keeps a keyword's namespace, so `:repl-input/id` arrives as `"repl-input/id"`, and `js->clj :keywordize-keys true` turns it back into `:repl-input/id`.
 
-Each view has three message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, `calva.repl.input.messages/listen-for-messages!` for the REPL Input, and `core/listen-for-page-loaded!` for `page-loaded`. Each ignores the commands that belong to the others.
+Each view has four message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, `calva.repl.input.messages/listen-for-messages!` for the REPL Input, `core/listen-for-page-loaded!` for `page-loaded`, and `core/listen-for-highlighting-requests!` for printed code's colors. Each ignores the commands that belong to the others.
 
 | Extension to webview | What it does |
 | --- | --- |
-| `show-result`, `show-stdout`, `show-evaluated-code` | Output, with `:output`, `:output-category` and `:meta` |
+| `show-result`, `show-stdout`, `show-evaluated-code` | Output, with `:output`, `:output-category` and `:meta`, and printed code's `:output/highlighting` |
 | `show-error`, `show-error-causes` | An error entry, and its causes when they come later |
+| `evaluation-ended` | The evaluation `:meta/evaluation-id` ended, which removes the spinner of its evaluated code. `output.endEvaluation` posts it, when an evaluation from a file, the REPL Input or the API ends, to the views that show its code |
 | `clear-output-view` | Clears the output |
-| `set-code-theme` | The highlight.js theme for the theme kind, and the active theme's token colors |
+| `set-code-theme` | The active theme's palette key, which tells when printed code needs coloring again, and its color for function names, which stack frames take |
+| `output-highlighting`, `output-semantic-tokens` | Printed code's colors, `[id ranges]` for each code element, from the grammar and from clojure-lsp |
 | `set-word-wrap`, `set-image-display` | The view's word wrap and image display |
 | `set-base-font-scale`, `adjust-font-size`, `reset-font-size` | The font scale |
 | `local-image-resolved`, `local-image-missing`, `image-bytes`, `image-bytes-missing` | Answers to the webview's image requests, by the request's `:id` |
@@ -96,7 +103,9 @@ Each view has three message listeners on the extension side: `image-host/listen-
 | `resolve-local-image` | Asks for a webview URI for an image file |
 | `fetch-image-for-copy` | Asks for a remote image's bytes, for Copy image |
 | `open-frame`, `open-java-frame` | Opens a clicked stacktrace frame |
-| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail, and answers with `repl-input-enabled` for the view, since a page that loads while the setting changes can miss the `repl-input-enabled` that the change posts |
+| `output-highlight` | Asks for the grammar's colors of code elements, `[id text]` each |
+| `output-semantic-tokens` | Asks for the semantic tokens of code elements, `[id text ns session-key]` each |
+| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail, forgets the view's printed code (`printed-code/forget!`), since the page's versions start over, and answers with `repl-input-enabled` for the view, since a page that loads while the setting changes can miss the `repl-input-enabled` that the change posts |
 | `repl-input-*` | The REPL Input's messages |
 
 `ui/handle-message` dispatches with a `case`. A command name it doesn't know is logged to the webview's console and ignored. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`.
@@ -111,9 +120,30 @@ Each view has three message listeners on the extension side: `image-host/listen-
 - `:repl-input/ax.*` actions go to `calva.repl.webview.input.actions/handle-action`.
 - `:fx/*` effects run in `ui.cljs`. Effects in another keyword namespace go to the handler registered for it with `register-effect-handler!`. `main.cljs` registers `"repl-input"` for the REPL Input's `:repl-input/fx.*` effects.
 
-The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-context`, which decides when an `ns-info` line is drawn), the font scale, the error entries by id (`:output/errors`), and the REPL Input's keys. The output itself isn't in the db: the appended elements are the record of it. The image lookups in flight and the results whose raw form is built later are kept in atoms in `ui.cljs`.
+The db (`app-db/!app-db`) keeps the last evaluation context and evaluation (`:output/last-context` and `:output/last-evaluation`, which decide when an `ns-info` line is drawn), the font scale, the error entries by id (`:output/errors`), and the REPL Input's keys. The output itself isn't in the db: the appended elements are the record of it. The image lookups in flight and the results whose raw form is built later are kept in atoms in `ui.cljs`.
 
 `ui.cljs` and `app_db.cljs` are loaded in the Node tests against `src/cljs-lib/test/calva/repl/webview/fake_document.cljs`. The fake document can't parse HTML, so the tests that add output replace `ui/insert-hiccup!` with `fake-document/insert-hiccup!`, which builds the fake document's elements from the same hiccup. The output blocks' hiccup is tested as data in `output_blocks_test.cljs`, with `lookup`. CodeMirror needs a real document when it loads, so nothing that requires CodeMirror goes into `ui.cljs`'s requires. The REPL Input's editor is wired in from `main.cljs`.
+
+## Printed code
+
+Results, evaluated code, the code in errors and the completion docs are colored the way files are: Calva's grammar runs in the extension (`calva.repl.input.highlighting`, shared with the REPL Input), and clojure-lsp's semantic tokens go over it.
+
+1. `core/output-message` posts printed results and evaluated code with `:output/highlighting`, the grammar's `[from to color styles]`, from `highlighting/printed-highlighting`. Text longer than 50,000 characters gets no ranges and shows plain. The grammar takes the extension host about 2.7 ms per 1,000 characters. Both views asking for the same text highlight it once.
+2. With the ranges come the brackets: `printed-brackets/brackets` paints them with Calva's painter under the `calva.highlight` settings, with misplaced brackets, comment and ignored forms, and the rainbow indent guides, but no active guides, since printed code has no cursor. The page draws code as `pre.output-code-block > code.output-code.clojure-code`, in the editor's colors, with spans classed by `code-highlight` and marked with the bracket classes of `code-brackets` (`code-highlight/segments` lays the marks over the color runs), and the shared copy button. `data-highlighted` says how the code is colored: `grammar`, `plain` (too long), or `uncolored` (the extension couldn't color it).
+3. Code without ranges, like an image result's text, its raw form, or an error's data, gets an id and is asked for with `output-highlight`. The extension answers a chunk of about 20,000 characters at a time. The page remembers the ranges of the latest 100 texts, so an error drawn again is colored at once.
+4. Code colored by the grammar is then asked for its semantic tokens with `output-semantic-tokens`, a pause after the last, with the namespace and session of the output's latest namespace header. `code-tokens/tokens+` puts the code of each namespace in one clojure-lsp copy, below the namespace's file when it's open, so aliases resolve, else below an `ns` form. The page lays the answer over the grammar's ranges it kept for the code.
+5. A theme change asks for the colors of all code colored by the grammar again.
+
+The Output Sidebar's log keeps messages without their highlighting, so a page that shows the log later asks in the colors it has then.
+
+### Printed code's editor
+
+A click in a printed code block puts a read-only CodeMirror editor in its place, so Paredit's navigation and selection commands can move a cursor and selections in it. The page has one at a time.
+
+1. `printed-code.editor/clicked-block` takes the page's selection as offsets in the block's `code` element. A selection that reaches outside the block, as a drag across blocks makes, stays the page's own.
+2. The editor goes after the `code` element, which is hidden and keeps getting its colors, so the copy button and late semantic tokens keep working. `printed-code.editor/drawn!` remembers the colors each code element is drawn with (`ui/set-spans!` and `ui/append-code!` call it), for the editor to start with, and colors an open editor anew. It follows the word wrap setting.
+3. Focus moving to another place in the page draws the block again. The window losing the focus keeps the editor, and `input.editor/restore-focus!` gives it the focus back with the window, as it does the REPL Input. Clearing the output removes it. A drag that starts in the open editor selects inside it, since CodeMirror takes the press. A drag across blocks starts outside it.
+4. The editor posts `printed-code-focused` (with the text), `printed-code-changed` (the selections), `printed-code-blurred` and `printed-code-unmounted`, at versions that count up for as long as the page lives. Each click opens a new editor, with its own number, which the focus carries. The extension answers with `printed-code-selections`, `printed-code-brackets` (with the matched brackets and active guides at the cursors), `printed-code-command-keys` and `printed-code-focus`. The selections and the brackets carry the editor and the version they were made from, and apply only to that editor at that version, since the extension can answer an earlier editor after a click opened another. The extension side is in [REPL Input Architecture](repl-input-architecture.md), under Printed code.
 
 ## The page
 
@@ -121,13 +151,14 @@ The db (`app-db/!app-db`) keeps the last evaluation context (`:output/last-conte
 
 - A Content-Security-Policy that allows stylesheets from the webview's own source, and a nonce for the script and the styles in the page. In development (`:is-debug` in `calva.util/env`) it also allows `'unsafe-eval'` and `ws://localhost:*`, which the shadow-cljs devtools need.
 - The views' styles, `styles/css`, in a `<style id="calva-output-styles">` with the nonce. Saving `styles.cljs` or a namespace under `styles/` in development shows in the open views: `styles_reload.cljs` renders it into that element after the code reloads.
-- The highlight.js stylesheets, one per color theme kind (`highlight-js-code-theme-stylesheet-data`), with all but the current one disabled, and the copy button plugin's stylesheet (`copy-button-stylesheet`). They ship with the extension in `repl-output-ui/css/vendor/`, so code is highlighted offline. Each file's first line names the package version it was copied from: when `highlight.js` or `highlightjs-copy` is updated in `package.json`, copy the files again from `node_modules`.
-- The greeting, `#output`, and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
+- The greeting, `#output`, `#output-end`, an empty element that marks the end of the output (see auto scrolling below), and the `#repl-input` element with the view id, and whether the REPL Input is on for the view.
 - The `<html>` element's `--calva-output-font-scale`, the body's `word-wrap` class and `data-image-display` attribute, from the settings when the page is built.
 
-The page draws its controls' tooltips itself, since `title` tooltips are unreliable in webviews. `main` adds one hint popover, `#output-tooltip`, to the body, and `tooltip/attach!` points a control at it with `interestfor`, keeping its text in `aria-description`, which screen readers read as the control's description. A control in hiccup gets the same from `tooltip/attributes`, and `ui/on-output-click` and the REPL Input's Replicant dispatch call `tooltip/hide!` on a click. The tooltip takes that text when the control shows interest, on hover or keyboard focus, `tooltip/refresh!` shows a changed text while it shows, and it hides when its control hides or leaves the page. Every copy button has it, the result blocks' from highlight.js's copy plugin too, through a highlight.js plugin added after the copy plugin, and so do the error's filter buttons and links and the REPL Input's controls. `interestfor` works on buttons and links only, so an image's label stays its `title`.
+The page draws its controls' tooltips itself, since `title` tooltips are unreliable in webviews. `main` adds one hint popover, `#output-tooltip`, to the body, and `tooltip/attach!` points a control at it with `interestfor`, keeping its text in `aria-description`, which screen readers read as the control's description. A control in hiccup gets the same from `tooltip/attributes`, and `ui/on-output-click` and the REPL Input's Replicant dispatch call `tooltip/hide!` on a click. The tooltip takes that text when the control shows interest, on hover or keyboard focus, `tooltip/refresh!` shows a changed text while it shows, and it hides when its control hides or leaves the page. Every copy button has it, through the `copy-button/button` alias, and so do the error's filter buttons and links and the REPL Input's controls. `interestfor` works on buttons and links only, so an image's label stays its `title`.
 
 `image-host/webview-options` gives both views scripts, command links to the view's own Show command, and `localResourceRoots`: the extension, workspace folders that aren't `file:`, and the file system roots, so local images anywhere can load. The roots are rebuilt when workspace folders change. Both views keep their page when hidden (`retainContextWhenHidden`).
+
+Each page has its own auto scrolling, on when the page loads. While it is on, `output-appended` scrolls the output to its end (`auto-scroll/follow!`). `auto-scroll/listen!` turns it off on a scroll that went up with `#output-end` out of view, and on again on a scroll that ends with `#output-end` in view, or when an `IntersectionObserver` sees it come into view without a scroll. A scroll goes up when it ends above where the user or the page last scrolled to, so the page's own scrolls to the end, between the user's, don't hide a scroll up. `#output-end` lies over the last 4 pixels of the output, so the end counts as in view a little before the very bottom. Output that grows below doesn't scroll, so it doesn't turn auto scrolling off. Turning the REPL Input on or off moves the scrolling between the page and `#output-scroller`, and then the output scrolls to its end with auto scrolling on (`auto-scroll/reveal-end!`). Evaluations from the REPL Input scroll like any other output.
 
 Setting the HTML again reloads the page and loses what it showed. The Output View sets it once. The Output Sidebar sets it when it switches between its help page and the output, and replays its log after that.
 
@@ -170,7 +201,7 @@ Images are found in results only (`show-result`), not in stdout.
 
 Settings that apply to all views go to every view in `core/registered-webviews`.
 
-- Code colors: `set-code-theme` carries the highlight.js stylesheet for the color theme kind and the token colors that `token_colors.cljs` reads from the active theme's file, with the user's `editor.tokenColorCustomizations`, mapped from highlight.js scopes to Calva's TextMate scopes (`hljs-scope->textmate-scope`). `token_colors.cljs` keeps the token colors of the theme file it read last, and reads a file again when another theme is active or when extensions change (`create-extensions-change-listener` in `core.cljs`). The webview puts the colors in a constructed stylesheet over the highlight.js one. `set-code-theme` is posted when a view is shown or changes view state, when the color theme changes, and when `editor.tokenColorCustomizations` changes. The REPL Input's highlighting uses the same highlight.js classes, so it gets the same colors.
+- Code colors: printed code is colored by the extension (see Printed code). `set-code-theme` also carries the bracket styles from the `calva.highlight` settings, which the page installs as the bracket stylesheet. `set-code-theme` is posted when a view is shown or changes view state, when the color theme changes, and when `editor.tokenColorCustomizations` changes. When its palette key differs from the one the page had, the page asks for its code's colors again.
 - Font size: the page scales with `--calva-output-font-scale`. `calva.outputViews.fontSizeScale` is the base. The increase, decrease and reset commands adjust each view's db, between 0.5 and 1.5, for as long as the page lives.
 - Word wrap: `calva.outputViews.wordWrap`, where `follow-editor` follows `editor.wordWrap`. `calva.toggleReplOutputWordWrap` overrides it for the session and sets `calva:outputWordWrap`. `set-word-wrap` also wraps the REPL Input's lines.
 

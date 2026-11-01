@@ -94,6 +94,8 @@
 
    [:.output-error-frame-qualifier {:color "var(--vscode-descriptionForeground, #858585)"}]
 
+   [:.output-error-frame-name {:color "var(--calva-frame-name-color, inherit)"}]
+
    [:.output-error
     [:.output-error-frame-link {:display :inline
                                 :width :auto

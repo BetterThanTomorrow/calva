@@ -5,13 +5,16 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.evaluations :as evaluations]
    [calva.repl.input.host :as host]
+   [calva.repl.input.printed-code :as printed-code]
+   [calva.repl.input.recall :as recall]
    [calva.repl.input.records :as records]
    [calva.repl.input.reveal :as reveal]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.trail :as trail]
    [calva.util :as util]))
 
 (defn- mounted!
-  "Posts the context line, the history and the evaluation bar to the REPL Input `id`, and gives its stdin
+  "Posts the context line, the history and the evaluations to the REPL Input `id`, and gives its stdin
    input the focus when an evaluation waits there for a line from stdin. Refreshing the context already
    posts a history that changed."
   [id]
@@ -31,13 +34,20 @@
   (let [restored (records/restored (get-in @host/!state [:repl-input/records id]))]
     (trail/log! (str "REPL Input mounted in " id))
     (swap! host/!views assoc id webview-host)
+    (semantic-tokens/forget! id)
     (host/take-record! records/take-mount msg)
     (some->> restored (merge {:restore? true}) (host/take-edit! id version))
     (mounted! id)
     (host/load-keybindings!)))
 
+(defn ^:export follow-editor-chosen!
+  "Follows the editor as the user chose, which the history entries the REPL Inputs show keep from then on."
+  []
+  (recall/mode-chosen! nil)
+  (host/follow-editor!))
+
 (defn handle-message!
-  "Takes a message the REPL Input in `webview-host` posted."
+  "Takes a message the REPL Input, or the printed code's editor, in `webview-host` posted."
   [^js webview-host ^js message]
   (let [{:keys [command] :repl-input/keys [id] :as msg} (js->clj message :keywordize-keys true)]
     (case command
@@ -53,11 +63,12 @@
       "repl-input-interrupt" (evaluate/interrupt! id)
       "repl-input-send-line" (evaluate/send-line! id (:line msg))
       "repl-input-lock" (host/lock! (:lock msg))
+      "repl-input-mode-chosen" (recall/mode-chosen! id)
       "repl-input-complete" (complete/complete! msg)
       "repl-input-resolve-completion" (complete/resolve! msg)
       "repl-input-completion-active" (complete/active-changed! msg)
       "repl-input-reveal-definition" (reveal/reveal-definition! msg)
-      nil)))
+      (printed-code/handle-message! webview-host command msg))))
 
 (defn listen-for-messages!
   [^js webview-host]

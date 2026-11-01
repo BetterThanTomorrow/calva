@@ -15,7 +15,8 @@
     (let [db {:output/last-context ["who" "session" "build" 1 "my.ns"]}
           result (sut/handle-action db [:msg/clear-output-view])]
       (is (nil? (get-in result [:uf/db :output/last-context])))
-      (is (= [[:fx/clear-dom]] (:uf/fxs result)))))
+      (is (= [[:printed-code/fx.unmount] [:fx/clear-dom]] (:uf/fxs result))
+          "The printed code's editor goes before the output it stands in")))
 
   (testing ":msg/output with new context"
     (let [meta {:meta/who "tester" :meta/ns "my.ns" :meta/repl-session-key "clj"}
@@ -23,7 +24,7 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
       (is (= [[:fx/append-ns-info meta]
-              [:fx/append-result "42"]]
+              [:fx/append-result "42" nil nil]]
              (:uf/fxs result)))))
 
   (testing ":msg/output with unchanged context"
@@ -32,7 +33,28 @@
           payload {:command/name "show-result" :output "42" :meta meta}
           result (sut/handle-action db [:msg/output payload])]
       (is (= ["tester" "clj" nil nil "my.ns"] (get-in result [:uf/db :output/last-context])))
-      (is (= [[:fx/append-result "42"]] (:uf/fxs result)))))
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs result)))))
+
+  (testing ":msg/output of evaluations in an unchanged context"
+    (let [meta {:meta/who "tester" :meta/ns "my.ns" :meta/repl-session-key "clj" :meta/evaluation-id 2}
+          db {:output/last-context ["tester" "clj" nil nil "my.ns"] :output/last-evaluation 1}
+          output (fn [db command-name meta]
+                   (sut/handle-action db [:msg/output {:command/name command-name :output "42" :meta meta}]))
+          {db :uf/db :uf/keys [fxs]} (output db "show-stdout" meta)]
+      (is (= [:fx/append-ns-info meta] (first fxs))
+          "A new evaluation starts with the info line")
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs (output db "show-result" meta)))
+          "The rest of the evaluation's output has none")
+      (is (= [[:fx/append-stdout "42" "evalOut"]]
+             (:uf/fxs (output db "show-stdout" (dissoc meta :meta/evaluation-id))))
+          "Output from no evaluation shows it only when the context changed")))
+
+  (testing ":msg/output with the extension's highlighting"
+    (let [ranges [[0 2 "#79c0ff" nil]]
+          payload {:command/name "show-result" :output "42" :output/highlighting ranges}
+          result (sut/handle-action {:output/last-context nil} [:msg/output payload])]
+      (is (= [[:fx/append-result "42" ranges nil]] (:uf/fxs result))
+          "The result is appended colored with its ranges")))
 
   (testing ":msg/output show-stdout with an output-category"
     (let [payload {:command/name "show-stdout" :output "text" :output-category "otherOut"}
@@ -44,28 +66,52 @@
           result (sut/handle-action sut/initial-db [:msg/output payload])]
       (is (= [[:fx/append-stdout "text" "evalOut"]] (:uf/fxs result)))))
 
-  (testing ":msg/set-word-wrap wraps the output and the REPL Input"
+  (testing ":msg/set-word-wrap wraps the output, the REPL Input and printed code's editor"
     (let [result (sut/handle-action sut/initial-db [:msg/set-word-wrap {:word-wrap true}])]
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-word-wrap true]
-              [:repl-input/fx.set-line-wrapping true]]
+              [:repl-input/fx.set-line-wrapping true]
+              [:printed-code/fx.set-line-wrapping true]]
              (:uf/fxs result))))))
+
+(deftest handle-action-printed-code-test
+  (testing ":msg/output-highlighting colors the printed code"
+    (is (= [[:fx/set-code-highlighting [["1" [[0 1 "#a" nil]]]]]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/output-highlighting {:output/codes [["1" [[0 1 "#a" nil]]]]}])))))
+  (testing ":msg/output-semantic-tokens lays semantic tokens over the printed code"
+    (is (= [[:fx/set-semantic-tokens [["1" [[0 1 "#b" nil]]]]]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/output-semantic-tokens {:output/codes [["1" [[0 1 "#b" nil]]]]}]))))))
 
 (deftest handle-action-set-code-theme-test
   (testing ":msg/set-code-theme"
-    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"
-                                                                         :token-colors {"keyword" "#ff7b72"}}])]
-      (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-code-theme "dark"]
-              [:fx/set-token-colors {"keyword" "#ff7b72"}]]
+    (let [result (sut/handle-action sut/initial-db [:msg/set-code-theme {:output/palette-key 1
+                                                                         :output/frame-name-color "#d2a8ff"}])]
+      (is (= (assoc sut/initial-db :output/palette-key 1) (:uf/db result)))
+      (is (= [[:fx/set-frame-name-color "#d2a8ff"]
+              [:fx/set-bracket-styles nil]]
              (:uf/fxs result))
-          "The theme's code colors go over the code theme")))
-
-  (testing ":msg/set-code-theme without token colors"
-    (is (= [[:fx/set-code-theme "dark"]
-            [:fx/set-token-colors nil]]
-           (:uf/fxs (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark"}])))
-        "Colors from an earlier theme go, and the code theme's colors show")))
+          "Stack frames' function names take the theme's color for function names")))
+  (testing ":msg/set-code-theme with the colors of another theme"
+    (let [first-theme (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
+          same-theme (sut/handle-action (:uf/db first-theme) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
+          other-theme (sut/handle-action (:uf/db first-theme) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 2}])]
+      (is (not-any? #{[:fx/rehighlight-code]} (:uf/fxs first-theme))
+          "The page's first theme highlights nothing again")
+      (is (not-any? #{[:fx/rehighlight-code]} (:uf/fxs same-theme))
+          "The same colors, as when a view shows again, highlight nothing again")
+      (is (some #{[:fx/rehighlight-code]} (:uf/fxs other-theme))
+          "Other colors highlight the printed code again")))
+  (testing ":msg/set-code-theme with a theme that has no palette"
+    (let [first-theme (sut/handle-action sut/initial-db [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])
+          unreadable (sut/handle-action (:uf/db first-theme) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 0}])
+          shown-again (sut/handle-action (:uf/db unreadable) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 0}])
+          readable-again (sut/handle-action (:uf/db shown-again) [:msg/set-code-theme {:code-theme "dark" :output/palette-key 1}])]
+      (is (some #{[:fx/rehighlight-code]} (:uf/fxs unreadable))
+          "Losing the palette highlights the printed code again")
+      (is (not-any? #{[:fx/rehighlight-code]} (:uf/fxs shown-again))
+          "Showing the view again without a palette highlights nothing again")
+      (is (some #{[:fx/rehighlight-code]} (:uf/fxs readable-again))
+          "Getting the palette back highlights the printed code again"))))
 
 (def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 
@@ -118,13 +164,22 @@
 
   (testing "a result without images is appended as before"
     (let [result (sut/handle-action sut/initial-db [:msg/output {:command/name "show-result" :output "42"}])]
-      (is (= [[:fx/append-result "42"]] (:uf/fxs result)))))
+      (is (= [[:fx/append-result "42" nil nil]] (:uf/fxs result)))))
 
   (testing "evaluated code is left raw"
     (let [payload {:command/name "show-evaluated-code" :output (str "\"" png-data-url "\"")}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"")]]
+      (is (= [[:fx/append-evaluated-code {:code (str "\"" png-data-url "\"") :ranges nil :brackets nil :evaluation-id nil}]]
              (:uf/fxs result)))))
+
+  (testing "evaluated code carries its evaluation"
+    (is (= 7 (-> (sut/handle-action sut/initial-db [:msg/output {:command/name "show-evaluated-code"
+                                                                 :output "(+ 1 2)"
+                                                                 :meta {:meta/evaluation-id 7}}])
+                 :uf/fxs
+                 peek
+                 second
+                 :evaluation-id))))
 
   (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
@@ -280,6 +335,13 @@
     (is (= [[:fx/render-error error]] fxs)
         "An error without frames is drawn too, as its own entry")
     (is (= causes (:error/causes error)))))
+
+(deftest evaluation-ended-test
+  (is (= {:uf/db sut/initial-db
+          :uf/fxs [[:fx/end-evaluation 7]]}
+         (sut/handle-action sut/initial-db [:msg/output {:command/name "evaluation-ended"
+                                                         :meta/evaluation-id 7}]))
+      "The end of an evaluation removes the spinners of its code"))
 
 (deftest error-causes-arrive-later-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes []}))

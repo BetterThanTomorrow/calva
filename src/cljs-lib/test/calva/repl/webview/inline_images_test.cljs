@@ -57,7 +57,7 @@
       :else [:other (.-tagName child)])))
 
 (deftest nested-map-result-places-images-after-placeholder-lines-test
-  (with-redefs [ui/highlight-code! (fn [_])]
+  (with-redefs [ui/post-to-host! (fn [_])]
     (let [host (js/document.createElement "div")
           text "{:a {:i1 \"<<image-1 png 8 B>>\"\n     :i2 \"<<image-2 png 8 B>>\"}}"
           _ (ui/append-result-with-images host {:text text :raw text :images [image-1 image-2]})

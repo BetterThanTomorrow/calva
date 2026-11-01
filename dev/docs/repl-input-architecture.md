@@ -1,6 +1,6 @@
 # Calva REPL Input Architecture
 
-How the REPL Input is built, and where to start when you change it. The REPL Input is a CodeMirror 6 editor in the Output views, below the output. The webview holds the text, the selections, the undo history and the completion list, and draws them. What makes it Calva runs in the extension: Paredit, formatting, indentation, rainbow brackets, routing, namespaces, evaluation, history, completion and go to definition.
+How the REPL Input is built, and where to start when you change it. The REPL Input is a CodeMirror 6 editor in the Output views, below the output. The webview holds the text, the selections, the undo history and the completion list, and draws them. What makes it Calva runs in the extension: Paredit, formatting, indentation, rainbow brackets, highlighting, routing, namespaces, evaluation, history, completion and go to definition.
 
 Read [Output Views Architecture](output-views-architecture.md) first. The REPL Input lives in that page, takes part in its uniflow loop, and talks over the same messages. For routing, see [Session Routing](multi-session-architecture.md#session-routing).
 
@@ -17,7 +17,7 @@ The REPL Input is behind `calva.outputViews.replInput`, a setting with one value
 | Where | Code | What it owns |
 | --- | --- | --- |
 | Webview, build `:repl-output-ui` | `src/cljs-lib/src/calva/repl/webview/input/*.cljs` | The CodeMirror state: text, selections, undo history, the completion list. Drawing, highlighting, painting the brackets, which keys to leave to VS Code, walking its copy of the history |
-| Extension, cljs-lib | `src/cljs-lib/src/calva/repl/input/*.cljs` | One record per REPL Input, one context both share, focus, the derived data posted to each, history, evaluation, completion and definitions |
+| Extension, cljs-lib | `src/cljs-lib/src/calva/repl/input/*.cljs` | One record per REPL Input, one context both share, focus, the derived data posted to each, the highlighting, history, evaluation, completion and definitions |
 | Extension, TS | `src/repl-input.ts` and the modules below | The adapter: functions that call Calva's TS code, passed to cljs-lib at activation. The REPL Input's own commands |
 
 TypeScript keeps what was TypeScript before: Paredit, `StringDocument`, `getIndent`, the formatter, the rainbow painter, the cursor contexts, routing, `getNamespace`, evaluation and the completion and definition providers. The adapter is thin: each of its functions calls existing Calva code.
@@ -38,11 +38,14 @@ The namespaces are `calva.repl.input.<name>`.
 | `config` | Reads the settings, the resolved keybindings, the stored history and the kept code |
 | `command-keys`, `when-clause` | Which keys VS Code gets, from the keybindings and their `when` clauses, pure |
 | `brackets` | Which brackets close themselves, and the bracket styles, pure |
-| `evaluate`, `evaluations` | Evaluating, stdin, interrupting, and the evaluation bar |
+| `evaluate`, `evaluations` | Evaluating, stdin, interrupting, and what the REPL Input shows of its evaluations |
 | `history`, `recall` | The history entries, and recalling them |
 | `complete`, `completion` | Completion requests, and the copy clojure-lsp completes in |
+| `highlighting` | The grammar, and the theme's colors for its tokens and for semantic tokens, pure but for loading the grammar |
+| `semantic-tokens` | Asking clojure-lsp for semantic tokens a pause after the text changes |
 | `definition`, `reveal` | Go to definition, and the kept code of evaluations |
 | `stdin` | stdin for evaluations from files, in an Output view's REPL Input |
+| `printed-code` | Printed code's record in each view, its command keys and brackets, and Paredit's moves in it |
 
 ### Webview side
 
@@ -55,9 +58,10 @@ The namespaces are `calva.repl.webview.input.<name>`.
 | `keys` | Which keydowns to leave to VS Code |
 | `commands` | CodeMirror's keymap, and the named commands that VS Code's keys run through Calva's keybindings |
 | `history` | Walking the history, and the lock or following that a shown entry asks for |
-| `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, the context line with the namespace indicator, its menu and the play button, and the evaluation bar. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
+| `context` | The controls as hiccup, from `actions/controls-state`: the sash, the stdin input, and the context line with the namespace indicator, its menu, the spinner and stop button that show while an evaluation runs, and the play button. Whether the menu is open, `:repl-input/namespace-menu-open?`, and whether the sash is dragged, `:repl-input/dragging?`, are in the app-db |
 | `completion` | CodeMirror's completion, fed with the extension's candidates |
-| `stdin`, `highlight`, `brackets`, `edit`, `definition` | The stdin input, as hiccup, highlighting with highlight.js, bracket classes, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
+| `highlighting`, `highlight` | The CodeMirror field with the extension's highlighting layers, colored with the classes of `calva.repl.webview.code-highlight`, and the pure parts: layering, moving ranges along with edits, and where the strings are, for a typed quote |
+| `stdin`, `edit`, `definition` | The stdin input, as hiccup, the smallest text change, click to definition. The controls' tooltips are the page's, from `calva.repl.webview.tooltip`: `tooltip/attributes` points a control in hiccup at it |
 
 ### Extension side, TS
 
@@ -65,8 +69,8 @@ The namespaces are `calva.repl.webview.input.<name>`.
 | --- | --- |
 | `src/repl-input.ts` | The adapter (`initReplInput`), following the editor, the `calva.replInput.*` commands, `hasFocus`, `editFocused`, and the wrappers for evaluation commands and custom REPL commands |
 | `src/repl-input-document.ts` | `StringDocument` from text and selections and back, new lines with Calva's indentation, the brackets, the cursor contexts |
-| `src/repl-input-completion.ts`, `src/repl-input-definition.ts` | The completion and definition parts of the adapter, and the read-only editors of evaluations |
-| `src/lsp/repl-input-copy.ts` | The copy that clojure-lsp completes and finds definitions in |
+| `src/repl-input-completion.ts`, `src/repl-input-definition.ts` | The completion, semantic token and definition parts of the adapter, and the read-only editors of evaluations |
+| `src/lsp/repl-input-copy.ts` | The copy that clojure-lsp completes, finds definitions and gives semantic tokens in |
 | `src/repl-input-stdin.ts` | Whether an evaluation from a file reads stdin in the Output Sidebar |
 | `src/current-file.ts`, `src/current-file-decision.ts` | The current file, which is the REPL Input's source file while it is the current editor |
 
@@ -76,7 +80,7 @@ Calva's TS code that branches on `replInput.hasFocus()`: `src/paredit/extension.
 
 On the extension side, `calva.repl.input.host/!state` holds the REPL Inputs' state: the records by view id, the focused and last focused REPL Input, the parsed keybindings, the settings, the context keys last set, the running evaluations, the kept code, the context (`:repl-input.context/lock`, `/editor` and `/line`) and the history (`:repl-input.history/entries` and `/walked`). It changes only in message and event handlers. The decisions are pure functions in their own namespaces, with tests.
 
-Beside it are atoms for things that aren't data: `host/!adapter` (the TS functions), `host/!views` (each view's webview host by id, set when its REPL Input mounts), `evaluate/!running` (each running evaluation's `NReplEvaluation` and stdin resolver), and `complete/!completions` (the request in flight and the JS items each view was answered with).
+Beside it are atoms for things that aren't data: `host/!adapter` (the TS functions), `host/!views` (each view's webview host by id, set when its REPL Input mounts), `evaluate/!running` (each running evaluation's `NReplEvaluation` and stdin resolver), `complete/!completions` (the request in flight and the JS items each view was answered with), `highlighting/!grammar` and `highlighting/!palette` (the loaded grammar and the active theme's colors), and `semantic-tokens/!requests` (each view's pending request for semantic tokens and what its last request was for).
 
 The view ids are those of the Output Destinations, `"output-view"` and `"output-sidebar"`. Each view has its own record, with its text, selections, version and history position. Both share one context, so a lock made in one view holds in the other.
 
@@ -88,7 +92,7 @@ In the webview, the REPL Input's state is in the Output view's db, under `:repl-
 
 1. `core/page` puts `#repl-input`, `core/repl-input-element`, in every Output view's page, with the data from `host/html-state`: the view id, and whether the REPL Input is on.
 2. `main.cljs` dispatches `:repl-input/ax.init`. When it is on, `:repl-input/fx.mount` creates the `EditorView`, and `:repl-input/ax.mounted` posts `repl-input-mounted`.
-3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluation bar, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
+3. `messages/handle-message!` keeps the view in `!views`, makes its record, posts the context line, the history and the evaluations, gives the focus to the stdin input when an evaluation waits there, and loads the keybindings, which derives the record (see Editing).
 
 A change of the setting posts `repl-input-enabled`, which mounts or unmounts the editor in the page as it is. For the Output Sidebar that holds while it is an Output Destination; otherwise `apply-to-output-sidebar!` sets its page again, the help page or the REPL Input alone. Setting the page's HTML again, as the Output Sidebar does when it switches to or from its help page, mounts a new REPL Input. `host/view-page-set!` forgets the view first and keeps its record, and when the new REPL Input mounts, `messages/take-mount!` gives it the record's text and selections back with a `repl-input-edit`. A disposed view, `host/view-disposed!`, drops the record, so its REPL Input starts empty.
 
@@ -118,9 +122,9 @@ A key typed while an edit is on its way makes that edit stale, and the webview d
 2. VS Code runs the command, like `paredit.slurpSexpForward`, since its `when` clause holds with `calva:replInputFocused`.
 3. `wrapPareditCommand` sees `replInput.hasFocus()` and calls `replInput.editFocused` with the command's handler.
 4. `host/edit-focused!` makes a `StringDocument` from the record (`repl-input-document.ts`), runs the handler on it, and when the text or selections changed, `take-edit!` posts `repl-input-edit`.
-5. `host/derive-record!` derives the cursor contexts, the command keys, the editor settings and the brackets for the new text, sets the cursor contexts while the REPL Input has the focus, and posts what changed.
+5. `host/derive-record!` derives the cursor contexts, the command keys, the editor settings, the brackets and the highlighting for the new text, sets the cursor contexts while the REPL Input has the focus, posts what changed and the highlighting, and asks for semantic tokens after a pause (see Highlighting).
 
-Every change from the webview derives the record the same way. The brackets come from the rainbow painter Calva paints files with, and the webview paints them by class from a stylesheet with the bracket colors.
+Every change from the webview derives the record the same way. The brackets come from the rainbow painter Calva paints files with, with the indent guides and the guides of the forms around the cursors when `calva.highlight.rainbowIndentGuides` and `highlightActiveIndent` ask for them. The webview paints them by class from a stylesheet with the bracket colors (`calva.repl.webview.code-brackets`, which the printed code uses too). A guide marks the character at its column, and its class draws a line at that character's left edge.
 
 The command keys come from `config/read-keybindings+`: VS Code's resolved keybindings, `vscode://defaultsettings/keybindings.json`, which have the keys for the user's keyboard layout, or the manifest's keys for the platform when those can't be read. `command-keys/command-keys` keeps the keys of the bindings whose `when` clause holds in the REPL Input's context: the settings (as `config.*`), `paredit:keyMap`, the cursor contexts, `calva:replInputFocused`, `calva:connected` and `editorHasMultipleSelections`. The keys in `calva.outputViews.replInputCommandKeys` are added, for users' own keybindings.
 
@@ -135,14 +139,16 @@ These are the rules a change has to keep:
 - A lock and a history entry keep the namespace, the `ns` form and the source file. They keep a session key only when there is no source file, which happens when the code was evaluated before any Clojure editor was followed.
 - Each use routes the source file again, so the pinned session, the cljc target and reconnects act on a lock or an entry as they act on the file.
 - The REPL Input has no session, build or runtime choice of its own. The pinned session, the cljc target, the runtime picker and the build switch are the controls, for files and the REPL Input alike.
+- Evaluating code with an `ns` or `in-ns` form is how the user locks the REPL Input to a namespace. Code in the namespace of the followed file doesn't lock: the REPL Input follows the editor, also when it was locked. While the REPL Input is locked, code in another namespace moves the lock to that namespace. When the editor moves into the locked namespace from another one, the REPL Input follows the editor again. The namespace indicator and its menu are the other way to change the lock.
+- A shown history entry keeps its namespace, also after the user edits it. It follows the editor while the editor is in the entry's namespace and session, and is locked to the entry otherwise, so the code evaluates in the entry's namespace, through the session that routes its source file, wherever the editor goes. The entry keeps its namespace until the user walks on, or, in either view, evaluates, picks from the namespace menu or clicks the indicator, or follows the editor with `calva.replInput.followEditor`.
 
 `context/current` works the context out. With a lock, it is the lock. Else it is following the editor: the namespace and `ns` form of the last active Clojure editor at its cursor (`namespace.getNamespace` through the adapter's `editorNamespace`), or `user` before any. The session key is what the adapter's `routedSessionKey` gives for the source file, which is `replSession.getRoutingInfoForUri`: routing by the file's URI, without opening the file. It tries, in order, the pinned session, the REPL window's session for the REPL window's own file, the globs, and the first available session. The cljc target applies to a glob match on the project-fallback tier and to the first available session. When the REPL Input evaluates somewhere unexpected, check for a pin first. The context is connected when a session answers to that key.
 
 The context line, as the views get it, is `(:repl-input.context/line @calva.repl.input.host/!state)`, and the lock is `(:repl-input.context/lock @calva.repl.input.host/!state)`.
 
-- Following: `repl-input.ts` calls `replInputEditorMoved` when the active editor changes, and when its selection changes by keyboard or mouse, for Clojure files other than the REPL window and the read-only editors of evaluations. `replWindow.isReplWindowFile` recognizes the REPL window by its URI, which `repl-window-doc.ts` knows (`_docUri`) only after a connect, and by its file name, `.calva/repl.calva-repl`, also before.
+- Following: `repl-input.ts` calls `replInputEditorMoved` when the active editor changes, and when its selection changes, for Clojure files other than the REPL window and the read-only editors of evaluations. `replWindow.isReplWindowFile` recognizes the REPL window by its URI, which `repl-window-doc.ts` knows (`_docUri`) only after a connect, and by its file name, `.calva/repl.calva-repl`, also before. `host/editor-moved!` keeps the editor's namespace with it, and drops the lock when that namespace changed to the locked one (`context/editor-moved`), so an edit of the text doesn't count as a move.
 - Routing: `status.update()` calls `replInputRoutingChanged` (`host/routing-changed!`), which works the context out again, routes the history again with `refresh-history!`, and derives the records when the REPL connected or disconnected.
-- Locking: after a successful evaluation of code with an `ns` or `in-ns` form (`nsFromText`), `context/lock-after` locks its namespace with the context's source file. The webview asks for a lock or for following the editor with `repl-input-lock` and `repl-input-follow-editor`, from the namespace indicator and the history.
+- Locking: after a successful evaluation of code with an `ns` or `in-ns` form (`nsFromText`), `context/lock-after` locks its namespace with the context's source file, or follows the editor when the namespace is the followed file's. The webview asks for a lock or for following the editor with `repl-input-lock` and `repl-input-follow-editor`, from the namespace indicator and the history.
 - `host/refresh-context!` posts `repl-input-context` to every view, and routes the history again, when the context line changed. Every change of the lock goes through it.
 
 ## Evaluation
@@ -150,20 +156,20 @@ The context line, as the views get it, is `(:repl-input.context/line @calva.repl
 1. `alt+enter` runs `calva.replInput.evaluateTopLevelForm`, which picks the top-level form at the cursor. `ctrl+alt+c enter` and the play button evaluate all the text (`calva.replInput.evaluate`, and the webview's `repl-input-evaluate`).
 2. `evaluate.cljs` works the context out. Without a connected session, it says so in a message and evaluates nothing.
 3. When the code is all of the text, the REPL Input is cleared. The code is added to the history.
-4. The evaluation gets an id, `reveal/keep-code!` keeps its code, and the evaluation bar says it runs.
+4. The evaluation gets an id, `reveal/keep-code!` keeps its code, and the context line shows the spinner and the stop button.
 5. The adapter's `evaluate`, `evaluateCode` in `repl-input.ts`, gets the session by its key and calls `evaluate.evaluateInNamespace` around `evaluate.evaluateToOutputDestinations`, the functions evaluations from files use. It evaluates the `ns` form first unless the session last evaluated in the namespace, and leaves the REPL window's session and namespace where the evaluation ended, as files do. The code is sent with the file name `calva-repl-input/<id>.clj` and the line and column where it starts in the REPL Input, and echoed to the Output Destinations when `calva.evaluationSendCodeToOutputWindow` is on.
 6. Results, stdout and errors go to the Output Destinations, like any evaluation's. A REPL Input in a view that isn't an Output Destination shows none of them.
-7. When it's done, the context may lock (see Context and routing), and the evaluation bar updates.
+7. When it's done, the context may lock (see Context and routing), and the spinner and the stop button hide once no evaluation from the REPL Input runs.
 
 The file name matters twice. cider-nrepl's `eval` fails without one, and go to definition finds the evaluation by it (`definition/evaluation-file` and `evaluation-id`).
 
 The other evaluation commands from files work on the REPL Input while it has the focus: `extension.ts` wraps them with `replInput.evaluatingWhenFocused(pick, …)`, which evaluates what `pick` takes from the REPL Input's `StringDocument`. The picks are those of `util/cursor-get-text.ts`, which files use too, through `util/get-text.ts` at a document position. With no form to pick, as between two top-level forms for the enclosing form, a pick is the whole document, without a range, as in a file, so the REPL Input evaluates all of its text there. They keep the text and don't add to the history. Custom REPL commands go through `runningSnippetWhenFocused`, with the REPL Input's text and context (`replInputSnippetEvaluation` in `custom-snippets-catalog.ts`).
 
-`calva.replInput.interrupt` interrupts the view's running evaluations, through the `NReplEvaluation` each one handed back when it was sent.
+`calva.replInput.interrupt` and the stop button interrupt the view's running evaluations, through the `NReplEvaluation` each one handed back when it was sent.
 
 ### stdin
 
-- An evaluation from the REPL Input reads stdin in the view's stdin input. `evaluate/read-stdin+` shows it through the evaluation bar, and the webview posts the line with `repl-input-send-line`.
+- An evaluation from the REPL Input reads stdin in the view's stdin input. `evaluate/read-stdin+` shows the stdin input, with its own stop button, in place of the spinner and the context line's stop button, and the webview posts the line with `repl-input-send-line`.
 - An evaluation from a file reads stdin in the Output Sidebar's REPL Input while the setting has it on, else in the Output View's while the setting has that on, and otherwise with the input box. Evaluations from the REPL window use the input box. `stdinFor` in `evaluate.ts` picks the view with `stdinViewId` in `repl-input-stdin.ts`, and `calva.repl.input.stdin/read-line+` reveals that view and waits for the line in its stdin input.
 
 ## History
@@ -173,7 +179,7 @@ The other evaluation commands from files work on the REPL Input while it has the
 - The history keeps the latest 500 entries (`history/kept-count`). `add` drops the oldest.
 - `host/refresh-history!` routes each entry's source file again (`history/routed`), and posts `repl-input-history` when the walked entries changed.
 - The webview walks its copy, with no round trip: `up` on the first line and `down` on the last, with one cursor and the completion list closed. It keeps the user's own text, and the context line, for walking back past the newest entry.
-- A shown entry asks for a mode: following the editor when its namespace and routed session are the editor's, else locked to the entry. The webview posts `repl-input-lock` or `repl-input-follow-editor`, and keeps the mode up to date as the editor changes, until the user picks from the namespace menu, clicks the indicator, evaluates or walks on. This matching is `same-context?` and `entry-mode` in `webview/input/history.cljs`, tested in `test/calva/repl/webview/input/history_test.cljs`.
+- A shown entry asks for a mode: following the editor when its namespace and routed session are the editor's, else locked to the entry. The webview posts `repl-input-lock` or `repl-input-follow-editor`, and keeps the mode up to date as the editor changes, until the user picks from the namespace menu, clicks the indicator, evaluates or walks on. Editing the shown entry doesn't change that. Both views share the context, so a click on the indicator, an evaluation, or `calva.replInput.followEditor` ends it in every view: the page posts `repl-input-mode-chosen` on a click, `recall/mode-chosen!` passes it on to the other views, and also tells them when an evaluation starts, and the command tells all of them, with `messages/follow-editor-chosen!`. This matching is `same-context?` and `entry-mode` in `webview/input/history.cljs`, tested in `test/calva/repl/webview/input/history_test.cljs`.
 - `ctrl+r` searches the history in a quick pick (`recall/search-focused!`), and posts `repl-input-recall` with the picked position.
 
 ## Completion and go to definition
@@ -186,9 +192,22 @@ Completion:
 4. A candidate's docs come with `repl-input-resolve-completion`, and the docs panel shows the arglists and the docstring.
 5. `calva:replInputCompletionActive` and `calva:replInputCompletionAcceptsEnter` let the keybindings for `tab` and `enter` step aside while the list is open.
 
-clojure-lsp completes from its own copy of a document, so `lsp/repl-input-copy.ts` sends it one for each request: `.calva/repl-input/repl_input.clj` under the client's workspace folder, which doesn't exist on disk. The copy is the followed file's text and then the REPL Input's text, or, when locked or without a file, the context's `ns` form and then the text (`completion/copy`). A cycle opens it, sends the request, closes it, and says it was deleted, which takes it out of clojure-lsp's analysis. One cycle runs at a time. `lsp/client/client.ts` drops the diagnostics for the copy.
+clojure-lsp completes from its own copy of a document, so `lsp/repl-input-copy.ts` sends it one for each request: `.calva/repl-input/repl_input.clj` under the client's workspace folder, which doesn't exist on disk, with the extension of the context's source file when it is `.cljs` or `.cljc`, or `.cljs` without a Clojure source file in a ClojureScript session, so clojure-lsp analyzes it as that file. The copy is the followed file's text and then the REPL Input's text, or, when locked or without a file, the context's `ns` form and then the text (`completion/copy`). A cycle opens it, sends the request, closes it, and says it was deleted, which takes it out of clojure-lsp's analysis. One cycle runs at a time. `lsp/client/client.ts` drops the diagnostics for the copy.
 
 Go to definition, `calva.replInput.revealDefinition` or a click with the modifier `editor.multiCursorModifier` leaves free, asks the providers in the order of `calva.definitionProviderPriority`: the REPL in the context's session (`providers/repl-definition.ts`), and clojure-lsp in the copy. `definition/lsp-target` maps a place in the copy's followed-file part back to the file. A var that the REPL reports in `calva-repl-input/<id>.clj` opens the read-only editor `calva-repl-input:/<id>.clj`, from the kept code, at the definition. Files lead there too, through `src/providers/definition.ts`. Only the latest 500 evaluations keep their code.
+
+## Highlighting
+
+The REPL Input is colored the way files are: by Calva's grammar, with clojure-lsp's semantic tokens over it, in the colors of the active color theme.
+
+1. At activation, `core/init!` loads `clojure.tmLanguage.json` with `vscode-textmate` and `vscode-oniguruma` (`highlighting/load-grammar!`). Until the extension posts its colors to a page, the REPL Input's text is plain.
+2. `host/derive-record!` tokenizes the text with the grammar and colors the tokens with the theme's TextMate rules (`highlighting/text-highlighting`), again only when the text, the palette or the grammar changed. It posts the ranges as `repl-input-highlighting` at every version, with whether files get semantic highlighting, since the webview has moved its own copy along with the edits.
+3. A pause after a derive, a change of the context line, or a change of the followed file or its version (`host/editor-moved!`), `semantic-tokens/request!` asks clojure-lsp for the semantic tokens of the REPL Input's lines in the copy (see Completion and go to definition), with a range request, once the grammar is loaded and when the text isn't blank. It posts the colored ranges as `repl-input-semantic-tokens`, at the record's version, when the record still has the text they are for. When the text, the context, the followed file (with its version, unless the context is locked) and the theme are the same as for the last request, it posts the ranges that request got, without asking. Otherwise it cancels the last request, so a cycle that hasn't started is skipped. A request that gets nothing is asked again, and a REPL Input that mounts in a new page starts over (`semantic-tokens/forget!`).
+4. The webview keeps the two layers in `highlighting/field`, moves them along with each edit until new ones arrive, drops the semantic layer when the grammar's message says files get no semantic highlighting, and colors with the classes of `calva.repl.webview.code-highlight`, a class per color and font style in a constructed stylesheet, which the printed code uses too. The page's Content Security Policy allows no inline styles.
+
+clojure-lsp gives the copy no keyword tokens. It drops the keyword usages of files outside the source paths, and the copy stays outside them: closing a copy inside them makes clojure-lsp re-lint every file that uses the followed namespace. The grammar colors keywords the way those tokens would: inside `constant.keyword.clojure`, it scopes a keyword's namespace under `entity.name.type`, the slash under `variable.other.event` and the name under `keyword.control`. Those are the scopes VS Code's default rules color clojure-lsp's `type`, `event` and `keyword` tokens with. A theme without a rule for one of them colors that part as a keyword, as it does in files. Files are colored differently by semantic token rules for those types, in a theme or in the user's settings, and by a theme with a rule for `support.type` but none for `entity.name.type`, which VS Code falls back to for `type`. A range request leaves out the `comment` tokens clojure-lsp gives ignored forms, which Calva filters out for files too.
+
+`token-colors/active-theme-palette` reads the active theme's `tokenColors`, `semanticHighlighting` and `semanticTokenColors`, with the user's customizations and `editor.semanticHighlighting.enabled` for Clojure. `highlighting/semantic-style` picks a semantic token's style the way VS Code does: its foreground, bold, italic, underline and strikethrough each from the semantic token rule that sets it with the best score (100 for the type, 100 per modifier, 10 for the language), the theme's rules and then the user's, in order, the later of equal scores winning. What none of them sets comes from VS Code's default rules the same way (`highlighting/default-rules`, with the defaults for `defaultLibrary` and Calva's `semanticTokenScopes` for `macro:clojure`), each styled with the first of its TextMate scopes the theme has a foreground or font style rule for. The grammar layer gets the theme's font styles too (`highlighting/scope-styles`). The webview gives each font style a fixed class, and a semantic token's font styles set or unset the grammar's, the way VS Code lays semantic tokens over TextMate tokens. Without semantic highlighting, the REPL Input gets the grammar's colors alone. A change of the theme, of those settings or of the installed extensions derives the records again (`host/highlighting-changed!`).
 
 ## Focus and the last focused place
 
@@ -207,6 +226,16 @@ The command palette takes the focus while the user stays in the REPL Input. So t
 
 While the REPL Input has the focus, the cursor contexts (`calva:cursorInComment` and the others) are the REPL Input's, from `cursor-doc/cursor-context.ts`. When it loses the focus, `whenContexts.setCursorContextIfChanged` gives them back to the active editor.
 
+## Printed code
+
+Printed code in the Output views gets a cursor for Paredit's navigation and selection commands (the page side is in [Output Views Architecture](output-views-architecture.md), under Printed code's editor). `input/printed_code.cljs` keeps a record of the focused printed code in each view in `:printed-code/records`, of the same shape as a REPL Input's record, and works with the REPL Input's focus, records and command keys:
+
+- Its focus events are `:printed-code-focus`, `:printed-code-blur` and `:printed-code-unmount`. `focus/places-after` follows both places: to the REPL Input, printed code getting the focus is the focus going elsewhere, and the other way round, so commands reach one place at a time. `calva:printedCodeFocused` and `calva:printedCodeLastFocused` follow printed code's focus, and the cursor contexts are those of the place that has the focus. The view goes into `!views` on focus, so printed code works with the REPL Input off.
+- `wrapPareditCommand` sends a command to printed code with `replInput.selectInFocusedPrintedCode` when no REPL Input is the command target. `printed-code/select-focused!` runs it on a `StringDocument` made once per block, since printed code can be long, and posts only the selections. A command that changed the text changes nothing. `replInput.hasFocus()` stays the REPL Input's, so evaluation never reaches printed code.
+- The navigation and selection commands' keybindings have `(editorLangId == clojure && editorTextFocus || calva:replInputFocused || calva:printedCodeFocused)`, and their enablement lets them run there, and from the palette while printed code is the last focused place. `editing-keybindings-test.ts` checks that no other command reaches printed code. The command keys are derived with `calva:printedCodeFocused` in place of `calva:replInputFocused`.
+- Each selection change paints the brackets again, with the matched brackets and active guides, for printed code no longer than the 50,000 characters that get colored.
+- A focus from another editor than the record's replaces the record, and a view's printed code is forgotten when its editor unmounts, its page loads, or the view goes.
+
 ## The REPL Input as the current editor
 
 While the REPL Input is the last focused place, it is the current editor, and Calva's current file is its source file. `currentFileUri()` in `src/current-file.ts` asks `replInputFocused()` and `replInputSourceFile()`, the source file on the context line, and `decideCurrentFileUri` in `current-file-decision.ts`, which is pure and unit tested, gives that file. So routing's default, the status bar, the REPL Sessions menu, the cljc target, and jack-in and connect picking a project root follow the REPL Input. `activeEditorDocument()` leaves it out, for the commands that work on a file's text.
@@ -218,7 +247,7 @@ A lock without a source file has no current file. It routes as Calva routes with
 ## Where to start
 
 - A message from the webview: post it from an action with `post` in `webview/input/actions.cljs`, and take it in `input/messages.cljs`.
-- A message to the webview: `host/post-to-view!`, a case in `ui/handle-message`, an action in `webview/input/actions.cljs`, and an effect in `editor/exec-effect!` when it changes CodeMirror. `post-to-view!` reaches only the views in `!views`, those with a mounted REPL Input.
+- A message to the webview: `host/post-to-view!`, a case in `ui/handle-message`, an action in `webview/input/actions.cljs`, and an effect in `editor/exec-effect!` when it changes CodeMirror. `post-to-view!` reaches only the views in `!views`, those with a mounted REPL Input or focused printed code.
 - A key: either a CodeMirror keymap in the webview, like the history keys in `editor.cljs`'s `extensions`, or a `calva.replInput.<name>` VS Code command with a keybinding, which runs a command in `commands/by-name` through `repl-input-run-command`. A local keymap needs no round trip, but the user can't rebind it, and it never sees a key that is among the command keys, since those are cancelled before CodeMirror's keymap. A VS Code command follows the user's keybindings and shows in the palette.
 - A Calva editing command in the REPL Input: commands that go through `wrapPareditCommand` already work. Others branch on `replInput.hasFocus()` and run on an `EditableDocument` with `replInput.editFocused`.
 - A keybinding for an editing or evaluation command: its `when` clause needs `(editorLangId == clojure && editorTextFocus || calva:replInputFocused)`, which `src/extension-test/unit/editing-keybindings-test.ts` checks. A context key the REPL Input's context doesn't have counts as unset, and `when_clause.cljs` reads only the operators Calva's keybindings use today.
@@ -232,7 +261,9 @@ A lock without a source file has no current file. It routes as Calva routes with
 - An edit from the extension is dropped when a key was typed after the version it was made from (see Editing). `enter` and the clear after `alt+enter` are the likely cases, since a key often follows them at once. F12 reads the text from the extension's record, which can be one change behind.
 - After the command palette, the first Calva editing key in the already active file goes to the REPL Input (see Focus).
 - From the Output Sidebar, closing the palette, or running a command from it that isn't Paredit's, leaves the focus in the editor area. VS Code gives an extension no event for it.
-- clojure-lsp's copy is always a `.clj` file, so cljs and cljc contexts get clj analysis. Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
+- Completion doesn't add an alias to the `ns` form, and selects the first candidate whatever `editor.suggestSelection` says. There is no linting.
+- The semantic tokens are asked for again when the followed file's version changes as its editor's selection moves, as when typing. A change that doesn't move the selection, like the file changing on disk or a refactoring's edit elsewhere, leaves them as they were until the REPL Input's text or context changes. So does a change in another file, like a new macro in a required namespace.
+- The highlighting matches TextMate rules by the innermost scope a rule sets a foreground or a font style for, without parent selectors like `meta.x entity.y`. For Calva's grammar that gives the colors and font styles `vscode-textmate`'s own theme matching gives, in the built-in themes, the GitHub themes and Postrboard.
 - Force delete with several cursors does nothing.
 - In Cursor, `shift+cmd+l` and `shift+cmd+k` go to Cursor's own commands, in files too: Cursor registers its keybindings above every extension's.
 

@@ -116,8 +116,19 @@
 			]
 		},
 		"keyword": {
-			"match": "(?<=^|\\s|\\(|\\[|\\{):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))",
-			"name": "constant.keyword.clojure"
+			"match": "(?<=^|\\s|,|\\(|\\[|\\{|\\^)(::?)(?:([\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*]+)(/))?([\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+)(?=(\\s|\\)|\\]|\\}|\\,))",
+			"name": "constant.keyword.clojure",
+			"captures": {
+				"2": {
+					"name": "entity.name.type.keyword.namespace.clojure"
+				},
+				"3": {
+					"name": "variable.other.event.keyword.separator.clojure"
+				},
+				"4": {
+					"name": "keyword.control.keyword.name.clojure"
+				}
+			}
 		},
 		"keyfn": {
 			"patterns": [

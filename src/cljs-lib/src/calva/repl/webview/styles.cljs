@@ -13,8 +13,10 @@
   "The views' styles, as Garden rules, in the order they apply."
   (concat output/page
           output/text
+          output/code
           output/greeting
           output/evaluated-code
+          output/spinner
           output/ns-info
           images/forms
           images/thumbnails
@@ -25,7 +27,7 @@
           repl-input/layout
           repl-input/context-line
           repl-input/context-line-controls
-          repl-input/evaluation-bar
+          repl-input/running
           repl-input/stdin
           output/tooltip
           repl-input/menu

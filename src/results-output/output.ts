@@ -12,7 +12,10 @@ import * as replSession from '../nrepl/repl-session';
 import * as cider from '../nrepl/cider';
 import * as evaluatedCode from './evaluated-code';
 import * as errorOutput from './error-output';
+import * as infoLine from './info-line';
 import { isWebviewOutputDestination } from './output-destinations';
+
+export { nextEvaluationId } from './info-line';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -69,6 +72,7 @@ type AppendOptions = {
   replSessionKey?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  evaluationId?: number;
   // The causes of the error the message is about, for the Output views
   causes?: cider.Causes;
   unfolded?: boolean;
@@ -82,6 +86,8 @@ export type AppendClojureOptions = {
   description?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  // Numbers each evaluation, so that each evaluation's output starts with an info line
+  evaluationId?: number;
 };
 
 export type AppendEvaluatedCodeOptions = {
@@ -95,6 +101,7 @@ export type AppendEvaluatedCodeOptions = {
   who?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  evaluationId?: number;
 };
 
 const lightTheme = {
@@ -275,6 +282,9 @@ function writeToWebview(options: AppendOptions, message: string, after?: AfterAp
     errorOutput.writeErrorToWebview(options, message, after);
     return;
   }
+  if (options.outputCategory === 'evaluatedCode') {
+    evaluatedCode.showWhileRunning(options.evaluationId, options.destination);
+  }
   if (options.destination === 'output-sidebar') {
     cljsLib.appendToReplOutputSidebar(options, message);
   } else {
@@ -283,6 +293,15 @@ function writeToWebview(options: AppendOptions, message: string, after?: AfterAp
   if (after) {
     after(undefined, undefined);
   }
+}
+
+// Tells the Output views that show the evaluation's code that it ended
+export function endEvaluation(evaluationId: number | undefined) {
+  evaluatedCode.endEvaluation(evaluationId, (view, id) =>
+    view === 'output-sidebar'
+      ? cljsLib.endEvaluationInReplOutputSidebar(id)
+      : cljsLib.endEvaluationInReplOutputWebview(id)
+  );
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
@@ -356,30 +375,8 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
-const lastInfoLineData = new Map<string, AppendClojureOptions>([
-  ['repl-window', {}],
-  ['output-channel', {}],
-  ['terminal', {}],
-  ['output-view', {}],
-  ['output-sidebar', {}],
-]);
-
-function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
-  const { ns, replSessionType, who, shadowBuild, shadowRuntimeId } = options;
-  if (ns) {
-    lastInfoLineData.set(destination, { ns, replSessionType, who, shadowBuild, shadowRuntimeId });
-  }
-}
-
 function nsInfoLine(destination: string, options: AppendClojureOptions) {
-  const last = lastInfoLineData.get(destination) ?? {};
-  const key = `${options.who || ''} ${options.replSessionType} ${options.shadowBuild || ''} ${
-    options.shadowRuntimeId ?? ''
-  } ${options.ns}`;
-  const lastKey = `${last.who || ''} ${last.replSessionType} ${last.shadowBuild || ''} ${
-    last.shadowRuntimeId ?? ''
-  } ${last.ns}`;
-  if (!options.ns || key === lastKey) {
+  if (!options.ns || !infoLine.isInfoLineDue(destination, options)) {
     return '\n';
   }
   const whoBadge =
@@ -484,7 +481,7 @@ function appendClojure(
   }
   emitClojureMessage(options, message, didLastTerminateLine);
   writeClojure(options, message, didLastTerminateLine, after);
-  saveLastInfoLineData(destination, options);
+  infoLine.saveLastContext(destination, options);
 }
 
 export function appendEvaluatedCode(
@@ -566,7 +563,7 @@ export function appendEvaluatedCode(
   });
 
   visibleDestinations.forEach((visibleDestination) => {
-    saveLastInfoLineData(visibleDestination, metadataOptions);
+    infoLine.saveLastContext(visibleDestination, metadataOptions);
   });
 }
 
@@ -611,7 +608,7 @@ export function appendClojureEval(
       didLastTerminateLine,
       isLast ? after : undefined
     );
-    saveLastInfoLineData(destination, options);
+    infoLine.saveLastContext(destination, options);
   });
 }
 
@@ -643,7 +640,7 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
       didLastTerminateLine,
       isLast ? after : undefined
     );
-    saveLastInfoLineData(destination, {});
+    infoLine.saveLastContext(destination, {});
   });
 }
 
@@ -772,6 +769,7 @@ export function appendEvalOut(
         replSessionKey: options.replSessionType,
         shadowBuild: options.shadowBuild,
         shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -842,11 +840,12 @@ export function appendEvalErr(
       replSessionKey: options.replSessionType,
       shadowBuild: options.shadowBuild,
       shadowRuntimeId: options.shadowRuntimeId,
+      evaluationId: options.evaluationId,
     };
     const isLast = index === destinations.length - 1;
     writeNsInfoLine(evalErrOptions, options);
     writeAppendError({ ...evalErrOptions, causes }, coloredMessage, isLast ? after : undefined);
-    saveLastInfoLineData(destination, options);
+    infoLine.saveLastContext(destination, options);
   });
 }
 
@@ -1062,6 +1061,7 @@ export function appendLineEvalOut(
         replSessionKey: options.replSessionType,
         shadowBuild: options.shadowBuild,
         shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -1116,6 +1116,7 @@ export function appendLineEvalErr(
         replSessionKey: options.replSessionType,
         shadowBuild: options.shadowBuild,
         shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
       },
       coloredMessage,
       isLast ? after : undefined

@@ -48,8 +48,7 @@
 
 (deftest dual-form-raw-holds-printed-text-test
   (testing "in raw mode, every image result line shows exact printed text in the raw form"
-    (with-redefs [ui/highlight-code! (fn [_])
-                  ui/post-to-host! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [_])]
       (with-image-display!
         "raw"
         (fn []
@@ -70,8 +69,7 @@
 (deftest toggle-from-raw-shows-thumbnails-test
   (testing "output printed in raw gets thumbnails after toggling to images-including-remote-urls"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "raw"
           (fn []
@@ -92,8 +90,7 @@
 (deftest show-stdout-produces-no-image-forms-test
   (testing "show-stdout with a local path produces no data-image-form entries"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images-including-remote-urls"
           (fn []
@@ -116,8 +113,9 @@
 (deftest toggle-to-raw-shows-printed-text-test
   (testing "output printed in an image mode shows as plain text after toggling to raw"
     (let [highlights (atom 0)]
-      (with-redefs [ui/highlight-code! (fn [_] (swap! highlights inc))
-                    ui/post-to-host! (fn [_])]
+      (with-redefs [ui/post-to-host! (fn [{:keys [command]}]
+                                       (when (= "output-highlight" command)
+                                         (swap! highlights inc)))]
         (with-image-display!
           "images-including-remote-urls"
           (fn []
@@ -142,10 +140,9 @@
 
 (deftest append-keeps-entry-when-raw-form-throws-test
   (testing "a throw while adding the raw form leaves the images entry in the page"
-    (with-redefs [ui/post-to-host! (fn [_])
-                  ui/highlight-code! (fn [^js code]
-                                       (when (.closest code "[data-image-form=\"raw\"]")
-                                         (throw (js/Error. "raw boom"))))]
+    (with-redefs [ui/post-to-host! (fn [{:output/keys [codes]}]
+                                     (when (some #(= "\"/tmp/cat.png\"" (second %)) codes)
+                                       (throw (js/Error. "raw boom"))))]
       (with-image-display!
         "raw"
         (fn []
@@ -179,8 +176,7 @@
 
 (deftest clear-output-dom-drops-pending-local-resolves-test
   (let [posts (atom [])]
-    (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))
-                  ui/highlight-code! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
       (with-image-display!
         "raw"
         (fn []
@@ -196,8 +192,7 @@
 (deftest repeated-local-paths-post-one-lookup-test
   (testing "repeated identical strings give one row each and one host lookup"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -218,8 +213,7 @@
 (deftest nested-missing-image-removes-thumbnail-test
   (testing "a nested image path that does not resolve leaves no empty row"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -250,8 +244,7 @@
 
 (deftest nested-result-image-strings-toggle-modes-test
   (testing "a result with nested image strings keeps dual forms across all three modes"
-    (with-redefs [ui/highlight-code! (fn [_])
-                  ui/post-to-host! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [_])]
       (with-image-display!
         "images-including-remote-urls"
         (fn []

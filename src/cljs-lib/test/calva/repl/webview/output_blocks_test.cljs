@@ -8,7 +8,8 @@
    [calva.repl.webview.ui :as ui]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest is]]
-   [lookup.core :as l]))
+   [lookup.core :as l]
+   [replicant.alias :as alias]))
 
 (defn- written-attrs
   "Returns the attributes of `element` that Replicant writes, those with a value."
@@ -32,14 +33,36 @@
       "The REPL Input's evaluations show no who badge"))
 
 (deftest evaluated-code-element-test
-  (let [hiccup (ui/evaluated-code-element "(+ 1 2)")]
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil nil))]
     (is (seq (l/select :div.evaluated-code-container hiccup)))
+    (is (empty? (l/select :svg hiccup)) "Code from no evaluation has no spinner")
     (is (= ["Evaluated code"] (map l/text (l/select :span.border-text hiccup))))
-    (is (= ["(+ 1 2)"] (map l/text (l/select '[pre > code.language-clojure] hiccup)))
-        "The code is in a pre, for highlight.js")))
+    (is (= ["(+ 1 2)"] (map l/text (l/select '[pre.output-code-block > code.output-code] hiccup)))
+        "The code is in a code block")
+    (is (= [[:output/ax.copy-code :event/target]]
+           (reader/read-string (:data-action (l/attrs (first (l/select :button.output-code-copy hiccup))))))
+        "The code block's copy button copies its code"))
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil 7))]
+    (is (= ["7"] (map (comp str :data-evaluation-id l/attrs) (l/select :div.evaluated-code-container hiccup)))
+        "The code block carries its evaluation")
+    (is (= [#{"evaluation-spinner" "evaluated-code-spinner"}]
+           (map (comp :class l/attrs) (l/select '[span.border-text > svg] hiccup)))
+        "A spinner follows the label while the evaluation runs")))
+
+(deftest clojure-code-element-test
+  (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]] [])]
+    (is (= ["(" [:span {:class #{"code-color-ff7b72"}} "let"] " [x 1])"]
+           (drop 2 (first (l/select :code.output-code hiccup))))
+        "The code is colored with its ranges")
+    (is (= "grammar" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
+        "Code with ranges is marked as colored by the grammar")
+    (is (= "plain" (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x" [] []))))))
+        "Code with no ranges, as when it is too long, is marked as plain")
+    (is (nil? (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x"))))))
+        "Code without ranges waits for its highlighting")))
 
 (deftest stdout-element-test
-  (let [hiccup (ui/stdout-element "hello\n" "evalErr")
+  (let [hiccup (alias/expand (ui/stdout-element "hello\n" "evalErr"))
         [pre] (l/select :pre hiccup)]
     (is (= {:class #{"output-stdout"} :data-output-element-type "evalErr"} (l/attrs pre)))
     (is (= [:button "hello\n"] (map #(if (vector? %) (first %) %) (l/children pre)))
@@ -78,10 +101,10 @@
 
 (defn- img-attrs
   [image display]
-  (written-attrs (first (l/select :img (ui/image-element image display)))))
+  (written-attrs (first (l/select :img (alias/expand (ui/image-element image display))))))
 
 (deftest image-element-test
-  (let [hiccup (ui/image-element data-url-image "images")]
+  (let [hiccup (alias/expand (ui/image-element data-url-image "images"))]
     (is (= [{:class #{"output-image-thumbnail"} :data-pending "true"}]
            (map written-attrs (l/select :.output-image-thumbnail hiccup)))
         "The thumbnail waits for its image to load")
@@ -121,7 +144,7 @@
            (map first (l/children (first (l/select "[data-image-form]" hiccup)))))
         "The images of a line come right after it")
     (is (= ["{:a \"<<image-1 png 8 B>>\"\n" " :b 2}"]
-           (map l/text (l/select :code.language-clojure hiccup))))
+           (map l/text (l/select :code.output-code hiccup))))
     (is (= 1 (count (l/select [:.output-images :.output-image-thumbnail] hiccup))))))
 
 (defn- error-entry
@@ -138,7 +161,7 @@
   (some-> (:data-action (l/attrs element)) reader/read-string))
 
 (deftest error-element-test
-  (let [hiccup (error-element/element (error-entry false))]
+  (let [hiccup (alias/expand (error-element/element (error-entry false)))]
     (is (= [{:class #{"output-error"}
              :data-output-element-type "error"
              :data-error-id "e1"
@@ -153,7 +176,7 @@
         "A folded error shows no causes")))
 
 (deftest unfolded-error-element-test
-  (let [hiccup (error-element/element (error-entry true))
+  (let [hiccup (alias/expand (error-element/element (error-entry true)))
         frames (l/select :li.output-error-frame hiccup)]
     (is (seq (l/select :.output-error-causes hiccup)))
     (is (= [[:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :all}]]

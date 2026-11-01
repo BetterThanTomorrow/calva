@@ -1,18 +1,21 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.auto-scroll :as auto-scroll]
+   [calva.repl.webview.code-brackets :as code-brackets]
+   [calva.repl.webview.code-highlight :as code-highlight]
+   [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.printed-code.editor :as printed-code-editor]
+   [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
    [clojure.walk :as walk]
-   [garden.core :as garden]
-   ["strip-ansi" :default strip-ansi]
-   ["highlightjs-copy" :as CopyButtonPlugin]
-   ["highlight.js/lib/core" :as hljs]
-   ["highlight.js/lib/languages/clojure" :as clojure]))
+   ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -47,13 +50,8 @@
                                            wait)))
         (reset! called-during-timeout? true)))))
 
-(defn scroll-to-bottom
-  "Scrolls to the bottom of the the given dom element."
-  []
-  (js/scrollTo 0 js/document.documentElement.scrollHeight))
-
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
-(def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
+(def throttled-scroll-to-bottom (throttle-fn auto-scroll/follow! 0))
 
 (defn output-appended-event
   "Creates a custom event to signal that output has been appended to the output DOM element.
@@ -69,40 +67,6 @@
   (case position
     "beforeend" (.-lastElementChild element)
     "afterend" (.-nextElementSibling element)))
-
-(defn clojure-code-element
-  "Returns the hiccup of a `pre` with `clojure-code`, classed for highlight.js."
-  [clojure-code]
-  [:pre [:code {:class ["language-clojure"]} clojure-code]])
-
-(defn highlight-code!
-  [^js code-element]
-  (.. hljs (highlightElement code-element)))
-
-(defn- highlight-clojure-code!
-  "Colors the Clojure code in `element`."
-  [^js element]
-  (run! highlight-code! (.querySelectorAll element "code.language-clojure")))
-
-(defn evaluated-code-element
-  "Returns the hiccup of evaluated `code`, under its label."
-  [code]
-  [:div {:class ["evaluated-code-container"]}
-   [:span {:class ["border-text"]} "Evaluated code"]
-   (clojure-code-element code)])
-
-(defn append-evaluated-code
-  "Appends evaluated code to the given dom element."
-  [^js dom-element output]
-  (let [element (insert-hiccup! dom-element "beforeend" (evaluated-code-element output))]
-    (highlight-clojure-code! element)
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
-
-(defn append-eval-result
-  [^js dom-element output]
-  (let [element (insert-hiccup! dom-element "beforeend" (clojure-code-element output))]
-    (highlight-clojure-code! element)
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn data-url-blob
   [data-url mime]
@@ -154,12 +118,9 @@
   "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
   [text category]
   [:pre {:class ["output-stdout"] :data-output-element-type category}
-   [:button (merge {:type "button"
-                    :class ["output-copy-button" "output-stdout-copy"]
-                    :aria-label "Copy output"
-                    :data-copy-label "Copy output"
-                    :data-action (pr-str [[:output/ax.copy-stdout :event/target]])}
-                   (tooltip/attributes "Copy output"))]
+   [copy-button/button {:class ["output-stdout-copy"]
+                        :copy/label "Copy output"
+                        :copy/actions [[:output/ax.copy-stdout :event/target]]}]
    text])
 
 (defn append-stdout
@@ -198,6 +159,258 @@
   (when-let [handler (get @!host-requests id)]
     (swap! !host-requests dissoc id)
     (handler payload)))
+
+(defn clojure-code-element
+  "Returns the hiccup of a code block with `clojure-code` and its copy button, colored with `ranges`,
+   `[from to color styles]`, and marked with `marks`, `[from to class]`, when it has them."
+  ([clojure-code]
+   (clojure-code-element clojure-code nil nil))
+  ([clojure-code ranges marks]
+   [:pre {:class ["output-code-block"]}
+    (into [:code (cond-> {:class ["output-code" "clojure-code"]}
+                   ranges (assoc :data-highlighted (if (seq ranges) "grammar" "plain")))]
+          (if (seq ranges)
+            (code-highlight/spans clojure-code ranges marks)
+            [clojure-code]))
+    [copy-button/button {:class ["output-code-copy"]
+                         :copy/label "Copy"
+                         :copy/actions [[:output/ax.copy-code :event/target]]}]]))
+
+(defonce ^:private !last-code-id (atom 0))
+
+(defn- code-id!
+  "Returns the id of the `code` element, giving it one first when it has none."
+  [^js code]
+  (or (.. code -dataset -codeId)
+      (set! (.. code -dataset -codeId) (str (swap! !last-code-id inc)))))
+
+(defn- request-highlighting!
+  "Asks the extension for the highlighting of the `codes` elements."
+  [codes]
+  (when (seq codes)
+    (post-to-host! {:command "output-highlight"
+                    :output/codes (mapv (fn [^js code] [(code-id! code) (.-textContent code)]) codes)})))
+
+(defonce ^{:private true :doc "The namespace and session of the output, from its latest namespace header."}
+  !context (atom nil))
+
+(defn- stamp-context!
+  "Gives the code in `element` that has no namespace the output's current namespace and session."
+  [^js element]
+  (let [{:keys [ns session-key]} @!context]
+    (doseq [^js code (array-seq (.querySelectorAll element "code.clojure-code"))
+            :when (and ns (not (.. code -dataset -ns)))]
+      (set! (.. code -dataset -ns) ns)
+      (some->> session-key (set! (.. code -dataset -sessionKey))))))
+
+(defonce ^{:private true
+           :doc "The grammar's colors of each code element colored by the grammar, `{:ranges :marks}` by its id."}
+  !grammar-colors (atom {}))
+
+(defonce ^{:private true :doc "The key of the latest request for the semantic tokens of each code element, by its id."}
+  !semantic-keys (atom {}))
+
+(defonce ^:private !last-semantic-key (atom 0))
+
+(defonce ^{:private true :doc "The requests for semantic tokens waiting for a pause, and the pause's timer."}
+  !semantic-requests (atom {:codes [] :timer nil}))
+
+(def ^:private max-semantic-requests
+  "How many requests for semantic tokens wait for a pause, at most, before they are posted."
+  100)
+
+(defn- post-semantic-requests!
+  []
+  (let [[{:keys [codes timer]}] (reset-vals! !semantic-requests {:codes [] :timer nil})]
+    (some-> timer js/clearTimeout)
+    (when (seq codes)
+      (post-to-host! {:command "output-semantic-tokens"
+                      :output/codes codes}))))
+
+(defn- semantic-request!
+  "Returns the request for the semantic tokens of the `code` element colored with the grammar's `colors`,
+   `[key text ns session-key]`, its key new, so that an answer to an earlier request is left out."
+  [^js code colors]
+  (let [id (code-id! code)
+        request-key (str id "@" (swap! !last-semantic-key inc))]
+    (swap! !grammar-colors assoc id colors)
+    (swap! !semantic-keys assoc id request-key)
+    [request-key (.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)]))
+
+(defn- request-semantic-tokens-later!
+  "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar's `colors`,
+   with those of other code, a pause after the last request, or at once when many wait. Code without a
+   namespace gets none."
+  [codes colors]
+  (let [requests (mapv #(semantic-request! % colors) (filter #(.. ^js % -dataset -ns) codes))]
+    (when (seq requests)
+      (some-> (:timer @!semantic-requests) js/clearTimeout)
+      (if (>= (count (:codes (swap! !semantic-requests update :codes into requests))) max-semantic-requests)
+        (post-semantic-requests!)
+        (swap! !semantic-requests assoc :timer (js/setTimeout post-semantic-requests! 100))))))
+
+(defn- code-elements
+  "Returns the code elements with the `ids`, by their id."
+  [ids]
+  (if (< (count ids) 20)
+    (into {} (keep (fn [id]
+                     (some->> (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))
+                              (vector id))))
+          ids)
+    (into {} (map (fn [^js code] [(.. code -dataset -codeId) code]))
+          (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
+
+(defn- set-spans!
+  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
+  [^js code ranges marks]
+  (printed-code-editor/drawn! code {:ranges ranges :marks marks})
+  (code-highlight/set-spans! code (.-textContent code) ranges marks))
+
+(defn- color-with-grammar!
+  "Colors the `code` element with the grammar's `colors`, `{:ranges :marks}`, and asks for its semantic
+   tokens."
+  [^js code {:keys [ranges marks] :as colors}]
+  (set-spans! code ranges marks)
+  (set! (.. code -dataset -highlighted) "grammar")
+  (request-semantic-tokens-later! [code] colors))
+
+(defonce ^{:private true
+           :doc "The colors of the latest code colored, `{:ranges :marks :looks}` by its text, namespace and
+                 session, with `:looks` the semantic tokens layered over the grammar's `:ranges`, so code drawn
+                 again, like an error's details, is colored at once."}
+  !remembered (atom {:colors {} :texts []}))
+
+(defn- remembered-key
+  "Returns what the colors of the `code` element are remembered by: its text, namespace and session."
+  [^js code]
+  [(.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)])
+
+(def ^:private remembered-texts 100)
+
+(defn- remember!
+  "Remembers the `colors` of the code with the `remembered-key` `text`, forgetting the colors remembered longest
+   ago when there are more than `remembered-texts`."
+  [text colors]
+  (swap! !remembered
+         (fn [{:keys [texts] :as remembered}]
+           (let [texts (if (contains? (:colors remembered) text) texts (conj texts text))
+                 forgotten (drop-last remembered-texts texts)]
+             (-> remembered
+                 (assoc :texts (vec (take-last remembered-texts texts)))
+                 (update :colors #(apply dissoc (assoc % text colors) forgotten)))))))
+
+(defn- color-remembered!
+  "Colors the `code` element with the `colors` remembered for its text, asking for semantic tokens only when
+   the colors have none."
+  [^js code {:keys [ranges marks looks] :as colors}]
+  (cond
+    (empty? ranges) (set! (.. code -dataset -highlighted) "plain")
+    looks (do (set-spans! code looks marks)
+              (swap! !grammar-colors assoc (code-id! code) (dissoc colors :looks))
+              (set! (.. code -dataset -highlighted) "grammar"))
+    :else (color-with-grammar! code colors)))
+
+(defn- request-missing-highlighting!
+  "Gives the code in `element` the output's namespace, and colors the code that has no highlighting with the
+   colors remembered for its text, or asks the extension for them."
+  [^js element]
+  (stamp-context! element)
+  (let [missing (remove #(.. ^js % -dataset -highlighted)
+                        (array-seq (.querySelectorAll element "code.clojure-code")))
+        remembered (:colors @!remembered)
+        {known true unknown false} (group-by #(contains? remembered (remembered-key %)) missing)]
+    (doseq [^js code known]
+      (color-remembered! code (get remembered (remembered-key code))))
+    (request-highlighting! unknown)))
+
+(defn set-code-highlighting!
+  "Colors the code elements of `codes`, `[id ranges brackets]` each, with their ranges and brackets, marking
+   each as colored by the grammar, as plain when it has no ranges, being too long, or as uncolored when the
+   extension can't color it, without the theme or the grammar."
+  [codes]
+  (let [elements (code-elements (map first codes))]
+    (doseq [[id ranges brackets] codes
+            :let [^js code (get elements id)
+                  colors {:ranges ranges :marks (code-brackets/mark-ranges brackets)}]
+            :when code]
+      (cond
+        (seq ranges) (do (remember! (remembered-key code) colors)
+                         (color-with-grammar! code colors))
+        ranges (do (remember! (remembered-key code) {:ranges []})
+                   (set! (.. code -dataset -highlighted) "plain"))
+        :else (do (set! (.-textContent code) (.-textContent code))
+                  (set! (.. code -dataset -highlighted) "uncolored"))))))
+
+(defn set-semantic-tokens!
+  "Lays the semantic `ranges` of `codes`, `[request-key ranges]` each, over the grammar's ranges of their code
+   elements, for the latest request of each."
+  [codes]
+  (let [current (filter (fn [[request-key]]
+                          (= request-key (get @!semantic-keys (first (str/split request-key #"@")))))
+                        codes)
+        elements (code-elements (map #(first (str/split (first %) #"@")) current))]
+    (doseq [[request-key ranges] current
+            :let [id (first (str/split request-key #"@"))
+                  ^js code (get elements id)
+                  {grammar :ranges :keys [marks] :as colors} (get @!grammar-colors id)]
+            :when (and code grammar (seq ranges))]
+      (let [looks (highlight/layered grammar ranges)]
+        (set-spans! code looks marks)
+        (remember! (remembered-key code) (assoc colors :looks looks))))))
+
+(defn- rehighlight-code!
+  "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
+   extension couldn't color, as when the color theme changed."
+  [^js dom-element]
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
+  (request-highlighting! (concat (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))
+                                 (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"uncolored\"]")))))
+
+(defn- copy-code!
+  "Copies the code of the code block of the Copy `button`."
+  [^js button]
+  (copy-text! button (.. button -parentElement (querySelector "code") -textContent)))
+
+(defn evaluated-code-element
+  "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` and marked with `marks` when
+   it has them. Code of the evaluation `evaluation-id` has a spinner after its label until the evaluation ends."
+  [code ranges marks evaluation-id]
+  [:div {:class ["evaluated-code-container"] :data-evaluation-id evaluation-id}
+   [:span {:class ["border-text"]}
+    "Evaluated code"
+    (when evaluation-id
+      (spinner/element ["evaluated-code-spinner"]))]
+   (clojure-code-element code ranges marks)])
+
+(defn- append-code!
+  "Appends the code of `hiccup-of`, called with its grammar's `colors`, to `dom-element`, and asks for the
+   highlighting of the code that has none, and for the semantic tokens of the code that has."
+  [^js dom-element hiccup-of {:keys [ranges] :as colors}]
+  (some-> ranges code-highlight/add-classes!)
+  (let [element (insert-hiccup! dom-element "beforeend" (hiccup-of colors))]
+    (when (seq ranges)
+      (doseq [code (array-seq (.querySelectorAll element "code.clojure-code"))]
+        (printed-code-editor/drawn! code (select-keys colors [:ranges :marks]))))
+    (request-missing-highlighting! element)
+    (when (seq ranges)
+      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) colors))
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
+
+(defn append-evaluated-code
+  "Appends evaluated `code` of the evaluation `evaluation-id` to `dom-element`, colored with `ranges` and its
+   `brackets` when it has them."
+  [^js dom-element {:keys [code ranges brackets evaluation-id]}]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (evaluated-code-element code ranges marks evaluation-id))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
+
+(defn append-eval-result
+  "Appends the printed `result` to `dom-element`, colored with `ranges` and its `brackets` when it has them."
+  [^js dom-element result ranges brackets]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (clojure-code-element result ranges marks))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -379,13 +592,11 @@
             :data-local-src (when (= :local kind) src)
             :data-remote-src (when (= :remote kind) src)
             :src (image-src image display)}]
-     [:button (merge {:type "button"
-                      :class ["output-copy-button" "output-image-copy"]
-                      :aria-label (str "Copy " label)
-                      :data-copy-label (str "Copy " label)
-                      :data-action (pr-str [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
-                                                                       (assoc :copy/button :event/target))]])}
-                     (tooltip/attributes "Copy image"))]]))
+     [copy-button/button {:class ["output-image-copy"]
+                          :copy/label (str "Copy " label)
+                          :copy/tooltip "Copy image"
+                          :copy/actions [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
+                                                                    (assoc :copy/button :event/target))]]}]]))
 
 (defn- copy-image-of-button!
   "Copies the image of the Copy image `button`. A data URL image's data is its `src`."
@@ -425,7 +636,7 @@
 (defn- add-raw-form!
   "Adds the raw form, the result as printed, to the result `entry`."
   [^js entry raw]
-  (highlight-clojure-code! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
+  (request-missing-highlighting! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
 
 (defn append-result-with-images
   "Appends a result with images. Its images form is added now. Its raw form is added after it when the
@@ -435,7 +646,7 @@
         entry (insert-hiccup! dom-element "beforeend"
                               [:div {:class ["output-with-images"] :data-output-element-type "images"}
                                (images-form-element (images/segments-with-images text images) (image-display))])]
-    (highlight-clojure-code! entry)
+    (request-missing-highlighting! entry)
     (look-up-local-images! entry session-key)
     (if (raw-display?)
       (add-raw-form! entry raw)
@@ -464,60 +675,40 @@
        [:span {:class ["ns-info-badge" "ns-info-ns"]} ns])]))
 
 (defn append-ns-info
+  "Appends the namespace header of `meta-data`, the namespace and session of the output after it."
   [^js dom-element meta-data]
+  (reset! !context {:ns (or (:meta/ns meta-data) (:ns meta-data))
+                    :session-key (or (:meta/repl-session-key meta-data) (:repl-session-key meta-data))})
   (let [ns-info-el (insert-hiccup! dom-element "beforeend" (ns-info-element meta-data))]
     (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
 
 (defn clear-output-dom
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
+  (reset! !grammar-colors {})
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
 
-(defn update-theme-of-copy-buttons
+(defonce ^:private !frame-name-sheet (atom nil))
+
+(defn- frame-name-sheet
   []
-  (.. (js/document.querySelectorAll "div.hljs-copy-container")
-      (forEach (fn [^js copy-container-node]
-                 (let [parent-node (.. copy-container-node -parentNode)
-                       hljs-code-node (.. parent-node (querySelector "code.hljs"))
-                       code-computed-style (js/getComputedStyle hljs-code-node)
-                       code-background-color (.-backgroundColor code-computed-style)
-                       code-foreground-color (.-color code-computed-style)
-                       code-padding (.-padding code-computed-style)]
-                   (.. copy-container-node -style (setProperty "--hljs-theme-background" code-background-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-color" code-foreground-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
-
-(defn set-code-theme!
-  [code-theme]
-  (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
-    (.. code-theme-link-nodes (forEach (fn [^js node]
-                                         (let [current-code-theme (.. node -dataset -codeTheme)]
-                                           (if (= current-code-theme code-theme)
-                                             (.. node (removeAttribute "disabled"))
-                                             (.. node (setAttribute "disabled" "disabled")))))))
-    ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
-    (js/setTimeout update-theme-of-copy-buttons 100)))
-
-(defn token-colors-css
-  "Returns CSS that gives each highlight.js scope in `colors` its color, over the code theme's."
-  [colors]
-  (garden/css (for [[scope color] colors]
-                [(str ":root .hljs-" scope) {:color color}])))
-
-(defonce !token-colors-sheet (atom nil))
-
-(defn- token-colors-sheet
-  []
-  (or @!token-colors-sheet
+  (or @!frame-name-sheet
       (let [sheet (js/CSSStyleSheet.)]
         (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-        (reset! !token-colors-sheet sheet))))
+        (reset! !frame-name-sheet sheet))))
 
-(defn set-token-colors!
-  [colors]
-  (.replaceSync ^js (token-colors-sheet) (token-colors-css colors)))
+(defn set-frame-name-color!
+  "Gives the stack frames' function names the hex `color`, the theme's color for function names, or the text's
+   color for any other color."
+  [color]
+  (.replaceSync ^js (frame-name-sheet)
+                (if (code-highlight/color-class color)
+                  (str ":root { --calva-frame-name-color: " color "; }")
+                  "")))
 
 (defn set-word-wrap!
   [word-wrap]
@@ -581,8 +772,10 @@
       (let [control (focused-control existing)
             ^js new-element (insert-hiccup! existing "afterend" hiccup)]
         (.remove existing)
+        (request-missing-highlighting! new-element)
         (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
       (let [new-element (insert-hiccup! dom-element "beforeend" hiccup)]
+        (request-missing-highlighting! new-element)
         (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
 (defn- copy-error-text!
@@ -598,8 +791,14 @@
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
-    :fx/append-result (append-eval-result output-dom-element (first args))
+    :fx/append-result (apply append-eval-result output-dom-element args)
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/end-evaluation (spinner/end-evaluation! output-dom-element (first args))
+    :fx/set-bracket-styles (some-> (first args) code-brackets/css code-brackets/set-css!)
+    :fx/set-code-highlighting (set-code-highlighting! (first args))
+    :fx/set-semantic-tokens (set-semantic-tokens! (first args))
+    :fx/rehighlight-code (rehighlight-code! output-dom-element)
+    :fx/copy-code (copy-code! (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
     :fx/render-error (render-error! output-dom-element (first args))
@@ -608,8 +807,7 @@
     :fx/copy-stdout (copy-stdout! (first args))
     :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
-    :fx/set-code-theme (set-code-theme! (first args))
-    :fx/set-token-colors (set-token-colors! (first args))
+    :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
@@ -639,6 +837,8 @@
        (case command-name
          "clear-output-view"    (dispatch! [:msg/clear-output-view])
          "set-code-theme"       (dispatch! [:msg/set-code-theme message-data])
+         "output-highlighting"  (dispatch! [:msg/output-highlighting message-data])
+         "output-semantic-tokens" (dispatch! [:msg/output-semantic-tokens message-data])
          "set-word-wrap"        (dispatch! [:msg/set-word-wrap message-data])
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
@@ -652,6 +852,8 @@
          "repl-input-edit"      (dispatch! [:repl-input/ax.edit message-data])
          "repl-input-command-keys" (dispatch! [:repl-input/ax.set-command-keys (:repl-input/command-keys message-data)])
          "repl-input-brackets"  (dispatch! [:repl-input/ax.set-brackets message-data])
+         "repl-input-highlighting" (dispatch! [:repl-input/ax.set-highlighting message-data])
+         "repl-input-semantic-tokens" (dispatch! [:repl-input/ax.set-semantic-tokens message-data])
          "repl-input-editor-settings" (dispatch! [:repl-input/ax.set-editor-settings (:repl-input/editor-settings message-data)])
          "repl-input-run-command" (dispatch! [:repl-input/ax.run-command (:repl-input/command message-data)])
          "repl-input-context"   (dispatch! [:repl-input/ax.set-context-line (:repl-input/context-line message-data)])
@@ -662,7 +864,12 @@
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
          "repl-input-history"   (dispatch! [:repl-input/ax.set-history (:repl-input.history/entries message-data)])
          "repl-input-recall"    (dispatch! [:repl-input/ax.recall (:repl-input.history/position message-data)])
-         ("show-result" "show-evaluated-code" "show-stdout")
+         "repl-input-mode-chosen" (dispatch! [:repl-input/ax.mode-chosen])
+         "printed-code-selections" (dispatch! [:printed-code/ax.select message-data])
+         "printed-code-brackets" (dispatch! [:printed-code/ax.set-brackets message-data])
+         "printed-code-command-keys" (dispatch! [:printed-code/ax.set-command-keys (:repl-input/command-keys message-data)])
+         "printed-code-focus"   (dispatch! [:printed-code/ax.focus])
+         ("show-result" "show-evaluated-code" "show-stdout" "evaluation-ended")
          (dispatch! [:msg/output message-data])
          "show-error"           (dispatch! [:msg/error message-data])
          "show-error-causes"    (dispatch! [:msg/error-causes message-data])
@@ -702,11 +909,4 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (.. hljs (registerLanguage "clojure" clojure))
-  (ensure-dom-content-loaded (fn []
-                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true})))
-                               ;; Added after the copy plugin, which adds the button it gives a tooltip
-                               (.. hljs (addPlugin #js {"after:highlightElement"
-                                                        (fn [^js result]
-                                                          (some-> (.. result -el -parentElement (querySelector ".hljs-copy-button"))
-                                                                  (tooltip/attach! "Copy")))})))))
+  (auto-scroll/listen!))

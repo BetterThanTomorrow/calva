@@ -1,6 +1,35 @@
 import * as expectLib from 'expect';
 import * as evaluatedCode from '../../../results-output/evaluated-code';
 
+describe('endEvaluation', () => {
+  it('ends the evaluation once in each Output view that shows its code', () => {
+    const ended: [string, number][] = [];
+    const end = (view: string, evaluationId: number) => ended.push([view, evaluationId]);
+    evaluatedCode.showWhileRunning(41, 'output-view');
+    evaluatedCode.showWhileRunning(41, 'output-sidebar');
+    evaluatedCode.showWhileRunning(41, 'output-view');
+    evaluatedCode.showWhileRunning(42, 'output-view');
+    evaluatedCode.endEvaluation(41, end);
+    evaluatedCode.endEvaluation(41, end);
+    evaluatedCode.endEvaluation(42, end);
+    expectLib.expect(ended).toEqual([
+      ['output-view', 41],
+      ['output-sidebar', 41],
+      ['output-view', 42],
+    ]);
+  });
+
+  it('ends nothing for an evaluation whose code no Output view shows', () => {
+    const ended: [string, number][] = [];
+    evaluatedCode.showWhileRunning(undefined, 'output-view');
+    evaluatedCode.endEvaluation(43, (view, evaluationId) => ended.push([view, evaluationId]));
+    evaluatedCode.endEvaluation(undefined, (view, evaluationId) =>
+      ended.push([view, evaluationId])
+    );
+    expectLib.expect(ended).toEqual([]);
+  });
+});
+
 describe('routeEvaluatedCode', () => {
   it('emits one evaluatedCode message while preserving metadata', () => {
     const messages: evaluatedCode.EvaluatedCodeMessage[] = [];
@@ -32,5 +61,32 @@ describe('routeEvaluatedCode', () => {
         outputCategory: 'evaluatedCode',
       },
     ]);
+  });
+});
+
+describe('dedent', () => {
+  it('drops the indentation of the column the code started at from the lines after the first', () => {
+    const code = '(print-table [:a\n                 :b]\n             rows)';
+    expectLib
+      .expect(evaluatedCode.dedent(code, 2))
+      .toBe('(print-table [:a\n               :b]\n           rows)');
+  });
+
+  it('drops no more than a line has, and keeps carriage returns', () => {
+    expectLib.expect(evaluatedCode.dedent('(str :a\r\n b)', 4)).toBe('(str :a\r\nb)');
+  });
+
+  it('keeps the indentation of lines that start inside a string', () => {
+    const code = '(def s "x\n    y")\n  (def t "z")';
+    expectLib.expect(evaluatedCode.dedent(code, 2)).toBe('(def s "x\n    y")\n(def t "z")');
+  });
+
+  it('dedents the lines after a string that ends', () => {
+    const code = '(str "a\n  b"\n     :c)';
+    expectLib.expect(evaluatedCode.dedent(code, 2)).toBe('(str "a\n  b"\n   :c)');
+  });
+
+  it('leaves code that started a line as it is', () => {
+    expectLib.expect(evaluatedCode.dedent('(foo\n  bar)', 0)).toBe('(foo\n  bar)');
   });
 });

@@ -2,26 +2,32 @@
   "The styles of the REPL Input around its code editor.")
 
 (def layout
-  "The REPL Input at the bottom of the page, with its sash."
+  "The REPL Input at the bottom of the page, below the output, which scrolls on its own, with its sash."
   [[:body.repl-input-on {:display :flex
                          :flex-direction :column
                          :box-sizing :border-box
-                         :min-height "100vh"}
-    [:#output {:flex-grow 1}]
+                         :height "100vh"
+                         :margin 0
+                         :overflow :hidden}
+    [:#output-scroller {:flex [[1 1 :auto]]
+                        :min-height 0
+                        :overflow-y :auto}]
     ;; VS Code draws the border between two views under the right one's webview, along its left edge
-    [:#repl-input {:position :sticky
-                   :bottom 0
-                   :margin-left "calc(1px - var(--calva-output-inset))"
-                   :margin-right "calc(-1 * var(--calva-output-inset))"
+    [:#repl-input {:flex :none
+                   :max-height "100vh"
+                   :overflow-y :auto
+                   :margin-left "1px"
                    :padding [["6px" "var(--calva-output-inset)" "6px" "calc(var(--calva-output-inset) - 1px)"]]
                    :background-color "var(--vscode-editor-background)"
                    :border-top [["1px" :solid "var(--vscode-panel-border, rgba(128, 128, 128, 0.35))"]]}
      ["&[data-repl-input-id=\"output-sidebar\"]"
       {:background-color "var(--vscode-sideBar-background, var(--vscode-editor-background))"}]]]
 
+   ;; The sash is placed against the page, so the REPL Input's scrolling leaves it whole. It stays where it
+   ;; would be in the REPL Input, moved up through its padding and border to straddle the border as VS Code's do.
    [:.repl-input-sash {:position :absolute
                        :z-index 35
-                       :top "-3px"
+                       :margin-top "calc(-6px - 1px - 2px)"
                        :left 0
                        :right 0
                        :height "4px"
@@ -114,28 +120,14 @@
     [:&:hover {:color "var(--vscode-textLink-activeForeground)"
                :text-decoration :underline}]]])
 
-(def evaluation-bar
-  "The bar shown while an evaluation runs."
-  [[:.repl-input-evaluation-bar {:display :flex
-                                 :align-items :center
-                                 :justify-content :space-between
-                                 :gap "0.5em"
-                                 :margin-bottom "4px"
-                                 :padding [["2px" "6px"]]
-                                 :font-size "calc(0.9 * var(--vscode-font-size, 13px) * var(--calva-output-font-scale, 1))"
-                                 :color "var(--vscode-foreground)"
-                                 :background-color "var(--vscode-editorWidget-background)"
-                                 :border-left [["2px" :solid "var(--vscode-progressBar-background)"]]}
+(def running
+  "The spinner and the stop button shown while an evaluation runs."
+  [[:.repl-input-spinner {:display :flex
+                          :flex-shrink 0
+                          :color "var(--vscode-icon-foreground, var(--vscode-foreground))"}
     ["&[hidden]" {:display :none}]]
 
-   [:.repl-input-interrupt {:padding [["1px" "8px"]]
-                            :font :inherit
-                            :color "var(--vscode-button-secondaryForeground)"
-                            :background-color "var(--vscode-button-secondaryBackground)"
-                            :border :none
-                            :border-radius "2px"
-                            :cursor :pointer}
-    [:&:hover {:background-color "var(--vscode-button-secondaryHoverBackground)"}]]])
+   [:.repl-input-stop {:color "var(--vscode-debugIcon-stopForeground)"}]])
 
 (def stdin
   "The stdin input."

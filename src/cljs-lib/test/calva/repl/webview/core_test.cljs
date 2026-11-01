@@ -1,5 +1,7 @@
 (ns calva.repl.webview.core-test
   (:require
+   [calva.repl.input.brackets :as brackets]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
@@ -138,21 +140,20 @@
       (is (= [[:script {:nonce "test-nonce" :src "js-source"}]] (elements page :script)))
       (is (= [[:style {:id "calva-output-styles" :nonce "test-nonce" :innerHTML "styles-css"}]]
              (elements page :style)))))
-  (testing "writes the script's and the stylesheets' URIs, which VS Code gives as Uri objects, as strings"
+  (testing "writes the script's URI, which VS Code gives as a Uri object, as a string"
     (let [uri (fn [s] #js {:toString (constantly s)})
-          page (sut/page {:env/is-debug false}
-                         (assoc page-args
-                                :js-source (uri "js-uri")
-                                :code-theme-stylesheets [["dark" (uri "dark-uri")]]
-                                :copy-button-css-href (uri "copy-uri")))]
+          page (sut/page {:env/is-debug false} (assoc page-args :js-source (uri "js-uri")))]
       (is (= "js-uri" (:src (attributes (first (elements page :script))))))
-      (is (= ["dark-uri" "copy-uri"] (map (comp :href attributes) (elements page :link))))))
-  (testing "the greeting comes before the output, not inside it"
+      (is (empty? (elements page :link)) "The page links no stylesheets")))
+  (testing "the greeting comes before the output, not inside it, and the element that marks the end of the output after it, all in the scroller the REPL Input goes below"
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :greeting [:div "Ahoy"]))
                                             :body))]
-      (is (= [[:div "Ahoy"] [:div {:id "output" :class "output-element-container"}]]
-             (take 2 children)))))
+      (is (= [:div {:id "output-scroller"}
+              [:div "Ahoy"]
+              [:div {:id "output" :class "output-element-container"}]
+              [:div {:id "output-end" :aria-hidden "true"}]]
+             (first children)))))
   (testing "the body has the word-wrap class only with word wrap on"
     (is (= "word-wrap" (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? true)) :body))))))
     (is (nil? (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? false)) :body)))))))
@@ -165,28 +166,16 @@
     (is (= {:--calva-output-font-scale "1"}
            (:style (attributes (sut/page {:env/is-debug false} page-args)))))))
 
-(deftest page-stylesheets-test
-  (let [links (elements (sut/page {:env/is-debug false}
-                                  (assoc page-args
-                                         :code-theme "light"
-                                         :code-theme-stylesheets [["dark" "dark-href"] ["light" "light-href"]]
-                                         :copy-button-css-href "copy-href"))
-                        :link)]
-    (is (= [[:link {:rel "stylesheet" :href "dark-href" :data-code-theme "dark" :disabled true}]
-            [:link {:rel "stylesheet" :href "light-href" :data-code-theme "light" :disabled false}]
-            [:link {:rel "stylesheet" :href "copy-href"}]]
-           links)
-        "The code theme stylesheets of other theme kinds are disabled, and only the vendored stylesheets are linked")))
-
 (deftest page-repl-input-test
-  (testing "puts the REPL Input element after the output, with its state"
+  (testing "puts the REPL Input element after the output's scroller, with its state"
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :repl-input {:repl-input/id "output-view"
                                                                                     :repl-input/enabled? true}))
                                             :body))]
-      (is (= [[:div {:id "output" :class "output-element-container"}]
-              [:div {:id "repl-input" :data-repl-input-id "output-view" :data-repl-input-enabled "true"}]]
-             (take 2 (remove nil? children))))))
+      (is (= ["output-scroller" "repl-input"]
+             (map (comp :id second) (take 2 (remove nil? children)))))
+      (is (= {:id "repl-input" :data-repl-input-id "output-view" :data-repl-input-enabled "true"}
+             (second (second (remove nil? children)))))))
   (testing "puts no REPL Input element without REPL Input state"
     (is (empty? (filter #(= "repl-input" (:id (attributes %)))
                         (elements (sut/page {:env/is-debug false} page-args) :div))))))
@@ -207,26 +196,11 @@
       (testing "should return result of call to asWebviewUri"
         (is (= "some-webview-uri" result))))))
 
-(deftest get-css-path
-  (testing "Given a context"
-    (let [join-path-spy (spy/stub "some-path")
-          extension-uri "extension-uri"
-          context {:vscode/context (clj->js {:extensionUri extension-uri})
-                   :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
-          result (sut/get-css-path context ["vendor" "highlightjs-copy.min.css"])]
-      (testing "should call joinPath with expected args"
-        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "vendor" "highlightjs-copy.min.css")))
-      (testing "should return the result of joinPath"
-        (is (= "some-path" result))))))
-
 (deftest set-webview-html!-test
   (testing "Given a context and a webview panel"
     (let [context {:some "context"}
           get-js-source-spy (spy/stub "some-js-source")
-          get-css-path-spy (spy/stub "some-css-path")
-          as-webview-uri-spy (spy/stub "some-css-href")
-          ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
-                                                :cspSource "some-csp-source"}})
+          ^js webview-panel (clj->js {:webview {:cspSource "some-csp-source"}})
           page-spy (spy/stub [:html {:lang "en"}])
           fixed-nonce "11111111-1111-1111-1111-111111111111"
           crypto-mod (js/require "crypto")
@@ -234,7 +208,6 @@
       (set! (.-randomUUID crypto-mod) (fn [] fixed-nonce))
       (try
         (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
-                      sut/get-css-path (test-util/wrap-spy get-css-path-spy)
                       greeting/logo-webview-uri (constantly "some-logo-href")
                       greeting/for-view (constantly [:div "some-greeting"])
                       sut/word-wrap? (constantly true)
@@ -246,19 +219,11 @@
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
             (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-          (testing "should call get-css-path for each stylesheet shipped with the extension"
-            (is (spy/called-with? get-css-path-spy context ["vendor" "highlight.js" "github-dark.min.css"]))
-            (is (spy/called-with? get-css-path-spy context sut/copy-button-stylesheet))
-            (is (= 5 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
           (testing "should call page with expected args including a script nonce"
             (is (spy/called-once-with? page-spy context {:js-source "some-js-source"
                                                          :styles "some-styles"
-                                                         :code-theme-stylesheets (mapv (fn [[theme]] [theme "some-css-href"])
-                                                                                       sut/highlight-js-code-theme-stylesheet-data)
-                                                         :copy-button-css-href "some-css-href"
                                                          :csp-source "some-csp-source"
                                                          :script-nonce fixed-nonce
-                                                         :code-theme nil
                                                          :greeting [:div "some-greeting"]
                                                          :word-wrap? true
                                                          :font-scale 1.5
@@ -270,72 +235,26 @@
           (set! (.-randomUUID crypto-mod) orig-random-uuid))))))
 
 (deftest set-code-theme!-test
-  (testing "Given a context and a ColorThemeKind,"
-    (let [color-theme-kind-enum {:Dark 0
-                                 :Light 1
-                                 :HighContrast 2
-                                 :HighContrastLight 3}
-          context {:vscode/vscode (clj->js {:ColorThemeKind color-theme-kind-enum})}
-          webview-panel {:some "mock-webview-panel"}]
-      (testing "when the ColorThemeKind is Dark, should set the code theme to dark"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "dark"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is Light, should set the code theme to light"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "light"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast-light"
-                                                                                  :token-colors nil})))))
-      (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
-        (let [log-to-console-spy (spy/spy)
-              color-theme-kind 99]
-          (with-redefs [util/log-to-console (test-util/wrap-spy log-to-console-spy)]
-            (sut/set-code-theme! context {:color-theme-kind color-theme-kind
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with?
-                 log-to-console-spy
-                 :error
-                 "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
-                 color-theme-kind))))))))
-
-(deftest set-code-theme!-token-colors-test
-  (testing "sends the active color theme's code colors with the code theme"
-    (let [dark 0
-          context {:vscode/vscode (clj->js {:ColorThemeKind {:Dark dark}})}
-          webview-panel {:some "mock-webview-panel"}
-          post-message-to-webview-spy (spy/spy)]
-      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                    token-colors/active-theme-hljs-colors (fn [kind]
-                                                            (when (= dark kind)
-                                                              {"keyword" "#ff7b72"}))]
-        (sut/set-code-theme! context {:color-theme-kind dark
-                                      :webview-panel webview-panel})
-        (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                              :code-theme "dark"
-                                                                              :token-colors {"keyword" "#ff7b72"}}))))))
+  (let [webview-panel {:some "mock-webview-panel"}
+        palette {:palette/token-rules [["entity.name.function" "#d2a8ff"]]}]
+    (testing "posts the key of the active theme's palette and its color for function names"
+      (let [post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      token-colors/active-theme-palette (fn [kind] (when (= 0 kind) palette))]
+          (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
+          (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                                :output/palette-key (hash [palette (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
+                                                                                :output/bracket-styles (brackets/bracket-styles nil)
+                                                                                :output/frame-name-color "#d2a8ff"})))))
+    (testing "posts no color for a theme it can't read"
+      (let [post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      token-colors/active-theme-palette (constantly nil)]
+          (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
+          (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                                :output/palette-key (hash [nil (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
+                                                                                :output/bracket-styles (brackets/bracket-styles nil)
+                                                                                :output/frame-name-color nil})))))))
 
 (deftest post-code-theme-to-all-views!-test
   (testing "sets the code theme of every registered webview"
@@ -561,12 +480,14 @@
             :meta/ns "user"
             :meta/repl-session-key "clj"
             :meta/shadow-build "app"
-            :meta/shadow-runtime-id 1}
+            :meta/shadow-runtime-id 1
+            :meta/evaluation-id 7}
            (sut/options->meta (clj->js {:who "repl"
                                         :ns "user"
                                         :replSessionKey "clj"
                                         :shadowBuild "app"
-                                        :shadowRuntimeId 1})))))
+                                        :shadowRuntimeId 1
+                                        :evaluationId 7})))))
   (testing "Given options with no recognized keys, should return an empty map"
     (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
   (testing "Given options with shadow-runtime-id 0, should include it"

@@ -9,7 +9,8 @@
    `insert-hiccup!` stands in for `calva.repl.webview.ui/insert-hiccup!`, which needs HTML parsing.
    Selectors are tags, classes and attributes, without combinators."
   (:require
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [replicant.alias :as alias]))
 
 (def ^:private reflected-properties #{"id" "src" "alt" "title" "type"})
 
@@ -48,6 +49,9 @@
   "Gives the element `el` the methods that find, add and remove elements around it, and returns it."
   [^js el]
   (js/Object.defineProperty el "lastElementChild" #js {:get #(last (child-elements el))})
+  (js/Object.defineProperty el "textContent"
+                            #js {:get #(apply str (map (fn [^js child] (.-textContent child)) (.-children el)))
+                                 :set #(.splice (.-children el) 0 (.-length (.-children el)) #js {:nodeType 3 :textContent %})})
   (js/Object.defineProperty el "nextElementSibling"
                             #js {:get #(when-let [parent (.-parentNode el)]
                                          (second (drop-while (fn [child] (not (identical? child el)))
@@ -136,10 +140,10 @@
     el))
 
 (defn insert-hiccup!
-  "Inserts the element of `hiccup` at `position` of `element`, as `calva.repl.webview.ui/insert-hiccup!`
-   does, and returns it."
+  "Inserts the element of `hiccup`, its aliases expanded, at `position` of `element`, as
+   `calva.repl.webview.ui/insert-hiccup!` does, and returns it."
   [^js element position hiccup]
-  (let [new-element (hiccup-element hiccup)]
+  (let [new-element (hiccup-element (alias/expand hiccup))]
     (case position
       "beforeend" (.appendChild element new-element)
       "afterend" (.after element new-element))

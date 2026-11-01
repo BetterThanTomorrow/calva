@@ -20,6 +20,10 @@
    :repl-input.context/ns-form "(in-ns 'pirate.core)"
    :repl-input.context/source-file core-file})
 
+(def ^:private user-lock
+  {:repl-input.context/ns "user"
+   :repl-input.context/ns-form "(in-ns 'user)"})
+
 (deftest current-following-test
   (testing "follows the last active Clojure editor's namespace at its cursor, with its file as the source file, in the session routing gives that file"
     (is (= {:repl-input.context/ns "pirate.lib"
@@ -88,6 +92,31 @@
 (def ^:private followed
   (sut/current {:editor-namespace editor-namespace :editor-file lib-file :route route :session-keys ["cljs"]}))
 
+(deftest lock-after-move-test
+  (testing "follows the editor once it moves into the locked namespace"
+    (is (nil? (sut/lock-after-move lock "pirate.lib" "pirate.core"))))
+  (testing "keeps the lock while the editor stays in the locked namespace, as after locking to a history entry there"
+    (is (= lock (sut/lock-after-move lock "pirate.core" "pirate.core"))))
+  (testing "keeps the lock when the editor moves to another namespace"
+    (is (= lock (sut/lock-after-move lock "pirate.core" "pirate.lib")))
+    (is (= lock (sut/lock-after-move lock nil "pirate.ui"))))
+  (testing "stays without a lock"
+    (is (nil? (sut/lock-after-move nil "pirate.lib" "pirate.core")))))
+
+(deftest editor-moved-test
+  (let [core {:ns "pirate.core" :position 1}
+        lib {:ns "pirate.lib"}]
+    (testing "follows the moved editor, and drops the lock when the editor moved into its namespace"
+      (is (= {:repl-input.context/editor core :repl-input.context/lock nil}
+             (sut/editor-moved {:repl-input.context/editor lib :repl-input.context/lock lock} core))))
+    (testing "keeps the lock when the editor moved within the locked namespace, by the namespace it had"
+      (is (= {:repl-input.context/editor core :repl-input.context/lock lock}
+             (sut/editor-moved {:repl-input.context/editor (assoc core :position 0) :repl-input.context/lock lock} core))))
+    (testing "counts `user` as the namespace before any editor"
+      (is (= user-lock
+             (:repl-input.context/lock (sut/editor-moved {:repl-input.context/lock user-lock} {:ns "user"}))))
+      (is (nil? (:repl-input.context/lock (sut/editor-moved {:repl-input.context/lock lock} core)))))))
+
 (deftest lock-after-test
   (testing "locks the namespace of an evaluated ns form, with the source file of the context it was evaluated in, when the evaluation succeeds"
     (is (= {:repl-input.context/ns "pirate.core"
@@ -98,6 +127,16 @@
   (testing "locks the namespace of an evaluated in-ns form"
     (is (= "pirate.core"
            (:repl-input.context/ns (sut/lock-after nil followed ["pirate.core" "(in-ns 'pirate.core)"] true)))))
+
+  (testing "keeps following the editor after an evaluated ns or in-ns form of the followed editor's namespace"
+    (is (nil? (sut/lock-after nil followed ["pirate.lib" "(ns pirate.lib)"] true)))
+    (is (nil? (sut/lock-after nil followed ["pirate.lib" "(in-ns 'pirate.lib)"] true)))
+    (is (nil? (sut/lock-after nil (sut/current {:route route}) ["user" "(in-ns 'user)"] true))
+        "Before any Clojure editor, the followed namespace is `user`"))
+
+  (testing "follows the editor while locked, after an evaluated ns form of the followed editor's namespace"
+    (is (nil? (sut/lock-after lock (sut/current {:lock lock :editor-namespace editor-namespace :editor-file lib-file :route route})
+                              ["pirate.lib" "(ns pirate.lib)"] true))))
 
   (testing "moves an existing lock to the namespace of an evaluated ns form, with the lock's source file"
     (is (= {:repl-input.context/ns "pirate.ui"

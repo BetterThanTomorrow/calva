@@ -100,9 +100,11 @@
       (reset! output-sidebar-log #queue []))))
 
 (defn add-output-sidebar-message!
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later, without the
+   highlighting of printed code, which that page asks for in the colors it has then."
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log add-to-log message)
+    (swap! output-sidebar-log add-to-log (dissoc message :output/highlighting))
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
@@ -138,6 +140,7 @@
                (image-host/listen-for-webview-messages! webview-view)
                (input-messages/listen-for-messages! webview-view)
                (core/listen-for-page-loaded! webview-view "output-sidebar")
+               (core/listen-for-highlighting-requests! webview-view)
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
@@ -165,6 +168,20 @@
     (add-context-subscription! (create-output-destinations-change-listener))
     provider))
 
+(defn- output-view-visible?
+  [destination]
+  (some-> ^js (case destination
+                "output-view" @core/output-view-webview-panel
+                "output-sidebar" @output-sidebar-webview-view
+                nil)
+          .-visible))
+
+(defn ^:export some-output-view-visible?
+  "True when an Output view among `destinations`, an output destination value as configured, is open
+   and visible."
+  [destinations]
+  (boolean (some output-view-visible? (if (string? destinations) [destinations] destinations))))
+
 (defn ^:export show-repl-output-sidebar
   [preserve-focus?]
   (if-let [webview-view @output-sidebar-webview-view]
@@ -191,6 +208,15 @@
 (defn ^:export attach-error-causes
   [error-id ^js causes]
   (add-output-sidebar-message! (core/causes-message error-id causes)))
+
+(defn ^:export end-evaluation
+  "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
+   an Output Destination while the evaluation ran."
+  [evaluation-id]
+  (let [message (core/evaluation-ended-message evaluation-id)]
+    (if (output-sidebar-in-setting? (current-output-destinations))
+      (add-output-sidebar-message! message)
+      (core/post-message-to-webview @output-sidebar-webview-view message))))
 
 (defn ^:export clear-output-sidebar
   []
