@@ -63,3 +63,30 @@ describe('routeEvaluatedCode', () => {
     ]);
   });
 });
+
+describe('dedent', () => {
+  it('drops the indentation of the column the code started at from the lines after the first', () => {
+    const code = '(print-table [:a\n                 :b]\n             rows)';
+    expectLib
+      .expect(evaluatedCode.dedent(code, 2))
+      .toBe('(print-table [:a\n               :b]\n           rows)');
+  });
+
+  it('drops no more than a line has, and keeps carriage returns', () => {
+    expectLib.expect(evaluatedCode.dedent('(str :a\r\n b)', 4)).toBe('(str :a\r\nb)');
+  });
+
+  it('keeps the indentation of lines that start inside a string', () => {
+    const code = '(def s "x\n    y")\n  (def t "z")';
+    expectLib.expect(evaluatedCode.dedent(code, 2)).toBe('(def s "x\n    y")\n(def t "z")');
+  });
+
+  it('dedents the lines after a string that ends', () => {
+    const code = '(str "a\n  b"\n     :c)';
+    expectLib.expect(evaluatedCode.dedent(code, 2)).toBe('(str "a\n  b"\n   :c)');
+  });
+
+  it('leaves code that started a line as it is', () => {
+    expectLib.expect(evaluatedCode.dedent('(foo\n  bar)', 0)).toBe('(foo\n  bar)');
+  });
+});

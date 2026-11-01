@@ -40,7 +40,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
-| | `src/results-output/evaluated-code.ts` | The echo of evaluated code, and which Output views show the code of each running evaluation, so they hear when it ends |
+| | `src/results-output/evaluated-code.ts` | The echo of evaluated code, dedented from the column the code starts at in its file, and which Output views show the code of each running evaluation, so they hear when it ends |
 | | `src/results-output/output-destinations.ts` | Destination names and normalizing, without `vscode` |
 | | `src/results-output/output-sidebar.ts` | Registers the sidebar's provider as `calva.output-sidebar` |
 | | `src/extension.ts` | Calls the `init*` exports at activation and registers the commands |
