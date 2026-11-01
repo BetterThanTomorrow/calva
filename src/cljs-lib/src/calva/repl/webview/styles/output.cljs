@@ -10,6 +10,10 @@
            :padding-inline 0}]
 
    [:#output-scroller {:padding-inline "var(--calva-output-inset)"}]
+   ;; Over the last pixels of the output, so the end shows a little before the very bottom, also in the scroller
+   [:#output-end {:height "4px"
+                  :margin-top "-4px"
+                  :pointer-events :none}]
 
    ["pre[data-output-element-type]"
     ".evaluated-code-container pre"

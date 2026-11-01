@@ -2,6 +2,7 @@
   "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element, and the controls
    around it, rendered there with Replicant."
   (:require
+   [calva.repl.webview.auto-scroll :as auto-scroll]
    [calva.repl.webview.code-brackets :as code-brackets]
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.completion :as completion]
@@ -183,11 +184,10 @@
   (.. js/document -body -classList (contains "word-wrap")))
 
 (defn- show-latest-output!
-  "Scrolls the output to its bottom, after the page's scrolling moved between the page and the output's own
-   scroller."
+  "Scrolls the output to its end, with auto scrolling on, after the page's scrolling moved between the page
+   and the output's own scroller."
   []
-  (some-> (js/document.getElementById "output")
-          (.dispatchEvent (js/CustomEvent. "output-appended" #js {:detail #js {}}))))
+  (auto-scroll/reveal-end!))
 
 (defn- extensions
   [dispatch!]

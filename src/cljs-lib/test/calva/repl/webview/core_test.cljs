@@ -145,13 +145,14 @@
           page (sut/page {:env/is-debug false} (assoc page-args :js-source (uri "js-uri")))]
       (is (= "js-uri" (:src (attributes (first (elements page :script))))))
       (is (empty? (elements page :link)) "The page links no stylesheets")))
-  (testing "the greeting comes before the output, not inside it, both in the scroller the REPL Input goes below"
+  (testing "the greeting comes before the output, not inside it, and the element that marks the end of the output after it, all in the scroller the REPL Input goes below"
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :greeting [:div "Ahoy"]))
                                             :body))]
       (is (= [:div {:id "output-scroller"}
               [:div "Ahoy"]
-              [:div {:id "output" :class "output-element-container"}]]
+              [:div {:id "output" :class "output-element-container"}]
+              [:div {:id "output-end" :aria-hidden "true"}]]
              (first children)))))
   (testing "the body has the word-wrap class only with word wrap on"
     (is (= "word-wrap" (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? true)) :body))))))

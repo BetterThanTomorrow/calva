@@ -263,7 +263,8 @@
             word-wrap? (assoc :class "word-wrap"))
     [:div {:id "output-scroller"}
      greeting
-     [:div {:id "output" :class "output-element-container"}]]
+     [:div {:id "output" :class "output-element-container"}]
+     [:div {:id "output-end" :aria-hidden "true"}]]
     (when repl-input (repl-input-element repl-input))
     [:script {:nonce script-nonce :src (str js-source)}]]])
 

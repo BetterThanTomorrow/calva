@@ -1,6 +1,7 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.auto-scroll :as auto-scroll]
    [calva.repl.webview.code-brackets :as code-brackets]
    [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.copy-button :as copy-button]
@@ -49,15 +50,8 @@
                                            wait)))
         (reset! called-during-timeout? true)))))
 
-(defn scroll-to-bottom
-  "Scrolls the output to its bottom, in the page, or in its own scroller when the REPL Input is below it."
-  []
-  (when-let [^js scroller (js/document.getElementById "output-scroller")]
-    (set! (.-scrollTop scroller) (.-scrollHeight scroller)))
-  (js/scrollTo 0 js/document.documentElement.scrollHeight))
-
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
-(def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
+(def throttled-scroll-to-bottom (throttle-fn auto-scroll/follow! 0))
 
 (defn output-appended-event
   "Creates a custom event to signal that output has been appended to the output DOM element.
@@ -914,4 +908,5 @@
   (.. output-dom-element (addEventListener "error" #(on-image-error %) true)))
 
 (defn ^:export main []
-  (add-event-listeners output-dom-element))
+  (add-event-listeners output-dom-element)
+  (auto-scroll/listen!))
