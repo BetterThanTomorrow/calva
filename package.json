@@ -4568,7 +4568,7 @@
     "jszip": "3.8.0",
     "lodash": "^4.17.19",
     "lodash.isequal": "4.5.0",
-    "minimatch": "^10.1.1",
+    "minimatch": "^11.0.1",
     "net": "1.0.2",
     "open": "^6.3.0",
     "parinfer": "^3.12.0",
