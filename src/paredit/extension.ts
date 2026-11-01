@@ -506,6 +506,13 @@ const pareditCommands = [
     },
   },
   {
+    command: 'paredit.squeeze',
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      return handlers.squeeze(doc, isMulti, copyRangeToClipboard);
+    },
+  },
+  {
     command: 'paredit.deleteForward',
     handlerNow: (doc: EditableDocument, builder: vscode.TextEditorEdit) => {
       paredit.deleteForward(doc, builder);

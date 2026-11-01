@@ -2661,6 +2661,12 @@
         "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
+        "category": "Calva Paredit",
+        "command": "paredit.squeeze",
+        "title": "Squeeze - Cut sibling S-exps and delete paren",
+        "enablement": "editorLangId == clojure"
+      },
+      {
         "command": "calva-fmt.formatCurrentForm",
         "title": "Format Current Form",
         "category": "Calva Format",

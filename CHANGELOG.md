@@ -12,6 +12,7 @@ Changes to Calva.
 - [Don't auto-scroll the output view when user has scrolled up](https://github.com/BetterThanTomorrow/calva/issues/2869)
 - [Make load file error popup not occur when webview is output destination and it's visible](https://github.com/BetterThanTomorrow/calva/issues/2841)
 - [Format evaluated code in output view](https://github.com/BetterThanTomorrow/calva/issues/2838)
+- [Add paredit squeeze command to remove parentheses from current form](https://github.com/BetterThanTomorrow/calva/issues/2892)
 
 ## [2.0.606] - 2026-10-29
 
