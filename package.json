@@ -2664,7 +2664,7 @@
         "category": "Calva Paredit",
         "command": "paredit.squeeze",
         "title": "Squeeze - Cut sibling S-exps and delete paren",
-        "enablement": "editorLangId == clojure"
+        "enablement": "editorLangId == clojure || calva:replInputFocused || calva:replInputLastFocused && inQuickOpen"
       },
       {
         "command": "calva-fmt.formatCurrentForm",
