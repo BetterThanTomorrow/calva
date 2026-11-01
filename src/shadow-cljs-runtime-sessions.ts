@@ -14,40 +14,58 @@ import * as output from './results-output/output';
  * shadow-cljs sends an eval the runtime's printed output only when it picked the runtime itself,
  * so these evals get none. Calva subscribes to the runtime's prints on its own shadow-remote
  * connection instead, and `handleRuntimePrint` routes them.
+ *
+ * The cljs session has no runtime in its REPL state, so shadow-cljs runs each of its evals in the
+ * build's default runtime at that moment, and sends that eval every print from the runtime while
+ * it runs.
  */
 type RuntimeSession = { buildId: string; session: Promise<nrepl.NReplSession> };
+
+/** A runtime of a shadow-cljs build, on the connection of `clientKey`. */
+export type RuntimeTarget = { clientKey: string; buildId: string; runtimeId: number };
+
+type ConnectionRuntime = Pick<RuntimeTarget, 'clientKey' | 'runtimeId'>;
+
+/** A shadow-remote message, carrying a print from runtime `from` when `op` is `runtime-print`. */
+type RuntimePrint = { op: string; from?: number; stream?: string; text?: string };
 
 type RuntimeEvaluation = Pick<nrepl.NReplEvaluation, 'out' | 'err' | 'value' | 'finished'>;
 
 const runtimeSessions = new Map<string, RuntimeSession>();
 const runningEvaluations = new Map<string, RuntimeEvaluation[]>();
 
-const runtimeKey = (clientKey: string, runtimeId: number) => `${clientKey}/${runtimeId}`;
+const runtimeKey = ({ clientKey, runtimeId }: ConnectionRuntime) => `${clientKey}/${runtimeId}`;
 
-async function createSessionForRuntime(
-  clientKey: string,
-  buildId: string,
-  runtimeId: number
-): Promise<nrepl.NReplSession> {
+// `node-repl` and `browser-repl` build ids come without the colon
+const buildKeyword = (buildId: string) => `:${buildId.replace(/^:/, '')}`;
+
+async function selectRuntime(session: nrepl.NReplSession, buildId: string, runtimeId: number) {
+  const selected = await session.eval(
+    `(shadow.cljs.devtools.api/repl ${buildKeyword(buildId)} {:runtime-id ${runtimeId}})`,
+    'user'
+  ).value;
+  if (!selected?.startsWith('[:selected')) {
+    throw new Error(`Could not connect a session to shadow-cljs runtime ${runtimeId}: ${selected}`);
+  }
+}
+
+async function createSessionForRuntime({
+  clientKey,
+  buildId,
+  runtimeId,
+}: RuntimeTarget): Promise<nrepl.NReplSession> {
   const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
   if (!cljSession) {
     throw new Error(`No Clojure session for connection ${clientKey}`);
   }
   const session = await cljSession.clone();
   session.replType = 'cljs';
-  // `node-repl` and `browser-repl` build ids come without the colon
-  const buildKeyword = `:${buildId.replace(/^:/, '')}`;
   try {
-    const selected = await session.eval(
-      `(shadow.cljs.devtools.api/repl ${buildKeyword} {:runtime-id ${runtimeId}})`,
-      'user'
-    ).value;
-    if (!selected?.startsWith('[:selected')) {
-      throw new Error(
-        `Could not connect a session to shadow-cljs runtime ${runtimeId}: ${selected}`
-      );
+    await selectRuntime(session, buildId, runtimeId);
+    // shadow-cljs sends evals in the node-repl process's stdout already
+    if (buildKeyword(buildId) !== ':node-repl') {
+      await cljSession.shadowCljsRemoteMessage(`{:op :runtime-print-sub :to ${runtimeId}}`);
     }
-    await cljSession.shadowCljsRemoteMessage(`{:op :runtime-print-sub :to ${runtimeId}}`);
     return session;
   } catch (e) {
     session.close();
@@ -56,20 +74,15 @@ async function createSessionForRuntime(
 }
 
 /**
- * Returns the session that evaluates in `runtimeId` of `buildId` on the `clientKey` connection,
- * creating it on first use.
+ * Returns the session that evaluates in the `target` runtime, creating it on first use.
  */
-export function getSessionForRuntime(
-  clientKey: string,
-  buildId: string,
-  runtimeId: number
-): Promise<nrepl.NReplSession> {
-  const key = runtimeKey(clientKey, runtimeId);
+function getSessionForRuntime(target: RuntimeTarget): Promise<nrepl.NReplSession> {
+  const key = runtimeKey(target);
   if (runtimeSessions.has(key)) {
     return runtimeSessions.get(key).session;
   }
-  const session = createSessionForRuntime(clientKey, buildId, runtimeId);
-  runtimeSessions.set(key, { buildId, session });
+  const session = createSessionForRuntime(target);
+  runtimeSessions.set(key, { buildId: target.buildId, session });
   session.then(
     (s) => s.addOnCloseHandler(() => runtimeSessions.delete(key)),
     () => runtimeSessions.delete(key)
@@ -77,8 +90,43 @@ export function getSessionForRuntime(
   return session;
 }
 
+/**
+ * True when shadow-cljs would run an eval in the cljs session in the `target` runtime, which it
+ * decides from the build's default runtime, not from Calva's selection.
+ */
+async function isCljsSessionRuntime({
+  clientKey,
+  buildId,
+  runtimeId,
+}: RuntimeTarget): Promise<boolean> {
+  const cljsBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
+  if (!cljsBuild || buildKeyword(cljsBuild) !== buildKeyword(buildId)) {
+    return false;
+  }
+  const worker = `(shadow.cljs.devtools.api/get-worker ${buildKeyword(buildId)})`;
+  const defaultRuntimeId = await sessionRegistry
+    .getPrimarySessionForClient(clientKey)
+    ?.eval(`(some-> ${worker} :state-ref deref :default-runtime-id)`, 'user').value;
+  return defaultRuntimeId === `${runtimeId}`;
+}
+
+/**
+ * Returns the session to evaluate in the `target` runtime. That is `cljsSession` when shadow-cljs
+ * runs its evals in that runtime anyway, so evals in the runtime share one queue and each gets its
+ * own prints from shadow-cljs. Otherwise it is the session for the runtime.
+ */
+export async function getEvalSessionForRuntime(
+  target: RuntimeTarget,
+  cljsSession: nrepl.NReplSession
+): Promise<nrepl.NReplSession> {
+  if (await isCljsSessionRuntime(target)) {
+    return cljsSession;
+  }
+  return getSessionForRuntime(target);
+}
+
 export function closeSessionForRuntime(clientKey: string, runtimeId: number): void {
-  void runtimeSessions.get(runtimeKey(clientKey, runtimeId))?.session.then(
+  void runtimeSessions.get(runtimeKey({ clientKey, runtimeId }))?.session.then(
     (session) => session.close(),
     () => undefined
   );
@@ -92,7 +140,7 @@ export function trackEvaluation(
   runtimeId: number,
   evaluation: RuntimeEvaluation
 ): void {
-  const key = runtimeKey(clientKey, runtimeId);
+  const key = runtimeKey({ clientKey, runtimeId });
   runningEvaluations.set(key, [...(runningEvaluations.get(key) ?? []), evaluation]);
   const untrack = () => {
     const remaining = runningEvaluations.get(key)?.filter((e) => e !== evaluation) ?? [];
@@ -105,11 +153,11 @@ export function trackEvaluation(
   evaluation.value.then(untrack, untrack);
 }
 
-function appendToOutputView(clientKey: string, runtimeId: number, stream: string, text: string) {
+function appendToOutputView(runtime: ConnectionRuntime, { stream, text }: RuntimePrint) {
   const options: output.AppendClojureOptions = {
-    replSessionType: sessionRegistry.getSecondarySessionKeyForClient(clientKey),
-    shadowBuild: runtimeSessions.get(runtimeKey(clientKey, runtimeId))?.buildId,
-    shadowRuntimeId: runtimeId,
+    replSessionType: sessionRegistry.getSecondarySessionKeyForClient(runtime.clientKey),
+    shadowBuild: runtimeSessions.get(runtimeKey(runtime))?.buildId,
+    shadowRuntimeId: runtime.runtimeId,
   };
   if (stream === 'stderr') {
     output.appendOtherErr(text, options);
@@ -118,31 +166,40 @@ function appendToOutputView(clientKey: string, runtimeId: number, stream: string
   }
 }
 
+function cljsSessionGetsPrint({ clientKey, runtimeId }: ConnectionRuntime): boolean {
+  const cljsSession = sessionRegistry.getSession(
+    sessionRegistry.getSecondarySessionKeyForClient(clientKey)
+  );
+  return (
+    runtimeId === clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeId &&
+    !!cljsSession?.hasRunningEvaluations()
+  );
+}
+
 /**
  * Routes a `:runtime-print` shadow-remote message, and ignores other messages. A print goes to the
  * oldest unfinished tracked evaluation in its runtime, which is the one running, since a session
  * evaluates one message at a time. A finished evaluation stays tracked until its value settles, so
  * a print read together with its reply would otherwise land there. Without such an evaluation, it
- * goes to the Output view. Prints from the connection's selected runtime reach its evaluations
- * through the eval itself, so outside a tracked evaluation they are skipped. The prints and the eval's value reach Calva on separate paths, so a print can
- * arrive after the value, and then goes to the Output view.
+ * goes to the Output view, except a print from the connection's selected runtime while the cljs
+ * session evaluates, since shadow-cljs sends that eval the print. The prints and the eval's value
+ * reach Calva on separate paths, so a print can arrive after the value, and then goes to the next
+ * evaluation queued in the runtime, or to the Output view.
  */
-export function handleRuntimePrint(
-  clientKey: string,
-  { op, from, stream, text }: { op: string; from?: number; stream?: string; text?: string }
-): void {
-  if (op !== 'runtime-print') {
+export function handleRuntimePrint(clientKey: string, print: RuntimePrint): void {
+  if (print.op !== 'runtime-print') {
     return;
   }
-  const evaluation = runningEvaluations.get(runtimeKey(clientKey, from))?.find((e) => !e.finished);
+  const runtime = { clientKey, runtimeId: print.from };
+  const evaluation = runningEvaluations.get(runtimeKey(runtime))?.find((e) => !e.finished);
   if (evaluation) {
-    if (stream === 'stderr') {
-      evaluation.err(text);
+    if (print.stream === 'stderr') {
+      evaluation.err(print.text);
     } else {
-      evaluation.out(text);
+      evaluation.out(print.text);
     }
-  } else if (from !== clientRegistry.getConnectionState(clientKey)?.shadowCljsRuntimeId) {
-    appendToOutputView(clientKey, from, stream, text);
+  } else if (!cljsSessionGetsPrint(runtime)) {
+    appendToOutputView(runtime, print);
   }
 }
 

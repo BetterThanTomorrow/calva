@@ -66,7 +66,13 @@ const createRuntimeSession = (replCalls: string[], runtimeEval: RuntimeEval) => 
   } as unknown as nrepl.NReplSession;
 };
 
-const createCljsSession = (clientKey: string) =>
+/**
+ * What shadow-cljs does on the mocked connection: the build's default runtime, and whether the
+ * cljs session has an eval running.
+ */
+type ShadowState = { defaultRuntimeId: string; cljsSessionEvaluating: boolean };
+
+const createCljsSession = (clientKey: string, shadow: ShadowState) =>
   ({
     replType: 'cljs',
     sessionId: 'shadow-runtime-sessions/cljs-session-id',
@@ -78,6 +84,7 @@ const createCljsSession = (clientKey: string) =>
       errorOutput: '',
     }),
     stacktrace: () => Promise.resolve(undefined),
+    hasRunningEvaluations: () => shadow.cljsSessionEvaluating,
   } as unknown as nrepl.NReplSession);
 
 const registerShadowClient = (clientKey: string) =>
@@ -94,7 +101,9 @@ const registerShadowClient = (clientKey: string) =>
 
 /**
  * Registers a shadow-cljs connection on `clientKey` with runtime 42 of `:app` selected and the cljs
- * session at `sessionKey`. Its clj session clones sessions for runtimes, which run `runtimeEval`.
+ * session at `sessionKey`. Its clj session clones sessions for runtimes, which run `runtimeEval`,
+ * and answers the default runtime query from `shadow`, where shadow-cljs's default is runtime 99,
+ * one Calva hasn't selected, until a test changes it.
  */
 const setUpTargetRuntimeConnection = (
   clientKey: string,
@@ -103,10 +112,16 @@ const setUpTargetRuntimeConnection = (
 ) => {
   const replCalls: string[] = [];
   const remoteMessages: string[] = [];
+  const cljEvals: string[] = [];
+  const shadow: ShadowState = { defaultRuntimeId: '99', cljsSessionEvaluating: false };
   const runtimeSession = createRuntimeSession(replCalls, runtimeEval);
   const cljSession = {
     replType: 'clj',
     client: { clientKey },
+    eval: (code: string) => {
+      cljEvals.push(code);
+      return { value: Promise.resolve(shadow.defaultRuntimeId) };
+    },
     clone: () => Promise.resolve(runtimeSession),
     shadowCljsRemoteMessage: (data: string) => {
       remoteMessages.push(data);
@@ -123,7 +138,7 @@ const setUpTargetRuntimeConnection = (
     isSecondary: false,
     globs: ['**/*.clj'],
   });
-  sessionRegistry.registerSession(sessionKey, createCljsSession(clientKey), {
+  sessionRegistry.registerSession(sessionKey, createCljsSession(clientKey, shadow), {
     connectionOwnerId: clientKey,
     isSecondary: true,
     globs: ['**/*.cljs'],
@@ -132,6 +147,8 @@ const setUpTargetRuntimeConnection = (
   return {
     replCalls,
     remoteMessages,
+    shadow,
+    cljEvals,
     cleanUp: () => {
       runtimeSessions.closeSessionForRuntime(clientKey, 42);
       runtimeSessions.closeSessionForRuntime(clientKey, 43);
@@ -287,7 +304,7 @@ describe('Shadow runtime sessions suite', () => {
       assert.strictEqual(
         selected.result,
         'runtime-session',
-        'The selected runtime is targeted too'
+        'The selected runtime gets a session when it is not shadow-cljs default'
       );
       assert.strictEqual(
         connection.replCalls[1],
@@ -311,7 +328,42 @@ describe('Shadow runtime sessions suite', () => {
     }
   });
 
-  it('sets up the session with the build id as a keyword when it is displayed without the colon', async () => {
+  it('evaluates in the cljs session when shadow-cljs runs its evals in the targeted runtime', async () => {
+    const sessionKey = 'shadow-runtime-sessions/target-default-runtime';
+    const connection = setUpTargetRuntimeConnection(
+      'test-client-target-default-runtime',
+      sessionKey,
+      (_code, ns, opts) => createRuntimeEvaluation(ns, opts, Promise.resolve('runtime-session'))
+    );
+    connection.shadow.defaultRuntimeId = '42';
+
+    try {
+      const res = await replApi.evaluate('(inc 1)', {
+        sessionKey,
+        ns: 'cljs.user',
+        targetRuntimeId: 42,
+      });
+
+      assert.strictEqual(res.result, 'cljs-session');
+      assert.strictEqual(res.shadowRuntimeId, 42);
+      assert.deepStrictEqual(connection.replCalls, [], 'No session is set up for the runtime');
+      assert.deepStrictEqual(connection.cljEvals, [
+        '(some-> (shadow.cljs.devtools.api/get-worker :app) :state-ref deref :default-runtime-id)',
+      ]);
+
+      connection.shadow.defaultRuntimeId = '43';
+      await replApi.evaluate('(inc 1)', { sessionKey, ns: 'cljs.user', targetRuntimeId: 43 });
+      assert.deepStrictEqual(
+        connection.replCalls,
+        ['(shadow.cljs.devtools.api/repl :node {:runtime-id 43})'],
+        'The default runtime of another build than the cljs session gets a session'
+      );
+    } finally {
+      connection.cleanUp();
+    }
+  });
+
+  it('sets up a node-repl session with the build id as a keyword, and no print subscription', async () => {
     const connection = setUpTargetRuntimeConnection(
       'test-client-target-runtime-node-repl',
       'shadow-runtime-sessions/target-runtime-node-repl',
@@ -328,6 +380,11 @@ describe('Shadow runtime sessions suite', () => {
       assert.deepStrictEqual(connection.replCalls, [
         '(shadow.cljs.devtools.api/repl :node-repl {:runtime-id 44})',
       ]);
+      assert.deepStrictEqual(
+        connection.remoteMessages,
+        [],
+        'No print subscription, since shadow-cljs sends the node process stdout'
+      );
     } finally {
       connection.cleanUp();
     }
@@ -367,16 +424,37 @@ describe('Shadow runtime sessions suite', () => {
       assert.strictEqual(res.errorOutput, 'error during', 'Error prints are its stderr');
 
       await runtimePrint(clientKey, 43, 'stdout', 'printed after');
-      await runtimePrint(clientKey, 42, 'stdout', 'printed by the selected runtime');
 
       const after = events.filter((message) => message.text.includes('printed after'));
       assert.strictEqual(after.length, 1, 'A print after the eval goes to the output');
       assert.strictEqual(after[0].category, 'otherOutput');
       assert.strictEqual(after[0].shadowRuntimeId, 43);
       assert.strictEqual(after[0].shadowBuild, ':node');
+    } finally {
+      subscription.dispose();
+      connection.cleanUp();
+    }
+  });
+
+  it('sends prints from the selected runtime to the output, unless the cljs session is evaluating', async () => {
+    const clientKey = 'test-client-selected-runtime-prints';
+    const events: replApi.OutputMessage[] = [];
+    const connection = setUpTargetRuntimeConnection(
+      clientKey,
+      'shadow-runtime-sessions/selected-runtime-prints',
+      (_code, ns, opts) => createRuntimeEvaluation(ns, opts, Promise.resolve('nil'))
+    );
+    const subscription = replApi.onOutputLogged((message) => events.push(message));
+
+    try {
+      await runtimePrint(clientKey, 42, 'stdout', 'printed while idle');
+      connection.shadow.cljsSessionEvaluating = true;
+      await runtimePrint(clientKey, 42, 'stdout', 'printed while evaluating');
+
+      assert.ok(events.some((message) => message.text.includes('printed while idle')));
       assert.ok(
-        !events.some((message) => message.text.includes('printed by the selected runtime')),
-        'Prints from the selected runtime outside a tracked eval are skipped'
+        !events.some((message) => message.text.includes('printed while evaluating')),
+        'shadow-cljs sends the cljs session eval the print'
       );
     } finally {
       subscription.dispose();

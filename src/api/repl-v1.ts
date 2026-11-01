@@ -108,10 +108,9 @@ export const evaluate = async (
       throw new Error(`No shadow-cljs runtime with id ${targetRuntimeId} on this connection`);
     }
     shadowBuild = targetRuntime.buildId;
-    evalSession = await runtimeSessions.getSessionForRuntime(
-      clientKey,
-      targetRuntime.buildId,
-      targetRuntimeId
+    evalSession = await runtimeSessions.getEvalSessionForRuntime(
+      { clientKey, buildId: targetRuntime.buildId, runtimeId: targetRuntimeId },
+      session
     );
   }
 

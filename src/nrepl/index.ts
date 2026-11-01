@@ -517,6 +517,11 @@ export class NReplSession {
     NReplEvaluation.dropSessionEvaluations(this);
   }
 
+  /** True while an evaluation sent in this session waits for its reply. */
+  hasRunningEvaluations(): boolean {
+    return NReplEvaluation.hasRunningEvaluations(this);
+  }
+
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
   replType: ReplSessionType = null;
 
@@ -1618,6 +1623,10 @@ export class NReplEvaluation {
       }
     });
     return num;
+  }
+
+  static hasRunningEvaluations(session: NReplSession): boolean {
+    return NReplEvaluation.Instances.some((item) => item.session === session && !item.finished);
   }
 
   /** Ends the evaluations of `session` as dropped. Each rejects, saying the REPL session closed. */
