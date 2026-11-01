@@ -993,7 +993,8 @@ function reportStoppedLoad(error: unknown, { fileName, silent, outputOptions }: 
 
 /**
  * Says that loading the file failed with `error`: in the output, with the error's causes, and in an
- * error message when no REPL window shows. Throws instead of showing the message when `silent`.
+ * error message when neither a REPL window nor an Output view it went to shows. Throws instead of
+ * showing the message when `silent`.
  */
 function reportFailedLoad(
   error: unknown,
@@ -1012,7 +1013,8 @@ function reportFailedLoad(
   if (
     !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
       replWindow.isReplWindowDoc(editor.document)
-    )
+    ) &&
+    !cljsLib.isSomeOutputViewVisible(output.getDestinationConfiguration().otherOutput)
   ) {
     void vscode.window.showErrorMessage(message, 'Show output').then((choice) => {
       if (choice === 'Show output') {

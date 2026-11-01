@@ -168,6 +168,20 @@
     (add-context-subscription! (create-output-destinations-change-listener))
     provider))
 
+(defn- output-view-visible?
+  [destination]
+  (some-> ^js (case destination
+                "output-view" @core/output-view-webview-panel
+                "output-sidebar" @output-sidebar-webview-view
+                nil)
+          .-visible))
+
+(defn ^:export some-output-view-visible?
+  "True when an Output view among `destinations`, an output destination value as configured, is open
+   and visible."
+  [destinations]
+  (boolean (some output-view-visible? (if (string? destinations) [destinations] destinations))))
+
 (defn ^:export show-repl-output-sidebar
   [preserve-focus?]
   (if-let [webview-view @output-sidebar-webview-view]

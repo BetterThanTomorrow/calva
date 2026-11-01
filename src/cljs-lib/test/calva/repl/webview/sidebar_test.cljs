@@ -93,6 +93,17 @@
       (sut/show-repl-output-sidebar false)
       (is (spy/called-once-with? show-spy false)))))
 
+(deftest some-output-view-visible?-test
+  (with-redefs [sut/output-sidebar-webview-view (atom #js {:visible true})
+                core/output-view-webview-panel (atom #js {:visible false})]
+    (testing "is true when a destination is a visible Output view"
+      (is (true? (sut/some-output-view-visible? "output-sidebar")))
+      (is (true? (sut/some-output-view-visible? #js ["terminal" "output-sidebar"]))))
+    (testing "is false when the Output views among the destinations are hidden"
+      (is (false? (sut/some-output-view-visible? #js ["terminal" "output-view"]))))
+    (testing "skips nested destination arrays, which are file paths"
+      (is (false? (sut/some-output-view-visible? #js [#js ["output-sidebar"]]))))))
+
 (deftest append-test
   (let [post-message-to-webview-spy (spy/spy)
         options (clj->js {:outputCategory "evalOut"})]

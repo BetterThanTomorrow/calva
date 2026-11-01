@@ -46,6 +46,7 @@
                              :initReplOutputFontSizeScale calva.repl.webview.core/init-font-size-scale!
                              :createReplOutputSidebarProvider calva.repl.webview.sidebar/create-repl-output-sidebar-provider
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
+                             :isSomeOutputViewVisible calva.repl.webview.sidebar/some-output-view-visible?
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
                              :appendErrorToReplOutputSidebar calva.repl.webview.sidebar/append-error
                              :attachCausesToReplOutputSidebar calva.repl.webview.sidebar/attach-error-causes
