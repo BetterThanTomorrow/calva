@@ -9,7 +9,9 @@ Changes to Calva.
 - [Support Calva rainbow brackets in the output view](https://github.com/BetterThanTomorrow/calva/issues/3321)
 - [Support Calva rainbow indent guides in the output views](https://github.com/BetterThanTomorrow/calva/issues/3322)
 - [Support paredit navigation and selection in the output views](https://github.com/BetterThanTomorrow/calva/issues/3323)
-- [Add ability to unlock scrolling in output view](https://github.com/BetterThanTomorrow/calva/issues/2869)
+- [Don't auto-scroll the output view when user has scrolled up](https://github.com/BetterThanTomorrow/calva/issues/2869)
+- [Make load file error popup not occur when webview is output destination and it's visible](https://github.com/BetterThanTomorrow/calva/issues/2841)
+- [Format evaluated code in output view](https://github.com/BetterThanTomorrow/calva/issues/2838)
 
 ## [2.0.606] - 2026-10-29
 
