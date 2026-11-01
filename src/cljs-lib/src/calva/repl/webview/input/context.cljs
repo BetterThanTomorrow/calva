@@ -3,6 +3,7 @@
    spinner and stop button that show while an evaluation runs."
   (:require
    [calva.repl.webview.input.stdin :as stdin]
+   [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]))
 
 (defn- child
@@ -14,10 +15,6 @@
 (def ^:private connect-title "Connect a REPL to enable evaluations")
 
 (def ^:private interrupt-title "Interrupt REPL Input Evaluation")
-
-(def ^:private loading-path
-  "The codicon `loading`."
-  "M13.5 8.5C13.224 8.5 13 8.276 13 8C13 5.243 10.757 3 8 3C5.243 3 3 5.243 3 8C3 8.276 2.776 8.5 2.5 8.5C2.224 8.5 2 8.276 2 8C2 4.691 4.691 2 8 2C11.309 2 14 4.691 14 8C14 8.276 13.776 8.5 13.5 8.5Z")
 
 (def ^:private play-path
   "The codicon `play`."
@@ -196,8 +193,8 @@
   "Returns the spinner and the stop button, shown while the `evaluation` is `:running`, as hiccup."
   [evaluation]
   (let [hidden? (not= :running evaluation)]
-    (list [:span {:class "repl-input-spinner" :hidden hidden? :role "img" :aria-label "Evaluating"}
-           (stdin/icon ["repl-input-context-icon"] loading-path)]
+    (list [:span {:class "repl-input-spinner" :hidden hidden?}
+           (spinner/element ["repl-input-context-icon"])]
           [:button (merge {:class ["repl-input-context-button" "repl-input-stop"]
                            :hidden hidden?
                            :aria-label interrupt-title

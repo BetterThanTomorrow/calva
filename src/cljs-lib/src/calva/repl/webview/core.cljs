@@ -628,6 +628,16 @@
   [error-id ^js causes]
   (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
 
+(defn evaluation-ended-message
+  [evaluation-id]
+  {:command/name "evaluation-ended"
+   :meta/evaluation-id evaluation-id})
+
+(defn ^:export end-evaluation
+  "Tells the Output View, unless it was closed in the meantime, that the evaluation `evaluation-id` ended."
+  [evaluation-id]
+  (post-message-to-webview @output-view-webview-panel (evaluation-ended-message evaluation-id)))
+
 (defn ^:export clear-output-view
   []
   (when-let [webview-panel @output-view-webview-panel]

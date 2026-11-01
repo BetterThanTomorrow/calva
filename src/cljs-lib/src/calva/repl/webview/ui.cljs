@@ -9,6 +9,7 @@
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
+   [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
@@ -379,10 +380,13 @@
 
 (defn evaluated-code-element
   "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` and marked with `marks` when
-   it has them."
-  [code ranges marks]
-  [:div {:class ["evaluated-code-container"]}
-   [:span {:class ["border-text"]} "Evaluated code"]
+   it has them. Code of the evaluation `evaluation-id` has a spinner after its label until the evaluation ends."
+  [code ranges marks evaluation-id]
+  [:div {:class ["evaluated-code-container"] :data-evaluation-id evaluation-id}
+   [:span {:class ["border-text"]}
+    "Evaluated code"
+    (when evaluation-id
+      (spinner/element ["evaluated-code-spinner"]))]
    (clojure-code-element code ranges marks)])
 
 (defn- append-code!
@@ -400,10 +404,11 @@
     (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defn append-evaluated-code
-  "Appends evaluated `code` to `dom-element`, colored with `ranges` and its `brackets` when it has them."
-  [^js dom-element code ranges brackets]
+  "Appends evaluated `code` of the evaluation `evaluation-id` to `dom-element`, colored with `ranges` and its
+   `brackets` when it has them."
+  [^js dom-element {:keys [code ranges brackets evaluation-id]}]
   (append-code! dom-element
-                (fn [{:keys [ranges marks]}] (evaluated-code-element code ranges marks))
+                (fn [{:keys [ranges marks]}] (evaluated-code-element code ranges marks evaluation-id))
                 {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
 (defn append-eval-result
@@ -793,7 +798,8 @@
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
     :fx/append-result (apply append-eval-result output-dom-element args)
-    :fx/append-evaluated-code (apply append-evaluated-code output-dom-element args)
+    :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/end-evaluation (spinner/end-evaluation! output-dom-element (first args))
     :fx/set-bracket-styles (some-> (first args) code-brackets/css code-brackets/set-css!)
     :fx/set-code-highlighting (set-code-highlighting! (first args))
     :fx/set-semantic-tokens (set-semantic-tokens! (first args))
@@ -868,7 +874,7 @@
          "printed-code-brackets" (dispatch! [:printed-code/ax.set-brackets message-data])
          "printed-code-command-keys" (dispatch! [:printed-code/ax.set-command-keys (:repl-input/command-keys message-data)])
          "printed-code-focus"   (dispatch! [:printed-code/ax.focus])
-         ("show-result" "show-evaluated-code" "show-stdout")
+         ("show-result" "show-evaluated-code" "show-stdout" "evaluation-ended")
          (dispatch! [:msg/output message-data])
          "show-error"           (dispatch! [:msg/error message-data])
          "show-error-causes"    (dispatch! [:msg/error-causes message-data])

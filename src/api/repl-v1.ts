@@ -208,6 +208,8 @@ export const evaluate = async (
       };
       resultOutput.appendClojureEval('nil', evalOptions);
     }
+  } finally {
+    resultOutput.endEvaluation(evalOptions.evaluationId);
   }
   return result;
 };
@@ -357,6 +359,8 @@ export const evaluateCode = async (
         evaluationId,
       });
     }
+  } finally {
+    resultOutput.endEvaluation(evaluationId);
   }
   return result;
 };

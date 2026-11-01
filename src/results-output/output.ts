@@ -282,6 +282,9 @@ function writeToWebview(options: AppendOptions, message: string, after?: AfterAp
     errorOutput.writeErrorToWebview(options, message, after);
     return;
   }
+  if (options.outputCategory === 'evaluatedCode') {
+    evaluatedCode.showWhileRunning(options.evaluationId, options.destination);
+  }
   if (options.destination === 'output-sidebar') {
     cljsLib.appendToReplOutputSidebar(options, message);
   } else {
@@ -290,6 +293,15 @@ function writeToWebview(options: AppendOptions, message: string, after?: AfterAp
   if (after) {
     after(undefined, undefined);
   }
+}
+
+// Tells the Output views that show the evaluation's code that it ended
+export function endEvaluation(evaluationId: number | undefined) {
+  evaluatedCode.endEvaluation(evaluationId, (view, id) =>
+    view === 'output-sidebar'
+      ? cljsLib.endEvaluationInReplOutputSidebar(id)
+      : cljsLib.endEvaluationInReplOutputWebview(id)
+  );
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {

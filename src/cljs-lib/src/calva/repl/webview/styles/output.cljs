@@ -1,5 +1,6 @@
 (ns calva.repl.webview.styles.output
-  "The styles of the page and of the output blocks that are text.")
+  "The styles of the page and of the output blocks that are text."
+  (:require [garden.stylesheet :as stylesheet]))
 
 (def page
   "The page, its fonts and its output."
@@ -77,7 +78,19 @@
                    :padding-right "10px"
                    :margin-top "-10px"
                    :margin-left "10px"
-                   :background-color "var(--vscode-editor-background)"}]])
+                   :background-color "var(--vscode-editor-background)"}]
+
+   [:.evaluated-code-spinner {:width "1em"
+                              :height "1em"
+                              :margin-left "0.4em"
+                              :vertical-align "-0.15em"
+                              :fill "var(--vscode-icon-foreground, var(--vscode-foreground))"}]])
+
+(def spinner
+  "The spinner of a running evaluation, which turns as VS Code's loading icon does."
+  [(stylesheet/at-keyframes "evaluation-spin" [:to {:transform "rotate(360deg)"}])
+
+   [:.evaluation-spinner {:animation [["evaluation-spin" "1s" "cubic-bezier(0.53, 0.21, 0.29, 0.67)" :infinite]]}]])
 
 (def ns-info
   "The badges of who evaluated, in which session and namespace."

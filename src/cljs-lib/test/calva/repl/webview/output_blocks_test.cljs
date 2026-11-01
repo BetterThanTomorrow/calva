@@ -33,14 +33,21 @@
       "The REPL Input's evaluations show no who badge"))
 
 (deftest evaluated-code-element-test
-  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil))]
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil nil))]
     (is (seq (l/select :div.evaluated-code-container hiccup)))
+    (is (empty? (l/select :svg hiccup)) "Code from no evaluation has no spinner")
     (is (= ["Evaluated code"] (map l/text (l/select :span.border-text hiccup))))
     (is (= ["(+ 1 2)"] (map l/text (l/select '[pre.output-code-block > code.output-code] hiccup)))
         "The code is in a code block")
     (is (= [[:output/ax.copy-code :event/target]]
            (reader/read-string (:data-action (l/attrs (first (l/select :button.output-code-copy hiccup))))))
-        "The code block's copy button copies its code")))
+        "The code block's copy button copies its code"))
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil 7))]
+    (is (= ["7"] (map (comp str :data-evaluation-id l/attrs) (l/select :div.evaluated-code-container hiccup)))
+        "The code block carries its evaluation")
+    (is (= [#{"evaluation-spinner" "evaluated-code-spinner"}]
+           (map (comp :class l/attrs) (l/select '[span.border-text > svg] hiccup)))
+        "A spinner follows the label while the evaluation runs")))
 
 (deftest clojure-code-element-test
   (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]] [])]

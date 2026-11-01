@@ -23,6 +23,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `tooltip.cljs` | The tooltip of every control in the page |
 | | `code_highlight.cljs` | The classes that color code, one per color and font style, in one constructed stylesheet, and code's hiccup and DOM with them. The REPL Input uses them too |
 | | `copy_button.cljs` | The copy button, a Replicant alias every block with one uses |
+| | `spinner.cljs` | The spinner of a running evaluation, after an evaluated code block's label and on the REPL Input's context line, and removing it when the evaluation ends |
 | | `input/*.cljs` | The REPL Input |
 | | `printed_code/*.cljs` | Printed code's editor, which a click puts in place of a printed code block, for Paredit to move and select in |
 | | `styles_reload.cljs` | A preload of the build in development: renders the views' styles into the page again after each code reload |
@@ -38,7 +39,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
 | Extension, TS | `src/results-output/output.ts` | Every `append*` function. Picks the destinations from `calva.outputDestinations` and writes to each |
 | | `src/results-output/error-output.ts` | Errors with causes, for the Output views and the REPL window |
-| | `src/results-output/evaluated-code.ts` | The echo of evaluated code |
+| | `src/results-output/evaluated-code.ts` | The echo of evaluated code, and which Output views show the code of each running evaluation, so they hear when it ends |
 | | `src/results-output/output-destinations.ts` | Destination names and normalizing, without `vscode` |
 | | `src/results-output/output-sidebar.ts` | Registers the sidebar's provider as `calva.output-sidebar` |
 | | `src/extension.ts` | Calls the `init*` exports at activation and registers the commands |
@@ -59,7 +60,7 @@ Every function TypeScript calls in cljs-lib is listed under `:exports` in `shado
 | Category | Written by | Destinations from | Command name | Drawn as |
 | --- | --- | --- | --- | --- |
 | `evalResults` | `appendClojureEval` | `evalResults` | `show-result` | Highlighted code, with images when it has some |
-| `evaluatedCode` | `appendEvaluatedCode` | `evalResults` | `show-evaluated-code` | An "Evaluated code" block |
+| `evaluatedCode` | `appendEvaluatedCode` | `evalResults` | `show-evaluated-code` | An "Evaluated code" block, with a spinner after its label until the evaluation ends |
 | `clojure` | `appendClojureOther` | `otherOutput` | `show-result` | Highlighted code |
 | `evalOut`, `evalErr` | `appendEvalOut`, `appendEvalErr` and their `appendLine*` | `evalOutput` | `show-stdout` | A `pre` with the category in `data-output-element-type` |
 | `otherOut`, `otherErr` | `appendOtherOut`, `appendOtherErr` and their `appendLine*` | `otherOutput` | `show-stdout` | Same as above |
@@ -87,6 +88,7 @@ Each view has four message listeners on the extension side: `image-host/listen-f
 | --- | --- |
 | `show-result`, `show-stdout`, `show-evaluated-code` | Output, with `:output`, `:output-category` and `:meta`, and printed code's `:output/highlighting` |
 | `show-error`, `show-error-causes` | An error entry, and its causes when they come later |
+| `evaluation-ended` | The evaluation `:meta/evaluation-id` ended, which removes the spinner of its evaluated code. `output.endEvaluation` posts it, when an evaluation from a file, the REPL Input or the API ends, to the views that show its code |
 | `clear-output-view` | Clears the output |
 | `set-code-theme` | The active theme's palette key, which tells when printed code needs coloring again, and its color for function names, which stack frames take |
 | `output-highlighting`, `output-semantic-tokens` | Printed code's colors, `[id ranges]` for each code element, from the grammar and from clojure-lsp |

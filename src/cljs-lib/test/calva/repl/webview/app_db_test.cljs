@@ -169,8 +169,17 @@
   (testing "evaluated code is left raw"
     (let [payload {:command/name "show-evaluated-code" :output (str "\"" png-data-url "\"")}
           result (sut/handle-action sut/initial-db [:msg/output payload])]
-      (is (= [[:fx/append-evaluated-code (str "\"" png-data-url "\"") nil nil]]
+      (is (= [[:fx/append-evaluated-code {:code (str "\"" png-data-url "\"") :ranges nil :brackets nil :evaluation-id nil}]]
              (:uf/fxs result)))))
+
+  (testing "evaluated code carries its evaluation"
+    (is (= 7 (-> (sut/handle-action sut/initial-db [:msg/output {:command/name "show-evaluated-code"
+                                                                 :output "(+ 1 2)"
+                                                                 :meta {:meta/evaluation-id 7}}])
+                 :uf/fxs
+                 peek
+                 second
+                 :evaluation-id))))
 
   (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
@@ -326,6 +335,13 @@
     (is (= [[:fx/render-error error]] fxs)
         "An error without frames is drawn too, as its own entry")
     (is (= causes (:error/causes error)))))
+
+(deftest evaluation-ended-test
+  (is (= {:uf/db sut/initial-db
+          :uf/fxs [[:fx/end-evaluation 7]]}
+         (sut/handle-action sut/initial-db [:msg/output {:command/name "evaluation-ended"
+                                                         :meta/evaluation-id 7}]))
+      "The end of an evaluation removes the spinners of its code"))
 
 (deftest error-causes-arrive-later-test
   (let [db (:uf/db (show-error sut/initial-db {:error/causes []}))

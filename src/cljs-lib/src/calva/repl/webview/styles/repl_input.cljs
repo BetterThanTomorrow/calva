@@ -1,6 +1,5 @@
 (ns calva.repl.webview.styles.repl-input
-  "The styles of the REPL Input around its code editor."
-  (:require [garden.stylesheet :as stylesheet]))
+  "The styles of the REPL Input around its code editor.")
 
 (def layout
   "The REPL Input at the bottom of the page, below the output, which scrolls on its own, with its sash."
@@ -122,15 +121,11 @@
                :text-decoration :underline}]]])
 
 (def running
-  "The spinner and the stop button shown while an evaluation runs. The spinner turns as VS Code's loading
-   icon does."
-  [(stylesheet/at-keyframes "repl-input-spin" [:to {:transform "rotate(360deg)"}])
-
-   [:.repl-input-spinner {:display :flex
+  "The spinner and the stop button shown while an evaluation runs."
+  [[:.repl-input-spinner {:display :flex
                           :flex-shrink 0
                           :color "var(--vscode-icon-foreground, var(--vscode-foreground))"}
-    ["&[hidden]" {:display :none}]
-    [:svg {:animation [["repl-input-spin" "1s" "cubic-bezier(0.53, 0.21, 0.29, 0.67)" :infinite]]}]]
+    ["&[hidden]" {:display :none}]]
 
    [:.repl-input-stop {:color "var(--vscode-debugIcon-stopForeground)"}]])
 

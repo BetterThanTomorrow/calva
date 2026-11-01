@@ -195,6 +195,15 @@
   [error-id ^js causes]
   (add-output-sidebar-message! (core/causes-message error-id causes)))
 
+(defn ^:export end-evaluation
+  "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
+   an Output Destination while the evaluation ran."
+  [evaluation-id]
+  (let [message (core/evaluation-ended-message evaluation-id)]
+    (if (output-sidebar-in-setting? (current-output-destinations))
+      (add-output-sidebar-message! message)
+      (core/post-message-to-webview @output-sidebar-webview-view message))))
+
 (defn ^:export clear-output-sidebar
   []
   (reset! output-sidebar-log #queue [])

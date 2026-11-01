@@ -320,6 +320,8 @@ async function outputOutcome(
       appendFailure(message, evaluation, session, outputOptions, hooks);
     }
     return { error: message, dropped: evaluation.dropped };
+  } finally {
+    output.endEvaluation(outputOptions.evaluationId);
   }
 }
 

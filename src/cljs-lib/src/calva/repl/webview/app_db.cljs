@@ -38,13 +38,18 @@
       [[:fx/append-result output ranges brackets]])))
 
 (defn- message-fxs
-  [{command-name :command/name ranges :output/highlighting brackets :output/brackets :keys [output meta]} category]
+  [{command-name :command/name ranges :output/highlighting brackets :output/brackets evaluation-id :meta/evaluation-id
+    :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
     "show-result" (result-fxs output meta ranges brackets)
-    "show-evaluated-code" [[:fx/append-evaluated-code output ranges brackets]]
+    "show-evaluated-code" [[:fx/append-evaluated-code {:code output
+                                                       :ranges ranges
+                                                       :brackets brackets
+                                                       :evaluation-id (:meta/evaluation-id meta)}]]
+    "evaluation-ended" [[:fx/end-evaluation evaluation-id]]
     []))
 
 (defn- meta-context-key
@@ -175,7 +180,6 @@
 
     :msg/error-causes
     (update-error db (:error/id payload) stacktrace/with-causes (:error/causes payload))
-
     (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)

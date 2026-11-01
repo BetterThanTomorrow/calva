@@ -16,6 +16,7 @@
           output/code
           output/greeting
           output/evaluated-code
+          output/spinner
           output/ns-info
           images/forms
           images/thumbnails
