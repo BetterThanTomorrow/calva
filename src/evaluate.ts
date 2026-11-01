@@ -340,10 +340,7 @@ async function evaluateToOutputDestinations(
 }
 
 function replWindowEchoDestinations(): outputDestinations.OutputDestinationValue[] {
-  const evalResultsDestination = output.getDestinationConfiguration().evalResults;
-  return outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
-    ? ['repl-window']
-    : ['repl-window', evalResultsDestination];
+  return ['repl-window', output.getDestinationConfiguration().evalResults];
 }
 
 type UiContext = {
