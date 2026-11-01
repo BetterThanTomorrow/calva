@@ -13,15 +13,6 @@
                     :destination-key "output-sidebar"
                     :command-title "Calva: Show/Open the REPL output sidebar"}})
 
-(defn escape-html
-  "Escapes HTML special characters in s."
-  [s]
-  (-> (str s)
-      (string/replace "&" "&amp;")
-      (string/replace "<" "&lt;")
-      (string/replace ">" "&gt;")
-      (string/replace "\"" "&quot;")))
-
 (defn destinations-json
   "Returns a pretty-printed JSON string for destinations."
   [destinations]
@@ -29,12 +20,12 @@
     destinations
     (js/JSON.stringify destinations nil 2)))
 
-(defn destinations-config-html
+(defn destinations-config
   "Returns the current output-destination configuration block."
   [destinations]
-  (str "<p>The current output destination configuration is:</p>"
-       "<pre>" (escape-html (destinations-json destinations)) "</pre>"
-       "<p>See <a href=\"https://calva.io/output\">https://calva.io/output</a> for details.</p>"))
+  (list [:p "The current output destination configuration is:"]
+        [:pre (destinations-json destinations)]
+        [:p "See " [:a {:href "https://calva.io/output"} "https://calva.io/output"] " for details."]))
 
 (defn merge-configured-versions
   "Merges inspected jack-in version overrides, later sources winning."
@@ -86,29 +77,27 @@
              (str " (prerelease: " prerelease ")")))
       "unknown")))
 
-(defn greeting-html
-  "Returns the first-open greeting HTML for a view."
+(defn greeting
+  "Returns the first-open greeting for a view."
   [{:keys [view-kind logo-href]}]
   (let [{:keys [heading destination-key command-title]} (get view-copy view-kind)]
-    (str
-     "<div class=\"output-greeting\">"
-     "<p>" heading "<span class=\"output-greeting-read-only\"> It is read-only.</span> Evaluation results, stdout/stderr, and other REPL messages appear here, if <code>" destination-key "</code> is configured as an "
-     "<a href='https://calva.io/output'>output destination</a>.</p>"
-     "<p>To reveal this view, use the command "
-     "<strong>" (escape-html command-title) "</strong>.</p>"
-     "<p><a href=\"https://calva.io\">"
-     "<img class=\"calva-logo\" src=\"" (escape-html logo-href) "\" width=\"120\" alt=\"Calva\" />"
-     "</a></p>"
-     "<p>Please consider <a href=\"https://calva.io/sponsors\">sponsoring Calva</a> ♥️</p>"
-     "</div>")))
+    [:div {:class "output-greeting"}
+     [:p heading [:span {:class "output-greeting-read-only"} " It is read-only."]
+      " Evaluation results, stdout/stderr, and other REPL messages appear here, if "
+      [:code destination-key] " is configured as an "
+      [:a {:href "https://calva.io/output"} "output destination"] "."]
+     [:p "To reveal this view, use the command " [:strong command-title] "."]
+     [:p [:a {:href "https://calva.io"}
+          [:img {:class "calva-logo" :src (str logo-href) :width "120" :alt "Calva"}]]]
+     [:p "Please consider " [:a {:href "https://calva.io/sponsors"} "sponsoring Calva"] " ♥️"]]))
 
 (defn current-output-destinations
   "Reads the current calva.outputDestinations setting."
   []
   (.. ^js @util/vscode -workspace (getConfiguration "calva") (get "outputDestinations")))
 
-(defn html-for-view
-  "Builds greeting HTML for view-kind using live VS Code state."
+(defn for-view
+  "Returns the greeting for view-kind using live VS Code state."
   [view-kind logo-href]
   (let [^js vsc @util/vscode
         ^js ctx @util/vscode-context
@@ -126,11 +115,11 @@
                             {:key key
                              :value (latest-version-text (get stored key))})
                           jack-in-keys)]
-    (greeting-html {:view-kind view-kind
-                    :logo-href logo-href
-                    :destinations (current-output-destinations)
-                    :effective-items effective-items
-                    :latest-items latest-items})))
+    (greeting {:view-kind view-kind
+               :logo-href logo-href
+               :destinations (current-output-destinations)
+               :effective-items effective-items
+               :latest-items latest-items})))
 
 (defn logo-webview-uri
   "Returns the webview URI for the Calva symbol+logo image."

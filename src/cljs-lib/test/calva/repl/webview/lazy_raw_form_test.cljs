@@ -1,10 +1,12 @@
 (ns calva.repl.webview.lazy-raw-form-test
   "Dual-form image output through handle-action and exec-effect!, including raw toggle both ways."
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]))
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]))
+
+(use-fixtures :each (fn [f] (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!] (f))))
 
 (defn- attr
   [el k]
@@ -46,8 +48,7 @@
 
 (deftest dual-form-raw-holds-printed-text-test
   (testing "in raw mode, every image result line shows exact printed text in the raw form"
-    (with-redefs [ui/highlight-code! (fn [_])
-                  ui/post-to-host! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [_])]
       (with-image-display!
         "raw"
         (fn []
@@ -68,8 +69,7 @@
 (deftest toggle-from-raw-shows-thumbnails-test
   (testing "output printed in raw gets thumbnails after toggling to images-including-remote-urls"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "raw"
           (fn []
@@ -90,8 +90,7 @@
 (deftest show-stdout-produces-no-image-forms-test
   (testing "show-stdout with a local path produces no data-image-form entries"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images-including-remote-urls"
           (fn []
@@ -114,8 +113,9 @@
 (deftest toggle-to-raw-shows-printed-text-test
   (testing "output printed in an image mode shows as plain text after toggling to raw"
     (let [highlights (atom 0)]
-      (with-redefs [ui/highlight-code! (fn [_] (swap! highlights inc))
-                    ui/post-to-host! (fn [_])]
+      (with-redefs [ui/post-to-host! (fn [{:keys [command]}]
+                                       (when (= "output-highlight" command)
+                                         (swap! highlights inc)))]
         (with-image-display!
           "images-including-remote-urls"
           (fn []
@@ -139,8 +139,10 @@
                     "switching to raw highlights the raw form once")))))))))
 
 (deftest append-keeps-entry-when-raw-form-throws-test
-  (testing "a throw while building the raw form leaves the images entry in the page"
-    (with-redefs [ui/post-to-host! (fn [_])]
+  (testing "a throw while adding the raw form leaves the images entry in the page"
+    (with-redefs [ui/post-to-host! (fn [{:output/keys [codes]}]
+                                     (when (some #(= "\"/tmp/cat.png\"" (second %)) codes)
+                                       (throw (js/Error. "raw boom"))))]
       (with-image-display!
         "raw"
         (fn []
@@ -150,21 +152,14 @@
                        :image/src "/tmp/cat.png"
                        :image/source "/tmp/cat.png"
                        :image/subtype "png"
-                       :image/mime "image/png"}
-                make-text-el! (fn [t]
-                                (let [pre (js/document.createElement "pre")]
-                                  (.. pre (appendChild (js/document.createTextNode t)))
-                                  pre))]
+                       :image/mime "image/png"}]
             (is (thrown? js/Error
-                         (ui/append-with-images!
-                          host
-                          {:text "/tmp/cat.png\n"
-                           :images [image]
-                           :create-raw-el! #(throw (js/Error. "raw boom"))
-                           :create-text-el! make-text-el!})))
+                         (ui/append-result-with-images host {:text "/tmp/cat.png\n"
+                                                             :raw "\"/tmp/cat.png\""
+                                                             :images [image]})))
             (is (= 1 (.-length (.-children host)))
                 "images form still lands when raw form throws")
-            (is (= ["images"] (form-kinds (aget (.-children host) 0))))))))))
+            (is (= "images" (first (form-kinds (aget (.-children host) 0)))))))))))
 
 (defn- first-local-img
   [^js entry]
@@ -181,8 +176,7 @@
 
 (deftest clear-output-dom-drops-pending-local-resolves-test
   (let [posts (atom [])]
-    (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))
-                  ui/highlight-code! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
       (with-image-display!
         "raw"
         (fn []
@@ -198,8 +192,7 @@
 (deftest repeated-local-paths-post-one-lookup-test
   (testing "repeated identical strings give one row each and one host lookup"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -220,8 +213,7 @@
 (deftest nested-missing-image-removes-thumbnail-test
   (testing "a nested image path that does not resolve leaves no empty row"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -252,8 +244,7 @@
 
 (deftest nested-result-image-strings-toggle-modes-test
   (testing "a result with nested image strings keeps dual forms across all three modes"
-    (with-redefs [ui/highlight-code! (fn [_])
-                  ui/post-to-host! (fn [_])]
+    (with-redefs [ui/post-to-host! (fn [_])]
       (with-image-display!
         "images-including-remote-urls"
         (fn []

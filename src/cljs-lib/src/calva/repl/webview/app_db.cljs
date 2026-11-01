@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.actions :as input-actions]
+   [calva.repl.webview.printed-code.actions :as printed-code-actions]
    [calva.repl.webview.stacktrace :as stacktrace]))
 
 (def initial-db
@@ -24,8 +25,9 @@
 (defn- result-fxs
   "A result with images, or with data URLs replaced by markers, is appended as both forms:
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
-   local paths resolve against the producing session's root."
-  [output meta]
+   local paths resolve against the producing session's root. Other results are appended colored with
+   `ranges`, the extension's highlighting of the text."
+  [output meta ranges brackets]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
@@ -33,16 +35,21 @@
             (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
-      [[:fx/append-result output]])))
+      [[:fx/append-result output ranges brackets]])))
 
 (defn- message-fxs
-  [{command-name :command/name :keys [output meta]} category]
+  [{command-name :command/name ranges :output/highlighting brackets :output/brackets evaluation-id :meta/evaluation-id
+    :keys [output meta]} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta)
-    "show-evaluated-code" [[:fx/append-evaluated-code output]]
+    "show-result" (result-fxs output meta ranges brackets)
+    "show-evaluated-code" [[:fx/append-evaluated-code {:code output
+                                                       :ranges ranges
+                                                       :brackets brackets
+                                                       :evaluation-id (:meta/evaluation-id meta)}]]
+    "evaluation-ended" [[:fx/end-evaluation evaluation-id]]
     []))
 
 (defn- meta-context-key
@@ -56,10 +63,17 @@
     (when ns [who repl-session-key shadow-build shadow-runtime-id ns])))
 
 (defn- with-context
-  "Returns `db` with the context of `meta`, and the effects that show the context when it changed."
-  [db meta]
-  (let [context-key (meta-context-key meta)]
-    (if (and context-key (not= context-key (:output/last-context db)))
+  "Returns `db` with the context and the evaluation of `meta`, and the effects that show the context when
+   it changed, or when a new evaluation starts."
+  [db {:meta/keys [evaluation-id] :as meta}]
+  (let [context-key (meta-context-key meta)
+        new-evaluation? (and (some? evaluation-id)
+                             (not= evaluation-id (:output/last-evaluation db)))
+        due? (or new-evaluation?
+                 (not= context-key (:output/last-context db)))
+        db (cond-> db
+             (some? evaluation-id) (assoc :output/last-evaluation evaluation-id))]
+    (if (and context-key due?)
       [(assoc db :output/last-context context-key) [[:fx/append-ns-info meta]]]
       [db []])))
 
@@ -138,6 +152,16 @@
     {:uf/db new-db
      :uf/fxs [[:fx/set-font-scale (compute-effective-scale new-db)]]}))
 
+(defn- handle-set-code-theme
+  "Sets the color of stack frames' function names and the bracket styles, and colors the printed code again
+   when the theme's palette or the bracket settings are other than the page had."
+  [db {palette-key :output/palette-key frame-name-color :output/frame-name-color bracket-styles :output/bracket-styles}]
+  {:uf/db (assoc db :output/palette-key palette-key)
+   :uf/fxs (cond-> [[:fx/set-frame-name-color frame-name-color]
+                    [:fx/set-bracket-styles bracket-styles]]
+             (and (contains? db :output/palette-key)
+                  (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -145,7 +169,8 @@
     {:uf/db  (-> db
                  (assoc :output/last-context nil)
                  (dissoc :output/errors))
-     :uf/fxs [[:fx/clear-dom]]}
+     :uf/fxs [[:printed-code/fx.unmount]
+              [:fx/clear-dom]]}
 
     :msg/output
     (handle-output db payload)
@@ -155,28 +180,47 @@
 
     :msg/error-causes
     (update-error db (:error/id payload) stacktrace/with-causes (:error/causes payload))
-
     (:error/ax.toggle :error/ax.toggle-cause :error/ax.toggle-flag :error/ax.set-frame-filter
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
+
+    :output/ax.copy-stdout
+    {:uf/db db
+     :uf/fxs [[:fx/copy-stdout payload]]}
+
+    :output/ax.copy-image
+    {:uf/db db
+     :uf/fxs [[:fx/copy-image payload]]}
+
+    :output/ax.copy-code
+    {:uf/db db
+     :uf/fxs [[:fx/copy-code payload]]}
+
+    :msg/output-highlighting
+    {:uf/db db
+     :uf/fxs [[:fx/set-code-highlighting (:output/codes payload)]]}
+
+    :msg/output-semantic-tokens
+    {:uf/db db
+     :uf/fxs [[:fx/set-semantic-tokens (:output/codes payload)]]}
 
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
     :msg/set-code-theme
-    {:uf/db db
-     :uf/fxs [[:fx/set-code-theme (:code-theme payload)]
-              [:fx/set-token-colors (:token-colors payload)]]}
+    (handle-set-code-theme db payload)
 
     :msg/set-word-wrap
     {:uf/db db
      :uf/fxs [[:fx/set-word-wrap (:word-wrap payload)]
-              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]]}
+              [:repl-input/fx.set-line-wrapping (:word-wrap payload)]
+              [:printed-code/fx.set-line-wrapping (:word-wrap payload)]]}
 
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)
 
-    (if (= "repl-input" (namespace action-type))
-      (input-actions/handle-action db action)
+    (case (namespace action-type)
+      "repl-input" (input-actions/handle-action db action)
+      "printed-code" (printed-code-actions/handle-action db action)
       {:uf/db db})))

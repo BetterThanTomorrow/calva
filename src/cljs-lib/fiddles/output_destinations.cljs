@@ -10,13 +10,13 @@
     (def output-mod (js/require (str (.-extensionPath @util/vscode-context)
                                      "/out/results-output/output"))))
 
-  (greeting/greeting-html {:view-kind :output-view
-                           :logo-href "https://example.test/logo.svg"
-                           :destinations "{\"evalResults\": \"terminal\"}"
-                           :effective-items [{:key "nrepl" :value "1.0 (Calva defaults)"}]
-                           :latest-items [{:key "nrepl" :value "1.1"}]})
+  (greeting/greeting {:view-kind :output-view
+                      :logo-href "https://example.test/logo.svg"
+                      :destinations "{\"evalResults\": \"terminal\"}"
+                      :effective-items [{:key "nrepl" :value "1.0 (Calva defaults)"}]
+                      :latest-items [{:key "nrepl" :value "1.1"}]})
 
-  (greeting/html-for-view :output-view "https://example.test/logo.svg")
+  (greeting/for-view :output-view "https://example.test/logo.svg")
 
   (js->clj (.get (.getConfiguration (.-workspace vsc) "calva") "outputDestinations")
            :keywordize-keys true)

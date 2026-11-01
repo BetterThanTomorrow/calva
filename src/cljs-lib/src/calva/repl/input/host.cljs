@@ -8,15 +8,13 @@
    [calva.repl.input.config :as config]
    [calva.repl.input.context :as context]
    [calva.repl.input.focus :as focus]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.history :as history]
    [calva.repl.input.records :as records]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.repl.input.setting :as setting]
    [calva.state :as state]
    [calva.util :as util]))
-
-(def focused-context "calva:replInputFocused")
-
-(def last-focused-context "calva:replInputLastFocused")
 
 (defn- focused-contexts
   "The context keys that hold only for the focused REPL Input: whether its completion list is open."
@@ -39,7 +37,10 @@
    :repl-input.context/editor nil
    :repl-input.context/line nil
    :repl-input.history/entries []
-   :repl-input.history/walked []})
+   :repl-input.history/walked []
+   :printed-code/records {}
+   :printed-code/focused nil
+   :printed-code/last-focused nil})
 
 (defonce !state (atom initial-state))
 
@@ -120,18 +121,18 @@
   [{:repl-input/keys [text selections selections-stack]}]
   (.document ^js @!adapter text (clj->js selections) (clj->js (or selections-stack []))))
 
-(defn- document-state
+(defn document-state
   [doc]
   (let [{:keys [text selections selectionsStack]} (js->clj (.documentState ^js @!adapter doc) :keywordize-keys true)]
     {:text text
      :selections selections
      :selections-stack selectionsStack}))
 
-(defn- apply-cursor-contexts!
-  "Sets the focused REPL Input's cursor contexts that differ from the ones last set."
+(defn apply-cursor-contexts!
+  "Sets the cursor contexts of the place that has focus that differ from the ones last set."
   []
-  (let [{:repl-input/keys [focused records applied-cursor-contexts]} @!state]
-    (when-let [contexts (get-in records [focused :repl-input/cursor-contexts])]
+  (let [{:repl-input/keys [applied-cursor-contexts] :as state} @!state]
+    (when-let [contexts (:repl-input/cursor-contexts (focus/focused-record state))]
       (doseq [[k v] contexts
               :when (not= v (get applied-cursor-contexts k))]
         (set-context! k v))
@@ -173,26 +174,25 @@
   (some-> ^js @!adapter (.currentFileChanged (when last-focused (:repl-input.context/ns line)))))
 
 (defn- tell-other-views-not-last-focused!
-  "Tells the REPL Inputs other than the last focused one, so that only it takes the focus back when its
-   view gets the focus."
-  [{:repl-input/keys [records last-focused]}]
-  (doseq [id (keys records)
-          :when (not= id last-focused)]
+  "Tells the views other than the one of the last focused place, so that only that place takes the focus
+   back when its view gets the focus."
+  [state]
+  (doseq [id (keys @!views)
+          :when (not= id (focus/last-focused-view state))]
     (post-to-view! id {:command/name "repl-input-not-last-focused"})))
 
 (defn update-focus!
   [event]
-  (let [[before after] (swap-vals! !state #(-> %
-                                               (update :repl-input/focused focus/focused-after event)
-                                               (update :repl-input/last-focused focus/last-focused-after event)))
-        focused? (some? (:repl-input/focused after))]
-    (set-context-on-change! focused-context (:repl-input/focused before) (:repl-input/focused after))
-    (when (set-context-on-change! last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
+  (let [[before after] (swap-vals! !state focus/places-after event)]
+    (set-context-on-change! focus/focused-context (:repl-input/focused before) (:repl-input/focused after))
+    (set-context-on-change! focus/printed-code-focused-context (:printed-code/focused before) (:printed-code/focused after))
+    (set-context-on-change! focus/printed-code-last-focused-context (:printed-code/last-focused before) (:printed-code/last-focused after))
+    (when (set-context-on-change! focus/last-focused-context (:repl-input/last-focused before) (:repl-input/last-focused after))
       (current-file-changed! after))
-    (when (and (:repl-input/last-focused after)
-               (not= (:repl-input/last-focused before) (:repl-input/last-focused after)))
+    (when (and (focus/last-focused-view after)
+               (not= (focus/last-focused-view before) (focus/last-focused-view after)))
       (tell-other-views-not-last-focused! after))
-    (if focused?
+    (if (or (:repl-input/focused after) (:printed-code/focused after))
       (apply-cursor-contexts!)
       (release-cursor-contexts!))
     (apply-focused-contexts!)))
@@ -214,24 +214,38 @@
    :repl-input/editor-settings "repl-input-editor-settings"
    :repl-input/brackets "repl-input-brackets"})
 
-(defn- document-brackets
+(defn document-brackets
   [settings doc]
   (js->clj (.brackets ^js @!adapter doc (clj->js (brackets/rainbow-options settings)))
            :keywordize-keys true))
 
+(defn- post-semantic-tokens!
+  "Posts `ranges` to the REPL Input `id` at its current version, when its text is still the `text` they are for."
+  [id text ranges]
+  (let [{:repl-input/keys [version] record-text :repl-input/text} (get-in @!state [:repl-input/records id])]
+    (when (= text record-text)
+      (post-to-view! id {:command/name "repl-input-semantic-tokens"
+                         :repl-input/version version
+                         :repl-input/semantic-tokens ranges}))))
+
+(defn- request-semantic-tokens-later!
+  [id]
+  (semantic-tokens/request-later! id #(semantic-tokens/request! @!adapter @!state id (partial post-semantic-tokens! id))))
+
 (defn- derive-record!
-  "Derives the cursor contexts, the command keys, the editor settings and the brackets of the REPL Input
-   `id` from its record and the settings, sets the cursor contexts when it has focus, and posts to it
-   what changed."
+  "Derives the cursor contexts, the command keys, the editor settings, the brackets and the highlighting of
+   the REPL Input `id` from its record and the settings, sets the cursor contexts when it has focus, posts
+   to it what changed and the highlighting, and asks for its semantic tokens after a pause."
   [id]
   (when-let [record (get-in @!state [:repl-input/records id])]
     (let [{:repl-input/keys [settings] :as state} @!state
           doc (document record)
           with-contexts (assoc record :repl-input/cursor-contexts (js->clj (.cursorContexts ^js @!adapter doc)))
-          derived (assoc with-contexts
-                         :repl-input/command-keys (command-keys-for state with-contexts)
-                         :repl-input/editor-settings (config/editor-settings settings)
-                         :repl-input/brackets (document-brackets settings doc))]
+          derived (highlighting/with-text-highlighting
+                   (assoc with-contexts
+                          :repl-input/command-keys (command-keys-for state with-contexts)
+                          :repl-input/editor-settings (config/editor-settings settings)
+                          :repl-input/brackets (document-brackets settings doc)))]
       (swap! !state assoc-in [:repl-input/records id] derived)
       (when (= id (:repl-input/focused @!state))
         (apply-cursor-contexts!))
@@ -239,11 +253,19 @@
               :when (not= (get record k) (get derived k))]
         (post-to-view! id {:command/name command-name
                            :repl-input/version (:repl-input/version record)
-                           k (get derived k)})))))
+                           k (get derived k)}))
+      (some->> (highlighting/highlighting-message derived) (post-to-view! id))
+      (request-semantic-tokens-later! id))))
 
 (defn- derive-records!
   []
   (run! derive-record! (keys (:repl-input/records @!state))))
+
+(defn highlighting-changed!
+  "Derives the REPL Inputs' highlighting anew, as when the grammar loaded or the color theme changed."
+  []
+  (highlighting/clear-palette!)
+  (derive-records!))
 
 (defn update-records!
   [f & args]
@@ -331,7 +353,8 @@
         [before after] (swap-vals! !state assoc :repl-input.context/line line)]
     (when (not= line (:repl-input.context/line before))
       (doseq [id (keys (:repl-input/records @!state))]
-        (post-to-view! id (context-line-message line)))
+        (post-to-view! id (context-line-message line))
+        (request-semantic-tokens-later! id))
       (refresh-history!))
     (tell-current-editor-changed! before after)
     current))
@@ -342,10 +365,15 @@
     (refresh-context!)))
 
 (defn ^:export editor-moved!
-  "Follows the Clojure editor with `document`, now at `position`."
-  [document position]
-  (swap! !state assoc :repl-input.context/editor {:document document :position position})
-  (refresh-mounted-context!))
+  "Follows the Clojure editor with `document`, now at `position`. Asks for the REPL Inputs' semantic tokens
+   again when the followed document, or its text, changed, since they come from a copy below its text."
+  [^js document position]
+  (let [editor {:document document :version (.-version document) :position position}
+        [before _] (swap-vals! !state context/editor-moved (assoc editor :ns (:repl-input.context/ns (editor-namespace editor))))]
+    (refresh-mounted-context!)
+    (when (not= [document (.-version document)]
+                ((juxt :document :version) (:repl-input.context/editor before)))
+      (run! request-semantic-tokens-later! (keys (:repl-input/records @!state))))))
 
 (defn ^:export routing-changed!
   "Updates the context line and the history's sessions after sessions connected, disconnected or changed
@@ -390,6 +418,7 @@
 (defn view-disposed!
   [view-id]
   (swap! !views dissoc view-id)
+  (semantic-tokens/forget! view-id)
   (update-records! records/remove-record view-id)
   (update-focus! [:dispose view-id]))
 
@@ -417,14 +446,14 @@
   [{:repl-input/keys [focused last-focused]}]
   (or focused last-focused))
 
-(defn- focus-view!
-  "Gives the focus to the REPL Input `id` in its view."
-  [id]
+(defn reveal-view!
+  "Shows the view `id` with the focus, and posts it `message`, which gives the focus to a place in it."
+  [id message]
   (when-let [^js view (get @!views id)]
     (if (fn? (.-reveal view))
       (.reveal view js/undefined false)
       (.show view false))
-    (post-to-view! id focus-message)))
+    (post-to-view! id message)))
 
 (defn command-target!
   "Returns the id of the REPL Input that Calva's commands reach, and gives the focus back to it when it is
@@ -433,7 +462,7 @@
   (let [{:repl-input/keys [focused] :as state} @!state
         target (command-target state)]
     (when (and target (not focused))
-      (focus-view! target))
+      (reveal-view! target focus-message))
     target))
 
 (defn ^:export focused?

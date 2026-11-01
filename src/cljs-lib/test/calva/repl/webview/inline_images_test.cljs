@@ -1,9 +1,11 @@
 (ns calva.repl.webview.inline-images-test
   "Images sit inside the result, directly below the placeholder line."
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]))
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]))
+
+(use-fixtures :each (fn [f] (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!] (f))))
 
 (def png-data-url "data:image/png;base64,iVBORw0KGgo=")
 
@@ -55,7 +57,7 @@
       :else [:other (.-tagName child)])))
 
 (deftest nested-map-result-places-images-after-placeholder-lines-test
-  (with-redefs [ui/highlight-code! (fn [_])]
+  (with-redefs [ui/post-to-host! (fn [_])]
     (let [host (js/document.createElement "div")
           text "{:a {:i1 \"<<image-1 png 8 B>>\"\n     :i2 \"<<image-2 png 8 B>>\"}}"
           _ (ui/append-result-with-images host {:text text :raw text :images [image-1 image-2]})

@@ -32,6 +32,7 @@
                              :appendToReplOutputWebview calva.repl.webview.core/append
                              :appendErrorToReplOutputWebview calva.repl.webview.core/append-error
                              :attachCausesToReplOutputWebview calva.repl.webview.core/attach-error-causes
+                             :endEvaluationInReplOutputWebview calva.repl.webview.core/end-evaluation
                              :clearReplOutputView calva.repl.webview.core/clear-output-view
                              :toggleReplOutputWordWrap calva.repl.webview.core/toggle-word-wrap
                              :initReplOutputWordWrap calva.repl.webview.core/init-word-wrap!
@@ -45,9 +46,11 @@
                              :initReplOutputFontSizeScale calva.repl.webview.core/init-font-size-scale!
                              :createReplOutputSidebarProvider calva.repl.webview.sidebar/create-repl-output-sidebar-provider
                              :showReplOutputSidebar calva.repl.webview.sidebar/show-repl-output-sidebar
+                             :isSomeOutputViewVisible calva.repl.webview.sidebar/some-output-view-visible?
                              :appendToReplOutputSidebar calva.repl.webview.sidebar/append
                              :appendErrorToReplOutputSidebar calva.repl.webview.sidebar/append-error
                              :attachCausesToReplOutputSidebar calva.repl.webview.sidebar/attach-error-causes
+                             :endEvaluationInReplOutputSidebar calva.repl.webview.sidebar/end-evaluation
                              :setJavaSourceLookup calva.repl.webview.frame-host/set-java-source-lookup!
                              :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar
                              :initReplInput calva.repl.input.core/init!
@@ -63,13 +66,15 @@
                              :replInputEvaluateFormFocused calva.repl.input.evaluate/evaluate-form-focused!
                              :replInputInterruptFocused calva.repl.input.evaluate/interrupt-focused!
                              :replInputSearchHistoryFocused calva.repl.input.recall/search-focused!
-                             :replInputFollowEditor calva.repl.input.host/follow-editor!
+                             :replInputFollowEditor calva.repl.input.messages/follow-editor-chosen!
                              :replInputEvaluationId calva.repl.input.definition/evaluation-id
                              :replInputEvaluationScheme calva.repl.input.definition/scheme
                              :replInputEvaluationLocation calva.repl.input.reveal/evaluation-location
                              :replInputEvaluationCode calva.repl.input.reveal/evaluation-code
                              :replInputRevealDefinitionFocused calva.repl.input.reveal/reveal-definition-focused!
-                             :replInputReadLine calva.repl.input.stdin/read-line+}
+                             :replInputReadLine calva.repl.input.stdin/read-line+
+                             :printedCodeFocused calva.repl.input.printed-code/focused?
+                             :printedCodeSelectFocused calva.repl.input.printed-code/select-focused!}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
@@ -83,4 +88,5 @@
                  :output-dir "repl-output-ui/js"
                  :modules {:main {:init-fn calva.repl.webview.main/main}}
                  :devtools {:loader-mode :eval
-                            :use-document-host false}}}}
+                            :use-document-host false
+                            :preloads [calva.repl.webview.styles-reload]}}}}

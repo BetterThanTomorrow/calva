@@ -1,11 +1,13 @@
 (ns calva.repl.webview.local-image-lookup-test
   "Request-id matching for local image lookups in the output webview."
   (:require
-   [calva.repl.webview.fake-document]
+   [calva.repl.webview.fake-document :as fake-document]
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.ui :as ui]
-   [cljs.test :refer-macros [deftest testing is]]
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]
    [clojure.string :as str]))
+
+(use-fixtures :each (fn [f] (with-redefs [ui/insert-hiccup! fake-document/insert-hiccup!] (f))))
 
 (defn- attr
   [el k]
@@ -45,8 +47,7 @@
 (deftest stale-local-image-reply-after-clear-test
   (testing "a stale reply after clear and re-render applies nothing; the new reply wins"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -81,8 +82,7 @@
 (deftest unknown-local-image-reply-id-ignored-test
   (testing "an unknown reply id is ignored"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -107,8 +107,7 @@
 (deftest relative-local-image-posts-session-key-test
   (testing "a relative path posts resolve-local-image with the producing session key"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []
@@ -125,8 +124,7 @@
 (deftest many-local-image-lookups-leave-nothing-behind-test
   (testing "many resolved lookups leave no waiters or host handlers behind"
     (let [posts (atom [])]
-      (with-redefs [ui/highlight-code! (fn [_])
-                    ui/post-to-host! (fn [msg] (swap! posts conj msg))]
+      (with-redefs [ui/post-to-host! (fn [msg] (swap! posts conj msg))]
         (with-image-display!
           "images"
           (fn []

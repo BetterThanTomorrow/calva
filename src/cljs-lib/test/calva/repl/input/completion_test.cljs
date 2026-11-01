@@ -46,6 +46,16 @@
   (testing "the REPL Input's text starts on the line after the ns form"
     (is (= 1 (:text-line (sut/copy locked nil "(foo)" 0))))))
 
+(deftest copy-extension
+  (testing "the extension of the context's source file, so clojure-lsp analyzes the copy as that file"
+    (is (= "cljs" (:extension (sut/copy (assoc following :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljs") nil "" 0))))
+    (is (= "cljc" (:extension (sut/copy (assoc locked :repl-input.context/source-file "file:///pirate/src/pirate/ui.cljc") nil "" 0)))))
+  (testing "cljs without a Clojure source file in a ClojureScript session"
+    (is (= "cljs" (:extension (sut/copy (assoc locked :repl-input.context/session-key "cljs:2") nil "" 0)))))
+  (testing "clj for another source file, or none"
+    (is (= "clj" (:extension (sut/copy (assoc following :repl-input.context/source-file "file:///pirate/bb.edn") nil "" 0))))
+    (is (= "clj" (:extension (sut/copy following nil "" 0))))))
+
 (deftest suggests?
   (testing "an explicit request always completes"
     (is (true? (sut/suggests? {"editor.quickSuggestions" false} {} true))))
@@ -108,3 +118,19 @@
          (sut/arglists-and-docstring "Converts string to all upper-case."))
       "Keeps docs that have nothing to leave out")
   (is (nil? (sut/arglists-and-docstring nil))))
+
+(deftest doc-blocks
+  (is (= [[:code "(upper-case s)"] [:text "Converts string to all upper-case."]]
+         (sut/doc-blocks "```clojure\n(upper-case s)\n```\n\nConverts string to all upper-case.\n"))
+      "Fenced code, then text")
+  (is (= [[:text "Returns its argument."]]
+         (sut/doc-blocks "Returns its argument."))
+      "Text without fences")
+  (is (= [[:text "Returns a lazy sequence\n  of f applied."] [:text "Returns a transducer\n  without a collection."]]
+         (sut/doc-blocks "Returns a lazy sequence\n  of f applied.\n\n  Returns a transducer\n  without a collection."))
+      "A paragraph for each run of lines between blank lines"))
+
+(deftest docs-code
+  (is (= ["string/upper-case" "(upper-case s)"]
+         (sut/docs-code "string/upper-case" "```clojure\n(upper-case s)\n```\n\nConverts string to all upper-case.\n"))
+      "The detail, then the documentation's fenced code"))

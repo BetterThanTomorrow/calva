@@ -3,6 +3,8 @@
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.host :as sut]
    [calva.repl.input.host-fixtures :refer [last-context-line mount-focused! post! posted-named with-fresh-host with-view]]
+   [calva.repl.input.messages :as messages]
+   [calva.repl.input.semantic-tokens :as semantic-tokens]
    [calva.util :as util]
    [cljs.test :refer-macros [async deftest testing is]]))
 
@@ -332,6 +334,55 @@
                    (select-keys (:repl-input/context-line (last (posted-named posted "repl-input-context")))
                                 [:repl-input.context/session-key :repl-input.context/connected?])))))))))
 
+(deftest editor-into-lock-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (sut/editor-moved! #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljs"} #js {})
+          (post! {:command "repl-input-lock" :repl-input/id "output-view"
+                  :lock {:repl-input.context/ns "pirate.core" :repl-input.context/ns-form "(ns pirate.core)"
+                         :repl-input.context/source-file "file:///pirate/src/pirate/core.clj"}})
+          (sut/editor-moved! #js {:ns "pirate.ui" :uri "file:///pirate/src/pirate/ui.cljs"} #js {})
+          (testing "keeps the lock when the editor moves to another namespace"
+            (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session-key "clj" :repl-input.context/locked? true}
+                   (last-context-line posted))))
+          (sut/editor-moved! #js {:ns "pirate.core" :uri "file:///pirate/src/pirate/core.clj"} #js {})
+          (testing "follows the editor once it moves into the locked namespace"
+            (is (= {:repl-input.context/ns "pirate.core" :repl-input.context/session-key "clj" :repl-input.context/locked? false}
+                   (last-context-line posted))))
+          (post! {:command "repl-input-lock" :repl-input/id "output-view"
+                  :lock {:repl-input.context/ns "pirate.core" :repl-input.context/ns-form "(ns pirate.core)"
+                         :repl-input.context/source-file "file:///pirate/src/pirate/core.clj"}})
+          (sut/editor-moved! #js {:ns "pirate.core" :uri "file:///pirate/src/pirate/core.clj"} #js {})
+          (testing "keeps a lock made in the editor's namespace while the editor stays there"
+            (is (true? (:repl-input.context/locked? (last-context-line posted)))))
+          (sut/editor-moved! #js {:ns "pirate.ui" :uri "file:///pirate/src/pirate/ui.cljs"} #js {})
+          (sut/editor-moved! #js {:ns "pirate.core" :uri "file:///pirate/src/pirate/core.clj"} #js {})
+          (testing "follows the editor once it leaves the locked namespace and comes back"
+            (is (false? (:repl-input.context/locked? (last-context-line posted))))))))))
+
+(deftest mode-chosen-test
+  (with-fresh-host
+    (fn [{:keys [posted] :as host}]
+      (with-view host
+        (fn []
+          (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
+          (post! {:command "repl-input-mode-chosen" :repl-input/id "output-view"})
+          (testing "tells the other view that the user chose the mode in one"
+            (is (= ["output-sidebar"]
+                   (mapv :repl-input/id (posted-named posted "repl-input-mode-chosen")))))
+          (reset! posted [])
+          (post! {:command "repl-input-lock" :repl-input/id "output-view"
+                  :lock {:repl-input.context/ns "pirate.core" :repl-input.context/ns-form "(ns pirate.core)"}})
+          (messages/follow-editor-chosen!)
+          (testing "tells every view that the user chose to follow the editor from the command, and follows it"
+            (is (= #{"output-view" "output-sidebar"}
+                   (set (map :repl-input/id (posted-named posted "repl-input-mode-chosen")))))
+            (is (false? (:repl-input.context/locked? (last-context-line posted))))))))))
+
 (deftest build-test
   (with-fresh-host
     (fn [{:keys [posted builds] :as host}]
@@ -420,3 +471,27 @@
           (post! {:command "repl-input-mounted" :repl-input/id "output-sidebar" :version 0 :text "" :selections [[0 0]]})
           (testing "starts a REPL Input empty in a view that was disposed"
             (is (= [] (posted-named posted "repl-input-edit")))))))))
+
+(deftest followed-file-semantic-tokens-test
+  (with-fresh-host
+    (fn [host]
+      (with-view host
+        (fn []
+          (let [document #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.clj" :version 1}
+                other #js {:ns "pirate.lib" :uri "file:///pirate/src/pirate/lib.cljc" :version 1}
+                pending? #(some? (get-in @@#'semantic-tokens/!requests ["output-view" :timer]))]
+            (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
+            (sut/editor-moved! document #js {})
+            (semantic-tokens/forget! "output-view")
+            (sut/editor-moved! document #js {})
+            (testing "asks for nothing when the cursor moves in the followed file"
+              (is (not (pending?))))
+            (set! (.-version document) 2)
+            (sut/editor-moved! document #js {})
+            (testing "asks for the semantic tokens again when the followed file's text changed"
+              (is (pending?)))
+            (semantic-tokens/forget! "output-view")
+            (sut/editor-moved! other #js {})
+            (testing "asks for the semantic tokens again when another file with the same namespace is followed"
+              (is (pending?)))
+            (semantic-tokens/forget! "output-view")))))))

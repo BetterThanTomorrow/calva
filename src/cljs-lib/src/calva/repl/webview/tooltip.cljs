@@ -26,19 +26,29 @@
                            (doto watch .disconnect (.observe control)))))
     tip))
 
+(defn hide!
+  "Hides the page's tooltip."
+  []
+  (some-> ^js (:tip @!shown) .hidePopover))
+
+(defn attributes
+  "Returns the attributes that give a control in hiccup, a button or a link, the page's tooltip with `text`,
+   which is also its accessible description. A click on the control is to call `hide!`."
+  [text]
+  {:interestfor id :aria-description text})
+
 (defn attach!
   "Gives `control`, a button or a link, the page's tooltip with `text`, which is also its accessible
    description. It shows on hover and on keyboard focus, and hides on a click."
   [^js control text]
+  (doseq [[k v] (attributes text)]
+    (.setAttribute control (name k) v))
   (doto control
-    (.setAttribute "interestfor" id)
-    (.setAttribute "aria-description" text)
-    (.addEventListener "click" #(some-> ^js (:tip @!shown) .hidePopover))))
+    (.addEventListener "click" hide!)))
 
-(defn set-text!
-  "Shows `text` in the tooltip of `control`, also while it shows."
-  [^js control text]
-  (.setAttribute control "aria-description" text)
-  (let [{:keys [^js tip] shown-for :control} @!shown]
-    (when (identical? control shown-for)
-      (set! (.-textContent tip) text))))
+(defn refresh!
+  "Shows the text of the control the tooltip shows for, after its accessible description changed."
+  []
+  (let [{:keys [^js tip ^js control]} @!shown]
+    (when tip
+      (set! (.-textContent tip) (.getAttribute control "aria-description")))))

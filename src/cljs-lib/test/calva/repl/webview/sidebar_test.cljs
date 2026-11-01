@@ -4,6 +4,7 @@
    [calva.repl.webview.core :as core]
    [calva.repl.webview.sidebar :as sut]
    [cljs.test :refer-macros [deftest testing is]]
+   [clojure.string :as string]
    [spy.core :as spy]
    [test-util :as test-util]
    [calva.util :as util]))
@@ -17,17 +18,23 @@
   (testing "skips nested destination arrays"
     (is (not (sut/output-sidebar-in-setting? {:evalResults [["output-sidebar"]]})))))
 
-(deftest get-sidebar-help-html-test
+(deftest help-page-test
   (let [destinations #js {:evalResults "terminal"
                           :evalOutput "terminal"
                           :otherOutput "terminal"}]
     (with-redefs [sut/current-output-destinations (constantly destinations)]
-      (let [html (sut/get-sidebar-help-html "csp-source")]
-        (is (re-find #"REPL Output" html))
-        (is (re-find #"terminal" html))
-        (is (re-find #"https://calva.io/output" html))
-        (is (re-find #"The current output destination configuration is" html))
-        (is (re-find #"default-src 'none'; style-src csp-source" html))))))
+      (let [page (sut/help-page "csp-source")
+            nodes (tree-seq #(or (vector? %) (seq? %)) #(if (vector? %) (rest %) %) page)
+            text (string/join " " (filter string? nodes))
+            policy (some #(when (and (map? %) (= "Content-Security-Policy" (:http-equiv %))) (:content %)) nodes)
+            style (some #(when (and (vector? %) (= :style (first %))) (second %)) nodes)]
+        (is (string/includes? text "REPL Output"))
+        (is (string/includes? text "terminal"))
+        (is (string/includes? text "The current output destination configuration is"))
+        (is (some #(and (map? %) (= "https://calva.io/output" (:href %))) nodes))
+        (is (re-find #"^default-src 'none'; style-src csp-source 'nonce-[^']+'$" policy))
+        (is (= (str "default-src 'none'; style-src csp-source 'nonce-" (:nonce style) "'") policy)
+            "The page's styles carry the nonce the policy allows")))))
 
 (deftest resolve-webview-view-test
   (let [on-did-dispose-spy (spy/stub "dispose-subscription")
@@ -86,6 +93,17 @@
       (sut/show-repl-output-sidebar false)
       (is (spy/called-once-with? show-spy false)))))
 
+(deftest some-output-view-visible?-test
+  (with-redefs [sut/output-sidebar-webview-view (atom #js {:visible true})
+                core/output-view-webview-panel (atom #js {:visible false})]
+    (testing "is true when a destination is a visible Output view"
+      (is (true? (sut/some-output-view-visible? "output-sidebar")))
+      (is (true? (sut/some-output-view-visible? #js ["terminal" "output-sidebar"]))))
+    (testing "is false when the Output views among the destinations are hidden"
+      (is (false? (sut/some-output-view-visible? #js ["terminal" "output-view"]))))
+    (testing "skips nested destination arrays, which are file paths"
+      (is (false? (sut/some-output-view-visible? #js [#js ["output-sidebar"]]))))))
+
 (deftest append-test
   (let [post-message-to-webview-spy (spy/spy)
         options (clj->js {:outputCategory "evalOut"})]
@@ -115,6 +133,19 @@
                         :meta/ns "user"
                         :meta/repl-session-key "clj"}}]
                @sut/output-sidebar-log))))))
+
+(deftest log-without-highlighting-test
+  (let [post-message-to-webview-spy (spy/spy)
+        message {:command/name "show-result" :output "42" :output/highlighting [[0 2 "#79c0ff" nil]]}]
+    (with-redefs [sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
+                  sut/output-sidebar-webview-view (atom {:some "view"})
+                  sut/output-sidebar-log (atom [])
+                  core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+      (sut/add-output-sidebar-message! message)
+      (is (spy/called-once-with? post-message-to-webview-spy {:some "view"} message)
+          "The sidebar gets the printed code with its highlighting")
+      (is (= [(dissoc message :output/highlighting)] @sut/output-sidebar-log)
+          "The log keeps it without, for a page that shows the log later to ask in its own colors"))))
 
 (deftest add-to-log-test
   (let [log (reduce sut/add-to-log #queue [] (range (+ 2 sut/log-kept-count)))]

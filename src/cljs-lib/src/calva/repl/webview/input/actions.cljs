@@ -1,7 +1,7 @@
 (ns calva.repl.webview.input.actions
   "The REPL Input's actions in the Output view's page."
   (:require
-   [calva.repl.webview.input.brackets :as brackets]
+   [calva.repl.webview.code-brackets :as brackets]
    [calva.repl.webview.input.history :as history]
    [calva.repl.webview.input.keys :as input-keys]))
 
@@ -15,6 +15,22 @@
   [{:keys [height min-height view-height]}]
   (js/Math.round (max min-height (min height (- view-height view-margin)))))
 
+(defn controls-state
+  "Returns what the REPL Input's controls show for `db`: the context line, the lock of the recalled history
+   entry, the evaluation, whether the namespace menu is open, and whether the sash is dragged."
+  [{:repl-input/keys [context-line evaluation namespace-menu-open? dragging?] :as db}]
+  {:repl-input/context-line context-line
+   :repl-input/recalled-lock (history/recalled-lock db)
+   :repl-input/evaluation evaluation
+   :repl-input/namespace-menu-open? (boolean namespace-menu-open?)
+   :repl-input/dragging? (boolean dragging?)})
+
+(defn- render-fxs
+  "Draws the REPL Input's controls for `db`, while the REPL Input is on."
+  [db]
+  (when (:repl-input/enabled? db)
+    [[:repl-input/fx.render-controls (controls-state db)]]))
+
 (defn- set-enabled
   [db enabled?]
   (cond
@@ -22,13 +38,17 @@
     {:uf/db db}
 
     enabled?
-    {:uf/db (-> db
-                (assoc :repl-input/enabled? true :repl-input/version 0)
-                history/walk-ended)
-     :uf/fxs [[:repl-input/fx.mount {:height (:repl-input/height db)}]]}
+    (let [enabled (-> db
+                      (assoc :repl-input/enabled? true :repl-input/version 0)
+                      history/walk-ended)]
+      {:uf/db enabled
+       :uf/fxs [[:repl-input/fx.mount {:height (:repl-input/height db)
+                                       :controls (controls-state enabled)}]]})
 
     :else
-    {:uf/db (-> db (assoc :repl-input/enabled? false) (dissoc :repl-input/evaluation))
+    {:uf/db (-> db
+                (assoc :repl-input/enabled? false)
+                (dissoc :repl-input/evaluation :repl-input/namespace-menu-open? :repl-input/dragging?))
      :uf/fxs [[:repl-input/fx.unmount]
               (post db "repl-input-unmounted")]}))
 
@@ -83,18 +103,15 @@
   [evaluation]
   (= :reading-stdin evaluation))
 
-(defn- stdin-effects
-  "Shows the stdin input when the evaluation goes from `before` to reading stdin, and hides it when it
-   stops reading."
-  [before after]
-  (cond
-    (and (reading-stdin? after) (not (reading-stdin? before))) [[:repl-input/fx.show-stdin]]
-    (and (reading-stdin? before) (not (reading-stdin? after))) [[:repl-input/fx.hide-stdin]]))
-
-(defn- context-line-fx
-  "Shows the context line, with the lock of the recalled history entry that `db` shows."
-  [db]
-  [:repl-input/fx.set-context-line (:repl-input/context-line db) (history/recalled-lock db)])
+(defn- evaluation-fxs
+  "Draws the REPL Input's controls for `db`, whose evaluation went from `before`, while the REPL Input is
+   on. The stdin input is emptied before it hides, and gets the focus after it shows."
+  [before {after :repl-input/evaluation :as db}]
+  (when (:repl-input/enabled? db)
+    (cond-> []
+      (and (reading-stdin? before) (not (reading-stdin? after))) (conj [:repl-input/fx.hide-stdin])
+      :always (into (render-fxs db))
+      (and (reading-stdin? after) (not (reading-stdin? before))) (conj [:repl-input/fx.show-stdin]))))
 
 (defn- mode-fx
   "Asks the extension for the `mode-change` that the history asks for: a lock, or following the editor."
@@ -107,7 +124,7 @@
   "Returns the effects that show the context line of `db`, and ask the extension for the `mode-change` that
    the history asks for, when there is one."
   [db mode-change]
-  (cond-> [(context-line-fx db)]
+  (cond-> (vec (render-fxs db))
     mode-change (conj (mode-fx db mode-change))))
 
 (defn- show-history
@@ -135,6 +152,9 @@
     :repl-input/ax.recall
     (show-history db (history/recalled db payload))
 
+    :repl-input/ax.mode-chosen
+    {:uf/db (history/chosen db)}
+
     (handle-completion-action db action)))
 
 (defn- follow-editor
@@ -149,14 +169,15 @@
 
 (defn- click-namespace-indicator
   "Opens or closes the namespace menu while a recalled history entry locks the context, follows the editor
-   while otherwise locked, and does nothing while following the editor. The shown history entry keeps the
-   mode from then on."
+   while otherwise locked, and does nothing else while following the editor. The history entries shown here
+   and in the other views keep the mode from then on."
   [db]
-  (let [chosen (history/chosen db)]
-    (if (history/recalled-lock chosen)
-      {:uf/db chosen
-       :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
-      (follow-editor chosen))))
+  (let [chosen (history/chosen db)
+        {:uf/keys [fxs] :as clicked} (if (history/recalled-lock chosen)
+                                       {:uf/db chosen
+                                        :uf/fxs [[:repl-input/fx.toggle-namespace-menu]]}
+                                       (follow-editor chosen))]
+    (assoc clicked :uf/fxs (into [(post chosen "repl-input-mode-chosen")] fxs))))
 
 (defn- evaluate
   "Asks the extension to evaluate the REPL Input while a session answers to the context."
@@ -167,8 +188,8 @@
     {:uf/db db}))
 
 (defn- handle-evaluation-action
-  "Handles the actions of the context line, its namespace indicator and play button, the evaluation bar and
-   the stdin input."
+  "Handles the actions of the context line, its namespace indicator, its play and stop
+   buttons, and the stdin input."
   [db [action-type payload :as action]]
   (case action-type
     :repl-input/ax.set-context-line
@@ -190,10 +211,21 @@
     (evaluate db)
 
     :repl-input/ax.set-evaluation
-    {:uf/db (cond-> (assoc db :repl-input/evaluation payload)
-              (= :running payload) history/chosen)
-     :uf/fxs (into [[:repl-input/fx.set-evaluation payload]]
-                   (stdin-effects (:repl-input/evaluation db) payload))}
+    (let [evaluating (cond-> (assoc db :repl-input/evaluation payload)
+                       (= :running payload) history/chosen)]
+      {:uf/db evaluating
+       :uf/fxs (evaluation-fxs (:repl-input/evaluation db) evaluating)})
+
+    :repl-input/ax.namespace-menu-toggled
+    (if (= (boolean payload) (boolean (:repl-input/namespace-menu-open? db)))
+      {:uf/db db}
+      (let [toggled (assoc db :repl-input/namespace-menu-open? (boolean payload))]
+        {:uf/db toggled
+         :uf/fxs (render-fxs toggled)}))
+
+    :repl-input/ax.close-namespace-menu
+    {:uf/db db
+     :uf/fxs [[:repl-input/fx.close-namespace-menu]]}
 
     :repl-input/ax.focus
     {:uf/db db
@@ -214,6 +246,24 @@
      :uf/fxs [(post db "repl-input-send-line" :line payload)]}
 
     (handle-history-action db action)))
+
+(defn- highlighting-fxs
+  "Returns the effects that set the highlighting layers in a message from the extension: the grammar's, without
+   the semantic one when files get no semantic highlighting, or the semantic one."
+  [action-type {:repl-input/keys [highlighting semantic? semantic-tokens]}]
+  (case action-type
+    :repl-input/ax.set-highlighting (cond-> [[:repl-input/fx.set-highlighting :grammar highlighting]]
+                                      (false? semantic?) (conj [:repl-input/fx.set-highlighting :semantic nil]))
+    :repl-input/ax.set-semantic-tokens [[:repl-input/fx.set-highlighting :semantic semantic-tokens]]
+    nil))
+
+(defn- handle-highlighting-action
+  "Handles the highlighting layers the extension posts, applied when they are for the current version."
+  [db [action-type payload :as action]]
+  (if-let [fxs (highlighting-fxs action-type payload)]
+    (cond-> {:uf/db db}
+      (= (:repl-input/version payload) (:repl-input/version db)) (assoc :uf/fxs fxs))
+    (handle-evaluation-action db action)))
 
 (defn handle-action
   [db [action-type payload :as action]]
@@ -266,9 +316,14 @@
     {:uf/db db
      :uf/fxs [(post db "repl-input-blurred")]}
 
+    (:repl-input/ax.drag-started :repl-input/ax.drag-ended)
+    (let [dragged (assoc db :repl-input/dragging? (= :repl-input/ax.drag-started action-type))]
+      {:uf/db dragged
+       :uf/fxs (render-fxs dragged)})
+
     :repl-input/ax.drag
     (let [height (clamp-height payload)]
       {:uf/db (assoc db :repl-input/height height)
        :uf/fxs [[:repl-input/fx.set-height height]]})
 
-    (handle-evaluation-action db action)))
+    (handle-highlighting-action db action)))

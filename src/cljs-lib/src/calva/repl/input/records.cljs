@@ -21,6 +21,16 @@
     records
     (update records id merge (message->record change))))
 
+(defn take-selections
+  "Returns `records` with the `selections` of `change` in the record of its id, at its version, unless
+   there is no record or `change` is older than it. The text stays, as for printed code, which has none to
+   change."
+  [records {:repl-input/keys [id] :keys [version selections] :as change}]
+  (let [record (get records id)]
+    (if (or (nil? record) (stale? record change))
+      records
+      (update records id assoc :repl-input/version version :repl-input/selections selections))))
+
 (defn take-edit
   "Returns `records` with the REPL Input's record at the version after `version`, with the `text`,
    `selections` and `selections-stack` of an edit made from `version`. The edit is dropped when the
@@ -45,6 +55,15 @@
   "Returns `records` with the REPL Input's record replaced by the freshly mounted one."
   [records {:repl-input/keys [id] :as mount}]
   (assoc records id (message->record mount)))
+
+(defn take-focus
+  "Returns `records` with the record of printed code that got the focus: `focus` taken as `take-change`
+   takes a change when the record is of the same editor and text, keeping its selection history, or in
+   place of the record otherwise."
+  [records {:repl-input/keys [id] :keys [editor text] :as focus}]
+  (if (= [editor text] ((juxt :printed-code/editor :repl-input/text) (get records id)))
+    (take-change records focus)
+    (assoc-in (take-mount records focus) [id :printed-code/editor] editor)))
 
 (defn remove-record
   [records id]

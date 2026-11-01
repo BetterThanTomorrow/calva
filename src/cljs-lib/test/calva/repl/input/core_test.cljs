@@ -13,7 +13,9 @@
 
 (def ^:private fake-vscode
   #js {:workspace #js {:onDidChangeConfiguration (fn [_listener] #js {})}
-       :window #js {:onDidChangeActiveTerminal (fn [_listener] #js {})}})
+       :window #js {:onDidChangeActiveTerminal (fn [_listener] #js {})
+                    :onDidChangeActiveColorTheme (fn [_listener] #js {})}
+       :extensions #js {:onDidChange (fn [_listener] #js {})}})
 
 (deftest init!-test
   (testing "starts with no history and no evaluated code when workspaceState keeps something else than a list"
@@ -26,8 +28,8 @@
           (sut/init! #js {})
           (is (= [] (:repl-input.history/entries @host/!state)))
           (is (= [] (:repl-input/evaluated-code @host/!state)))
-          (is (= 2 (.-length (.-subscriptions vscode-context)))
-              "Listens for setting changes and terminal focus"))
+          (is (= 5 (.-length (.-subscriptions vscode-context)))
+              "Listens for setting changes, terminal focus, and changes of the color theme, its settings and the installed themes"))
         (finally
           (reset! host/!state state-before)
           (reset! host/!adapter adapter-before))))))

@@ -8,5 +8,6 @@
   (hello "foo")
   (System/getProperty "user.dir")
   (js/console.log "foo")
+  (do (Thread/sleep 30000) :slept)
   :rcf)
 

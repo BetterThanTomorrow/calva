@@ -106,3 +106,31 @@
   (testing "gives back nothing for an empty record, or none"
     (is (nil? (sut/restored {:repl-input/text "" :repl-input/selections [[0 0]]})))
     (is (nil? (sut/restored nil)))))
+
+(deftest take-selections-test
+  (testing "takes the selections and the version, keeping the text"
+    (is (= (assoc record-41 :repl-input/version 42 :repl-input/selections [[0 5]])
+           (get (sut/take-selections records {:repl-input/id "output-view" :version 42 :selections [[0 5]]})
+                "output-view"))))
+  (testing "drops a change older than the record"
+    (is (= records (sut/take-selections records {:repl-input/id "output-view" :version 40 :selections [[0 5]]}))))
+  (testing "makes no record for a view without one"
+    (is (= records (sut/take-selections records {:repl-input/id "output-sidebar" :version 1 :selections [[0 0]]})))))
+
+(deftest take-focus-test
+  (let [with-stack (update records "output-view" assoc :printed-code/editor 1 :repl-input/selections-stack [[[4 4]]])]
+    (testing "takes a focus of the same editor on the same text as a change, keeping the selection history"
+      (is (= [42 [[0 5]] [[[4 4]]]]
+             ((juxt :repl-input/version :repl-input/selections :repl-input/selections-stack)
+              (get (sut/take-focus with-stack {:repl-input/id "output-view" :editor 1 :version 42 :text "(foo) bar baz" :selections [[0 5]]})
+                   "output-view")))))
+    (testing "drops a focus older than the record"
+      (is (= with-stack (sut/take-focus with-stack {:repl-input/id "output-view" :editor 1 :version 40 :text "(foo) bar baz" :selections [[0 5]]}))))
+    (testing "makes a new record for other text"
+      (is (= {:repl-input/id "output-view" :printed-code/editor 1 :repl-input/version 0 :repl-input/text "(a)" :repl-input/selections [[1 1]]}
+             (get (sut/take-focus with-stack {:repl-input/id "output-view" :editor 1 :version 0 :text "(a)" :selections [[1 1]]})
+                  "output-view"))))
+    (testing "makes a new record for another editor, though older and on the same text"
+      (is (= {:repl-input/id "output-view" :printed-code/editor 2 :repl-input/version 40 :repl-input/text "(foo) bar baz" :repl-input/selections [[0 5]]}
+             (get (sut/take-focus with-stack {:repl-input/id "output-view" :editor 2 :version 40 :text "(foo) bar baz" :selections [[0 5]]})
+                  "output-view"))))))

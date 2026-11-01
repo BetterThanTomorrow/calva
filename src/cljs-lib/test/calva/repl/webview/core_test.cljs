@@ -1,8 +1,11 @@
 (ns calva.repl.webview.core-test
   (:require
+   [calva.repl.input.brackets :as brackets]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest testing is]]
@@ -97,142 +100,85 @@
         (sut/set-word-wrap-context! true)
         (is (spy/called-once-with? execute-command-spy "setContext" "calva:outputWordWrap" true))))))
 
-(deftest get-webview-html-test
-  (testing "Given valid args and that the environment is debug, should return the expected html markup"
-    (let [result (sut/get-webview-html {:env/is-debug true} {:js-source "js-source"
-                                                             :css-href "css-href"
-                                                             :csp-source "csp-source"
-                                                             :script-nonce "test-nonce"})]
-      (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 2 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: https: http: csp-source" result))
-      (is (re-find #"script-src 'unsafe-eval' 'nonce-test-nonce'" result))
-      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
-      (is (= 1 (count (re-seq #"connect-src ws://localhost:\*" result))))))
-  (testing "Given valid args and that the environment is not debug, should return the expected html markup"
-    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
-                                                              :csp-source "csp-source"
-                                                              :script-nonce "test-nonce"})]
-      (is (= 1 (count (re-seq #"js-source" result))))
-      (is (= 1 (count (re-seq #"css-href" result))))
-      (is (= 2 (count (re-seq #"csp-source" result))))
-      (is (re-find #"img-src data: https: http: csp-source" result))
-      (is (re-find #"script-src 'nonce-test-nonce'" result))
-      (is (re-find #"<script nonce=\"test-nonce\" src=\"js-source\"></script>" result))
-      (is (zero? (count (re-seq #"'unsafe-eval'" result))))
-      (is (zero? (count (re-seq #"connect-src ws://localhost:\*" result))))))
-  (testing "Given greeting html, should render it before, not inside, the output div"
-    (is (re-find #"GREETING-MARKER\s*<div id=\"output\" class=\"output-element-container\"></div>"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :greeting-html "GREETING-MARKER"}))))
-  (testing "Given word-wrap is enabled, should add the word-wrap body class"
-    (is (re-find #"<body class=\"word-wrap\" "
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :word-wrap? true}))))
-  (testing "Given word-wrap is disabled, should not add the word-wrap body class"
-    (is (re-find #"<body data-image-display="
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :word-wrap? false}))))
-  (testing "Given image-display \"raw\", should mark the body with data-image-display=\"raw\""
-    (is (re-find #"<body data-image-display=\"raw\">"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :image-display "raw"}))))
-  (testing "Given no image-display, should mark the body with data-image-display=\"images\""
-    (is (re-find #"<body data-image-display=\"images\">"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"}))))
-  (testing "Given word-wrap and image-display, should add both to the body"
-    (is (re-find #"<body class=\"word-wrap\" data-image-display=\"images\">"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :word-wrap? true
-                                        :image-display "images"}))))
-  (testing "Given a font-scale, should set the font scale css variable on the html element"
-    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1.25;\">"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"
-                                        :font-scale 1.25}))))
-  (testing "Given no font-scale, should default the font scale css variable to 1"
-    (is (re-find #"<html lang=\"en\" style=\"--calva-output-font-scale: 1;\">"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:js-source "js-source"
-                                        :css-href "css-href"
-                                        :csp-source "csp-source"
-                                        :script-nonce "n"})))))
+(defn- elements
+  "Returns the elements of `hiccup` with `tag`, in document order."
+  [hiccup tag]
+  (->> (tree-seq #(or (vector? %) (seq? %)) #(if (vector? %) (remove map? (rest %)) %) hiccup)
+       (filter #(and (vector? %) (= tag (first %))))))
 
-(deftest get-webview-html-csp-nonce-test
-  (testing "script-src nonce matches the script tag nonce; style-src keeps csp-source and allows the same nonce"
-    (let [result (sut/get-webview-html {:env/is-debug false} {:js-source "js-source"
-                                                              :css-href "css-href"
-                                                              :csp-source "csp-source"
-                                                              :script-nonce "abc-123"})]
-      (is (re-find #"script-src 'nonce-abc-123'" result))
-      (is (re-find #"<script nonce=\"abc-123\" src=\"js-source\"></script>" result))
-      (is (re-find #"style-src[\s\S]*csp-source 'nonce-abc-123';" result))
-      (is (re-find #"img-src data: https: http: csp-source" result))
-      (is (nil? (re-find #"script-src js-source" result)))
-      (is (nil? (re-find #"style-src[\s\S]*css-href;" result))))))
+(defn- attributes
+  [[_ attrs]]
+  (when (map? attrs) attrs))
 
-(deftest get-webview-html-stylesheets-test
-  (let [result (sut/get-webview-html {:env/is-debug false}
-                                     {:csp-source "csp-source"
-                                      :script-nonce "n"
-                                      :code-theme "light"
-                                      :code-theme-stylesheets [["dark" "dark-href"] ["light" "light-href"]]
-                                      :copy-button-css-href "copy-href"})]
-    (is (re-find #"href=\"dark-href\"\s*data-code-theme=\"dark\"\s*disabled" result)
-        "The code theme stylesheets of other theme kinds are disabled")
-    (is (re-find #"href=\"light-href\"\s*data-code-theme=\"light\"\s*/>" result)
-        "The code theme stylesheet of the current theme kind is enabled")
-    (is (re-find #"href=\"copy-href\"" result)
-        "The copy button stylesheet is linked")
-    (is (re-find #"style-src csp-source 'nonce-n';" result)
-        "Stylesheets load from the webview's own source only")))
+(defn- content-security-policy
+  [page]
+  (some #(when (= "Content-Security-Policy" (:http-equiv (attributes %)))
+           (:content (attributes %)))
+        (elements page :meta)))
 
-(deftest get-webview-html-repl-input-test
-  (testing "renders the REPL Input mount after the output, with its state"
-    (is (re-find #"<div id=\"output\" class=\"output-element-container\"></div>\s*<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"true\"></div>"
-                 (sut/get-webview-html {:env/is-debug false}
-                                       {:repl-input {:repl-input/id "output-view"
-                                                     :repl-input/enabled? true}}))))
-  (testing "renders no REPL Input mount without REPL Input state"
-    (is (nil? (re-find #"repl-input" (sut/get-webview-html {:env/is-debug false} {})))))
-  (testing "renders the page with the REPL Input off as the page without it, apart from the mount marked off"
-    (let [page {:js-source "js-source" :css-href "css-href" :greeting-html "<p>Ahoy</p>" :script-nonce "nonce"}
-          off-mount "<div id=\"repl-input\" data-repl-input-id=\"output-view\" data-repl-input-enabled=\"false\"></div>"]
-      (is (= (sut/get-webview-html {:env/is-debug false} page)
-             (string/replace (sut/get-webview-html {:env/is-debug false}
-                                                   (assoc page :repl-input {:repl-input/id "output-view"
-                                                                            :repl-input/enabled? false}))
-                             off-mount
-                             ""))))))
+(def ^:private page-args
+  {:js-source "js-source"
+   :styles "styles-css"
+   :csp-source "csp-source"
+   :script-nonce "test-nonce"})
+
+(deftest page-test
+  (testing "in development, allows what the shadow-cljs devtools need"
+    (let [policy (content-security-policy (sut/page {:env/is-debug true} page-args))]
+      (is (string/includes? policy "script-src 'unsafe-eval' 'nonce-test-nonce';"))
+      (is (string/includes? policy "connect-src ws://localhost:*;"))))
+  (testing "outside development, allows the page's own script, styles and images"
+    (let [policy (content-security-policy (sut/page {:env/is-debug false} page-args))]
+      (is (string/includes? policy "default-src 'none';"))
+      (is (string/includes? policy "img-src data: https: http: csp-source;"))
+      (is (string/includes? policy "style-src csp-source 'nonce-test-nonce';"))
+      (is (string/includes? policy "script-src 'nonce-test-nonce';"))
+      (is (not (string/includes? policy "unsafe-eval")))
+      (is (not (string/includes? policy "connect-src")))))
+  (testing "the script and the styles carry the nonce"
+    (let [page (sut/page {:env/is-debug false} page-args)]
+      (is (= [[:script {:nonce "test-nonce" :src "js-source"}]] (elements page :script)))
+      (is (= [[:style {:id "calva-output-styles" :nonce "test-nonce" :innerHTML "styles-css"}]]
+             (elements page :style)))))
+  (testing "writes the script's URI, which VS Code gives as a Uri object, as a string"
+    (let [uri (fn [s] #js {:toString (constantly s)})
+          page (sut/page {:env/is-debug false} (assoc page-args :js-source (uri "js-uri")))]
+      (is (= "js-uri" (:src (attributes (first (elements page :script))))))
+      (is (empty? (elements page :link)) "The page links no stylesheets")))
+  (testing "the greeting comes before the output, not inside it, and the element that marks the end of the output after it, all in the scroller the REPL Input goes below"
+    (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
+                                                      (assoc page-args :greeting [:div "Ahoy"]))
+                                            :body))]
+      (is (= [:div {:id "output-scroller"}
+              [:div "Ahoy"]
+              [:div {:id "output" :class "output-element-container"}]
+              [:div {:id "output-end" :aria-hidden "true"}]]
+             (first children)))))
+  (testing "the body has the word-wrap class only with word wrap on"
+    (is (= "word-wrap" (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? true)) :body))))))
+    (is (nil? (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? false)) :body)))))))
+  (testing "the body has the image display, images when none is given"
+    (is (= "raw" (:data-image-display (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :image-display "raw")) :body))))))
+    (is (= "images" (:data-image-display (attributes (first (elements (sut/page {:env/is-debug false} page-args) :body)))))))
+  (testing "the html element has the font scale, 1 when none is given"
+    (is (= {:--calva-output-font-scale "1.25"}
+           (:style (attributes (sut/page {:env/is-debug false} (assoc page-args :font-scale 1.25))))))
+    (is (= {:--calva-output-font-scale "1"}
+           (:style (attributes (sut/page {:env/is-debug false} page-args)))))))
+
+(deftest page-repl-input-test
+  (testing "puts the REPL Input element after the output's scroller, with its state"
+    (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
+                                                      (assoc page-args :repl-input {:repl-input/id "output-view"
+                                                                                    :repl-input/enabled? true}))
+                                            :body))]
+      (is (= ["output-scroller" "repl-input"]
+             (map (comp :id second) (take 2 (remove nil? children)))))
+      (is (= {:id "repl-input" :data-repl-input-id "output-view" :data-repl-input-enabled "true"}
+             (second (second (remove nil? children)))))))
+  (testing "puts no REPL Input element without REPL Input state"
+    (is (empty? (filter #(= "repl-input" (:id (attributes %)))
+                        (elements (sut/page {:env/is-debug false} page-args) :div))))))
 
 (deftest get-js-source-test
   (testing "Given a context and a webview-panel,"
@@ -250,135 +196,65 @@
       (testing "should return result of call to asWebviewUri"
         (is (= "some-webview-uri" result))))))
 
-(deftest get-css-path
-  (testing "Given a context"
-    (let [join-path-spy (spy/stub "some-path")
-          extension-uri "extension-uri"
-          context {:vscode/context (clj->js {:extensionUri extension-uri})
-                   :vscode/vscode (clj->js {:Uri {:joinPath (test-util/wrap-spy join-path-spy)}})}
-          result (sut/get-css-path context ["main.css"])]
-      (testing "should call joinPath with expected args"
-        (is (spy/called-once-with? join-path-spy extension-uri "repl-output-ui" "css" "main.css")))
-      (testing "should return the result of joinPath"
-        (is (= "some-path" result))))))
-
 (deftest set-webview-html!-test
   (testing "Given a context and a webview panel"
     (let [context {:some "context"}
           get-js-source-spy (spy/stub "some-js-source")
-          get-css-path-spy (spy/stub "some-css-path")
-          as-webview-uri-spy (spy/stub "some-css-href")
-          ^js webview-panel (clj->js {:webview {:asWebviewUri (test-util/wrap-spy as-webview-uri-spy)
-                                                :cspSource "some-csp-source"}})
-          get-webview-html-spy (spy/stub "some-html")
+          ^js webview-panel (clj->js {:webview {:cspSource "some-csp-source"}})
+          page-spy (spy/stub [:html {:lang "en"}])
           fixed-nonce "11111111-1111-1111-1111-111111111111"
           crypto-mod (js/require "crypto")
           orig-random-uuid (.-randomUUID crypto-mod)]
       (set! (.-randomUUID crypto-mod) (fn [] fixed-nonce))
       (try
         (with-redefs [sut/get-js-source (test-util/wrap-spy get-js-source-spy)
-                      sut/get-css-path (test-util/wrap-spy get-css-path-spy)
                       greeting/logo-webview-uri (constantly "some-logo-href")
-                      greeting/html-for-view (constantly "some-greeting")
+                      greeting/for-view (constantly [:div "some-greeting"])
                       sut/word-wrap? (constantly true)
                       sut/get-output-views-font-scale-setting (constantly 1.5)
                       sut/image-display (constantly "raw")
+                      styles/css (constantly "some-styles")
                       input-host/html-state (fn [view-id] {:repl-input/id view-id})
-                      sut/get-webview-html (test-util/wrap-spy get-webview-html-spy)]
+                      sut/page (test-util/wrap-spy page-spy)]
           (sut/set-webview-html! context {:webview-panel webview-panel})
           (testing "should call get-js-source with expected args"
             (is (spy/called-once-with? get-js-source-spy context {:webview-panel webview-panel})))
-          (testing "should call get-css-path for main.css and for each stylesheet shipped with the extension"
-            (is (spy/called-with? get-css-path-spy context ["main.css"]))
-            (is (spy/called-with? get-css-path-spy context ["vendor" "highlight.js" "github-dark.min.css"]))
-            (is (spy/called-with? get-css-path-spy context sut/copy-button-stylesheet))
-            (is (= 6 (spy/call-count as-webview-uri-spy)) "One webview uri per stylesheet"))
-          (testing "should call get-webview-html with expected args including a script nonce"
-            (is (spy/called-once-with? get-webview-html-spy context {:js-source "some-js-source"
-                                                                     :css-href "some-css-href"
-                                                                     :code-theme-stylesheets (mapv (fn [[theme]] [theme "some-css-href"])
-                                                                                                   sut/highlight-js-code-theme-stylesheet-data)
-                                                                     :copy-button-css-href "some-css-href"
-                                                                     :csp-source "some-csp-source"
-                                                                     :script-nonce fixed-nonce
-                                                                     :code-theme nil
-                                                                     :greeting-html "some-greeting"
-                                                                     :word-wrap? true
-                                                                     :font-scale 1.5
-                                                                     :image-display "raw"
-                                                                     :repl-input {:repl-input/id "output-view"}})))
-          (testing "should set webview html to result of call to get-webview-html"
-            (is (= "some-html" (.. webview-panel -webview -html)))))
+          (testing "should call page with expected args including a script nonce"
+            (is (spy/called-once-with? page-spy context {:js-source "some-js-source"
+                                                         :styles "some-styles"
+                                                         :csp-source "some-csp-source"
+                                                         :script-nonce fixed-nonce
+                                                         :greeting [:div "some-greeting"]
+                                                         :word-wrap? true
+                                                         :font-scale 1.5
+                                                         :image-display "raw"
+                                                         :repl-input {:repl-input/id "output-view"}})))
+          (testing "should set webview html to the page, rendered as an HTML document"
+            (is (= "<!DOCTYPE html><html lang=\"en\"></html>" (.. webview-panel -webview -html)))))
         (finally
           (set! (.-randomUUID crypto-mod) orig-random-uuid))))))
 
 (deftest set-code-theme!-test
-  (testing "Given a context and a ColorThemeKind,"
-    (let [color-theme-kind-enum {:Dark 0
-                                 :Light 1
-                                 :HighContrast 2
-                                 :HighContrastLight 3}
-          context {:vscode/vscode (clj->js {:ColorThemeKind color-theme-kind-enum})}
-          webview-panel {:some "mock-webview-panel"}]
-      (testing "when the ColorThemeKind is Dark, should set the code theme to dark"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:Dark color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "dark"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is Light, should set the code theme to light"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:Light color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "light"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is HighContrast, should set the code theme to high-contrast"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:HighContrast color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast"
-                                                                                  :token-colors nil})))))
-      (testing "when the ColorThemeKind is HighContrastLight, should set the code theme to high-contrast-light"
-        (let [post-message-to-webview-spy (spy/spy)]
-          (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-            (sut/set-code-theme! context {:color-theme-kind (:HighContrastLight color-theme-kind-enum)
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                                  :code-theme "high-contrast-light"
-                                                                                  :token-colors nil})))))
-      (testing "when there is no configured code theme for the ColorThemeKind, should log the expected error"
-        (let [log-to-console-spy (spy/spy)
-              color-theme-kind 99]
-          (with-redefs [util/log-to-console (test-util/wrap-spy log-to-console-spy)]
-            (sut/set-code-theme! context {:color-theme-kind color-theme-kind
-                                          :webview-panel webview-panel})
-            (is (spy/called-once-with?
-                 log-to-console-spy
-                 :error
-                 "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
-                 color-theme-kind))))))))
-
-(deftest set-code-theme!-token-colors-test
-  (testing "sends the active color theme's code colors with the code theme"
-    (let [dark 0
-          context {:vscode/vscode (clj->js {:ColorThemeKind {:Dark dark}})}
-          webview-panel {:some "mock-webview-panel"}
-          post-message-to-webview-spy (spy/spy)]
-      (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
-                    token-colors/active-theme-hljs-colors (fn [kind]
-                                                            (when (= dark kind)
-                                                              {"keyword" "#ff7b72"}))]
-        (sut/set-code-theme! context {:color-theme-kind dark
-                                      :webview-panel webview-panel})
-        (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
-                                                                              :code-theme "dark"
-                                                                              :token-colors {"keyword" "#ff7b72"}}))))))
+  (let [webview-panel {:some "mock-webview-panel"}
+        palette {:palette/token-rules [["entity.name.function" "#d2a8ff"]]}]
+    (testing "posts the key of the active theme's palette and its color for function names"
+      (let [post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      token-colors/active-theme-palette (fn [kind] (when (= 0 kind) palette))]
+          (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
+          (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                                :output/palette-key (hash [palette (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
+                                                                                :output/bracket-styles (brackets/bracket-styles nil)
+                                                                                :output/frame-name-color "#d2a8ff"})))))
+    (testing "posts no color for a theme it can't read"
+      (let [post-message-to-webview-spy (spy/spy)]
+        (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
+                      token-colors/active-theme-palette (constantly nil)]
+          (sut/set-code-theme! {} {:color-theme-kind 0 :webview-panel webview-panel})
+          (is (spy/called-once-with? post-message-to-webview-spy webview-panel {:command/name "set-code-theme"
+                                                                                :output/palette-key (hash [nil (some? @highlighting/!grammar) (brackets/rainbow-options nil)])
+                                                                                :output/bracket-styles (brackets/bracket-styles nil)
+                                                                                :output/frame-name-color nil})))))))
 
 (deftest post-code-theme-to-all-views!-test
   (testing "sets the code theme of every registered webview"
@@ -604,12 +480,14 @@
             :meta/ns "user"
             :meta/repl-session-key "clj"
             :meta/shadow-build "app"
-            :meta/shadow-runtime-id 1}
+            :meta/shadow-runtime-id 1
+            :meta/evaluation-id 7}
            (sut/options->meta (clj->js {:who "repl"
                                         :ns "user"
                                         :replSessionKey "clj"
                                         :shadowBuild "app"
-                                        :shadowRuntimeId 1})))))
+                                        :shadowRuntimeId 1
+                                        :evaluationId 7})))))
   (testing "Given options with no recognized keys, should return an empty map"
     (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
   (testing "Given options with shadow-runtime-id 0, should include it"
@@ -885,14 +763,12 @@
         (is (spy/called-n-times? post-message-to-webview-spy 2))))))
 
 (deftest image-display-modes-start-at-default-test
-  (testing "valid modes still include remote; the cycle list is images then raw"
+  (testing "the modes, in the order the command cycles them, start at the default"
     (is (= "images" sut/default-image-display))
-    (is (= "images" (first sut/image-display-modes)))
-    (is (= ["images" "raw" "images-including-remote-urls"] sut/image-display-modes))
-    (is (= ["images" "raw"] sut/image-display-cycle-modes))))
+    (is (= ["images" "images-including-remote-urls" "raw"] sut/image-display-modes))))
 
 (deftest cycle-image-display-test
-  (testing "cycles remote setting to images, not through the cycle button path to remote"
+  (testing "cycles the remote setting to raw"
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom nil)
@@ -900,10 +776,10 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display)
-        (is (= "images" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "images"))
-        (is (spy/called-once-with? post-spy "images")))))
-  (testing "flips images to raw in the override, the context and all views"
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw")))))
+  (testing "cycles images to remote images in the override, the context and all views"
     (let [set-context-spy (spy/spy)
           post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom nil)
@@ -911,9 +787,9 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display)
-        (is (= "raw" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "raw"))
-        (is (spy/called-once-with? post-spy "raw")))))
+        (is (= "images-including-remote-urls" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "images-including-remote-urls"))
+        (is (spy/called-once-with? post-spy "images-including-remote-urls")))))
   (testing "cycles raw back to images"
     (let [post-spy (spy/spy)]
       (with-redefs [sut/image-display-override (atom "raw")
@@ -952,9 +828,9 @@
                     sut/set-image-display-context! (test-util/wrap-spy set-context-spy)
                     sut/post-image-display-to-all-views! (test-util/wrap-spy post-spy)]
         (sut/cycle-image-display nil)
-        (is (= "images" @sut/image-display-override))
-        (is (spy/called-once-with? set-context-spy "images"))
-        (is (spy/called-once-with? post-spy "images"))))))
+        (is (= "raw" @sut/image-display-override))
+        (is (spy/called-once-with? set-context-spy "raw"))
+        (is (spy/called-once-with? post-spy "raw"))))))
 
 (deftest create-image-display-change-listener-test
   (let [captured-handler (atom nil)

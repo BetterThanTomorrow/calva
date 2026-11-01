@@ -5,6 +5,7 @@
    [calva.repl.input.evaluate :as evaluate]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as messages]
+   [calva.repl.input.printed-code :as printed-code]
    [cljs.reader :as reader]
    [clojure.string :as string]))
 
@@ -24,6 +25,7 @@
 (defn fake-adapter [{:keys [contexts restored session-keys routes builds evaluations completions definition opened current-file-changes]}]
   #js {:setContext (fn [k v] (swap! contexts conj [k v]))
        :document (fn [text selections] #js {:text text :selections selections})
+       :withSelections (fn [^js doc selections _selections-stack] (set! (.-selections doc) selections) doc)
        :documentState (fn [^js doc] #js {:text (.-text doc) :selections (.-selections doc)})
        :cursorContexts (fn [^js doc] #js {"calva:cursorInComment" (string/starts-with? (.-text doc) ";")})
        :brackets (fn [^js doc ^js options] #js {:text (.-text doc) :colorCount (.-colorCount options)})
@@ -39,9 +41,10 @@
                                   (swap! evaluations conj {:options options :resolve resolve}))))
        :replCompletions (fn [session-key ns ^js doc offset]
                           (pending-completion completions :repl {:session-key session-key :ns ns :text (.-text doc) :offset offset}))
-       :lspCompletions (fn [uri text line character]
-                         #js {:items (pending-completion completions :lsp {:uri uri :text text :line line :character character})
-                              :cancel #(swap! completions conj {:source :cancel :text text})})
+       :lspCompletions (fn [uri ^js copy line character]
+                         (let [text (.-text copy)]
+                           #js {:items (pending-completion completions :lsp {:uri uri :text text :extension (.-extension copy) :line line :character character})
+                                :cancel #(swap! completions conj {:source :cancel :text text})}))
        :mergeCompletions (fn [lsp repl] (.concat lsp repl))
        :resolveReplCompletion (fn [session-key ns item]
                                 (js/Promise.resolve #js {:detail (str ns " in " session-key) :documentation (str "REPL docs for " (.-label item))}))
@@ -70,6 +73,9 @@
     (reset! input-host/!state input-host/initial-state)
     (reset! input-host/!adapter (fake-adapter host))
     (reset! input-host/!views {})
+    (reset! printed-code/!documents {})
+    (remove-watch input-host/!state ::printed-code/settings)
+    (remove-watch input-host/!views ::printed-code/views)
     (reset! evaluate/!running {})
     (reset! complete/!completions {})
     (f host)))

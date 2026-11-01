@@ -21,6 +21,16 @@ describe('REPL Input document', () => {
     });
   });
 
+  it('moves the selections of a document, keeping its text', () => {
+    const doc = replInputDocument.stringDocument('(a b)', [[1, 1]]);
+    expectLib.expect(replInputDocument.withSelections(doc, [[1, 4]], [[[1, 1]]])).toBe(doc);
+    expectLib.expect(replInputDocument.documentState(doc)).toEqual({
+      text: '(a b)',
+      selections: [[1, 4]],
+      selectionsStack: [[[1, 1]]],
+    });
+  });
+
   it('gives the REPL Input the text and selections a Paredit command made', async () => {
     const doc = replInputDocument.stringDocument('(a b) c', [[4, 4]]);
     await paredit.forwardSlurpSexp(doc);
@@ -206,6 +216,42 @@ describe('REPL Input document', () => {
         [4, 5],
         [6, 7],
       ]);
+    });
+
+    describe('guides', () => {
+      const text = '(a\n (b\n  c))';
+      const sorted = (guides: [number, number][]) => [...guides].sort(([a], [b]) => a - b);
+
+      it('gives the indent guides as offsets with their color index when asked for them', () => {
+        const doc = replInputDocument.stringDocument(text, [[9, 9]]);
+        expectLib.expect(sorted(replInputDocument.brackets(doc, options).guides)).toEqual([]);
+        expectLib
+          .expect(sorted(replInputDocument.brackets(doc, { ...options, guides: true }).guides))
+          .toEqual([
+            [3, 0],
+            [7, 0],
+            [8, 1],
+          ]);
+      });
+
+      it('gives the guides of the innermost form around the cursor as the active guides', () => {
+        const doc = replInputDocument.stringDocument(text, [[9, 9]]);
+        const brackets = replInputDocument.brackets(doc, { ...options, activeGuides: true });
+        expectLib.expect(brackets.activeGuides).toEqual([[8, 1]]);
+        expectLib.expect(brackets.guides).toEqual([]);
+      });
+
+      it('finds the active guides from the start of a backward selection, as in files', () => {
+        const doc = replInputDocument.stringDocument(text, [[9, 2]]);
+        expectLib
+          .expect(
+            sorted(replInputDocument.brackets(doc, { ...options, activeGuides: true }).activeGuides)
+          )
+          .toEqual([
+            [3, 0],
+            [7, 0],
+          ]);
+      });
     });
   });
 

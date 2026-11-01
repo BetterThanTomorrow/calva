@@ -48,6 +48,7 @@ steps:
 - !:cmd
   - Copy build
   - cp -r out /tmp/build;
+    mkdir -p /tmp/build/repl-output-ui;
     cp -r repl-output-ui/js /tmp/build/repl-output-ui;
     cp package.json /tmp/build
 

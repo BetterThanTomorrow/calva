@@ -1,10 +1,17 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.repl.input.brackets :as brackets]
+   [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
+   [calva.repl.input.printed-code :as printed-code]
+   [calva.repl.webview.code-tokens :as code-tokens]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.printed-brackets :as printed-brackets]
    [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [calva.trail :as trail]
    [calva.util :as util]
@@ -102,12 +109,8 @@
       (.. ^js vscode-context -subscriptions (push listener)))))
 
 (def image-display-modes
-  ["images" "raw" "images-including-remote-urls"])
-
-(def image-display-cycle-modes
-  "Modes the Cycle Output View Image Display command walks. Remote loading stays on the
-   setting and on an explicit command argument."
-  ["images" "raw"])
+  "The image display modes, in the order the Cycle Output View Image Display command walks them."
+  ["images" "images-including-remote-urls" "raw"])
 
 (def default-image-display
   "images")
@@ -139,14 +142,14 @@
 
 (defn next-image-display
   [current]
-  (let [n (count image-display-cycle-modes)
-        idx (or (->> image-display-cycle-modes
+  (let [n (count image-display-modes)
+        idx (or (->> image-display-modes
                      (keep-indexed (fn [i mode] (when (= mode current) i)))
                      first)
                 -1)]
     (if (neg? idx)
-      (first image-display-cycle-modes)
-      (nth image-display-cycle-modes (mod (inc idx) n)))))
+      (first image-display-modes)
+      (nth image-display-modes (mod (inc idx) n)))))
 
 (defn apply-image-display!
   [display]
@@ -228,95 +231,42 @@
     (when-let [listener (create-font-scale-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
-(def highlight-js-code-theme-stylesheet-data
-  "The highlight.js stylesheet of each code theme, as its path under `repl-output-ui/css`."
-  [["dark" ["vendor" "highlight.js" "github-dark.min.css"]]
-   ["light" ["vendor" "highlight.js" "github.min.css"]]
-   ["high-contrast" ["vendor" "highlight.js" "base16" "windows-high-contrast.min.css"]]
-   ["high-contrast-light" ["vendor" "highlight.js" "base16" "windows-high-contrast-light.min.css"]]])
-
-(def copy-button-stylesheet
-  "The path under `repl-output-ui/css` of the highlight.js copy button plugin's stylesheet."
-  ["vendor" "highlightjs-copy" "highlightjs-copy.min.css"])
-
-(defn highlight-js-code-theme-stylesheet-link
-  [code-theme [theme href]]
-  (str "    <link
-      rel=\"stylesheet\"
-      href=\"" href "\"
-      data-code-theme=\"" theme "\""
-       (when (not= code-theme theme)
-         "
-      disabled")
-       "
-    />"))
-
-(defn highlight-js-code-theme-stylesheet-links
-  [code-theme code-theme-stylesheets]
-  (str/join "\n" (map #(highlight-js-code-theme-stylesheet-link code-theme %)
-                       code-theme-stylesheets)))
-
-(defn code-theme-for-kind
-  [^js color-theme-kind-enum color-theme-kind]
-  (condp = color-theme-kind
-    (.. color-theme-kind-enum -Dark) "dark"
-    (.. color-theme-kind-enum -Light) "light"
-    (.. color-theme-kind-enum -HighContrast) "high-contrast"
-    (.. color-theme-kind-enum -HighContrastLight) "high-contrast-light"
-    nil))
-
-(defn code-theme-from-context
-  [{:keys [^js vscode/vscode]}]
-  (when vscode
-    (code-theme-for-kind (.-ColorThemeKind vscode)
-                         (.. vscode -window -activeColorTheme -kind))))
-
 ;; The connect-src and unsafe-eval are only needed in development mode for the shadow-cljs
 ;; dev workflow to function properly
 
-(defn repl-input-html
+(defn- content-security-policy
+  [is-debug csp-source script-nonce]
+  (str/join " " (cond-> ["default-src 'none';"
+                         (str "img-src data: https: http: " csp-source ";")
+                         (str "style-src " csp-source " 'nonce-" script-nonce "';")
+                         (str "script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';")]
+                  is-debug (conj "connect-src ws://localhost:*;")
+                  :always (conj "base-uri 'none';" "form-action 'none';"))))
+
+(defn repl-input-element
+  "Returns the element the REPL Input mounts in, with its view id and whether it is on."
   [{:repl-input/keys [id enabled?]}]
-  (str "<div id=\"repl-input\" data-repl-input-id=\"" id "\" data-repl-input-enabled=\"" (boolean enabled?) "\"></div>"))
+  [:div {:id "repl-input" :data-repl-input-id id :data-repl-input-enabled (str (boolean enabled?))}])
 
-(defn get-webview-html
-  [{:env/keys [is-debug]} {:keys [js-source css-href code-theme-stylesheets copy-button-css-href csp-source code-theme greeting-html word-wrap? font-scale image-display script-nonce repl-input]}]
-  (str "
-<!DOCTYPE html>
-<html lang=\"en\" style=\"--calva-output-font-scale: " (or font-scale 1.0) ";\">
-  <head>
-    <meta charset=\"UTF-8\" />
-
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
-
-    <meta http-equiv=\"Content-Security-Policy\"
-          content=\"default-src 'none';
-                    img-src data: https: http: " csp-source ";
-                    style-src " csp-source " 'nonce-" script-nonce "';
-                    script-src " (when is-debug "'unsafe-eval' ") "'nonce-" script-nonce "';
-                    " (when is-debug "connect-src ws://localhost:*;") "
-                    base-uri 'none';
-                    form-action 'none';\">
-
-    <title>REPL Output</title>
-
-    <link rel=\"stylesheet\" href=\"" css-href "\" />
-
-" (highlight-js-code-theme-stylesheet-links code-theme code-theme-stylesheets) "
-
-    <link
-      rel=\"stylesheet\"
-      href=\"" copy-button-css-href "\"
-    />
-
-  </head>
-  <body" (when word-wrap? " class=\"word-wrap\"") " data-image-display=\"" (or image-display default-image-display) "\">
-    " greeting-html "
-    <div id=\"output\" class=\"output-element-container\"></div>
-    " (when repl-input (repl-input-html repl-input)) "
-
-    <script nonce=\"" script-nonce "\" src=\"" js-source "\"></script>
-  </body>
-</html>"))
+(defn page
+  "Returns the page of an Output view, as hiccup."
+  [{:env/keys [is-debug]} {:keys [js-source styles csp-source greeting word-wrap? font-scale image-display script-nonce repl-input]}]
+  [:html {:lang "en" :style {:--calva-output-font-scale (str (or font-scale 1.0))}}
+   [:head
+    [:meta {:charset "UTF-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+    [:meta {:http-equiv "Content-Security-Policy"
+            :content (content-security-policy is-debug csp-source script-nonce)}]
+    [:title "REPL Output"]
+    [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
+   [:body (cond-> {:data-image-display (or image-display default-image-display)}
+            word-wrap? (assoc :class "word-wrap"))
+    [:div {:id "output-scroller"}
+     greeting
+     [:div {:id "output" :class "output-element-container"}]
+     [:div {:id "output-end" :aria-hidden "true"}]]
+    (when repl-input (repl-input-element repl-input))
+    [:script {:nonce script-nonce :src (str js-source)}]]])
 
 (defn get-js-source
   [{:keys [vscode/vscode]
@@ -326,59 +276,38 @@
         js-path (.. ^js vscode -Uri (joinPath extension-uri "repl-output-ui" "js" "main.js"))]
     (.. ^js webview-panel -webview (asWebviewUri js-path))))
 
-(defn get-css-path
-  "Returns the uri of the stylesheet at the path `stylesheet` under `repl-output-ui/css`."
-  [{:keys [vscode/vscode]
-    vscode-context :vscode/context}
-   stylesheet]
-  (let [^js uri (.-Uri ^js vscode)]
-    (.apply (.-joinPath uri) uri (into-array (concat [(.-extensionUri ^js vscode-context) "repl-output-ui" "css"]
-                                                     stylesheet)))))
-
-(defn- stylesheet-href
-  [context ^js webview-panel stylesheet]
-  (.. webview-panel -webview (asWebviewUri (get-css-path context stylesheet))))
-
 (defn set-webview-html!
   [context
    {:keys [^js webview-panel view-kind]
     :or {view-kind :output-view}}]
   (let [js-source (get-js-source context {:webview-panel webview-panel})
-        css-href (stylesheet-href context webview-panel ["main.css"])
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
-        greeting-html (greeting/html-for-view view-kind logo-href)
-        webview-html (get-webview-html context {:js-source js-source
-                                                :css-href css-href
-                                                :code-theme-stylesheets (mapv (fn [[theme stylesheet]]
-                                                                                [theme (stylesheet-href context webview-panel stylesheet)])
-                                                                              highlight-js-code-theme-stylesheet-data)
-                                                :copy-button-css-href (stylesheet-href context webview-panel copy-button-stylesheet)
-                                                :csp-source csp-source
-                                                :script-nonce script-nonce
-                                                :code-theme (code-theme-from-context context)
-                                                :greeting-html greeting-html
-                                                :word-wrap? (word-wrap?)
-                                                :font-scale (get-output-views-font-scale-setting)
-                                                :image-display (image-display)
-                                                :repl-input (input-host/html-state (name view-kind))})]
-    (set! (.. webview-panel -webview -html) webview-html)))
+        view-page (page context {:js-source js-source
+                                 :styles (styles/css)
+                                 :csp-source csp-source
+                                 :script-nonce script-nonce
+                                 :greeting (greeting/for-view view-kind logo-href)
+                                 :word-wrap? (word-wrap?)
+                                 :font-scale (get-output-views-font-scale-setting)
+                                 :image-display (image-display)
+                                 :repl-input (input-host/html-state (name view-kind))})]
+    (set! (.. webview-panel -webview -html) (html/document view-page))))
 
 (defn set-code-theme!
-  "Takes a context, a webview panel and a vscode.ColorThemeKind enum value and sets the code theme in the webview based
-   on the given color theme kind, with the code colors of the active color theme."
-  [{:keys [vscode/vscode]} {:keys [color-theme-kind webview-panel]}]
-  (let [color-theme-kind-enum (.. ^js vscode -ColorThemeKind)
-        code-theme (code-theme-for-kind color-theme-kind-enum color-theme-kind)]
-    (if code-theme
-      (post-message-to-webview webview-panel {:command/name "set-code-theme"
-                                              :code-theme code-theme
-                                              :token-colors (token-colors/active-theme-hljs-colors color-theme-kind)})
-      (util/log-to-console
-       :error
-       "Cannot set code theme in output webview. There is no code theme set for the ColorThemeKind enum value of"
-       color-theme-kind))))
+  "Posts the webview `webview-panel` the colors of the active color theme of `color-theme-kind` that printed
+   code needs: the key of its palette, whether the grammar is loaded and the bracket settings, which tells
+   when its code needs coloring again, the bracket styles, and its color for function names, which stack
+   frames take."
+  [_context {:keys [color-theme-kind webview-panel]}]
+  (let [palette (token-colors/active-theme-palette color-theme-kind)
+        settings (printed-brackets/settings)]
+    (post-message-to-webview webview-panel {:command/name "set-code-theme"
+                                            :output/palette-key (hash [palette (some? @highlighting/!grammar) (brackets/rainbow-options settings)])
+                                            :output/bracket-styles (brackets/bracket-styles settings)
+                                            :output/frame-name-color (highlighting/scope-color (:palette/token-rules palette)
+                                                                                               ["entity.name.function.clojure"])})))
 
 (defn post-code-theme-to-all-views!
   [context color-theme-kind]
@@ -403,12 +332,23 @@
   (.. vscode -workspace
       (onDidChangeConfiguration
        (fn [^js event]
-         (when (.affectsConfiguration event "editor.tokenColorCustomizations")
+         (when (some #(.affectsConfiguration event %) ["editor.tokenColorCustomizations"
+                                                       "editor.semanticTokenColorCustomizations"
+                                                       "editor.semanticHighlighting"
+                                                       "calva.highlight"])
            (post-code-theme-to-all-views! context (.. vscode -window -activeColorTheme -kind)))))))
 
 (defn create-extensions-change-listener
   [{:keys [^js vscode/vscode]}]
   (.. vscode -extensions (onDidChange (fn [_] (token-colors/clear-theme-token-colors!)))))
+
+(defn- color-code-when-grammar-loads!
+  "Posts every view its code colors again when the grammar loads, so code printed before is colored."
+  [context]
+  (add-watch highlighting/!grammar ::output-views
+             (fn [_ _ before after]
+               (when (and after (not before))
+                 (post-code-theme-to-all-views! context (.. ^js @util/vscode -window -activeColorTheme -kind))))))
 
 (defn ^:export init-code-theme!
   []
@@ -416,7 +356,8 @@
     (when-let [^js vscode-context @util/vscode-context]
       (.. vscode-context -subscriptions (push (create-color-theme-change-listener context)))
       (.. vscode-context -subscriptions (push (create-token-color-customizations-change-listener context)))
-      (.. vscode-context -subscriptions (push (create-extensions-change-listener context))))))
+      (.. vscode-context -subscriptions (push (create-extensions-change-listener context)))
+      (color-code-when-grammar-loads! context))))
 
 (defn create-view-state-change-listener
   [{:keys [^js vscode/vscode] :as context}
@@ -447,15 +388,85 @@
            (unregister-webview! webview-panel)
            (input-host/view-disposed! "output-view"))))))
 
+(defn- printed-colors
+  "Returns `[ranges brackets]` for printed `text`: the grammar's ranges, nil before the grammar is loaded, and
+   the brackets when it has ranges."
+  [text settings]
+  (let [ranges (highlighting/printed-highlighting text)]
+    [ranges (when (seq ranges) (printed-brackets/brackets text settings))]))
+
+(defn code-highlighting-message
+  "Returns the message that posts the colors of the printed code `codes`, `[id text]` each, as
+   `[id ranges brackets]`, the ranges nil before the grammar is loaded."
+  [codes]
+  (let [settings (printed-brackets/settings)]
+    {:command/name "output-highlighting"
+     :output/codes (mapv (fn [[id text]] (into [id] (printed-colors text settings))) codes)}))
+
+(def ^:private highlighting-chunk-length
+  "How many characters of printed code the extension highlights before it lets other work run."
+  20000)
+
+(defn- code-chunks
+  "Returns `codes`, `[id text]` each, in chunks of about `highlighting-chunk-length` characters."
+  [codes]
+  (->> codes
+       (reduce (fn [chunks [_ text :as code]]
+                 (let [{:keys [length]} (peek chunks)]
+                   (if (and length (< length highlighting-chunk-length))
+                     (conj (pop chunks) (-> (peek chunks)
+                                            (update :codes conj code)
+                                            (update :length + (count text))))
+                     (conj chunks {:codes [code] :length (count text)}))))
+               [])
+       (map :codes)))
+
+(defn- post-code-highlighting!
+  "Posts the page in `webview-host` the highlighting of the printed code of `chunks`, a chunk at a time,
+   letting other work run between the chunks."
+  [^js webview-host chunks]
+  (when-let [[chunk & more] (seq chunks)]
+    (post-message-to-webview webview-host (code-highlighting-message chunk))
+    (when more
+      (js/setTimeout #(post-code-highlighting! webview-host more) 0))))
+
+(defn- post-semantic-tokens!
+  "Posts the page in `webview-host` the semantic tokens of the printed `codes`, `[id text ns session-key]`
+   each, asking clojure-lsp once for the codes of each namespace and session."
+  [^js webview-host codes]
+  (doseq [[[ns session-key] group] (group-by (fn [[_ _ ns session-key]] [ns session-key]) codes)]
+    (-> (code-tokens/tokens+ @input-host/!adapter ns session-key (mapv (fn [[id text]] [id text]) group))
+        (.then (fn [ranges]
+                 (when (seq ranges)
+                   (post-message-to-webview webview-host {:command/name "output-semantic-tokens"
+                                                          :output/codes ranges}))))
+        (.catch (fn [e]
+                  (js/console.error "Failed getting semantic tokens for printed code:" e))))))
+
+(defn listen-for-highlighting-requests!
+  "Answers the page in `webview-host` when it asks for the highlighting, or the semantic tokens, of printed
+   code."
+  [^js webview-host]
+  (when-let [webview (some-> webview-host .-webview)]
+    (when (fn? (.-onDidReceiveMessage webview))
+      (.onDidReceiveMessage webview (fn [^js message]
+                                      (let [codes (js->clj (aget message "output/codes"))]
+                                        (case (.-command message)
+                                          "output-highlight" (post-code-highlighting! webview-host (code-chunks codes))
+                                          "output-semantic-tokens" (post-semantic-tokens! webview-host codes)
+                                          nil)))))))
+
 (defn listen-for-page-loaded!
-  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line and posts the
-   page whether the REPL Input is on, which the page misses when the setting changed before it listened."
+  "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line, forgets the
+   printed code of the page before, and posts the page whether the REPL Input is on, which the page misses
+   when the setting changed before it listened."
   [^js webview-host view-id]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
       (.onDidReceiveMessage webview (fn [^js message]
                                       (when (= "page-loaded" (.-command message))
                                         (trail/log! (str view-id " page loaded"))
+                                        (printed-code/forget! view-id)
                                         (post-message-to-webview webview-host (input-host/enabled-message view-id))))))))
 
 (defn initialize-webview-panel
@@ -464,6 +475,7 @@
   (image-host/listen-for-webview-messages! webview-panel)
   (input-messages/listen-for-messages! webview-panel)
   (listen-for-page-loaded! webview-panel "output-view")
+  (listen-for-highlighting-requests! webview-panel)
   (add-listeners! webview-panel)
   (add-subscriptions! context {:webview-panel webview-panel})
   (set-webview-html! context {:webview-panel webview-panel})
@@ -519,6 +531,11 @@
    "otherErr" "show-stdout"
    "clojure" "show-result"})
 
+(defn- option
+  "Returns the option `k` of `options`, a map or a JS object."
+  [^js options k]
+  (if (map? options) (get options (keyword k)) (unchecked-get options k)))
+
 (defn options->meta
   [^js options]
   (when options
@@ -540,22 +557,31 @@
           shadow-runtime-id (or (and (map? options) (or (:meta/shadow-runtime-id options)
                                                         (:shadowRuntimeId options)
                                                         (:shadow-runtime-id options)))
-                                (and (some? options) (.-shadowRuntimeId options)))]
+                                (and (some? options) (.-shadowRuntimeId options)))
+          evaluation-id (option options "evaluationId")]
       (cond-> {}
         who (assoc :meta/who who)
         ns (assoc :meta/ns ns)
         repl-session-key (assoc :meta/repl-session-key repl-session-key)
         shadow-build (assoc :meta/shadow-build shadow-build)
-        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)))))
+        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)
+        (some? evaluation-id) (assoc :meta/evaluation-id evaluation-id)))))
+
+(def ^:private printed-code-commands #{"show-result" "show-evaluated-code"})
 
 (defn output-message
-  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`."
+  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`,
+   and printed code's highlighting."
   [options command-name output-category message]
-  (let [meta-data (options->meta options)]
+  (let [meta-data (options->meta options)
+        [code-highlighting code-brackets] (when (and (printed-code-commands command-name) (string? message))
+                                            (printed-colors message (printed-brackets/settings)))]
     (cond-> {:command/name command-name
              :output-category output-category
              :output message}
-      (seq meta-data) (assoc :meta meta-data))))
+      (seq meta-data) (assoc :meta meta-data)
+      code-highlighting (assoc :output/highlighting code-highlighting)
+      code-brackets (assoc :output/brackets code-brackets))))
 
 (defn ^:export append
   [^js options message]
@@ -602,6 +628,16 @@
   "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
   [error-id ^js causes]
   (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
+
+(defn evaluation-ended-message
+  [evaluation-id]
+  {:command/name "evaluation-ended"
+   :meta/evaluation-id evaluation-id})
+
+(defn ^:export end-evaluation
+  "Tells the Output View, unless it was closed in the meantime, that the evaluation `evaluation-id` ended."
+  [evaluation-id]
+  (post-message-to-webview @output-view-webview-panel (evaluation-ended-message evaluation-id)))
 
 (defn ^:export clear-output-view
   []

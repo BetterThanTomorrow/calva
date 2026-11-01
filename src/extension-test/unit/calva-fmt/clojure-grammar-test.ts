@@ -1,6 +1,11 @@
 import { expect } from 'chai';
 import { createGrammarTestContext, type GrammarTestContext } from './grammar-test-helper';
 
+// The scopes VS Code's default semantic token rules color clojure-lsp's keyword, type and event tokens with
+const KEYWORD_NAME = 'keyword.control.keyword.name.clojure';
+const KEYWORD_NAMESPACE = 'entity.name.type.keyword.namespace.clojure';
+const KEYWORD_SEPARATOR = 'variable.other.event.keyword.separator.clojure';
+
 describe('Clojure grammar', () => {
   let ctx: GrammarTestContext;
 
@@ -267,7 +272,7 @@ describe('Clojure grammar', () => {
         value: bool,
         scopes: ['source.clojure', 'meta.vector.clojure', scope],
       });
-      expect(ctx.tokenizeLine('{:a ' + bool + '}').tokens[3]).to.deep.equal({
+      expect(ctx.tokenizeLine('{:a ' + bool + '}').tokens[4]).to.deep.equal({
         value: bool,
         scopes: ['source.clojure', 'meta.map.clojure', scope],
       });
@@ -308,7 +313,7 @@ describe('Clojure grammar', () => {
       value: 'nil',
       scopes: ['source.clojure', 'meta.vector.clojure', scope],
     });
-    expect(ctx.tokenizeLine('{:a nil}').tokens[3]).to.deep.equal({
+    expect(ctx.tokenizeLine('{:a nil}').tokens[4]).to.deep.equal({
       value: 'nil',
       scopes: ['source.clojure', 'meta.map.clojure', scope],
     });
@@ -328,32 +333,85 @@ describe('Clojure grammar', () => {
 
     for (const [metaScope, lines] of Object.entries(tests)) {
       for (const line of lines) {
-        expect(ctx.tokenizeLine(line).tokens[1]).to.deep.equal({
-          value: ':foo',
-          scopes: ['source.clojure', metaScope, 'constant.keyword.clojure'],
-        });
+        expect(ctx.tokenizeLine(line).tokens.slice(1, 3)).to.deep.equal([
+          { value: ':', scopes: ['source.clojure', metaScope, 'constant.keyword.clojure'] },
+          {
+            value: 'foo',
+            scopes: ['source.clojure', metaScope, 'constant.keyword.clojure', KEYWORD_NAME],
+          },
+        ]);
       }
     }
 
-    expect(ctx.tokenizeLine('(def foo :bar)').tokens[5]).to.deep.equal({
-      value: ':bar',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.definition.global.clojure',
-        'constant.keyword.clojure',
-      ],
-    });
+    const inDef = ['source.clojure', 'meta.expression.clojure', 'meta.definition.global.clojure'];
+    expect(ctx.tokenizeLine('(def foo :bar)').tokens.slice(5, 7)).to.deep.equal([
+      { value: ':', scopes: [...inDef, 'constant.keyword.clojure'] },
+      { value: 'bar', scopes: [...inDef, 'constant.keyword.clojure', KEYWORD_NAME] },
+    ]);
 
-    expect(ctx.tokenizeLine('(def foo :Öπ)').tokens[5]).to.deep.equal({
-      value: ':Öπ',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.definition.global.clojure',
-        'constant.keyword.clojure',
-      ],
-    });
+    expect(ctx.tokenizeLine('(def foo :Öπ)').tokens.slice(5, 7)).to.deep.equal([
+      { value: ':', scopes: [...inDef, 'constant.keyword.clojure'] },
+      { value: 'Öπ', scopes: [...inDef, 'constant.keyword.clojure', KEYWORD_NAME] },
+    ]);
+  });
+
+  it('tokenizes the parts of keywords with the scopes of the semantic tokens clojure-lsp gives them', () => {
+    const parts = (line: string) =>
+      ctx.tokenizeLine(line).tokens.map(({ value, scopes }) => [value, scopes.slice(1)]);
+    const keyword = 'constant.keyword.clojure';
+
+    expect(parts('::foo')).to.deep.equal([
+      ['::', [keyword]],
+      ['foo', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts(':foo/bar')).to.deep.equal([
+      [':', [keyword]],
+      ['foo', [keyword, KEYWORD_NAMESPACE]],
+      ['/', [keyword, KEYWORD_SEPARATOR]],
+      ['bar', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts('::f/bar')).to.deep.equal([
+      ['::', [keyword]],
+      ['f', [keyword, KEYWORD_NAMESPACE]],
+      ['/', [keyword, KEYWORD_SEPARATOR]],
+      ['bar', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts(':a.b-c/d-e?')).to.deep.equal([
+      [':', [keyword]],
+      ['a.b-c', [keyword, KEYWORD_NAMESPACE]],
+      ['/', [keyword, KEYWORD_SEPARATOR]],
+      ['d-e?', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts(':a/b/c')).to.deep.equal([
+      [':', [keyword]],
+      ['a', [keyword, KEYWORD_NAMESPACE]],
+      ['/', [keyword, KEYWORD_SEPARATOR]],
+      ['b/c', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts('^:private')).to.deep.equal([
+      ['^', ['meta.metadata.simple.clojure']],
+      [':', ['meta.metadata.simple.clojure', keyword]],
+      ['private', ['meta.metadata.simple.clojure', keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts('^:a/b')).to.deep.equal([
+      ['^', ['meta.metadata.simple.clojure']],
+      [':', ['meta.metadata.simple.clojure', keyword]],
+      ['a', ['meta.metadata.simple.clojure', keyword, KEYWORD_NAMESPACE]],
+      ['/', ['meta.metadata.simple.clojure', keyword, KEYWORD_SEPARATOR]],
+      ['b', ['meta.metadata.simple.clojure', keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts(':a/')).to.deep.equal([
+      [':', [keyword]],
+      ['a/', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(parts(':/')).to.deep.equal([
+      [':', [keyword]],
+      ['/', [keyword, KEYWORD_NAME]],
+    ]);
+    expect(ctx.tokenizeLine('[:a,:b]').tokens.slice(4, 6)).to.deep.equal([
+      { value: ':', scopes: ['source.clojure', 'meta.vector.clojure', keyword] },
+      { value: 'b', scopes: ['source.clojure', 'meta.vector.clojure', keyword, KEYWORD_NAME] },
+    ]);
   });
 
   it('tokenizes keyfns (keyword control)', () => {
@@ -536,18 +594,27 @@ describe('Clojure grammar', () => {
       ],
     });
     expect(tokens[1]).to.deep.equal({
-      value: ':foo',
+      value: ':',
       scopes: ['source.clojure', 'meta.metadata.map.clojure', 'constant.keyword.clojure'],
     });
     expect(tokens[2]).to.deep.equal({
+      value: 'foo',
+      scopes: [
+        'source.clojure',
+        'meta.metadata.map.clojure',
+        'constant.keyword.clojure',
+        KEYWORD_NAME,
+      ],
+    });
+    expect(tokens[3]).to.deep.equal({
       value: ' ',
       scopes: ['source.clojure', 'meta.metadata.map.clojure'],
     });
-    expect(tokens[3]).to.deep.equal({
+    expect(tokens[4]).to.deep.equal({
       value: 'true',
       scopes: ['source.clojure', 'meta.metadata.map.clojure', 'constant.language.boolean.clojure'],
     });
-    expect(tokens[4]).to.deep.equal({
+    expect(tokens[5]).to.deep.equal({
       value: '}',
       scopes: [
         'source.clojure',
@@ -810,131 +877,37 @@ describe('Clojure grammar', () => {
   });
 
   it('tokenizes maps used as functions', () => {
-    const { tokens } = ctx.tokenizeLine('({:foo bar} :foo)');
-    expect(tokens[0]).to.deep.equal({
-      value: '(',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'punctuation.section.expression.begin.clojure',
-      ],
-    });
-    expect(tokens[1]).to.deep.equal({
-      value: '{',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.map.clojure',
-        'punctuation.section.map.begin.clojure',
-      ],
-    });
-    expect(tokens[2]).to.deep.equal({
-      value: ':foo',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.map.clojure',
-        'constant.keyword.clojure',
-      ],
-    });
-    expect(tokens[3]).to.deep.equal({
-      value: ' ',
-      scopes: ['source.clojure', 'meta.expression.clojure', 'meta.map.clojure'],
-    });
-    expect(tokens[4]).to.deep.equal({
-      value: 'bar',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.map.clojure',
-        'entity.name.variable.clojure',
-      ],
-    });
-    expect(tokens[5]).to.deep.equal({
-      value: '}',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.map.clojure',
-        'punctuation.section.map.end.clojure',
-      ],
-    });
-    expect(tokens[6]).to.deep.equal({
-      value: ' ',
-      scopes: ['source.clojure', 'meta.expression.clojure'],
-    });
-    expect(tokens[7]).to.deep.equal({
-      value: ':foo',
-      scopes: ['source.clojure', 'meta.expression.clojure', 'constant.keyword.clojure'],
-    });
-    expect(tokens[8]).to.deep.equal({
-      value: ')',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'punctuation.section.expression.end.trailing.clojure',
-      ],
-    });
+    const inExpr = ['source.clojure', 'meta.expression.clojure'];
+    const inMap = [...inExpr, 'meta.map.clojure'];
+    expect(ctx.tokenizeLine('({:foo bar} :foo)').tokens).to.deep.equal([
+      { value: '(', scopes: [...inExpr, 'punctuation.section.expression.begin.clojure'] },
+      { value: '{', scopes: [...inMap, 'punctuation.section.map.begin.clojure'] },
+      { value: ':', scopes: [...inMap, 'constant.keyword.clojure'] },
+      { value: 'foo', scopes: [...inMap, 'constant.keyword.clojure', KEYWORD_NAME] },
+      { value: ' ', scopes: inMap },
+      { value: 'bar', scopes: [...inMap, 'entity.name.variable.clojure'] },
+      { value: '}', scopes: [...inMap, 'punctuation.section.map.end.clojure'] },
+      { value: ' ', scopes: inExpr },
+      { value: ':', scopes: [...inExpr, 'constant.keyword.clojure'] },
+      { value: 'foo', scopes: [...inExpr, 'constant.keyword.clojure', KEYWORD_NAME] },
+      { value: ')', scopes: [...inExpr, 'punctuation.section.expression.end.trailing.clojure'] },
+    ]);
   });
 
   it('tokenizes sets used in functions', () => {
-    const { tokens } = ctx.tokenizeLine('(#{:foo :bar})');
-    expect(tokens[0]).to.deep.equal({
-      value: '(',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'punctuation.section.expression.begin.clojure',
-      ],
-    });
-    expect(tokens[1]).to.deep.equal({
-      value: '#{',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.set.clojure',
-        'punctuation.section.set.begin.clojure',
-      ],
-    });
-    expect(tokens[2]).to.deep.equal({
-      value: ':foo',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.set.clojure',
-        'constant.keyword.clojure',
-      ],
-    });
-    expect(tokens[3]).to.deep.equal({
-      value: ' ',
-      scopes: ['source.clojure', 'meta.expression.clojure', 'meta.set.clojure'],
-    });
-    expect(tokens[4]).to.deep.equal({
-      value: ':bar',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.set.clojure',
-        'constant.keyword.clojure',
-      ],
-    });
-    expect(tokens[5]).to.deep.equal({
-      value: '}',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'meta.set.clojure',
-        'punctuation.section.set.end.trailing.clojure',
-      ],
-    });
-    expect(tokens[6]).to.deep.equal({
-      value: ')',
-      scopes: [
-        'source.clojure',
-        'meta.expression.clojure',
-        'punctuation.section.expression.end.trailing.clojure',
-      ],
-    });
+    const inExpr = ['source.clojure', 'meta.expression.clojure'];
+    const inSet = [...inExpr, 'meta.set.clojure'];
+    expect(ctx.tokenizeLine('(#{:foo :bar})').tokens).to.deep.equal([
+      { value: '(', scopes: [...inExpr, 'punctuation.section.expression.begin.clojure'] },
+      { value: '#{', scopes: [...inSet, 'punctuation.section.set.begin.clojure'] },
+      { value: ':', scopes: [...inSet, 'constant.keyword.clojure'] },
+      { value: 'foo', scopes: [...inSet, 'constant.keyword.clojure', KEYWORD_NAME] },
+      { value: ' ', scopes: inSet },
+      { value: ':', scopes: [...inSet, 'constant.keyword.clojure'] },
+      { value: 'bar', scopes: [...inSet, 'constant.keyword.clojure', KEYWORD_NAME] },
+      { value: '}', scopes: [...inSet, 'punctuation.section.set.end.trailing.clojure'] },
+      { value: ')', scopes: [...inExpr, 'punctuation.section.expression.end.trailing.clojure'] },
+    ]);
   });
 
   it('tokenize strings (wrongly) used as functions', () => {

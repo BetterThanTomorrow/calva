@@ -1,15 +1,21 @@
 (ns calva.repl.webview.ui
   (:require
    [calva.repl.webview.app-db :as app-db]
+   [calva.repl.webview.auto-scroll :as auto-scroll]
+   [calva.repl.webview.code-brackets :as code-brackets]
+   [calva.repl.webview.code-highlight :as code-highlight]
+   [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
+   [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.printed-code.editor :as printed-code-editor]
+   [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]
    [cljs.reader :as reader]
    [clojure.string :as str]
-   ["strip-ansi" :default strip-ansi]
-   ["highlightjs-copy" :as CopyButtonPlugin]
-   ["highlight.js/lib/core" :as hljs]
-   ["highlight.js/lib/languages/clojure" :as clojure]))
+   [clojure.walk :as walk]
+   ["strip-ansi" :default strip-ansi]))
 
 ;; The DOM element where output is written
 (def output-dom-element (js/document.getElementById "output"))
@@ -44,13 +50,8 @@
                                            wait)))
         (reset! called-during-timeout? true)))))
 
-(defn scroll-to-bottom
-  "Scrolls to the bottom of the the given dom element."
-  []
-  (js/scrollTo 0 js/document.documentElement.scrollHeight))
-
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
-(def throttled-scroll-to-bottom (throttle-fn scroll-to-bottom 0))
+(def throttled-scroll-to-bottom (throttle-fn auto-scroll/follow! 0))
 
 (defn output-appended-event
   "Creates a custom event to signal that output has been appended to the output DOM element.
@@ -58,53 +59,14 @@
   [container-element]
   (js/CustomEvent. "output-appended" #js {:detail {:container-element container-element}}))
 
-(defn clojure-code-element
-  "Creates a code element for Clojure code, with the necessary classes and attributes for syntax highlighting,
-   and appends it to a pre element. Returns a map with the `:container-element` and the `:code-element`."
-  [clojure-code]
-  (let [pre-element (js/document.createElement "pre")
-        code-element (js/document.createElement "code")
-        text-node (js/document.createTextNode clojure-code)]
-    (.. code-element -classList (add "language-clojure"))
-    (.. code-element (appendChild text-node))
-    (.. pre-element (appendChild code-element))
-    {:container-element pre-element
-     :code-element code-element}))
-
-(defn highlight-code!
-  [^js code-element]
-  (.. hljs (highlightElement code-element)))
-
-(defn append-evaluated-code
-  "Appends evaluated code to the given dom element."
-  [^js dom-element output]
-  (let [div (js/document.createElement "div")
-        span (js/document.createElement "span")
-        span-text-node (js/document.createTextNode "Evaluated code")
-        {:keys [container-element code-element]} (clojure-code-element output)]
-    (.. span -classList (add "border-text"))
-    (.. span (appendChild span-text-node))
-    (.. div -classList (add "evaluated-code-container"))
-    (.. div (appendChild span))
-    (.. div (appendChild container-element))
-    (.. dom-element (appendChild div))
-    (.. hljs (highlightElement code-element))
-    (.. dom-element (dispatchEvent (output-appended-event div)))))
-
-(defn append-eval-result
-  [^js dom-element output]
-  (let [{:keys [code-element container-element]} (clojure-code-element output)]
-    (.. dom-element (appendChild container-element))
-    (.. hljs (highlightElement code-element))
-    (.. dom-element (dispatchEvent (output-appended-event container-element)))))
-
-(defn create-element
-  [tag class-name text]
-  (let [element (js/document.createElement tag)]
-    (.. element -classList (add class-name))
-    (when text
-      (.. element (appendChild (js/document.createTextNode text))))
-    element))
+(defn insert-hiccup!
+  "Inserts the element of `hiccup` at `position` of `element`, `\"beforeend\"` or `\"afterend\"`, as
+   `insertAdjacentHTML` does, and returns the inserted element."
+  [^js element position hiccup]
+  (.insertAdjacentHTML element position (html/render hiccup))
+  (case position
+    "beforeend" (.-lastElementChild element)
+    "afterend" (.-nextElementSibling element)))
 
 (defn data-url-blob
   [data-url mime]
@@ -147,41 +109,31 @@
       (.then #(some-> button show-copied!))
       (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
 
-(defn- stdout-copy-button
-  "A Copy output button for the stdout element `pre-element`, copying all of its text."
-  [^js pre-element]
-  (let [button (create-element "button" "output-copy-button" nil)]
-    (.. button -classList (add "output-stdout-copy"))
-    (set! (.-type button) "button")
-    (tooltip/attach! button "Copy output")
-    (.. button (setAttribute "aria-label" "Copy output"))
-    (.. button (setAttribute "data-copy-label" "Copy output"))
-    (.. button (addEventListener "click" #(copy-text! button (.-textContent pre-element))))
-    button))
+(defn- copy-stdout!
+  "Copies the text of the stdout block of the Copy output `button`."
+  [^js button]
+  (copy-text! button (.. button -parentElement -textContent)))
 
-(defn create-and-append-stdout-element
-  "Creates a new stdout element, with a Copy output button, and appends it to the given DOM element."
-  [dom-element text-node category]
-  (let [pre-element (create-element "pre" "output-stdout" nil)]
-    (.. pre-element (appendChild (stdout-copy-button pre-element)))
-    (.. pre-element (appendChild text-node))
-    (.. pre-element (setAttribute "data-output-element-type" (or category "evalOut")))
-    (.. dom-element (appendChild pre-element))
-    (.. dom-element (dispatchEvent (output-appended-event pre-element)))))
+(defn stdout-element
+  "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
+  [text category]
+  [:pre {:class ["output-stdout"] :data-output-element-type category}
+   [copy-button/button {:class ["output-stdout-copy"]
+                        :copy/label "Copy output"
+                        :copy/actions [[:output/ax.copy-stdout :event/target]]}]
+   text])
 
 (defn append-stdout
   "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
    in which case it appends the content to that element instead."
   [^js dom-element output category]
   (let [category (or category "evalOut")
-        text-node (js/document.createTextNode (strip-ansi output))]
-    (if-let [last-output-element (.. dom-element -lastElementChild)]
-      (if (= category (.. last-output-element -dataset -outputElementType))
-        (do
-          (.. last-output-element (appendChild text-node))
-          (.. dom-element (dispatchEvent (output-appended-event last-output-element))))
-        (create-and-append-stdout-element dom-element text-node category))
-      (create-and-append-stdout-element dom-element text-node category))))
+        text (strip-ansi output)
+        ^js last-output-element (.-lastElementChild dom-element)
+        element (if (= category (some-> last-output-element (.getAttribute "data-output-element-type")))
+                  (doto last-output-element (.appendChild (js/document.createTextNode text)))
+                  (insert-hiccup! dom-element "beforeend" (stdout-element text category)))]
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)
@@ -207,6 +159,258 @@
   (when-let [handler (get @!host-requests id)]
     (swap! !host-requests dissoc id)
     (handler payload)))
+
+(defn clojure-code-element
+  "Returns the hiccup of a code block with `clojure-code` and its copy button, colored with `ranges`,
+   `[from to color styles]`, and marked with `marks`, `[from to class]`, when it has them."
+  ([clojure-code]
+   (clojure-code-element clojure-code nil nil))
+  ([clojure-code ranges marks]
+   [:pre {:class ["output-code-block"]}
+    (into [:code (cond-> {:class ["output-code" "clojure-code"]}
+                   ranges (assoc :data-highlighted (if (seq ranges) "grammar" "plain")))]
+          (if (seq ranges)
+            (code-highlight/spans clojure-code ranges marks)
+            [clojure-code]))
+    [copy-button/button {:class ["output-code-copy"]
+                         :copy/label "Copy"
+                         :copy/actions [[:output/ax.copy-code :event/target]]}]]))
+
+(defonce ^:private !last-code-id (atom 0))
+
+(defn- code-id!
+  "Returns the id of the `code` element, giving it one first when it has none."
+  [^js code]
+  (or (.. code -dataset -codeId)
+      (set! (.. code -dataset -codeId) (str (swap! !last-code-id inc)))))
+
+(defn- request-highlighting!
+  "Asks the extension for the highlighting of the `codes` elements."
+  [codes]
+  (when (seq codes)
+    (post-to-host! {:command "output-highlight"
+                    :output/codes (mapv (fn [^js code] [(code-id! code) (.-textContent code)]) codes)})))
+
+(defonce ^{:private true :doc "The namespace and session of the output, from its latest namespace header."}
+  !context (atom nil))
+
+(defn- stamp-context!
+  "Gives the code in `element` that has no namespace the output's current namespace and session."
+  [^js element]
+  (let [{:keys [ns session-key]} @!context]
+    (doseq [^js code (array-seq (.querySelectorAll element "code.clojure-code"))
+            :when (and ns (not (.. code -dataset -ns)))]
+      (set! (.. code -dataset -ns) ns)
+      (some->> session-key (set! (.. code -dataset -sessionKey))))))
+
+(defonce ^{:private true
+           :doc "The grammar's colors of each code element colored by the grammar, `{:ranges :marks}` by its id."}
+  !grammar-colors (atom {}))
+
+(defonce ^{:private true :doc "The key of the latest request for the semantic tokens of each code element, by its id."}
+  !semantic-keys (atom {}))
+
+(defonce ^:private !last-semantic-key (atom 0))
+
+(defonce ^{:private true :doc "The requests for semantic tokens waiting for a pause, and the pause's timer."}
+  !semantic-requests (atom {:codes [] :timer nil}))
+
+(def ^:private max-semantic-requests
+  "How many requests for semantic tokens wait for a pause, at most, before they are posted."
+  100)
+
+(defn- post-semantic-requests!
+  []
+  (let [[{:keys [codes timer]}] (reset-vals! !semantic-requests {:codes [] :timer nil})]
+    (some-> timer js/clearTimeout)
+    (when (seq codes)
+      (post-to-host! {:command "output-semantic-tokens"
+                      :output/codes codes}))))
+
+(defn- semantic-request!
+  "Returns the request for the semantic tokens of the `code` element colored with the grammar's `colors`,
+   `[key text ns session-key]`, its key new, so that an answer to an earlier request is left out."
+  [^js code colors]
+  (let [id (code-id! code)
+        request-key (str id "@" (swap! !last-semantic-key inc))]
+    (swap! !grammar-colors assoc id colors)
+    (swap! !semantic-keys assoc id request-key)
+    [request-key (.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)]))
+
+(defn- request-semantic-tokens-later!
+  "Asks the extension for the semantic tokens of the `codes` elements colored with the grammar's `colors`,
+   with those of other code, a pause after the last request, or at once when many wait. Code without a
+   namespace gets none."
+  [codes colors]
+  (let [requests (mapv #(semantic-request! % colors) (filter #(.. ^js % -dataset -ns) codes))]
+    (when (seq requests)
+      (some-> (:timer @!semantic-requests) js/clearTimeout)
+      (if (>= (count (:codes (swap! !semantic-requests update :codes into requests))) max-semantic-requests)
+        (post-semantic-requests!)
+        (swap! !semantic-requests assoc :timer (js/setTimeout post-semantic-requests! 100))))))
+
+(defn- code-elements
+  "Returns the code elements with the `ids`, by their id."
+  [ids]
+  (if (< (count ids) 20)
+    (into {} (keep (fn [id]
+                     (some->> (js/document.querySelector (str "code[data-code-id=\"" id "\"]"))
+                              (vector id))))
+          ids)
+    (into {} (map (fn [^js code] [(.. code -dataset -codeId) code]))
+          (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
+
+(defn- set-spans!
+  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
+  [^js code ranges marks]
+  (printed-code-editor/drawn! code {:ranges ranges :marks marks})
+  (code-highlight/set-spans! code (.-textContent code) ranges marks))
+
+(defn- color-with-grammar!
+  "Colors the `code` element with the grammar's `colors`, `{:ranges :marks}`, and asks for its semantic
+   tokens."
+  [^js code {:keys [ranges marks] :as colors}]
+  (set-spans! code ranges marks)
+  (set! (.. code -dataset -highlighted) "grammar")
+  (request-semantic-tokens-later! [code] colors))
+
+(defonce ^{:private true
+           :doc "The colors of the latest code colored, `{:ranges :marks :looks}` by its text, namespace and
+                 session, with `:looks` the semantic tokens layered over the grammar's `:ranges`, so code drawn
+                 again, like an error's details, is colored at once."}
+  !remembered (atom {:colors {} :texts []}))
+
+(defn- remembered-key
+  "Returns what the colors of the `code` element are remembered by: its text, namespace and session."
+  [^js code]
+  [(.-textContent code) (.. code -dataset -ns) (.. code -dataset -sessionKey)])
+
+(def ^:private remembered-texts 100)
+
+(defn- remember!
+  "Remembers the `colors` of the code with the `remembered-key` `text`, forgetting the colors remembered longest
+   ago when there are more than `remembered-texts`."
+  [text colors]
+  (swap! !remembered
+         (fn [{:keys [texts] :as remembered}]
+           (let [texts (if (contains? (:colors remembered) text) texts (conj texts text))
+                 forgotten (drop-last remembered-texts texts)]
+             (-> remembered
+                 (assoc :texts (vec (take-last remembered-texts texts)))
+                 (update :colors #(apply dissoc (assoc % text colors) forgotten)))))))
+
+(defn- color-remembered!
+  "Colors the `code` element with the `colors` remembered for its text, asking for semantic tokens only when
+   the colors have none."
+  [^js code {:keys [ranges marks looks] :as colors}]
+  (cond
+    (empty? ranges) (set! (.. code -dataset -highlighted) "plain")
+    looks (do (set-spans! code looks marks)
+              (swap! !grammar-colors assoc (code-id! code) (dissoc colors :looks))
+              (set! (.. code -dataset -highlighted) "grammar"))
+    :else (color-with-grammar! code colors)))
+
+(defn- request-missing-highlighting!
+  "Gives the code in `element` the output's namespace, and colors the code that has no highlighting with the
+   colors remembered for its text, or asks the extension for them."
+  [^js element]
+  (stamp-context! element)
+  (let [missing (remove #(.. ^js % -dataset -highlighted)
+                        (array-seq (.querySelectorAll element "code.clojure-code")))
+        remembered (:colors @!remembered)
+        {known true unknown false} (group-by #(contains? remembered (remembered-key %)) missing)]
+    (doseq [^js code known]
+      (color-remembered! code (get remembered (remembered-key code))))
+    (request-highlighting! unknown)))
+
+(defn set-code-highlighting!
+  "Colors the code elements of `codes`, `[id ranges brackets]` each, with their ranges and brackets, marking
+   each as colored by the grammar, as plain when it has no ranges, being too long, or as uncolored when the
+   extension can't color it, without the theme or the grammar."
+  [codes]
+  (let [elements (code-elements (map first codes))]
+    (doseq [[id ranges brackets] codes
+            :let [^js code (get elements id)
+                  colors {:ranges ranges :marks (code-brackets/mark-ranges brackets)}]
+            :when code]
+      (cond
+        (seq ranges) (do (remember! (remembered-key code) colors)
+                         (color-with-grammar! code colors))
+        ranges (do (remember! (remembered-key code) {:ranges []})
+                   (set! (.. code -dataset -highlighted) "plain"))
+        :else (do (set! (.-textContent code) (.-textContent code))
+                  (set! (.. code -dataset -highlighted) "uncolored"))))))
+
+(defn set-semantic-tokens!
+  "Lays the semantic `ranges` of `codes`, `[request-key ranges]` each, over the grammar's ranges of their code
+   elements, for the latest request of each."
+  [codes]
+  (let [current (filter (fn [[request-key]]
+                          (= request-key (get @!semantic-keys (first (str/split request-key #"@")))))
+                        codes)
+        elements (code-elements (map #(first (str/split (first %) #"@")) current))]
+    (doseq [[request-key ranges] current
+            :let [id (first (str/split request-key #"@"))
+                  ^js code (get elements id)
+                  {grammar :ranges :keys [marks] :as colors} (get @!grammar-colors id)]
+            :when (and code grammar (seq ranges))]
+      (let [looks (highlight/layered grammar ranges)]
+        (set-spans! code looks marks)
+        (remember! (remembered-key code) (assoc colors :looks looks))))))
+
+(defn- rehighlight-code!
+  "Asks the extension for the highlighting of the code in `dom-element` that the grammar colored, or that the
+   extension couldn't color, as when the color theme changed."
+  [^js dom-element]
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
+  (request-highlighting! (concat (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"grammar\"]"))
+                                 (array-seq (.querySelectorAll dom-element "code.clojure-code[data-highlighted=\"uncolored\"]")))))
+
+(defn- copy-code!
+  "Copies the code of the code block of the Copy `button`."
+  [^js button]
+  (copy-text! button (.. button -parentElement (querySelector "code") -textContent)))
+
+(defn evaluated-code-element
+  "Returns the hiccup of evaluated `code`, under its label, colored with `ranges` and marked with `marks` when
+   it has them. Code of the evaluation `evaluation-id` has a spinner after its label until the evaluation ends."
+  [code ranges marks evaluation-id]
+  [:div {:class ["evaluated-code-container"] :data-evaluation-id evaluation-id}
+   [:span {:class ["border-text"]}
+    "Evaluated code"
+    (when evaluation-id
+      (spinner/element ["evaluated-code-spinner"]))]
+   (clojure-code-element code ranges marks)])
+
+(defn- append-code!
+  "Appends the code of `hiccup-of`, called with its grammar's `colors`, to `dom-element`, and asks for the
+   highlighting of the code that has none, and for the semantic tokens of the code that has."
+  [^js dom-element hiccup-of {:keys [ranges] :as colors}]
+  (some-> ranges code-highlight/add-classes!)
+  (let [element (insert-hiccup! dom-element "beforeend" (hiccup-of colors))]
+    (when (seq ranges)
+      (doseq [code (array-seq (.querySelectorAll element "code.clojure-code"))]
+        (printed-code-editor/drawn! code (select-keys colors [:ranges :marks]))))
+    (request-missing-highlighting! element)
+    (when (seq ranges)
+      (request-semantic-tokens-later! (array-seq (.querySelectorAll element "code.clojure-code")) colors))
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
+
+(defn append-evaluated-code
+  "Appends evaluated `code` of the evaluation `evaluation-id` to `dom-element`, colored with `ranges` and its
+   `brackets` when it has them."
+  [^js dom-element {:keys [code ranges brackets evaluation-id]}]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (evaluated-code-element code ranges marks evaluation-id))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
+
+(defn append-eval-result
+  "Appends the printed `result` to `dom-element`, colored with `ranges` and its `brackets` when it has them."
+  [^js dom-element result ranges brackets]
+  (append-code! dom-element
+                (fn [{:keys [ranges marks]}] (clojure-code-element result ranges marks))
+                {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -245,10 +449,9 @@
         (.then #(show-copied! button))
         (.catch #(js/console.error "Cannot copy the image to the clipboard:" %)))))
 
-(defn- includes-remote-urls?
+(defn- image-display
   []
-  (= "images-including-remote-urls"
-     (some-> js/document .-body (.getAttribute "data-image-display"))))
+  (some-> js/document .-body (.getAttribute "data-image-display")))
 
 (defn- remove-thumbnail!
   "Removes `thumb` and, when that empties the `.output-images` row, removes the row too."
@@ -259,21 +462,28 @@
       (when-let [grandparent (.-parentNode parent)]
         (.removeChild grandparent parent)))))
 
-(defn- hide-until-load!
-  [^js thumb ^js img]
-  (set! (.. thumb -dataset -pending) "true")
-  (.addEventListener img "load"
-                     (fn []
-                       (set! (.. thumb -dataset -pending) "false"))
-                     #js {:once true})
-  (.addEventListener img "error"
-                     (fn []
-                       (remove-thumbnail! thumb))
-                     #js {:once true}))
+(defn- output-image
+  "Returns the thumbnail image that is the target of `event`, if it is one."
+  [^js event]
+  (let [^js target (.-target event)]
+    (when (some-> target (.matches "img.output-image"))
+      target)))
+
+(defn on-image-load
+  "Shows the thumbnail of a loaded image, which makes the output grow."
+  [^js event]
+  (when-let [img (output-image event)]
+    (set! (.. img -parentNode -dataset -pending) "false")
+    (.. event -currentTarget (dispatchEvent (output-appended-event img)))))
+
+(defn on-image-error
+  "Removes the thumbnail of an image that can't be shown."
+  [^js event]
+  (some-> (output-image event) .-parentNode remove-thumbnail!))
 
 (defn- raw-display?
   []
-  (= "raw" (some-> js/document .-body (.getAttribute "data-image-display"))))
+  (= "raw" (image-display)))
 
 (def max-local-image-lookups
   "Cap on in-flight local image lookups keyed by request id."
@@ -355,128 +565,92 @@
       (when (and img (img-src-unset? img))
         (resolve-local-image! img thumbnail src session-key)))))
 
-(defn create-image-element
-  "A thumbnail (the full-resolution image, scaled down by CSS) with a copy image button.
-   Data-URL, local, and remote images stay hidden until they load; a failure removes the thumbnail."
-  [{:image/keys [data-url kind src session-key] :as image}]
+(defn- image-src
+  "Returns the `src` the thumbnail of `image` has when it's added. A local image gets its `src` from
+   its lookup, and a remote image only while `display` includes remote URLs."
+  [{:image/keys [data-url kind src]} display]
+  (cond
+    data-url data-url
+    (= :local kind) nil
+    (= :remote kind) (when (= "images-including-remote-urls" display) src)
+    :else src))
+
+(defn image-element
+  "Returns the hiccup of the thumbnail of `image`, the full image scaled down by CSS, with its Copy
+   image button. A data URL, local or remote image is `data-pending` until it loads. `display` is the
+   image display."
+  [{:image/keys [data-url kind src] :as image} display]
   (let [label (images/label image)
-        thumbnail (create-element "div" "output-image-thumbnail" nil)
-        img (create-element "img" "output-image" nil)
-        button (create-element "button" "output-copy-button" nil)]
-    (.. button -classList (add "output-image-copy"))
-    (set! (.-alt img) label)
-    (set! (.-title img) label)
-    (when kind
-      (set! (.. img -dataset -imageKind) (name kind))
-      (set! (.. thumbnail -dataset -imageKind) (name kind)))
-    (set! (.-type button) "button")
-    (tooltip/attach! button "Copy image")
-    (.. button (setAttribute "aria-label" (str "Copy " label)))
-    (.. button (setAttribute "data-copy-label" (.getAttribute button "aria-label")))
-    (.. button (addEventListener "click" #(copy-image! button img image)))
-    (.. thumbnail (appendChild img))
-    (.. thumbnail (appendChild button))
-    (cond
-      data-url (do (hide-until-load! thumbnail img)
-                   (set! (.-src img) data-url))
-      (= :local kind) (do (hide-until-load! thumbnail img)
-                          (set! (.-calvaLocalSrc img) src)
-                          (if (raw-display?)
-                            (queue-pending-local! img thumbnail src session-key)
-                            (resolve-local-image! img thumbnail src session-key)))
-      (= :remote kind) (do (set! (.-calvaRemoteSrc img) src)
-                           (hide-until-load! thumbnail img)
-                           (when (includes-remote-urls?)
-                             (set! (.-src img) src)))
-      :else (when src (set! (.-src img) src)))
-    thumbnail))
+        kind-name (some-> kind name)]
+    [:div {:class ["output-image-thumbnail"]
+           :data-image-kind kind-name
+           :data-pending (when (or data-url kind) "true")}
+     [:img {:class ["output-image"]
+            :alt label
+            :title label
+            :data-image-kind kind-name
+            :data-local-src (when (= :local kind) src)
+            :data-remote-src (when (= :remote kind) src)
+            :src (image-src image display)}]
+     [copy-button/button {:class ["output-image-copy"]
+                          :copy/label (str "Copy " label)
+                          :copy/tooltip "Copy image"
+                          :copy/actions [[:output/ax.copy-image (-> (select-keys image [:image/mime :image/kind :image/src])
+                                                                    (assoc :copy/button :event/target))]]}]]))
 
-(declare create-image-form-element)
+(defn- copy-image-of-button!
+  "Copies the image of the Copy image `button`. A data URL image's data is its `src`."
+  [{:copy/keys [^js button] :as image}]
+  (let [^js img (.querySelector (.-parentNode button) "img")]
+    (copy-image! button img (cond-> image
+                              (str/starts-with? (.-src img) "data:") (assoc :image/data-url (.-src img))))))
 
-(defn- ensure-raw-form!
-  "Builds the raw form on `entry` once, when a builder is still attached."
-  [^js entry]
-  (when-let [create-raw-el! (.-calvaCreateRawEl! entry)]
-    (set! (.-calvaCreateRawEl! entry) nil)
-    (.. entry (appendChild (create-image-form-element "raw" [(create-raw-el!)])))))
+(defn- segment-elements
+  "Returns the hiccup of a result's text segment as Clojure code, with the thumbnails of the images on its
+   lines below it."
+  [{:keys [text images]} display]
+  (list (when (seq text)
+          (clojure-code-element text))
+        (when (seq images)
+          [:div {:class ["output-images"]}
+           (for [image images]
+             (image-element image display))])))
 
-(defn- attach-raw-form!
-  [^js entry create-raw-el!]
-  (set! (.-calvaCreateRawEl! entry) create-raw-el!)
-  (if (raw-display?)
-    (ensure-raw-form! entry)
-    (swap! !lazy-raw-entries conj entry)))
+(defn images-form-element
+  "Returns the hiccup of the images form of a result, from its text `segments`."
+  [segments display]
+  [:div {:data-image-form "images"}
+   (for [segment segments]
+     (segment-elements segment display))])
 
-(defn create-image-form-element
-  [image-form children]
-  (let [element (js/document.createElement "div")]
-    (.. element (setAttribute "data-image-form" image-form))
-    (run! #(.. element (appendChild %)) children)
-    element))
+(defn- look-up-local-images!
+  "Looks up the local images in `element`, or queues them while the display is raw."
+  [^js element session-key]
+  (doseq [^js img (.querySelectorAll element "img[data-local-src]")
+          :let [thumbnail (.-parentNode img)
+                src (.getAttribute img "data-local-src")]]
+    (if (raw-display?)
+      (queue-pending-local! img thumbnail src session-key)
+      (resolve-local-image! img thumbnail src session-key))))
 
-(defn- append-segments!
-  "Appends each text segment and the images that belong directly below it. Returns the img elements
-   so the caller can listen for load."
-  [^js parent segments create-text-el!]
-  (reduce
-   (fn [imgs {:keys [text images]}]
-     (when (seq text)
-       (.. parent (appendChild (create-text-el! text))))
-     (if (seq images)
-       (let [wrap (create-element "div" "output-images" nil)
-             thumbs (mapv create-image-element images)]
-         (run! #(.. wrap (appendChild %)) thumbs)
-         (.. parent (appendChild wrap))
-         (into imgs (keep (fn [^js thumb]
-                            (first (filter (fn [^js child]
-                                             (= "IMG" (.-tagName child)))
-                                           (.-children thumb))))
-                          thumbs)))
-       imgs))
-   []
-   segments))
-
-(defn- listen-for-image-load!
-  [^js dom-element img-elements]
-  (run! (fn [^js img]
-          (.. img (addEventListener "load"
-                                    #(.. dom-element (dispatchEvent (output-appended-event img)))
-                                    #js {:once true})))
-        img-elements))
-
-(defn append-with-images!
-  "Appends an output entry that has images. The images form is built now. The raw form is built
-   when the display is already raw, or later when it switches to raw. The entry is appended before
-   the raw form is built, so a throw while building the raw form cannot drop the whole entry.
-   Returns the entry element."
-  [^js dom-element {:keys [text images create-raw-el! create-text-el!]}]
-  (let [entry (create-element "div" "output-with-images" nil)
-        images-form (js/document.createElement "div")]
-    (.. images-form (setAttribute "data-image-form" "images"))
-    (listen-for-image-load!
-     dom-element
-     (append-segments! images-form (images/segments-with-images text images) create-text-el!))
-    (.. entry (setAttribute "data-output-element-type" "images"))
-    (.. entry (appendChild images-form))
-    (.. dom-element (appendChild entry))
-    (attach-raw-form! entry create-raw-el!)
-    entry))
+(defn- add-raw-form!
+  "Adds the raw form, the result as printed, to the result `entry`."
+  [^js entry raw]
+  (request-missing-highlighting! (insert-hiccup! entry "beforeend" [:div {:data-image-form "raw"} (clojure-code-element raw)])))
 
 (defn append-result-with-images
+  "Appends a result with images. Its images form is added now. Its raw form is added after it when the
+   display is raw, or later, when the display turns raw."
   [^js dom-element {:keys [text raw images meta]}]
   (let [session-key (or (:meta/repl-session-key meta) (:repl-session-key meta))
-        images (mapv #(cond-> % session-key (assoc :image/session-key session-key)) images)
-        entry (append-with-images! dom-element
-                                   {:text text
-                                    :images images
-                                    :create-raw-el! (fn []
-                                                      (let [raw-result (clojure-code-element raw)]
-                                                        (highlight-code! (:code-element raw-result))
-                                                        (:container-element raw-result)))
-                                    :create-text-el! (fn [segment-text]
-                                                       (let [{:keys [container-element code-element]} (clojure-code-element segment-text)]
-                                                         (highlight-code! code-element)
-                                                         container-element))})]
+        entry (insert-hiccup! dom-element "beforeend"
+                              [:div {:class ["output-with-images"] :data-output-element-type "images"}
+                               (images-form-element (images/segments-with-images text images) (image-display))])]
+    (request-missing-highlighting! entry)
+    (look-up-local-images! entry session-key)
+    (if (raw-display?)
+      (add-raw-form! entry raw)
+      (swap! !lazy-raw-entries conj [entry raw]))
     (.. dom-element (dispatchEvent (output-appended-event entry)))))
 
 (defn session-str
@@ -487,85 +661,54 @@
                 (some? shadow-runtime-id) (conj (str shadow-runtime-id)))]
     (str/join " " parts)))
 
-(defn create-ns-info-element
+(defn ns-info-element
+  "Returns the hiccup of the badges of who evaluated, in which session and namespace. The REPL
+   Input's evaluations, from `\"ui\"`, get no who badge."
   [{:meta/keys [who ns] :as meta-data}]
-  (let [container (js/document.createElement "div")
-        sess (session-str meta-data)]
-    (.. container -classList (add "ns-info-container"))
-    (.. container (setAttribute "data-output-element-type" "ns-info"))
-    (when (and who (not= who "ui"))
-      (let [who-badge (js/document.createElement "span")]
-        (.. who-badge -classList (add "ns-info-badge" "ns-info-who"))
-        (.. who-badge (appendChild (js/document.createTextNode who)))
-        (.. container (appendChild who-badge))))
-    (when (seq sess)
-      (let [sess-badge (js/document.createElement "span")]
-        (.. sess-badge -classList (add "ns-info-badge" "ns-info-session"))
-        (.. sess-badge (appendChild (js/document.createTextNode sess)))
-        (.. container (appendChild sess-badge))))
-    (when ns
-      (let [ns-badge (js/document.createElement "span")]
-        (.. ns-badge -classList (add "ns-info-badge" "ns-info-ns"))
-        (.. ns-badge (appendChild (js/document.createTextNode ns)))
-        (.. container (appendChild ns-badge))))
-    container))
+  (let [sess (session-str meta-data)]
+    [:div {:class ["ns-info-container"] :data-output-element-type "ns-info"}
+     (when (and who (not= who "ui"))
+       [:span {:class ["ns-info-badge" "ns-info-who"]} who])
+     (when (seq sess)
+       [:span {:class ["ns-info-badge" "ns-info-session"]} sess])
+     (when ns
+       [:span {:class ["ns-info-badge" "ns-info-ns"]} ns])]))
 
 (defn append-ns-info
+  "Appends the namespace header of `meta-data`, the namespace and session of the output after it."
   [^js dom-element meta-data]
-  (let [ns-info-el (create-ns-info-element meta-data)]
-    (.. dom-element (appendChild ns-info-el))
+  (reset! !context {:ns (or (:meta/ns meta-data) (:ns meta-data))
+                    :session-key (or (:meta/repl-session-key meta-data) (:repl-session-key meta-data))})
+  (let [ns-info-el (insert-hiccup! dom-element "beforeend" (ns-info-element meta-data))]
     (.. dom-element (dispatchEvent (output-appended-event ns-info-el)))))
 
 (defn clear-output-dom
   [^js output-dom-element]
   (reset! !lazy-raw-entries [])
+  (reset! !grammar-colors {})
+  (reset! !remembered {:colors {} :texts []})
+  (reset! !semantic-keys {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
   (set! (.-innerHTML output-dom-element) ""))
 
-(defn update-theme-of-copy-buttons
+(defonce ^:private !frame-name-sheet (atom nil))
+
+(defn- frame-name-sheet
   []
-  (.. (js/document.querySelectorAll "div.hljs-copy-container")
-      (forEach (fn [^js copy-container-node]
-                 (let [parent-node (.. copy-container-node -parentNode)
-                       hljs-code-node (.. parent-node (querySelector "code.hljs"))
-                       code-computed-style (js/getComputedStyle hljs-code-node)
-                       code-background-color (.-backgroundColor code-computed-style)
-                       code-foreground-color (.-color code-computed-style)
-                       code-padding (.-padding code-computed-style)]
-                   (.. copy-container-node -style (setProperty "--hljs-theme-background" code-background-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-color" code-foreground-color))
-                   (.. copy-container-node -style (setProperty "--hljs-theme-padding" code-padding)))))))
-
-(defn set-code-theme!
-  [code-theme]
-  (let [code-theme-link-nodes (js/document.querySelectorAll "[data-code-theme]")]
-    (.. code-theme-link-nodes (forEach (fn [^js node]
-                                         (let [current-code-theme (.. node -dataset -codeTheme)]
-                                           (if (= current-code-theme code-theme)
-                                             (.. node (removeAttribute "disabled"))
-                                             (.. node (setAttribute "disabled" "disabled")))))))
-    ;; The timeout seems to prevent an issue where the copy buttons lose some of their styles on theme change.
-    (js/setTimeout update-theme-of-copy-buttons 100)))
-
-(defn token-colors-css
-  "Returns CSS that gives each highlight.js scope in `colors` its color, over the code theme's."
-  [colors]
-  (apply str (for [[scope color] colors]
-               (str ":root .hljs-" scope " { color: " color "; }\n"))))
-
-(defonce !token-colors-sheet (atom nil))
-
-(defn- token-colors-sheet
-  []
-  (or @!token-colors-sheet
+  (or @!frame-name-sheet
       (let [sheet (js/CSSStyleSheet.)]
         (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-        (reset! !token-colors-sheet sheet))))
+        (reset! !frame-name-sheet sheet))))
 
-(defn set-token-colors!
-  [colors]
-  (.replaceSync ^js (token-colors-sheet) (token-colors-css colors)))
+(defn set-frame-name-color!
+  "Gives the stack frames' function names the hex `color`, the theme's color for function names, or the text's
+   color for any other color."
+  [color]
+  (.replaceSync ^js (frame-name-sheet)
+                (if (code-highlight/color-class color)
+                  (str ":root { --calva-frame-name-color: " color "; }")
+                  "")))
 
 (defn set-word-wrap!
   [word-wrap]
@@ -581,9 +724,9 @@
       (.forEach imgs
                 (fn [^js img]
                   (when (and (= "images-including-remote-urls" image-display)
-                             (.-calvaRemoteSrc img)
+                             (.getAttribute img "data-remote-src")
                              (str/blank? (str (.-src img))))
-                    (set! (.-src img) (.-calvaRemoteSrc img))))))))
+                    (set! (.-src img) (.getAttribute img "data-remote-src"))))))))
 
 (defn- apply-local-src!
   "When leaving raw, resolve local images that were queued while in raw mode."
@@ -597,7 +740,8 @@
   (when (= "raw" image-display)
     (let [entries @!lazy-raw-entries]
       (reset! !lazy-raw-entries [])
-      (run! ensure-raw-form! entries)))
+      (doseq [[entry raw] entries]
+        (add-raw-form! entry raw))))
   (apply-remote-src! image-display)
   (apply-local-src! image-display))
 
@@ -621,15 +765,18 @@
 (defn render-error!
   "Draws `error`, in place of its earlier element if there is one, keeping focus on the control
    that had it."
-  [^js dom-element dispatch {:error/keys [id] :as error}]
-  (let [new-element (error-element/create error dispatch)
+  [^js dom-element {:error/keys [id] :as error}]
+  (let [hiccup (error-element/element error)
         ^js existing (.querySelector dom-element (str "[data-error-id=\"" id "\"]"))]
     (if existing
-      (let [control (focused-control existing)]
-        (.replaceWith existing new-element)
+      (let [control (focused-control existing)
+            ^js new-element (insert-hiccup! existing "afterend" hiccup)]
+        (.remove existing)
+        (request-missing-highlighting! new-element)
         (some-> (.querySelector new-element (str "[data-control=\"" control "\"]")) .focus))
-      (do (.. dom-element (appendChild new-element))
-          (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
+      (let [new-element (insert-hiccup! dom-element "beforeend" hiccup)]
+        (request-missing-highlighting! new-element)
+        (.. dom-element (dispatchEvent (output-appended-event new-element)))))))
 
 (defn- copy-error-text!
   "Writes `text` to the clipboard and marks the error's copy button as copied. Runs in the click's
@@ -644,16 +791,23 @@
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
     :fx/append-ns-info (append-ns-info output-dom-element (first args))
-    :fx/append-result (append-eval-result output-dom-element (first args))
+    :fx/append-result (apply append-eval-result output-dom-element args)
     :fx/append-evaluated-code (append-evaluated-code output-dom-element (first args))
+    :fx/end-evaluation (spinner/end-evaluation! output-dom-element (first args))
+    :fx/set-bracket-styles (some-> (first args) code-brackets/css code-brackets/set-css!)
+    :fx/set-code-highlighting (set-code-highlighting! (first args))
+    :fx/set-semantic-tokens (set-semantic-tokens! (first args))
+    :fx/rehighlight-code (rehighlight-code! output-dom-element)
+    :fx/copy-code (copy-code! (first args))
     :fx/append-stdout (append-stdout output-dom-element (first args) (second args))
     :fx/append-result-with-images (append-result-with-images output-dom-element (first args))
-    :fx/render-error (render-error! output-dom-element dispatch! (first args))
+    :fx/render-error (render-error! output-dom-element (first args))
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
+    :fx/copy-stdout (copy-stdout! (first args))
+    :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
-    :fx/set-code-theme (set-code-theme! (first args))
-    :fx/set-token-colors (set-token-colors! (first args))
+    :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
@@ -683,6 +837,8 @@
        (case command-name
          "clear-output-view"    (dispatch! [:msg/clear-output-view])
          "set-code-theme"       (dispatch! [:msg/set-code-theme message-data])
+         "output-highlighting"  (dispatch! [:msg/output-highlighting message-data])
+         "output-semantic-tokens" (dispatch! [:msg/output-semantic-tokens message-data])
          "set-word-wrap"        (dispatch! [:msg/set-word-wrap message-data])
          "set-base-font-scale"  (dispatch! [:msg/set-base-font-scale message-data])
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
@@ -696,6 +852,8 @@
          "repl-input-edit"      (dispatch! [:repl-input/ax.edit message-data])
          "repl-input-command-keys" (dispatch! [:repl-input/ax.set-command-keys (:repl-input/command-keys message-data)])
          "repl-input-brackets"  (dispatch! [:repl-input/ax.set-brackets message-data])
+         "repl-input-highlighting" (dispatch! [:repl-input/ax.set-highlighting message-data])
+         "repl-input-semantic-tokens" (dispatch! [:repl-input/ax.set-semantic-tokens message-data])
          "repl-input-editor-settings" (dispatch! [:repl-input/ax.set-editor-settings (:repl-input/editor-settings message-data)])
          "repl-input-run-command" (dispatch! [:repl-input/ax.run-command (:repl-input/command message-data)])
          "repl-input-context"   (dispatch! [:repl-input/ax.set-context-line (:repl-input/context-line message-data)])
@@ -706,7 +864,12 @@
          "repl-input-completion-docs" (dispatch! [:repl-input/ax.completion-docs message-data])
          "repl-input-history"   (dispatch! [:repl-input/ax.set-history (:repl-input.history/entries message-data)])
          "repl-input-recall"    (dispatch! [:repl-input/ax.recall (:repl-input.history/position message-data)])
-         ("show-result" "show-evaluated-code" "show-stdout")
+         "repl-input-mode-chosen" (dispatch! [:repl-input/ax.mode-chosen])
+         "printed-code-selections" (dispatch! [:printed-code/ax.select message-data])
+         "printed-code-brackets" (dispatch! [:printed-code/ax.set-brackets message-data])
+         "printed-code-command-keys" (dispatch! [:printed-code/ax.set-command-keys (:repl-input/command-keys message-data)])
+         "printed-code-focus"   (dispatch! [:printed-code/ax.focus])
+         ("show-result" "show-evaluated-code" "show-stdout" "evaluation-ended")
          (dispatch! [:msg/output message-data])
          "show-error"           (dispatch! [:msg/error message-data])
          "show-error-causes"    (dispatch! [:msg/error-causes message-data])
@@ -716,18 +879,34 @@
   [^js _event]
   (throttled-scroll-to-bottom))
 
+(defn- ends-selection?
+  "True when the mouse click `event` ends a text selection in `element`."
+  [^js event ^js element]
+  (let [selection (js/window.getSelection)]
+    (and (pos? (.-detail event))
+         (not (.-isCollapsed selection))
+         (.containsNode selection element true))))
+
+(defn on-output-click
+  "Hides the page's tooltip and dispatches the actions in the `data-action` of the clicked element, or of
+   the nearest element around it that has one. `:event/target` in them stands for that element. An
+   element with `data-plain-click` ignores a click that ends a text selection in it."
+  [^js event]
+  (when-let [^js element (some-> ^js (.-target event) (.closest "[data-action]"))]
+    (tooltip/hide!)
+    (when-not (and (some? (.getAttribute element "data-plain-click"))
+                   (ends-selection? event element))
+      (run! dispatch! (walk/postwalk-replace {:event/target element}
+                                             (reader/read-string (.getAttribute element "data-action")))))))
+
 (defn add-event-listeners
   [^js output-dom-element]
   (.. js/window (addEventListener "message" handle-message))
-  (.. output-dom-element (addEventListener "output-appended" handle-output-appended)))
+  (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
+  (.. output-dom-element (addEventListener "click" #(on-output-click %)))
+  (.. output-dom-element (addEventListener "load" #(on-image-load %) true))
+  (.. output-dom-element (addEventListener "error" #(on-image-error %) true)))
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (.. hljs (registerLanguage "clojure" clojure))
-  (ensure-dom-content-loaded (fn []
-                               (.. hljs (addPlugin (CopyButtonPlugin. #js {:autohide true})))
-                               ;; Added after the copy plugin, which adds the button it gives a tooltip
-                               (.. hljs (addPlugin #js {"after:highlightElement"
-                                                        (fn [^js result]
-                                                          (some-> (.. result -el -parentElement (querySelector ".hljs-copy-button"))
-                                                                  (tooltip/attach! "Copy")))})))))
+  (auto-scroll/listen!))

@@ -288,4 +288,32 @@ suite('File Output Destination Test', () => {
 
     await assertEvaluationFromAFile(testFilePath, resultsFile);
   });
+
+  test('evaluation from a file echoes its code to every result destination, also with the REPL window among them', async function () {
+    const resultsFile = path.join(tmpDir, 'with-repl-window-results.txt');
+    await setOutputDestinations({
+      evalResults: ['repl-window', resultsFile],
+      evalOutput: 'terminal',
+      otherOutput: 'terminal',
+    });
+
+    await assertEvaluationFromAFile(testFilePath, resultsFile);
+
+    const code = '(str "from-a-file-" "echo-true")';
+    let replWindowText = '';
+    await testUtil.waitForCondition(
+      async () => {
+        replWindowText = (await outputWindow.openReplWindowDoc()).getText();
+        return replWindowText.includes('"from-a-file-echo-false"');
+      },
+      10_000,
+      100,
+      'The results should reach the REPL window'
+    );
+    assert.strictEqual(
+      replWindowText.split(code).length - 1,
+      1,
+      'The REPL window should get the echoed code once'
+    );
+  });
 });

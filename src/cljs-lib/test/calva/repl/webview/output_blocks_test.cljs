@@ -1,0 +1,198 @@
+(ns calva.repl.webview.output-blocks-test
+  "The output blocks' hiccup."
+  (:require
+   [calva.repl.webview.error-element :as error-element]
+   [calva.repl.webview.fake-document]
+   [calva.repl.webview.stacktrace :as stacktrace]
+   [calva.repl.webview.stacktrace-fixtures :as fixtures]
+   [calva.repl.webview.ui :as ui]
+   [cljs.reader :as reader]
+   [cljs.test :refer-macros [deftest is]]
+   [lookup.core :as l]
+   [replicant.alias :as alias]))
+
+(defn- written-attrs
+  "Returns the attributes of `element` that Replicant writes, those with a value."
+  [element]
+  (into {} (filter (comp some? val)) (l/attrs element)))
+
+(deftest ns-info-element-test
+  (let [hiccup (ui/ns-info-element {:meta/who "clj"
+                                    :meta/repl-session-key "cljs"
+                                    :meta/shadow-build ":app"
+                                    :meta/ns "user"})]
+    (is (= [{:class #{"ns-info-container"} :data-output-element-type "ns-info"}]
+           (map l/attrs (l/select :div hiccup))))
+    (is (= [["clj" #{"ns-info-badge" "ns-info-who"}]
+            ["cljs :app" #{"ns-info-badge" "ns-info-session"}]
+            ["user" #{"ns-info-badge" "ns-info-ns"}]]
+           (map (juxt l/text (comp :class l/attrs)) (l/select :span hiccup)))
+        "The badges show who, the session and the namespace"))
+  (is (= ["user"]
+         (map l/text (l/select :span (ui/ns-info-element {:meta/who "ui" :meta/ns "user"}))))
+      "The REPL Input's evaluations show no who badge"))
+
+(deftest evaluated-code-element-test
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil nil))]
+    (is (seq (l/select :div.evaluated-code-container hiccup)))
+    (is (empty? (l/select :svg hiccup)) "Code from no evaluation has no spinner")
+    (is (= ["Evaluated code"] (map l/text (l/select :span.border-text hiccup))))
+    (is (= ["(+ 1 2)"] (map l/text (l/select '[pre.output-code-block > code.output-code] hiccup)))
+        "The code is in a code block")
+    (is (= [[:output/ax.copy-code :event/target]]
+           (reader/read-string (:data-action (l/attrs (first (l/select :button.output-code-copy hiccup))))))
+        "The code block's copy button copies its code"))
+  (let [hiccup (alias/expand (ui/evaluated-code-element "(+ 1 2)" nil nil 7))]
+    (is (= ["7"] (map (comp str :data-evaluation-id l/attrs) (l/select :div.evaluated-code-container hiccup)))
+        "The code block carries its evaluation")
+    (is (= [#{"evaluation-spinner" "evaluated-code-spinner"}]
+           (map (comp :class l/attrs) (l/select '[span.border-text > svg] hiccup)))
+        "A spinner follows the label while the evaluation runs")))
+
+(deftest clojure-code-element-test
+  (let [hiccup (ui/clojure-code-element "(let [x 1])" [[1 4 "#ff7b72" nil]] [])]
+    (is (= ["(" [:span {:class #{"code-color-ff7b72"}} "let"] " [x 1])"]
+           (drop 2 (first (l/select :code.output-code hiccup))))
+        "The code is colored with its ranges")
+    (is (= "grammar" (:data-highlighted (l/attrs (first (l/select :code.output-code hiccup)))))
+        "Code with ranges is marked as colored by the grammar")
+    (is (= "plain" (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x" [] []))))))
+        "Code with no ranges, as when it is too long, is marked as plain")
+    (is (nil? (:data-highlighted (l/attrs (first (l/select :code.output-code (ui/clojure-code-element "x"))))))
+        "Code without ranges waits for its highlighting")))
+
+(deftest stdout-element-test
+  (let [hiccup (alias/expand (ui/stdout-element "hello\n" "evalErr"))
+        [pre] (l/select :pre hiccup)]
+    (is (= {:class #{"output-stdout"} :data-output-element-type "evalErr"} (l/attrs pre)))
+    (is (= [:button "hello\n"] (map #(if (vector? %) (first %) %) (l/children pre)))
+        "The copy button comes before the text")
+    (is (= [{:type "button"
+             :class #{"output-copy-button" "output-stdout-copy"}
+             :aria-label "Copy output"
+             :data-copy-label "Copy output"
+             :interestfor "output-tooltip"
+             :aria-description "Copy output"
+             :data-action "[[:output/ax.copy-stdout :event/target]]"}]
+           (map l/attrs (l/select :button hiccup)))
+        "The copy button has the page's tooltip and copies through its action")))
+
+(def png-data-url "data:image/png;base64,iVBORw0KGgo=")
+
+(def data-url-image {:image/n 1
+                     :image/mime "image/png"
+                     :image/subtype "png"
+                     :image/size "8 B"
+                     :image/data-url png-data-url})
+
+(def remote-image {:image/n 2
+                   :image/kind :remote
+                   :image/src "https://example.com/a.png"
+                   :image/source "https://example.com/a.png"
+                   :image/subtype "png"
+                   :image/mime "image/png"})
+
+(def local-image {:image/n 3
+                  :image/kind :local
+                  :image/src "/tmp/cat.png"
+                  :image/source "/tmp/cat.png"
+                  :image/subtype "png"
+                  :image/mime "image/png"})
+
+(defn- img-attrs
+  [image display]
+  (written-attrs (first (l/select :img (alias/expand (ui/image-element image display))))))
+
+(deftest image-element-test
+  (let [hiccup (alias/expand (ui/image-element data-url-image "images"))]
+    (is (= [{:class #{"output-image-thumbnail"} :data-pending "true"}]
+           (map written-attrs (l/select :.output-image-thumbnail hiccup)))
+        "The thumbnail waits for its image to load")
+    (is (= {:class #{"output-image"} :alt "image-1 png 8 B" :title "image-1 png 8 B" :src png-data-url}
+           (img-attrs data-url-image "images"))
+        "The img has no size of its own")
+    (is (= [{:type "button"
+             :class #{"output-copy-button" "output-image-copy"}
+             :aria-label "Copy image-1 png 8 B"
+             :data-copy-label "Copy image-1 png 8 B"
+             :interestfor "output-tooltip"
+             :aria-description "Copy image"
+             :data-action (pr-str [[:output/ax.copy-image {:image/mime "image/png" :copy/button :event/target}]])}]
+           (map written-attrs (l/select :button hiccup)))
+        "The copy button has the page's tooltip and copies through its action")))
+
+(deftest image-element-sources-test
+  (is (= {:class #{"output-image"}
+          :alt "image-3 png"
+          :title "image-3 png"
+          :data-image-kind "local"
+          :data-local-src "/tmp/cat.png"}
+         (img-attrs local-image "images"))
+      "A local image gets its src from its lookup")
+  (is (nil? (:src (img-attrs remote-image "images")))
+      "A remote image doesn't load in the images display")
+  (is (= ["https://example.com/a.png" "https://example.com/a.png"]
+         ((juxt :src :data-remote-src) (img-attrs remote-image "images-including-remote-urls")))
+      "A remote image loads when the display includes remote URLs"))
+
+(deftest images-form-element-test
+  (let [hiccup (ui/images-form-element [{:text "{:a \"<<image-1 png 8 B>>\"\n"
+                                         :images [data-url-image]}
+                                        {:text " :b 2}"}]
+                                       "images")]
+    (is (= [:pre :div :pre]
+           (map first (l/children (first (l/select "[data-image-form]" hiccup)))))
+        "The images of a line come right after it")
+    (is (= ["{:a \"<<image-1 png 8 B>>\"\n" " :b 2}"]
+           (map l/text (l/select :code.output-code hiccup))))
+    (is (= 1 (count (l/select [:.output-images :.output-image-thumbnail] hiccup))))))
+
+(defn- error-entry
+  [unfolded?]
+  (stacktrace/error-entry {:id "e1"
+                           :meta {:meta/repl-session-key "clj"}
+                           :error/text "Execution error"
+                           :error/category "evalErr"
+                           :error/causes (mapv stacktrace/cause-data fixtures/runtime-chain)
+                           :error/unfolded? unfolded?}))
+
+(defn- action-of
+  [element]
+  (some-> (:data-action (l/attrs element)) reader/read-string))
+
+(deftest error-element-test
+  (let [hiccup (alias/expand (error-element/element (error-entry false)))]
+    (is (= [{:class #{"output-error"}
+             :data-output-element-type "error"
+             :data-error-id "e1"
+             :data-error-category "evalErr"}]
+           (map written-attrs (l/select :.output-error hiccup))))
+    (is (= [[[:error/ax.toggle "e1"]] true]
+           ((juxt action-of (comp :data-plain-click l/attrs)) (first (l/select :.output-error-toggle hiccup))))
+        "The heading unfolds the stacktrace, and keeps its text selectable")
+    (is (= [[:error/ax.copy {:error/id "e1"}]]
+           (action-of (first (l/select :.output-error-copy hiccup)))))
+    (is (empty? (l/select :.output-error-causes hiccup))
+        "A folded error shows no causes")))
+
+(deftest unfolded-error-element-test
+  (let [hiccup (alias/expand (error-element/element (error-entry true)))
+        frames (l/select :li.output-error-frame hiccup)]
+    (is (seq (l/select :.output-error-causes hiccup)))
+    (is (= [[:error/ax.set-frame-filter {:error/id "e1" :error/frame-filter :all}]]
+           (action-of (first (l/select :.output-error-filter hiccup)))))
+    (is (seq frames)
+        "The root cause shows its frames")
+    (let [openable (filter #(contains? (:class (l/attrs %)) "output-error-frame-openable") frames)]
+      (is (seq openable))
+      (is (every? #(and (#{:error/ax.open-frame :error/ax.open-java-frame} (ffirst (action-of %)))
+                        (:data-plain-click (l/attrs %)))
+                  openable)
+          "An openable frame opens through its action, and keeps its text selectable"))))
+
+(deftest error-text-keeps-leading-line-break-test
+  (is (= ["\n\nboom"]
+         (map l/text (l/select :pre.output-error-text (error-element/element (assoc (error-entry false)
+                                                                                    :error/causes []
+                                                                                    :error/text "\nboom")))))
+      "HTML parsing drops a line break that starts a pre, so it is doubled"))

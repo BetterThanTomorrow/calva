@@ -4,7 +4,9 @@
    [calva.repl.input.messages :as input-messages]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.styles :as styles]
    [calva.trail :as trail]
    [calva.util :as util]))
 
@@ -38,34 +40,29 @@
                (= "output-sidebar" destination)))
            (vals destinations)))))
 
-(defn get-sidebar-help-html
+(defn help-page
+  "Returns the Output Sidebar's help page, as hiccup."
   [csp-source]
-  (let [destinations (current-output-destinations)
-        style-nonce (.randomUUID (js/require "crypto"))]
-    (str "<!DOCTYPE html>"
-         "<html lang=\"en\"><head>"
-         "<meta charset=\"UTF-8\">"
-         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src "
-         csp-source " 'nonce-" style-nonce "'\">"
-         "<style nonce=\"" style-nonce "\">"
-         "body { color: var(--vscode-foreground); background: var(--vscode-editor-background); "
-         "font-family: var(--vscode-font-family); padding: 16px; }"
-         "h1 { font-size: 1.2em; } pre { white-space: pre-wrap; }"
-         "a { color: var(--vscode-textLink-foreground); }"
-         "</style></head><body>"
-         "<h1>REPL Output</h1>"
-         "<p>REPL results, evaluated code, and other output can be sent to this view with the "
-         "<code>output-sidebar</code> <strong>Output destination</strong>.</p>"
-         (greeting/destinations-config-html destinations)
-         "</body></html>")))
+  (let [style-nonce (.randomUUID (js/require "crypto"))]
+    [:html {:lang "en"}
+     [:head
+      [:meta {:charset "UTF-8"}]
+      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+      [:meta {:http-equiv "Content-Security-Policy"
+              :content (str "default-src 'none'; style-src " csp-source " 'nonce-" style-nonce "'")}]
+      [:style {:nonce style-nonce :innerHTML (styles/help-css)}]]
+     [:body
+      [:h1 "REPL Output"]
+      [:p "REPL results, evaluated code, and other output can be sent to this view with the "
+       [:code "output-sidebar"] " " [:strong "Output destination"] "."]
+      (greeting/destinations-config (current-output-destinations))]]))
 
 (defn set-sidebar-help!
   [^js webview-view]
   (trail/log! "output-sidebar help page set")
   (reset! output-sidebar-showing-output-log? false)
   (set! (.. webview-view -webview -html)
-        (get-sidebar-help-html (.. webview-view -webview -cspSource))))
+        (html/document (help-page (.. webview-view -webview -cspSource)))))
 
 (defn sidebar-context
   []
@@ -103,9 +100,11 @@
       (reset! output-sidebar-log #queue []))))
 
 (defn add-output-sidebar-message!
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later, without the
+   highlighting of printed code, which that page asks for in the colors it has then."
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log add-to-log message)
+    (swap! output-sidebar-log add-to-log (dissoc message :output/highlighting))
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
@@ -141,6 +140,7 @@
                (image-host/listen-for-webview-messages! webview-view)
                (input-messages/listen-for-messages! webview-view)
                (core/listen-for-page-loaded! webview-view "output-sidebar")
+               (core/listen-for-highlighting-requests! webview-view)
                (set! (.. webview-view -webview -options)
                      (image-host/webview-options "calva.showReplOutputSidebar"))
                (apply-sidebar-help-or-output-log! webview-view)
@@ -168,6 +168,20 @@
     (add-context-subscription! (create-output-destinations-change-listener))
     provider))
 
+(defn- output-view-visible?
+  [destination]
+  (some-> ^js (case destination
+                "output-view" @core/output-view-webview-panel
+                "output-sidebar" @output-sidebar-webview-view
+                nil)
+          .-visible))
+
+(defn ^:export some-output-view-visible?
+  "True when an Output view among `destinations`, an output destination value as configured, is open
+   and visible."
+  [destinations]
+  (boolean (some output-view-visible? (if (string? destinations) [destinations] destinations))))
+
 (defn ^:export show-repl-output-sidebar
   [preserve-focus?]
   (if-let [webview-view @output-sidebar-webview-view]
@@ -194,6 +208,15 @@
 (defn ^:export attach-error-causes
   [error-id ^js causes]
   (add-output-sidebar-message! (core/causes-message error-id causes)))
+
+(defn ^:export end-evaluation
+  "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
+   an Output Destination while the evaluation ran."
+  [evaluation-id]
+  (let [message (core/evaluation-ended-message evaluation-id)]
+    (if (output-sidebar-in-setting? (current-output-destinations))
+      (add-output-sidebar-message! message)
+      (core/post-message-to-webview @output-sidebar-webview-view message))))
 
 (defn ^:export clear-output-sidebar
   []

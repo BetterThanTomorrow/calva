@@ -7,10 +7,6 @@ const expect = expectLib.expect;
 const manifest = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', '..', '..', 'package.json'), 'utf8')
 );
-const keybindings: { command: string; key?: string; mac?: string; when?: string }[] =
-  manifest.contributes.keybindings;
-const commands: { command: string; enablement?: string }[] = manifest.contributes.commands;
-
 const REPL_INPUT_FOCUSED = 'calva:replInputFocused';
 const REPL_INPUT_LAST_FOCUSED = 'calva:replInputLastFocused';
 const IN_QUICK_OPEN = 'inQuickOpen';
@@ -20,6 +16,62 @@ const EDITOR_ENABLEMENT = 'editorLangId == clojure';
 const REPL_INPUT_PALETTE_CLAUSE = `${REPL_INPUT_FOCUSED} || ${REPL_INPUT_LAST_FOCUSED} && ${IN_QUICK_OPEN}`;
 const REPL_INPUT_ENABLEMENT = `${EDITOR_ENABLEMENT} || ${REPL_INPUT_PALETTE_CLAUSE}`;
 const REPL_INPUT_ATOMS = [REPL_INPUT_FOCUSED, REPL_INPUT_LAST_FOCUSED];
+
+const PRINTED_CODE_FOCUSED = 'calva:printedCodeFocused';
+const PRINTED_CODE_LAST_FOCUSED = 'calva:printedCodeLastFocused';
+const PRINTED_CODE_CLAUSE = `(${EDITOR_CLAUSE} || ${REPL_INPUT_FOCUSED} || ${PRINTED_CODE_FOCUSED})`;
+const PRINTED_CODE_ENABLEMENT = `${EDITOR_ENABLEMENT} || ${REPL_INPUT_FOCUSED} || ${PRINTED_CODE_FOCUSED} || ${REPL_INPUT_LAST_FOCUSED} && ${IN_QUICK_OPEN} || ${PRINTED_CODE_LAST_FOCUSED} && ${IN_QUICK_OPEN}`;
+
+/** The commands that move and select in printed code in the Output views, and change no text */
+const PRINTED_CODE_COMMANDS = [
+  'paredit.forwardSexp',
+  'paredit.backwardSexp',
+  'paredit.forwardSexpOrUp',
+  'paredit.backwardSexpOrUp',
+  'paredit.forwardDownSexp',
+  'paredit.backwardDownSexp',
+  'paredit.forwardUpSexp',
+  'paredit.backwardUpSexp',
+  'paredit.closeList',
+  'paredit.openList',
+  'paredit.selectForwardSexp',
+  'paredit.selectBackwardSexp',
+  'paredit.selectForwardSexpOrUp',
+  'paredit.selectBackwardSexpOrUp',
+  'paredit.selectForwardDownSexp',
+  'paredit.selectBackwardDownSexp',
+  'paredit.selectForwardUpSexp',
+  'paredit.selectBackwardUpSexp',
+  'paredit.selectCloseList',
+  'paredit.selectOpenList',
+  'paredit.selectRight',
+  'paredit.rangeForDefun',
+  'paredit.sexpRangeExpansion',
+  'paredit.sexpRangeContraction',
+  'calva.selectCurrentForm',
+];
+
+/** `clause` with printed code's clauses read as the REPL Input's */
+const withoutPrintedCode = (clause: string) =>
+  clause
+    .split(PRINTED_CODE_CLAUSE)
+    .join(REPL_INPUT_CLAUSE)
+    .split(PRINTED_CODE_ENABLEMENT)
+    .join(REPL_INPUT_ENABLEMENT);
+
+type Keybinding = { command: string; key?: string; mac?: string; when?: string };
+type Command = { command: string; enablement?: string };
+
+const manifestKeybindings: Keybinding[] = manifest.contributes.keybindings;
+const manifestCommands: Command[] = manifest.contributes.commands;
+const keybindings: Keybinding[] = manifestKeybindings.map((binding) => ({
+  ...binding,
+  when: binding.when && withoutPrintedCode(binding.when),
+}));
+const commands: Command[] = manifestCommands.map((command) => ({
+  ...command,
+  enablement: command.enablement && withoutPrintedCode(command.enablement),
+}));
 
 const NAMED_EDITING_COMMANDS = [
   'calva.toggleLineComment',
@@ -391,5 +443,50 @@ describe('Calva editing keybindings and the REPL Input', () => {
       .filter(({ command }) => paletteWhen.get(command) !== REPL_INPUT_PALETTE_CLAUSE)
       .map(({ command }) => command);
     expect(ungated).toEqual([]);
+  });
+});
+
+describe('Calva navigation and selection keybindings and printed code', () => {
+  const clauseReaches = (clause: string | undefined) => clause?.includes(PRINTED_CODE_FOCUSED);
+
+  it('only the navigation and selection commands reach printed code', () => {
+    const reaching = new Set([
+      ...manifestKeybindings
+        .filter(({ when }) => clauseReaches(when))
+        .map(({ command }) => command),
+      ...manifestCommands
+        .filter(({ enablement }) => clauseReaches(enablement))
+        .map(({ command }) => command),
+    ]);
+    expect([...reaching].sort()).toEqual([...PRINTED_CODE_COMMANDS].sort());
+  });
+
+  it('every editor keybinding of those commands holds in printed code, and every one of them is enabled there', () => {
+    const missing = manifestKeybindings
+      .filter(
+        ({ command, when }) =>
+          PRINTED_CODE_COMMANDS.includes(command) &&
+          when &&
+          requiresEditorTextFocus(when) &&
+          occurrences(when, PRINTED_CODE_CLAUSE) !== 1
+      )
+      .map(({ command, key, mac }) => `${command} ${mac ?? key}`);
+    expect(missing).toEqual([]);
+    const notEnabled = manifestCommands
+      .filter(
+        ({ command, enablement }) =>
+          PRINTED_CODE_COMMANDS.includes(command) && enablement !== PRINTED_CODE_ENABLEMENT
+      )
+      .map(({ command }) => command);
+    expect(notEnabled).toEqual([]);
+  });
+
+  it("printed code's context keys appear in no other clauses", () => {
+    const elsewhere = [
+      ...manifestKeybindings.map(({ when }) => when),
+      ...manifestCommands.map(({ enablement }) => enablement),
+      ...menuEntries.map(({ when }) => when),
+    ].filter((clause) => clause && withoutPrintedCode(clause).includes('calva:printedCode'));
+    expect(elsewhere).toEqual([]);
   });
 });

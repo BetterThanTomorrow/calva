@@ -506,6 +506,13 @@ const pareditCommands = [
     },
   },
   {
+    command: 'paredit.squeeze',
+    handler: (doc: EditableDocument, opts?: { multicursor: boolean }) => {
+      const isMulti = multiCursorEnabled(opts?.multicursor);
+      return handlers.squeeze(doc, isMulti, copyRangeToClipboard);
+    },
+  },
+  {
     command: 'paredit.deleteForward',
     handlerNow: (doc: EditableDocument, builder: vscode.TextEditorEdit) => {
       paredit.deleteForward(doc, builder);
@@ -546,6 +553,9 @@ function wrapPareditCommand<C extends PareditCommand>(command: C) {
     try {
       if (replInput.hasFocus()) {
         return replInput.editFocused((doc) => command.handler(doc, arg));
+      }
+      if (replInput.printedCodeHasFocus()) {
+        return replInput.selectInFocusedPrintedCode((doc) => command.handler(doc, arg));
       }
       const textEditor = window.activeTextEditor;
 

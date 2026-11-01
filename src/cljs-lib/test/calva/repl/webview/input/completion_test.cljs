@@ -33,17 +33,6 @@
     (is (false? (sut/restart? nil "(stri)" 1 5))
         "Not without a final answer")))
 
-(deftest doc-blocks
-  (is (= [[:code "(upper-case s)"] [:text "Converts string to all upper-case."]]
-         (sut/doc-blocks "```clojure\n(upper-case s)\n```\n\nConverts string to all upper-case.\n"))
-      "Fenced code, then text")
-  (is (= [[:text "Returns its argument."]]
-         (sut/doc-blocks "Returns its argument."))
-      "Text without fences")
-  (is (= [[:text "Returns a lazy sequence\n  of f applied."] [:text "Returns a transducer\n  without a collection."]]
-         (sut/doc-blocks "Returns a lazy sequence\n  of f applied.\n\n  Returns a transducer\n  without a collection."))
-      "A paragraph for each run of lines between blank lines"))
-
 (deftest info-position
   (let [space {:left 0 :right 300 :top 0 :bottom 200}
         list {:left 10 :right 210 :top 60 :bottom 150}

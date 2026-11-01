@@ -24,6 +24,7 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
+import * as evaluatedCode from './results-output/evaluated-code';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as clientRegistry from './nrepl/client-registry';
 import * as replInputStdin from './repl-input-stdin';
@@ -172,6 +173,9 @@ type EvaluationOptions = {
   // Zero-based, as in a vscode.Position
   line: number;
   column: number;
+  // The column the code starts at in the file it was picked from, which the echoed code's lines after
+  // the first drop from their indentation
+  dedent?: number;
   pprintOptions: printerTypes.PrettyPrintingOptions;
   // Empty sends the code only to the output subscribers
   echoDestinations: outputDestinations.OutputDestinationValue[];
@@ -211,7 +215,13 @@ function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: strin
 function sendEvaluation(options: EvaluationOptions) {
   const { code, session, ns, filePath, line, column, pprintOptions, stdin, who = 'ui' } = options;
   const sessionKey = sessionRegistry.resolveSessionKey(session);
-  const outputOptions = { ns, replSessionType: sessionKey, who, ...getShadowInfo(session) };
+  const outputOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...getShadowInfo(session),
+  };
   const err: string[] = [];
 
   const evaluation: nrepl.NReplEvaluation = session.eval(code, ns, {
@@ -229,13 +239,13 @@ function sendEvaluation(options: EvaluationOptions) {
 }
 
 function echoEvaluatedCode(
-  { code, echoDestinations }: EvaluationOptions,
+  { code, dedent = 0, echoDestinations }: EvaluationOptions,
   outputOptions: output.AppendClojureOptions
 ) {
   const evalResultsDestination = output.getDestinationConfiguration().evalResults;
   const [echoDestination = evalResultsDestination, ...additionalEchoDestinations] =
     echoDestinations;
-  output.appendEvaluatedCode(code, {
+  output.appendEvaluatedCode(evaluatedCode.dedent(code, dedent), {
     destination: echoDestination,
     additionalDestinations: additionalEchoDestinations,
     sinkDestination: evalResultsDestination,
@@ -314,6 +324,8 @@ async function outputOutcome(
       appendFailure(message, evaluation, session, outputOptions, hooks);
     }
     return { error: message, dropped: evaluation.dropped };
+  } finally {
+    output.endEvaluation(outputOptions.evaluationId);
   }
 }
 
@@ -328,10 +340,7 @@ async function evaluateToOutputDestinations(
 }
 
 function replWindowEchoDestinations(): outputDestinations.OutputDestinationValue[] {
-  const evalResultsDestination = output.getDestinationConfiguration().evalResults;
-  return outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
-    ? ['repl-window']
-    : ['repl-window', evalResultsDestination];
+  return ['repl-window', output.getDestinationConfiguration().evalResults];
 }
 
 type UiContext = {
@@ -489,6 +498,7 @@ async function evaluateCodeUpdatingUI(
         filePath: options.filePath,
         line: options.line,
         column: options.column,
+        dedent: options.dedent,
         pprintOptions,
         echoDestinations: echoCode ? replWindowEchoDestinations() : [],
         showResult,
@@ -503,7 +513,8 @@ async function evaluateCodeUpdatingUI(
             void updateEditorWithError(util.stripAnsi(message), ui);
           }
         },
-        evaluateFlareCode: (code) => evaluateCodeUpdatingUI(code, options, selection),
+        evaluateFlareCode: (code) =>
+          evaluateCodeUpdatingUI(code, { ...options, dedent: 0 }, selection),
         onEvaluationSent: (sent) => {
           sentEvaluation = sent;
         },
@@ -530,21 +541,24 @@ function isInActivePreviewTab(doc: vscode.TextDocument) {
   );
 }
 
-/** Returns the selection and code that `selectionFn` picks in `editor`. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
+/** Returns the selection and code that `selectionFn` picks in `editor`, and the column the code starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
 function pickedCodeAndSelection(
   editor: vscode.TextEditor,
   doc: vscode.TextDocument,
   selectionFn: (editor: vscode.TextEditor) => getText.SelectionAndText
-): [vscode.Selection, string] {
+): [vscode.Selection, string, number] {
   const [picked, code] = selectionFn(editor);
   if (picked) {
-    return [picked, editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code];
+    const pickedCode = editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code;
+    const codeStart = doc.positionAt(doc.offsetAt(picked.start) + code.length - pickedCode.length);
+    return [picked, pickedCode, codeStart.character];
   }
   const wholeDocument =
     !replWindow.isReplWindowFile(doc) && getText.currentTopLevelFormText(doc, doc.positionAt(0))[0];
   return [
     select.selectionFromOffsetRange(doc, [0, doc.getText().length]),
     wholeDocument ? code : '',
+    0,
   ];
 }
 
@@ -557,7 +571,7 @@ async function evaluateSelection(document = {}, options) {
   if (cljsLib.getStateValue('connected')) {
     const editor = util.getActiveTextEditor();
     const doc = util.textDocumentOr(document, editor.document);
-    const [codeSelection, pickedCode] = pickedCodeAndSelection(editor, doc, selectionFn);
+    const [codeSelection, pickedCode, dedent] = pickedCodeAndSelection(editor, doc, selectionFn);
     let code = pickedCode;
     if (isInActivePreviewTab(doc)) {
       void vscode.window.showTextDocument(doc, { preview: false });
@@ -587,7 +601,7 @@ async function evaluateSelection(document = {}, options) {
       }
       await evaluateCodeUpdatingUI(
         code,
-        { ...options, ns, nsForm, line, column, filePath, session },
+        { ...options, ns, nsForm, line, column, dedent, filePath, session },
         codeSelection
       );
       void output.replWindowAppendPrompt();
@@ -925,12 +939,19 @@ async function loadFile(
   whoTracking.setCurrentWho(session.sessionId, who);
 
   const errorMessages = [];
+  const evalOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...shadowInfo,
+  };
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who, ...shadowInfo }),
+    stdout: (m) => output.appendEvalOut(m, evalOptions),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who, ...shadowInfo });
+      output.appendEvalErr(m, evalOptions);
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
@@ -940,7 +961,7 @@ async function loadFile(
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who, ...shadowInfo });
+      output.appendClojureEval(value, evalOptions);
     } else {
       output.appendLineEvalOut('No results from file evaluation.', { who, ...shadowInfo });
     }
@@ -978,7 +999,8 @@ function reportStoppedLoad(error: unknown, { fileName, silent, outputOptions }: 
 
 /**
  * Says that loading the file failed with `error`: in the output, with the error's causes, and in an
- * error message when no REPL window shows. Throws instead of showing the message when `silent`.
+ * error message when neither a REPL window nor an Output view it went to shows. Throws instead of
+ * showing the message when `silent`.
  */
 function reportFailedLoad(
   error: unknown,
@@ -997,7 +1019,8 @@ function reportFailedLoad(
   if (
     !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
       replWindow.isReplWindowDoc(editor.document)
-    )
+    ) &&
+    !cljsLib.isSomeOutputViewVisible(output.getDestinationConfiguration().otherOutput)
   ) {
     void vscode.window.showErrorMessage(message, 'Show output').then((choice) => {
       if (choice === 'Show output') {

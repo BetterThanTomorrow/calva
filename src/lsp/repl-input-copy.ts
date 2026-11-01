@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
 import * as vscodeLsp from 'vscode-languageclient/node';
 
-const copySegments = ['.calva', 'repl-input', 'repl_input.clj'];
+const copyFolder = ['.calva', 'repl-input'];
 
-const copyPathEnd = '/' + copySegments.join('/');
+const copyPath = /\/\.calva\/repl-input\/repl_input\.(clj|cljs|cljc)$/;
 
 /** True when `uri` is the REPL Input's copy for clojure-lsp, under any project root. */
 export function isCopy(uri: vscode.Uri): boolean {
-  return uri.path.endsWith(copyPathEnd);
+  return copyPath.test(uri.path);
 }
 
-function copyUri(client: vscodeLsp.LanguageClient): string | undefined {
+function copyUri(client: vscodeLsp.LanguageClient, extension: string): string | undefined {
   const root = client.clientOptions.workspaceFolder?.uri;
-  return root && vscode.Uri.joinPath(root, ...copySegments).toString();
+  return root && vscode.Uri.joinPath(root, ...copyFolder, `repl_input.${extension}`).toString();
 }
 
 type CopyRequest<T> = (uri: string) => Promise<T>;
@@ -40,21 +40,23 @@ async function requestInCopy<T>(
 
 let lastCycle: Promise<unknown> = Promise.resolve();
 
-type Copy = { text: string; token: vscode.CancellationToken };
+/** A copy's text, and the extension of its file name, which says how clojure-lsp analyzes it. */
+export type Copy = { text: string; extension: string };
 
 /**
- * Sends `request` about a copy with `text`, which clojure-lsp gets as a file under `client`'s root
- * that isn't on disk: opens it, sends the request, closes it, and tells clojure-lsp it is deleted, so
- * that its definitions leave clojure-lsp's analysis. A cycle waits for the one before it, so one copy
- * is open at a time. Returns `none` without a root, or when `token` is cancelled before the cycle.
+ * Sends `request` about `copy`, which clojure-lsp gets as a file under `client`'s root that isn't on
+ * disk: opens it, sends the request, closes it, and tells clojure-lsp it is deleted, so that its
+ * definitions leave clojure-lsp's analysis. A cycle waits for the one before it, so one copy is open at
+ * a time. Returns `none` without a root, or when `token` is cancelled before the cycle.
  */
 function inCopy<T>(
   client: vscodeLsp.LanguageClient,
-  { text, token }: Copy,
+  { text, extension }: Copy,
+  token: vscode.CancellationToken,
   request: CopyRequest<T>,
   none: T
 ): Promise<T> {
-  const uri = copyUri(client);
+  const uri = copyUri(client, extension);
   if (!uri) {
     return Promise.resolve(none);
   }
@@ -65,16 +67,17 @@ function inCopy<T>(
   return cycle;
 }
 
-/** Completes at `position` in a copy with `text`. */
+/** Completes at `position` in `copy`. */
 export function complete(
   client: vscodeLsp.LanguageClient,
-  text: string,
+  copy: Copy,
   position: vscodeLsp.Position,
   token: vscode.CancellationToken
 ): Promise<vscodeLsp.CompletionItem[]> {
   return inCopy(
     client,
-    { text, token },
+    copy,
+    token,
     async (uri) => {
       const result = await client.sendRequest(
         vscodeLsp.CompletionRequest.type,
@@ -85,6 +88,48 @@ export function complete(
     },
     []
   );
+}
+
+/** Semantic tokens clojure-lsp gives, in LSP's relative encoding, with the legend that names their types. */
+export type CopySemanticTokens = { data: number[]; legend: vscodeLsp.SemanticTokensLegend };
+
+/**
+ * Asks for the semantic tokens of the lines from `line` on in `copy`. A range request leaves out the comment
+ * tokens clojure-lsp gives ignored forms. Resolves to `undefined` when `token` is cancelled.
+ */
+export function semanticTokens(
+  client: vscodeLsp.LanguageClient,
+  copy: Copy,
+  line: number,
+  token: vscode.CancellationToken
+): Promise<CopySemanticTokens | undefined> {
+  const legend = client.initializeResult?.capabilities.semanticTokensProvider?.legend;
+  if (!legend) {
+    return Promise.resolve(undefined);
+  }
+  const range = {
+    start: { line, character: 0 },
+    end: { line: copy.text.split('\n').length, character: 0 },
+  };
+  return inCopy(
+    client,
+    copy,
+    token,
+    async (uri) => {
+      const result = await client.sendRequest(
+        vscodeLsp.SemanticTokensRangeRequest.type,
+        { textDocument: { uri }, range },
+        token
+      );
+      return result ? { data: result.data, legend } : undefined;
+    },
+    undefined
+  ).catch((error) => {
+    if (token.isCancellationRequested) {
+      return undefined;
+    }
+    throw error;
+  });
 }
 
 /** A definition clojure-lsp reports: its uri, its zero-based line and character, and whether it is in the copy. */
@@ -103,16 +148,17 @@ function firstDefinition(
   return { uri, line: range.start.line, character: range.start.character, inCopy: uri === copy };
 }
 
-/** Finds the definition at `position` in a copy with `text`. */
+/** Finds the definition at `position` in `copy`. */
 export function definition(
   client: vscodeLsp.LanguageClient,
-  text: string,
+  copy: Copy,
   position: vscodeLsp.Position,
   token: vscode.CancellationToken
 ): Promise<CopyDefinition | undefined> {
   return inCopy(
     client,
-    { text, token },
+    copy,
+    token,
     async (uri) =>
       firstDefinition(
         await client.sendRequest(

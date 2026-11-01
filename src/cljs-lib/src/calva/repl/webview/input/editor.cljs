@@ -1,15 +1,21 @@
 (ns calva.repl.webview.input.editor
-  "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element."
+  "The REPL Input's CodeMirror editor, mounted on the Output view's `#repl-input` element, and the controls
+   around it, rendered there with Replicant."
   (:require
+   [calva.repl.webview.auto-scroll :as auto-scroll]
+   [calva.repl.webview.code-brackets :as code-brackets]
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.completion :as completion]
    [calva.repl.webview.input.context :as context]
    [calva.repl.webview.input.definition :as definition]
    [calva.repl.webview.input.edit :as edit]
    [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.input.highlighting :as highlighting]
    [calva.repl.webview.input.history :as input-history]
    [calva.repl.webview.input.keys :as input-keys]
    [calva.repl.webview.input.stdin :as stdin]
+   [calva.repl.webview.tooltip :as tooltip]
+   [replicant.dom :as replicant]
    ["@codemirror/autocomplete" :refer [closeBrackets closeBracketsKeymap]]
    ["@codemirror/commands" :refer [history isolateHistory]]
    ["@codemirror/state" :refer [Compartment EditorSelection EditorState Prec StateEffect StateField Transaction]]
@@ -24,25 +30,10 @@
   (when-let [dom (some-> (mount-element) (.querySelector ".cm-editor"))]
     (.findFromDOM EditorView dom)))
 
-(defn- mark-decorations
-  [ranges]
-  (.set Decoration
-        (into-array (for [[from to class-name] ranges]
-                      (.range (.mark Decoration #js {:class class-name}) from to)))
-        true))
+(def set-bracket-marks (.define StateEffect))
 
-(def highlighting
-  (.define StateField
-           #js {:create (fn [^js state] (mark-decorations (highlight/highlight-ranges (.. state -doc toString))))
-                :update (fn [decorations ^js transaction]
-                          (if (.-docChanged transaction)
-                            (mark-decorations (highlight/highlight-ranges (.. transaction -state -doc toString)))
-                            decorations))
-                :provide (fn [field] (.from (.-decorations EditorView) field))}))
-
-(def ^:private set-bracket-marks (.define StateEffect))
-
-(def ^:private bracket-marks
+(def bracket-marks
+  "The bracket marks, moved along with the edits until `set-bracket-marks` sets them anew."
   (.define StateField
            #js {:create (fn [_] (.-none Decoration))
                 :update (fn [^js decorations ^js transaction]
@@ -54,9 +45,9 @@
 
 (def theme
   (.theme EditorView
-          #js {"&" #js {:color "var(--vscode-input-foreground)"
-                        :backgroundColor "var(--vscode-input-background)"
-                        :border "1px solid var(--vscode-input-border, transparent)"
+          #js {"&" #js {:color "var(--vscode-editor-foreground)"
+                        :backgroundColor "var(--vscode-editor-background)"
+                        :border "1px solid var(--vscode-input-border, var(--vscode-editorWidget-border))"
                         :fontFamily "var(--vscode-editor-font-family, monospace)"
                         :fontSize "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
                         :height "var(--repl-input-height, auto)"
@@ -64,8 +55,10 @@
                         :minHeight "var(--repl-input-height, calc(2.8em + 10px))"
                         :maxHeight "var(--repl-input-height, 40vh)"}
                "&.cm-focused" #js {:outline "1px solid var(--vscode-focusBorder)"}
+               ;; Scrolling stops at the REPL Input's ends, without scrolling the output
                ".cm-scroller" #js {:fontFamily "inherit"
-                                   :overflow "auto"}
+                                   :overflow "auto"
+                                   :overscrollBehavior "contain"}
                ".cm-content" #js {:caretColor "var(--vscode-editorCursor-foreground)"
                                   :padding "4px 0"}
                ".cm-cursor, .cm-dropCursor" #js {:borderLeftColor "var(--vscode-editorCursor-foreground)"}
@@ -93,7 +86,7 @@
    :meta? (.-metaKey event)
    :composing? (.-isComposing event)})
 
-(defn- command-keys-handler
+(defn command-keys-handler
   "Leaves the `command-keys` to VS Code, before CodeMirror's keymap sees them."
   [command-keys]
   (let [!pending-chord? (volatile! false)]
@@ -180,21 +173,28 @@
 
 (defonce ^:private line-wrapping-compartment (Compartment.))
 
-(defn- line-wrapping
+(defn line-wrapping
   "Wraps the lines when `wrap?`."
   [wrap?]
   (if wrap? (.-lineWrapping EditorView) #js []))
 
-(defn- output-word-wrap?
+(defn output-word-wrap?
   "True while the Output view wraps its output."
   []
   (.. js/document -body -classList (contains "word-wrap")))
 
+(defn- show-latest-output!
+  "Scrolls the output to its end, with auto scrolling on, after the page's scrolling moved between the page
+   and the output's own scroller."
+  []
+  (auto-scroll/reveal-end!))
+
 (defn- extensions
   [dispatch!]
   #js [theme
-       highlighting
+       ;; Registered first, the bracket marks are the inner spans, so the rainbow colors win over token colors
        bracket-marks
+       highlighting/field
        (.of command-keys-compartment #js [])
        (.of close-brackets-compartment #js [])
        (.of editing-compartment #js [])
@@ -234,51 +234,53 @@
        (px (.-paddingTop content)) (px (.-paddingBottom content))
        (px (.-borderTopWidth editor)) (px (.-borderBottomWidth editor)))))
 
-(defn- listen-for-drag!
-  [^js sash dispatch!]
-  (.addEventListener
-   sash "pointerdown"
-   (fn [^js down]
-     (let [^js view (editor-view)
-           start-y (.-clientY down)
-           start-height (.. view -dom getBoundingClientRect -height)
-           min-height (empty-height view)
-           move (fn [^js e]
-                  (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
-                                                   :min-height min-height
-                                                   :view-height js/window.innerHeight}]))]
-       (.preventDefault down)
-       (.setPointerCapture sash (.-pointerId down))
-       (.. sash -classList (add "active"))
-       (.addEventListener sash "pointermove" move)
-       (.addEventListener sash "pointerup"
-                          (fn [_]
-                            (.removeEventListener sash "pointermove" move)
-                            (.. sash -classList (remove "active")))
-                          #js {:once true})))))
+(defn- start-drag!
+  "Follows the pointer that pressed the sash, the target of `down`, and dispatches the REPL Input's height
+   as it moves."
+  [dispatch! ^js down]
+  (let [^js sash (.-currentTarget down)
+        ^js view (editor-view)
+        start-y (.-clientY down)
+        start-height (.. view -dom getBoundingClientRect -height)
+        min-height (empty-height view)
+        move (fn [^js e]
+               (dispatch! [:repl-input/ax.drag {:height (+ start-height (- start-y (.-clientY e)))
+                                                :min-height min-height
+                                                :view-height js/window.innerHeight}]))]
+    (.preventDefault down)
+    (.setPointerCapture sash (.-pointerId down))
+    (dispatch! [:repl-input/ax.drag-started])
+    (.addEventListener sash "pointermove" move)
+    (.addEventListener sash "pointerup"
+                       (fn [_]
+                         (.removeEventListener sash "pointermove" move)
+                         (dispatch! [:repl-input/ax.drag-ended]))
+                       #js {:once true})))
 
 (defonce ^:private !window-focus (atom {:listening? false :last-focused nil :pointer-down-at 0}))
 
-(defn- in-repl-input?
+(defn- keeps-focus?
+  "True when `element` is in the REPL Input or in the printed code's editor, the places that get the focus
+   back when the window gets it."
   [^js element]
-  (boolean (some-> (mount-element) (.contains element))))
+  (boolean (some-> element (.closest "#repl-input, .printed-code-editor"))))
 
 (defn- remember-focus!
   [^js event]
-  (swap! !window-focus assoc :last-focused (when (in-repl-input? (.-target event)) (.-target event))))
+  (swap! !window-focus assoc :last-focused (when (keeps-focus? (.-target event)) (.-target event))))
 
 (defn- forget-focus-moved-within-page!
-  "Forgets the REPL Input's element when the focus left it for another place in the page. When the window
-   lost the focus, the element is kept, since the window gets the focus back without it."
+  "Forgets the element that keeps the focus when the focus left it for another place in the page. When the
+   window lost the focus, the element is kept, since the window gets the focus back without it."
   [^js event]
-  (when (in-repl-input? (.-target event))
+  (when (keeps-focus? (.-target event))
     (js/setTimeout #(when (and (js/document.hasFocus)
-                               (not (in-repl-input? js/document.activeElement)))
+                               (not (keeps-focus? js/document.activeElement)))
                       (swap! !window-focus assoc :last-focused nil))
                    0)))
 
 (defn- restore-focus!
-  "Gives the focus back to the REPL Input's element that had it before the window lost the focus. After
+  "Gives the focus back to the element that kept it before the window lost the focus. After
    the command palette closes, VS Code focuses the view, and the page's body gets the focus. A pointer press
    focuses the window too, and then the press decides where the focus goes."
   []
@@ -289,7 +291,7 @@
                (contains? #{nil js/document.body} js/document.activeElement))
       (.focus last-focused))))
 
-(defn- listen-for-window-focus!
+(defn listen-for-window-focus!
   []
   (when-not (:listening? @!window-focus)
     (swap! !window-focus assoc :listening? true)
@@ -298,27 +300,59 @@
     (js/document.addEventListener "focusout" forget-focus-moved-within-page!)
     (js/window.addEventListener "focus" restore-focus!)))
 
+(defonce ^:private !controls
+  (atom {:handlers nil :state nil}))
+
+(defn- render-controls!
+  "Renders the REPL Input's controls for their `state` around CodeMirror's element, which comes after them,
+   and which Replicant leaves alone."
+  [state]
+  (swap! !controls assoc :state state)
+  (when-let [element (mount-element)]
+    (replicant/render element (context/controls state (:handlers @!controls)))
+    (context/close-menu-without-choices! (:repl-input/context-line state) (:repl-input/recalled-lock state))
+    (tooltip/refresh!)))
+
+(defn ^:dev/after-load render-reloaded-controls!
+  "Renders the REPL Input's controls again after a code reload, in development."
+  []
+  (let [{:keys [handlers state]} @!controls]
+    (when (and handlers (some-> (mount-element) .-firstElementChild))
+      (render-controls! state))))
+
+(defn- event-value
+  "Returns what the placeholder `x` in an action stands for in the DOM `event`, or `x`."
+  [^js event x]
+  (case x
+    :event/open? (= "open" (.-newState event))
+    x))
+
 (defn- mount!
-  [dispatch! {:keys [height]}]
+  [dispatch! {:keys [height controls]}]
   (let [element (mount-element)
-        sash (js/document.createElement "div")
         state (.create EditorState #js {:doc "" :extensions (extensions dispatch!)})]
-    (set! (.-className sash) (if mac? "repl-input-sash mac" "repl-input-sash"))
-    (.appendChild element sash)
-    (listen-for-drag! sash dispatch!)
+    (replicant/set-dispatch! (fn [{:replicant/keys [^js dom-event]} actions]
+                               (when (= "click" (.-type dom-event))
+                                 (tooltip/hide!))
+                               (run! #(dispatch! (mapv (partial event-value dom-event) %)) actions)))
+    (swap! !controls assoc :handlers {:mac? mac?
+                                      :on-sash-pointerdown (partial start-drag! dispatch!)
+                                      :on-stdin-keydown (partial stdin/on-keydown dispatch!)})
+    (render-controls! controls)
     (listen-for-window-focus!)
-    (stdin/mount! element dispatch!)
-    (context/mount! element dispatch!)
     (EditorView. #js {:state state :parent element})
     (set-height! height)
     (.. js/document -body -classList (add "repl-input-on"))
+    (show-latest-output!)
     (dispatch! [:repl-input/ax.mounted (state-payload state)])))
 
 (defn- unmount!
   []
   (some-> (editor-view) .destroy)
+  (some-> (mount-element) replicant/unmount)
   (set! (.-textContent (mount-element)) "")
-  (.. js/document -body -classList (remove "repl-input-on")))
+  (.. js/document -body -classList (remove "repl-input-on"))
+  (show-latest-output!))
 
 (defn- set-command-keys!
   [command-keys]
@@ -341,22 +375,16 @@
 (defn- set-bracket-marks!
   [ranges]
   (when-let [^js view (editor-view)]
-    (.dispatch view #js {:effects (.of set-bracket-marks (mark-decorations ranges))})))
+    (.dispatch view #js {:effects (.of set-bracket-marks (highlighting/mark-decorations ranges))})))
 
 (defn- set-close-brackets!
   [brackets]
   (when-let [^js view (editor-view)]
     (.dispatch view #js {:effects (.reconfigure close-brackets-compartment (close-brackets-extension brackets))})))
 
-(defonce ^:private !bracket-sheet (atom nil))
-
-(defn- set-bracket-css!
-  [css]
-  (let [^js sheet (or @!bracket-sheet
-                      (let [sheet (js/CSSStyleSheet.)]
-                        (set! (.-adoptedStyleSheets js/document) (.concat (.-adoptedStyleSheets js/document) #js [sheet]))
-                        (reset! !bracket-sheet sheet)))]
-    (.replaceSync sheet css)))
+(defn- set-highlighting!
+  [layer ranges]
+  (some-> (editor-view) (highlighting/set-layer! layer ranges)))
 
 (defn- set-line-wrapping!
   [wrap?]
@@ -374,7 +402,7 @@
     (when-let [command (get commands/by-name command-name)]
       (command view))))
 
-(defn- focus-now-or-later!
+(defn focus-now-or-later!
   "Focuses `target` now, or when the view gets the focus, since revealing the view gives it the focus
    after the extension asks."
   [^js target]
@@ -387,10 +415,12 @@
   (some-> (editor-view) focus-now-or-later!))
 
 (defn- hide-stdin!
-  "Hides the stdin input, and gives the focus back to the REPL Input when the stdin input had it."
+  "Empties the stdin input, and gives the focus back to the REPL Input when the stdin input had it."
   []
-  (when (stdin/hide!)
-    (focus!)))
+  (let [had-focus? (stdin/focused?)]
+    (stdin/clear!)
+    (when had-focus?
+      (focus!))))
 
 (defn- set-completion!
   [dispatch! config]
@@ -406,15 +436,16 @@
     :repl-input/fx.set-command-keys (set-command-keys! (first args))
     :repl-input/fx.apply-edit (apply-edit! (first args))
     :repl-input/fx.set-brackets (set-bracket-marks! (first args))
+    :repl-input/fx.set-highlighting (apply set-highlighting! args)
     :repl-input/fx.set-close-brackets (set-close-brackets! (first args))
-    :repl-input/fx.set-bracket-css (set-bracket-css! (first args))
+    :repl-input/fx.set-bracket-css (code-brackets/set-css! (first args))
     :repl-input/fx.set-editing (set-editing! dispatch! (first args))
     :repl-input/fx.set-line-wrapping (set-line-wrapping! (first args))
     :repl-input/fx.run-command (run-command! (first args))
-    :repl-input/fx.set-context-line (context/set-line! (first args) (second args))
+    :repl-input/fx.render-controls (render-controls! (first args))
     :repl-input/fx.toggle-namespace-menu (context/toggle-menu!)
-    :repl-input/fx.set-evaluation (context/set-evaluation! (first args))
-    :repl-input/fx.show-stdin (some-> (stdin/show!) focus-now-or-later!)
+    :repl-input/fx.close-namespace-menu (context/close-menu!)
+    :repl-input/fx.show-stdin (some-> (stdin/clear!) focus-now-or-later!)
     :repl-input/fx.hide-stdin (hide-stdin!)
     :repl-input/fx.focus (focus!)
     :repl-input/fx.forget-focus (swap! !window-focus assoc :last-focused nil)
