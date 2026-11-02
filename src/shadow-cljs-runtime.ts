@@ -9,6 +9,7 @@ import * as status from './status';
 import * as shadowRuntimeCore from './shadow-cljs-runtime-core';
 import * as sessionEvents from './nrepl/session-events';
 import * as replWindow from './repl-window/repl-window-doc';
+import * as runtimeSessions from './shadow-cljs-runtime-sessions';
 
 /**
  * Tracks the last time Calva evaluated code on each runtime ID.
@@ -130,12 +131,28 @@ export async function getShadowRuntimesForClient(
   }
 }
 
+type ShadowRuntimesAllBuilds = {
+  activeBuilds: string[];
+  runtimes: shadowRuntimeCore.RuntimeInfo[];
+  defaultRuntimeIds: Record<string, number>;
+};
+
+const byCanonicalBuildId = (byBuild: Record<string, number>): Record<string, number> =>
+  Object.fromEntries(
+    Object.entries(byBuild).map(([build, value]) => [
+      shadowRuntimeCore.canonicalBuildId(build),
+      value,
+    ])
+  );
+
 /**
- * Get active builds and connected runtimes across all builds for a client connection.
+ * Active builds and connected runtimes across all builds for a client connection, with each
+ * build's default runtime by build id. shadow-cljs runs evals in the default runtime of the build
+ * when the session has no runtime picked, as with the cljs session.
  */
 export async function getShadowRuntimesAllBuilds(
   clientKey: string
-): Promise<{ activeBuilds: string[]; runtimes: shadowRuntimeCore.RuntimeInfo[] } | null> {
+): Promise<ShadowRuntimesAllBuilds | null> {
   try {
     const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     if (!cljSession) {
@@ -145,12 +162,13 @@ export async function getShadowRuntimesAllBuilds(
 
     const queryCode = `(let [active (shadow.cljs.devtools.api/active-builds)]
       {:active-builds (vec (map str active))
-       :runtimes (vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) active))})`;
+       :runtimes (vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) active))
+       :default-runtime-ids (into {} (map (fn [b] [(str b) (some-> (shadow.cljs.devtools.api/get-worker b) :state-ref deref :default-runtime-id)])) active)})`;
 
     const result = await cljSession.eval(queryCode, 'user').value;
 
     if (!result || result === 'nil') {
-      return { activeBuilds: [], runtimes: [] };
+      return { activeBuilds: [], runtimes: [], defaultRuntimeIds: {} };
     }
 
     try {
@@ -160,6 +178,7 @@ export async function getShadowRuntimesAllBuilds(
       return {
         activeBuilds,
         runtimes: apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo),
+        defaultRuntimeIds: byCanonicalBuildId(parsed['default-runtime-ids']),
       };
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);
@@ -428,99 +447,106 @@ export function clearRuntimeState(clientKey: string): void {
 }
 
 /**
- * Handle shadow-remote messages for runtime status updates
- * We only care about notifications, for now
+ * Handle shadow-remote messages: runtime prints and runtime status updates
+ */
+export async function handleShadowRemoteMessage(msgData: any, clientKey: string): Promise<void> {
+  try {
+    if (msgData.data) {
+      const data = cljsLib.parseEdn(msgData.data);
+      runtimeSessions.handleRuntimePrint(clientKey, data);
+      await handleRuntimeNotice(data, clientKey);
+    }
+  } catch (error) {
+    output.appendLineOtherErr(`Error handling shadow-remote message: ${error}`);
+  }
+}
+
+/**
+ * Handle shadow-remote notifications for runtime status updates
  * If the current runtime discconnects, we do not connect a new runtime automatically,
  * except if a new runtime presents itself while we are disconnected,
  * if so, we connect to it.
  * This supports the case where we the user is connected to a client and reloads the page,
  * expecting to remain connected to the reloaded page.
  */
-export async function handleShadowRemoteMessage(msgData: any, clientKey: string): Promise<void> {
-  try {
-    if (msgData.data) {
-      const data = cljsLib.parseEdn(msgData.data);
-      const currentRuntimeId = getSelectedRuntimeId(clientKey);
-      const currentRuntimeInfo =
-        currentRuntimeId !== undefined ? getSelectedRuntimeInfo(clientKey) : undefined;
+async function handleRuntimeNotice(data: any, clientKey: string): Promise<void> {
+  const currentRuntimeId = getSelectedRuntimeId(clientKey);
+  const currentRuntimeInfo =
+    currentRuntimeId !== undefined ? getSelectedRuntimeInfo(clientKey) : undefined;
 
-      // 1. Decide editor runtime targeting (auto-reconnect on reload / do not silently retarget)
-      const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
+  // 1. Decide editor runtime targeting (auto-reconnect on reload / do not silently retarget)
+  const action = shadowRuntimeCore.decideMessageAction(data, currentRuntimeId);
 
-      switch (action.type) {
-        case 'runtime-disconnected': {
-          const info = currentRuntimeInfo || {
-            description: 'No description',
-          };
-          clearRuntimeState(clientKey);
-          output.appendLineOtherOut(
-            `shadow-cljs runtime disconnected: ${action.runtimeId} ${info.description}`
-          );
-          break;
-        }
-        case 'runtime-connected': {
-          const success = await switchToRuntime(action.runtimeInfo, clientKey);
-          if (success) {
-            output.appendLineOtherOut(
-              `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
-            );
-          } else {
-            output.appendLineOtherErr(
-              `Failed to connect shadow-cljs runtime: ${action.runtimeId}, ${action.runtimeInfo.description}`
-            );
-          }
-          break;
-        }
-        // 'no-action' - do nothing
+  switch (action.type) {
+    case 'runtime-disconnected': {
+      const info = currentRuntimeInfo || {
+        description: 'No description',
+      };
+      clearRuntimeState(clientKey);
+      output.appendLineOtherOut(
+        `shadow-cljs runtime disconnected: ${action.runtimeId} ${info.description}`
+      );
+      break;
+    }
+    case 'runtime-connected': {
+      const success = await switchToRuntime(action.runtimeInfo, clientKey);
+      if (success) {
+        output.appendLineOtherOut(
+          `shadow-cljs runtime connected: ${action.runtimeId}, ${action.runtimeInfo.description}`
+        );
+      } else {
+        output.appendLineOtherErr(
+          `Failed to connect shadow-cljs runtime: ${action.runtimeId}, ${action.runtimeInfo.description}`
+        );
       }
+      break;
+    }
+    // 'no-action' - do nothing
+  }
 
-      // 2. Fire lifecycle event for any connecting or disconnecting Shadow client
-      const lifecycle = shadowRuntimeCore.decideLifecycleEvent(data);
-      if (lifecycle.type === 'runtime-connected') {
-        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
-          ...lifecycle.runtimeInfo,
+  // 2. Fire lifecycle event for any connecting or disconnecting Shadow client
+  const lifecycle = shadowRuntimeCore.decideLifecycleEvent(data);
+  if (lifecycle.type === 'runtime-connected') {
+    const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = {
+      ...lifecycle.runtimeInfo,
+      lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
+    };
+
+    sessionEvents.fireSessionsChanged({
+      type: 'runtime-connected',
+      clientKey,
+      sessionKey: getRuntimeSessionKeyForClient(clientKey),
+      runtime: runtimeWithActivity,
+    });
+  } else if (lifecycle.type === 'runtime-disconnected') {
+    const baseRuntimeInfo =
+      lifecycle.runtimeInfo ??
+      (currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
+        ? currentRuntimeInfo
+        : undefined);
+
+    const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = baseRuntimeInfo
+      ? {
+          ...baseRuntimeInfo,
+          lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
+        }
+      : {
+          runtimeId: lifecycle.runtimeId,
+          description: 'No description',
+          buildId: '',
+          host: '',
+          workerId: 0,
+          sinceInst: 0,
+          sinceDescription: '',
           lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
         };
 
-        sessionEvents.fireSessionsChanged({
-          type: 'runtime-connected',
-          clientKey,
-          sessionKey: getRuntimeSessionKeyForClient(clientKey),
-          runtime: runtimeWithActivity,
-        });
-      } else if (lifecycle.type === 'runtime-disconnected') {
-        const baseRuntimeInfo =
-          lifecycle.runtimeInfo ??
-          (currentRuntimeId !== undefined && lifecycle.runtimeId === currentRuntimeId
-            ? currentRuntimeInfo
-            : undefined);
-
-        const runtimeWithActivity: sessionEvents.ShadowRuntimeInfo = baseRuntimeInfo
-          ? {
-              ...baseRuntimeInfo,
-              lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
-            }
-          : {
-              runtimeId: lifecycle.runtimeId,
-              description: 'No description',
-              buildId: '',
-              host: '',
-              workerId: 0,
-              sinceInst: 0,
-              sinceDescription: '',
-              lastActivity: getRuntimeLastActivity(lifecycle.runtimeId),
-            };
-
-        sessionEvents.fireSessionsChanged({
-          type: 'runtime-disconnected',
-          clientKey,
-          sessionKey: getRuntimeSessionKeyForClient(clientKey),
-          runtime: runtimeWithActivity,
-        });
-      }
-    }
-  } catch (error) {
-    output.appendLineOtherErr(`Error handling shadow-remote message: ${error}`);
+    sessionEvents.fireSessionsChanged({
+      type: 'runtime-disconnected',
+      clientKey,
+      sessionKey: getRuntimeSessionKeyForClient(clientKey),
+      runtime: runtimeWithActivity,
+    });
   }
 }
 
