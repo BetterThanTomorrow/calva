@@ -25,7 +25,7 @@
   (when (seq missing)
     [:details {:class ["keybindings-note"]}
      [:summary (summary-text (count missing))]
-     [:p "Their " [:code "when"] " clauses hold in Clojure files only. Calva's own keybinding of the command has a "
+     [:p "Their " [:code "when"] " clauses leave the Output views out. Calva's own keybinding of each command has a "
       [:code "when"] " clause that also holds in the Output views."]
      [:ul (map keybinding-item missing)]
      [:button {:type "button" :data-action (pr-str [[:keybindings-note/ax.read-again]])}

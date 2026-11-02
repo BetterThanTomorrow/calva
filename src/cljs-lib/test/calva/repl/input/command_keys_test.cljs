@@ -134,6 +134,19 @@
                                                                 {:key "alt+ctrl+space a" :command "-calva.runCustomREPLCommand"}])
                   (filter (comp #{"calva.jackIn" "calva.runCustomREPLCommand"} :command))
                   (map :key)))))
+    (testing "a removal's key removes the bindings whose chords start with it"
+      (is (= []
+             (->> (sut/with-user-keybindings defaults commands [{:key "ctrl+alt+c" :command "-calva.jackIn"}])
+                  (filter (comp #{"calva.jackIn"} :command))))))
+    (testing "a removal with a when clause removes the binding with the same when clause, however it is written"
+      (is (= ["ctrl+right"]
+             (->> (sut/with-user-keybindings defaults commands
+                    [{:key "alt+right" :command "-paredit.forwardSexp"
+                      :when "calva:keybindingsEnabled && (editorLangId == 'clojure' && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"}
+                     {:key "ctrl+right" :command "-paredit.forwardSexp"
+                      :when "editorTextFocus"}])
+                  (filter (comp #{"paredit.forwardSexp"} :command))
+                  (map :key)))))
     (testing "a user's keybinding holds in the REPL Input when its when clause does"
       (is (= #{"shift+alt+right"}
              (:keys (sut/command-keys (sut/parsed (sut/with-user-keybindings [] commands

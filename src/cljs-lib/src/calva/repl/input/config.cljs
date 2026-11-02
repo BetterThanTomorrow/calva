@@ -61,13 +61,15 @@
 
 (defn keybindings-path
   "Returns the path of the user's keybindings.json in the `user-dir` folder, for the profile that `storage`,
-   VS Code's storage.json, associates with the workspace `workspace-key`. The default profile's file when
-   there is no such profile, or it uses the default profile's keybindings."
+   VS Code's storage.json, associates with the workspace `workspace-key`. A profile's id is the last part of
+   its location. The default profile's file when there is no such profile, or it uses the default profile's
+   keybindings."
   [user-dir storage workspace-key]
-  (let [location (get-in storage ["profileAssociations" "workspaces" workspace-key])
-        profile (some #(when (= location (get % "location")) %) (get storage "userDataProfiles"))]
+  (let [profile-id (get-in storage ["profileAssociations" "workspaces" workspace-key])
+        profile (some #(when (= profile-id (some-> (get % "location") path/basename)) %)
+                      (get storage "userDataProfiles"))]
     (if (and profile (not (get-in profile ["useDefaultFlags" "keybindings"])))
-      (path/join user-dir "profiles" location "keybindings.json")
+      (path/join user-dir "profiles" (get profile "location") "keybindings.json")
       (path/join user-dir "keybindings.json"))))
 
 (defn- read-jsonc+
@@ -87,12 +89,15 @@
 
 (defn read-user-keybindings+
   "Returns a promise of the entries of the user's keybindings.json, or of none when it can't be read. The
-   user's folder is two levels up from Calva's global storage, which is the default profile's."
+   user's folder is two levels up from Calva's global storage, which is the default profile's. Entries that
+   aren't objects are left out, as VS Code leaves them out."
   [^js vscode-context]
   (let [user-dir (path/resolve (.. vscode-context -globalStorageUri -fsPath) ".." "..")]
     (-> (read-jsonc+ (path/join user-dir "globalStorage" "storage.json"))
         (.then #(read-jsonc+ (keybindings-path user-dir % (workspace-key))))
-        (.then #(if (sequential? %) (mapv (fn [entry] (update-keys entry keyword)) %) [])))))
+        (.then #(if (sequential? %)
+                  (into [] (comp (filter map?) (map (fn [entry] (update-keys entry keyword)))) %)
+                  [])))))
 
 (defn- read-default-keybindings+
   "Returns a promise of the keys VS Code resolved for Calva's `manifest` keybindings with the current keyboard
@@ -110,13 +115,20 @@
   [^js vscode-context]
   (js->clj (.. vscode-context -extension -packageJSON -contributes -keybindings) :keywordize-keys true))
 
+(defn- manifest-commands
+  "Returns the commands of Calva's manifest, those it lists and those it binds."
+  [^js vscode-context manifest]
+  (into (set (map :command manifest))
+        (map #(.-command ^js %))
+        (.. vscode-context -extension -packageJSON -contributes -commands)))
+
 (defn read-keybindings+
   "Returns a promise of Calva's keybindings with the user's own keybindings of Calva's commands applied."
   [^js vscode-context]
   (let [manifest (manifest-keybindings vscode-context)]
     (-> (js/Promise.all #js [(read-default-keybindings+ manifest) (read-user-keybindings+ vscode-context)])
         (.then (fn [[defaults user]]
-                 (command-keys/with-user-keybindings defaults (set (map :command manifest)) user))))))
+                 (command-keys/with-user-keybindings defaults (manifest-commands vscode-context manifest) user))))))
 
 (def history-key "calva.replInput.history")
 

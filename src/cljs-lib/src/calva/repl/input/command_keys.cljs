@@ -31,12 +31,16 @@
   (mapv keys/key-id (string/split (string/trim k) #"\s+")))
 
 (defn- removes?
-  "True when the user's keybinding `removal`, of `-<command>`, removes `binding`: every binding of the command,
-   or the one with its key."
-  [{removal-key :key removal-command :command} {:keys [key command]}]
+  "True when the user's keybinding `removal`, of `-<command>`, removes `binding`, as VS Code removes a default
+   keybinding: one of the command, whose keys start with the removal's key when it has one, and whose when
+   clause is the removal's when it has one."
+  [{removal-key :key removal-command :command removal-when :when} {:keys [key command] :as binding}]
   (and (= removal-command (str "-" command))
        (or (string/blank? removal-key)
-           (= (chord-ids removal-key) (chord-ids key)))))
+           (let [removal-chords (chord-ids removal-key)]
+             (= removal-chords (take (count removal-chords) (chord-ids key)))))
+       (or (string/blank? removal-when)
+           (= (when-clause/parse removal-when) (when-clause/parse (:when binding))))))
 
 (defn with-user-keybindings
   "Returns Calva's `keybindings` with the user's `user-keybindings`, as keybindings.json has them, applied:
