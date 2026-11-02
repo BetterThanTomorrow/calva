@@ -173,7 +173,8 @@
                :when "editorTextFocus"}
               {:key "shift+alt+right" :command "-paredit.forwardSexp"
                :when "editorTextFocus"}
-              {:command "paredit.forwardSexp"}]
+              {:command "paredit.forwardSexp"}
+              {:key "ctrl+alt+up" :command "paredit.forwardSexp" :when " "}]
         calva-when (:when (nth manifest-keybindings 2))]
     (is (= [{:key "shift+alt+right" :command "paredit.forwardSexp"
              :when "editorTextFocus && editorLangId == 'clojure'"
@@ -182,6 +183,8 @@
              :when "editorTextFocus || calva:printedCodeFocused"
              :calva-when calva-when :reaches-output-views? true}
             {:key "ctrl+alt+left" :command "paredit.forwardSexp"
+             :calva-when calva-when :reaches-output-views? true}
+            {:key "ctrl+alt+up" :command "paredit.forwardSexp" :when " "
              :calva-when calva-when :reaches-output-views? true}]
            (sut/output-views-custom-keybindings manifest-keybindings user))
         "Only keybindings with a key, of commands the Output views handle, each with the when clause of Calva's first binding of the command, and whether its own when clause reaches the Output views or is left out")))

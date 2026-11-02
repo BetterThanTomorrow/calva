@@ -85,6 +85,7 @@
                        (assoc (select-keys keybinding [:key :command :when])
                               :calva-when (calva-whens command)
                               :reaches-output-views? (boolean (or (not (string? when-clause))
+                                                                  (string/blank? when-clause)
                                                                   (reaches-output-views? when-clause)))))))
           user-keybindings)))
 
