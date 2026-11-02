@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Autoconfigure custom keybindings that the output view should handle](https://github.com/BetterThanTomorrow/calva/issues/3331)
+- [Support folding of Clojure data  in output view](https://github.com/BetterThanTomorrow/calva/issues/3330)
+- Fix: [Some ex-data not showing in output](https://github.com/BetterThanTomorrow/calva/issues/3332)
+
 ## [2.0.608] - 2026-11-02
 
 - Fix: [Evaluating with `targetRuntimeId` runs in the selected shadow-cljs runtime instead of the target](https://github.com/BetterThanTomorrow/calva/issues/3327)
