@@ -680,7 +680,7 @@ export class NReplSession {
    * support the op or hasn't finished the reply within `STACKTRACE_TIMEOUT_MS`.
    */
   private requestCauses(msg: { op: string; id: string; session: string; [key: string]: unknown }) {
-    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
+    const request = new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
       if (!this.supports(msg.op)) {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
@@ -690,6 +690,29 @@ export class NReplSession {
       this.messageHandlers[msg.id] = cider.stacktraceCausesHandler(resolve, reject);
       this.client.write(msg);
     });
+    this.causesInFlight = request;
+    const answered = () => {
+      if (this.causesInFlight === request) {
+        this.causesInFlight = undefined;
+      }
+    };
+    void request.then(answered, answered);
+    return request;
+  }
+
+  // cider-nrepl reads the session's *e when it handles a causes request, and an evaluation that
+  // fails before then would change it. So an evaluation waits while a request is in flight.
+  private causesInFlight: Promise<unknown> | undefined;
+
+  whenCausesAnswered(send: () => void) {
+    if (this.causesInFlight === undefined) {
+      send();
+    } else {
+      void this.causesInFlight.then(
+        () => send(),
+        () => send()
+      );
+    }
   }
 
   async evaluateInNs(nsForm: string, ns: string) {
@@ -1376,14 +1399,16 @@ export class NReplEvaluation {
     this._running = true;
     this.add();
     this.session.addRunningID(this.id);
-    try {
-      this.session.client.write(message);
-    } catch (e) {
-      delete this.session.messageHandlers[this.id];
-      this.session.removeRunningID(this.id);
-      this.remove();
-      this.doReject(e);
-    }
+    this.session.whenCausesAnswered(() => {
+      try {
+        this.session.client.write(message);
+      } catch (e) {
+        delete this.session.messageHandlers[this.id];
+        this.session.removeRunningID(this.id);
+        this.remove();
+        this.doReject(e);
+      }
+    });
   }
 
   private add(): void {
