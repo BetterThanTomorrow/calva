@@ -187,6 +187,12 @@
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
 
+(deftest scroll-to-end-action
+  (is (= {:uf/db sut/initial-db
+          :uf/fxs [[:fx/scroll-to-end]]}
+         (sut/handle-action sut/initial-db [:msg/scroll-to-end]))
+      "Scrolls the output to its end, and leaves the db as is"))
+
 (deftest keybindings-note-actions
   (testing ":keybindings-note/ax.set-note draws the greeting's note about the user's custom keybindings"
     (is (= {:uf/db sut/initial-db

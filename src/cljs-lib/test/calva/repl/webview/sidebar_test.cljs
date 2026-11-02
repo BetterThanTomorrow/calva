@@ -104,6 +104,26 @@
     (testing "skips nested destination arrays, which are file paths"
       (is (false? (sut/some-output-view-visible? #js [#js ["output-sidebar"]]))))))
 
+(deftest scroll-to-end-test
+  (let [sidebar #js {:webview #js {}}
+        view #js {:webview #js {}}
+        posted (fn [destination output-view]
+                 (let [post-spy (spy/spy)]
+                   (with-redefs [sut/output-sidebar-webview-view (atom sidebar)
+                                 core/output-view-webview-panel (atom output-view)
+                                 core/post-message-to-webview (test-util/wrap-spy post-spy)
+                                 util/log-to-console (constantly nil)]
+                     (sut/scroll-to-end destination)
+                     (mapv first (spy/calls post-spy)))))]
+    (is (= [sidebar] (posted "output-sidebar" view))
+        "Scrolls the Output view the destination names")
+    (is (= [view sidebar] (posted nil view))
+        "Without a destination, scrolls every Output view")
+    (is (= [sidebar] (posted nil nil))
+        "Skips an Output view that isn't open")
+    (is (= [] (posted "terminal" view))
+        "Scrolls nothing for a destination that isn't an Output view")))
+
 (deftest append-test
   (let [post-message-to-webview-spy (spy/spy)
         options (clj->js {:outputCategory "evalOut"})]

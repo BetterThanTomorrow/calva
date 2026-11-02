@@ -1911,6 +1911,11 @@
         "category": "Calva"
       },
       {
+        "command": "calva.scrollOutputViewToEnd",
+        "title": "Scroll Output View to End",
+        "category": "Calva"
+      },
+      {
         "command": "calva.replInput.deleteBackward",
         "title": "Delete Backward in REPL Input",
         "category": "Calva Paredit",

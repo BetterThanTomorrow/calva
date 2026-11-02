@@ -169,13 +169,31 @@
     (add-context-subscription! (create-output-destinations-change-listener))
     provider))
 
+(def ^:private output-view-destinations
+  "The Output Destination ids of the Output views."
+  ["output-view" "output-sidebar"])
+
+(defn- output-view-host
+  "Returns the webview host of the Output view `destination`, an Output Destination id, when it is open."
+  [destination]
+  (case destination
+    "output-view" @core/output-view-webview-panel
+    "output-sidebar" @output-sidebar-webview-view
+    nil))
+
 (defn- output-view-visible?
   [destination]
-  (some-> ^js (case destination
-                "output-view" @core/output-view-webview-panel
-                "output-sidebar" @output-sidebar-webview-view
-                nil)
-          .-visible))
+  (some-> ^js (output-view-host destination) .-visible))
+
+(defn ^:export scroll-to-end
+  "Scrolls the output of the Output view `destination`, an Output Destination id, to its end, and turns its
+   auto scrolling on. Without `destination`, every open Output view."
+  [destination]
+  (if (and (some? destination)
+           (not (some #{destination} output-view-destinations)))
+    (util/log-to-console :error (str "Cannot scroll to the end. No Output view is \"" destination "\""))
+    (run! #(core/post-message-to-webview % {:command/name "scroll-to-end"})
+          (keep output-view-host (if (some? destination) [destination] output-view-destinations)))))
 
 (defn ^:export some-output-view-visible?
   "True when an Output view among `destinations`, an output destination value as configured, is open

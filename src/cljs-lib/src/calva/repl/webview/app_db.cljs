@@ -176,6 +176,12 @@
    "printed-code" #'printed-code-actions/handle-action
    "keybindings-note" #'handle-keybindings-note-action})
 
+(def ^:private copy-effects
+  "The effect of each copy action, which gets the action's payload."
+  {:output/ax.copy-stdout :fx/copy-stdout
+   :output/ax.copy-image :fx/copy-image
+   :output/ax.copy-code :fx/copy-code})
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -198,17 +204,9 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
-    :output/ax.copy-stdout
+    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code)
     {:uf/db db
-     :uf/fxs [[:fx/copy-stdout payload]]}
-
-    :output/ax.copy-image
-    {:uf/db db
-     :uf/fxs [[:fx/copy-image payload]]}
-
-    :output/ax.copy-code
-    {:uf/db db
-     :uf/fxs [[:fx/copy-code payload]]}
+     :uf/fxs [[(copy-effects action-type) payload]]}
 
     :msg/output-highlighting
     {:uf/db db
@@ -221,6 +219,10 @@
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
+
+    :msg/scroll-to-end
+    {:uf/db db
+     :uf/fxs [[:fx/scroll-to-end]]}
 
     :msg/set-code-theme
     (handle-set-code-theme db payload)

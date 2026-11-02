@@ -819,6 +819,7 @@
     :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
+    :fx/scroll-to-end (auto-scroll/reveal-end!)
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
     (if-let [handler (get @!effect-handlers (namespace fx-type))]
@@ -854,6 +855,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
+         "scroll-to-end"        (dispatch! [:msg/scroll-to-end])
          "keybindings-note"     (dispatch! [:keybindings-note/ax.set-note message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
          "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
