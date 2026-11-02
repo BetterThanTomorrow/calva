@@ -4,11 +4,16 @@
    [calva.repl.webview.core :as core]
    [calva.repl.webview.output-log :as output-log]
    [calva.repl.webview.sidebar :as sut]
-   [cljs.test :refer-macros [async deftest testing is]]
+   [cljs.test :refer-macros [async deftest testing is use-fixtures]]
    [clojure.string :as string]
    [spy.core :as spy]
    [test-util :as test-util]
    [calva.util :as util]))
+
+(defn- empty-output-log! []
+  (reset! output-log/!log output-log/empty-log))
+
+(use-fixtures :each {:before empty-output-log! :after empty-output-log!})
 
 (defn- logged
   "Returns the empty output log with each `[view-id message]` of `posts` posted."
@@ -66,7 +71,6 @@
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly destinations)
                   sut/output-sidebar-webview-view (atom nil)
-                  output-log/!log (atom output-log/empty-log)
                   input-host/enabled? (constantly false)
                   input-host/view-page-set! #(swap! forgotten conj [:page-set %])
                   input-host/view-disposed! #(swap! forgotten conj [:disposed %])
