@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Evaluating with `targetRuntimeId` runs in the selected shadow-cljs runtime instead of the target](https://github.com/BetterThanTomorrow/calva/issues/3327)
+
 ## [2.0.607] - 2026-11-01
 
 - [Make the output views use Semantic Tokens from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/3320)

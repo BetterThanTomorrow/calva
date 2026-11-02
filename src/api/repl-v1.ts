@@ -15,6 +15,7 @@ import {
 } from '../nrepl/list-connections';
 import { buildReplSessionInfo, type ReplSessionInfo } from '../nrepl/repl-session-info';
 import * as shadowCljsRuntime from '../shadow-cljs-runtime';
+import * as runtimeSessions from '../shadow-cljs-runtime-sessions';
 import * as sessionEvents from '../nrepl/session-events';
 
 export type { ReplConnectionInfo, ReplSessionInfo };
@@ -99,14 +100,19 @@ export const evaluate = async (
         : connState.shadowCljsRuntimeId
       : undefined;
 
+  let evalSession = session;
   if (sessionSupportsRuntimes && clientKey && targetRuntimeId !== undefined) {
     const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
-    if (allBuildsData?.runtimes) {
-      const targetRuntime = allBuildsData.runtimes.find((r) => r.runtimeId === targetRuntimeId);
-      if (targetRuntime) {
-        shadowBuild = targetRuntime.buildId;
-      }
+    const targetRuntime = allBuildsData?.runtimes?.find((r) => r.runtimeId === targetRuntimeId);
+    if (!targetRuntime) {
+      throw new Error(`No shadow-cljs runtime with id ${targetRuntimeId} on this connection`);
     }
+    shadowBuild = targetRuntime.buildId;
+    evalSession = await runtimeSessions.getEvalSessionForRuntime(
+      { clientKey, buildId: targetRuntime.buildId, runtimeId: targetRuntimeId },
+      allBuildsData.defaultRuntimeIds[targetRuntime.buildId],
+      session
+    );
   }
 
   const evalOptions: resultOutput.AppendClojureOptions = {
@@ -149,15 +155,14 @@ export const evaluate = async (
     ...nReplOptions,
   };
 
-  if (targetRuntimeId !== undefined) {
-    evaluationOptions['runtime-id'] = targetRuntimeId;
+  const evaluation = evalSession.eval(code, ns, evaluationOptions);
+  if (evalSession !== session) {
+    runtimeSessions.trackEvaluation(clientKey, targetRuntimeId, evaluation);
   }
-
-  const evaluation = session.eval(code, ns, evaluationOptions);
 
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
-  whoTracking.setCurrentWho(session.sessionId, resolvedWho);
+  whoTracking.setCurrentWho(evalSession.sessionId, resolvedWho);
 
   // Track runtime activity for the effective runtime
   const effectiveRuntimeId =
@@ -189,7 +194,7 @@ export const evaluate = async (
   } catch (evalError) {
     let stacktrace;
     try {
-      [stacktrace] = (await session.stacktrace()) ?? [];
+      [stacktrace] = (await evalSession.stacktrace()) ?? [];
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {

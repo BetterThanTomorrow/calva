@@ -517,6 +517,11 @@ export class NReplSession {
     NReplEvaluation.dropSessionEvaluations(this);
   }
 
+  /** True while an evaluation sent in this session waits for its reply. */
+  hasRunningEvaluations(): boolean {
+    return NReplEvaluation.hasRunningEvaluations(this);
+  }
+
   messageHandlers: { [id: string]: (msg: any) => boolean } = {};
   replType: ReplSessionType = null;
 
@@ -1264,14 +1269,18 @@ export class NReplSession {
     });
   }
 
-  shadowCljsRemoteRegisterNotify() {
+  /**
+   * Sends `data`, an EDN shadow-remote message, over the shadow-remote connection that
+   * `shadowCljsRemoteInit` opened on this session.
+   */
+  shadowCljsRemoteMessage(data: string) {
     return new Promise<any>((resolve, reject) => {
       const id = this.client.nextId;
       const msg = {
         op: 'shadow-remote-msg',
         id: id,
         session: this.sessionId,
-        data: '{:op :request-clients :notify true :query [:eq :type :runtime]}',
+        data,
       };
       if (this.supports(msg.op)) {
         this.messageHandlers[id] = (msg) => {
@@ -1281,10 +1290,16 @@ export class NReplSession {
         this.client.write(msg);
       } else {
         // shadow-cljs versions that do not `describe` `shadow-remote-init` will not send a
-        // response signaling it is processed, we skip subscribing
+        // response signaling it is processed, we skip sending
         resolve(null);
       }
     });
+  }
+
+  shadowCljsRemoteRegisterNotify() {
+    return this.shadowCljsRemoteMessage(
+      '{:op :request-clients :notify true :query [:eq :type :runtime]}'
+    );
   }
 }
 
@@ -1608,6 +1623,10 @@ export class NReplEvaluation {
       }
     });
     return num;
+  }
+
+  static hasRunningEvaluations(session: NReplSession): boolean {
+    return NReplEvaluation.Instances.some((item) => item.session === session && !item.finished);
   }
 
   /** Ends the evaluations of `session` as dropped. Each rejects, saying the REPL session closed. */

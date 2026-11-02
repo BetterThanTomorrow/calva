@@ -563,6 +563,22 @@ function getPrimarySessionForCurrentConnection() {
 }
 ```
 
+#### Evaluating in a chosen runtime
+
+**Files involved:** `shadow-cljs-runtime-sessions.ts`, `api/repl-v1.ts`, `shadow-cljs-runtime.ts`
+
+The API's `evaluate` takes a `targetRuntimeId`. shadow-cljs ignores any runtime option on an nREPL eval message. It takes the runtime from the session, set by `(shadow.cljs.devtools.api/repl build {:runtime-id n})`. The cljs session has none, so shadow-cljs runs each of its evals in the build's default runtime at that moment, and sends that eval every print from the runtime while it runs. That default can differ from the runtime Calva shows as selected (`:runtime-select :latest`, or another client calling `repl-runtime-select`), so `evaluate` asks shadow-cljs for it:
+
+1. `getShadowRuntimesAllBuilds`, which `evaluate` uses to find the target's build, also reads the `:default-runtime-id` of each active build from shadow-cljs. `getEvalSessionForRuntime` gets the one for the target's build. When the target is that runtime and its build is the cljs session's build, the eval goes to the cljs session, so evals in that runtime share one queue and shadow-cljs gives each its own prints.
+2. Otherwise it uses the session for the runtime: a clone of the **Primary Session** that has evaluated `(shadow.cljs.devtools.api/repl <build> {:runtime-id <n>})`. There is one such session per connection and runtime, created on first use, outside the session registry. Output keeps the cljs session's key.
+3. shadow-cljs sends an eval the runtime's prints only when it picked the runtime itself, so the Primary Session also sends `{:op :runtime-print-sub :to <n>}` on its shadow-remote connection when it sets up a session for a runtime. A `node-repl` runtime is left out, since shadow-cljs sends every eval on that build the node process's stdout.
+4. `handleShadowRemoteMessage` hands `:runtime-print` messages to `handleRuntimePrint`. A print goes to the oldest unfinished tracked evaluation in that runtime (`trackEvaluation`), which is the one running, since a session evaluates one message at a time. Without one, it goes to the Output view, tagged with the runtime. A print from the selected runtime while the cljs session evaluates is skipped, since shadow-cljs sends it to that eval.
+5. A `runtime-disconnected` event closes the session for that runtime. The connection closing closes it with the rest of the client's sessions.
+
+The default runtime can change between the question in step 1 and the eval, for example when a new runtime connects with `:runtime-select :latest`, and then the eval runs in the new default. The skip rule in step 4 uses Calva's selected runtime, which is shadow-cljs's default since Calva selects with `repl-runtime-select`. If shadow-cljs changes its default on its own, prints from that runtime can show twice, and prints from the selected one can go missing while the cljs session evaluates.
+
+An id that isn't connected makes `evaluate` throw. The prints and the eval's value reach Calva on separate paths, so a print can arrive after the value, and then goes to the next evaluation queued in that runtime, or to the Output view. Without shadow-remote (shadow-cljs before 3.2.1), evals still reach the runtime, but its prints stay in the runtime, and no `runtime-disconnected` events close the sessions for runtimes that went away, so they stay open until the connection closes.
+
 ### CLJS Build Switching
 
 **Files involved:** `connector.ts`, `session-registry.ts`, `client-registry.ts`
@@ -802,6 +818,7 @@ The system supports lookups in both directions, which is intentional:
 | `src/debugger/decorations.ts` | Debug decorations |
 | `src/shadow-cljs-runtime.ts` | Runtime selection (high-level) |
 | `src/shadow-cljs-runtime-core.ts` | Runtime API calls (low-level) |
+| `src/shadow-cljs-runtime-sessions.ts` | Sessions for evaluating in a chosen runtime |
 | `src/providers/completion.ts` | Code completion |
 | `src/providers/definition.ts` | Go to definition |
 | `src/providers/hover.ts` | Hover information |
