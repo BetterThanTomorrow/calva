@@ -63,7 +63,7 @@
 (defn- keys-for
   ([settings] (keys-for settings record))
   ([settings record]
-   (sut/command-keys mac-keybindings (sut/context {:repl-input/settings settings} record) [])))
+   (sut/command-keys mac-keybindings (sut/context {:repl-input/settings settings} record))))
 
 (deftest command-keys-test
   (testing "keys bound to Calva commands whose when clauses hold while the REPL Input has focus"
@@ -85,11 +85,7 @@
     (is (= {:keys #{"cmd+/" "ctrl+w" "alt+right" "backspace" "ctrl+alt+c" "ctrl+alt+space"}
             :chords #{"ctrl+alt+c" "ctrl+alt+space"}}
            (sut/command-keys mac-keybindings
-                             (sut/context {:repl-input/settings settings :repl-input/connected? true} record)
-                             []))))
-  (testing "the user's own keys are always left to VS Code"
-    (is (= {:keys #{"ctrl+j" "ctrl+k"} :chords #{"ctrl+k"}}
-           (sut/command-keys [] (sut/context {:repl-input/settings settings} record) ["ctrl+j" "ctrl+k ctrl+l"])))))
+                             (sut/context {:repl-input/settings settings :repl-input/connected? true} record))))))
 
 (deftest focused-context-test
   (let [keybindings (sut/parsed [{:command "paredit.forwardSexp" :key "ctrl+alt+right"
@@ -97,10 +93,10 @@
                                  {:command "paredit.slurpSexpForward" :key "ctrl+alt+."
                                   :when "calva:replInputFocused"}])]
     (is (= #{"ctrl+alt+right" "ctrl+alt+."}
-           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record) [])))
+           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record))))
         "The REPL Input has focus by default")
     (is (= #{"ctrl+alt+right"}
-           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record "calva:printedCodeFocused") [])))
+           (:keys (sut/command-keys keybindings (sut/context {:repl-input/settings {}} record "calva:printedCodeFocused"))))
         "Printed code has the keys whose when clauses hold with its own context key")))
 
 (deftest calva-keybindings-test
@@ -110,8 +106,42 @@
   (testing "resolved when clauses evaluate as the manifest's do"
     (is (= #{"shift+cmd+7"}
            (:keys (sut/command-keys (sut/parsed (sut/calva-keybindings manifest-keybindings resolved-keybindings))
-                                    (sut/context {:repl-input/settings settings} record)
-                                    []))))))
+                                    (sut/context {:repl-input/settings settings} record)))))))
+
+(def commands
+  (set (map :command manifest-keybindings)))
+
+(deftest with-user-keybindings-test
+  (let [defaults (sut/platform-keybindings manifest-keybindings "mac")]
+    (testing "the user's keybindings of Calva's commands join the defaults, others don't"
+      (is (= (conj (vec defaults) {:key "shift+alt+right" :command "paredit.forwardSexp" :when "editorTextFocus"})
+             (sut/with-user-keybindings defaults commands
+               [{:key "shift+alt+right" :command "paredit.forwardSexp" :when "editorTextFocus" :args {:a 1}}
+                {:key "ctrl+q" :command "workbench.action.quit"}
+                {:command "paredit.forwardSexp"}]))))
+    (testing "a `-<command>` entry with a key removes the default binding with that key, written in any modifier order"
+      (is (= ["ctrl+right"]
+             (->> (sut/with-user-keybindings defaults commands [{:key "Option+Right" :command "-paredit.forwardSexp"}])
+                  (filter (comp #{"paredit.forwardSexp"} :command))
+                  (map :key)))))
+    (testing "a `-<command>` entry without a key removes every default binding of the command"
+      (is (= []
+             (->> (sut/with-user-keybindings defaults commands [{:command "-paredit.forwardSexp"}])
+                  (filter (comp #{"paredit.forwardSexp"} :command))))))
+    (testing "a removal of a chord compares each key of it"
+      (is (= ["ctrl+alt+c ctrl+alt+j"]
+             (->> (sut/with-user-keybindings defaults commands [{:key "ctrl+alt+c ctrl+alt+k" :command "-calva.jackIn"}
+                                                                {:key "alt+ctrl+space a" :command "-calva.runCustomREPLCommand"}])
+                  (filter (comp #{"calva.jackIn" "calva.runCustomREPLCommand"} :command))
+                  (map :key)))))
+    (testing "a user's keybinding holds in the REPL Input when its when clause does"
+      (is (= #{"shift+alt+right"}
+             (:keys (sut/command-keys (sut/parsed (sut/with-user-keybindings [] commands
+                                                    [{:key "shift+alt+right" :command "paredit.forwardSexp"
+                                                      :when "calva:replInputFocused || editorTextFocus"}
+                                                     {:key "shift+alt+left" :command "paredit.forwardSexp"
+                                                      :when "editorTextFocus && editorLangId == 'clojure'"}]))
+                                      (sut/context {:repl-input/settings settings} record))))))))
 
 (deftest platform-keybindings-test
   (testing "the manifest's keys for the platform, for when VS Code's resolved keybindings can't be read"

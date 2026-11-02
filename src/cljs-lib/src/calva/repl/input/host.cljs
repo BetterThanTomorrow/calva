@@ -201,12 +201,10 @@
   "The command keys of `record`, with `:completion-list-keys`, the keys of those that hold while its
    completion list is open."
   [{:repl-input/keys [keybindings settings] :as state} record]
-  (let [context (command-keys/context state record)
-        user-keys (get settings command-keys/user-keys-setting)]
-    (assoc (command-keys/command-keys keybindings context user-keys)
+  (let [context (command-keys/context state record)]
+    (assoc (command-keys/command-keys keybindings context)
            :completion-list-keys (:keys (command-keys/command-keys keybindings
-                                                                   (merge context (completion/contexts true settings))
-                                                                   user-keys)))))
+                                                                   (merge context (completion/contexts true settings)))))))
 
 (def ^:private derived-messages
   "The messages that post what the extension derives for a REPL Input, by the record key that holds it."
@@ -292,7 +290,8 @@
 
 (defn load-keybindings!
   "Reads the keys VS Code resolved for Calva's keybindings with the current keyboard layout, falling back
-   on the manifest's keys for the platform, and derives the REPL Inputs' command keys from them."
+   on the manifest's keys for the platform, with the user's own keybindings of Calva's commands, and derives
+   the REPL Inputs' command keys from them."
   []
   (when-let [vscode-context @util/vscode-context]
     (.then (config/read-keybindings+ vscode-context)

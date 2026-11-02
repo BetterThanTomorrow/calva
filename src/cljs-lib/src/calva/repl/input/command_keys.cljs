@@ -3,11 +3,8 @@
    to VS Code, so a Calva command runs instead of CodeMirror's own handling of the key."
   (:require
    [calva.repl.input.when-clause :as when-clause]
+   [calva.repl.webview.input.keys :as keys]
    [clojure.string :as string]))
-
-(def user-keys-setting
-  "The setting where the user lists the keys they bound to Calva commands in their own keybindings."
-  "calva.outputViews.replInputCommandKeys")
 
 (def ^:private context-settings
   {"calva:keybindingsEnabled" "calva.keybindingsEnabled"
@@ -28,6 +25,28 @@
   [keybindings resolved-keybindings]
   (let [commands (set (map :command keybindings))]
     (filterv (comp commands :command) resolved-keybindings)))
+
+(defn- chord-ids
+  [k]
+  (mapv keys/key-id (string/split (string/trim k) #"\s+")))
+
+(defn- removes?
+  "True when the user's keybinding `removal`, of `-<command>`, removes `binding`: every binding of the command,
+   or the one with its key."
+  [{removal-key :key removal-command :command} {:keys [key command]}]
+  (and (= removal-command (str "-" command))
+       (or (string/blank? removal-key)
+           (= (chord-ids removal-key) (chord-ids key)))))
+
+(defn with-user-keybindings
+  "Returns Calva's `keybindings` with the user's `user-keybindings`, as keybindings.json has them, applied:
+   the ones with a key for one of the `commands` added, and the ones a `-<command>` entry removes left out."
+  [keybindings commands user-keybindings]
+  (let [removals (filter #(string/starts-with? (str (:command %)) "-") user-keybindings)
+        additions (filter #(and (commands (:command %)) (string? (:key %))) user-keybindings)]
+    (into (filterv (fn [binding] (not-any? #(removes? % binding) removals)) keybindings)
+          (map #(select-keys % [:key :command :when]))
+          additions)))
 
 (defn parsed
   "Returns `keybindings` with their when clauses parsed."
@@ -58,12 +77,11 @@
 
 (defn command-keys
   "Returns `{:keys :chords}`. `:keys` has the first key of each of the parsed `keybindings` that hold in
-   `context`, and of each of the `user-keys`. `:chords` has the ones of those that start a chord."
-  [keybindings context user-keys]
-  (let [held (concat (keep (fn [{:keys [key] :when-clause/keys [expr]}]
-                             (when (when-clause/holds? expr context) key))
-                           keybindings)
-                     user-keys)
+   `context`. `:chords` has the ones of those that start a chord."
+  [keybindings context]
+  (let [held (keep (fn [{:keys [key] :when-clause/keys [expr]}]
+                     (when (when-clause/holds? expr context) key))
+                   keybindings)
         chords (map #(string/split (string/trim %) #"\s+") held)]
     {:keys (into #{} (map first) chords)
      :chords (into #{} (keep #(when (next %) (first %))) chords)}))
