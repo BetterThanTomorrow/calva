@@ -130,11 +130,11 @@
                        "Scrolls the Output view the destination names, without asking")
                    (scrolled+ js/undefined 0)))
           (.then (fn [no-id]
-                   (is (= [[output-view] ["Output View" "Output Sidebar"]] no-id)
+                   (is (= [[output-view] ["Output View - Editor Panel" "Output View - Sidebar Panel"]] no-id)
                        "Without a destination, scrolls the Output view picked in the quick pick")
                    (scrolled+ "terminal" 1)))
           (.then (fn [unsupported]
-                   (is (= [[sidebar] ["Output View" "Output Sidebar"]] unsupported)
+                   (is (= [[sidebar] ["Output View - Editor Panel" "Output View - Sidebar Panel"]] unsupported)
                        "For a destination that isn't an Output view, scrolls the Output view picked")
                    (scrolled+ nil nil)))
           (.then (fn [cancelled]

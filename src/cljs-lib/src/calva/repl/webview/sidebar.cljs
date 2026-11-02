@@ -187,8 +187,8 @@
 
 (def ^:private output-view-picks
   "The quick pick items of the Output views, with their Output Destination ids."
-  [{:label "Output View" :description "output-view" :destination "output-view"}
-   {:label "Output Sidebar" :description "output-sidebar" :destination "output-sidebar"}])
+  [{:label "Output View - Editor Panel" :description "output-view" :destination "output-view"}
+   {:label "Output View - Sidebar Panel" :description "output-sidebar" :destination "output-sidebar"}])
 
 (defn- post-scroll-to-end!
   [destination]
