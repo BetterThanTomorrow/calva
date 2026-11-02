@@ -5,7 +5,8 @@ import * as path from 'path';
 import * as util from './utilities';
 import * as nrepl from './nrepl';
 import * as statusbar from './statusbar';
-import type * as printerTypes from './printer';
+import * as printer from './printer';
+import * as cljsErrorCauses from './nrepl/cljs-error-causes';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
@@ -176,7 +177,7 @@ type EvaluationOptions = {
   // The column the code starts at in the file it was picked from, which the echoed code's lines after
   // the first drop from their indentation
   dedent?: number;
-  pprintOptions: printerTypes.PrettyPrintingOptions;
+  pprintOptions: printer.PrettyPrintingOptions;
   // Empty sends the code only to the output subscribers
   echoDestinations: outputDestinations.OutputDestinationValue[];
   showResult?: boolean;
@@ -276,13 +277,33 @@ function appendResult(
   );
 }
 
+// The causes of the exception a ClojureScript runtime keeps in *e, which its REPL evaluates to
+// `cljsErrorCauses.EXCEPTION_VALUE`. A failed request gives no causes.
+function cljsExceptionCauses(session: nrepl.NReplSession, ns: string) {
+  let stdout = '';
+  return session
+    .eval(cljsErrorCauses.causesCode, ns, {
+      stdout: (m) => (stdout += m),
+      pprintOptions: printer.disabledPrettyPrinter,
+    })
+    .value.then(
+      () => cljsErrorCauses.parseCauses(stdout),
+      () => undefined
+    );
+}
+
 function appendStderrAfterResult(
   err: string[],
-  evaluation: nrepl.NReplEvaluation,
+  value: string,
+  { session, evaluation }: { session: nrepl.NReplSession; evaluation: nrepl.NReplEvaluation },
   outputOptions: output.AppendClojureOptions
 ) {
   if (err.length > 0) {
-    output.appendEvalErr(err.join('\n'), outputOptions, undefined, evaluation.causes);
+    const causes =
+      session.replType === 'cljs' && value === cljsErrorCauses.EXCEPTION_VALUE
+        ? cljsExceptionCauses(session, evaluation.ns ?? outputOptions.ns)
+        : evaluation.causes;
+    output.appendEvalErr(err.join('\n'), outputOptions, undefined, causes);
   }
 }
 
@@ -315,7 +336,7 @@ async function outputOutcome(
     flareHandler.inspect(value, flareEvaluator(options, hooks));
     if (showResult) {
       appendResult(value, outputOptions, hooks);
-      appendStderrAfterResult(err, evaluation, outputOptions);
+      appendStderrAfterResult(err, value, { session, evaluation }, outputOptions);
     }
     return { value };
   } catch (e) {
@@ -822,7 +843,7 @@ function evaluateStartOfFileToCursor(document = {}, options = {}) {
 
 async function loadDocument(
   document: vscode.TextDocument | Record<string, never> | undefined,
-  pprintOptions: printerTypes.PrettyPrintingOptions,
+  pprintOptions: printer.PrettyPrintingOptions,
   shouldResetPreview: boolean = false,
   silent: boolean = false,
   sessionKey?: string,
@@ -920,7 +941,7 @@ async function loadFile(
   filePath: string,
   ns: string,
   nsForm: string,
-  pprintOptions: printerTypes.PrettyPrintingOptions,
+  pprintOptions: printer.PrettyPrintingOptions,
   fileType: string,
   silent: boolean = false,
   targetSessionKey?: string,
@@ -1114,7 +1135,7 @@ async function copyLastResultCommand() {
 async function togglePrettyPrint() {
   const config = vscode.workspace.getConfiguration('calva'),
     pprintConfigKey = 'prettyPrintingOptions',
-    pprintOptions = config.get<printerTypes.PrettyPrintingOptions>(pprintConfigKey);
+    pprintOptions = config.get<printer.PrettyPrintingOptions>(pprintConfigKey);
   pprintOptions.enabled = !pprintOptions.enabled;
   if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn)) {
     pprintOptions.printEngine = 'pprint';

@@ -55,6 +55,16 @@
   [:pre {:class ["output-error-detail"]}
    [:code {:class ["output-error-code" "clojure-code"]} code]])
 
+(defn- ex-data-block
+  "The ex-data of a cause as printed code: colored by the page, with its copy button, and a click opens
+   printed code's editor in it."
+  [data]
+  [:pre {:class ["output-code-block" "output-error-data"]}
+   [:code {:class ["output-code" "clojure-code"]} data]
+   [copy-button/button {:class ["output-code-copy"]
+                        :copy/label "Copy"
+                        :copy/actions [[:output/ax.copy-code :event/target]]}]])
+
 (defn- frame-action
   [{:error/keys [session-key]} {:frame/keys [file-url java?] :as parts}]
   (cond
@@ -135,21 +145,24 @@
 (defn- cause-element
   [{:error/keys [id unfolded-causes] :as error} index {:keys [triage spec data stacktrace] :as cause}]
   (let [frames-unfolded? (contains? unfolded-causes index)
-        frames (stacktrace/visible-frames error stacktrace)]
+        frames (stacktrace/visible-frames error stacktrace)
+        heading [:span {:class ["output-error-cause-heading"]} (stacktrace/cause-heading cause)]]
     [:div {:class ["output-error-cause"]}
-     (toggle-row {:class-name "output-error-cause-toggle"
-                  :control (str "cause-" index)
-                  :label (str "Frames of " (:class cause))
-                  :expanded? frames-unfolded?
-                  :action [:error/ax.toggle-cause {:error/id id :cause/index index}]}
-                 [:span {:class ["output-error-cause-heading"]} (stacktrace/cause-heading cause)]
-                 [:span {:class ["output-error-frame-count"]} (frames-text (count frames))])
+     (if (seq stacktrace)
+       (toggle-row {:class-name "output-error-cause-toggle"
+                    :control (str "cause-" index)
+                    :label (str "Frames of " (:class cause))
+                    :expanded? frames-unfolded?
+                    :action [:error/ax.toggle-cause {:error/id id :cause/index index}]}
+                   heading
+                   [:span {:class ["output-error-frame-count"]} (frames-text (count frames))])
+       [:div {:class ["output-error-cause-row"]} heading])
      (when triage
        [:pre {:class ["output-error-detail"]} (pre-text triage)])
      (when-not triage
        (spec-problems spec))
      (when data
-       (clojure-detail data))
+       (ex-data-block data))
      (when frames-unfolded?
        [:ol {:class ["output-error-frames"]}
         (map #(frame-element error %) frames)])]))
@@ -157,7 +170,7 @@
 (defn- error-heading
   [{:error/keys [id text causes unfolded?]}]
   (let [text-element [:pre {:class ["output-error-text"]} (pre-text text)]]
-    (if (stacktrace/has-frames? causes)
+    (if (stacktrace/unfoldable? causes)
       (toggle-row {:class-name "output-error-toggle"
                    :control "error"
                    :label "Stacktrace"
@@ -175,18 +188,19 @@
                        :copy/actions [[:error/ax.copy {:error/id id}]]}])
 
 (defn element
-  "Returns the hiccup of `error`. An error whose causes have no frames, or haven't arrived, shows its
-   text only."
+  "Returns the hiccup of `error`. An error whose causes have neither frames nor ex-data, or haven't arrived,
+   shows its text only."
   [{:error/keys [id category causes unfolded?] :as error}]
   [:div {:class ["output-error"]
          :data-output-element-type "error"
          :data-error-id id
          :data-error-category (or category "evalErr")}
    (error-heading error)
-   (when (stacktrace/has-frames? causes)
+   (when (stacktrace/unfoldable? causes)
      (copy-button error))
-   (when (and unfolded? (stacktrace/has-frames? causes))
+   (when (and unfolded? (stacktrace/unfoldable? causes))
      [:div {:class ["output-error-causes"]}
       (some->> (stacktrace/compile-location causes) location-element)
-      (filter-bar error)
+      (when (stacktrace/has-frames? causes)
+        (filter-bar error))
       (map-indexed #(cause-element error %1 %2) causes)])])

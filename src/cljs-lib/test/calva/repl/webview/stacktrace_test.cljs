@@ -42,6 +42,13 @@
                                                    :error/unfolded? true})))
         "Can start unfolded")))
 
+(deftest unfoldable?
+  (is (true? (sut/unfoldable? runtime-causes)))
+  (is (true? (sut/unfoldable? [{:class "cljs.core/ExceptionInfo" :data "{:a 1}" :stacktrace []}]))
+      "Ex-data without frames")
+  (is (false? (sut/unfoldable? [{:class "Error" :stacktrace []}])))
+  (is (false? (sut/unfoldable? nil))))
+
 (deftest has-frames?
   (is (true? (sut/has-frames? runtime-causes)))
   (is (false? (sut/has-frames? [{:class "clojure.lang.ExceptionInfo" :stacktrace []}]))

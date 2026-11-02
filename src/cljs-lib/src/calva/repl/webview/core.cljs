@@ -1,5 +1,6 @@
 (ns calva.repl.webview.core
   (:require
+   [calva.pprint.printer :as printer]
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.config :as config]
@@ -618,9 +619,22 @@
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
+(defn- pretty-printing-width
+  "The width `calva.prettyPrintingOptions` prints to, 120 without one."
+  []
+  (or (some-> ^js @util/vscode .-workspace (.getConfiguration "calva") (.get "prettyPrintingOptions") .-width)
+      120))
+
+(defn- with-pretty-data
+  "Returns `cause` with its ex-data pretty-printed `width` wide, its maps in the order they were printed."
+  [width cause]
+  (cond-> cause
+    (:data cause) (update :data #(:value (printer/pretty-print % {:width width :map {:sort? false}})))))
+
 (defn- causes-data
   [^js causes]
-  (mapv stacktrace/cause-data (js->clj causes :keywordize-keys true)))
+  (let [width (pretty-printing-width)]
+    (mapv (comp #(with-pretty-data width %) stacktrace/cause-data) (js->clj causes :keywordize-keys true))))
 
 (defn error-message
   "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause

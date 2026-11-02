@@ -26,6 +26,11 @@
   [causes]
   (boolean (some (comp seq :stacktrace) causes)))
 
+(defn unfoldable?
+  "True when any of the `causes` has frames or ex-data, which the error unfolds to."
+  [causes]
+  (boolean (some #(or (seq (:stacktrace %)) (:data %)) causes)))
+
 (def frame-filters
   "The filters that hide frames with a flag, as an Output view names them."
   [{:filter/label "Clojure" :filter/flag "clj"}
