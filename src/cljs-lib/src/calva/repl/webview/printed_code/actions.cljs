@@ -54,7 +54,8 @@
 
     :printed-code/ax.set-brackets
     (cond-> {:uf/db db}
-      (current? db payload) (assoc :uf/fxs [[:printed-code/fx.set-marks (brackets/mark-ranges (:brackets payload))]]))
+      (current? db payload) (assoc :uf/fxs [[:printed-code/fx.set-marks (brackets/mark-ranges (:brackets payload))]
+                                            [:printed-code/fx.set-forms (get-in payload [:brackets :brackets])]]))
 
     :printed-code/ax.set-command-keys
     {:uf/db db

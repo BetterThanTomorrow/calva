@@ -2,10 +2,13 @@
   "The printed code's editor: a read-only CodeMirror editor in place of a printed code block, one at a time,
    with a cursor and selections that Paredit moves, drawn in the block's colors."
   (:require
+   [calva.repl.webview.error-element :as error-element]
    [calva.repl.webview.input.commands :as commands]
    [calva.repl.webview.input.editor :as input-editor]
    [calva.repl.webview.input.highlighting :as highlighting]
-   ["@codemirror/state" :refer [Compartment EditorSelection EditorState]]
+   [calva.repl.webview.printed-code.folds :as folds]
+   ["@codemirror/language" :refer [codeFolding foldGutter foldKeymap foldService]]
+   ["@codemirror/state" :refer [Compartment EditorSelection EditorState StateEffect StateField]]
    ["@codemirror/view" :refer [EditorView drawSelection keymap]]))
 
 (defn- text-offset
@@ -46,10 +49,68 @@
                                    :lineHeight "normal"}
                ".cm-content" #js {:caretColor "var(--vscode-editorCursor-foreground)"
                                   :padding "1em 0"}
-               ".cm-line" #js {:padding "0 1em"}
+               ;; The fold gutter takes the 1em the block has on the left, so the text stays where it was
+               ".cm-line" #js {:padding "0 1em 0 0"}
+               ".cm-gutters" #js {:backgroundColor "transparent"
+                                  :border "none"}
+               ".cm-foldGutter .cm-gutterElement" #js {:width "1em"
+                                                       :padding "0"
+                                                       :display "flex"
+                                                       :alignItems "center"
+                                                       :justifyContent "center"
+                                                       :cursor "pointer"}
+               ".printed-code-fold-marker" #js {:display "flex"
+                                                :opacity "0"
+                                                :transition "opacity 0.1s"}
+               ".cm-gutters:hover .printed-code-fold-marker, .printed-code-fold-marker.folded" #js {:opacity "1"}
+               ".printed-code-fold-marker svg" #js {:width "0.9em"
+                                                    :height "0.9em"
+                                                    :fill "var(--vscode-icon-foreground, #c5c5c5)"
+                                                    :transition "transform 0.1s ease-out"}
+               ".printed-code-fold-marker.open svg" #js {:transform "rotate(90deg)"}
+               ".cm-foldPlaceholder" #js {:color "var(--vscode-editor-foldPlaceholderForeground, var(--vscode-descriptionForeground))"
+                                          :backgroundColor "transparent"
+                                          :border "none"
+                                          :margin "0"
+                                          :padding "0 1px"}
                ".cm-cursor, .cm-dropCursor" #js {:borderLeftColor "var(--vscode-editorCursor-foreground)"}
                "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground"
                #js {:backgroundColor "var(--vscode-editor-selectionBackground)"}}))
+
+(defonce ^:private set-forms-effect (.define StateEffect))
+
+(def ^:private forms-field
+  "The folds of the editor's forms, `[from to]` in the order they open. The outermost form of the text until
+   the extension's brackets come, which it doesn't send for the longest texts."
+  (.define StateField
+           #js {:create (fn [^js state]
+                          (if-let [fold (folds/outermost-form (.. state -doc toString))] [fold] []))
+                :update (fn [forms ^js transaction]
+                          (reduce (fn [forms ^js effect]
+                                    (if (.is effect set-forms-effect) (.-value effect) forms))
+                                  forms
+                                  (.-effects transaction)))}))
+
+(defn- fold-marker
+  "Returns the fold gutter's chevron of a form that is `open?`, or folded."
+  [open?]
+  (let [marker (js/document.createElement "span")]
+    (set! (.-className marker) (str "printed-code-fold-marker " (if open? "open" "folded")))
+    (set! (.-innerHTML marker) (str "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\""
+                                    error-element/chevron-path "\"/></svg>"))
+    marker))
+
+(def ^:private folding
+  #js [forms-field
+       (.of foldService (fn [^js state line-start line-end]
+                          (when-let [[from to] (folds/fold-at (.field state forms-field) line-start line-end)]
+                            #js {:from from :to to})))
+       (codeFolding #js {:placeholderText "…"})
+       (foldGutter #js {:markerDOM fold-marker
+                        :foldingChanged (fn [^js update]
+                                          (not (identical? (.. update -startState (field forms-field))
+                                                           (.. update -state (field forms-field)))))})
+       (.of keymap foldKeymap)])
 
 (defonce ^:private command-keys-compartment (Compartment.))
 
@@ -95,6 +156,7 @@
        (.of (.-editorAttributes EditorView) #js {:class "printed-code-editor"})
        (.of command-keys-compartment #js [])
        (drawSelection)
+       folding
        (.of keymap commands/keymap)
        (.of line-wrapping-compartment (input-editor/line-wrapping (input-editor/output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
@@ -155,6 +217,14 @@
     (.dispatch view #js {:selection (editor-selection selections)
                          :scrollIntoView true})))
 
+(defn- set-forms!
+  "Gives the editor the folds of the forms of its text with the painter's `brackets`, `[from to depth]`."
+  [brackets]
+  (when-let [^js view (when (seq brackets) (:view @!editor))]
+    (let [forms (folds/forms (.. view -state -doc toString) brackets)]
+      (when (not= forms (.. view -state (field forms-field)))
+        (.dispatch view #js {:effects (.of set-forms-effect forms)})))))
+
 (defn- set-command-keys!
   [command-keys]
   (when-let [^js view (:view @!editor)]
@@ -168,6 +238,7 @@
     :printed-code/fx.unmount (unmount! dispatch!)
     :printed-code/fx.set-selections (set-selections! (first args))
     :printed-code/fx.set-marks (some-> (:view @!editor) (set-marks! (first args)))
+    :printed-code/fx.set-forms (set-forms! (first args))
     :printed-code/fx.set-command-keys (set-command-keys! (first args))
     :printed-code/fx.set-line-wrapping (set-line-wrapping! (first args))
     :printed-code/fx.focus (some-> (:view @!editor) input-editor/focus-now-or-later!)))
