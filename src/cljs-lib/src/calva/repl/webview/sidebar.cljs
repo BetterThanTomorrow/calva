@@ -6,26 +6,14 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-log :as output-log]
    [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.styles :as styles]
    [calva.trail :as trail]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
-(defonce output-sidebar-log (atom #queue []))
 (defonce output-sidebar-showing-output-log? (atom false))
-
-(def log-kept-count
-  "How many of the latest messages `output-sidebar-log` keeps."
-  5000)
-
-(defn add-to-log
-  "Returns `log`, a queue, with `message` last, keeping the latest `log-kept-count`."
-  [log message]
-  (let [added (conj log message)]
-    (if (> (count added) log-kept-count)
-      (pop added)
-      added)))
 
 (defn current-output-destinations
   []
@@ -83,7 +71,7 @@
 (defn post-output-sidebar-log!
   []
   (run! #(core/post-message-to-webview @output-sidebar-webview-view %)
-        @output-sidebar-log))
+        (output-log/messages "output-sidebar")))
 
 (defn apply-sidebar-help-or-output-log!
   [^js webview-view]
@@ -98,14 +86,13 @@
         (post-output-sidebar-log!))
       (set-sidebar-help! webview-view))
     (when-not destination?
-      (reset! output-sidebar-log #queue []))))
+      (output-log/clear! "output-sidebar"))))
 
 (defn add-output-sidebar-message!
-  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later, without the
-   highlighting of printed code, which that page asks for in the colors it has then."
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later."
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log add-to-log (dissoc message :output/highlighting))
+    (output-log/log! "output-sidebar" message)
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
@@ -250,6 +237,6 @@
 
 (defn ^:export clear-output-sidebar
   []
-  (reset! output-sidebar-log #queue [])
+  (output-log/clear! "output-sidebar")
   (when @output-sidebar-webview-view
     (core/post-message-to-webview @output-sidebar-webview-view {:command/name "clear-output-view"})))

@@ -2,12 +2,21 @@
   (:require
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as core]
+   [calva.repl.webview.output-log :as output-log]
    [calva.repl.webview.sidebar :as sut]
    [cljs.test :refer-macros [async deftest testing is]]
    [clojure.string :as string]
    [spy.core :as spy]
    [test-util :as test-util]
    [calva.util :as util]))
+
+(defn- logged
+  "Returns the empty output log with each `[view-id message]` of `posts` posted."
+  [posts]
+  (reduce (fn [log [view-id message]] (output-log/with-message log view-id message)) output-log/empty-log posts))
+
+(defn- sidebar-log []
+  (output-log/messages "output-sidebar"))
 
 (deftest output-sidebar-in-setting?-test
   (testing "recognizes string destinations"
@@ -158,11 +167,11 @@
         options (clj->js {:outputCategory "evalOut"})]
     (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
                   sut/output-sidebar-webview-view (atom nil)
-                  sut/output-sidebar-log (atom [])
+                  output-log/!log (atom output-log/empty-log)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/append options "some-output")
       (is (= [{:command/name "show-stdout" :output-category "evalOut" :output "some-output"}]
-             @sut/output-sidebar-log))
+             (sidebar-log)))
       (is (spy/not-called? post-message-to-webview-spy))))
   (testing "when options carry metadata, should include :meta in the logged message"
     (let [post-message-to-webview-spy (spy/spy)
@@ -172,7 +181,7 @@
                             :replSessionKey "clj"})]
       (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
                     sut/output-sidebar-webview-view (atom nil)
-                    sut/output-sidebar-log (atom [])
+                    output-log/!log (atom output-log/empty-log)
                     core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
         (sut/append options "some-output")
         (is (= [{:command/name "show-stdout"
@@ -181,27 +190,20 @@
                  :meta {:meta/who "repl"
                         :meta/ns "user"
                         :meta/repl-session-key "clj"}}]
-               @sut/output-sidebar-log))))))
+               (sidebar-log)))))))
 
 (deftest log-without-highlighting-test
   (let [post-message-to-webview-spy (spy/spy)
         message {:command/name "show-result" :output "42" :output/highlighting [[0 2 "#79c0ff" nil]]}]
     (with-redefs [sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
                   sut/output-sidebar-webview-view (atom {:some "view"})
-                  sut/output-sidebar-log (atom [])
+                  output-log/!log (atom output-log/empty-log)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/add-output-sidebar-message! message)
       (is (spy/called-once-with? post-message-to-webview-spy {:some "view"} message)
           "The sidebar gets the printed code with its highlighting")
-      (is (= [(dissoc message :output/highlighting)] @sut/output-sidebar-log)
+      (is (= [(dissoc message :output/highlighting)] (sidebar-log))
           "The log keeps it without, for a page that shows the log later to ask in its own colors"))))
-
-(deftest add-to-log-test
-  (let [log (reduce sut/add-to-log #queue [] (range (+ 2 sut/log-kept-count)))]
-    (is (= sut/log-kept-count (count log))
-        "Keeps `log-kept-count` messages")
-    (is (= [2 (inc sut/log-kept-count)] [(first log) (last log)])
-        "Drops the oldest")))
 
 (deftest append-error-test
   (let [post-message-to-webview-spy (spy/spy)
@@ -214,36 +216,39 @@
                           :id "e1"}]
     (with-redefs [sut/current-output-destinations (constantly {:evalOutput "output-sidebar"})
                   sut/output-sidebar-webview-view (atom webview-view)
-                  sut/output-sidebar-log (atom [])
+                  output-log/!log (atom output-log/empty-log)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/append-error (clj->js {:outputCategory "evalErr"})
                         "Execution error"
                         (clj->js [{:class "clojure.lang.ExceptionInfo" :message [] :stacktrace []}])
                         "e1")
-      (is (= [expected-message] @sut/output-sidebar-log)
+      (is (= [expected-message] (sidebar-log))
           "Logs the error so the sidebar can show it again")
       (is (spy/called-once-with? post-message-to-webview-spy webview-view expected-message)))))
 
 (deftest clear-output-sidebar-test
   (let [post-message-to-webview-spy (spy/spy)
         webview-view #js {:webview #js {}}
-        output-log (atom [{:command/name "show-stdout" :output "old"}])]
+        log (logged [["output-sidebar" {:command/name "show-stdout" :output "old"}]
+                     ["output-view" {:command/name "show-stdout" :output "the view's"}]])]
     (with-redefs [sut/output-sidebar-webview-view (atom webview-view)
                   sut/output-sidebar-showing-output-log? (atom false)
-                  sut/output-sidebar-log output-log
+                  output-log/!log (atom log)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/clear-output-sidebar)
-      (is (= [] @output-log))
+      (is (= [] (sidebar-log)))
+      (is (= [{:command/name "show-stdout" :output "the view's"}] (output-log/messages "output-view"))
+          "The Output View keeps its output")
       (is (spy/called-once-with? post-message-to-webview-spy
                                  webview-view
                                  {:command/name "clear-output-view"}))))
   (let [post-message-to-webview-spy (spy/spy)
-        output-log (atom [{:command/name "show-stdout" :output "old"}])]
+        log (logged [["output-sidebar" {:command/name "show-stdout" :output "old"}]])]
     (with-redefs [sut/output-sidebar-webview-view (atom nil)
-                  sut/output-sidebar-log output-log
+                  output-log/!log (atom log)
                   core/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
       (sut/clear-output-sidebar)
-      (is (= [] @output-log))
+      (is (= [] (sidebar-log)))
       (is (spy/not-called? post-message-to-webview-spy)))))
 
 (deftest resolve-output-log-test
@@ -266,7 +271,7 @@
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly {:evalResults "output-sidebar"})
                   sut/output-sidebar-webview-view (atom nil)
-                  sut/output-sidebar-log (atom output-log)
+                  output-log/!log (atom (logged (map #(vector "output-sidebar" %) output-log)))
                   input-host/enabled? (constantly false)
                   core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
                   core/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
@@ -274,7 +279,7 @@
       (let [provider (sut/create-repl-output-sidebar-provider)]
         (.resolveWebviewView ^js provider webview-view nil nil)
         (.resolveWebviewView ^js provider webview-view nil nil)
-        (is (= output-log @sut/output-sidebar-log))
+        (is (= output-log (sidebar-log)))
         (is (= 2 (count (spy/calls set-webview-html!-spy))))
         (is (= 2 (count (spy/calls set-code-theme!-spy))))
         (is (= 4 (count (spy/calls post-message-to-webview-spy))))
@@ -291,7 +296,7 @@
                   util/vscode-context (atom #js {})
                   sut/current-output-destinations (constantly {:evalResults "terminal"})
                   sut/output-sidebar-webview-view (atom webview-view)
-                  sut/output-sidebar-log (atom [{:command/name "show-stdout" :output "stale"}])
+                  output-log/!log (atom (logged [["output-sidebar" {:command/name "show-stdout" :output "stale"}]]))
                   sut/output-sidebar-showing-output-log? (atom false)
                   input-host/enabled? (constantly true)
                   core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
@@ -302,7 +307,7 @@
         (is (= :output-sidebar (-> (spy/calls set-webview-html!-spy) first second :view-kind)))
         (is @sut/output-sidebar-showing-output-log?))
       (testing "keeps no output log when the sidebar is not a destination"
-        (is (= [] @sut/output-sidebar-log)))
+        (is (= [] (sidebar-log))))
       (testing "titles the view REPL"
         (is (= "REPL" (.-title webview-view)))))))
 
@@ -323,7 +328,7 @@
                   util/vscode-context (atom #js {:extensionUri "extension-uri" :subscriptions #js []})
                   sut/current-output-destinations #(deref destinations)
                   sut/output-sidebar-webview-view (atom nil)
-                  sut/output-sidebar-log (atom [{:command/name "show-stdout" :output "first"}])
+                  output-log/!log (atom (logged [["output-sidebar" {:command/name "show-stdout" :output "first"}]]))
                   sut/output-sidebar-showing-output-log? (atom false)
                   input-host/enabled? (constantly false)
                   core/set-webview-html! (test-util/wrap-spy set-webview-html!-spy)
