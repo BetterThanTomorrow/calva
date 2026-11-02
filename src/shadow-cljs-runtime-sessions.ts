@@ -94,33 +94,31 @@ function getSessionForRuntime(target: RuntimeTarget): Promise<nrepl.NReplSession
  * True when shadow-cljs would run an eval in the cljs session in the `target` runtime, which it
  * decides from the build's default runtime, not from Calva's selection.
  */
-async function isCljsSessionRuntime({
-  clientKey,
-  buildId,
-  runtimeId,
-}: RuntimeTarget): Promise<boolean> {
+function isCljsSessionRuntime(
+  { clientKey, buildId, runtimeId }: RuntimeTarget,
+  defaultRuntimeId: number | undefined
+): boolean {
   const cljsBuild = clientRegistry.getConnectionState(clientKey)?.cljsBuild;
-  if (!cljsBuild || buildKeyword(cljsBuild) !== buildKeyword(buildId)) {
-    return false;
-  }
-  const worker = `(shadow.cljs.devtools.api/get-worker ${buildKeyword(buildId)})`;
-  const defaultRuntimeId = await sessionRegistry
-    .getPrimarySessionForClient(clientKey)
-    ?.eval(`(some-> ${worker} :state-ref deref :default-runtime-id)`, 'user').value;
-  return defaultRuntimeId === `${runtimeId}`;
+  return (
+    !!cljsBuild &&
+    buildKeyword(cljsBuild) === buildKeyword(buildId) &&
+    runtimeId === defaultRuntimeId
+  );
 }
 
 /**
- * Returns the session to evaluate in the `target` runtime. That is `cljsSession` when shadow-cljs
- * runs its evals in that runtime anyway, so evals in the runtime share one queue and each gets its
- * own prints from shadow-cljs. Otherwise it is the session for the runtime.
+ * Returns the session to evaluate in the `target` runtime. That is `cljsSession` when
+ * `defaultRuntimeId`, the default runtime of the target's build, is the target, since shadow-cljs
+ * runs the cljs session's evals there anyway. Evals in the runtime then share one queue and each
+ * gets its own prints from shadow-cljs. Otherwise it is the session for the runtime.
  */
-export async function getEvalSessionForRuntime(
+export function getEvalSessionForRuntime(
   target: RuntimeTarget,
+  defaultRuntimeId: number | undefined,
   cljsSession: nrepl.NReplSession
 ): Promise<nrepl.NReplSession> {
-  if (await isCljsSessionRuntime(target)) {
-    return cljsSession;
+  if (isCljsSessionRuntime(target, defaultRuntimeId)) {
+    return Promise.resolve(cljsSession);
   }
   return getSessionForRuntime(target);
 }

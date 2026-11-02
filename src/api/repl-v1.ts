@@ -110,6 +110,7 @@ export const evaluate = async (
     shadowBuild = targetRuntime.buildId;
     evalSession = await runtimeSessions.getEvalSessionForRuntime(
       { clientKey, buildId: targetRuntime.buildId, runtimeId: targetRuntimeId },
+      allBuildsData.defaultRuntimeIds[targetRuntime.buildId],
       session
     );
   }

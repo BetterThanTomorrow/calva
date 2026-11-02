@@ -131,12 +131,28 @@ export async function getShadowRuntimesForClient(
   }
 }
 
+type ShadowRuntimesAllBuilds = {
+  activeBuilds: string[];
+  runtimes: shadowRuntimeCore.RuntimeInfo[];
+  defaultRuntimeIds: Record<string, number>;
+};
+
+const byCanonicalBuildId = (byBuild: Record<string, number>): Record<string, number> =>
+  Object.fromEntries(
+    Object.entries(byBuild).map(([build, value]) => [
+      shadowRuntimeCore.canonicalBuildId(build),
+      value,
+    ])
+  );
+
 /**
- * Get active builds and connected runtimes across all builds for a client connection.
+ * Active builds and connected runtimes across all builds for a client connection, with each
+ * build's default runtime by build id. shadow-cljs runs evals in the default runtime of the build
+ * when the session has no runtime picked, as with the cljs session.
  */
 export async function getShadowRuntimesAllBuilds(
   clientKey: string
-): Promise<{ activeBuilds: string[]; runtimes: shadowRuntimeCore.RuntimeInfo[] } | null> {
+): Promise<ShadowRuntimesAllBuilds | null> {
   try {
     const cljSession = sessionRegistry.getPrimarySessionForClient(clientKey);
     if (!cljSession) {
@@ -146,12 +162,13 @@ export async function getShadowRuntimesAllBuilds(
 
     const queryCode = `(let [active (shadow.cljs.devtools.api/active-builds)]
       {:active-builds (vec (map str active))
-       :runtimes (vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) active))})`;
+       :runtimes (vec (mapcat (fn [b] (try (shadow.cljs.devtools.api/repl-runtimes b) (catch Exception _ nil))) active))
+       :default-runtime-ids (into {} (map (fn [b] [(str b) (some-> (shadow.cljs.devtools.api/get-worker b) :state-ref deref :default-runtime-id)])) active)})`;
 
     const result = await cljSession.eval(queryCode, 'user').value;
 
     if (!result || result === 'nil') {
-      return { activeBuilds: [], runtimes: [] };
+      return { activeBuilds: [], runtimes: [], defaultRuntimeIds: {} };
     }
 
     try {
@@ -161,6 +178,7 @@ export async function getShadowRuntimesAllBuilds(
       return {
         activeBuilds,
         runtimes: apiRuntimes.map(shadowRuntimeCore.normalizeRuntimeInfo),
+        defaultRuntimeIds: byCanonicalBuildId(parsed['default-runtime-ids']),
       };
     } catch (parseError) {
       output.appendLineOtherErr(`Error parsing runtime information: ${parseError}`);

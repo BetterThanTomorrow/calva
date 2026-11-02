@@ -67,10 +67,10 @@ const createRuntimeSession = (replCalls: string[], runtimeEval: RuntimeEval) => 
 };
 
 /**
- * What shadow-cljs does on the mocked connection: the build's default runtime, and whether the
- * cljs session has an eval running.
+ * What shadow-cljs does on the mocked connection: the default runtime of each build, and whether
+ * the cljs session has an eval running.
  */
-type ShadowState = { defaultRuntimeId: string; cljsSessionEvaluating: boolean };
+type ShadowState = { defaultRuntimeIds: Record<string, number>; cljsSessionEvaluating: boolean };
 
 const createCljsSession = (clientKey: string, shadow: ShadowState) =>
   ({
@@ -101,9 +101,9 @@ const registerShadowClient = (clientKey: string) =>
 
 /**
  * Registers a shadow-cljs connection on `clientKey` with runtime 42 of `:app` selected and the cljs
- * session at `sessionKey`. Its clj session clones sessions for runtimes, which run `runtimeEval`,
- * and answers the default runtime query from `shadow`, where shadow-cljs's default is runtime 99,
- * one Calva hasn't selected, until a test changes it.
+ * session at `sessionKey`. Its clj session clones sessions for runtimes, which run `runtimeEval`.
+ * The runtime listing takes the default runtimes from `shadow`, where the default of `:app` is
+ * runtime 99, one Calva hasn't selected, until a test changes it.
  */
 const setUpTargetRuntimeConnection = (
   clientKey: string,
@@ -113,14 +113,14 @@ const setUpTargetRuntimeConnection = (
   const replCalls: string[] = [];
   const remoteMessages: string[] = [];
   const cljEvals: string[] = [];
-  const shadow: ShadowState = { defaultRuntimeId: '99', cljsSessionEvaluating: false };
+  const shadow: ShadowState = { defaultRuntimeIds: { ':app': 99 }, cljsSessionEvaluating: false };
   const runtimeSession = createRuntimeSession(replCalls, runtimeEval);
   const cljSession = {
     replType: 'clj',
     client: { clientKey },
     eval: (code: string) => {
       cljEvals.push(code);
-      return { value: Promise.resolve(shadow.defaultRuntimeId) };
+      return { value: Promise.resolve('nil') };
     },
     clone: () => Promise.resolve(runtimeSession),
     shadowCljsRemoteMessage: (data: string) => {
@@ -131,7 +131,11 @@ const setUpTargetRuntimeConnection = (
 
   const originalGetShadowRuntimesAllBuilds = shadowCljsRuntime.getShadowRuntimesAllBuilds;
   (shadowCljsRuntime as any).getShadowRuntimesAllBuilds = () =>
-    Promise.resolve({ activeBuilds: [':app', ':node'], runtimes: mockShadowRuntimes });
+    Promise.resolve({
+      activeBuilds: [':app', ':node'],
+      runtimes: mockShadowRuntimes,
+      defaultRuntimeIds: shadow.defaultRuntimeIds,
+    });
   registerShadowClient(clientKey);
   sessionRegistry.registerSession(`${sessionKey}-clj`, cljSession, {
     connectionOwnerId: clientKey,
@@ -335,7 +339,7 @@ describe('Shadow runtime sessions suite', () => {
       sessionKey,
       (_code, ns, opts) => createRuntimeEvaluation(ns, opts, Promise.resolve('runtime-session'))
     );
-    connection.shadow.defaultRuntimeId = '42';
+    connection.shadow.defaultRuntimeIds = { ':app': 42, ':node': 43 };
 
     try {
       const res = await replApi.evaluate('(inc 1)', {
@@ -347,11 +351,12 @@ describe('Shadow runtime sessions suite', () => {
       assert.strictEqual(res.result, 'cljs-session');
       assert.strictEqual(res.shadowRuntimeId, 42);
       assert.deepStrictEqual(connection.replCalls, [], 'No session is set up for the runtime');
-      assert.deepStrictEqual(connection.cljEvals, [
-        '(some-> (shadow.cljs.devtools.api/get-worker :app) :state-ref deref :default-runtime-id)',
-      ]);
+      assert.deepStrictEqual(
+        connection.cljEvals,
+        [],
+        'The default runtime comes with the runtime listing'
+      );
 
-      connection.shadow.defaultRuntimeId = '43';
       await replApi.evaluate('(inc 1)', { sessionKey, ns: 'cljs.user', targetRuntimeId: 43 });
       assert.deepStrictEqual(
         connection.replCalls,
@@ -361,6 +366,29 @@ describe('Shadow runtime sessions suite', () => {
     } finally {
       connection.cleanUp();
     }
+  });
+
+  it('lists the default runtime of each build by build id', async () => {
+    const clientKey = 'test-client-default-runtime-ids';
+    registerShadowClient(clientKey);
+    sessionRegistry.registerSession(
+      'shadow-runtime-sessions/default-runtime-ids-clj',
+      {
+        replType: 'clj',
+        client: { clientKey },
+        eval: () => ({
+          value: Promise.resolve(
+            '{:active-builds [":app" ":node-repl"] :runtimes [] ' +
+              ':default-runtime-ids {":app" 42 ":node-repl" 44 ":test" nil}}'
+          ),
+        }),
+      } as unknown as nrepl.NReplSession,
+      { connectionOwnerId: clientKey, isSecondary: false, globs: ['**/*.clj'] }
+    );
+
+    const { defaultRuntimeIds } = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+
+    assert.deepStrictEqual(defaultRuntimeIds, { ':app': 42, 'node-repl': 44, ':test': null });
   });
 
   it('sets up a node-repl session with the build id as a keyword, and no print subscription', async () => {
