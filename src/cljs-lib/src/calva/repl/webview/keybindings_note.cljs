@@ -41,4 +41,4 @@
        [:button {:type "button"
                  :class ["keybindings-note-read-again"]
                  :data-action (pr-str [[:keybindings-note/ax.read-again]])}
-        "Read keybindings again"]])))
+        "Check keybindings"]])))
