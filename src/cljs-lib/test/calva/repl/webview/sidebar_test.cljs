@@ -3,7 +3,7 @@
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as core]
    [calva.repl.webview.sidebar :as sut]
-   [cljs.test :refer-macros [deftest testing is]]
+   [cljs.test :refer-macros [async deftest testing is]]
    [clojure.string :as string]
    [spy.core :as spy]
    [test-util :as test-util]
@@ -105,24 +105,53 @@
       (is (false? (sut/some-output-view-visible? #js [#js ["output-sidebar"]]))))))
 
 (deftest scroll-to-end-test
-  (let [sidebar #js {:webview #js {}}
-        view #js {:webview #js {}}
-        posted (fn [destination output-view]
-                 (let [post-spy (spy/spy)]
-                   (with-redefs [sut/output-sidebar-webview-view (atom sidebar)
-                                 core/output-view-webview-panel (atom output-view)
-                                 core/post-message-to-webview (test-util/wrap-spy post-spy)
-                                 util/log-to-console (constantly nil)]
-                     (sut/scroll-to-end destination)
-                     (mapv first (spy/calls post-spy)))))]
-    (is (= [sidebar] (posted "output-sidebar" view))
-        "Scrolls the Output view the destination names")
-    (is (= [view sidebar] (posted nil view))
-        "Without a destination, scrolls every Output view")
-    (is (= [sidebar] (posted nil nil))
-        "Skips an Output view that isn't open")
-    (is (= [] (posted "terminal" view))
-        "Scrolls nothing for a destination that isn't an Output view")))
+  (async done
+    (let [sidebar #js {:webview #js {}}
+          output-view #js {:webview #js {}}
+          !posted (atom [])
+          !shown (atom nil)
+          !pick (atom nil)
+          originals [sut/output-sidebar-webview-view core/output-view-webview-panel
+                     core/post-message-to-webview util/vscode]
+          scrolled+ (fn [destination pick]
+                      (reset! !posted [])
+                      (reset! !shown nil)
+                      (reset! !pick pick)
+                      (.then (sut/scroll-to-end destination) (fn [_] [@!posted @!shown])))]
+      (set! sut/output-sidebar-webview-view (atom sidebar))
+      (set! core/output-view-webview-panel (atom output-view))
+      (set! core/post-message-to-webview (fn [host _message] (swap! !posted conj host)))
+      (set! util/vscode (atom #js {:window #js {:showQuickPick (fn [items _options]
+                                                                 (reset! !shown (mapv #(.-label %) items))
+                                                                 (js/Promise.resolve (some->> @!pick (aget items))))}}))
+      (-> (scrolled+ "output-sidebar" nil)
+          (.then (fn [named]
+                   (is (= [[sidebar] nil] named)
+                       "Scrolls the Output view the destination names, without asking")
+                   (scrolled+ js/undefined 0)))
+          (.then (fn [no-id]
+                   (is (= [[output-view] ["Output View" "Output Sidebar"]] no-id)
+                       "Without a destination, scrolls the Output view picked in the quick pick")
+                   (scrolled+ "terminal" 1)))
+          (.then (fn [unsupported]
+                   (is (= [[sidebar] ["Output View" "Output Sidebar"]] unsupported)
+                       "For a destination that isn't an Output view, scrolls the Output view picked")
+                   (scrolled+ nil nil)))
+          (.then (fn [cancelled]
+                   (is (= [] (first cancelled))
+                       "Scrolls nothing when the quick pick is cancelled")
+                   (reset! core/output-view-webview-panel nil)
+                   (scrolled+ "output-view" nil)))
+          (.then (fn [closed]
+                   (is (= [[] nil] closed)
+                       "Scrolls nothing when the Output view isn't open")))
+          (.finally (fn []
+                      (let [[sidebar-view output-view-panel post vscode] originals]
+                        (set! sut/output-sidebar-webview-view sidebar-view)
+                        (set! core/output-view-webview-panel output-view-panel)
+                        (set! core/post-message-to-webview post)
+                        (set! util/vscode vscode))
+                      (done)))))))
 
 (deftest append-test
   (let [post-message-to-webview-spy (spy/spy)

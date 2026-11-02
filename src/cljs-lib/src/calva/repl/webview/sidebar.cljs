@@ -185,16 +185,26 @@
   [destination]
   (some-> ^js (output-view-host destination) .-visible))
 
+(def ^:private output-view-picks
+  "The quick pick items of the Output views, with their Output Destination ids."
+  [{:label "Output View" :description "output-view" :destination "output-view"}
+   {:label "Output Sidebar" :description "output-sidebar" :destination "output-sidebar"}])
+
+(defn- post-scroll-to-end!
+  [destination]
+  (some-> (output-view-host destination) (core/post-message-to-webview {:command/name "scroll-to-end"})))
+
 (defn ^:export scroll-to-end
   "Scrolls the output of the Output view `destination`, an Output Destination id, to its end, and turns its
-   auto scrolling on. Without `destination`, every open Output view."
+   auto scrolling on. Without one of the Output views' ids, asks which Output view in a quick pick. Returns a
+   promise of when that is done."
   [destination]
-  (if (and (some? destination)
-           (not (some #{destination} output-view-destinations)))
-    (util/log-to-console :error (str "Cannot scroll to the end: \"" destination "\" is not the Output Destination id of an "
-                                     "Output view, \"output-view\" or \"output-sidebar\""))
-    (run! #(core/post-message-to-webview % {:command/name "scroll-to-end"})
-          (keep output-view-host (if (some? destination) [destination] output-view-destinations)))))
+  (if (some #{destination} output-view-destinations)
+    (js/Promise.resolve (post-scroll-to-end! destination))
+    (-> (.. ^js @util/vscode -window
+            (showQuickPick (clj->js output-view-picks)
+                           #js {:placeHolder "Scroll which Output view to the end?"}))
+        (.then #(some-> % (unchecked-get "destination") post-scroll-to-end!)))))
 
 (defn ^:export some-output-view-visible?
   "True when an Output view among `destinations`, an output destination value as configured, is open

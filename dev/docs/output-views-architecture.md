@@ -98,7 +98,7 @@ Each view has four message listeners on the extension side: `image-host/listen-f
 | `keybindings-note` | The keybindings note, `:keybindings-note/custom`: the user's custom keybindings of commands the Output views handle, each with `:reaches-output-views?` and the `when` clause of Calva's own binding of the command. Empty, the note goes away |
 | `set-word-wrap`, `set-image-display` | The view's word wrap and image display |
 | `set-base-font-scale`, `adjust-font-size`, `reset-font-size` | The font scale |
-| `scroll-to-end` | Scrolls the output to its end, with auto scrolling on. The command Scroll Output View to End (`calva.scrollOutputViewToEnd`) posts it, with `sidebar/scroll-to-end`, to the view its argument names, an Output Destination id, or to every open view without one |
+| `scroll-to-end` | Scrolls the output to its end, with auto scrolling on. The command Scroll Output View to End (`calva.scrollOutputViewToEnd`) posts it, with `sidebar/scroll-to-end`, to the view its argument names, an Output Destination id. Without one of the Output views' ids, it asks which view in a quick pick |
 | `local-image-resolved`, `local-image-missing`, `image-bytes`, `image-bytes-missing` | Answers to the webview's image requests, by the request's `:id` |
 | `repl-input-*` | The REPL Input's messages |
 
