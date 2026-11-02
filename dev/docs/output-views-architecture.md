@@ -21,6 +21,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `error_element.cljs`, `stacktrace.cljs` | Errors with their causes and frames. `stacktrace` is pure and is used on the extension side too |
 | | `images.cljs`, `image_refs.cljs` | Finds image data URLs, image URLs and image file paths in results |
 | | `tooltip.cljs` | The tooltip of every control in the page |
+| | `keybindings_note.cljs` | The keybindings note at the end of the greeting, as hiccup |
 | | `code_highlight.cljs` | The classes that color code, one per color and font style, in one constructed stylesheet, and code's hiccup and DOM with them. The REPL Input uses them too |
 | | `copy_button.cljs` | The copy button, a Replicant alias every block with one uses |
 | | `spinner.cljs` | The spinner of a running evaluation, after an evaluated code block's label and on the REPL Input's context line, and removing it when the evaluation ends |
@@ -34,7 +35,7 @@ The page runs in a webview, from its own shadow-cljs build. The code that create
 | | `frame_host.cljs` | Opens the file of a clicked stacktrace frame |
 | | `token_colors.cljs` | Reads the active color theme's token colors, font styles and semantic token colors |
 | | `code_tokens.cljs` | clojure-lsp's semantic tokens for printed code |
-| | `greeting.cljs` | The greeting at the top of each view |
+| | `greeting.cljs` | The greeting at the top of each view, ending with the empty place of the keybindings note |
 | | `html.cljs` | Renders hiccup to HTML with Replicant |
 | | `styles.cljs` | The views' own styles as Garden data, `rules`, and the Output Sidebar help page's, `help-rules`, with `css` and `help-css`, which render them. `rules` puts together, in the order they apply, the rules of `styles/output.cljs`, `images.cljs`, `copy_buttons.cljs`, `repl_input.cljs` and `errors.cljs` |
 | | `src/cljs-lib/src/calva/trail.cljs` | The trail: lines for Calva's activation and the Output views, in the console and the Calva Log output channel |
@@ -83,7 +84,7 @@ Both directions carry Clojure data, in different encodings:
 - Extension to webview: an EDN string. `post-message-to-webview` posts `(pr-str message)` and `ui/handle-message` reads it with `cljs.reader/read-string`. The message is a map with `:command/name`, and what it posts has to print as EDN.
 - Webview to extension: a JS object with a `command` key. `ui/post-to-host!` converts with `clj->js` and a keyword function that keeps a keyword's namespace, so `:repl-input/id` arrives as `"repl-input/id"`, and `js->clj :keywordize-keys true` turns it back into `:repl-input/id`.
 
-Each view has four message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, `calva.repl.input.messages/listen-for-messages!` for the REPL Input, `core/listen-for-page-loaded!` for `page-loaded`, and `core/listen-for-highlighting-requests!` for printed code's colors. Each ignores the commands that belong to the others.
+Each view has four message listeners on the extension side: `image-host/listen-for-webview-messages!` for images and stacktrace frames, `calva.repl.input.messages/listen-for-messages!` for the REPL Input, `core/listen-for-page-loaded!` for `page-loaded` and `read-keybindings-again`, and `core/listen-for-highlighting-requests!` for printed code's colors. Each ignores the commands that belong to the others.
 
 | Extension to webview | What it does |
 | --- | --- |
@@ -93,6 +94,7 @@ Each view has four message listeners on the extension side: `image-host/listen-f
 | `clear-output-view` | Clears the output |
 | `set-code-theme` | The active theme's palette key, which tells when printed code needs coloring again, and its color for function names, which stack frames take |
 | `output-highlighting`, `output-semantic-tokens` | Printed code's colors, `[id ranges]` for each code element, from the grammar and from clojure-lsp |
+| `keybindings-note` | The keybindings note, `:keybindings-note/missing`: the user's keybindings that miss the Output views. Empty, the note goes away |
 | `set-word-wrap`, `set-image-display` | The view's word wrap and image display |
 | `set-base-font-scale`, `adjust-font-size`, `reset-font-size` | The font scale |
 | `local-image-resolved`, `local-image-missing`, `image-bytes`, `image-bytes-missing` | Answers to the webview's image requests, by the request's `:id` |
@@ -105,7 +107,8 @@ Each view has four message listeners on the extension side: `image-host/listen-f
 | `open-frame`, `open-java-frame` | Opens a clicked stacktrace frame |
 | `output-highlight` | Asks for the grammar's colors of code elements, `[id text]` each |
 | `output-semantic-tokens` | Asks for the semantic tokens of code elements, `[id text ns session-key]` each |
-| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail, forgets the view's printed code (`printed-code/forget!`), since the page's versions start over, and answers with `repl-input-enabled` for the view, since a page that loads while the setting changes can miss the `repl-input-enabled` that the change posts |
+| `read-keybindings-again` | The keybindings note's button. The extension reads the keybindings again for the REPL Inputs and printed code, and posts `keybindings-note` to every view |
+| `page-loaded` | The page's script has run, before the REPL Input mounts. The extension logs it on the trail, forgets the view's printed code (`printed-code/forget!`), since the page's versions start over, and answers with `repl-input-enabled` for the view, since a page that loads while the setting changes can miss the `repl-input-enabled` that the change posts. It reads the user's keybindings and posts the view `keybindings-note` |
 | `repl-input-*` | The REPL Input's messages |
 
 `ui/handle-message` dispatches with a `case`. A command name it doesn't know is logged to the webview's console and ignored. A new message from the extension needs its case there. Most cases dispatch an action in `app_db.cljs`. The answers to image requests call `deliver-host-request!` with no action, and the `repl-input-*` actions are in `webview/input/actions.cljs`.

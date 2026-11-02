@@ -9,6 +9,7 @@
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
+   [calva.repl.webview.keybindings-note :as keybindings-note]
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]
@@ -785,6 +786,13 @@
   (copy-text! (.querySelector dom-element (str "[data-error-id=\"" id "\"] [data-control=\"copy\"]"))
               text))
 
+(defn- render-keybindings-note!
+  "Draws the greeting's note about the `missing` keybindings in place of the note it has."
+  [missing]
+  (when-let [^js element (js/document.getElementById keybindings-note/element-id)]
+    (set! (.-innerHTML element) "")
+    (some->> (keybindings-note/element missing) (insert-hiccup! element "beforeend"))))
+
 (declare dispatch!)
 
 (defn exec-effect!
@@ -811,6 +819,7 @@
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-font-scale (set-font-scale! (first args))
+    :fx/render-keybindings-note (render-keybindings-note! (first args))
     (if-let [handler (get @!effect-handlers (namespace fx-type))]
       (handler dispatch! effect)
       (js/console.error "No handler for effect" (str fx-type)))))
@@ -844,6 +853,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
+         "keybindings-note"     (dispatch! [:keybindings-note/ax.set-note message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
          "local-image-missing"  (deliver-host-request! (:id message-data) message-data)
          "image-bytes"          (deliver-host-request! (:id message-data) message-data)
@@ -904,6 +914,7 @@
   (.. js/window (addEventListener "message" handle-message))
   (.. output-dom-element (addEventListener "output-appended" handle-output-appended))
   (.. output-dom-element (addEventListener "click" #(on-output-click %)))
+  (some-> (js/document.getElementById keybindings-note/element-id) (.addEventListener "click" #(on-output-click %)))
   (.. output-dom-element (addEventListener "load" #(on-image-load %) true))
   (.. output-dom-element (addEventListener "error" #(on-image-error %) true)))
 

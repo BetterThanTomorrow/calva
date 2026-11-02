@@ -68,7 +68,19 @@
     [:img.calva-logo {:display :block
                       :width "120px"
                       :height :auto
-                      :margin-top "8px"}]]])
+                      :margin-top "8px"}]
+    [:.keybindings-note
+     [:summary {:cursor :pointer}]
+     [:code {:overflow-wrap :anywhere}]
+     [:dd {:margin-left "1em"}]
+     [:button {:font-family :inherit
+               :padding [["4px" "10px"]]
+               :border :none
+               :border-radius "2px"
+               :cursor :pointer
+               :color "var(--vscode-button-foreground)"
+               :background-color "var(--vscode-button-background)"}
+      [:&:hover {:background-color "var(--vscode-button-hoverBackground)"}]]]]])
 
 (def evaluated-code
   "The evaluated code block, under its label."

@@ -162,6 +162,19 @@
              (and (contains? db :output/palette-key)
                   (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
 
+(defn- handle-keybindings-note-action
+  [db [action-type payload]]
+  {:uf/db db
+   :uf/fxs (case action-type
+             :keybindings-note/ax.set-note [[:fx/render-keybindings-note (:keybindings-note/missing payload)]]
+             :keybindings-note/ax.read-again [[:fx/post-to-host {:command "read-keybindings-again"}]])})
+
+(def ^:private namespace-handlers
+  "The handlers of the actions in their own keyword namespaces, by the namespace."
+  {"repl-input" #'input-actions/handle-action
+   "printed-code" #'printed-code-actions/handle-action
+   "keybindings-note" #'handle-keybindings-note-action})
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -220,7 +233,6 @@
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)
 
-    (case (namespace action-type)
-      "repl-input" (input-actions/handle-action db action)
-      "printed-code" (printed-code-actions/handle-action db action)
+    (if-let [handle (namespace-handlers (namespace action-type))]
+      (handle db action)
       {:uf/db db})))

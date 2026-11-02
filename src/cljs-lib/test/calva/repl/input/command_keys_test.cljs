@@ -143,6 +143,24 @@
                                                       :when "editorTextFocus && editorLangId == 'clojure'"}]))
                                       (sut/context {:repl-input/settings settings} record))))))))
 
+(deftest keybindings-missing-output-views-test
+  (let [user [{:key "shift+alt+right" :command "paredit.forwardSexp"
+               :when "editorTextFocus && editorLangId == 'clojure'"}
+              {:key "ctrl+alt+right" :command "paredit.forwardSexp"
+               :when "editorTextFocus || calva:printedCodeFocused"}
+              {:key "ctrl+alt+left" :command "paredit.forwardSexp"}
+              {:key "ctrl+enter" :command "calva.evaluateSelection"
+               :when "editorTextFocus"}
+              {:key "ctrl+q" :command "workbench.action.quit"
+               :when "editorTextFocus"}
+              {:key "shift+alt+right" :command "-paredit.forwardSexp"
+               :when "editorTextFocus"}]]
+    (is (= [{:key "shift+alt+right" :command "paredit.forwardSexp"
+             :when "editorTextFocus && editorLangId == 'clojure'"
+             :calva-when (:when (nth manifest-keybindings 2))}]
+           (sut/keybindings-missing-output-views manifest-keybindings user))
+        "Only keybindings of commands the Output views handle, with a when clause that leaves them out, with the when clause of Calva's first binding of the command")))
+
 (deftest platform-keybindings-test
   (testing "the manifest's keys for the platform, for when VS Code's resolved keybindings can't be read"
     (is (= ["cmd+/" "ctrl+w" "ctrl+right" "alt+right" "backspace" "ctrl+enter" "ctrl+alt+c ctrl+alt+j" "ctrl+alt+space a"]

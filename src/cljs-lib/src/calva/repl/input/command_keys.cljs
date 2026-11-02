@@ -48,6 +48,31 @@
           (map #(select-keys % [:key :command :when]))
           additions)))
 
+(def ^:private output-views-context-keys
+  ["calva:replInputFocused" "calva:printedCodeFocused"])
+
+(defn- reaches-output-views?
+  [when-clause]
+  (some #(string/includes? when-clause %) output-views-context-keys))
+
+(defn keybindings-missing-output-views
+  "Returns the user's `user-keybindings` of commands the Output views handle, whose when clause has neither of
+   the Output views' context keys, each with `:calva-when`, the when clause of the command's first binding
+   in the `manifest` that has one of them. The when clauses are searched as text."
+  [manifest user-keybindings]
+  (let [calva-whens (into {}
+                          (comp (filter (comp #(some-> % reaches-output-views?) :when))
+                                (map (juxt :command :when)))
+                          (reverse manifest))]
+    (into []
+          (comp (filter (fn [{:keys [key command] when-clause :when}]
+                          (and (string? key)
+                               (string? when-clause)
+                               (calva-whens command)
+                               (not (reaches-output-views? when-clause)))))
+                (map #(assoc (select-keys % [:key :command :when]) :calva-when (calva-whens (:command %)))))
+          user-keybindings)))
+
 (defn parsed
   "Returns `keybindings` with their when clauses parsed."
   [keybindings]

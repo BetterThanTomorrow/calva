@@ -85,7 +85,7 @@
     (str (or (.-workspaceFile workspace)
              (some-> folder .-uri)))))
 
-(defn- read-user-keybindings+
+(defn read-user-keybindings+
   "Returns a promise of the entries of the user's keybindings.json, or of none when it can't be read. The
    user's folder is two levels up from Calva's global storage, which is the default profile's."
   [^js vscode-context]
@@ -105,10 +105,15 @@
                    (if (seq keybindings) keybindings (fallback)))))
         (.catch fallback))))
 
+(defn manifest-keybindings
+  "Returns the keybindings in Calva's manifest."
+  [^js vscode-context]
+  (js->clj (.. vscode-context -extension -packageJSON -contributes -keybindings) :keywordize-keys true))
+
 (defn read-keybindings+
   "Returns a promise of Calva's keybindings with the user's own keybindings of Calva's commands applied."
   [^js vscode-context]
-  (let [manifest (js->clj (.. vscode-context -extension -packageJSON -contributes -keybindings) :keywordize-keys true)]
+  (let [manifest (manifest-keybindings vscode-context)]
     (-> (js/Promise.all #js [(read-default-keybindings+ manifest) (read-user-keybindings+ vscode-context)])
         (.then (fn [[defaults user]]
                  (command-keys/with-user-keybindings defaults (set (map :command manifest)) user))))))

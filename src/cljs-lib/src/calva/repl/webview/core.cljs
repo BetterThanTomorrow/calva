@@ -1,6 +1,8 @@
 (ns calva.repl.webview.core
   (:require
    [calva.repl.input.brackets :as brackets]
+   [calva.repl.input.command-keys :as command-keys]
+   [calva.repl.input.config :as config]
    [calva.repl.input.highlighting :as highlighting]
    [calva.repl.input.host :as input-host]
    [calva.repl.input.messages :as input-messages]
@@ -456,18 +458,41 @@
                                           "output-semantic-tokens" (post-semantic-tokens! webview-host codes)
                                           nil)))))))
 
+(defn- post-keybindings-note!
+  "Reads the user's keybindings and posts the greeting's note about the ones that miss the Output views to
+   each of the `webview-hosts`."
+  [webview-hosts]
+  (when-let [vscode-context @util/vscode-context]
+    (.then (config/read-user-keybindings+ vscode-context)
+           (fn [user-keybindings]
+             (let [message {:command/name "keybindings-note"
+                            :keybindings-note/missing (command-keys/keybindings-missing-output-views
+                                                       (config/manifest-keybindings vscode-context)
+                                                       user-keybindings)}]
+               (run! #(post-message-to-webview % message) webview-hosts))))))
+
+(defn- page-loaded!
+  [^js webview-host view-id]
+  (trail/log! (str view-id " page loaded"))
+  (printed-code/forget! view-id)
+  (post-message-to-webview webview-host (input-host/enabled-message view-id))
+  (post-keybindings-note! [webview-host]))
+
 (defn listen-for-page-loaded!
   "Each time the page in `webview-host`, the Output view `view-id`, has loaded, logs a trail line, forgets the
-   printed code of the page before, and posts the page whether the REPL Input is on, which the page misses
-   when the setting changed before it listened."
+   printed code of the page before, posts the page whether the REPL Input is on, which the page misses when
+   the setting changed before it listened, and the greeting's note about the user's keybindings. When the
+   page asks to read the keybindings again, reads them for the REPL Inputs and printed code, and posts the
+   note to every view."
   [^js webview-host view-id]
   (when-let [webview (some-> webview-host .-webview)]
     (when (fn? (.-onDidReceiveMessage webview))
       (.onDidReceiveMessage webview (fn [^js message]
-                                      (when (= "page-loaded" (.-command message))
-                                        (trail/log! (str view-id " page loaded"))
-                                        (printed-code/forget! view-id)
-                                        (post-message-to-webview webview-host (input-host/enabled-message view-id))))))))
+                                      (case (.-command message)
+                                        "page-loaded" (page-loaded! webview-host view-id)
+                                        "read-keybindings-again" (do (input-host/load-keybindings!)
+                                                                     (post-keybindings-note! @registered-webviews))
+                                        nil))))))
 
 (defn initialize-webview-panel
   [context ^js webview-panel]

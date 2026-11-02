@@ -185,7 +185,18 @@
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
                                                                             :image-display "raw"}])]
       (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
+      (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result)))))
+
+  (testing ":keybindings-note/ax.set-note draws the greeting's note about the keybindings that miss the Output views"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/render-keybindings-note [{:key "ctrl+j"}]]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.set-note {:command/name "keybindings-note"
+                                                                             :keybindings-note/missing [{:key "ctrl+j"}]}]))))
+
+  (testing ":keybindings-note/ax.read-again asks the extension to read the keybindings again"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/post-to-host {:command "read-keybindings-again"}]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.read-again])))))
 
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
