@@ -5,6 +5,7 @@
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
@@ -458,49 +459,13 @@
         (testing "should call set-code-theme! with expected args"
           (is (spy/called-once-with? set-code-theme!-spy expected-context expected-theme-args)))))))
 
-(deftest options->meta-test
-  (testing "Given nil options, should return nil"
-    (is (nil? (sut/options->meta nil))))
-  (testing "Given a map of options with only :who, should return a map with only :meta/who"
-    (is (= {:meta/who "repl"}
-           (sut/options->meta {:who "repl"}))))
-  (testing "Given a map of options with all supported keys, should return the expected map"
-    (is (= {:meta/who "repl"
-            :meta/ns "user"
-            :meta/repl-session-key "clj"
-            :meta/shadow-build "app"
-            :meta/shadow-runtime-id 1}
-           (sut/options->meta {:who "repl"
-                               :ns "user"
-                               :replSessionKey "clj"
-                               :shadowBuild "app"
-                               :shadowRuntimeId 1}))))
-  (testing "Given a JS object with all supported keys, should return the expected map"
-    (is (= {:meta/who "repl"
-            :meta/ns "user"
-            :meta/repl-session-key "clj"
-            :meta/shadow-build "app"
-            :meta/shadow-runtime-id 1
-            :meta/evaluation-id 7}
-           (sut/options->meta (clj->js {:who "repl"
-                                        :ns "user"
-                                        :replSessionKey "clj"
-                                        :shadowBuild "app"
-                                        :shadowRuntimeId 1
-                                        :evaluationId 7})))))
-  (testing "Given options with no recognized keys, should return an empty map"
-    (is (= {} (sut/options->meta {:outputCategory "evalOut"}))))
-  (testing "Given options with shadow-runtime-id 0, should include it"
-    (is (= {:meta/shadow-runtime-id 0}
-           (sut/options->meta {:shadowRuntimeId 0})))))
-
 (deftest append-test
   (testing "Given options and a message,"
     (testing "when command exists for output category, should call post-message-to-webview with expected args"
       (let [options (clj->js {:outputCategory "evalOut"})
             message "some-message"
             post-message-to-webview-spy (spy/spy)]
-        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+        (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
                       sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                       sut/output-view-webview-panel (atom "webview-panel-stub")]
           (sut/append options message)
@@ -516,7 +481,7 @@
                               :replSessionKey "clj"})
             message "some-message"
             post-message-to-webview-spy (spy/spy)]
-        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+        (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
                       sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                       sut/output-view-webview-panel (atom "webview-panel-stub")]
           (sut/append options message)
@@ -534,7 +499,7 @@
             set-code-theme!-spy (spy/spy)
             post-message-to-webview-spy (spy/spy)
             vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
-        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+        (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
                       util/vscode (atom vscode-stub)
                       util/vscode-context (atom "vscode-context")
                       sut/output-view-webview-panel (atom nil)
@@ -556,7 +521,7 @@
             message "some-message"
             post-message-to-webview-spy (spy/spy)
             log-to-console-spy (spy/spy)]
-        (with-redefs [sut/output-category->command-name {"evalOut" "show-stdout"}
+        (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
                       sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                       sut/output-view-webview-panel (atom "webview-panel-stub")
                       util/log-to-console (test-util/wrap-spy log-to-console-spy)]
@@ -567,54 +532,13 @@
                :error
                "Cannot append output to output webview. No outputCategory matches \"nonexistent-category\"")))))))
 
-(deftest error-message-test
-  (testing "Given options, the error text and JS cause messages,"
-    (let [causes (clj->js [{:class "clojure.lang.ExceptionInfo"
-                            :message "Could not start"
-                            :phase []
-                            :id "7"
-                            :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
-                                          :file-url []
-                                          :flags ["project" "clj"]}]}])]
-      (testing "should return one show-error message with the causes as data"
-        (is (= {:command/name "show-error"
-                :error/text "Execution error"
-                :error/category "evalErr"
-                :error/causes [{:class "clojure.lang.ExceptionInfo"
-                                :message "Could not start"
-                                :phase nil
-                                :stacktrace [{:name "myproj.core$start_BANG_/invokeStatic"
-                                              :file-url nil
-                                              :flags #{"project" "clj"}}]}]
-                :error/unfolded? false
-                :id "e1"
-                :meta {:meta/ns "user"}}
-               (sut/error-message (clj->js {:outputCategory "evalErr" :ns "user"})
-                                  "Execution error"
-                                  causes
-                                  "e1"))))
-      (testing "should start unfolded when the options say so"
-        (is (true? (:error/unfolded? (sut/error-message (clj->js {:outputCategory "evalErr" :unfolded true})
-                                                        "Execution error"
-                                                        causes
-                                                        "e1")))))))
-  (testing "Given causes that come later, should return a message without causes"
-    (is (= [] (:error/causes (sut/error-message (clj->js {:outputCategory "evalErr"}) "Execution error" nil "e1"))))))
-
 (deftest attach-error-causes-test
   (let [post-message-to-webview-spy (spy/spy)]
     (with-redefs [sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)
                   sut/output-view-webview-panel (atom nil)]
       (sut/attach-error-causes "e1" (clj->js []))
-      (is (spy/called-once-with? post-message-to-webview-spy nil (sut/causes-message "e1" (clj->js [])))
+      (is (spy/called-once-with? post-message-to-webview-spy nil (output-messages/causes-message "e1" (clj->js [])))
           "A closed Output View stays closed: there is no panel to post to"))))
-
-(deftest causes-message-test
-  (is (= {:command/name "show-error-causes"
-          :error/id "e1"
-          :error/causes [{:class "java.lang.ArithmeticException" :message nil :stacktrace []}]}
-         (sut/causes-message "e1" (clj->js [{:class "java.lang.ArithmeticException" :message [] :stacktrace []}])))
-      "Gives the entry its causes as data"))
 
 (deftest append-error-test
   (testing "when the webview panel exists, should post the error message to it"

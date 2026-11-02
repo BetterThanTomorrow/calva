@@ -6,6 +6,7 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.styles :as styles]
    [calva.trail :as trail]
    [calva.util :as util]))
@@ -194,26 +195,26 @@
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        command-name (get core/output-category->command-name output-category)]
+        command-name (get output-messages/output-category->command-name output-category)]
     (if command-name
-      (add-output-sidebar-message! (core/output-message options command-name output-category message))
+      (add-output-sidebar-message! (output-messages/output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
 
 (defn ^:export append-error
   [^js options text ^js causes error-id]
-  (add-output-sidebar-message! (core/error-message options text causes error-id)))
+  (add-output-sidebar-message! (output-messages/error-message options text causes error-id)))
 
 (defn ^:export attach-error-causes
   [error-id ^js causes]
-  (add-output-sidebar-message! (core/causes-message error-id causes)))
+  (add-output-sidebar-message! (output-messages/causes-message error-id causes)))
 
 (defn ^:export end-evaluation
   "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
    an Output Destination while the evaluation ran."
   [evaluation-id]
-  (let [message (core/evaluation-ended-message evaluation-id)]
+  (let [message (output-messages/evaluation-ended-message evaluation-id)]
     (if (output-sidebar-in-setting? (current-output-destinations))
       (add-output-sidebar-message! message)
       (core/post-message-to-webview @output-sidebar-webview-view message))))

@@ -1,6 +1,5 @@
 (ns calva.repl.webview.core
   (:require
-   [calva.pprint.printer :as printer]
    [calva.repl.input.brackets :as brackets]
    [calva.repl.input.command-keys :as command-keys]
    [calva.repl.input.config :as config]
@@ -12,8 +11,8 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.printed-brackets :as printed-brackets]
-   [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [calva.trail :as trail]
@@ -391,45 +390,12 @@
            (unregister-webview! webview-panel)
            (input-host/view-disposed! "output-view"))))))
 
-(defn- printed-colors
-  "Returns `[ranges brackets]` for printed `text`: the grammar's ranges, nil before the grammar is loaded, and
-   the brackets when it has ranges."
-  [text settings]
-  (let [ranges (highlighting/printed-highlighting text)]
-    [ranges (when (seq ranges) (printed-brackets/brackets text settings))]))
-
-(defn code-highlighting-message
-  "Returns the message that posts the colors of the printed code `codes`, `[id text]` each, as
-   `[id ranges brackets]`, the ranges nil before the grammar is loaded."
-  [codes]
-  (let [settings (printed-brackets/settings)]
-    {:command/name "output-highlighting"
-     :output/codes (mapv (fn [[id text]] (into [id] (printed-colors text settings))) codes)}))
-
-(def ^:private highlighting-chunk-length
-  "How many characters of printed code the extension highlights before it lets other work run."
-  20000)
-
-(defn- code-chunks
-  "Returns `codes`, `[id text]` each, in chunks of about `highlighting-chunk-length` characters."
-  [codes]
-  (->> codes
-       (reduce (fn [chunks [_ text :as code]]
-                 (let [{:keys [length]} (peek chunks)]
-                   (if (and length (< length highlighting-chunk-length))
-                     (conj (pop chunks) (-> (peek chunks)
-                                            (update :codes conj code)
-                                            (update :length + (count text))))
-                     (conj chunks {:codes [code] :length (count text)}))))
-               [])
-       (map :codes)))
-
 (defn- post-code-highlighting!
   "Posts the page in `webview-host` the highlighting of the printed code of `chunks`, a chunk at a time,
    letting other work run between the chunks."
   [^js webview-host chunks]
   (when-let [[chunk & more] (seq chunks)]
-    (post-message-to-webview webview-host (code-highlighting-message chunk))
+    (post-message-to-webview webview-host (output-messages/code-highlighting-message chunk))
     (when more
       (js/setTimeout #(post-code-highlighting! webview-host more) 0))))
 
@@ -455,7 +421,7 @@
       (.onDidReceiveMessage webview (fn [^js message]
                                       (let [codes (js->clj (aget message "output/codes"))]
                                         (case (.-command message)
-                                          "output-highlight" (post-code-highlighting! webview-host (code-chunks codes))
+                                          "output-highlight" (post-code-highlighting! webview-host (output-messages/code-chunks codes))
                                           "output-semantic-tokens" (post-semantic-tokens! webview-host codes)
                                           nil)))))))
 
@@ -548,150 +514,29 @@
     (set-code-theme! context {:color-theme-kind active-color-theme-kind
                               :webview-panel webview-panel})))
 
-(def output-category->command-name
-  {"otherOut" "show-stdout"
-   "evalOut" "show-stdout"
-   "evalResults" "show-result"
-   "evaluatedCode" "show-evaluated-code"
-   "evalErr" "show-stdout"
-   "otherErr" "show-stdout"
-   "clojure" "show-result"})
-
-(defn- option
-  "Returns the option `k` of `options`, a map or a JS object."
-  [^js options k]
-  (if (map? options) (get options (keyword k)) (unchecked-get options k)))
-
-(defn options->meta
-  [^js options]
-  (when options
-    (let [who (or (and (map? options) (or (:meta/who options) (:who options)))
-                  (and (some? options) (.-who options)))
-          ns (or (and (map? options) (or (:meta/ns options) (:ns options)))
-                 (and (some? options) (.-ns options)))
-          repl-session-key (or (and (map? options) (or (:meta/repl-session-key options)
-                                                       (:meta/repl-session-type options)
-                                                       (:replSessionKey options)
-                                                       (:replSessionType options)
-                                                       (:repl-session-key options)
-                                                       (:repl-session-type options)))
-                               (and (some? options) (or (.-replSessionKey options) (.-replSessionType options))))
-          shadow-build (or (and (map? options) (or (:meta/shadow-build options)
-                                                   (:shadowBuild options)
-                                                   (:shadow-build options)))
-                           (and (some? options) (.-shadowBuild options)))
-          shadow-runtime-id (or (and (map? options) (or (:meta/shadow-runtime-id options)
-                                                        (:shadowRuntimeId options)
-                                                        (:shadow-runtime-id options)))
-                                (and (some? options) (.-shadowRuntimeId options)))
-          evaluation-id (option options "evaluationId")]
-      (cond-> {}
-        who (assoc :meta/who who)
-        ns (assoc :meta/ns ns)
-        repl-session-key (assoc :meta/repl-session-key repl-session-key)
-        shadow-build (assoc :meta/shadow-build shadow-build)
-        (some? shadow-runtime-id) (assoc :meta/shadow-runtime-id shadow-runtime-id)
-        (some? evaluation-id) (assoc :meta/evaluation-id evaluation-id)))))
-
-(def ^:private printed-code-commands #{"show-result" "show-evaluated-code"})
-
-(defn output-message
-  "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`,
-   and printed code's highlighting."
-  [options command-name output-category message]
-  (let [meta-data (options->meta options)
-        [code-highlighting code-brackets] (when (and (printed-code-commands command-name) (string? message))
-                                            (printed-colors message (printed-brackets/settings)))]
-    (cond-> {:command/name command-name
-             :output-category output-category
-             :output message}
-      (seq meta-data) (assoc :meta meta-data)
-      code-highlighting (assoc :output/highlighting code-highlighting)
-      code-brackets (assoc :output/brackets code-brackets))))
-
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        command-name (get output-category->command-name output-category)]
+        command-name (get output-messages/output-category->command-name output-category)]
     (if command-name
-      (post-message-to-webview (ensure-output-view-panel) (output-message options command-name output-category message))
+      (post-message-to-webview (ensure-output-view-panel) (output-messages/output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
-(defn- pretty-printing-width
-  "The width `calva.prettyPrintingOptions` prints to, 120 without one."
-  []
-  (or (some-> ^js @util/vscode .-workspace (.getConfiguration "calva") (.get "prettyPrintingOptions") .-width)
-      120))
-
-(def ^:private max-pretty-data-length
-  "The longest ex-data that is pretty-printed. zprint takes the extension host about 10 ms per 1,000
-   characters, and longer data shows as printed."
-  10000)
-
-(defn- with-pretty-data
-  "Returns `cause` with its ex-data pretty-printed `width` wide, its maps in the order they were printed,
-   when it is no longer than `max-pretty-data-length`."
-  [width {:keys [data] :as cause}]
-  (cond-> cause
-    (and data (<= (count data) max-pretty-data-length))
-    (assoc :data (:value (printer/pretty-print data {:width width :map {:sort? false}})))))
-
-(defonce ^{:private true :doc "The causes of the last error, and their data, which each Output view asks for."}
-  !last-causes (atom nil))
-
-(defn- causes-data
-  [^js causes]
-  (let [{last-causes :causes :keys [data]} @!last-causes]
-    (if (identical? causes last-causes)
-      data
-      (let [width (pretty-printing-width)
-            data (mapv (comp #(with-pretty-data width %) stacktrace/cause-data) (js->clj causes :keywordize-keys true))]
-        (reset! !last-causes {:causes causes :data data})
-        data))))
-
-(defn error-message
-  "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause
-   messages or nil when they come later, as the Output view entry `error-id`. `options` are those
-   of `append`, plus `unfolded`."
-  [^js options text ^js causes error-id]
-  (let [category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        unfolded? (if (map? options) (:unfolded options) (.-unfolded options))
-        meta-data (options->meta options)]
-    (cond-> {:command/name "show-error"
-             :error/text text
-             :error/category category
-             :error/causes (causes-data causes)
-             :error/unfolded? (boolean unfolded?)}
-      error-id (assoc :id error-id)
-      (seq meta-data) (assoc :meta meta-data))))
-
-(defn causes-message
-  "Returns the message that gives the Output view entry `error-id` its `causes`."
-  [error-id ^js causes]
-  {:command/name "show-error-causes"
-   :error/id error-id
-   :error/causes (causes-data causes)})
-
 (defn ^:export append-error
   [^js options text ^js causes error-id]
-  (post-message-to-webview (ensure-output-view-panel) (error-message options text causes error-id)))
+  (post-message-to-webview (ensure-output-view-panel) (output-messages/error-message options text causes error-id)))
 
 (defn ^:export attach-error-causes
   "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
   [error-id ^js causes]
-  (post-message-to-webview @output-view-webview-panel (causes-message error-id causes)))
-
-(defn evaluation-ended-message
-  [evaluation-id]
-  {:command/name "evaluation-ended"
-   :meta/evaluation-id evaluation-id})
+  (post-message-to-webview @output-view-webview-panel (output-messages/causes-message error-id causes)))
 
 (defn ^:export end-evaluation
   "Tells the Output View, unless it was closed in the meantime, that the evaluation `evaluation-id` ended."
   [evaluation-id]
-  (post-message-to-webview @output-view-webview-panel (evaluation-ended-message evaluation-id)))
+  (post-message-to-webview @output-view-webview-panel (output-messages/evaluation-ended-message evaluation-id)))
 
 (defn ^:export clear-output-view
   []
