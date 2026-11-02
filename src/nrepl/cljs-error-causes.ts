@@ -10,23 +10,30 @@ const MARKER = 'calva-cljs-error-causes ';
 // Error causes. The ex-data is printed with 50 items per collection and 10 levels at most, so data
 // that is infinite or deep can't hang the runtime, and data that can't be printed is left out. The
 // REPL moves *1 to *2 and *2 to *3, and makes the value *1, so setting *2 and *1 back, and
-// evaluating to *1, leaves them as they were. It doesn't throw, which would change *e.
-export const causesCode = `(let [o1 *1 o2 *2 o3 *3
+// evaluating to *1, leaves them as they were. It doesn't throw, which would change *e. It is
+// evaluated in the namespace of the error, so it names cljs.core's vars in full.
+export const causesCode = `(cljs.core/let [o1 cljs.core/*1 o2 cljs.core/*2 o3 cljs.core/*3
       printed (try
-                (binding [*print-length* 50 *print-level* 10]
+                (cljs.core/binding [cljs.core/*print-length* 50 cljs.core/*print-level* 10]
                   (js/JSON.stringify
-                   (clj->js (->> *e
-                                 (iterate #(or (ex-cause %) (when (instance? js/Error %) (.-cause %))))
-                                 (take-while some?)
-                                 (take 20)
-                                 (map (fn [e]
-                                        {:class (if (instance? ExceptionInfo e) "cljs.core/ExceptionInfo" (str (.-name e)))
-                                         :message (ex-message e)
-                                         :data (try (some-> (ex-data e) pr-str) (catch :default _ nil))}))))))
+                   (cljs.core/clj->js
+                    (cljs.core/->> cljs.core/*e
+                                   (cljs.core/iterate (cljs.core/fn [e]
+                                                        (cljs.core/or (cljs.core/ex-cause e)
+                                                                      (cljs.core/when (cljs.core/instance? js/Error e) (.-cause e)))))
+                                   (cljs.core/take-while cljs.core/some?)
+                                   (cljs.core/take 20)
+                                   (cljs.core/map (cljs.core/fn [e]
+                                                    {:class (if (cljs.core/instance? cljs.core/ExceptionInfo e)
+                                                              "cljs.core/ExceptionInfo"
+                                                              (cljs.core/str (.-name e)))
+                                                     :message (cljs.core/ex-message e)
+                                                     :data (try (cljs.core/some-> (cljs.core/ex-data e) cljs.core/pr-str)
+                                                                (catch :default _ nil))}))))))
                 (catch :default _ "[]"))]
-  (set! *2 o3)
-  (set! *1 o2)
-  (println (str "${MARKER}" printed))
+  (set! cljs.core/*2 o3)
+  (set! cljs.core/*1 o2)
+  (cljs.core/println (cljs.core/str "${MARKER}" printed))
   o1)`;
 
 type PrintedCause = { class: string; message: string | null; data: string | null };
