@@ -191,7 +191,8 @@
   [destination]
   (if (and (some? destination)
            (not (some #{destination} output-view-destinations)))
-    (util/log-to-console :error (str "Cannot scroll to the end. No Output view is \"" destination "\""))
+    (util/log-to-console :error (str "Cannot scroll to the end: \"" destination "\" is not the Output Destination id of an "
+                                     "Output view, \"output-view\" or \"output-sidebar\""))
     (run! #(core/post-message-to-webview % {:command/name "scroll-to-end"})
           (keep output-view-host (if (some? destination) [destination] output-view-destinations)))))
 
