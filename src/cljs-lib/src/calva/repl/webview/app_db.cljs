@@ -166,7 +166,8 @@
   [db [action-type payload]]
   {:uf/db db
    :uf/fxs (case action-type
-             :keybindings-note/ax.set-note [[:fx/render-keybindings-note (:keybindings-note/missing payload)]]
+             :keybindings-note/ax.set-note [[:fx/render-keybindings-note (:keybindings-note/custom payload)]]
+             :keybindings-note/ax.copy-when [[:fx/copy-text payload]]
              :keybindings-note/ax.read-again [[:fx/post-to-host {:command "read-keybindings-again"}]])})
 
 (def ^:private namespace-handlers

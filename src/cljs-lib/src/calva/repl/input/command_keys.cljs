@@ -67,22 +67,25 @@
   [when-clause]
   (some #(string/includes? when-clause %) output-views-context-keys))
 
-(defn keybindings-missing-output-views
-  "Returns the user's `user-keybindings` of commands the Output views handle, whose when clause has neither of
-   the Output views' context keys, each with `:calva-when`, the when clause of the command's first binding
-   in the `manifest` that has one of them. The when clauses are searched as text."
+(defn output-views-custom-keybindings
+  "Returns the user's `user-keybindings` of commands the Output views handle, each with `:calva-when`, the when
+   clause of the command's first binding in the `manifest` that has one of the Output views' context keys, and
+   `:reaches-output-views?`, whether its own when clause has one of them too, or is left out. The when clauses
+   are searched as text."
   [manifest user-keybindings]
   (let [calva-whens (into {}
                           (comp (filter (comp #(some-> % reaches-output-views?) :when))
                                 (map (juxt :command :when)))
                           (reverse manifest))]
     (into []
-          (comp (filter (fn [{:keys [key command] when-clause :when}]
+          (comp (filter (fn [{:keys [key command]}]
                           (and (string? key)
-                               (string? when-clause)
-                               (calva-whens command)
-                               (not (reaches-output-views? when-clause)))))
-                (map #(assoc (select-keys % [:key :command :when]) :calva-when (calva-whens (:command %)))))
+                               (calva-whens command))))
+                (map (fn [{:keys [command] when-clause :when :as keybinding}]
+                       (assoc (select-keys keybinding [:key :command :when])
+                              :calva-when (calva-whens command)
+                              :reaches-output-views? (boolean (or (not (string? when-clause))
+                                                                  (reaches-output-views? when-clause)))))))
           user-keybindings)))
 
 (defn parsed

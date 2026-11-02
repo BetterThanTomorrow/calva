@@ -94,7 +94,7 @@ Each view has four message listeners on the extension side: `image-host/listen-f
 | `clear-output-view` | Clears the output |
 | `set-code-theme` | The active theme's palette key, which tells when printed code needs coloring again, and its color for function names, which stack frames take |
 | `output-highlighting`, `output-semantic-tokens` | Printed code's colors, `[id ranges]` for each code element, from the grammar and from clojure-lsp |
-| `keybindings-note` | The keybindings note, `:keybindings-note/missing`: the user's keybindings that miss the Output views. Empty, the note goes away |
+| `keybindings-note` | The keybindings note, `:keybindings-note/custom`: the user's custom keybindings of commands the Output views handle, each with `:reaches-output-views?` and the `when` clause of Calva's own binding of the command. Empty, the note goes away |
 | `set-word-wrap`, `set-image-display` | The view's word wrap and image display |
 | `set-base-font-scale`, `adjust-font-size`, `reset-font-size` | The font scale |
 | `local-image-resolved`, `local-image-missing`, `image-bytes`, `image-bytes-missing` | Answers to the webview's image requests, by the request's `:id` |

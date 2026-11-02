@@ -187,11 +187,17 @@
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result)))))
 
-  (testing ":keybindings-note/ax.set-note draws the greeting's note about the keybindings that miss the Output views"
+  (testing ":keybindings-note/ax.set-note draws the greeting's note about the user's custom keybindings"
     (is (= {:uf/db sut/initial-db
             :uf/fxs [[:fx/render-keybindings-note [{:key "ctrl+j"}]]]}
            (sut/handle-action sut/initial-db [:keybindings-note/ax.set-note {:command/name "keybindings-note"
-                                                                             :keybindings-note/missing [{:key "ctrl+j"}]}]))))
+                                                                             :keybindings-note/custom [{:key "ctrl+j"}]}]))))
+
+  (testing ":keybindings-note/ax.copy-when copies Calva's when clause"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/copy-text {:copy/button :button :copy/text "calva:replInputFocused"}]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.copy-when {:copy/button :button
+                                                                              :copy/text "calva:replInputFocused"}]))))
 
   (testing ":keybindings-note/ax.read-again asks the extension to read the keybindings again"
     (is (= {:uf/db sut/initial-db

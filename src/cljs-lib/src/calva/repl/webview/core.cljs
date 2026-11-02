@@ -460,16 +460,16 @@
                                           nil)))))))
 
 (defn- post-keybindings-note!
-  "Reads the user's keybindings and posts the greeting's note about the ones that miss the Output views to
-   each of the `webview-hosts`."
+  "Reads the user's keybindings and posts the greeting's note about their custom keybindings for the Output
+   views to each of the `webview-hosts`."
   [webview-hosts]
   (when-let [vscode-context @util/vscode-context]
     (.then (config/read-user-keybindings+ vscode-context)
            (fn [user-keybindings]
              (let [message {:command/name "keybindings-note"
-                            :keybindings-note/missing (command-keys/keybindings-missing-output-views
-                                                       (config/manifest-keybindings vscode-context)
-                                                       user-keybindings)}]
+                            :keybindings-note/custom (command-keys/output-views-custom-keybindings
+                                                      (config/manifest-keybindings vscode-context)
+                                                      user-keybindings)}]
                (run! #(post-message-to-webview % message) webview-hosts))))))
 
 (defn- page-loaded!

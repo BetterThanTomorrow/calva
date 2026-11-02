@@ -161,7 +161,7 @@
                                                       :when "editorTextFocus && editorLangId == 'clojure'"}]))
                                       (sut/context {:repl-input/settings settings} record))))))))
 
-(deftest keybindings-missing-output-views-test
+(deftest output-views-custom-keybindings-test
   (let [user [{:key "shift+alt+right" :command "paredit.forwardSexp"
                :when "editorTextFocus && editorLangId == 'clojure'"}
               {:key "ctrl+alt+right" :command "paredit.forwardSexp"
@@ -172,12 +172,19 @@
               {:key "ctrl+q" :command "workbench.action.quit"
                :when "editorTextFocus"}
               {:key "shift+alt+right" :command "-paredit.forwardSexp"
-               :when "editorTextFocus"}]]
+               :when "editorTextFocus"}
+              {:command "paredit.forwardSexp"}]
+        calva-when (:when (nth manifest-keybindings 2))]
     (is (= [{:key "shift+alt+right" :command "paredit.forwardSexp"
              :when "editorTextFocus && editorLangId == 'clojure'"
-             :calva-when (:when (nth manifest-keybindings 2))}]
-           (sut/keybindings-missing-output-views manifest-keybindings user))
-        "Only keybindings of commands the Output views handle, with a when clause that leaves them out, with the when clause of Calva's first binding of the command")))
+             :calva-when calva-when :reaches-output-views? false}
+            {:key "ctrl+alt+right" :command "paredit.forwardSexp"
+             :when "editorTextFocus || calva:printedCodeFocused"
+             :calva-when calva-when :reaches-output-views? true}
+            {:key "ctrl+alt+left" :command "paredit.forwardSexp"
+             :calva-when calva-when :reaches-output-views? true}]
+           (sut/output-views-custom-keybindings manifest-keybindings user))
+        "Only keybindings with a key, of commands the Output views handle, each with the when clause of Calva's first binding of the command, and whether its own when clause reaches the Output views or is left out")))
 
 (deftest platform-keybindings-test
   (testing "the manifest's keys for the platform, for when VS Code's resolved keybindings can't be read"

@@ -75,14 +75,19 @@
     [:.keybindings-note
      [:summary {:cursor :pointer}]
      [:code {:overflow-wrap :anywhere}]
-     [:dd {:margin-left "1em"}]
-     [:button {:font-family :inherit
-               :padding [["4px" "10px"]]
-               :border :none
-               :border-radius "2px"
-               :cursor :pointer
-               :color "var(--vscode-button-foreground)"
-               :background-color "var(--vscode-button-background)"}
+     [:li {:display :flex
+           :align-items :center
+           :gap "0.5em"}]
+     [:.output-copy-button {:opacity 1
+                            :width "24px"
+                            :height "24px"}]
+     [:.keybindings-note-read-again {:font-family :inherit
+                                     :padding [["4px" "10px"]]
+                                     :border :none
+                                     :border-radius "2px"
+                                     :cursor :pointer
+                                     :color "var(--vscode-button-foreground)"
+                                     :background-color "var(--vscode-button-background)"}
       [:&:hover {:background-color "var(--vscode-button-hoverBackground)"}]]]]])
 
 (def evaluated-code

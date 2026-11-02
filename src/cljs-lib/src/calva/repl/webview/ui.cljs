@@ -787,11 +787,11 @@
               text))
 
 (defn- render-keybindings-note!
-  "Draws the greeting's note about the `missing` keybindings in place of the note it has."
-  [missing]
+  "Draws the greeting's note about the user's `custom` keybindings in place of the note it has."
+  [custom]
   (when-let [^js element (js/document.getElementById keybindings-note/element-id)]
     (set! (.-innerHTML element) "")
-    (some->> (keybindings-note/element missing) (insert-hiccup! element "beforeend"))))
+    (some->> (keybindings-note/element custom) (insert-hiccup! element "beforeend"))))
 
 (declare dispatch!)
 
@@ -813,6 +813,7 @@
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
     :fx/copy-stdout (copy-stdout! (first args))
+    :fx/copy-text (let [{:copy/keys [button text]} (first args)] (copy-text! button text))
     :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-frame-name-color (set-frame-name-color! (first args))
