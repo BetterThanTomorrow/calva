@@ -1,3 +1,4 @@
+import type { NReplEvaluation } from '.';
 import type { StacktraceCause } from './cider';
 
 // The value shadow-cljs gives an evaluation that throws. The runtime keeps the exception in *e,
@@ -59,4 +60,26 @@ export function parseCauses(stdout: string): StacktraceCause[] | undefined {
   } catch {
     return undefined;
   }
+}
+
+// The causes of the error of `evaluation`, which evaluated to `value`. For a ClojureScript evaluation that
+// evaluated to `EXCEPTION_VALUE`, they are read from *e with `causesCode`, in the evaluation's namespace or
+// `ns`, and a failed request gives no causes. shadow-cljs doesn't always run a session's evaluations in
+// the order they are sent, so the next ones wait for the causes.
+export function errorCauses(evaluation: NReplEvaluation, value: string, ns: string) {
+  const session = evaluation.session;
+  if (session.replType !== 'cljs' || value !== EXCEPTION_VALUE) {
+    return evaluation.causes;
+  }
+  let stdout = '';
+  const probe = session.eval(causesCode, evaluation.ns ?? ns, {
+    stdout: (m) => (stdout += m),
+    pprintOptions: { enabled: false },
+  });
+  return session.holdEvaluationsUntil(
+    probe.value.then(
+      () => parseCauses(stdout),
+      () => undefined
+    )
+  );
 }

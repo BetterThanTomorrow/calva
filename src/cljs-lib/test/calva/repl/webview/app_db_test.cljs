@@ -185,8 +185,9 @@
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
                                                                             :image-display "raw"}])]
       (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result)))))
+      (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
 
+(deftest keybindings-note-actions
   (testing ":keybindings-note/ax.set-note draws the greeting's note about the user's custom keybindings"
     (is (= {:uf/db sut/initial-db
             :uf/fxs [[:fx/render-keybindings-note [{:key "ctrl+j"}]]]}
