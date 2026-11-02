@@ -190,6 +190,33 @@
                   openable)
           "An openable frame opens through its action, and keeps its text selectable"))))
 
+(deftest error-ex-data-element-test
+  (let [hiccup (alias/expand (error-element/element (error-entry true)))
+        blocks (l/select :pre.output-error-data hiccup)]
+    (is (= (keep :data fixtures/runtime-chain)
+           (map #(l/text (first (l/select :code.output-code.clojure-code %))) blocks))
+        "Each cause's ex-data is printed code, which the page colors and printed code's editor opens in")
+    (is (every? #(seq (l/select :.output-code-copy %)) blocks)
+        "with its copy button")))
+
+(deftest error-without-frames-element-test
+  (let [causes [{:class "cljs.core/ExceptionInfo" :message "outer" :data "{:outer 1}" :stacktrace []}
+                {:class "cljs.core/ExceptionInfo" :message "inner" :stacktrace []}]
+        entry (fn [unfolded?] (assoc (error-entry unfolded?) :error/causes causes))
+        folded (alias/expand (error-element/element (entry false)))
+        unfolded (alias/expand (error-element/element (entry true)))]
+    (is (seq (l/select :.output-error-toggle folded))
+        "An error with ex-data and no frames unfolds")
+    (is (= ["{:outer 1}"] (map l/text (l/select :pre.output-error-data unfolded)))
+        "to its causes' ex-data")
+    (is (empty? (l/select :.output-error-filters unfolded))
+        "without the frame filters")
+    (is (= ["cljs.core/ExceptionInfo: outer" "cljs.core/ExceptionInfo: inner"]
+           (map l/text (l/select :.output-error-cause-row unfolded)))
+        "Causes without frames have their heading without a chevron")
+    (is (empty? (l/select :.output-error-toggle (alias/expand (error-element/element (assoc (entry false) :error/causes (mapv #(dissoc % :data) causes))))))
+        "Without ex-data or frames, an error shows its text only")))
+
 (deftest error-text-keeps-leading-line-break-test
   (is (= ["\n\nboom"]
          (map l/text (l/select :pre.output-error-text (error-element/element (assoc (error-entry false)

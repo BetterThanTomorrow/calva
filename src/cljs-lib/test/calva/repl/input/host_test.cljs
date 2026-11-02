@@ -175,8 +175,11 @@
                                                                 :when "calva:replInputFocused && !calva:cursorInComment"}
                                                                {:command "calva.replInput.formatCurrentForm"
                                                                 :key "tab"
-                                                                :when "calva:replInputFocused && !calva:replInputCompletionActive"}])
-                 :repl-input/settings {command-keys/user-keys-setting ["ctrl+j"]})
+                                                                :when "calva:replInputFocused && !calva:replInputCompletionActive"}
+                                                               {:command "paredit.forwardSexp"
+                                                                :key "ctrl+j"
+                                                                :when "calva:replInputFocused && config.calva.paredit.hijackVSCodeDefaults"}])
+                 :repl-input/settings {"calva.paredit.hijackVSCodeDefaults" true})
           (post! {:command "repl-input-mounted" :repl-input/id "output-view" :version 0 :text "" :selections [[0 0]]})
           (testing "posts the command keys to the REPL Input when it mounts, and the ones while its completion list is open"
             (is (= [{:command/name "repl-input-command-keys"
@@ -193,7 +196,7 @@
           (testing "posts the keys when the REPL Input's cursor contexts change them"
             (is (= {:keys #{"tab" "ctrl+j"} :chords #{} :completion-list-keys #{"ctrl+j"}}
                    (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys"))))))
-          (sut/settings-changed! {command-keys/user-keys-setting []})
+          (sut/settings-changed! {"calva.paredit.hijackVSCodeDefaults" false})
           (testing "posts the keys when the settings change them"
             (is (= {:keys #{"tab"} :chords #{} :completion-list-keys #{}}
                    (:repl-input/command-keys (last (posted-named posted "repl-input-command-keys")))))))))))

@@ -41,6 +41,9 @@ const handleShadowRemoteMessage = shadowCljsRuntime.handleShadowRemoteMessage;
 
 // Some cider-nrepl versions can leave a stacktrace reply unfinished
 const STACKTRACE_TIMEOUT_MS = 10000;
+// cider-nrepl answers a causes request in a few milliseconds, and a reply that never finishes
+// shouldn't hold the session's evaluations for long
+const CAUSES_HOLD_MS = 1000;
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -668,11 +671,13 @@ export class NReplSession {
 
   stacktrace() {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
-    return this.requestCauses({
-      op: 'analyze-last-stacktrace',
-      id: this.client.nextId,
-      session: this.sessionId,
-    });
+    return this.holdEvaluationsUntil(
+      this.requestCauses({
+        op: 'analyze-last-stacktrace',
+        id: this.client.nextId,
+        session: this.sessionId,
+      })
+    );
   }
 
   /**
@@ -690,6 +695,37 @@ export class NReplSession {
       this.messageHandlers[msg.id] = cider.stacktraceCausesHandler(resolve, reject);
       this.client.write(msg);
     });
+  }
+
+  // cider-nrepl and a ClojureScript runtime read *e when they get to a request for the causes of the
+  // last error, and an evaluation that fails before then would change it. So the session's next
+  // evaluations wait until the causes are answered, for `CAUSES_HOLD_MS` at most.
+  private evaluationsHeldUntil: Promise<unknown> | undefined;
+
+  holdEvaluationsUntil<T>(answered: Promise<T>): Promise<T> {
+    const hold = Promise.race([
+      answered,
+      new Promise((resolve) => setTimeout(resolve, CAUSES_HOLD_MS)),
+    ]);
+    this.evaluationsHeldUntil = hold;
+    const release = () => {
+      if (this.evaluationsHeldUntil === hold) {
+        this.evaluationsHeldUntil = undefined;
+      }
+    };
+    void hold.then(release, release);
+    return answered;
+  }
+
+  whenCausesAnswered(send: () => void) {
+    if (this.evaluationsHeldUntil === undefined) {
+      send();
+    } else {
+      void this.evaluationsHeldUntil.then(
+        () => send(),
+        () => send()
+      );
+    }
   }
 
   async evaluateInNs(nsForm: string, ns: string) {
@@ -1376,14 +1412,19 @@ export class NReplEvaluation {
     this._running = true;
     this.add();
     this.session.addRunningID(this.id);
-    try {
-      this.session.client.write(message);
-    } catch (e) {
-      delete this.session.messageHandlers[this.id];
-      this.session.removeRunningID(this.id);
-      this.remove();
-      this.doReject(e);
-    }
+    this.session.whenCausesAnswered(() => {
+      if (this.interrupted) {
+        return;
+      }
+      try {
+        this.session.client.write(message);
+      } catch (e) {
+        delete this.session.messageHandlers[this.id];
+        this.session.removeRunningID(this.id);
+        this.remove();
+        this.doReject(e);
+      }
+    });
   }
 
   private add(): void {

@@ -1,5 +1,6 @@
 (ns calva.repl.webview.greeting
   (:require
+   [calva.repl.webview.keybindings-note :as keybindings-note]
    [calva.util :as util]
    [clojure.string :as string]))
 
@@ -89,7 +90,8 @@
      [:p "To reveal this view, use the command " [:strong command-title] "."]
      [:p [:a {:href "https://calva.io"}
           [:img {:class "calva-logo" :src (str logo-href) :width "120" :alt "Calva"}]]]
-     [:p "Please consider " [:a {:href "https://calva.io/sponsors"} "sponsoring Calva"] " ♥️"]]))
+     [:p "Please consider " [:a {:href "https://calva.io/sponsors"} "sponsoring Calva"] " ♥️"]
+     [:div {:id keybindings-note/element-id}]]))
 
 (defn current-output-destinations
   "Reads the current calva.outputDestinations setting."

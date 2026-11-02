@@ -6,25 +6,14 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-log :as output-log]
+   [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.styles :as styles]
    [calva.trail :as trail]
    [calva.util :as util]))
 
 (defonce output-sidebar-webview-view (atom nil))
-(defonce output-sidebar-log (atom #queue []))
 (defonce output-sidebar-showing-output-log? (atom false))
-
-(def log-kept-count
-  "How many of the latest messages `output-sidebar-log` keeps."
-  5000)
-
-(defn add-to-log
-  "Returns `log`, a queue, with `message` last, keeping the latest `log-kept-count`."
-  [log message]
-  (let [added (conj log message)]
-    (if (> (count added) log-kept-count)
-      (pop added)
-      added)))
 
 (defn current-output-destinations
   []
@@ -82,7 +71,7 @@
 (defn post-output-sidebar-log!
   []
   (run! #(core/post-message-to-webview @output-sidebar-webview-view %)
-        @output-sidebar-log))
+        (output-log/messages "output-sidebar")))
 
 (defn apply-sidebar-help-or-output-log!
   [^js webview-view]
@@ -97,14 +86,13 @@
         (post-output-sidebar-log!))
       (set-sidebar-help! webview-view))
     (when-not destination?
-      (reset! output-sidebar-log #queue []))))
+      (output-log/clear! "output-sidebar"))))
 
 (defn add-output-sidebar-message!
-  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later, without the
-   highlighting of printed code, which that page asks for in the colors it has then."
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later."
   [message]
   (when (output-sidebar-in-setting? (current-output-destinations))
-    (swap! output-sidebar-log add-to-log (dissoc message :output/highlighting))
+    (output-log/log! "output-sidebar" message)
     (when @output-sidebar-webview-view
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
@@ -168,13 +156,42 @@
     (add-context-subscription! (create-output-destinations-change-listener))
     provider))
 
+(def ^:private output-view-destinations
+  "The Output Destination ids of the Output views."
+  ["output-view" "output-sidebar"])
+
+(defn- output-view-host
+  "Returns the webview host of the Output view `destination`, an Output Destination id, when it is open."
+  [destination]
+  (case destination
+    "output-view" @core/output-view-webview-panel
+    "output-sidebar" @output-sidebar-webview-view
+    nil))
+
 (defn- output-view-visible?
   [destination]
-  (some-> ^js (case destination
-                "output-view" @core/output-view-webview-panel
-                "output-sidebar" @output-sidebar-webview-view
-                nil)
-          .-visible))
+  (some-> ^js (output-view-host destination) .-visible))
+
+(def ^:private output-view-picks
+  "The quick pick items of the Output views, with their Output Destination ids."
+  [{:label "Output View - Editor Panel" :description "output-view" :destination "output-view"}
+   {:label "Output View - Sidebar Panel" :description "output-sidebar" :destination "output-sidebar"}])
+
+(defn- post-scroll-to-end!
+  [destination]
+  (some-> (output-view-host destination) (core/post-message-to-webview {:command/name "scroll-to-end"})))
+
+(defn ^:export scroll-to-end
+  "Scrolls the output of the Output view `destination`, an Output Destination id, to its end, and turns its
+   auto scrolling on. Without one of the Output views' ids, asks which Output view in a quick pick. Returns a
+   promise of when that is done."
+  [destination]
+  (if (some #{destination} output-view-destinations)
+    (js/Promise.resolve (post-scroll-to-end! destination))
+    (-> (.. ^js @util/vscode -window
+            (showQuickPick (clj->js output-view-picks)
+                           #js {:placeHolder "Scroll which Output view to the end?"}))
+        (.then #(some-> % (unchecked-get "destination") post-scroll-to-end!)))))
 
 (defn ^:export some-output-view-visible?
   "True when an Output view among `destinations`, an output destination value as configured, is open
@@ -194,32 +211,32 @@
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
-        command-name (get core/output-category->command-name output-category)]
+        command-name (get output-messages/output-category->command-name output-category)]
     (if command-name
-      (add-output-sidebar-message! (core/output-message options command-name output-category message))
+      (add-output-sidebar-message! (output-messages/output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
 
 (defn ^:export append-error
   [^js options text ^js causes error-id]
-  (add-output-sidebar-message! (core/error-message options text causes error-id)))
+  (add-output-sidebar-message! (output-messages/error-message options text causes error-id)))
 
 (defn ^:export attach-error-causes
   [error-id ^js causes]
-  (add-output-sidebar-message! (core/causes-message error-id causes)))
+  (add-output-sidebar-message! (output-messages/causes-message error-id causes)))
 
 (defn ^:export end-evaluation
   "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
    an Output Destination while the evaluation ran."
   [evaluation-id]
-  (let [message (core/evaluation-ended-message evaluation-id)]
+  (let [message (output-messages/evaluation-ended-message evaluation-id)]
     (if (output-sidebar-in-setting? (current-output-destinations))
       (add-output-sidebar-message! message)
       (core/post-message-to-webview @output-sidebar-webview-view message))))
 
 (defn ^:export clear-output-sidebar
   []
-  (reset! output-sidebar-log #queue [])
+  (output-log/clear! "output-sidebar")
   (when @output-sidebar-webview-view
     (core/post-message-to-webview @output-sidebar-webview-view {:command/name "clear-output-view"})))

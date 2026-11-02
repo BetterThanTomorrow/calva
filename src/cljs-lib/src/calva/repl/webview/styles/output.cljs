@@ -9,7 +9,9 @@
    [:body {:--calva-output-inset "20px"
            :padding-inline 0}]
 
-   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}]
+   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}
+    ;; It takes the focus from printed code's editor on Escape, for the keys that scroll
+    [:&:focus {:outline :none}]]
    ;; Over the last pixels of the output, so the end shows a little before the very bottom, also in the scroller
    [:#output-end {:height "4px"
                   :margin-top "-4px"
@@ -43,8 +45,9 @@
     "pre[data-output-element-type=\"otherErr\"]"
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
+   ;; Wrapped as printed code's editor wraps, so its lines stay when it opens
    [:body.word-wrap
-    [:code.output-code {:white-space :pre-wrap
+    [:code.output-code {:white-space :break-spaces
                         :overflow-wrap :anywhere}]]])
 
 (def code
@@ -68,7 +71,24 @@
     [:img.calva-logo {:display :block
                       :width "120px"
                       :height :auto
-                      :margin-top "8px"}]]])
+                      :margin-top "8px"}]
+    [:.keybindings-note
+     [:summary {:cursor :pointer}]
+     [:code {:overflow-wrap :anywhere}]
+     [:li {:display :flex
+           :align-items :center
+           :gap "0.5em"}]
+     [:.output-copy-button {:opacity 1
+                            :width "24px"
+                            :height "24px"}]
+     [:.keybindings-note-read-again {:font-family :inherit
+                                     :padding [["4px" "10px"]]
+                                     :border :none
+                                     :border-radius "2px"
+                                     :cursor :pointer
+                                     :color "var(--vscode-button-foreground)"
+                                     :background-color "var(--vscode-button-background)"}
+      [:&:hover {:background-color "var(--vscode-button-hoverBackground)"}]]]]])
 
 (def evaluated-code
   "The evaluated code block, under its label."

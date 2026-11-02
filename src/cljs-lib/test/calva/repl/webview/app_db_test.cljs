@@ -187,6 +187,30 @@
       (is (= sut/initial-db (:uf/db result)))
       (is (= [[:fx/set-image-display "raw"]] (:uf/fxs result))))))
 
+(deftest scroll-to-end-action
+  (is (= {:uf/db sut/initial-db
+          :uf/fxs [[:fx/scroll-to-end]]}
+         (sut/handle-action sut/initial-db [:msg/scroll-to-end]))
+      "Scrolls the output to its end, and leaves the db as is"))
+
+(deftest keybindings-note-actions
+  (testing ":keybindings-note/ax.set-note draws the greeting's note about the user's custom keybindings"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/render-keybindings-note [{:key "ctrl+j"}]]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.set-note {:command/name "keybindings-note"
+                                                                             :keybindings-note/custom [{:key "ctrl+j"}]}]))))
+
+  (testing ":keybindings-note/ax.copy-when copies Calva's when clause"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/copy-text {:copy/button :button :copy/text "calva:replInputFocused"}]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.copy-when {:copy/button :button
+                                                                              :copy/text "calva:replInputFocused"}]))))
+
+  (testing ":keybindings-note/ax.read-again asks the extension to read the keybindings again"
+    (is (= {:uf/db sut/initial-db
+            :uf/fxs [[:fx/post-to-host {:command "read-keybindings-again"}]]}
+           (sut/handle-action sut/initial-db [:keybindings-note/ax.read-again])))))
+
 (deftest compute-effective-scale-test
   (testing "combines base scale and adjustment"
     (is (= 1.1 (sut/compute-effective-scale {:output/base-font-scale 1.0 :output/font-size-adjustment 0.1}))))

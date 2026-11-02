@@ -72,11 +72,33 @@ Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar*
 
 The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the editor tab. Because ([vscode#173643](https://github.com/microsoft/vscode/issues/173643)).
 
+## Scroll to the Bottom
+
+The views scroll new output into view as it prints, unless you have scrolled up, in which case auto-scroll is disabled. It enables again if you scroll to the bottom.
+
+There's a command for scrolling to the bottom: `calva.scrollOutputViewToEnd`. As there are two views, the command pops up a quickpick for you to select which view you want to scroll. You can configure keybindings to provide an view-id as an argument. E.g.:
+
+```jsonc
+{
+  "key": "ctrl+alt+o end",
+  "command": "calva.scrollOutputViewToEnd",
+  "args": "output-sidebar"
+}
+```
+
 ## Copy Code Snippets
 
 To copy code or printed output in the output views, hover your cursor over the code snippet or output you want to copy. A "copy" button will appear in its top right corner. Click it to copy the text to your clipboard.
 
 ![Copy button appearing and being clicked, then changing to Copied](images/output-view/copy-button.gif)
+
+## Navigate, Select, and Fold Code and Data
+
+Click into printed code (a result, evaluated code, or the ex-data of an error) to navigate and select in it with Paredit, just as in a Clojure file. Forms spanning several lines can be folded: hover the left edge to reveal the chevrons, or use VS Code's fold keys. Press <kbd>Escape</kbd> to leave the code, and keep scrolling the output with the keyboard.
+
+## Custom Keybindings
+
+Your own keybindings for Calva's commands work in the Output views when their `when` clause targets correctly. If some of your keybindings miss to target the Output views, a section at the top of the view says which, and lets you copy the `when` clause that Calva uses. Use this to update your keybindings. A button **Check keybindings** let's you check after you have updated keybindings.
 
 ## Theming
 
