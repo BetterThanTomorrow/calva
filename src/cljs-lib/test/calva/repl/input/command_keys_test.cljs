@@ -138,15 +138,20 @@
       (is (= []
              (->> (sut/with-user-keybindings defaults commands [{:key "ctrl+alt+c" :command "-calva.jackIn"}])
                   (filter (comp #{"calva.jackIn"} :command))))))
-    (testing "a removal with a when clause removes the binding with the same when clause, however it is written"
+    (testing "a removal matches by its key, whatever its when clause"
       (is (= ["ctrl+right"]
              (->> (sut/with-user-keybindings defaults commands
                     [{:key "alt+right" :command "-paredit.forwardSexp"
-                      :when "calva:keybindingsEnabled && (editorLangId == 'clojure' && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"}
-                     {:key "ctrl+right" :command "-paredit.forwardSexp"
-                      :when "editorTextFocus"}])
+                      :when "calva:replInputFocused && calva:keybindingsEnabled"}])
                   (filter (comp #{"paredit.forwardSexp"} :command))
                   (map :key)))))
+    (testing "a keybinding that VS Code can't read changes nothing"
+      (is (= (vec defaults)
+             (sut/with-user-keybindings defaults commands
+               [{:key "shift+alt+right" :command "paredit.forwardSexp" :when "editorTextFocus &&"}
+                {:key "shift+alt+left" :command "paredit.forwardSexp" :when 1}
+                {:key 1 :command "-paredit.forwardSexp" :when "editorTextFocus &&"}
+                {:key ["alt+right"] :command "-paredit.forwardSexp"}]))))
     (testing "a user's keybinding holds in the REPL Input when its when clause does"
       (is (= #{"shift+alt+right"}
              (:keys (sut/command-keys (sut/parsed (sut/with-user-keybindings [] commands

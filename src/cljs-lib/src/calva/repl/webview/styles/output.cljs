@@ -43,8 +43,9 @@
     "pre[data-output-element-type=\"otherErr\"]"
     {:color "var(--vscode-errorForeground, #f48771)"}]
 
+   ;; Wrapped as printed code's editor wraps, so its lines stay when it opens
    [:body.word-wrap
-    [:code.output-code {:white-space :pre-wrap
+    [:code.output-code {:white-space :break-spaces
                         :overflow-wrap :anywhere}]]])
 
 (def code

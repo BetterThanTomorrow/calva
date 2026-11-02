@@ -80,11 +80,10 @@
 (defonce ^:private set-forms-effect (.define StateEffect))
 
 (def ^:private forms-field
-  "The folds of the editor's forms, `[from to]` in the order they open. The outermost form of the text until
-   the extension's brackets come, which it doesn't send for the longest texts."
+  "The folds of the editor's forms, `[from to]` in the order they open, from the extension's brackets. Text
+   too long for those has the fold of its outermost form."
   (.define StateField
-           #js {:create (fn [^js state]
-                          (if-let [fold (folds/outermost-form (.. state -doc toString))] [fold] []))
+           #js {:create (constantly [])
                 :update (fn [forms ^js transaction]
                           (reduce (fn [forms ^js effect]
                                     (if (.is effect set-forms-effect) (.-value effect) forms))
@@ -107,6 +106,8 @@
                             #js {:from from :to to})))
        (codeFolding #js {:placeholderText "…"})
        (foldGutter #js {:markerDOM fold-marker
+                        ;; A press in the gutter keeps the focus, which would close the editor if it left
+                        :domEventHandlers #js {:mousedown (constantly true)}
                         :foldingChanged (fn [^js update]
                                           (not (identical? (.. update -startState (field forms-field))
                                                            (.. update -state (field forms-field)))))})
@@ -187,7 +188,14 @@
         state (.create EditorState #js {:doc (.-textContent code)
                                         :selection (editor-selection selections)
                                         :extensions (extensions dispatch!)})
-        view (EditorView. #js {:state state})]
+        view (EditorView. #js {:state state})
+        code-style (js/getComputedStyle code)]
+    ;; The block's padding varies, as between the lines of a result with images
+    (set! (.. view -contentDOM -style -paddingTop) (.-paddingTop code-style))
+    (set! (.. view -contentDOM -style -paddingBottom) (.-paddingBottom code-style))
+    (when-let [fold (when (= "plain" (.getAttribute code "data-highlighted"))
+                      (folds/outermost-form (.-textContent code)))]
+      (.dispatch view #js {:effects (.of set-forms-effect [fold])}))
     (.after code (.-dom view))
     (.. code -style (setProperty "display" "none"))
     (reset! !editor {:view view :code code})

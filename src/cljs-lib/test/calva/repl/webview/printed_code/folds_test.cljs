@@ -23,6 +23,9 @@
       "A map")
   (is (= [3 7] (sut/outermost-form "\n#{1\n 2}\n"))
       "A set, with whitespace around it")
+  (is (= [[4 8] [10 14] [5 9] [8 11]]
+         (map sut/outermost-form ["#:a{:b 1}" "#user.Foo{:a 1}" "#js {:a 1}" "#object[a b]"]))
+      "A namespaced map, a record, a JS object and an object")
   (is (nil? (sut/outermost-form "{:a 1} {:b 2"))
       "Text that doesn't end with the close bracket of its first")
   (is (nil? (sut/outermost-form "\"{a\n}\""))

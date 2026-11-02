@@ -21,10 +21,10 @@
       :else (recur more opens folds))))
 
 (defn outermost-form
-  "Returns the fold `[from to]` of the form that `text` is, when it starts with an open bracket, `#` and
-   whitespace allowed before it, and ends with its close bracket, or nil."
+  "Returns the fold `[from to]` of the form that `text` is, when it starts with an open bracket, after
+   whitespace and a tag like `#`, `#:a` or `#js `, and ends with its close bracket, or nil."
   [text]
-  (when-let [[opening open] (re-find #"^\s*#?([(\[{])" text)]
+  (when-let [[opening open] (re-find #"^\s*(?:#[^\s()\[\]{}\"]*\s?)?([(\[{])" text)]
     (let [end (count (string/trimr text))]
       (when (= (closing open) (subs text (dec end) end))
         [(count opening) (dec end)]))))

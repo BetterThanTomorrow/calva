@@ -31,23 +31,31 @@
   (mapv keys/key-id (string/split (string/trim k) #"\s+")))
 
 (defn- removes?
-  "True when the user's keybinding `removal`, of `-<command>`, removes `binding`, as VS Code removes a default
-   keybinding: one of the command, whose keys start with the removal's key when it has one, and whose when
-   clause is the removal's when it has one."
-  [{removal-key :key removal-command :command removal-when :when} {:keys [key command] :as binding}]
+  "True when the user's keybinding `removal`, of `-<command>`, removes `binding`: one of the command, whose
+   keys start with the removal's key when it has one."
+  [{removal-key :key removal-command :command} {:keys [key command]}]
   (and (= removal-command (str "-" command))
-       (or (string/blank? removal-key)
-           (let [removal-chords (chord-ids removal-key)]
-             (= removal-chords (take (count removal-chords) (chord-ids key)))))
-       (or (string/blank? removal-when)
-           (= (when-clause/parse removal-when) (when-clause/parse (:when binding))))))
+       (cond
+         (nil? removal-key) true
+         (not (string? removal-key)) false
+         (string/blank? removal-key) true
+         :else (let [removal-chords (chord-ids removal-key)]
+                 (= removal-chords (take (count removal-chords) (chord-ids key)))))))
+
+(defn- parses?
+  [when-clause]
+  (or (nil? when-clause)
+      (and (string? when-clause)
+           (try (when-clause/parse when-clause) true
+                (catch :default _ false)))))
 
 (defn with-user-keybindings
   "Returns Calva's `keybindings` with the user's `user-keybindings`, as keybindings.json has them, applied:
-   the ones with a key for one of the `commands` added, and the ones a `-<command>` entry removes left out."
+   the ones with a key for one of the `commands` and a when clause that parses added, and the ones a
+   `-<command>` entry removes left out."
   [keybindings commands user-keybindings]
   (let [removals (filter #(string/starts-with? (str (:command %)) "-") user-keybindings)
-        additions (filter #(and (commands (:command %)) (string? (:key %))) user-keybindings)]
+        additions (filter #(and (commands (:command %)) (string? (:key %)) (parses? (:when %))) user-keybindings)]
     (into (filterv (fn [binding] (not-any? #(removes? % binding) removals)) keybindings)
           (map #(select-keys % [:key :command :when]))
           additions)))
