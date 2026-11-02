@@ -64,6 +64,9 @@
 
    [:.output-error-cause-heading {:overflow-wrap :anywhere}]
 
+   ;; A cause without frames has no chevron, and lines up with the headings that have one
+   [:.output-error-cause-row {:margin-inline-start "18px"}]
+
    [:.output-error-frame-count {:flex :none
                                 :margin-inline-start "1ch"
                                 :color "var(--vscode-descriptionForeground, #858585)"}]])
@@ -75,6 +78,8 @@
                            :overflow-wrap :anywhere
                            :font :inherit
                            :color "var(--vscode-descriptionForeground, #858585)"}]
+
+   [:.output-error-data {:margin [["2px" 0 "2px" "18px"]]}]
 
    [:.output-error-code {:padding 0
                          :background :none

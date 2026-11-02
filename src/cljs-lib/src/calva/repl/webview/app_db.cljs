@@ -162,6 +162,26 @@
              (and (contains? db :output/palette-key)
                   (not= palette-key (:output/palette-key db))) (conj [:fx/rehighlight-code]))})
 
+(defn- handle-keybindings-note-action
+  [db [action-type payload]]
+  {:uf/db db
+   :uf/fxs (case action-type
+             :keybindings-note/ax.set-note [[:fx/render-keybindings-note (:keybindings-note/custom payload)]]
+             :keybindings-note/ax.copy-when [[:fx/copy-text payload]]
+             :keybindings-note/ax.read-again [[:fx/post-to-host {:command "read-keybindings-again"}]])})
+
+(def ^:private namespace-handlers
+  "The handlers of the actions in their own keyword namespaces, by the namespace."
+  {"repl-input" #'input-actions/handle-action
+   "printed-code" #'printed-code-actions/handle-action
+   "keybindings-note" #'handle-keybindings-note-action})
+
+(def ^:private copy-effects
+  "The effect of each copy action, which gets the action's payload."
+  {:output/ax.copy-stdout :fx/copy-stdout
+   :output/ax.copy-image :fx/copy-image
+   :output/ax.copy-code :fx/copy-code})
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -184,17 +204,9 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
-    :output/ax.copy-stdout
+    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code)
     {:uf/db db
-     :uf/fxs [[:fx/copy-stdout payload]]}
-
-    :output/ax.copy-image
-    {:uf/db db
-     :uf/fxs [[:fx/copy-image payload]]}
-
-    :output/ax.copy-code
-    {:uf/db db
-     :uf/fxs [[:fx/copy-code payload]]}
+     :uf/fxs [[(copy-effects action-type) payload]]}
 
     :msg/output-highlighting
     {:uf/db db
@@ -208,6 +220,10 @@
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
+    :msg/scroll-to-end
+    {:uf/db db
+     :uf/fxs [[:fx/scroll-to-end]]}
+
     :msg/set-code-theme
     (handle-set-code-theme db payload)
 
@@ -220,7 +236,6 @@
     (:msg/set-base-font-scale :msg/adjust-font-size :msg/reset-font-size)
     (handle-font-action db action-type payload)
 
-    (case (namespace action-type)
-      "repl-input" (input-actions/handle-action db action)
-      "printed-code" (printed-code-actions/handle-action db action)
+    (if-let [handle (namespace-handlers (namespace action-type))]
+      (handle db action)
       {:uf/db db})))

@@ -40,7 +40,8 @@
     (is (nil? (:uf/fxs (sut/handle-action db [:printed-code/ax.select {:editor 4 :version 1 :selections [[0 3]]}]))))
     (is (nil? (:uf/fxs (sut/handle-action db [:printed-code/ax.select {:editor 3 :version 2 :selections [[0 3]]}])))
         "An answer for an earlier editor at the same version")
-    (is (= [[:printed-code/fx.set-marks [[0 1 "code-bracket-0"] [2 3 "code-bracket-0"] [0 1 "code-matched-bracket"]]]]
+    (is (= [[:printed-code/fx.set-marks [[0 1 "code-bracket-0"] [2 3 "code-bracket-0"] [0 1 "code-matched-bracket"]]]
+            [:printed-code/fx.set-forms [[0 1 0] [2 3 0]]]]
            (:uf/fxs (sut/handle-action db [:printed-code/ax.set-brackets {:editor 4
                                                                          :version 2
                                                                          :brackets {:brackets [[0 1 0] [2 3 0]]

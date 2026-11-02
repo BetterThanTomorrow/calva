@@ -90,9 +90,11 @@
            (not (str/blank? current)) (conj (str/trim current)))))
 
      (defn ovc-rule [rule]
-       (if (.-selectorText rule)
-         [(.-selectorText rule) (ovc-declarations (.. rule -style -cssText))]
-         [(.-conditionText rule) (mapv ovc-rule (array-seq (.-cssRules rule)))]))
+       (cond
+         (.-selectorText rule) [(.-selectorText rule) (ovc-declarations (.. rule -style -cssText))]
+         (instance? js/CSSKeyframeRule rule) [(.-keyText rule) (ovc-declarations (.. rule -style -cssText))]
+         (instance? js/CSSKeyframesRule rule) [(str "@keyframes " (.-name rule)) (mapv ovc-rule (array-seq (.-cssRules rule)))]
+         :else [(.-conditionText rule) (mapv ovc-rule (array-seq (.-cssRules rule)))]))
 
      (defn ovc-sheet-rules [sheet]
        (mapv ovc-rule (array-seq (.-cssRules sheet))))

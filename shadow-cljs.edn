@@ -53,6 +53,7 @@
                              :endEvaluationInReplOutputSidebar calva.repl.webview.sidebar/end-evaluation
                              :setJavaSourceLookup calva.repl.webview.frame-host/set-java-source-lookup!
                              :clearReplOutputSidebar calva.repl.webview.sidebar/clear-output-sidebar
+                             :scrollOutputViewToEnd calva.repl.webview.sidebar/scroll-to-end
                              :initReplInput calva.repl.input.core/init!
                              :replInputTextEditorFocused calva.repl.input.host/text-editor-focused!
                              :replInputFocused calva.repl.input.host/focused?

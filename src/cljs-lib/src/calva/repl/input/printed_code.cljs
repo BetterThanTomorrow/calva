@@ -24,10 +24,9 @@
         doc))))
 
 (defn- command-keys-for
-  [{:repl-input/keys [keybindings settings] :as state} record]
+  [{:repl-input/keys [keybindings] :as state} record]
   (command-keys/command-keys keybindings
-                             (command-keys/context state record focus/printed-code-focused-context)
-                             (get settings command-keys/user-keys-setting)))
+                             (command-keys/context state record focus/printed-code-focused-context)))
 
 (defn- brackets
   "The brackets of `doc`, with the active guides and the brackets matched at its cursors, when its `text` is

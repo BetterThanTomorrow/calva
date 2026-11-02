@@ -270,6 +270,7 @@ async function activate(context: vscode.ExtensionContext) {
     clearInlineResults: annotations.clearAllEvaluationDecorations,
     clearReplOutputView: cljsLib.clearReplOutputView,
     clearReplOutputSidebar: cljsLib.clearReplOutputSidebar,
+    scrollOutputViewToEnd: cljsLib.scrollOutputViewToEnd,
     toggleReplOutputWordWrap: cljsLib.toggleReplOutputWordWrap,
     cycleOutputViewImageDisplay: cljsLib.cycleOutputViewImageDisplay,
     increaseOutputViewFontSize: cljsLib.increaseOutputViewFontSize,

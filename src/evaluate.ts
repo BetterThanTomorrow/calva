@@ -6,6 +6,7 @@ import * as util from './utilities';
 import * as nrepl from './nrepl';
 import * as statusbar from './statusbar';
 import type * as printerTypes from './printer';
+import * as cljsErrorCauses from './nrepl/cljs-error-causes';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
@@ -278,11 +279,13 @@ function appendResult(
 
 function appendStderrAfterResult(
   err: string[],
+  value: string,
   evaluation: nrepl.NReplEvaluation,
   outputOptions: output.AppendClojureOptions
 ) {
   if (err.length > 0) {
-    output.appendEvalErr(err.join('\n'), outputOptions, undefined, evaluation.causes);
+    const causes = cljsErrorCauses.errorCauses(evaluation, value, outputOptions.ns);
+    output.appendEvalErr(err.join('\n'), outputOptions, undefined, causes);
   }
 }
 
@@ -315,7 +318,7 @@ async function outputOutcome(
     flareHandler.inspect(value, flareEvaluator(options, hooks));
     if (showResult) {
       appendResult(value, outputOptions, hooks);
-      appendStderrAfterResult(err, evaluation, outputOptions);
+      appendStderrAfterResult(err, value, evaluation, outputOptions);
     }
     return { value };
   } catch (e) {
