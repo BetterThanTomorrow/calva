@@ -137,6 +137,14 @@
     (.destroy view)
     (dispatch! [:printed-code/ax.unmounted])))
 
+(defn- leave-to-output!
+  "Draws the block again in place of the editor, and gives the focus to the output, so the keys that scroll
+   scroll it."
+  [dispatch!]
+  (unmount! dispatch!)
+  (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true}))
+  true)
+
 (defn- unmount-when-focus-moved-within-page!
   "Draws the block again when the focus left `view` for another place in the page. When the window lost the
    focus, the editor stays, and gets the focus back with the window."
@@ -158,6 +166,7 @@
        (.of command-keys-compartment #js [])
        (drawSelection)
        folding
+       (.of keymap #js [#js {:key "Escape" :run #(leave-to-output! dispatch!)}])
        (.of keymap commands/keymap)
        (.of line-wrapping-compartment (input-editor/line-wrapping (input-editor/output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))

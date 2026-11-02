@@ -9,7 +9,9 @@
    [:body {:--calva-output-inset "20px"
            :padding-inline 0}]
 
-   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}]
+   [:#output-scroller {:padding-inline "var(--calva-output-inset)"}
+    ;; It takes the focus from printed code's editor on Escape, for the keys that scroll
+    [:&:focus {:outline :none}]]
    ;; Over the last pixels of the output, so the end shows a little before the very bottom, also in the scroller
    [:#output-end {:height "4px"
                   :margin-top "-4px"

@@ -149,7 +149,7 @@
     (let [[_ _ & children] (first (elements (sut/page {:env/is-debug false}
                                                       (assoc page-args :greeting [:div "Ahoy"]))
                                             :body))]
-      (is (= [:div {:id "output-scroller"}
+      (is (= [:div {:id "output-scroller" :tabindex "-1"}
               [:div "Ahoy"]
               [:div {:id "output" :class "output-element-container"}]
               [:div {:id "output-end" :aria-hidden "true"}]]

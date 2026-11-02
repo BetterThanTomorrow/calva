@@ -264,7 +264,7 @@
     [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
    [:body (cond-> {:data-image-display (or image-display default-image-display)}
             word-wrap? (assoc :class "word-wrap"))
-    [:div {:id "output-scroller"}
+    [:div {:id "output-scroller" :tabindex "-1"}
      greeting
      [:div {:id "output" :class "output-element-container"}]
      [:div {:id "output-end" :aria-hidden "true"}]]
