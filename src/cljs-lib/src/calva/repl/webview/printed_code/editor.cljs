@@ -138,12 +138,16 @@
     (dispatch! [:printed-code/ax.unmounted])))
 
 (defn- leave-to-output!
-  "Draws the block again in place of the editor, and gives the focus to the output, so the keys that scroll
-   scroll it."
-  [dispatch!]
-  (unmount! dispatch!)
-  (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true}))
-  true)
+  "When the editor `view` has one cursor and no selection, draws the block again in place of it and gives the
+   focus to the output, so the keys that scroll scroll it, and returns true. Otherwise Escape is left to
+   the editor's own keys, which reduce the selection."
+  [dispatch! ^js view]
+  (let [selection (.. view -state -selection)]
+    (when (and (= 1 (.. selection -ranges -length))
+               (.. selection -main -empty))
+      (unmount! dispatch!)
+      (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true}))
+      true)))
 
 (defn- unmount-when-focus-moved-within-page!
   "Draws the block again when the focus left `view` for another place in the page. When the window lost the
@@ -166,7 +170,7 @@
        (.of command-keys-compartment #js [])
        (drawSelection)
        folding
-       (.of keymap #js [#js {:key "Escape" :run #(leave-to-output! dispatch!)}])
+       (.of keymap #js [#js {:key "Escape" :run #(boolean (leave-to-output! dispatch! %))}])
        (.of keymap commands/keymap)
        (.of line-wrapping-compartment (input-editor/line-wrapping (input-editor/output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
@@ -202,7 +206,9 @@
     ;; The block's padding varies, as between the lines of a result with images
     (set! (.. view -contentDOM -style -paddingTop) (.-paddingTop code-style))
     (set! (.. view -contentDOM -style -paddingBottom) (.-paddingBottom code-style))
-    (when-let [fold (when (= "plain" (.getAttribute code "data-highlighted"))
+    ;; Evaluated code can be several forms, results and ex-data are one
+    (when-let [fold (when (and (= "plain" (.getAttribute code "data-highlighted"))
+                               (not (.closest code ".evaluated-code-container")))
                       (folds/outermost-form (.-textContent code)))]
       (.dispatch view #js {:effects (.of set-forms-effect [fold])}))
     (.after code (.-dom view))
