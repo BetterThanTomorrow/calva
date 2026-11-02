@@ -625,16 +625,31 @@
   (or (some-> ^js @util/vscode .-workspace (.getConfiguration "calva") (.get "prettyPrintingOptions") .-width)
       120))
 
+(def ^:private max-pretty-data-length
+  "The longest ex-data that is pretty-printed. zprint takes the extension host about 10 ms per 1,000
+   characters, and longer data shows as printed."
+  10000)
+
 (defn- with-pretty-data
-  "Returns `cause` with its ex-data pretty-printed `width` wide, its maps in the order they were printed."
-  [width cause]
+  "Returns `cause` with its ex-data pretty-printed `width` wide, its maps in the order they were printed,
+   when it is no longer than `max-pretty-data-length`."
+  [width {:keys [data] :as cause}]
   (cond-> cause
-    (:data cause) (update :data #(:value (printer/pretty-print % {:width width :map {:sort? false}})))))
+    (and data (<= (count data) max-pretty-data-length))
+    (assoc :data (:value (printer/pretty-print data {:width width :map {:sort? false}})))))
+
+(defonce ^{:private true :doc "The causes of the last error, and their data, which each Output view asks for."}
+  !last-causes (atom nil))
 
 (defn- causes-data
   [^js causes]
-  (let [width (pretty-printing-width)]
-    (mapv (comp #(with-pretty-data width %) stacktrace/cause-data) (js->clj causes :keywordize-keys true))))
+  (let [{last-causes :causes :keys [data]} @!last-causes]
+    (if (identical? causes last-causes)
+      data
+      (let [width (pretty-printing-width)
+            data (mapv (comp #(with-pretty-data width %) stacktrace/cause-data) (js->clj causes :keywordize-keys true))]
+        (reset! !last-causes {:causes causes :data data})
+        data))))
 
 (defn error-message
   "Returns the message that shows the error `text` and its `causes`, a JS array of cider-nrepl cause

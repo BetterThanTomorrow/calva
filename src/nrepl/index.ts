@@ -41,6 +41,9 @@ const handleShadowRemoteMessage = shadowCljsRuntime.handleShadowRemoteMessage;
 
 // Some cider-nrepl versions can leave a stacktrace reply unfinished
 const STACKTRACE_TIMEOUT_MS = 10000;
+// cider-nrepl answers a causes request in a few milliseconds, and a reply that never finishes
+// shouldn't hold the session's evaluations for long
+const CAUSES_HOLD_MS = 1000;
 
 function hasStatus(res: any, status: string): boolean {
   return res.status && res.status.indexOf(status) > -1;
@@ -668,11 +671,13 @@ export class NReplSession {
 
   stacktrace() {
     // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#analyze-last-stacktrace
-    return this.requestCauses({
-      op: 'analyze-last-stacktrace',
-      id: this.client.nextId,
-      session: this.sessionId,
-    });
+    return this.holdEvaluationsUntil(
+      this.requestCauses({
+        op: 'analyze-last-stacktrace',
+        id: this.client.nextId,
+        session: this.sessionId,
+      })
+    );
   }
 
   /**
@@ -680,7 +685,7 @@ export class NReplSession {
    * support the op or hasn't finished the reply within `STACKTRACE_TIMEOUT_MS`.
    */
   private requestCauses(msg: { op: string; id: string; session: string; [key: string]: unknown }) {
-    const request = new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
+    return new Promise<cider.StacktraceCause[] | undefined>((resolve, reject) => {
       if (!this.supports(msg.op)) {
         log(msg, Direction.ClientToServerNotSupported);
         resolve(undefined);
@@ -690,25 +695,33 @@ export class NReplSession {
       this.messageHandlers[msg.id] = cider.stacktraceCausesHandler(resolve, reject);
       this.client.write(msg);
     });
-    this.causesInFlight = request;
-    const answered = () => {
-      if (this.causesInFlight === request) {
-        this.causesInFlight = undefined;
-      }
-    };
-    void request.then(answered, answered);
-    return request;
   }
 
-  // cider-nrepl reads the session's *e when it handles a causes request, and an evaluation that
-  // fails before then would change it. So an evaluation waits while a request is in flight.
-  private causesInFlight: Promise<unknown> | undefined;
+  // cider-nrepl and a ClojureScript runtime read *e when they get to a request for the causes of the
+  // last error, and an evaluation that fails before then would change it. So the session's next
+  // evaluations wait until the causes are answered, for `CAUSES_HOLD_MS` at most.
+  private evaluationsHeldUntil: Promise<unknown> | undefined;
+
+  holdEvaluationsUntil<T>(answered: Promise<T>): Promise<T> {
+    const hold = Promise.race([
+      answered,
+      new Promise((resolve) => setTimeout(resolve, CAUSES_HOLD_MS)),
+    ]);
+    this.evaluationsHeldUntil = hold;
+    const release = () => {
+      if (this.evaluationsHeldUntil === hold) {
+        this.evaluationsHeldUntil = undefined;
+      }
+    };
+    void hold.then(release, release);
+    return answered;
+  }
 
   whenCausesAnswered(send: () => void) {
-    if (this.causesInFlight === undefined) {
+    if (this.evaluationsHeldUntil === undefined) {
       send();
     } else {
-      void this.causesInFlight.then(
+      void this.evaluationsHeldUntil.then(
         () => send(),
         () => send()
       );
@@ -1400,6 +1413,9 @@ export class NReplEvaluation {
     this.add();
     this.session.addRunningID(this.id);
     this.session.whenCausesAnswered(() => {
+      if (this.interrupted) {
+        return;
+      }
       try {
         this.session.client.write(message);
       } catch (e) {

@@ -278,18 +278,20 @@ function appendResult(
 }
 
 // The causes of the exception a ClojureScript runtime keeps in *e, which its REPL evaluates to
-// `cljsErrorCauses.EXCEPTION_VALUE`. A failed request gives no causes.
+// `cljsErrorCauses.EXCEPTION_VALUE`. A failed request gives no causes. shadow-cljs doesn't always run
+// a session's evaluations in the order they are sent, so the next ones wait for the causes.
 function cljsExceptionCauses(session: nrepl.NReplSession, ns: string) {
   let stdout = '';
-  return session
-    .eval(cljsErrorCauses.causesCode, ns, {
-      stdout: (m) => (stdout += m),
-      pprintOptions: printer.disabledPrettyPrinter,
-    })
-    .value.then(
+  const evaluation = session.eval(cljsErrorCauses.causesCode, ns, {
+    stdout: (m) => (stdout += m),
+    pprintOptions: printer.disabledPrettyPrinter,
+  });
+  return session.holdEvaluationsUntil(
+    evaluation.value.then(
       () => cljsErrorCauses.parseCauses(stdout),
       () => undefined
-    );
+    )
+  );
 }
 
 function appendStderrAfterResult(
