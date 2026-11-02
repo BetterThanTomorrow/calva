@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.609] - 2026-11-02
+
 - [Autoconfigure custom keybindings that the output view should handle](https://github.com/BetterThanTomorrow/calva/issues/3331)
 - [Support folding of Clojure data  in output view](https://github.com/BetterThanTomorrow/calva/issues/3330)
 - Fix: [Some ex-data not showing in output](https://github.com/BetterThanTomorrow/calva/issues/3332)
