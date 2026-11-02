@@ -66,6 +66,7 @@
                   util/vscode-context (atom vscode-context-stub)
                   sut/current-output-destinations (constantly destinations)
                   sut/output-sidebar-webview-view (atom nil)
+                  output-log/!log (atom output-log/empty-log)
                   input-host/enabled? (constantly false)
                   input-host/view-page-set! #(swap! forgotten conj [:page-set %])
                   input-host/view-disposed! #(swap! forgotten conj [:disposed %])
