@@ -5,16 +5,19 @@
    [calva.repl.input.host :as input-host]
    [calva.repl.webview.core :as sut]
    [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.output-log :as output-log]
    [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.styles :as styles]
    [calva.repl.webview.token-colors :as token-colors]
    [cljs.reader :as reader]
-   [cljs.test :refer-macros [deftest testing is]]
+   [cljs.test :refer-macros [deftest testing is use-fixtures]]
    [clojure.string :as string]
    [matcher-combinators.test]
    [spy.core :as spy]
    [test-util :as test-util]
    [calva.util :as util]))
+
+(use-fixtures :each (fn [f] (with-redefs [output-log/!log (atom output-log/empty-log)] (f))))
 
 (deftest dispose-repl-output-webview-panel-test
   (testing "Given an atom holding some value, should set the value to nil"
@@ -493,29 +496,6 @@
                                       :meta {:meta/who "repl"
                                              :meta/ns "user"
                                              :meta/repl-session-key "clj"}})))))
-    (testing "when the webview panel does not exist, should create it before posting"
-      (let [options (clj->js {:outputCategory "evalOut"})
-            create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
-            set-code-theme!-spy (spy/spy)
-            post-message-to-webview-spy (spy/spy)
-            vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
-        (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
-                      util/vscode (atom vscode-stub)
-                      util/vscode-context (atom "vscode-context")
-                      sut/output-view-webview-panel (atom nil)
-                      sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
-                      sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
-                      sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
-          (sut/append options "some-message")
-          (is (spy/called-once-with? create-repl-output-webview-panel-spy
-                                     {:env/is-debug (:is-debug util/env)
-                                      :vscode/vscode vscode-stub
-                                      :vscode/context "vscode-context"}))
-          (is (spy/called-once-with? post-message-to-webview-spy
-                                     "created-webview-panel"
-                                     {:command/name "show-stdout"
-                                      :output-category "evalOut"
-                                      :output "some-message"})))))
     (testing "when command does not exist for output category,"
       (let [options (clj->js {:outputCategory "nonexistent-category"})
             message "some-message"
@@ -538,7 +518,58 @@
                   sut/output-view-webview-panel (atom nil)]
       (sut/attach-error-causes "e1" (clj->js []))
       (is (spy/called-once-with? post-message-to-webview-spy nil (output-messages/causes-message "e1" (clj->js [])))
-          "A closed Output View stays closed: there is no panel to post to"))))
+          "A closed Output View stays closed: there is no panel to post to")
+      (is (= [(output-messages/causes-message "e1" (clj->js []))] (output-log/messages "output-view"))
+          "The causes are logged for when the view opens again"))))
+
+(deftest append-creates-panel-test
+  (testing "when the webview panel does not exist, should create it before posting"
+    (let [options (clj->js {:outputCategory "evalOut"})
+          create-repl-output-webview-panel-spy (spy/stub "created-webview-panel")
+          set-code-theme!-spy (spy/spy)
+          post-message-to-webview-spy (spy/spy)
+          vscode-stub (clj->js {:window {:activeColorTheme {:kind 1}}})]
+      (with-redefs [output-messages/output-category->command-name {"evalOut" "show-stdout"}
+                    util/vscode (atom vscode-stub)
+                    util/vscode-context (atom "vscode-context")
+                    sut/output-view-webview-panel (atom nil)
+                    sut/create-repl-output-webview-panel (test-util/wrap-spy create-repl-output-webview-panel-spy)
+                    sut/set-code-theme! (test-util/wrap-spy set-code-theme!-spy)
+                    sut/post-message-to-webview (test-util/wrap-spy post-message-to-webview-spy)]
+        (sut/append options "some-message")
+        (is (spy/called-once-with? create-repl-output-webview-panel-spy
+                                   {:env/is-debug (:is-debug util/env)
+                                    :vscode/vscode vscode-stub
+                                    :vscode/context "vscode-context"}))
+        (is (spy/called-once-with? post-message-to-webview-spy
+                                   "created-webview-panel"
+                                   {:command/name "show-stdout"
+                                    :output-category "evalOut"
+                                    :output "some-message"}))))))
+
+(deftest output-view-log-test
+  (let [posted (atom [])
+        panel (atom "first-panel")
+        stdout (fn [output] {:command/name "show-stdout" :output-category "evalOut" :output output})]
+    (with-redefs [util/vscode (atom (clj->js {:window {:activeColorTheme {:kind 1}}}))
+                  util/vscode-context (atom "vscode-context")
+                  sut/output-view-webview-panel panel
+                  sut/create-repl-output-webview-panel (constantly "new-panel")
+                  sut/set-code-theme! (constantly nil)
+                  sut/post-message-to-webview (fn [webview-panel message] (swap! posted conj [webview-panel message]))]
+      (sut/append #js {:outputCategory "evalOut"} "before closing")
+      (reset! panel nil)
+      (sut/end-evaluation 7)
+      (reset! posted [])
+      (sut/append #js {:outputCategory "evalOut"} "after opening")
+      (is (= [["new-panel" (stdout "before closing")]
+              ["new-panel" (output-messages/evaluation-ended-message 7)]
+              ["new-panel" (stdout "after opening")]]
+             @posted)
+          "A new panel gets the logged output, with what ended while the view was closed, before the new output")
+      (sut/clear-output-view)
+      (is (= [] (output-log/messages "output-view"))
+          "Clearing the Output View clears its log"))))
 
 (deftest append-error-test
   (testing "when the webview panel exists, should post the error message to it"

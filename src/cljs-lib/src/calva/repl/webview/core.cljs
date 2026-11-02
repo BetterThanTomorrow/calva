@@ -11,6 +11,7 @@
    [calva.repl.webview.greeting :as greeting]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-log :as output-log]
    [calva.repl.webview.output-messages :as output-messages]
    [calva.repl.webview.printed-brackets :as printed-brackets]
    [calva.repl.webview.styles :as styles]
@@ -501,6 +502,7 @@
       (reset! output-view-webview-panel webview-panel)
       (set-code-theme! context {:color-theme-kind active-color-theme-kind
                                 :webview-panel webview-panel})
+      (run! #(post-message-to-webview webview-panel %) (output-log/messages "output-view"))
       webview-panel)))
 
 (defn ^:export show-repl-output-webview-panel
@@ -514,31 +516,38 @@
     (set-code-theme! context {:color-theme-kind active-color-theme-kind
                               :webview-panel webview-panel})))
 
+(defn- log-and-post!
+  "Logs `message` for the Output View, and posts it to the Output View's `webview-panel`, when it is open."
+  [^js webview-panel message]
+  (output-log/log! "output-view" message)
+  (post-message-to-webview webview-panel message))
+
 (defn ^:export append
   [^js options message]
   (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
         command-name (get output-messages/output-category->command-name output-category)]
     (if command-name
-      (post-message-to-webview (ensure-output-view-panel) (output-messages/output-message options command-name output-category message))
+      (log-and-post! (ensure-output-view-panel) (output-messages/output-message options command-name output-category message))
       (util/log-to-console
        :error
        (str "Cannot append output to output webview. No outputCategory matches \"" output-category "\"")))))
 
 (defn ^:export append-error
   [^js options text ^js causes error-id]
-  (post-message-to-webview (ensure-output-view-panel) (output-messages/error-message options text causes error-id)))
+  (log-and-post! (ensure-output-view-panel) (output-messages/error-message options text causes error-id)))
 
 (defn ^:export attach-error-causes
-  "Gives the entry `error-id` its `causes`, unless the Output View was closed in the meantime."
+  "Gives the entry `error-id` its `causes`, also when the Output View was closed in the meantime."
   [error-id ^js causes]
-  (post-message-to-webview @output-view-webview-panel (output-messages/causes-message error-id causes)))
+  (log-and-post! @output-view-webview-panel (output-messages/causes-message error-id causes)))
 
 (defn ^:export end-evaluation
-  "Tells the Output View, unless it was closed in the meantime, that the evaluation `evaluation-id` ended."
+  "Tells the Output View that the evaluation `evaluation-id` ended, also when it was closed in the meantime."
   [evaluation-id]
-  (post-message-to-webview @output-view-webview-panel (output-messages/evaluation-ended-message evaluation-id)))
+  (log-and-post! @output-view-webview-panel (output-messages/evaluation-ended-message evaluation-id)))
 
 (defn ^:export clear-output-view
   []
+  (output-log/clear! "output-view")
   (when-let [webview-panel @output-view-webview-panel]
     (post-message-to-webview webview-panel {:command/name "clear-output-view"})))
