@@ -181,6 +181,14 @@
                  second
                  :evaluation-id))))
 
+  (testing ":msg/set-accessibility-support gives its fx and leaves the db as is"
+    (let [result (sut/handle-action sut/initial-db [:msg/set-accessibility-support {:command/name "set-accessibility-support"
+                                                                                     :accessibility-support? false
+                                                                                     :accessibility-note "Hidden"}])]
+      (is (= sut/initial-db (:uf/db result)))
+      (is (= [[:fx/set-accessibility-support {:accessibility-support? false :accessibility-note "Hidden"}]]
+             (:uf/fxs result)))))
+
   (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"
                                                                             :image-display "raw"}])]

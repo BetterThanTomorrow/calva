@@ -26,7 +26,15 @@
     {:font-family "var(--vscode-editor-font-family, monospace)"
      :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}]
 
-   [:.output-element-container {:padding-bottom "5px"}]])
+   [:.output-element-container {:padding-bottom "5px"}]
+
+   ;; Read by screen readers, not shown
+   [:.visually-hidden {:position :absolute
+                       :width "1px"
+                       :height "1px"
+                       :overflow :hidden
+                       :clip-path "inset(50%)"
+                       :white-space :nowrap}]])
 
 (def text
   "Stdout and the wrapping of code."

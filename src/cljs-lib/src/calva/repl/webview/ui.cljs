@@ -746,6 +746,17 @@
   (apply-remote-src! image-display)
   (apply-local-src! image-display))
 
+(defn set-accessibility-support!
+  "Shows the output in `output-element` to screen readers with `accessibility-support?`, and otherwise hides
+   it from them and puts `accessibility-note` in the `note` element."
+  [^js output-element ^js note {:keys [accessibility-support? accessibility-note]}]
+  (.. js/document -body (setAttribute "data-accessibility-support" (if accessibility-support? "on" "off")))
+  (if accessibility-support?
+    (.removeAttribute output-element "aria-hidden")
+    (.setAttribute output-element "aria-hidden" "true"))
+  (when note
+    (set! (.-textContent note) (if accessibility-support? "" accessibility-note))))
+
 (defn set-font-scale!
   [scale]
   (.. js/document -documentElement -style (setProperty "--calva-output-font-scale" (str scale))))
@@ -819,6 +830,9 @@
     :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
+    :fx/set-accessibility-support (set-accessibility-support! output-dom-element
+                                                              (js/document.getElementById "output-hidden-note")
+                                                              (first args))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
@@ -855,6 +869,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
+         "set-accessibility-support" (dispatch! [:msg/set-accessibility-support message-data])
          "scroll-to-end"        (dispatch! [:msg/scroll-to-end])
          "keybindings-note"     (dispatch! [:keybindings-note/ax.set-note message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)

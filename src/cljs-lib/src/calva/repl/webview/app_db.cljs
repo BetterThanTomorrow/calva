@@ -220,6 +220,10 @@
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
 
+    :msg/set-accessibility-support
+    {:uf/db db
+     :uf/fxs [[:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-note])]]}
+
     :msg/scroll-to-end
     {:uf/db db
      :uf/fxs [[:fx/scroll-to-end]]}

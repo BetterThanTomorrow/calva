@@ -194,6 +194,42 @@
     (when-let [listener (create-image-display-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
+(def accessibility-note
+  "What screen readers get in the Output views while their output is hidden from them."
+  "The output is hidden from screen readers until you turn on the setting calva.outputViews.accessibilitySupport.")
+
+(defn accessibility-support?
+  "Returns whether the Output views show their output to screen readers, by
+   `calva.outputViews.accessibilitySupport`. Its default, `follow-editor`, is on when
+   `editor.accessibilitySupport` is `on`, and VS Code's `auto` counts as off."
+  []
+  (if-let [vscode @util/vscode]
+    (case (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.accessibilitySupport"))
+      "on" true
+      "off" false
+      (= "on" (.. ^js vscode -workspace (getConfiguration "editor") (get "accessibilitySupport"))))
+    false))
+
+(defn- post-accessibility-support-to-all-views!
+  []
+  (let [message {:command/name "set-accessibility-support"
+                 :accessibility-support? (accessibility-support?)
+                 :accessibility-note accessibility-note}]
+    (run! #(post-message-to-webview % message) @registered-webviews)))
+
+(defn ^:export init-accessibility-support!
+  "Posts every Output view a change of `calva.outputViews.accessibilitySupport`, and of
+   `editor.accessibilitySupport`, which its default follows."
+  []
+  (when-let [vscode-context @util/vscode-context]
+    (.. ^js vscode-context -subscriptions
+        (push (.. ^js @util/vscode -workspace
+                  (onDidChangeConfiguration
+                   (fn [^js event]
+                     (when (or (.affectsConfiguration event "calva.outputViews.accessibilitySupport")
+                               (.affectsConfiguration event "editor.accessibilitySupport"))
+                       (post-accessibility-support-to-all-views!)))))))))
+
 (defn get-output-views-font-scale-setting
   []
   (if-let [vscode @util/vscode]
@@ -253,7 +289,8 @@
 
 (defn page
   "Returns the page of an Output view, as hiccup."
-  [{:env/keys [is-debug]} {:keys [js-source styles csp-source greeting word-wrap? font-scale image-display script-nonce repl-input]}]
+  [{:env/keys [is-debug]} {:keys [js-source styles csp-source greeting word-wrap? font-scale image-display script-nonce repl-input
+                                  accessibility-support?]}]
   [:html {:lang "en" :style {:--calva-output-font-scale (str (or font-scale 1.0))}}
    [:head
     [:meta {:charset "UTF-8"}]
@@ -262,11 +299,14 @@
             :content (content-security-policy is-debug csp-source script-nonce)}]
     [:title "REPL Output"]
     [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
-   [:body (cond-> {:data-image-display (or image-display default-image-display)}
+   [:body (cond-> {:data-image-display (or image-display default-image-display)
+                   :data-accessibility-support (if accessibility-support? "on" "off")}
             word-wrap? (assoc :class "word-wrap"))
-    [:div {:id "output-scroller" :tabindex "-1"}
+    [:div {:id "output-scroller" :tabindex "-1" :aria-describedby "output-hidden-note"}
      greeting
-     [:div {:id "output" :class "output-element-container"}]
+     [:p {:id "output-hidden-note" :class "visually-hidden"} (if accessibility-support? "" accessibility-note)]
+     [:div (cond-> {:id "output" :class "output-element-container"}
+             (not accessibility-support?) (assoc :aria-hidden "true"))]
      [:div {:id "output-end" :aria-hidden "true"}]]
     (when repl-input (repl-input-element repl-input))
     [:script {:nonce script-nonce :src (str js-source)}]]])
@@ -295,6 +335,7 @@
                                  :word-wrap? (word-wrap?)
                                  :font-scale (get-output-views-font-scale-setting)
                                  :image-display (image-display)
+                                 :accessibility-support? (accessibility-support?)
                                  :repl-input (input-host/html-state (name view-kind))})]
     (set! (.. webview-panel -webview -html) (html/document view-page))))
 

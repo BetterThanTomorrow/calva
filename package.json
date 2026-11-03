@@ -358,6 +358,21 @@
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
+          "calva.outputViews.accessibilitySupport": {
+            "type": "string",
+            "enum": [
+              "follow-editor",
+              "on",
+              "off"
+            ],
+            "enumDescriptions": [
+              "On when editor.accessibilitySupport is \"on\", off otherwise.",
+              "The output is shown to screen readers.",
+              "The output is hidden from screen readers."
+            ],
+            "default": "follow-editor",
+            "markdownDescription": "Shows the Output views' output to screen readers when on, and hides it from them when off. The default, `follow-editor`, is on when `#editor.accessibilitySupport#` is `on`."
+          },
           "calva.outputViews.replInput": {
             "type": "object",
             "properties": {

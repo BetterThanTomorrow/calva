@@ -94,6 +94,10 @@
     (set! (.-children el) children)
     (set! (.-setAttribute el) (fn [k v] (set-attribute! el attributes k v)))
     (set! (.-getAttribute el) (fn [k] (aget attributes k)))
+    (set! (.-removeAttribute el) (fn [k]
+                                   (js-delete attributes k)
+                                   (when (string/starts-with? k "data-")
+                                     (js-delete (.-dataset el) (dataset-key k)))))
     (set! (.-appendChild el) (fn [child]
                                (set! (.-parentNode child) el)
                                (.push children child)
