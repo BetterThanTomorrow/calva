@@ -5,7 +5,7 @@
    [cljs.test :refer-macros [deftest is]]))
 
 (deftest accessibility-support-follows-the-setting
-  (let [output (fake-document/hiccup-element [:div {:id "output" :aria-hidden "true"}])
+  (let [output (fake-document/hiccup-element [:div {:id "output" :aria-hidden "true"} [:pre "a"] [:pre "b"]])
         note (fake-document/hiccup-element [:p {:id "output-hidden-note"} "Hidden"])
         get-element-by-id (.-getElementById js/document)
         message (fn [on?]
@@ -14,17 +14,18 @@
                                       :accessibility-note "Hidden"})})
         state (fn []
                 {:aria-hidden (.getAttribute output "aria-hidden")
+                 :blocks-aria-hidden (mapv #(.getAttribute ^js % "aria-hidden") (.-children output))
                  :note (.-textContent note)
                  :body (.. js/document -body (getAttribute "data-accessibility-support"))})]
     (set! (.-getElementById js/document) (fn [id] (when (= "output-hidden-note" id) note)))
     (try
       (with-redefs [ui/output-dom-element output]
         (ui/handle-message (message true))
-        (is (= {:aria-hidden nil :note "" :body "on"} (state))
-            "On, the output is readable, and the note is empty")
+        (is (= {:aria-hidden nil :blocks-aria-hidden ["true" "true"] :note "" :body "on"} (state))
+            "On, the output is readable, its blocks hidden until found near the view, and the note is empty")
         (ui/handle-message (message false))
-        (is (= {:aria-hidden "true" :note "Hidden" :body "off"} (state))
-            "Off, the output is hidden, and the note says so"))
+        (is (= {:aria-hidden "true" :blocks-aria-hidden [nil nil] :note "Hidden" :body "off"} (state))
+            "Off, the output is hidden as a whole, and the note says so"))
       (finally
         (set! (.-getElementById js/document) get-element-by-id)))))
 

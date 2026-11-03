@@ -87,7 +87,12 @@
                                           (.splice children 0 (.-length children)))})
     (set! (.-tagName el) (.toUpperCase tag))
     (set! (.-classList el) #js {:names class-names
-                                :add (fn [& names] (run! #(.push class-names %) names))})
+                                :add (fn [& names] (run! #(.push class-names %) names))
+                                :contains (fn [class-name] (.includes class-names class-name))
+                                :remove (fn [& names]
+                                          (run! #(when (.includes class-names %)
+                                                   (.splice class-names (.indexOf class-names %) 1))
+                                                names))})
     (set! (.-attributes el) attributes)
     (set! (.-style el) style)
     (set! (.-dataset el) #js {})
@@ -167,6 +172,29 @@
                                    (when-not (identical? this js/document)
                                      (throw (js/TypeError. "Illegal invocation")))
                                    #js []))}))
+
+(defn- fake-observer
+  "Returns a constructor of observers that keep their `callback` and `options`, and record what they
+   observe in `observed`, and whether they were disconnected."
+  []
+  (fn [callback options]
+    (this-as ^js this
+      (let [observed #js []]
+        (set! (.-callback this) callback)
+        (set! (.-options this) options)
+        (set! (.-observed this) observed)
+        (set! (.-disconnected this) false)
+        (set! (.-observe this) (fn [el _] (.push observed el)))
+        (set! (.-unobserve this) (fn [el] (when-let [i (some #(when (identical? el (aget observed %)) %) (range (.-length observed)))]
+                                            (.splice observed i 1))))
+        (set! (.-disconnect this) (fn [] (set! (.-disconnected this) true)))
+        this))))
+
+(when-not (exists? js/IntersectionObserver)
+  (set! js/globalThis.IntersectionObserver (fake-observer)))
+
+(when-not (exists? js/MutationObserver)
+  (set! js/globalThis.MutationObserver (fake-observer)))
 
 (when-not (.-body js/document)
   (set! (.-body js/document) (create-element "body")))

@@ -367,7 +367,7 @@
             ],
             "enumDescriptions": [
               "On when editor.accessibilitySupport is \"on\", off otherwise.",
-              "The output is shown to screen readers.",
+              "Screen readers read the output on screen and near it.",
               "The output is hidden from screen readers."
             ],
             "default": "follow-editor",

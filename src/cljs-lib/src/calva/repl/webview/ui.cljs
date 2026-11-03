@@ -13,6 +13,7 @@
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.spinner :as spinner]
    [calva.repl.webview.tooltip :as tooltip]
+   [calva.repl.webview.viewport-observer :as viewport-observer]
    [cljs.reader :as reader]
    [clojure.string :as str]
    [clojure.walk :as walk]
@@ -747,13 +748,15 @@
   (apply-local-src! image-display))
 
 (defn set-accessibility-support!
-  "Shows the output in `output-element` to screen readers with `accessibility-support?`, and otherwise hides
-   it from them and puts `accessibility-note` in the `note` element."
+  "Shows screen readers the output in `output-element` near the visible part with `accessibility-support?`,
+   and otherwise hides all of it from them and puts `accessibility-note` in the `note` element."
   [^js output-element ^js note {:keys [accessibility-support? accessibility-note]}]
   (.. js/document -body (setAttribute "data-accessibility-support" (if accessibility-support? "on" "off")))
   (if accessibility-support?
-    (.removeAttribute output-element "aria-hidden")
-    (.setAttribute output-element "aria-hidden" "true"))
+    (do (viewport-observer/start! output-element)
+        (.removeAttribute output-element "aria-hidden"))
+    (do (viewport-observer/stop! output-element)
+        (.setAttribute output-element "aria-hidden" "true")))
   (when note
     (set! (.-textContent note) (if accessibility-support? "" accessibility-note))))
 
@@ -938,4 +941,6 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (auto-scroll/listen!))
+  (auto-scroll/listen!)
+  (when (= "on" (.. js/document -body (getAttribute "data-accessibility-support")))
+    (viewport-observer/start! output-dom-element)))
