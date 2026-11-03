@@ -49,6 +49,7 @@
   "Gives the element `el` the methods that find, add and remove elements around it, and returns it."
   [^js el]
   (js/Object.defineProperty el "lastElementChild" #js {:get #(last (child-elements el))})
+  (js/Object.defineProperty el "lastChild" #js {:get #(last (.-children el))})
   (js/Object.defineProperty el "textContent"
                             #js {:get #(apply str (map (fn [^js child] (.-textContent child)) (.-children el)))
                                  :set #(.splice (.-children el) 0 (.-length (.-children el)) #js {:nodeType 3 :textContent %})})
@@ -67,6 +68,7 @@
                          (.splice (.-children parent) (inc (.indexOf (.-children parent) el)) 0 sibling))))
   (set! (.-remove el) (fn [] (some-> ^js (.-parentNode el) (.removeChild el))))
   (set! (.-matches el) (fn [selector] (matches? el selector)))
+  (set! (.-contains el) (fn [node] (boolean (some #(identical? node %) (cons el (descendant-elements el))))))
   (set! (.-closest el) (fn [selector]
                          (first (filter #(matches? % selector)
                                         (take-while some? (iterate #(.-parentNode ^js %) el))))))
@@ -128,7 +130,9 @@
 
 (defn- text-node
   [text]
-  #js {:nodeType 3 :textContent text})
+  (let [node #js {:nodeType 3 :textContent text}]
+    (set! (.-appendData node) (fn [data] (set! (.-textContent node) (str (.-textContent node) data))))
+    node))
 
 (defn- hiccup-children
   [children]
@@ -171,7 +175,7 @@
              :getElementById (fn [_])
              :createElement create-element
              :createElementNS (fn [_ tag] (create-element tag))
-             :createTextNode (fn [text] #js {:nodeType 3 :textContent text})
+             :createTextNode text-node
              :addEventListener (fn [& _])
              :querySelectorAll (fn [_sel]
                                  (this-as this

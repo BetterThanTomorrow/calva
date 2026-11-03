@@ -36,21 +36,25 @@
    milliseconds with the arguments passed in the latest call.
 
    If the throttled function is called again during the wait period, it will not execute until the wait period has
-   passed, after which it will only be called once, no matter how many times it was called during the wait.
-   If the throttled function is called again after the wait period, it will execute immediately."
+   passed, after which it will only be called once, no matter how many times it was called during the wait, and
+   a new wait period starts. If the throttled function is called again after the wait period, it will execute
+   immediately."
   [f wait]
   (let [timeout (atom nil)
-        called-during-timeout? (atom false)]
-    (fn [& args]
-      (if-not @timeout
-        (do (apply f args)
-            (reset! timeout (js/setTimeout (fn []
-                                             (reset! timeout nil)
-                                             (when @called-during-timeout?
-                                               (reset! called-during-timeout? false)
-                                               (apply f args)))
-                                           wait)))
-        (reset! called-during-timeout? true)))))
+        pending-args (atom nil)]
+    (letfn [(start-wait! []
+              (reset! timeout (js/setTimeout (fn []
+                                               (reset! timeout nil)
+                                               (when-let [args @pending-args]
+                                                 (reset! pending-args nil)
+                                                 (apply f args)
+                                                 (start-wait!)))
+                                             wait)))]
+      (fn [& args]
+        (if @timeout
+          (reset! pending-args (vec args))
+          (do (apply f args)
+              (start-wait!)))))))
 
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
 (def throttled-scroll-to-bottom (throttle-fn auto-scroll/follow! 0))
@@ -137,7 +141,9 @@
     (cond
       room? (inc newline)
       (> newline (quot size 2)) (inc newline)
-      :else size)))
+      ;; Not between the two halves of a surrogate pair
+    (<= 0xD800 (.charCodeAt text (dec size)) 0xDBFF) (dec size)
+    :else size)))
 
 (defn stdout-chunks
   "Returns `text` split for stdout blocks: first the lines that fit the `room` left in the last block, maybe
@@ -175,7 +181,10 @@
         room (if run-block (max 0 (- stdout-chunk-size (count (.-textContent run-block)))) 0)
         [fitting & more] (stdout-chunks (strip-ansi output) room)]
     (when (seq fitting)
-      (.appendChild run-block (js/document.createTextNode fitting)))
+      (let [^js last-text (.-lastChild run-block)]
+        (if (= 3 (.-nodeType last-text))
+          (.appendData last-text fitting)
+          (.appendChild run-block (js/document.createTextNode fitting)))))
     (let [element (reduce (fn [previous chunk]
                             (insert-hiccup! dom-element "beforeend" (stdout-element chunk category (some? previous))))
                           run-block
@@ -854,6 +863,83 @@
 
 (declare dispatch!)
 
+(def output-cap
+  "The most characters of output an Output view page keeps, `:accessibility-support-off` and `-on`."
+  {:accessibility-support-off 1000000
+   :accessibility-support-on 100000})
+
+(defn- output-cap-for
+  [accessibility-support?]
+  (if accessibility-support?
+    (:accessibility-support-on output-cap)
+    (:accessibility-support-off output-cap)))
+
+(defn- current-output-cap
+  []
+  (output-cap-for (= "on" (.. js/document -body (getAttribute "data-accessibility-support")))))
+
+(defn kept-block-count
+  "Returns how many of the newest output blocks fit `cap` characters by their text `lengths`, newest first,
+   and at least one."
+  [lengths cap]
+  (max 1 (count (take-while #(<= % cap) (reductions + lengths)))))
+
+(defn- error-ids
+  "Returns the ids of the errors in the output `blocks`."
+  [blocks]
+  (keep (fn [^js block]
+          (some-> (if (.hasAttribute block "data-error-id") block (.querySelector block "[data-error-id]"))
+                  (.getAttribute "data-error-id")))
+        blocks))
+
+(defn- in-removed?
+  "True when `node` is one of the `removed` blocks, a JS Set, or inside one."
+  [^js removed ^js node]
+  (loop [^js n node]
+    (cond
+      (nil? n) false
+      (.has removed n) true
+      :else (recur (.-parentNode n)))))
+
+(defn- forget-blocks!
+  "Drops what the page keeps for the removed output `blocks`: colors and semantic tokens of their code, raw
+   forms and image lookups of their images."
+  [blocks]
+  (let [removed? (partial in-removed? (js/Set. (into-array blocks)))
+        code-ids (set (for [^js block blocks
+                            ^js code (array-seq (.querySelectorAll block "code"))
+                            :let [id (.. code -dataset -codeId)]
+                            :when id]
+                        id))
+        removed-request? (fn [[request-key]] (contains? code-ids (first (str/split request-key #"@"))))]
+    (swap! !grammar-colors #(apply dissoc % code-ids))
+    (swap! !semantic-keys #(apply dissoc % code-ids))
+    (swap! !semantic-requests update :codes #(into [] (remove removed-request?) %))
+    (swap! !lazy-raw-entries #(into [] (remove (comp removed? first)) %))
+    (swap! !pending-local-images #(into [] (remove (comp removed? :img)) %))
+    (swap! !local-image-lookups update-vals (fn [lookup] (update lookup :waiters #(into [] (remove (comp removed? first)) %))))))
+
+(defn trim-output!
+  "Removes the oldest output blocks of `output-element` while its text is over `cap` characters, keeping at
+   least the newest block, and drops what the page keeps for them."
+  [^js output-element cap]
+  (let [blocks (vec (array-seq (.-children output-element)))
+        kept (kept-block-count (map #(count (.-textContent ^js %)) (rseq blocks)) cap)
+        removed (subvec blocks 0 (- (count blocks) kept))]
+    (when (seq removed)
+      (when (some #(.contains ^js % js/document.activeElement) removed)
+        (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true})))
+      (printed-code-editor/unmount-in! dispatch! removed)
+      (run! #(.remove ^js %) removed)
+      (some-> ^js (first (subvec blocks (count removed))) (.removeAttribute "data-continues"))
+      (forget-blocks! removed)
+      (when-let [ids (seq (error-ids removed))]
+        (dispatch! [:output/ax.errors-removed {:error/ids (vec ids)}]))
+      (auto-scroll/follow!))))
+
+(def ^:private throttled-trim-output!
+  (throttle-fn #(trim-output! % (current-output-cap)) 250))
+
 (defn exec-effect!
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
@@ -881,6 +967,7 @@
     :fx/set-accessibility-support (set-accessibility-support! output-dom-element
                                                               (js/document.getElementById "output-hidden-note")
                                                               (first args))
+    :fx/trim-output (trim-output! output-dom-element (output-cap-for (first args)))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
@@ -952,7 +1039,8 @@
          (js/console.error "No handler for message" (str command-name)))))))
 
 (defn handle-output-appended
-  [^js _event]
+  [^js event]
+  (throttled-trim-output! (.-currentTarget event))
   (throttled-scroll-to-bottom))
 
 (defn- ends-selection?

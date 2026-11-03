@@ -137,6 +137,13 @@
     (.destroy view)
     (dispatch! [:printed-code/ax.unmounted])))
 
+(defn unmount-in!
+  "Draws the printed code block again in place of the editor, when the editor is in one of `elements`."
+  [dispatch! elements]
+  (when-let [code (:code @!editor)]
+    (when (some #(.contains ^js % code) elements)
+      (unmount! dispatch!))))
+
 (defn- leave-to-output!
   "When the editor `view` has one cursor and no selection, draws the block again in place of it and gives the
    focus to the output, so the keys that scroll scroll it, and returns true. Otherwise Escape is left to

@@ -222,7 +222,11 @@
 
     :msg/set-accessibility-support
     {:uf/db db
-     :uf/fxs [[:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-note])]]}
+     :uf/fxs [[:fx/trim-output (:accessibility-support? payload)]
+              [:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-note])]]}
+
+    :output/ax.errors-removed
+    {:uf/db (update db :output/errors #(apply dissoc % (:error/ids payload)))}
 
     :msg/scroll-to-end
     {:uf/db db
