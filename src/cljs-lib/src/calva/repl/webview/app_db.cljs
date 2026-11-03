@@ -1,5 +1,6 @@
 (ns calva.repl.webview.app-db
   (:require
+   [calva.repl.webview.folding :as folding]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.actions :as input-actions]
    [calva.repl.webview.printed-code.actions :as printed-code-actions]
@@ -26,15 +27,21 @@
   "A result with images, or with data URLs replaced by markers, is appended as both forms:
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
    local paths resolve against the producing session's root. Other results are appended colored with
-   `ranges`, the extension's highlighting of the text."
-  [output meta ranges brackets]
+   `ranges`, the extension's highlighting of the text. A large evaluation result is appended folded."
+  [output meta ranges brackets category]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
-    (if (or (seq images)
-            (not= text output))
+    (cond
+      (or (seq images)
+          (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
+
+      (and (= "evalResults" category) (folding/folded? output))
+      [[:fx/append-folded-result output]]
+
+      :else
       [[:fx/append-result output ranges brackets]])))
 
 (defn- message-fxs
@@ -44,7 +51,7 @@
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta ranges brackets)
+    "show-result" (result-fxs output meta ranges brackets category)
     "show-evaluated-code" [[:fx/append-evaluated-code {:code output
                                                        :ranges ranges
                                                        :brackets brackets
@@ -180,7 +187,8 @@
   "The effect of each copy action, which gets the action's payload."
   {:output/ax.copy-stdout :fx/copy-stdout
    :output/ax.copy-image :fx/copy-image
-   :output/ax.copy-code :fx/copy-code})
+   :output/ax.copy-code :fx/copy-code
+   :output/ax.copy-folded-result :fx/copy-folded-result})
 
 (defn handle-action
   [db [action-type payload :as action]]
@@ -204,9 +212,14 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
-    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code)
+    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code :output/ax.copy-folded-result)
     {:uf/db db
      :uf/fxs [[(copy-effects action-type) payload]]}
+
+    :output/ax.unfold-result
+    {:uf/db db
+     :uf/fxs [[:fx/unfold-result payload]
+              [:fx/trim-output]]}
 
     :msg/output-highlighting
     {:uf/db db

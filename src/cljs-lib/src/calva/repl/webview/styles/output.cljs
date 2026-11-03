@@ -32,6 +32,29 @@
    ["pre.output-stdout[data-continues]" {:margin-top 0}]
    ["pre.output-stdout:has(+ pre.output-stdout[data-continues])" {:margin-bottom 0}]
 
+   ;; A large result, folded to one line: the start of its first line and its size
+   [:pre.output-folded-result {:padding "0.5em 1em"
+                               :white-space :nowrap
+                               :overflow :hidden
+                               :text-overflow :ellipsis
+                               :font-family "var(--vscode-editor-font-family, monospace)"
+                               :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                               :color "var(--vscode-editor-foreground)"
+                               :background-color "var(--vscode-editor-background)"}]
+   [:.output-unfold {:background :none
+                     :border :none
+                     :padding 0
+                     :margin-right "0.5ch"
+                     :cursor :pointer
+                     :vertical-align :middle}
+    [:&:focus-visible {:outline "1px solid var(--vscode-focusBorder)"}]]
+   [:.output-folded-chevron {:width "16px"
+                             :height "1.4em"
+                             :vertical-align :middle
+                             :fill "var(--vscode-icon-foreground, #c5c5c5)"}]
+   [:.output-folded-size {:margin-left "1ch"
+                          :color "var(--vscode-descriptionForeground, #858585)"}]
+
    ;; Read by screen readers, not shown
    [:.visually-hidden {:position :absolute
                        :width "1px"

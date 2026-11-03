@@ -3,6 +3,7 @@
   (:require
    [calva.pprint.printer :as printer]
    [calva.repl.input.highlighting :as highlighting]
+   [calva.repl.webview.folding :as folding]
    [calva.repl.webview.printed-brackets :as printed-brackets]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.util :as util]))
@@ -90,7 +91,9 @@
    and printed code's highlighting."
   [options command-name output-category message]
   (let [meta-data (options->meta options)
-        [code-highlighting code-brackets] (when (and (printed-code-commands command-name) (string? message))
+        [code-highlighting code-brackets] (when (and (printed-code-commands command-name)
+                                                     (string? message)
+                                                     (not (and (= "evalResults" output-category) (folding/folded? message))))
                                             (printed-colors message (printed-brackets/settings)))]
     (cond-> {:command/name command-name
              :output-category output-category

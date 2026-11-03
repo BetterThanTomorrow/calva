@@ -6,6 +6,7 @@
    [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
+   [calva.repl.webview.folding :as folding]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
@@ -468,6 +469,76 @@
                 (fn [{:keys [ranges marks]}] (clojure-code-element result ranges marks))
                 {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
 
+(defonce ^{:private true
+           :doc "The text of each folded result, with the namespace and session of the output it was printed
+                 in, `{:folded/text :folded/ns :folded/session-key}` by its id."}
+  !folded
+  (atom {}))
+
+(defonce ^:private !last-folded-id (atom 0))
+
+(defonce ^{:private true :doc "The block of the result unfolded last, which the output cap keeps."}
+  !just-unfolded
+  (atom nil))
+
+(defn folded-result-element
+  "Returns the hiccup of the folded result `text` with `id`: its Unfold result button, the start of its first
+   line, its size, and its Copy button."
+  [id text]
+  [:pre {:class ["output-code-block" "output-folded-result"]
+         :data-output-element-type "folded-result"
+         :data-folded-id id}
+   [:button (merge {:type "button"
+                    :class ["output-unfold"]
+                    :aria-label "Unfold result"
+                    :data-action (pr-str [[:output/ax.unfold-result :event/target]])}
+                   (tooltip/attributes "Unfold result"))
+    [:svg {:class ["output-folded-chevron"] :viewBox "0 0 16 16" :aria-hidden "true"}
+     [:path {:d error-element/chevron-path}]]]
+   [:span {:class ["output-folded-start"]} (folding/start text)]
+   [:span {:class ["output-folded-size"]} (apply folding/size-text (folding/text-size text))]
+   [copy-button/button {:class ["output-code-copy"]
+                        :copy/label "Copy"
+                        :copy/actions [[:output/ax.copy-folded-result :event/target]]}]])
+
+(defn append-folded-result
+  "Appends `result` to `dom-element` folded, keeping its text with the namespace and session of the output."
+  [^js dom-element result]
+  (let [id (str (swap! !last-folded-id inc))
+        {:keys [ns session-key]} @!context
+        element (insert-hiccup! dom-element "beforeend" (folded-result-element id result))]
+    (swap! !folded assoc id {:folded/text result :folded/ns ns :folded/session-key session-key})
+    (.. dom-element (dispatchEvent (output-appended-event element)))))
+
+(defn- folded-text
+  "Returns what `!folded` keeps for the folded result that `element` is in."
+  [^js element]
+  (some-> (.closest element "[data-folded-id]") (.getAttribute "data-folded-id") (->> (get @!folded))))
+
+(defn- copy-folded-result!
+  "Copies the whole text of the folded result of the Copy `button`."
+  [^js button]
+  (when-let [{:folded/keys [text]} (folded-text button)]
+    (copy-text! button text)))
+
+(defn- unfold-result!
+  "Draws the folded result of the Unfold result `button` whole in its place, colored in the namespace it was
+   printed in, and keeps it from the output cap until another result is unfolded."
+  [^js button]
+  (let [^js block (.closest button "[data-folded-id]")]
+    (when-let [{:folded/keys [text ns session-key]} (folded-text button)]
+      (let [^js element (insert-hiccup! block "afterend" (clojure-code-element text))
+            focused? (.contains block js/document.activeElement)]
+        (swap! !folded dissoc (.getAttribute block "data-folded-id"))
+        (.remove block)
+        (doseq [^js code (array-seq (.querySelectorAll element "code.clojure-code"))]
+          (some->> ns (set! (.. code -dataset -ns)))
+          (some->> session-key (set! (.. code -dataset -sessionKey))))
+        (reset! !just-unfolded element)
+        (request-missing-highlighting! element)
+        (when focused?
+          (some-> (.querySelector element "button") .focus))))))
+
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
    needs the user activation."
@@ -746,6 +817,8 @@
   (reset! !semantic-keys {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
+  (reset! !folded {})
+  (reset! !just-unfolded nil)
   (set! (.-innerHTML output-dom-element) ""))
 
 (defonce ^:private !frame-name-sheet (atom nil))
@@ -917,21 +990,22 @@
     (swap! !semantic-requests update :codes #(into [] (remove removed-request?) %))
     (swap! !lazy-raw-entries #(into [] (remove (comp removed? first)) %))
     (swap! !pending-local-images #(into [] (remove (comp removed? :img)) %))
-    (swap! !local-image-lookups update-vals (fn [lookup] (update lookup :waiters #(into [] (remove (comp removed? first)) %))))))
+    (swap! !local-image-lookups update-vals (fn [lookup] (update lookup :waiters #(into [] (remove (comp removed? first)) %))))
+    (swap! !folded #(apply dissoc % (keep (fn [^js block] (.getAttribute block "data-folded-id")) blocks)))))
 
 (defn trim-output!
   "Removes the oldest output blocks of `output-element` while its text is over `cap` characters, keeping at
-   least the newest block, and drops what the page keeps for them."
+   least the newest block and the result unfolded last, and drops what the page keeps for them."
   [^js output-element cap]
   (let [blocks (vec (array-seq (.-children output-element)))
         kept (kept-block-count (map #(count (.-textContent ^js %)) (rseq blocks)) cap)
-        removed (subvec blocks 0 (- (count blocks) kept))]
+        removed (into [] (remove #(identical? % @!just-unfolded)) (subvec blocks 0 (- (count blocks) kept)))]
     (when (seq removed)
       (when (some #(.contains ^js % js/document.activeElement) removed)
         (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true})))
       (printed-code-editor/unmount-in! dispatch! removed)
       (run! #(.remove ^js %) removed)
-      (some-> ^js (first (subvec blocks (count removed))) (.removeAttribute "data-continues"))
+      (some-> ^js (get blocks (- (count blocks) kept)) (.removeAttribute "data-continues"))
       (forget-blocks! removed)
       (when-let [ids (seq (error-ids removed))]
         (dispatch! [:output/ax.errors-removed {:error/ids (vec ids)}]))
@@ -967,7 +1041,10 @@
     :fx/set-accessibility-support (set-accessibility-support! output-dom-element
                                                               (js/document.getElementById "output-hidden-note")
                                                               (first args))
-    :fx/trim-output (trim-output! output-dom-element (output-cap-for (first args)))
+    :fx/trim-output (trim-output! output-dom-element (if (seq args) (output-cap-for (first args)) (current-output-cap)))
+    :fx/append-folded-result (append-folded-result output-dom-element (first args))
+    :fx/unfold-result (unfold-result! (first args))
+    :fx/copy-folded-result (copy-folded-result! (first args))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
     :fx/set-font-scale (set-font-scale! (first args))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
