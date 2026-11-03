@@ -28,6 +28,10 @@
 
    [:.output-element-container {:padding-bottom "5px"}]
 
+   ;; A run of stdout blocks reads as one block
+   ["pre.output-stdout[data-continues]" {:margin-top 0}]
+   ["pre.output-stdout:has(+ pre.output-stdout[data-continues])" {:margin-bottom 0}]
+
    ;; Read by screen readers, not shown
    [:.visually-hidden {:position :absolute
                        :width "1px"

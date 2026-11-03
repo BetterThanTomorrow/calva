@@ -111,31 +111,76 @@
       (.then #(some-> button show-copied!))
       (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
 
+(defn- stdout-run
+  "Returns the stdout blocks of the run `block` is in: the block that starts it, and the blocks that continue it."
+  [^js block]
+  (let [continues? #(some-> ^js % (.hasAttribute "data-continues"))
+        start (loop [^js b block]
+                (if (continues? b) (recur (.-previousElementSibling b)) b))]
+    (cons start (take-while continues? (rest (iterate #(.-nextElementSibling ^js %) start))))))
+
 (defn- copy-stdout!
-  "Copies the text of the stdout block of the Copy output `button`."
+  "Copies the text of the stdout run of the Copy output `button`."
   [^js button]
-  (copy-text! button (.. button -parentElement -textContent)))
+  (copy-text! button (apply str (map #(.-textContent ^js %) (stdout-run (.-parentElement button))))))
+
+(def stdout-chunk-size
+  "How many characters a stdout block holds before its output continues in a new block."
+  10000)
+
+(defn- chunk-end
+  "Returns where to cut `text` for a chunk of at most `size` characters: after the last newline in it, and for
+   a new block only when that newline is in the chunk's latter half, else at `size`. Text for the `room` of the
+   last block is cut after its last newline, or not taken at all."
+  [text size room?]
+  (let [newline (if (pos? size) (.lastIndexOf text "\n" (dec size)) -1)]
+    (cond
+      room? (inc newline)
+      (> newline (quot size 2)) (inc newline)
+      :else size)))
+
+(defn stdout-chunks
+  "Returns `text` split for stdout blocks: first the lines that fit the `room` left in the last block, maybe
+   none, then parts of up to `stdout-chunk-size` characters, each cut after a newline when there is one in
+   its latter half."
+  [text room]
+  (loop [text text
+         size room
+         chunks []]
+    (if (<= (count text) size)
+      (conj chunks text)
+      (let [cut (chunk-end text size (empty? chunks))]
+        (recur (subs text cut) stdout-chunk-size (conj chunks (subs text 0 cut)))))))
 
 (defn stdout-element
-  "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
-  [text category]
-  [:pre {:class ["output-stdout"] :data-output-element-type category}
-   [copy-button/button {:class ["output-stdout-copy"]
-                        :copy/label "Copy output"
-                        :copy/actions [[:output/ax.copy-stdout :event/target]]}]
-   text])
+  "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`. A block that
+   `continues?` the stdout block before it is marked so."
+  ([text category]
+   (stdout-element text category false))
+  ([text category continues?]
+   [:pre (cond-> {:class ["output-stdout"] :data-output-element-type category}
+           continues? (assoc :data-continues "true"))
+    [copy-button/button {:class ["output-stdout-copy"]
+                         :copy/label "Copy output"
+                         :copy/actions [[:output/ax.copy-stdout :event/target]]}]
+    text]))
 
 (defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
-   in which case it appends the content to that element instead."
+  "Appends stdout `output` of `category` to `dom-element`: to its last block, while that is stdout of the same
+   category with room left, and in new blocks of up to `stdout-chunk-size` characters after it."
   [^js dom-element output category]
   (let [category (or category "evalOut")
-        text (strip-ansi output)
-        ^js last-output-element (.-lastElementChild dom-element)
-        element (if (= category (some-> last-output-element (.getAttribute "data-output-element-type")))
-                  (doto last-output-element (.appendChild (js/document.createTextNode text)))
-                  (insert-hiccup! dom-element "beforeend" (stdout-element text category)))]
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
+        ^js last-block (.-lastElementChild dom-element)
+        run-block (when (= category (some-> last-block (.getAttribute "data-output-element-type"))) last-block)
+        room (if run-block (max 0 (- stdout-chunk-size (count (.-textContent run-block)))) 0)
+        [fitting & more] (stdout-chunks (strip-ansi output) room)]
+    (when (seq fitting)
+      (.appendChild run-block (js/document.createTextNode fitting)))
+    (let [element (reduce (fn [previous chunk]
+                            (insert-hiccup! dom-element "beforeend" (stdout-element chunk category (some? previous))))
+                          run-block
+                          more)]
+      (.. dom-element (dispatchEvent (output-appended-event (or element last-block)))))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)

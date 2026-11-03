@@ -52,6 +52,11 @@
   (js/Object.defineProperty el "textContent"
                             #js {:get #(apply str (map (fn [^js child] (.-textContent child)) (.-children el)))
                                  :set #(.splice (.-children el) 0 (.-length (.-children el)) #js {:nodeType 3 :textContent %})})
+  (js/Object.defineProperty el "parentElement" #js {:get #(.-parentNode el)})
+  (js/Object.defineProperty el "previousElementSibling"
+                            #js {:get #(when-let [parent (.-parentNode el)]
+                                         (last (take-while (fn [child] (not (identical? child el)))
+                                                           (child-elements parent))))})
   (js/Object.defineProperty el "nextElementSibling"
                             #js {:get #(when-let [parent (.-parentNode el)]
                                          (second (drop-while (fn [child] (not (identical? child el)))
@@ -99,6 +104,7 @@
     (set! (.-children el) children)
     (set! (.-setAttribute el) (fn [k v] (set-attribute! el attributes k v)))
     (set! (.-getAttribute el) (fn [k] (aget attributes k)))
+    (set! (.-hasAttribute el) (fn [k] (js-in k attributes)))
     (set! (.-removeAttribute el) (fn [k]
                                    (js-delete attributes k)
                                    (when (string/starts-with? k "data-")
