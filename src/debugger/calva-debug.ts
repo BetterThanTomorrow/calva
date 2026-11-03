@@ -3,17 +3,37 @@ import * as debugProtocol from '@vscode/debugprotocol';
 import * as Net from 'net';
 import * as state from '../state';
 import * as path from 'path';
-import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
+import * as docMirror from '../doc-mirror/index';
+import * as replSession from '../nrepl/repl-session';
+import * as sessionRegistry from '../nrepl/session-registry';
 import * as debugUtil from './util';
 import * as annotations from '../providers/annotations';
 import type * as nrepl from '../nrepl';
 import * as debugDecorations from './decorations';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
-import * as util from '../utilities';
-import * as replSession from '../nrepl/repl-session';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
+import {
+  breakpointLocationsForRange,
+  breakpointTargetPosition,
+  instrumentCodeWithSourceBreakpoints,
+  registerSourceBreakpointInstrumentation as registerGuiSourceBreakpointInstrumentation,
+  configureGuiBreakpointDebugger,
+  shouldExposeGuiBreakpointStop,
+  breakpointPositionIsInComment,
+  type BreakpointCodeEvaluator,
+} from './gui-breakpoints';
+import { UnsupportedWarningState } from './unsupported-warning-state';
+import { routeSourceBreakpointStop } from './source-breakpoint-stop';
+import { isBreakpointSupported } from './breakpoint-encoding';
+import { sendInitializeResponse } from './initialize-capabilities';
+import {
+  DEBUGGER_OPS,
+  isClojureFamilySourcePath,
+  supportsDebuggerOps,
+  formatUnsupportedDebuggerMessage,
+} from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
@@ -47,6 +67,10 @@ type ExtractedStructure = {
   originalStrings: string[];
 };
 
+const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
+const initializedDebuggerSessions = new WeakSet<nrepl.NReplSession>();
+let continuingDebugSession = false;
+
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
@@ -70,9 +94,100 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
 
     // Build and return the capabilities of this debug adapter
+    sendInitializeResponse(response, (initializeResponse) => this.sendResponse(initializeResponse));
+  }
+
+  protected breakpointLocationsRequest(
+    response: debugProtocol.DebugProtocol.BreakpointLocationsResponse,
+    args: debugProtocol.DebugProtocol.BreakpointLocationsArguments,
+    request?: debugProtocol.DebugProtocol.Request
+  ): void {
+    void this.resolveBreakpointLocations(response, args);
+  }
+
+  private async resolveBreakpointLocations(
+    response: debugProtocol.DebugProtocol.BreakpointLocationsResponse,
+    args: debugProtocol.DebugProtocol.BreakpointLocationsArguments
+  ): Promise<void> {
+    if (!args.source.path) {
+      response.body = { breakpoints: [] };
+      this.sendResponse(response);
+      return;
+    }
+
+    const document = await vscode.workspace.openTextDocument(
+      this.convertClientPathToDebugger(args.source.path)
+    );
+    const startLine = this.convertClientLineToDebugger(args.line);
+    const startColumn = args.column ? this.convertClientColumnToDebugger(args.column) : 0;
+    const endLine = args.endLine ? this.convertClientLineToDebugger(args.endLine) : startLine;
+    const endColumn = args.endColumn
+      ? this.convertClientColumnToDebugger(args.endColumn)
+      : document.lineAt(endLine).range.end.character;
+
     response.body = {
-      ...response.body,
-      supportsRestartRequest: true,
+      breakpoints: breakpointLocationsForRange(
+        document,
+        new vscode.Range(startLine, startColumn, endLine, endColumn)
+      ).map((location) => ({
+        line: this.convertDebuggerLineToClient(location.range.start.line),
+        column: this.convertDebuggerColumnToClient(location.range.start.character),
+        endLine: this.convertDebuggerLineToClient(location.range.end.line),
+        endColumn: this.convertDebuggerColumnToClient(location.range.end.character),
+      })),
+    };
+
+    this.sendResponse(response);
+  }
+
+  protected setBreakPointsRequest(
+    response: debugProtocol.DebugProtocol.SetBreakpointsResponse,
+    args: debugProtocol.DebugProtocol.SetBreakpointsArguments,
+    request?: debugProtocol.DebugProtocol.Request
+  ): void {
+    void this.resolveSourceBreakpoints(response, args);
+  }
+
+  private async resolveSourceBreakpoints(
+    response: debugProtocol.DebugProtocol.SetBreakpointsResponse,
+    args: debugProtocol.DebugProtocol.SetBreakpointsArguments
+  ): Promise<void> {
+    const session = replSession.getSession();
+    const supported = isBreakpointSupported(
+      Boolean(args.source.path && isClojureFamilySourcePath(args.source.path)),
+      supportsDebuggerOps(session)
+    );
+
+    let document: vscode.TextDocument | undefined;
+    if (supported && args.source.path) {
+      try {
+        document = await vscode.workspace.openTextDocument(
+          this.convertClientPathToDebugger(args.source.path)
+        );
+      } catch (error) {
+        console.warn('Calva debugger: could not open breakpoint source for validation', error);
+      }
+    }
+
+    response.body = {
+      breakpoints: (args.breakpoints ?? []).map((breakpoint) => {
+        const position = new vscode.Position(
+          this.convertClientLineToDebugger(breakpoint.line),
+          breakpoint.column ? this.convertClientColumnToDebugger(breakpoint.column) : 0
+        );
+        const onComment = document && breakpointPositionIsInComment(document, position);
+        const verified = supported && !onComment;
+        return {
+          verified,
+          ...(!supported
+            ? { message: breakpointSupportMessage(args.source.path, session) }
+            : onComment
+            ? { message: 'Breakpoints cannot be set on comments or commented-out code.' }
+            : {}),
+          line: breakpoint.line,
+          column: breakpoint.column,
+        };
+      }),
     };
 
     this.sendResponse(response);
@@ -96,9 +211,18 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
     if (session) {
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':continue', id, key).then((response) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+      // Keep the DAP session alive while cider-nrepl runs. A later breakpoint
+      // can stop this same session, including repeated hits inside a loop.
+      void session.sendDebugInput(':continue', id, key).catch((error) => {
+        console.error('Calva debugger: failed to continue execution', error);
+        continuingDebugSession = false;
       });
+      // Evaluations while execution is running must use the normal REPL path.
+      cljsLib.setStateValue(DEBUG_RESPONSE_KEY, undefined);
+      this.sendResponse(response);
+      continuingDebugSession = true;
+      this.sendEvent(new debugAdapter.ContinuedEvent(CalvaDebugSession.THREAD_ID, true));
+      return;
     } else {
       response.success = false;
     }
@@ -112,6 +236,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     request?: debugProtocol.DebugProtocol.Request
   ): void {
     response.success = false;
+    response.message = 'Restart is not available in Calva. Use Continue to resume execution.';
     this.sendResponse(response);
   }
 
@@ -125,7 +250,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     if (session) {
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
       void session.sendDebugInput(':next', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+        this.sendEvent(new debugAdapter.StoppedEvent('step', CalvaDebugSession.THREAD_ID));
       });
     } else {
       response.success = false;
@@ -143,9 +268,14 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
     if (session) {
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':in', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-      });
+      void session
+        .sendDebugInput(':in', id, key)
+        .then(() => {
+          this.sendEvent(new debugAdapter.StoppedEvent('step', CalvaDebugSession.THREAD_ID));
+        })
+        .catch((error) => {
+          console.error('Calva debugger: failed to step in', error);
+        });
     } else {
       response.success = false;
     }
@@ -162,9 +292,14 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
     if (session) {
       const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':out', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-      });
+      void session
+        .sendDebugInput(':out', id, key)
+        .then(() => {
+          this.sendEvent(new debugAdapter.StoppedEvent('step', CalvaDebugSession.THREAD_ID));
+        })
+        .catch((error) => {
+          console.error('Calva debugger: failed to step out', error);
+        });
     } else {
       response.success = false;
     }
@@ -231,11 +366,13 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     }
 
     const [line, column] = tokenCursor.rowCol;
-
-    // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
+    // Report the live stopped location so VS Code moves the execution
+    // highlight as stepping advances. Source breakpoints remain managed
+    // separately by the editor and keep their configured gutter positions.
     const source = new debugAdapter.Source(path.basename(debugResponse.file), debugResponse.file);
-    const name = tokenCursor.getFunctionName();
-    const stackFrames = [new debugAdapter.StackFrame(0, name, source, line + 1, column + 1)];
+    const stackFrames = [
+      new debugAdapter.StackFrame(0, tokenCursor.getFunctionName(), source, line + 1, column + 1),
+    ];
 
     response.body = {
       stackFrames,
@@ -403,6 +540,19 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   }
 }
 
+function breakpointSupportMessage(
+  sourcePath: string | undefined,
+  session: nrepl.NReplSession
+): string {
+  if (!sourcePath) {
+    return 'Breakpoint source path is unavailable.';
+  }
+  if (!isClojureFamilySourcePath(sourcePath)) {
+    return 'Calva GUI breakpoints require a Clojure-family source file.';
+  }
+  return unsupportedDebuggerMessage(session);
+}
+
 CalvaDebugSession.run(CalvaDebugSession);
 
 class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -459,27 +609,47 @@ function calvaDebugSession(session: vscode.DebugSession) {
 }
 
 function onNreplMessage(data: any): void {
-  if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
+  if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+    handleNeedDebugInput(data);
+  } else if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
     if (calvaDebugSession(vscode.debug.activeDebugSession)) {
+      continuingDebugSession = false;
+      cljsLib.setStateValue(DEBUG_RESPONSE_KEY, undefined);
       annotations.clearAllEvaluationDecorations();
       void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
     }
-  } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
-    handleNeedDebugInput(data);
   }
 }
 
-function handleNeedDebugInput(response: any): void {
-  // Make sure the form exists in the editor and was not instrumented in the repl window
-  if (
+type DebugInputResponse = {
+  file?: unknown;
+  column?: unknown;
+  line?: unknown;
+  id?: string;
+  key?: string;
+};
+
+function hasSourceLocation(response: DebugInputResponse): response is DebugInputResponse & {
+  file: string;
+  column: number;
+  line: number;
+} {
+  return (
     typeof response.file === 'string' &&
     typeof response.column === 'number' &&
     typeof response.line === 'number'
-  ) {
+  );
+}
+
+function handleNeedDebugInput(response: DebugInputResponse): void {
+  // Make sure the form exists in the editor and was not instrumented in the repl window
+  if (hasSourceLocation(response)) {
     cljsLib.setStateValue(DEBUG_RESPONSE_KEY, response);
 
     if (!vscode.debug.activeDebugSession) {
-      void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+      exposeOrAdvanceStop(response);
+    } else if (continuingDebugSession && calvaDebugSession(vscode.debug.activeDebugSession)) {
+      continueToGuiBreakpoint(response);
     }
   } else {
     const session = replSession.getSession();
@@ -488,6 +658,51 @@ function handleNeedDebugInput(response: any): void {
       'Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated a form in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.'
     );
   }
+}
+
+function exposeOrAdvanceStop(
+  response: DebugInputResponse & { file: string; line: number; column: number }
+): void {
+  void shouldExposeGuiBreakpointStop(response).then((isTargetStop) => {
+    routeSourceBreakpointStop(
+      isTargetStop,
+      () => void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION),
+      () => advanceToNextGuiBreakpoint(response)
+    );
+  });
+}
+
+function continueToGuiBreakpoint(
+  response: DebugInputResponse & { file: string; line: number; column: number }
+): void {
+  void shouldExposeGuiBreakpointStop(response).then((isTargetStop) => {
+    routeSourceBreakpointStop(
+      isTargetStop,
+      () => {
+        const activeSession = vscode.debug.activeDebugSession;
+        if (calvaDebugSession(activeSession)) {
+          continuingDebugSession = false;
+          void activeSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
+            reason: 'breakpoint',
+          });
+        } else {
+          exposeOrAdvanceStop(response);
+        }
+      },
+      () => advanceToNextGuiBreakpoint(response)
+    );
+  });
+}
+
+function advanceToNextGuiBreakpoint(response: DebugInputResponse): void {
+  setTimeout(() => {
+    const session = replSession.getSession();
+    if (session) {
+      void session.sendDebugInput(':next', response.id, response.key).catch((error) => {
+        console.error('Calva debugger: failed auto-stepping to GUI breakpoint', error);
+      });
+    }
+  }, 0);
 }
 
 vscode.debug.onDidStartDebugSession((session) => {
@@ -506,8 +721,29 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
+function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
+  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
+  return formatUnsupportedDebuggerMessage(sessionKey, session);
+}
+
+function warnUnsupportedDebugger(session?: nrepl.NReplSession): void {
+  const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op)).join(',');
+  if (!unsupportedWarningState.shouldWarn(session, missingOps)) {
+    return;
+  }
+  void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
+}
+
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
-  cljSession.initDebugger();
+  unsupportedWarningState.clear(cljSession);
+  if (!supportsDebuggerOps(cljSession)) {
+    return;
+  }
+
+  if (!initializedDebuggerSessions.has(cljSession)) {
+    initializedDebuggerSessions.add(cljSession);
+    cljSession.initDebugger();
+  }
   debugDecorations.activate();
 }
 
@@ -522,6 +758,14 @@ function terminateDebugSession(): void {
   debugDecorations.triggerUpdateAndRenderDecorations();
 }
 
+function registerSourceBreakpointInstrumentation(
+  context: vscode.ExtensionContext,
+  evaluator?: BreakpointCodeEvaluator
+): void {
+  configureGuiBreakpointDebugger({ warnUnsupported: warnUnsupportedDebugger, initializeDebugger });
+  registerGuiSourceBreakpointInstrumentation(context, evaluator);
+}
+
 export {
   CALVA_DEBUG_CONFIGURATION,
   DEBUG_ANALYTICS,
@@ -533,6 +777,12 @@ export {
   CalvaDebugAdapterDescriptorFactory,
   handleNeedDebugInput,
   initializeDebugger,
+  instrumentCodeWithSourceBreakpoints,
+  breakpointTargetPosition,
+  breakpointLocationsForRange,
   onNreplMessage,
+  registerSourceBreakpointInstrumentation,
+  supportsDebuggerOps,
+  warnUnsupportedDebugger,
   terminateDebugSession,
 };

@@ -43,10 +43,10 @@ function textNotationFromDocAndSelections(
 async function reformat(editor: vscode.TextEditor, textAndSelections: string, command: string) {
   const [text, selectionsAsOffsets] =
     textNotation.textNotationToTextAndSelection(textAndSelections);
-  await vscode.commands.executeCommand('editor.action.selectAll');
-  await vscode.commands.executeCommand(
-    'paredit.deleteForward' /*'editor.action.clipboardCutAction'*/
-  );
+  const documentEnd = editor.document.positionAt(editor.document.getText().length);
+  await editor.edit((edit) => {
+    edit.delete(new vscode.Range(new vscode.Position(0, 0), documentEnd));
+  });
   await testUtil.waitForCondition(
     () => getText(editor.document) === '',
     2000,
