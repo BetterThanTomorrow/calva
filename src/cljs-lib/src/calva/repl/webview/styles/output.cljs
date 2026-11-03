@@ -30,8 +30,12 @@
 
    ;; Layout skips the output blocks out of view, and remembers their size once laid out. The last ones are
    ;; always laid out, so the end of the output is where auto scrolling looks for it
+   ;; Each block lays out on its own in or out of the tail, and the clip of its paint containment leaves room
+   ;; for what sits over its edge, like the label of evaluated code
    ["#output > *" {:content-visibility :auto
-                   :contain-intrinsic-size "auto 200px"}]
+                   :contain-intrinsic-size "auto 200px"
+                   :display :flow-root
+                   :overflow-clip-margin "1em"}]
    ["#output > :nth-last-child(-n+10)" {:content-visibility :visible}]
 
    ;; A run of stdout blocks reads as one block

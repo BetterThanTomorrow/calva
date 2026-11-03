@@ -82,3 +82,16 @@
     (.observe children output-element #js {:childList true})
     (.observe body js/document.body #js {:attributes true :attributeFilter #js ["class"]})
     (reset! !observers {:blocks blocks :children children :body body})))
+
+(defn set-accessibility-support!
+  "Shows screen readers the output in `output-element` near the visible part with `accessibility-support?`,
+   and otherwise hides all of it from them and puts `accessibility-note` in the `note` element."
+  [^js output-element ^js note {:keys [accessibility-support? accessibility-note]}]
+  (.. js/document -body (setAttribute "data-accessibility-support" (if accessibility-support? "on" "off")))
+  (if accessibility-support?
+    (do (start! output-element)
+        (.removeAttribute output-element "aria-hidden"))
+    (do (stop! output-element)
+        (.setAttribute output-element "aria-hidden" "true")))
+  (when note
+    (set! (.-textContent note) (if accessibility-support? "" accessibility-note))))

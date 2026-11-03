@@ -62,6 +62,11 @@
   (reset! !on? true)
   (scroll-to-end!))
 
+(defn stop-following!
+  "Turns auto scrolling off, so the view stays where it is as output arrives."
+  []
+  (reset! !on? false))
+
 (defn- on-scroll
   [^js end ^js event]
   (let [target (.-target event)]
@@ -83,7 +88,9 @@
   "Turns auto scrolling on when the end of the output comes into view, and follows the user's scrolling."
   []
   (set-anchoring! @!on?)
-  (add-watch !on? ::anchoring (fn [_ _ _ on?] (set-anchoring! on?)))
+  (add-watch !on? ::anchoring (fn [_ _ was-on? on?]
+                                (when (not= was-on? on?)
+                                  (set-anchoring! on?))))
   (when-let [end (js/document.getElementById end-id)]
     (.observe (js/IntersectionObserver. (fn [entries]
                                           (when (some #(.-isIntersecting ^js %) entries)

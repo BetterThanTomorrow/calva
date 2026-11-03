@@ -2,6 +2,7 @@
   (:require
    [calva.repl.webview.app-db :as app-db]
    [calva.repl.webview.fake-document :as fake-document]
+   [calva.repl.webview.folded-result :as folded-result]
    [calva.repl.webview.ui :as ui]
    [cljs.test :refer-macros [deftest is testing use-fixtures]]
    [clojure.string :as string]))
@@ -9,8 +10,7 @@
 (defn- reset-page-state!
   []
   (reset! @#'ui/!context nil)
-  (reset! @#'ui/!folded {})
-  (reset! @#'ui/!just-unfolded nil))
+  (folded-result/clear!))
 
 (use-fixtures :each (fn [f]
                       (reset-page-state!)
@@ -50,7 +50,7 @@
   []
   (let [output (fake-document/hiccup-element [:div {:id "output"}])]
     (reset! @#'ui/!context {:ns "my.ns" :session-key "clj"})
-    (ui/append-folded-result output large-result)
+    (ui/exec-effect! output [:fx/append-folded-result large-result])
     output))
 
 (deftest folded-result-element-test
@@ -93,7 +93,7 @@
       (is (= ["my.ns" "clj"] [(.. code -dataset -ns) (.. code -dataset -sessionKey)])
           "Its code gets the namespace and session it was printed in, not the latest ones")
       (is (= ["output-highlight"] (mapv :command @posted)) "Its colors are asked for")
-      (is (empty? @@#'ui/!folded) "Its kept text is dropped")
+      (is (empty? @@#'folded-result/!folded) "Its kept text is dropped")
       (testing "the output cap keeps the result unfolded last"
         (let [^js newer (fake-document/hiccup-element [:pre "n"])]
           (.appendChild output newer)
@@ -102,8 +102,8 @@
 
 (deftest unfolding-another-result-releases-the-first-test
   (let [output (fake-document/hiccup-element [:div {:id "output"}])]
-    (ui/append-folded-result output large-result)
-    (ui/append-folded-result output large-result)
+    (ui/exec-effect! output [:fx/append-folded-result large-result])
+    (ui/exec-effect! output [:fx/append-folded-result large-result])
     (let [[first-block second-block] (vec (.-children output))]
       (unfold! output first-block)
       (let [first-unfolded (first (.-children output))]
@@ -117,11 +117,11 @@
     (let [output (folded-output)]
       (.appendChild output (fake-document/hiccup-element [:pre "newer"]))
       (ui/trim-output! output 1)
-      (is (empty? @@#'ui/!folded))))
+      (is (empty? @@#'folded-result/!folded))))
   (testing "by clear"
     (let [output (folded-output)]
       (ui/clear-output-dom output)
-      (is (empty? @@#'ui/!folded)))))
+      (is (empty? @@#'folded-result/!folded)))))
 
 (deftest a-kept-unfolded-result-doesnt-start-a-stdout-run-test
   (let [output (folded-output)]

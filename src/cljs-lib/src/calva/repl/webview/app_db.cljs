@@ -28,7 +28,7 @@
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
    local paths resolve against the producing session's root. Other results are appended colored with
    `ranges`, the extension's highlighting of the text. A large evaluation result is appended folded."
-  [output meta ranges brackets category]
+  [{ranges :output/highlighting brackets :output/brackets :keys [output meta]} category]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
@@ -46,12 +46,12 @@
 
 (defn- message-fxs
   [{command-name :command/name ranges :output/highlighting brackets :output/brackets evaluation-id :meta/evaluation-id
-    :keys [output meta]} category]
+    :keys [output meta] :as payload} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta ranges brackets category)
+    "show-result" (result-fxs payload category)
     "show-evaluated-code" [[:fx/append-evaluated-code {:code output
                                                        :ranges ranges
                                                        :brackets brackets
@@ -190,6 +190,22 @@
    :output/ax.copy-code :fx/copy-code
    :output/ax.copy-folded-result :fx/copy-folded-result})
 
+(defn- handle-output-block-action
+  "Returns what a control of an output block, or the output cap removing blocks, leads to: copying, unfolding a
+   folded result and trimming to the cap, or forgetting the errors of removed blocks."
+  [db action-type payload]
+  (case action-type
+    :output/ax.unfold-result
+    {:uf/db db
+     :uf/fxs [[:fx/unfold-result payload]
+              [:fx/trim-output]]}
+
+    :output/ax.errors-removed
+    {:uf/db (update db :output/errors #(apply dissoc % (:error/ids payload)))}
+
+    {:uf/db db
+     :uf/fxs [[(copy-effects action-type) payload]]}))
+
 (defn handle-action
   [db [action-type payload :as action]]
   (case action-type
@@ -212,14 +228,9 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
-    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code :output/ax.copy-folded-result)
-    {:uf/db db
-     :uf/fxs [[(copy-effects action-type) payload]]}
-
-    :output/ax.unfold-result
-    {:uf/db db
-     :uf/fxs [[:fx/unfold-result payload]
-              [:fx/trim-output]]}
+    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code :output/ax.copy-folded-result
+     :output/ax.unfold-result :output/ax.errors-removed)
+    (handle-output-block-action db action-type payload)
 
     :msg/output-highlighting
     {:uf/db db
@@ -237,9 +248,6 @@
     {:uf/db db
      :uf/fxs [[:fx/trim-output (:accessibility-support? payload)]
               [:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-note])]]}
-
-    :output/ax.errors-removed
-    {:uf/db (update db :output/errors #(apply dissoc % (:error/ids payload)))}
 
     :msg/scroll-to-end
     {:uf/db db

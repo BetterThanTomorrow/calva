@@ -1,6 +1,7 @@
-(ns calva.repl.webview.stdout-chunks-test
+(ns calva.repl.webview.stdout-test
   (:require
    [calva.repl.webview.fake-document :as fake-document]
+   [calva.repl.webview.stdout :as stdout]
    [calva.repl.webview.ui :as ui]
    [cljs.test :refer-macros [deftest is testing use-fixtures]]
    [clojure.string :as string]))
@@ -14,23 +15,23 @@
 
 (deftest stdout-chunks-test
   (testing "text that fits the room goes to the last block"
-    (is (= ["abc"] (ui/stdout-chunks "abc" 10))))
+    (is (= ["abc"] (stdout/stdout-chunks "abc" 10))))
   (testing "without room, the text starts a new block"
-    (is (= ["" "abc"] (ui/stdout-chunks "abc" 0))))
+    (is (= ["" "abc"] (stdout/stdout-chunks "abc" 0))))
   (testing "a line that doesn't fit the room starts a new block, instead of being cut in two"
-    (is (= ["" "a line of thirty-two characters\n"] (ui/stdout-chunks "a line of thirty-two characters\n" 30))))
+    (is (= ["" "a line of thirty-two characters\n"] (stdout/stdout-chunks "a line of thirty-two characters\n" 30))))
   (testing "the room takes the lines that fit it"
-    (is (= ["one\ntwo\n" "three\n"] (ui/stdout-chunks "one\ntwo\nthree\n" 10))))
+    (is (= ["one\ntwo\n" "three\n"] (stdout/stdout-chunks "one\ntwo\nthree\n" 10))))
   (testing "a long text is cut after a newline in the latter half of the room"
     (let [text (lines 300 100)
-          chunks (ui/stdout-chunks text 250)]
+          chunks (stdout/stdout-chunks text 250)]
       (is (= text (apply str chunks)) "Nothing is lost or added")
       (is (= 200 (count (first chunks))) "The first piece ends after the last newline that fits the room")
-      (is (every? #(<= (count %) ui/stdout-chunk-size) (rest chunks)))
+      (is (every? #(<= (count %) stdout/stdout-chunk-size) (rest chunks)))
       (is (every? #(string/ends-with? % "\n") (butlast chunks)) "Each piece but the last ends with a newline")))
   (testing "a text without newlines is cut at the limit"
     (let [text (apply str (repeat 25000 "y"))]
-      (is (= [0 10000 10000 5000] (mapv count (ui/stdout-chunks text 0)))))))
+      (is (= [0 10000 10000 5000] (mapv count (stdout/stdout-chunks text 0)))))))
 
 (defn- stdout-blocks
   [^js output]

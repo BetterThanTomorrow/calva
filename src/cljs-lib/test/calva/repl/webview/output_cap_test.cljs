@@ -2,7 +2,10 @@
   (:require
    [calva.repl.webview.auto-scroll :as auto-scroll]
    [calva.repl.webview.fake-document :as fake-document]
+   [calva.repl.webview.output-cap :as output-cap]
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
+   [calva.repl.webview.stdout :as stdout]
+   [calva.repl.webview.throttle :as throttle]
    [calva.repl.webview.ui :as ui]
    [cljs.test :refer-macros [deftest is testing use-fixtures]]))
 
@@ -10,12 +13,12 @@
 
 (deftest kept-block-count-test
   (testing "keeps the newest blocks whose text fits the cap"
-    (is (= 2 (ui/kept-block-count [30 40 50] 80)))
-    (is (= 3 (ui/kept-block-count [30 40 10] 80))))
+    (is (= 2 (output-cap/kept-block-count [30 40 50] 80)))
+    (is (= 3 (output-cap/kept-block-count [30 40 10] 80))))
   (testing "always keeps the newest block, also when it alone is over the cap"
-    (is (= 1 (ui/kept-block-count [500 40] 80))))
+    (is (= 1 (output-cap/kept-block-count [500 40] 80))))
   (testing "reads only as many lengths as it needs"
-    (is (= 2 (ui/kept-block-count (concat [30 40 50] (repeatedly #(throw (js/Error. "Read too far")))) 80)))))
+    (is (= 2 (output-cap/kept-block-count (concat [30 40 50] (repeatedly #(throw (js/Error. "Read too far")))) 80)))))
 
 (defn- block-texts
   [^js output]
@@ -105,7 +108,7 @@
 (deftest stdout-text-edge-cases-test
   (testing "a cut at the limit doesn't split a surrogate pair"
     (let [text (str (apply str (repeat 9999 "y")) "😀" "zz")
-          [_ first-block] (ui/stdout-chunks text 0)]
+          [_ first-block] (stdout/stdout-chunks text 0)]
       (is (= 9999 (count first-block)) "The pair goes to the next block whole")))
   (testing "stdout appended to a block goes into its last text node"
     (let [output (fake-document/hiccup-element [:div {:id "output"}])]
@@ -121,7 +124,7 @@
         original-timeout js/setTimeout]
     (set! js/setTimeout (fn [f _] (swap! timers conj f) (count @timers)))
     (try
-      (let [throttled (ui/throttle-fn #(swap! calls conj %) 250)]
+      (let [throttled (throttle/throttle-fn #(swap! calls conj %) 250)]
         (throttled :a)
         (throttled :b)
         (throttled :c)
