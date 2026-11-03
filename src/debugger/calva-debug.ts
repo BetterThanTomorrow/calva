@@ -27,6 +27,7 @@ import { UnsupportedWarningState } from './unsupported-warning-state';
 import { advanceAfterDisconnect } from './disconnect-action';
 import { routeSourceBreakpointStop } from './source-breakpoint-stop';
 import { isBreakpointSupported } from './breakpoint-encoding';
+import { sendInitializeResponse } from './initialize-capabilities';
 import {
   DEBUGGER_OPS,
   isClojureFamilySourcePath,
@@ -92,13 +93,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
 
     // Build and return the capabilities of this debug adapter
-    response.body = {
-      ...response.body,
-      supportsConditionalBreakpoints: true,
-      supportsBreakpointLocationsRequest: true,
-    };
-
-    this.sendResponse(response);
+    sendInitializeResponse(response, (initializeResponse) => this.sendResponse(initializeResponse));
   }
 
   protected breakpointLocationsRequest(
