@@ -28,6 +28,12 @@
 
    [:.output-element-container {:padding-bottom "5px"}]
 
+   ;; Layout skips the output blocks out of view, and remembers their size once laid out. The last ones are
+   ;; always laid out, so the end of the output is where auto scrolling looks for it
+   ["#output > *" {:content-visibility :auto
+                   :contain-intrinsic-size "auto 200px"}]
+   ["#output > :nth-last-child(-n+10)" {:content-visibility :visible}]
+
    ;; A run of stdout blocks reads as one block
    ["pre.output-stdout[data-continues]" {:margin-top 0}]
    ["pre.output-stdout:has(+ pre.output-stdout[data-continues])" {:margin-bottom 0}]

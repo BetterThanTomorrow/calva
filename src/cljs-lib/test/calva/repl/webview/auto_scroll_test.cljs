@@ -1,7 +1,23 @@
 (ns calva.repl.webview.auto-scroll-test
   (:require
    [calva.repl.webview.auto-scroll :as sut]
+   [calva.repl.webview.fake-document :as fake-document]
    [cljs.test :refer-macros [deftest testing is]]))
+
+(deftest set-anchoring!-test
+  (let [scroller (fake-document/hiccup-element [:div {:id "output-scroller"}])
+        get-element-by-id (.-getElementById js/document)
+        anchoring (fn [] [(.. scroller -style -overflowAnchor) (.. js/document -documentElement -style -overflowAnchor)])]
+    (set! (.-getElementById js/document) (fn [id] (when (= "output-scroller" id) scroller)))
+    (try
+      (sut/set-anchoring! true)
+      (is (= ["none" "none"] (anchoring))
+          "While following the end, anchoring is off, so its adjustments don't read as scrolling up")
+      (sut/set-anchoring! false)
+      (is (= ["" ""] (anchoring))
+          "Away from the end, anchoring keeps the reader's place")
+      (finally
+        (set! (.-getElementById js/document) get-element-by-id)))))
 
 (deftest scrolled-up?-test
   (testing "compares with where the target was last scrolled, by the user or the page"
