@@ -23,21 +23,20 @@
   (str "[" (string/join "\n " (map #(str "{:id " % " :name \"item-" % "\"}") (range 300))) "]"))
 
 (defn- result-fxs
-  [output category]
-  (:uf/fxs (app-db/handle-action app-db/initial-db [:msg/output {:command/name "show-result"
-                                                                 :output-category category
-                                                                 :output output}])))
+  [output folded?]
+  (:uf/fxs (app-db/handle-action app-db/initial-db [:msg/output (cond-> {:command/name "show-result"
+                                                                         :output-category "evalResults"
+                                                                         :output output}
+                                                                  folded? (assoc :output/folded? true))])))
 
 (deftest large-results-are-folded-test
-  (testing "a large evaluation result is appended folded"
-    (is (= [[:fx/append-folded-result large-result]] (result-fxs large-result "evalResults"))))
-  (testing "a small result is appended as before"
-    (is (= [[:fx/append-result "42" nil nil]] (result-fxs "42" "evalResults"))))
-  (testing "other Clojure output, like clojuredocs examples, isn't folded"
-    (is (= :fx/append-result (ffirst (result-fxs large-result "clojure")))))
-  (testing "a large result with an image goes where images go, unfolded"
+  (testing "a result the extension marks folded is appended folded"
+    (is (= [[:fx/append-folded-result large-result]] (result-fxs large-result true))))
+  (testing "other results are appended as before"
+    (is (= [[:fx/append-result "42" nil nil]] (result-fxs "42" false))))
+  (testing "a result with an image goes where images go, unfolded"
     (let [output (str "\"data:image/png;base64," (apply str (repeat 6000 "A")) "\"")]
-      (is (= :fx/append-result-with-images (ffirst (result-fxs output "evalResults")))))))
+      (is (= :fx/append-result-with-images (ffirst (result-fxs output true)))))))
 
 (deftest folded-result-actions-test
   (is (= [[:fx/unfold-result :button] [:fx/trim-output]]

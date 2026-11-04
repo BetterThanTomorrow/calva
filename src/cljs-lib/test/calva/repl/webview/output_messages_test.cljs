@@ -8,8 +8,8 @@
   (with-redefs [printed-brackets/settings #(throw (js/Error. "A folded result needs no colors"))]
     (let [text (apply str (repeat 6000 "y"))
           message (sut/output-message {} "show-result" "evalResults" text)]
-      (is (= {:command/name "show-result" :output-category "evalResults" :output text} message)
-          "A result that will be folded is posted without highlighting, which is asked for when it is unfolded"))
+      (is (= {:command/name "show-result" :output-category "evalResults" :output text :output/folded? true} message)
+          "A result longer than 5,000 characters, without the setting, is marked folded and posted without highlighting, which is asked for when it is unfolded"))
     (is (thrown? js/Error (sut/output-message {} "show-result" "clojure" (apply str (repeat 6000 "y"))))
         "Other Clojure output isn't folded, so it gets its colors as before")))
 

@@ -1,6 +1,5 @@
 (ns calva.repl.webview.app-db
   (:require
-   [calva.repl.webview.folding :as folding]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.actions :as input-actions]
    [calva.repl.webview.printed-code.actions :as printed-code-actions]
@@ -27,8 +26,9 @@
   "A result with images, or with data URLs replaced by markers, is appended as both forms:
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
    local paths resolve against the producing session's root. Other results are appended colored with
-   `ranges`, the extension's highlighting of the text. A large evaluation result is appended folded."
-  [{ranges :output/highlighting brackets :output/brackets :keys [output meta]} category]
+   `ranges`, the extension's highlighting of the text. A result the extension marks `:output/folded?` is appended
+   folded."
+  [{ranges :output/highlighting brackets :output/brackets folded? :output/folded? :keys [output meta]}]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
@@ -38,7 +38,7 @@
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
 
-      (and (= "evalResults" category) (folding/folded? output))
+      folded?
       [[:fx/append-folded-result output]]
 
       :else
@@ -51,7 +51,7 @@
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs payload category)
+    "show-result" (result-fxs payload)
     "show-evaluated-code" [[:fx/append-evaluated-code {:code output
                                                        :ranges ranges
                                                        :brackets brackets

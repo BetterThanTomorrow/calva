@@ -373,6 +373,12 @@
             "default": "follow-editor",
             "markdownDescription": "Shows the Output views' output to screen readers when on, and hides it from them when off. The default, `follow-editor`, is on when `#editor.accessibilitySupport#` is `on`. When `on`, the views keep less ouput, because performance suffers. See [#3336](https://github.com/BetterThanTomorrow/calva/issues/3336)."
           },
+          "calva.outputViews.foldResultsLongerThan": {
+            "type": "number",
+            "default": 5000,
+            "minimum": 0,
+            "markdownDescription": "Results longer than this many characters arrive folded in the Output views: one line with an Unfold result button, the start of the result, and its size. `0` turns folding off. Results with images are not folded. Applies to results printed after the change."
+          },
           "calva.outputViews.replInput": {
             "type": "object",
             "properties": {

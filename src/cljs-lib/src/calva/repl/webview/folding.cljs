@@ -1,30 +1,19 @@
 (ns calva.repl.webview.folding
-  "Which evaluation results the Output views show folded, and what a folded result says. The extension leaves
-   out the highlighting of a result that will be folded, and the page draws it folded.")
+  "Which evaluation results the Output views show folded, and what a folded result says. The extension decides,
+   leaves out the highlighting of a result that will be folded and marks its message, and the page draws it
+   folded.")
 
-(def max-unfolded-characters
-  "The most characters of a result shown whole."
-  5000)
-
-(def max-unfolded-lines
-  "The most lines of a result shown whole."
-  100)
+(defn folded?
+  "True when the printed result `text` is longer than `max-characters`, the setting
+   `calva.outputViews.foldResultsLongerThan`. With 0, nothing folds."
+  [text max-characters]
+  (and (string? text)
+       (pos? max-characters)
+       (> (count text) max-characters)))
 
 (def ^:private start-length
   "How much of the first line a folded result shows."
   100)
-
-(defn- line-count
-  [text]
-  (.-length (.split text "\n")))
-
-(defn folded?
-  "True when the printed result `text` is shown folded: over `max-unfolded-characters` characters or
-   `max-unfolded-lines` lines."
-  [text]
-  (and (string? text)
-       (or (> (count text) max-unfolded-characters)
-           (> (line-count text) max-unfolded-lines))))
 
 (defn start
   "Returns the start of the first line of `text`, as a folded result shows it, with an ellipsis when cut."
@@ -34,6 +23,10 @@
     (if (> (count line) start-length)
       (str (subs line 0 start-length) "…")
       line)))
+
+(defn- line-count
+  [text]
+  (.-length (.split text "\n")))
 
 (defn text-size
   "Returns `[characters lines]` of `text`."
