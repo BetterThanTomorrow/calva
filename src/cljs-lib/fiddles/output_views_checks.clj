@@ -46,6 +46,17 @@
      (defn ovc-attribute-value [attribute-name value]
        (cond
          (= "nonce" attribute-name) "<nonce>"
+         (= "data-folded-id" attribute-name) "<folded-id>"
+         (= "data-code-id" attribute-name) "<code-id>"
+         ;; VS Code's theme variables and classes, which follow VS Code and the theme, and scroll anchoring,
+         ;; which is off for a second after output arrives
+         (= "class" attribute-name) (str/join " " (remove (fn [c] (str/starts-with? c "vscode-")) (str/split value #" ")))
+         (= "style" attribute-name) (->> (str/split value #";")
+                                         (map str/trim)
+                                         (remove (fn [d] (or (str/blank? d)
+                                                              (str/starts-with? d "--vscode-")
+                                                              (str/starts-with? d "overflow-anchor"))))
+                                         (str/join "; "))
          (= "content" attribute-name) (str/replace value #"'nonce-[^']+'" "'nonce-<nonce>'")
          :else value))
 
@@ -125,6 +136,10 @@
           {:command/name "show-stdout" :output-category "otherErr" :output "WARNING: something\n"}
           {:command/name "show-result" :output-category "evalResults" :output (str "\"" ovc-png "\"") :meta clj}
           {:command/name "show-result" :output-category "evalResults" :output "{:a 1, :b [2 3], :c \"four\"}" :meta cljs}
+          {:command/name "show-result" :output-category "evalResults" :output/folded? true :meta clj
+           :output (str "[" (str/join "\n " (map (fn [i] (str "{:id " i " :name \"item-" i "\"}")) (range 300))) "]")}
+          {:command/name "show-stdout" :output-category "evalOut" :meta clj
+           :output (str/join (map (fn [i] (str "line " i " " (apply str (repeat 60 "x")) "\n")) (range 200)))}
           {:command/name "show-error" :id "ovc-runtime-error" :error/category "evalErr" :error/unfolded? true
            :error/text "Execution error (ExceptionInfo) at user/eval1 (REPL:1).\nboom"
            :error/causes (mapv stacktrace/cause-data stacktrace-fixtures/runtime-chain) :meta clj}
