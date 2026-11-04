@@ -35,7 +35,8 @@
         (runtime-ids)))
 
 (def ^:private requires
-  '(require '[calva.repl.webview.stacktrace :as stacktrace]
+  '(require '[calva.repl.webview.near-colors :as near-colors]
+            '[calva.repl.webview.stacktrace :as stacktrace]
             '[calva.repl.webview.stacktrace-fixtures :as stacktrace-fixtures]
             '[calva.repl.webview.ui :as ui]
             '[clojure.string :as str]))
@@ -66,8 +67,15 @@
              (when-not (str/blank? text) text))
          1 (let [tag (keyword (str/lower-case (.-tagName node)))
                  attributes (into (sorted-map)
-                                  (for [attribute (array-seq (.-attributes node))]
-                                    [(.-name attribute) (ovc-attribute-value (.-name attribute) (.-value attribute))]))]
+                                  (for [attribute (array-seq (.-attributes node))
+                                        :let [attribute-name (.-name attribute)
+                                              value (ovc-attribute-value attribute-name (.-value attribute))]
+                                        ;; Scroll anchoring leaves an empty style, and VS Code gives a hovered
+                                        ;; link its address as its title
+                                        :when (not (or (and (= "style" attribute-name) (str/blank? value))
+                                                       (and (= "title" attribute-name)
+                                                            (= value (.getAttribute node "href")))))]
+                                    [attribute-name value]))]
              (cond
                (.contains (.-classList node) "cm-editor") [tag attributes :codemirror]
                ;; It holds the text of the control last hovered
@@ -76,6 +84,10 @@
          nil))
 
      (defn ovc-dom []
+       ;; Code far from the view is drawn without its spans, so every block gets its colors first, as when
+       ;; the reader scrolls to it
+       (run! (fn [block] (near-colors/set-near! block true))
+             (array-seq (.-children (js/document.getElementById "output"))))
        (pr-str (ovc-node js/document.documentElement)))
      :installed))
 

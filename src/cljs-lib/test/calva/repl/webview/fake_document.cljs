@@ -67,6 +67,9 @@
                          (set! (.-parentNode sibling) parent)
                          (.splice (.-children parent) (inc (.indexOf (.-children parent) el)) 0 sibling))))
   (set! (.-remove el) (fn [] (some-> ^js (.-parentNode el) (.removeChild el))))
+  (set! (.-replaceChildren el) (fn [& nodes]
+                                 (set! (.-innerHTML el) "")
+                                 (run! #(.appendChild el %) nodes)))
   (set! (.-matches el) (fn [selector] (matches? el selector)))
   (set! (.-contains el) (fn [node] (boolean (some #(identical? node %) (cons el (descendant-elements el))))))
   (set! (.-closest el) (fn [selector]
@@ -211,6 +214,15 @@
 
 (when-not (.-documentElement js/document)
   (set! (.-documentElement js/document) (create-element "html")))
+
+(when-not (exists? js/CSSStyleSheet)
+  (set! js/globalThis.CSSStyleSheet (fn []
+                                      (this-as ^js this
+                                        (let [rules #js []]
+                                          (set! (.-cssRules this) rules)
+                                          (set! (.-insertRule this) (fn [rule i] (.splice rules i 0 rule)))
+                                          this))))
+  (set! (.-adoptedStyleSheets js/document) #js []))
 
 (when-not (fn? (.-querySelectorAll js/document))
   (set! (.-querySelectorAll js/document)

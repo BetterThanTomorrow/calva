@@ -11,6 +11,7 @@
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.keybindings-note :as keybindings-note]
+   [calva.repl.webview.near-colors :as near-colors]
    [calva.repl.webview.output-cap :as output-cap]
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.spinner :as spinner]
@@ -240,10 +241,11 @@
           (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
 
 (defn- set-spans!
-  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
+  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`, when
+   it is near the view, and remembers the colors for when it comes near."
   [^js code ranges marks]
   (printed-code-editor/drawn! code {:ranges ranges :marks marks})
-  (code-highlight/set-spans! code (.-textContent code) ranges marks))
+  (near-colors/set-spans! code ranges marks))
 
 (defn- color-with-grammar!
   "Colors the `code` element with the grammar's `colors`, `{:ranges :marks}`, and asks for its semantic
@@ -849,6 +851,7 @@
                         (auto-scroll/stop-following!))
     :fx/copy-folded-result (some->> (folded-result/text (first args)) (copy-text! (first args)))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
+    :fx/release-kept-colors (near-colors/release-kept!)
     :fx/set-font-scale (do (set-font-scale! (first args))
                            (viewport-observer/restart! output-dom-element))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
@@ -956,5 +959,5 @@
 (defn ^:export main []
   (add-event-listeners output-dom-element)
   (auto-scroll/listen!)
-  (when (= "on" (.. js/document -body (getAttribute "data-accessibility-support")))
-    (viewport-observer/start! output-dom-element (viewport-observer/page-root-margin))))
+  (js/document.addEventListener "selectionchange" near-colors/release-kept!)
+  (viewport-observer/start! output-dom-element (viewport-observer/page-root-margin)))

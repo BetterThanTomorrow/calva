@@ -1,7 +1,10 @@
 (ns calva.repl.webview.viewport-observer
-  "While accessibility support is on, hides from screen readers the output blocks that are more than
-   `editor.accessibilityPageSize` lines away from the visible part of the output. The blocks are observed from
-   the element that scrolls: the output's own scroller while the REPL Input is below it, else the document.")
+  "Observes which output blocks are within `editor.accessibilityPageSize` lines of the visible part of the
+   output. The code in the blocks near it is colored, and while accessibility support is on, the blocks
+   farther away are hidden from screen readers. The blocks are observed from the element that scrolls: the
+   output's own scroller while the REPL Input is below it, else the document."
+  (:require
+   [calva.repl.webview.near-colors :as near-colors]))
 
 (defonce ^{:private true
            :doc "The running observers of the output blocks, the output's children and the body's class."}
@@ -13,10 +16,14 @@
   []
   @!observers)
 
-(defn aria-hidden-updates
-  "Returns `[block hidden?]` for each of the IntersectionObserver `entries`: hidden out of the observed range."
+(defn near-updates
+  "Returns `[block near?]` for each of the IntersectionObserver `entries`: near in the observed range."
   [entries]
-  (mapv (fn [^js entry] [(.-target entry) (not (.-isIntersecting entry))]) entries))
+  (mapv (fn [^js entry] [(.-target entry) (.-isIntersecting entry)]) entries))
+
+(defn- accessibility-support?
+  []
+  (= "on" (.. js/document -body (getAttribute "data-accessibility-support"))))
 
 (defn- set-aria-hidden!
   "Hides `block` from screen readers, unless it holds the focus, or makes it readable."
@@ -52,11 +59,21 @@
   (doseq [^js block (array-seq (.-children output-element))]
     (.removeAttribute block "aria-hidden")))
 
-(defn- observe-hidden!
-  "Hides `block` and observes it with `blocks`, which shows it when it is near the view."
+(defn- observe!
+  "Observes `block` with `blocks`. While accessibility support is on, hides it until it is found near the
+   view."
   [^js blocks block]
-  (set-aria-hidden! [block true])
+  (when (accessibility-support?)
+    (set-aria-hidden! [block true]))
   (.observe blocks block))
+
+(defn- on-near-updates!
+  [entries]
+  (let [hide? (accessibility-support?)]
+    (doseq [[block near?] (near-updates entries)]
+      (near-colors/set-near! block near?)
+      (when hide?
+        (set-aria-hidden! [block (not near?)])))))
 
 (defn root-margin
   "Returns the observer's margin of `lines` lines `line-height` pixels high, above and below the visible part."
@@ -82,25 +99,25 @@
                (line-height)))
 
 (defn start!
-  "Observes the blocks in `output-element`, and the blocks added to it, hiding the ones farther than `margin`,
-   an IntersectionObserver root margin, from view. Starts again from the other root when the REPL Input comes
-   or goes."
+  "Observes the blocks in `output-element`, and the blocks added to it, as near or farther than `margin`, an
+   IntersectionObserver root margin, from view. Starts again from the other root when the REPL Input comes or
+   goes."
   [^js output-element margin]
   (disconnect!)
+  (near-colors/forget-reports!)
   (let [root (scroll-root)
-        blocks (js/IntersectionObserver. #(run! set-aria-hidden! (aria-hidden-updates %))
-                                         #js {:root root :rootMargin margin})
+        blocks (js/IntersectionObserver. on-near-updates! #js {:root root :rootMargin margin})
         children (js/MutationObserver.
                   (fn [records]
                     (doseq [^js record records]
                       (doseq [node (array-seq (.-addedNodes record)) :when (block? node)]
-                        (observe-hidden! blocks node))
+                        (observe! blocks node))
                       (doseq [node (array-seq (.-removedNodes record)) :when (block? node)]
                         (.unobserve blocks node)))))
         body (js/MutationObserver. #(when-not (identical? root (scroll-root))
                                       (start! output-element margin)))]
     (doseq [block (array-seq (.-children output-element))]
-      (observe-hidden! blocks block))
+      (observe! blocks block))
     (.observe children output-element #js {:childList true})
     (.observe body js/document.body #js {:attributes true :attributeFilter #js ["class"]})
     (reset! !observers {:blocks blocks :children children :body body})))
@@ -111,17 +128,23 @@
   (when @!observers
     (start! output-element (page-root-margin))))
 
+(defn- hide-output!
+  "Hides all of `output-element` from screen readers, in place of hiding its blocks one by one."
+  [^js output-element]
+  (doseq [^js block (array-seq (.-children output-element))]
+    (.removeAttribute block "aria-hidden"))
+  (.setAttribute output-element "aria-hidden" "true"))
+
 (defn set-accessibility-support!
   "Shows screen readers the output in `output-element` near the visible part with `accessibility-support?`,
    within `accessibility-page-size` lines, and otherwise hides all of it from them and puts the
-   `accessibility-note`, HTML, in the `note` element."
+   `accessibility-note`, HTML, in the `note` element. Observes the blocks again with the page size."
   [^js output-element ^js note {:keys [accessibility-support? accessibility-page-size accessibility-note]}]
   (.. js/document -body (setAttribute "data-accessibility-support" (if accessibility-support? "on" "off")))
   (.. js/document -body (setAttribute "data-accessibility-page-size" (str accessibility-page-size)))
   (if accessibility-support?
-    (do (start! output-element (page-root-margin))
-        (.removeAttribute output-element "aria-hidden"))
-    (do (stop! output-element)
-        (.setAttribute output-element "aria-hidden" "true")))
+    (.removeAttribute output-element "aria-hidden")
+    (hide-output! output-element))
+  (start! output-element (page-root-margin))
   (when note
     (set! (.-innerHTML note) (if accessibility-support? "" (or accessibility-note "")))))

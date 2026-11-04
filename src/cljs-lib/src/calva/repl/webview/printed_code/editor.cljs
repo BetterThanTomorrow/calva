@@ -236,6 +236,16 @@
   (when-let [^js view (when (= code (:code @!editor)) (:view @!editor))]
     (highlighting/set-layer! view :grammar ranges)))
 
+(defn drawn-colors
+  "Returns the colors the printed `code` element was last drawn with, `{:ranges :marks}`, or nil."
+  [^js code]
+  (.get !drawn-colors code))
+
+(defn open-code
+  "Returns the printed code element the editor stands in for, or nil when no editor is open."
+  []
+  (:code @!editor))
+
 (defn- set-line-wrapping!
   [wrap?]
   (when-let [^js view (:view @!editor)]
