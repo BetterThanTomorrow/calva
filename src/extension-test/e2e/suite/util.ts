@@ -3,6 +3,7 @@ import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as which from 'which';
+import screenshot = require('screenshot-desktop');
 import * as state from '../../../state';
 import * as projectRoot from '../../../project-root';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -25,6 +26,9 @@ export const testDataDir = path.join(
 );
 
 export const isCircleCI = process.env.CIRCLECI === 'true';
+
+// The top level directory where screenshots will be stored.
+const screenshotsDir = path.join(__dirname, '../screenshots');
 
 export async function openFile(filePath: string) {
   const uri = vscode.Uri.file(filePath);
@@ -86,6 +90,40 @@ export function getExecutablePath(executablePathMaybe: string) {
   } catch (_e) {
     return null;
   }
+}
+
+// Captures a screenshot and saves it to
+// <screenshotsDir>/SUITE/TESTNAME.png. Waits DELAYMS milliseconds
+// before capturing. Returns the file path or null on error.
+export async function captureScreenshot(
+  suite: string,
+  testName: string,
+  delayMs: number
+): Promise<string> {
+  let outputPath = path.join(screenshotsDir, suite, `${testName}.png`);
+
+  if (process.platform === 'linux' && !getExecutablePath('xrandr')) {
+    log(suite, 'Skipping screenshot because xrandr is not installed');
+    return null;
+  }
+
+  try {
+    const dir = path.dirname(outputPath);
+    fs.mkdirSync(dir, { recursive: true });
+
+    if (delayMs > 0) {
+      await sleep(delayMs);
+    }
+
+    const imageBuffer = await screenshot();
+
+    fs.writeFileSync(outputPath, new Uint8Array(imageBuffer));
+    log(suite, `Screenshot saved to ${outputPath}`);
+  } catch (error) {
+    log(suite, 'Error capturing screenshot:', error);
+    outputPath = null;
+  }
+  return outputPath;
 }
 
 // Attempts to creates a wrapper around all functions and properties

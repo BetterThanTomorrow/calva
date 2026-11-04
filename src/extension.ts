@@ -87,6 +87,24 @@ function initializeState() {
   );
 }
 
+function registerDebugAdapter(context: vscode.ExtensionContext): void {
+  const provider = new debug.CalvaDebugConfigurationProvider();
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider(debug.CALVA_DEBUG_CONFIGURATION.type, provider)
+  );
+  const factory = new debug.CalvaDebugAdapterDescriptorFactory();
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory(
+      debug.CALVA_DEBUG_CONFIGURATION.type,
+      factory
+    )
+  );
+  if ('dispose' in factory) {
+    context.subscriptions.push(factory);
+  }
+  debug.registerSourceBreakpointInstrumentation(context, evaluate.evaluateCodeUpdatingUI);
+}
+
 async function activate(context: vscode.ExtensionContext) {
   // Store a reference to the vscode API in the cljs so it can call the API using that reference,
   // because requiring the vscode API poses issues with being able to test the cljs lib.
@@ -620,20 +638,7 @@ async function activate(context: vscode.ExtensionContext) {
   );
 
   // Clojure debug adapter setup
-  const provider = new debug.CalvaDebugConfigurationProvider();
-  context.subscriptions.push(
-    vscode.debug.registerDebugConfigurationProvider(debug.CALVA_DEBUG_CONFIGURATION.type, provider)
-  );
-  const factory = new debug.CalvaDebugAdapterDescriptorFactory();
-  context.subscriptions.push(
-    vscode.debug.registerDebugAdapterDescriptorFactory(
-      debug.CALVA_DEBUG_CONFIGURATION.type,
-      factory
-    )
-  );
-  if ('dispose' in factory) {
-    context.subscriptions.push(factory);
-  }
+  registerDebugAdapter(context);
   context.subscriptions.push(
     vscode.workspace.registerNotebookSerializer(
       'calva-clojure-notebook',
