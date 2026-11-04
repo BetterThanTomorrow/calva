@@ -68,9 +68,11 @@
                  attributes (into (sorted-map)
                                   (for [attribute (array-seq (.-attributes node))]
                                     [(.-name attribute) (ovc-attribute-value (.-name attribute) (.-value attribute))]))]
-             (if (.contains (.-classList node) "cm-editor")
-               [tag attributes :codemirror]
-               (into [tag attributes] (keep ovc-node) (array-seq (.-childNodes node)))))
+             (cond
+               (.contains (.-classList node) "cm-editor") [tag attributes :codemirror]
+               ;; It holds the text of the control last hovered
+               (= "output-tooltip" (.-id node)) [tag attributes :tooltip]
+               :else (into [tag attributes] (keep ovc-node) (array-seq (.-childNodes node)))))
          nil))
 
      (defn ovc-dom []
