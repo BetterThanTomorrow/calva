@@ -242,7 +242,7 @@
 
 (defn- set-spans!
   "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`, when
-   it is near the view, and remembers the colors for when it comes near."
+   it is near the view or kept colored, and remembers the colors for when it comes near."
   [^js code ranges marks]
   (printed-code-editor/drawn! code {:ranges ranges :marks marks})
   (near-colors/set-spans! code ranges marks))

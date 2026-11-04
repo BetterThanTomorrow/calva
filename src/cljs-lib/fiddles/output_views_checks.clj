@@ -36,6 +36,7 @@
 
 (def ^:private requires
   '(require '[calva.repl.webview.near-colors :as near-colors]
+            '[calva.repl.webview.viewport-observer :as viewport-observer]
             '[calva.repl.webview.stacktrace :as stacktrace]
             '[calva.repl.webview.stacktrace-fixtures :as stacktrace-fixtures]
             '[calva.repl.webview.ui :as ui]
@@ -85,10 +86,13 @@
 
      (defn ovc-dom []
        ;; Code far from the view is drawn without its spans, so every block gets its colors first, as when
-       ;; the reader scrolls to it
-       (run! (fn [block] (near-colors/set-near! block true))
-             (array-seq (.-children (js/document.getElementById "output"))))
-       (pr-str (ovc-node js/document.documentElement)))
+       ;; the reader scrolls to it. Observing the blocks again afterwards takes the spans of the far ones.
+       (let [output (js/document.getElementById "output")]
+         (run! (fn [block] (near-colors/set-near! block true))
+               (array-seq (.-children output)))
+         (let [dom (pr-str (ovc-node js/document.documentElement))]
+           (viewport-observer/restart! output)
+           dom)))
      :installed))
 
 (def ^:private style-readers

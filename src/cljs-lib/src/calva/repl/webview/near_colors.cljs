@@ -76,17 +76,17 @@
   (array-seq (.querySelectorAll block "code.clojure-code")))
 
 (defn set-near!
-  "Records whether `block` is `near?` the view. Colors its code when it is near, and draws it without its
-   spans when it is far and nothing keeps them."
-  [^js block near?]
+  "Records whether `block` is near the view, `near-now?`. Colors its code when it is near, and draws it
+   without its spans when it is far and nothing keeps them."
+  [^js block near-now?]
   (let [{:keys [^js reported ^js near]} @!reports]
     (.add reported block)
-    (if near?
+    (if near-now?
       (.add near block)
       (.delete near block)))
   (cond
-    near? (do (.delete !kept block)
-              (run! color-code! (codes block)))
+    near-now? (do (.delete !kept block)
+                  (run! color-code! (codes block)))
     (kept? block) (.add !kept block)
     :else (run! uncolor-code! (codes block))))
 
