@@ -47,6 +47,10 @@
       (with-redefs [ui/dispatch! #(swap! dispatched conj %)]
         (ui/trim-output! output 4))
       (is (= [[:output/ax.errors-removed {:error/ids ["e1"]}]] @dispatched))))
+  (testing "a cap of 0 keeps every block"
+    (let [output (fake-document/hiccup-element [:div {:id "output"} [:pre "aaaa"] [:pre "bbbb"]])]
+      (ui/trim-output! output 0)
+      (is (= ["aaaa" "bbbb"] (block-texts output)))))
   (testing "nothing happens under the cap"
     (let [output (fake-document/hiccup-element [:div {:id "output"} [:pre "aa"] [:pre "bb"]])
           dispatched (atom [])]

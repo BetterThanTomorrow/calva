@@ -96,30 +96,53 @@
     (with-redefs [util/vscode (atom (vscode-with-editor-word-wrap-setting "on"))]
       (is (true? (sut/get-editor-word-wrap-setting))))))
 
-(defn- vscode-with-accessibility-settings
-  [output-views-setting editor-setting]
+(defn- vscode-with-settings
+  "Returns a fake vscode with the `settings`, a map from section to setting name to value."
+  [settings]
   #js {:workspace #js {:getConfiguration (fn [section]
-                                           #js {:get (fn [_setting]
-                                                       (if (= "calva" section) output-views-setting editor-setting))})}})
+                                           #js {:get (fn [setting-name] (get-in settings [section setting-name]))})}})
+
+(defn- accessibility-support-with
+  [output-views-setting editor-setting]
+  (with-redefs [util/vscode (atom (vscode-with-settings {"calva" {"outputViews.accessibilitySupport" output-views-setting}
+                                                          "editor" {"accessibilitySupport" editor-setting
+                                                                    "accessibilityPageSize" 40}}))]
+    (sut/accessibility-support)))
 
 (deftest accessibility-support-test
   (testing "on and off are what they say, whatever the editor's setting"
-    (with-redefs [util/vscode (atom (vscode-with-accessibility-settings "on" "off"))]
-      (is (true? (sut/accessibility-support?))))
-    (with-redefs [util/vscode (atom (vscode-with-accessibility-settings "off" "on"))]
-      (is (false? (sut/accessibility-support?)))))
+    (is (true? (:accessibility-support? (accessibility-support-with "on" "off"))))
+    (is (false? (:accessibility-support? (accessibility-support-with "off" "on")))))
   (testing "follow-editor, and no setting, are on only when editor.accessibilitySupport is on"
     (doseq [[output-views-setting editor-setting expected] [["follow-editor" "on" true]
                                                             ["follow-editor" "auto" false]
                                                             ["follow-editor" "off" false]
                                                             [nil "on" true]
                                                             [nil "auto" false]]]
-      (with-redefs [util/vscode (atom (vscode-with-accessibility-settings output-views-setting editor-setting))]
-        (is (= expected (sut/accessibility-support?))
-            (str output-views-setting " with editor.accessibilitySupport " editor-setting)))))
-  (testing "is off when VS Code is not available"
+      (is (= expected (:accessibility-support? (accessibility-support-with output-views-setting editor-setting)))
+          (str output-views-setting " with editor.accessibilitySupport " editor-setting))))
+  (testing "the page size is editor.accessibilityPageSize, and 500 without it"
+    (is (= 40 (:accessibility-page-size (accessibility-support-with "on" "off"))))
     (with-redefs [util/vscode (atom nil)]
-      (is (false? (sut/accessibility-support?))))))
+      (is (= 500 (:accessibility-page-size (sut/accessibility-support))))))
+  (testing "the note links VS Code's screen reader mode while following the editor at auto"
+    (is (= (sut/accessibility-note true) (:accessibility-note (accessibility-support-with "follow-editor" "auto"))))
+    (is (= (sut/accessibility-note true) (:accessibility-note (accessibility-support-with nil "auto"))))
+    (is (some #{[:a {:href sut/screen-reader-mode-docs} "screen reader mode"]} (sut/accessibility-note true))))
+  (testing "otherwise the note names the setting, and with support on there is none"
+    (is (= (sut/accessibility-note false) (:accessibility-note (accessibility-support-with "off" "auto"))))
+    (is (= (sut/accessibility-note false) (:accessibility-note (accessibility-support-with "follow-editor" "off"))))
+    (is (not-any? #{[:a {:href sut/screen-reader-mode-docs} "screen reader mode"]} (sut/accessibility-note false)))
+    (is (nil? (:accessibility-note (accessibility-support-with "on" "auto")))))
+  (testing "the setting's link opens it in the settings"
+    (is (= "command:workbench.action.openSettings?%5B%22calva.outputViews.accessibilitySupport%22%5D"
+           (:href (second (last (butlast (sut/accessibility-note false)))))))))
+
+(deftest max-output-characters-test
+  (with-redefs [util/vscode (atom (vscode-with-settings {"calva" {"outputViews.maxOutputCharacters" 0}}))]
+    (is (= 0 (sut/max-output-characters)) "0 keeps all output"))
+  (with-redefs [util/vscode (atom nil)]
+    (is (= 1000000 (sut/max-output-characters)) "A million characters without the setting")))
 
 (deftest word-wrap-context-test
   (testing "sets the output word wrap context"
@@ -193,15 +216,21 @@
               [:div {:id "output-end" :aria-hidden "true"}]]
              (first children)))))
   (testing "without accessibility support, the output is hidden from screen readers, and the note says so"
-    (let [page (sut/page {:env/is-debug false} page-args)]
+    (let [page (sut/page {:env/is-debug false} (assoc page-args :accessibility-note [:span "Hidden"]))]
       (is (= "true" (:aria-hidden (attributes (element-by-id page "output")))))
-      (is (= sut/accessibility-note (last (element-by-id page "output-hidden-note"))))
+      (is (= [:span "Hidden"] (last (element-by-id page "output-hidden-note"))))
       (is (= "off" (:data-accessibility-support (attributes (first (elements page :body))))))))
   (testing "with accessibility support, the output is readable, and the note is empty"
     (let [page (sut/page {:env/is-debug false} (assoc page-args :accessibility-support? true))]
       (is (nil? (:aria-hidden (attributes (element-by-id page "output")))))
       (is (= "" (last (element-by-id page "output-hidden-note"))))
       (is (= "on" (:data-accessibility-support (attributes (first (elements page :body))))))))
+  (testing "the body has the page size of accessibility support and the output cap"
+    (let [body (attributes (first (elements (sut/page {:env/is-debug false}
+                                                       (assoc page-args :accessibility-page-size 500 :max-output-characters 0))
+                                            :body)))]
+      (is (= "500" (:data-accessibility-page-size body)))
+      (is (= "0" (:data-max-output-characters body)))))
   (testing "the body has the word-wrap class only with word wrap on"
     (is (= "word-wrap" (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? true)) :body))))))
     (is (nil? (:class (attributes (first (elements (sut/page {:env/is-debug false} (assoc page-args :word-wrap? false)) :body)))))))
@@ -261,7 +290,10 @@
                       sut/word-wrap? (constantly true)
                       sut/get-output-views-font-scale-setting (constantly 1.5)
                       sut/image-display (constantly "raw")
-                      sut/accessibility-support? (constantly true)
+                      sut/accessibility-support (constantly {:accessibility-support? true
+                                                             :accessibility-page-size 500
+                                                             :accessibility-note nil})
+                      sut/max-output-characters (constantly 1000000)
                       styles/css (constantly "some-styles")
                       input-host/html-state (fn [view-id] {:repl-input/id view-id})
                       sut/page (test-util/wrap-spy page-spy)]
@@ -278,6 +310,9 @@
                                                          :font-scale 1.5
                                                          :image-display "raw"
                                                          :accessibility-support? true
+                                                         :accessibility-page-size 500
+                                                         :accessibility-note nil
+                                                         :max-output-characters 1000000
                                                          :repl-input {:repl-input/id "output-view"}})))
           (testing "should set webview html to the page, rendered as an HTML document"
             (is (= "<!DOCTYPE html><html lang=\"en\"></html>" (.. webview-panel -webview -html)))))
@@ -439,7 +474,7 @@
                        "REPL Output"
                        {:preserveFocus true, :viewColumn 1}
                        {:enableScripts true
-                        :enableCommandUris ["calva.showReplOutputView"]
+                        :enableCommandUris ["calva.showReplOutputView" "workbench.action.openSettings"]
                         :localResourceRoots []
                         :retainContextWhenHidden true
                         :enableFindWidget true}]]

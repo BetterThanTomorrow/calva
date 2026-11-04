@@ -107,6 +107,7 @@ async function activate(context: vscode.ExtensionContext) {
   cljsLib.initReplOutputWordWrap();
   cljsLib.initOutputViewImageDisplay();
   cljsLib.initOutputViewsAccessibilitySupport();
+  cljsLib.initOutputViewsMaxOutputCharacters();
   cljsLib.initOutputViewsCodeTheme();
   cljsLib.initReplOutputFontSizeScale();
   cljsLib.setJavaSourceLookup(javaSource.javaSourceUrl);

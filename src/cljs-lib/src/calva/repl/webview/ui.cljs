@@ -835,10 +835,10 @@
     :fx/set-image-display (set-image-display! (first args))
     :fx/set-accessibility-support (viewport-observer/set-accessibility-support! output-dom-element
                                                               (js/document.getElementById "output-hidden-note")
-                                                              (first args))
-    :fx/trim-output (trim-output! output-dom-element (if (seq args)
-                                                       (output-cap/output-cap-for (first args))
-                                                       (output-cap/current-output-cap)))
+                                                              (update (first args) :accessibility-note
+                                                                      #(some-> % html/render)))
+    :fx/set-max-output-characters (.. js/document -body (setAttribute "data-max-output-characters" (str (first args))))
+    :fx/trim-output (trim-output! output-dom-element (output-cap/current-output-cap))
     :fx/append-folded-result (->> (folded-result/append! output-dom-element (first args) insert-hiccup! @!context)
                                   output-appended-event
                                   (.dispatchEvent output-dom-element))
@@ -849,7 +849,8 @@
                         (auto-scroll/stop-following!))
     :fx/copy-folded-result (some->> (folded-result/text (first args)) (copy-text! (first args)))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
-    :fx/set-font-scale (set-font-scale! (first args))
+    :fx/set-font-scale (do (set-font-scale! (first args))
+                           (viewport-observer/restart! output-dom-element))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
     (if-let [handler (get @!effect-handlers (namespace fx-type))]
       (handler dispatch! effect)
@@ -884,7 +885,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
-         "set-accessibility-support" (dispatch! [:msg/set-accessibility-support message-data])
+         ("set-accessibility-support" "set-max-output-characters") (dispatch! [(keyword "msg" command-name) message-data])
          "scroll-to-end"        (dispatch! [:msg/scroll-to-end])
          "keybindings-note"     (dispatch! [:keybindings-note/ax.set-note message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
@@ -956,4 +957,4 @@
   (add-event-listeners output-dom-element)
   (auto-scroll/listen!)
   (when (= "on" (.. js/document -body (getAttribute "data-accessibility-support")))
-    (viewport-observer/start! output-dom-element)))
+    (viewport-observer/start! output-dom-element (viewport-observer/page-root-margin))))

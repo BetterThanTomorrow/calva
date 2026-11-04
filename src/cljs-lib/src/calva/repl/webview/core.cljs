@@ -194,32 +194,57 @@
     (when-let [listener (create-image-display-change-listener)]
       (.. ^js vscode-context -subscriptions (push listener)))))
 
-(def accessibility-note
-  "What screen readers get in the Output views while their output is hidden from them."
-  "The output is hidden from screen readers until you turn on the setting calva.outputViews.accessibilitySupport.")
+(def screen-reader-mode-docs
+  "VS Code's docs on its screen reader mode."
+  "https://code.visualstudio.com/docs/configure/accessibility/accessibility#_screen-reader-mode")
 
-(defn accessibility-support?
-  "Returns whether the Output views show their output to screen readers, by
-   `calva.outputViews.accessibilitySupport`. Its default, `follow-editor`, is on when
-   `editor.accessibilitySupport` is `on`, and VS Code's `auto` counts as off."
+(def ^:private accessibility-setting-link
+  [:a {:href (str "command:workbench.action.openSettings?"
+                  (js/encodeURIComponent (js/JSON.stringify #js ["calva.outputViews.accessibilitySupport"])))}
+   "calva.outputViews.accessibilitySupport"])
+
+(defn- setting
+  [section setting-name]
+  (some-> ^js @util/vscode .-workspace (.getConfiguration section) (.get setting-name)))
+
+(defn accessibility-note
+  "Returns what screen readers get in the Output views while their output is hidden from them, as hiccup. With
+   `editor-auto?`, while the setting follows `editor.accessibilitySupport` at `auto`, it links VS Code's docs on
+   screen reader mode too."
+  [editor-auto?]
+  (if editor-auto?
+    [:span "The output is hidden from screen readers. Turn on "
+     [:a {:href screen-reader-mode-docs} "screen reader mode"] " in VS Code, or the setting "
+     accessibility-setting-link "."]
+    [:span "The output is hidden from screen readers until you turn on the setting " accessibility-setting-link "."]))
+
+(defn accessibility-support
+  "Returns whether the Output views show their output to screen readers, `:accessibility-support?`, by
+   `calva.outputViews.accessibilitySupport`, how many lines around the visible output they read,
+   `:accessibility-page-size`, from `editor.accessibilityPageSize`, and the `:accessibility-note` while they
+   don't. The setting's default, `follow-editor`, is on when `editor.accessibilitySupport` is `on`, and VS Code's
+   `auto` counts as off."
   []
-  (if-let [vscode @util/vscode]
-    (case (.. ^js vscode -workspace (getConfiguration "calva") (get "outputViews.accessibilitySupport"))
-      "on" true
-      "off" false
-      (= "on" (.. ^js vscode -workspace (getConfiguration "editor") (get "accessibilitySupport"))))
-    false))
+  (let [editor-support (setting "editor" "accessibilitySupport")
+        follow-editor? (not (#{"on" "off"} (setting "calva" "outputViews.accessibilitySupport")))
+        support? (case (setting "calva" "outputViews.accessibilitySupport")
+                   "on" true
+                   "off" false
+                   (= "on" editor-support))
+        page-size (setting "editor" "accessibilityPageSize")]
+    {:accessibility-support? support?
+     :accessibility-page-size (if (number? page-size) page-size 500)
+     :accessibility-note (when-not support?
+                           (accessibility-note (and follow-editor? (= "auto" editor-support))))}))
 
 (defn- post-accessibility-support-to-all-views!
   []
-  (let [message {:command/name "set-accessibility-support"
-                 :accessibility-support? (accessibility-support?)
-                 :accessibility-note accessibility-note}]
+  (let [message (assoc (accessibility-support) :command/name "set-accessibility-support")]
     (run! #(post-message-to-webview % message) @registered-webviews)))
 
 (defn ^:export init-accessibility-support!
-  "Posts every Output view a change of `calva.outputViews.accessibilitySupport`, and of
-   `editor.accessibilitySupport`, which its default follows."
+  "Posts every Output view a change of `calva.outputViews.accessibilitySupport`, and of the editor's
+   accessibility settings it follows."
   []
   (when-let [vscode-context @util/vscode-context]
     (.. ^js vscode-context -subscriptions
@@ -227,8 +252,28 @@
                   (onDidChangeConfiguration
                    (fn [^js event]
                      (when (or (.affectsConfiguration event "calva.outputViews.accessibilitySupport")
-                               (.affectsConfiguration event "editor.accessibilitySupport"))
+                               (.affectsConfiguration event "editor.accessibilitySupport")
+                               (.affectsConfiguration event "editor.accessibilityPageSize"))
                        (post-accessibility-support-to-all-views!)))))))))
+
+(defn max-output-characters
+  "Returns the setting `calva.outputViews.maxOutputCharacters`, the output cap of each Output view page."
+  []
+  (let [cap (setting "calva" "outputViews.maxOutputCharacters")]
+    (if (and (number? cap) (js/isFinite cap)) cap 1000000)))
+
+(defn ^:export init-max-output-characters!
+  "Posts every Output view a change of `calva.outputViews.maxOutputCharacters`."
+  []
+  (when-let [vscode-context @util/vscode-context]
+    (.. ^js vscode-context -subscriptions
+        (push (.. ^js @util/vscode -workspace
+                  (onDidChangeConfiguration
+                   (fn [^js event]
+                     (when (.affectsConfiguration event "calva.outputViews.maxOutputCharacters")
+                       (let [message {:command/name "set-max-output-characters"
+                                      :max-output-characters (max-output-characters)}]
+                         (run! #(post-message-to-webview % message) @registered-webviews))))))))))
 
 (defn get-output-views-font-scale-setting
   []
@@ -290,7 +335,7 @@
 (defn page
   "Returns the page of an Output view, as hiccup."
   [{:env/keys [is-debug]} {:keys [js-source styles csp-source greeting word-wrap? font-scale image-display script-nonce repl-input
-                                  accessibility-support?]}]
+                                  accessibility-support? accessibility-page-size accessibility-note max-output-characters]}]
   [:html {:lang "en" :style {:--calva-output-font-scale (str (or font-scale 1.0))}}
    [:head
     [:meta {:charset "UTF-8"}]
@@ -300,7 +345,9 @@
     [:title "REPL Output"]
     [:style {:id "calva-output-styles" :nonce script-nonce :innerHTML styles}]]
    [:body (cond-> {:data-image-display (or image-display default-image-display)
-                   :data-accessibility-support (if accessibility-support? "on" "off")}
+                   :data-accessibility-support (if accessibility-support? "on" "off")
+                   :data-accessibility-page-size (str accessibility-page-size)
+                   :data-max-output-characters (str max-output-characters)}
             word-wrap? (assoc :class "word-wrap"))
     [:div {:id "output-scroller" :tabindex "-1" :aria-describedby "output-hidden-note"}
      greeting
@@ -327,16 +374,17 @@
         csp-source (.. ^js webview-panel -webview -cspSource)
         script-nonce (.randomUUID (js/require "crypto"))
         logo-href (greeting/logo-webview-uri context (.-webview webview-panel))
-        view-page (page context {:js-source js-source
-                                 :styles (styles/css)
-                                 :csp-source csp-source
-                                 :script-nonce script-nonce
-                                 :greeting (greeting/for-view view-kind logo-href)
-                                 :word-wrap? (word-wrap?)
-                                 :font-scale (get-output-views-font-scale-setting)
-                                 :image-display (image-display)
-                                 :accessibility-support? (accessibility-support?)
-                                 :repl-input (input-host/html-state (name view-kind))})]
+        view-page (page context (merge (accessibility-support)
+                                       {:js-source js-source
+                                        :styles (styles/css)
+                                        :csp-source csp-source
+                                        :script-nonce script-nonce
+                                        :greeting (greeting/for-view view-kind logo-href)
+                                        :word-wrap? (word-wrap?)
+                                        :font-scale (get-output-views-font-scale-setting)
+                                        :image-display (image-display)
+                                        :max-output-characters (max-output-characters)
+                                        :repl-input (input-host/html-state (name view-kind))}))]
     (set! (.. webview-panel -webview -html) (html/document view-page))))
 
 (defn set-code-theme!

@@ -1,22 +1,16 @@
 (ns calva.repl.webview.output-cap
   "How much output an Output view page keeps, and which output blocks the cap removes.")
 
-(def output-cap
-  "The most characters of output an Output view page keeps, `:accessibility-support-off` and `-on`."
-  {:accessibility-support-off 1000000
-   :accessibility-support-on 100000})
-
-(defn output-cap-for
-  "Returns the output cap with `accessibility-support?` or without."
-  [accessibility-support?]
-  (if accessibility-support?
-    (:accessibility-support-on output-cap)
-    (:accessibility-support-off output-cap)))
+(def default-max-output-characters
+  "The most characters of output an Output view page keeps without the setting
+   `calva.outputViews.maxOutputCharacters`."
+  1000000)
 
 (defn current-output-cap
-  "Returns the output cap of the page, by its accessibility support."
+  "Returns the output cap of the page, its `data-max-output-characters`. 0 keeps all output."
   []
-  (output-cap-for (= "on" (.. js/document -body (getAttribute "data-accessibility-support")))))
+  (let [cap (some-> (.. js/document -body (getAttribute "data-max-output-characters")) js/Number)]
+    (if (and (number? cap) (js/isFinite cap)) cap default-max-output-characters)))
 
 (defn kept-block-count
   "Returns how many of the newest output blocks fit `cap` characters by their text `lengths`, newest first,
@@ -47,9 +41,11 @@
 
 (defn removed-blocks
   "Returns the oldest of the output `blocks` that don't fit `cap` characters, except the `kept` block, and the
-   index of the oldest block the cap keeps."
+   index of the oldest block the cap keeps. A `cap` of 0 keeps every block."
   [blocks cap kept]
-  (let [kept-count (kept-block-count (map text-length (rseq blocks)) cap)
+  (let [kept-count (if (pos? cap)
+                     (kept-block-count (map text-length (rseq blocks)) cap)
+                     (count blocks))
         oldest-kept (- (count blocks) kept-count)]
     [(into [] (remove #(identical? % kept)) (subvec blocks 0 oldest-kept))
      oldest-kept]))

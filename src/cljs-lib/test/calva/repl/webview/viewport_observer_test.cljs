@@ -23,15 +23,19 @@
            (sut/aria-hidden-updates [(entry a false) (entry b true)]))
         "A block out of the observed range is hidden, a block in it is not")))
 
+(deftest root-margin-test
+  (is (= "8500px 0px" (sut/root-margin 500 17)) "500 lines of 17 pixels above and below")
+  (is (= "171px 0px" (sut/root-margin 10 17.1)) "Whole pixels"))
+
 (deftest start-and-stop-test
   (let [output (output-with-blocks)
         [a b c] (array-seq (.-children output))]
     (try
-      (sut/start! output)
+      (sut/start! output "300px 0px")
       (let [^js blocks (:blocks (sut/observers))]
-        (testing "start! observes every block, with a margin of a scroll height around the visible part"
+        (testing "start! observes every block, with the margin around the visible part"
           (is (= [a b c] (vec (.-observed blocks))))
-          (is (= "100% 0px" (.. blocks -options -rootMargin))))
+          (is (= "300px 0px" (.. blocks -options -rootMargin))))
         (testing "the root is the document while the REPL Input is off"
           (is (identical? js/document (.. blocks -options -root))))
         (testing "every block is hidden until the observer finds it near the view"
@@ -40,7 +44,7 @@
           ((.-callback blocks) #js [(entry a false) (entry b true) (entry c true)])
           (is (= ["true" nil nil] (hidden-blocks output))))
         (testing "start! again disconnects the running observers"
-          (sut/start! output)
+          (sut/start! output "300px 0px")
           (is (.-disconnected blocks))
           (is (not (identical? blocks (:blocks (sut/observers)))))))
       (testing "stop! disconnects, and makes every block readable again"
@@ -55,7 +59,7 @@
 (deftest new-and-removed-blocks-test
   (let [output (output-with-blocks)]
     (try
-      (sut/start! output)
+      (sut/start! output "300px 0px")
       (let [{:keys [^js blocks ^js children]} (sut/observers)
             added (fake-document/hiccup-element [:pre "d"])
             removed (first (array-seq (.-children output)))]
@@ -73,7 +77,7 @@
         class-list (.. js/document -body -classList)]
     (set! (.-getElementById js/document) (fn [id] (when (= "output-scroller" id) scroller)))
     (try
-      (sut/start! output)
+      (sut/start! output "300px 0px")
       (let [{^js first-blocks :blocks ^js body :body} (sut/observers)]
         (testing "a body class change that keeps the root keeps the observers"
           (.add class-list "word-wrap")
@@ -85,7 +89,8 @@
           (let [^js blocks (:blocks (sut/observers))]
             (is (.-disconnected first-blocks))
             (is (identical? scroller (.. blocks -options -root)))
-            (is (= 3 (.. blocks -observed -length)) "Every block is observed again"))))
+            (is (= 3 (.. blocks -observed -length)) "Every block is observed again")
+            (is (= "300px 0px" (.. blocks -options -rootMargin)) "With the same margin"))))
       (finally
         (sut/stop! output)
         (.remove class-list "word-wrap" "repl-input-on")

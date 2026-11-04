@@ -186,15 +186,20 @@
       (is (= {"e2" {:error/id "e2"}}
              (:output/errors (:uf/db (sut/handle-action db [:output/ax.errors-removed {:error/ids ["e1"]}])))))))
 
-  (testing ":msg/set-accessibility-support gives its fx, trims the output to the cap that comes with it, and leaves the db as is"
+  (testing ":msg/set-accessibility-support gives its fx and leaves the db as is"
     (let [result (sut/handle-action sut/initial-db [:msg/set-accessibility-support {:command/name "set-accessibility-support"
                                                                                      :accessibility-support? false
-                                                                                     :accessibility-note "Hidden"}])]
+                                                                                     :accessibility-page-size 500
+                                                                                     :accessibility-note [:span "Hidden"]}])]
       (is (= sut/initial-db (:uf/db result)))
-      (is (= [[:fx/trim-output false]
-              [:fx/set-accessibility-support {:accessibility-support? false :accessibility-note "Hidden"}]]
-             (:uf/fxs result))
-          "The output is trimmed first, so the viewport observer starts on what is kept")))
+      (is (= [[:fx/set-accessibility-support {:accessibility-support? false
+                                              :accessibility-page-size 500
+                                              :accessibility-note [:span "Hidden"]}]]
+             (:uf/fxs result)))))
+
+  (testing ":msg/set-max-output-characters sets the output cap and trims to it"
+    (is (= [[:fx/set-max-output-characters 2000] [:fx/trim-output]]
+           (:uf/fxs (sut/handle-action sut/initial-db [:msg/set-max-output-characters {:max-output-characters 2000}])))))
 
   (testing ":msg/set-image-display gives a set-image-display fx and leaves the db as is"
     (let [result (sut/handle-action sut/initial-db [:msg/set-image-display {:command/name "set-image-display"

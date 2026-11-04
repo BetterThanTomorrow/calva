@@ -246,8 +246,13 @@
 
     :msg/set-accessibility-support
     {:uf/db db
-     :uf/fxs [[:fx/trim-output (:accessibility-support? payload)]
-              [:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-note])]]}
+     :uf/fxs [[:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-page-size
+                                                                   :accessibility-note])]]}
+
+    :msg/set-max-output-characters
+    {:uf/db db
+     :uf/fxs [[:fx/set-max-output-characters (:max-output-characters payload)]
+              [:fx/trim-output]]}
 
     :msg/scroll-to-end
     {:uf/db db
