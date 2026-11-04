@@ -367,11 +367,11 @@
             ],
             "enumDescriptions": [
               "On when editor.accessibilitySupport is \"on\", off otherwise.",
-              "Screen readers read the output on screen and near it. The views keep less output.",
+              "Screen readers can read the output on screen and near it.",
               "The output is hidden from screen readers."
             ],
             "default": "follow-editor",
-            "markdownDescription": "Shows the Output views' output to screen readers when on, and hides it from them when off. The default, `follow-editor`, is on when `#editor.accessibilitySupport#` is `on`."
+            "markdownDescription": "Shows the Output views' output to screen readers when on, and hides it from them when off. The default, `follow-editor`, is on when `#editor.accessibilitySupport#` is `on`. When `on`, the views keep less ouput, because performance suffers. See [#3336](https://github.com/BetterThanTomorrow/calva/issues/3336)."
           },
           "calva.outputViews.replInput": {
             "type": "object",
