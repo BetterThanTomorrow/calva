@@ -85,12 +85,15 @@
     (some-> js/document.documentElement .-style (aset "overflowAnchor" value))))
 
 (defn listen!
-  "Turns auto scrolling on when the end of the output comes into view, and follows the user's scrolling."
+  "Turns auto scrolling on when the end of the output comes into view, follows the user's scrolling, and
+   keeps the end in view while the output changes size, as when a form in printed code's editor unfolds."
   []
   (set-anchoring! @!on?)
   (add-watch !on? ::anchoring (fn [_ _ was-on? on?]
                                 (when (not= was-on? on?)
                                   (set-anchoring! on?))))
+  (when-let [output (js/document.getElementById "output")]
+    (.observe (js/ResizeObserver. #(follow!)) output))
   (when-let [end (js/document.getElementById end-id)]
     (.observe (js/IntersectionObserver. (fn [entries]
                                           (when (some #(.-isIntersecting ^js %) entries)
