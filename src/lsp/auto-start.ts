@@ -14,6 +14,17 @@ function isWithin(parent_path: string, child_path: string) {
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
+type ClojureDocumentInFolderParams = {
+  folder_path: string;
+  document: DocumentLike;
+};
+
+export function isClojureDocumentInFolder(params: ClojureDocumentInFolderParams) {
+  return (
+    isClojureDocument(params.document) && isWithin(params.folder_path, params.document.uri.fsPath)
+  );
+}
+
 type ClojureWorkspaceFolderParams = {
   folder_path: string;
   project_root_paths: string[];

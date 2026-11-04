@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [clojure-lsp starts in a non-Clojure first workspace root when a Clojure file outside the workspace is opened](https://github.com/BetterThanTomorrow/calva/issues/3339)
+
 ## [2.0.609] - 2026-11-02
 
 - [Autoconfigure custom keybindings that the output view should handle](https://github.com/BetterThanTomorrow/calva/issues/3331)
