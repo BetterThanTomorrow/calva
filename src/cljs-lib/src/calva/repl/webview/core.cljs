@@ -221,8 +221,8 @@
 (defn accessibility-support
   "Returns whether the Output views show their output to screen readers, `:accessibility-support?`, by
    `calva.outputViews.accessibilitySupport`, how many lines around the visible output they read,
-   `:accessibility-page-size`, from `editor.accessibilityPageSize`, and the `:accessibility-note` while they
-   don't. The setting's default, `follow-editor`, is on when `editor.accessibilitySupport` is `on`, and VS Code's
+   `:accessibility-page-size`, from `editor.accessibilityPageSize` as VS Code's editors read it, and the
+   `:accessibility-note` while they don't. The setting's default, `follow-editor`, is on when `editor.accessibilitySupport` is `on`, and VS Code's
    `auto` counts as off."
   []
   (let [editor-support (setting "editor" "accessibilitySupport")
@@ -233,7 +233,11 @@
                    (= "on" editor-support))
         page-size (setting "editor" "accessibilityPageSize")]
     {:accessibility-support? support?
-     :accessibility-page-size (if (number? page-size) page-size 500)
+     :accessibility-page-size (cond
+                                (not (number? page-size)) 500
+                                ;; VS Code's editors give screen readers 500 lines when the setting is at its old default
+                                (and support? (= 10 page-size)) 500
+                                :else page-size)
      :accessibility-note (when-not support?
                            (accessibility-note (and follow-editor? (= "auto" editor-support))))}))
 

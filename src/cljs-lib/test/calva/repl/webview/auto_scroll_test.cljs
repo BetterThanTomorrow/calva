@@ -19,6 +19,28 @@
       (finally
         (set! (.-getElementById js/document) get-element-by-id)))))
 
+(deftest pause-anchoring!-test
+  (let [scroller (fake-document/hiccup-element [:div {:id "output-scroller"}])
+        get-element-by-id (.-getElementById js/document)
+        set-timeout js/setTimeout
+        clear-timeout js/clearTimeout
+        timers (atom [])
+        anchoring #(.. scroller -style -overflowAnchor)]
+    (set! (.-getElementById js/document) (fn [id] (when (= "output-scroller" id) scroller)))
+    (set! js/setTimeout (fn [f ms] (swap! timers conj [f ms]) (count @timers)))
+    (set! js/clearTimeout (fn [_]))
+    (try
+      (#'sut/pause-anchoring!)
+      (is (= "none" (anchoring)) "Anchoring is off while output arrives and the view follows it")
+      (#'sut/pause-anchoring!)
+      (is (= [1000 1000] (mapv second @timers)) "Each call waits a second again")
+      ((first (last @timers)))
+      (is (= "" (anchoring)) "Anchoring is back after output stops arriving")
+      (finally
+        (set! (.-getElementById js/document) get-element-by-id)
+        (set! js/setTimeout set-timeout)
+        (set! js/clearTimeout clear-timeout)))))
+
 (deftest scrolled-up?-test
   (testing "compares with where the target was last scrolled, by the user or the page"
     (is (true? (sut/scrolled-up? {:page 1000} :page 990)))

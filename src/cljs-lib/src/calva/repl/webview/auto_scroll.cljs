@@ -50,10 +50,41 @@
     (js/scrollTo 0 js/document.documentElement.scrollHeight)
     (swap! !tops assoc scroller (.-scrollTop scroller) js/document js/window.scrollY)))
 
+(defn set-anchoring!
+  "Turns the browser's scroll anchoring off while the view is `following?` arriving output, and on otherwise.
+   Blocks above the view change size when they leave the always-laid-out tail of `content-visibility`, and
+   anchoring's adjustments would read as scrolling up. Otherwise anchoring keeps the reader's place while
+   blocks leave the top, and the view's place while a block unfolds or folds in place."
+  [following?]
+  (let [value (if following? "none" "")]
+    (some-> (js/document.getElementById "output-scroller") .-style (aset "overflowAnchor" value))
+    (some-> js/document.documentElement .-style (aset "overflowAnchor" value))))
+
+(def ^:private anchoring-pause-ms
+  "How long scroll anchoring stays off after the view last followed arriving output."
+  1000)
+
+(defonce ^:private !anchoring-timer (atom nil))
+
+(defn- resume-anchoring!
+  []
+  (some-> @!anchoring-timer js/clearTimeout)
+  (reset! !anchoring-timer nil)
+  (set-anchoring! false))
+
+(defn- pause-anchoring!
+  "Turns scroll anchoring off, and on again `anchoring-pause-ms` after the last call."
+  []
+  (set-anchoring! true)
+  (some-> @!anchoring-timer js/clearTimeout)
+  (reset! !anchoring-timer (js/setTimeout resume-anchoring! anchoring-pause-ms)))
+
 (defn follow!
-  "Scrolls the output to its end while auto scrolling is on."
+  "Scrolls the output to its end while auto scrolling is on, with scroll anchoring off until output has
+   stopped arriving for a while."
   []
   (when @!on?
+    (pause-anchoring!)
     (scroll-to-end!)))
 
 (defn reveal-end!
@@ -75,25 +106,13 @@
         (swap! !on? after-scroll {:up? (scrolled-up? before target top)
                                   :end-visible? (end-visible? end)})))))
 
-(defn set-anchoring!
-  "Turns the browser's scroll anchoring off while auto scrolling is `on?`, and on while it is off. Following
-   the end needs no anchoring, and its adjustments, when blocks above change size, would read as scrolling
-   up. Away from the end, anchoring keeps the reader's place while blocks leave the top."
-  [on?]
-  (let [value (if on? "none" "")]
-    (some-> (js/document.getElementById "output-scroller") .-style (aset "overflowAnchor" value))
-    (some-> js/document.documentElement .-style (aset "overflowAnchor" value))))
-
 (defn listen!
-  "Turns auto scrolling on when the end of the output comes into view, follows the user's scrolling, and
-   keeps the end in view while the output changes size, as when a form in printed code's editor unfolds."
+  "Turns auto scrolling on when the end of the output comes into view, and follows the user's scrolling.
+   Scroll anchoring comes back as soon as auto scrolling turns off."
   []
-  (set-anchoring! @!on?)
   (add-watch !on? ::anchoring (fn [_ _ was-on? on?]
-                                (when (not= was-on? on?)
-                                  (set-anchoring! on?))))
-  (when-let [output (js/document.getElementById "output")]
-    (.observe (js/ResizeObserver. #(follow!)) output))
+                                (when (and was-on? (not on?))
+                                  (resume-anchoring!))))
   (when-let [end (js/document.getElementById end-id)]
     (.observe (js/IntersectionObserver. (fn [entries]
                                           (when (some #(.-isIntersecting ^js %) entries)

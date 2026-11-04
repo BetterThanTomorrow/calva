@@ -123,6 +123,10 @@
           (str output-views-setting " with editor.accessibilitySupport " editor-setting))))
   (testing "the page size is editor.accessibilityPageSize, and 500 without it"
     (is (= 40 (:accessibility-page-size (accessibility-support-with "on" "off"))))
+    (with-redefs [util/vscode (atom (vscode-with-settings {"calva" {"outputViews.accessibilitySupport" "on"}
+                                                            "editor" {"accessibilityPageSize" 10}}))]
+      (is (= 500 (:accessibility-page-size (sut/accessibility-support)))
+          "With support on, 10, the old default, is 500, as in VS Code's editors"))
     (with-redefs [util/vscode (atom nil)]
       (is (= 500 (:accessibility-page-size (sut/accessibility-support))))))
   (testing "the note links VS Code's screen reader mode while following the editor at auto"
