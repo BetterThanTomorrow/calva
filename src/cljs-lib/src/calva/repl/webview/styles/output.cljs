@@ -65,14 +65,9 @@
    [:.output-folded-size {:margin-left "1ch"
                           :color "var(--vscode-descriptionForeground, #858585)"}]
 
-   ;; Read by screen readers, not shown, until a link in it has the focus
-   [".visually-hidden:not(:focus-within)" {:position :absolute
-                                           :width "1px"
-                                           :height "1px"
-                                           :overflow :hidden
-                                           :clip-path "inset(50%)"
-                                           :white-space :nowrap}]
-   [:#output-hidden-note
+   ;; What screen readers get while the output is hidden from them, shown to everyone
+   [:#output-hidden-note {:margin [[0 0 "1em"]]}
+    [:&:empty {:display :none}]
     [:a {:color "var(--vscode-textLink-foreground)"}]]])
 
 (def text

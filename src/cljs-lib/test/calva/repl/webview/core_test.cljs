@@ -215,7 +215,7 @@
                                             :body))]
       (is (= [:div {:id "output-scroller" :tabindex "-1" :aria-describedby "output-hidden-note"}
               [:div "Ahoy"]
-              [:p {:id "output-hidden-note" :class "visually-hidden"} ""]
+              [:p {:id "output-hidden-note"} ""]
               [:div {:id "output" :class "output-element-container"}]
               [:div {:id "output-end" :aria-hidden "true"}]]
              (first children)))))

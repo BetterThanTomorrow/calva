@@ -355,7 +355,7 @@
             word-wrap? (assoc :class "word-wrap"))
     [:div {:id "output-scroller" :tabindex "-1" :aria-describedby "output-hidden-note"}
      greeting
-     [:p {:id "output-hidden-note" :class "visually-hidden"} (if accessibility-support? "" accessibility-note)]
+     [:p {:id "output-hidden-note"} (if accessibility-support? "" accessibility-note)]
      [:div (cond-> {:id "output" :class "output-element-container"}
              (not accessibility-support?) (assoc :aria-hidden "true"))]
      [:div {:id "output-end" :aria-hidden "true"}]]
