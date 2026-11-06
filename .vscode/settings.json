@@ -247,7 +247,13 @@
     "titleBar.activeBackground": "#DB9550",
     "titleBar.activeForeground": "#131722",
     "titleBar.inactiveBackground": "#db9550d5",
-    "titleBar.inactiveForeground": "#13172299"
+    "titleBar.inactiveForeground": "#13172299",
+    "[*Dark*][Default High Contrast]": {
+      "titleBar.activeBackground": "#7C4B1A",
+      "titleBar.activeForeground": "#FFFAF4",
+      "titleBar.inactiveBackground": "#7C4B1Ad5",
+      "titleBar.inactiveForeground": "#FFFAF499"
+    }
   },
   "json.format.enable": false,
   "files.exclude": {
