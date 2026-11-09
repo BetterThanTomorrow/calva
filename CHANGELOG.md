@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)
+
 ## [2.0.610] - 2026-11-10
 
 - [Output views get sluggish and consume a lot of ram and resources when output grows large](https://github.com/BetterThanTomorrow/calva/issues/3336)
