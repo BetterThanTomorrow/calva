@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)
 - Bump deps-clj to v1.12.7.1681
 
 ## [2.0.611] - 2026-11-14

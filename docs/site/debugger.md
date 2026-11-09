@@ -9,15 +9,20 @@ Calva comes with a powerful expression-based debugger, inspired by [Cider](https
 
 ![Debugger demonstration: stepping through an instrumented function](images/debugger/stepping.gif "Debugger demonstration: stepping through an instrumented function")
 
+Calva supports breakpoints set in Clojure code with `#break` or `#dbg`, as well as breakpoints set in the editor gutter. Both approaches use the VS Code debug toolbar to control execution. Gutter breakpoints are implemented through reader instrumentation, using `#break` and, where needed, `#dbg`.
+
+![Debugger demonstration: stepping through a GUI breakpoint](images/debugger/visual-stepping.gif "Debugger demonstration: stepping through GUI breakpoint")
+
 !!! note
-    The debugger currently does not support ClojureScript. Calva's debugger utilizes cider-nrepl for debugging. See [this Cider issue](https://github.com/clojure-emacs/cider/issues/1416) for more information.
+    The debugger currently does not support ClojureScript. Calva uses cider-nrepl for debugging. See [this CIDER issue](https://github.com/clojure-emacs/cider/issues/1416) for more information.
+    JVM Clojure with debugger-capable `cider-nrepl` middleware is the known supported setup for Calva's full expression debugger. GUI source breakpoints are enabled when the active nREPL session advertises the required `init-debugger` and `debug-input` operations. Other dialects or servers may work when they advertise both operations; Calva does not enable GUI breakpoint instrumentation based on file extension alone.
 
 ## Features
 
 ### Current
 
 * Instrument functions for debugging with `ctrl+alt+c i`
-* Instrument a function manually with `#dbg` (as opposed to the above command)
+* Instrument a function manually with `#dbg` (as an alternative to the command above)
 * Set individual breakpoints with `#break`
 * Continue to next breakpoint
 * Step over form
@@ -39,14 +44,14 @@ The debugger itself relies pretty heavily on [cider-nrepl](https://github.com/cl
 
 ## Using the Debugger
 
-If you're new to Clojure or expression-based debuggers, this debugger may function differently than what you're used to. Instead of placing breakpoints in the side margin and then hitting F5 to start debugging, you instead use Clojure reader tags, `#break` and `#dbg`, to denote breakpoints anywhere in a Clojure form. When you evaluate a call to a function that has been evaluated with that reader tag, the debugger will start when execution reaches the first breakpoint. There's also a convenience command to instrument functions. Read below about both options.
+If you're new to Clojure or expression-based debuggers, this debugger may work differently from what you're used to. For the expression-based debugger, use the Clojure reader tags `#break` and `#dbg` to mark breakpoints in a form. When you evaluate a call to a function instrumented with one of these tags, the debugger starts when execution reaches the first breakpoint. You can also use a convenience command to instrument functions. Calva's gutter breakpoints use the same reader tags behind the scenes; see [GUI Breakpoints in the Editor Gutter](#gui-breakpoints-in-the-editor-gutter) for how to use them.
 
 !!! note
     The debugger is not configured via a `launch.json` file, and is not started in the same way as you may be used to when working with other languages in VS Code. The debugger is used by way of the REPL. If you are new to Clojure, please visit the [Getting Started](getting-started.md) section of the documentation and get familiar with evaluating code using the REPL before using the debugger.
 
 ### Instrumenting a Function
 
-You can instrument a top level function for debugging with `ctrl+alt+c i`. This places invisible breakpoints throughout the function where pausing makes sense. When you evaluate a call to this function, the debugger will start and execution will pause at the first breakpoint. Annotations show the value of the form at the cursor.
+You can instrument a top-level function for debugging with `ctrl+alt+c i`. This places invisible breakpoints throughout the function at points where pausing makes sense. When you evaluate a call to this function, the debugger starts and execution pauses at the first breakpoint. Annotations show the value of the form at the cursor.
 
 A border is placed around the definition of the instrumented function and its references to show that it's instrumented. You can remove instrumentation by evaluating the function again normally, such as with `alt+enter`.
 
@@ -54,27 +59,57 @@ A border is placed around the definition of the instrumented function and its re
 
 ### Setting Breakpoints with `#break`
 
-You can insert a breakpoint manually into any code by placing a `#break` in front of the form where you want execution to pause, and then evaluating the top level form with `alt+enter`. When you evaluate a call to this code the VS Code debugger will start, the cursor will move to right after the form that's preceded by `#break`, and the line will be highlighted to show execution is paused there.
+You can insert a breakpoint manually by placing `#break` before the form where you want execution to pause, then evaluating the top-level form with `alt+enter`. When you evaluate a call to this code, the VS Code debugger starts, the cursor moves to just after the form preceded by `#break`, and the line is highlighted to show that execution is paused there.
 
 ![Setting a breakpoint with #break](images/debugger/break.gif "Setting a breakpoint with `#break`")
 
 !!! note
     Code will be executed up to and *including* the form after the breakpoint.
 
+### GUI Breakpoints in the Editor Gutter
+
+You can also add breakpoints by clicking the editor gutter. Calva implements them by inserting `#break` before the target form and, when needed, `#dbg` around a function body. Calva uses the active nREPL session's advertised debugger operations to decide whether it can instrument them. If either `init-debugger` or `debug-input` is unavailable, the VS Code markers may remain visible, but Calva reports them as unverified and evaluates forms without breakpoint instrumentation. The notification names the missing operations. Connecting to an unsupported session by itself does not show a warning; feedback appears when you request breakpoint behavior.
+
+You do not press F5 to start debugging. Calva re-evaluates the containing top-level form to install the breakpoint, and execution pauses when it reaches the instrumented form. If the breakpoint is inside a function definition, evaluating the definition only installs the breakpoint; it does not call the function. Evaluate an expression that calls the function to reach the breakpoint. If the breakpoint is in an executable top-level expression, such as an `if` form, Calva re-evaluates that expression and pauses when it reaches the breakpoint.
+
+For example, a gutter breakpoint inside this function is reached when you evaluate a call such as `(fact-rec 5)` after the function definition has been instrumented:
+
+```clojure
+(defn fact-rec [n]
+  (if (= n 1)
+    n
+    (* n (fact-rec (dec n)))))
+```
+
+A breakpoint inside an executable top-level form is reached when Calva re-evaluates that form. For example:
+
+```clojure
+(let [n 1]
+  (if (= 1 n)
+    (print "one")
+    (print "more than 1")))
+```
+
+Because adding a gutter breakpoint re-evaluates its containing top-level form, that evaluation can repeat side effects. Editing a breakpoint condition or removing a marker does not itself re-evaluate the form; evaluate the updated top-level form again to apply the condition or source change. Removing a marker does not undo code that has already run, and runtime breakpoint cleanup can depend on the debugger middleware version.
+
 ### Conditional Breakpoints
 
-You can set conditional breakpoints by adding metadata before the form that the `#break` applies to.
+For a GUI breakpoint in the editor gutter, right-click the breakpoint marker and choose **Edit Breakpoint...**. Enter a Clojure expression in the condition field. Calva passes the expression to `cider-nrepl` as the `:break/when` condition, and execution pauses at that breakpoint only when the condition is true. Re-evaluate the containing top-level form to apply a new or changed condition.
+
+![Debugger demonstration: stepping through a GUI conditional breakpoint](images/debugger/visual-conditional-breakpoint.gif "Debugger demonstration: stepping through GUI conditional breakpoint")
+
+You can also set a condition in code by adding metadata before the form that `#break` applies to:
 
 ```clojure
 (defn print-nums [n]
   (dotimes [i n]
-    #break ^{:break/when (= i 7)} ;; This breakpoint will only be hit when i equals 7
+    #break ^{:break/when (= i 7)} ;; This breakpoint is hit only when i equals 7
     (prn i)))
 ```
 
 ### Instrumenting a Form with `#dbg`
 
-Adding `#dbg` before a form then evaluating the form with `alt+enter` will instrument the form. This has the same effect as using [the instrument command](#instrumenting-a-function).
+Adding `#dbg` before a form and then evaluating it with `alt+enter` instruments the form. This has the same effect as using [the instrument command](#instrumenting-a-function).
 
 ![Instrumenting a form](images/debugger/dbg-form.gif "Instrumenting a non-function form")
 
@@ -88,7 +123,7 @@ When execution is paused at a breakpoint, you can evaluate code in that context.
 
 ### Viewing Variable Values
 
-While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor.
+While debugging, you can view variable values in VS Code's debugger side pane or by hovering over variables in the editor.
 
 ![Viewing variable values in the side pane](images/debugger/viewing-variable-values.png "Viewing variable values in the side pane")
 
@@ -97,10 +132,10 @@ While debugging, you can view the values of variables in VS Code's debugger side
 
 ### Viewing the Call Stack
 
-While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.
+While debugging, you can view the call stack in VS Code's Call Stack pane. Clicking a stack frame shows the related line of code in an editor.
 
 !!! Note
-    You may only see one stack frame in the call stack side pane, as the change for adding additional frames was rolled back due to an issue. You can follow the change for this at [#1150](https://github.com/BetterThanTomorrow/calva/issues/1150).
+    You may see only one stack frame in the Call Stack pane because support for additional frames was rolled back due to an issue. You can follow the discussion at [#1150](https://github.com/BetterThanTomorrow/calva/issues/1150).
 
 ![Debugger call stack](images/debugger/debugger-call-stack.gif "Viewing the call stack")
 
@@ -111,14 +146,14 @@ You can use VS Code's debugger UI to advance execution while debugging.
 ![VS Code's debugger navigation buttons](images/debugger/navigation-buttons.png "VS Code's debugger navigation buttons")
 
 !!! note
-    Clicking restart does nothing, since this functionality does not make sense for our debugger.
+    Clicking Restart does nothing because this functionality does not make sense for our debugger.
 
-* **Continue** - Continues without stopping for the current breakpoint
-* **Step over** - Continues to the next breakpoint
-* **Step in** - Steps in to the function about to be called. If the next breakpoint is not around a function call, does the same as next. Note that not all functions can be stepped in to - only normal functions stored in vars, for which cider-nrepl can find the source. You cannot currently step in to multimethods, protocol functions, or functions in clojure.core (although multimethods and protocols can be instrumented manually).
-* **Step out** - Steps to the next breakpoint that is outside of the current sexp
-* **Restart** - Does nothing. To restart debugging, you can hit disconnect or continue execution through the final result, then re-evaluate the expression that started the debugger.
-* **Disconnect** - Disconnects the debugger
+* **Continue** — continues without stopping at the current breakpoint.
+* **Step over** — continues to the next breakpoint
+* **Step in** — steps into the function about to be called. If the next breakpoint is not around a function call, this behaves like Step over. Note that you can step into only normal functions stored in vars for which cider-nrepl can find the source. You cannot currently step into multimethods, protocol functions, or functions in `clojure.core`, although you can instrument multimethods and protocols manually
+* **Step out** — steps to the next breakpoint outside the current s-expression
+* **Restart** — does nothing. To restart debugging, disconnect or continue execution through the final result, then re-evaluate the expression that started the debugger
+* **Disconnect** — disconnects the debugger
 
 ## Caveats
 
@@ -145,13 +180,13 @@ When you load a file, any breakpoints that were previously set in functions will
 
 ## Clashes with Emacs/CIDER debugger
 
-When both CIDER and Calva is connected to the same REPL, stepping the debugger in one editor may have it stop on the breakpoint in the other one. Reported here: https://github.com/BetterThanTomorrow/calva/issues/2496
+When both CIDER and Calva are connected to the same REPL, stepping through code in one editor may cause execution to stop at a breakpoint set in the other editor. This issue was reported [here](https://github.com/BetterThanTomorrow/calva/issues/2496).
 
 ## Troubleshooting
 
 ### Debugger hangs when stepping over infinite seqs
 
-This is because the debugger tries to evaluate the form when it's stepped over, and if `clojure.core/*print-length*` is set to `nil` as it is by default, evaluation will never complete. If you want to debug a form with an infinite seq, make sure to set `*print-length*` beforehand. For example:
+This happens because the debugger evaluates a form when stepping over it. If `clojure.core/*print-length*` is `nil` (the default), evaluation of an infinite sequence will never complete. Before debugging a form with an infinite sequence, set `*print-length*`. For example:
 
 ```clojure
 (set! *print-length* 3)
@@ -159,11 +194,11 @@ This is because the debugger tries to evaluate the form when it's stepped over, 
 (set! clojure.core/*print-length* 3)
 ```
 
-Calva does not set this for you during debug mode, instead leaving it up to you to decide the value.
+Calva does not set this during debugging, so you can choose the value.
 
 ### My breakpoint isn't being hit
 
-It's likely that your breakpoint is in a place that cider-nrepl does not see as an appropriate place to break execution. For example, if you put a breakpoint before a literal number, it will not be hit, because there's no need to show the value of a literal.
+Your breakpoint may be in a place where cider-nrepl cannot pause execution. For example, a breakpoint before a literal number will not be hit because there is no need to show the value of a literal.
 
 ```clojure
 (defn simple [x]
@@ -174,9 +209,9 @@ Another possible issue is that you're loading the file again after setting break
 
 ### My breakpoint in a test isn't being hit
 
-If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.
+If you use a test command such as "Run current test," breakpoints will not be hit. Calva loads the file before running tests to ensure that it runs the latest test code. Loading the file unsets breakpoints.
 
-If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.
+To hit a breakpoint in a test, evaluate the test form with a breakpoint tag, then call the test directly.
 
 ![Hitting a breakpoint in a test](images/debugger/breakpoint-in-test.png "Hitting a breakpoint in a test")
 
@@ -209,25 +244,23 @@ clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:m
 
 ## Passing options to the REPL JVM
 
-There are times when Clojure debugging tools are not enough or not right for the job.
-This is usually true when use an (open source) Java library and you want to set some breakpoints in Java code.
-For those cases and others, you need to start the JVM in debug mode.
+Sometimes Clojure debugging tools are not enough for the task. For example, you may want to set breakpoints in an open-source Java library. In these cases, start the JVM in debug mode.
 
 Typical use cases:
 
 * Change Java logger configuration for the REPL via java system properties: e.g `-Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE`
 * Enable JVM debugger, change VM memory size, etc.
 
-Calva supports passing environment variables via `jackInEnv`.
-You can set that option inside VSCode `settings.json` file.
+Calva lets you pass environment variables through `jackInEnv`.
+You can set this option in the VS Code `settings.json` file.
 
-You can configure global `settings.json` file or a project wide version, inside `<project-root>/.vscode/settings.json`.
+You can configure the global `settings.json` file or a project-wide version at `<project-root>/.vscode/settings.json`.
 
 Configuring the global option will impact all projects you work on using Calva, so be aware.
 See [the documentation for `settings.json`](https://code.visualstudio.com/docs/getstarted/settings) for more information.
 
-The bellow snippet configures `JAVA_TOOL_OPTIONS` environment variable.
-We configure slf4j-simple logging level via a Java system property (`-D`) and JVM specific options (`-X`).
+The following snippet configures the `JAVA_TOOL_OPTIONS` environment variable.
+It sets the slf4j-simple logging level with a Java system property (`-D`) and adds JVM-specific options (`-X`).
 
 NOTE: You can of course pass other env variables here.
 
@@ -241,7 +274,7 @@ NOTE: You can of course pass other env variables here.
 }
 ```
 
-Once you saved the file, the next time you `Jack in` the project, this variable is read by the JVM and the configuration is applied accordingly.
+After you save the file, the JVM reads this variable the next time you `Jack in` to the project and applies the configuration.
 
 You should see something like the message below in the Calva jack-in terminal:
 

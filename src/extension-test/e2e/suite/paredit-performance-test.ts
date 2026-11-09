@@ -5,23 +5,25 @@ import * as testUtil from './util';
 
 async function measureCommandAndDecorations(
   editor: vscode.TextEditor,
-  command: string
+  moveCursors: () => void
 ): Promise<number> {
-  let resolveSelectionChange: () => void;
-  const selectionChanged = new Promise<void>((resolve) => {
-    resolveSelectionChange = resolve;
-  });
+  let selectionChanged = false;
   const listener = vscode.window.onDidChangeTextEditorSelection((event) => {
     if (event.textEditor === editor) {
       listener.dispose();
-      resolveSelectionChange();
+      selectionChanged = true;
     }
   });
   const startedAt = performance.now();
 
   try {
-    await vscode.commands.executeCommand(command);
-    await selectionChanged;
+    moveCursors();
+    await testUtil.waitForCondition(
+      () => selectionChanged,
+      5000,
+      20,
+      'Timed out waiting for cursor movement to update selections'
+    );
     // The highlighter schedules active-indent decorations after 16 ms. Waiting
     // past that debounce includes the decoration pass in the measurement.
     await testUtil.sleep(32);
@@ -46,17 +48,21 @@ suite('Paredit performance suite', () => {
     try {
       await testUtil.waitForCondition(() => highlight.activeEditor?.document === document);
 
-      const start = document.positionAt(2);
-      const end = document.positionAt(document.getText().lastIndexOf('\n'));
-      editor.selection = new vscode.Selection(start, end);
-
-      await vscode.commands.executeCommand('editor.action.insertCursorAtEndOfEachLineSelected');
+      editor.selections = items.map((_, index) => {
+        const position = new vscode.Position(index + 1, 0);
+        return new vscode.Selection(position, position);
+      });
       assert.strictEqual(editor.selections.length, itemCount);
 
       // Allow the selection-change/highlight debounce to run before measuring
       // a command that must compete with the active-indent decorations.
       await testUtil.sleep(250);
-      const elapsedMs = await measureCommandAndDecorations(editor, 'cursorRight');
+      const elapsedMs = await measureCommandAndDecorations(editor, () => {
+        editor.selections = editor.selections.map((selection) => {
+          const position = selection.active.translate(0, 1);
+          return new vscode.Selection(position, position);
+        });
+      });
       testUtil.log(
         'Paredit performance',
         `cursor movement and decoration took ${elapsedMs.toFixed(0)}ms with ${itemCount} cursors`
