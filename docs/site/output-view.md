@@ -64,9 +64,23 @@ Click a frame to open its file at the line linked. This works for Java frames to
 
 To paste an error somewhere, hover it and click its copy button. It copies the error with the frames your filter shows, so to copy the whole stacktrace, unfold the error and choose **All frames** first.
 
+## Large Results
+
+A result longer than 5,000 characters is initially folded.
+
+The `calva.outputViews.foldResultsLongerThan` setting specifies how many characters a result can have before it folds. `0` turns folding off.
+
+Only evaluation results fold. Results with images, printed output, and other Clojure data/code output.
+
 ## Clear Output
 
 Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.
+
+## Control How Much Output the Views Keep
+
+Each view keeps the latest million characters of output. The oldest output leaves the top as new output arrives.
+
+The `calva.outputViews.maxOutputCharacters` setting changes how much each view keeps. `0` keeps all output, which can make VS Code sluggish over a long session.
 
 ## Search/Find
 
@@ -103,6 +117,18 @@ Your own keybindings for Calva's commands work in the Output views when their `w
 ## Theming
 
 Theming should generally just work.
+
+## Screen Readers
+
+Screen reader support in the output views is configured via the `calva.outputViews.accessibilitySupport` setting. It accepts:
+
+* `"follow-editor"` (default) – on when VS Code's `editor.accessibilitySupport` is `"on"`.
+* `"on"` – screen readers can read the output.
+* `"off"` – the output is hidden from screen readers.
+
+With support on, screen readers read the output on screen and `editor.accessibilityPageSize` lines above and below it, as in VS Code's editors.
+
+With support off, a note at the top of the views says that the output is hidden from screen readers, and links the setting. If you use a screen reader, turn on [screen reader mode](https://code.visualstudio.com/docs/configure/accessibility/accessibility#_screen-reader-mode) in VS Code, or set `calva.outputViews.accessibilitySupport` to `"on"`. VS Code's default for `editor.accessibilitySupport`, `"auto"`, counts as off in the output views. Not only screen readers use the screen readder when it is on. Apps such as macOS Zoom or window switchers, also us it and VS Code can get slow from it.
 
 ## It's readonly
 
