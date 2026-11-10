@@ -46,7 +46,8 @@
 
     :printed-code/ax.unmounted
     {:uf/db db
-     :uf/fxs [(post db "printed-code-unmounted")]}
+     :uf/fxs [(post db "printed-code-unmounted")
+              [:fx/release-kept-colors]]}
 
     :printed-code/ax.select
     (cond-> {:uf/db db}

@@ -3,6 +3,7 @@
   (:require
    [calva.pprint.printer :as printer]
    [calva.repl.input.highlighting :as highlighting]
+   [calva.repl.webview.folding :as folding]
    [calva.repl.webview.printed-brackets :as printed-brackets]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.util :as util]))
@@ -85,17 +86,30 @@
 
 (def ^:private printed-code-commands #{"show-result" "show-evaluated-code"})
 
+(defn- fold-results-longer-than
+  "The setting `calva.outputViews.foldResultsLongerThan`, 5000 without one."
+  []
+  (let [setting (some-> ^js @util/vscode .-workspace (.getConfiguration "calva") (.get "outputViews.foldResultsLongerThan"))]
+    (if (and (number? setting) (js/isFinite setting)) setting 5000)))
+
 (defn output-message
   "Returns the message that shows `message` with `command-name`, for output of `output-category` with `options`,
-   and printed code's highlighting."
+   and printed code's highlighting. An evaluation result to be shown folded is marked `:output/folded?`, and
+   has no highlighting."
   [options command-name output-category message]
   (let [meta-data (options->meta options)
-        [code-highlighting code-brackets] (when (and (printed-code-commands command-name) (string? message))
+        folded? (and (= "show-result" command-name)
+                     (= "evalResults" output-category)
+                     (folding/folded? message (fold-results-longer-than)))
+        [code-highlighting code-brackets] (when (and (printed-code-commands command-name)
+                                                     (string? message)
+                                                     (not folded?))
                                             (printed-colors message (printed-brackets/settings)))]
     (cond-> {:command/name command-name
              :output-category output-category
              :output message}
       (seq meta-data) (assoc :meta meta-data)
+      folded? (assoc :output/folded? true)
       code-highlighting (assoc :output/highlighting code-highlighting)
       code-brackets (assoc :output/brackets code-brackets))))
 

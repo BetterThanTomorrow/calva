@@ -26,7 +26,49 @@
     {:font-family "var(--vscode-editor-font-family, monospace)"
      :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"}]
 
-   [:.output-element-container {:padding-bottom "5px"}]])
+   [:.output-element-container {:padding-bottom "5px"}]
+
+   ;; Layout skips the output blocks out of view, and remembers their size once laid out. The last ones are
+   ;; always laid out, so the end of the output is where auto scrolling looks for it
+   ;; Each block lays out on its own in or out of the tail, and the clip of its paint containment leaves room
+   ;; for what sits over its edge, like the label of evaluated code
+   ["#output > *" {:content-visibility :auto
+                   :contain-intrinsic-size "auto 200px"
+                   :display :flow-root
+                   :overflow-clip-margin "1em"}]
+   ["#output > :nth-last-child(-n+10)" {:content-visibility :visible}]
+
+   ;; A run of stdout blocks reads as one block
+   ["pre.output-stdout[data-continues]" {:margin-top 0}]
+   ["pre.output-stdout:has(+ pre.output-stdout[data-continues])" {:margin-bottom 0}]
+
+   ;; A large result, folded to one line: the start of its first line and its size
+   [:pre.output-folded-result {:padding "0.5em 1em"
+                               :white-space :nowrap
+                               :overflow :hidden
+                               :text-overflow :ellipsis
+                               :font-family "var(--vscode-editor-font-family, monospace)"
+                               :font-size "calc(var(--vscode-editor-font-size, 12px) * var(--calva-output-font-scale, 1))"
+                               :color "var(--vscode-editor-foreground)"
+                               :background-color "var(--vscode-editor-background)"}]
+   [:.output-unfold {:background :none
+                     :border :none
+                     :padding 0
+                     :margin-right "0.5ch"
+                     :cursor :pointer
+                     :vertical-align :middle}
+    [:&:focus-visible {:outline "1px solid var(--vscode-focusBorder)"}]]
+   [:.output-folded-chevron {:width "16px"
+                             :height "1.4em"
+                             :vertical-align :middle
+                             :fill "var(--vscode-icon-foreground, #c5c5c5)"}]
+   [:.output-folded-size {:margin-left "1ch"
+                          :color "var(--vscode-descriptionForeground, #858585)"}]
+
+   ;; What screen readers get while the output is hidden from them, shown to everyone
+   [:#output-hidden-note {:margin [[0 0 "1em"]]}
+    [:&:empty {:display :none}]
+    [:a {:color "var(--vscode-textLink-foreground)"}]]])
 
 (def text
   "Stdout and the wrapping of code."

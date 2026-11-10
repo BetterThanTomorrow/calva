@@ -5,6 +5,7 @@
    [calva.repl.webview.fake-document]
    [calva.repl.webview.stacktrace :as stacktrace]
    [calva.repl.webview.stacktrace-fixtures :as fixtures]
+   [calva.repl.webview.stdout :as stdout]
    [calva.repl.webview.ui :as ui]
    [cljs.reader :as reader]
    [cljs.test :refer-macros [deftest is]]
@@ -62,7 +63,7 @@
         "Code without ranges waits for its highlighting")))
 
 (deftest stdout-element-test
-  (let [hiccup (alias/expand (ui/stdout-element "hello\n" "evalErr"))
+  (let [hiccup (alias/expand (stdout/element "hello\n" "evalErr"))
         [pre] (l/select :pre hiccup)]
     (is (= {:class #{"output-stdout"} :data-output-element-type "evalErr"} (l/attrs pre)))
     (is (= [:button "hello\n"] (map #(if (vector? %) (first %) %) (l/children pre)))

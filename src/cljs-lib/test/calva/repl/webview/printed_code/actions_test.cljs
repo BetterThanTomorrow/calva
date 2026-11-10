@@ -31,7 +31,8 @@
   (let [{unmounted-db :uf/db :uf/keys [fxs]} (sut/handle-action db [:printed-code/ax.unmounted])]
     (is (= db unmounted-db)
         "The version stays, for the next editor to count on from")
-    (is (= [(post "printed-code-unmounted")] fxs))))
+    (is (= [(post "printed-code-unmounted") [:fx/release-kept-colors]] fxs)
+        "The block the editor was in can lose its colors once it is far from the view")))
 
 (deftest from-the-extension-test
   (testing "selections and brackets apply only to the editor and the version they were made from"
