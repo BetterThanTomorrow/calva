@@ -62,9 +62,11 @@
                                         (apply-local-resource-roots! webview-host)))))))
 
 (defn webview-options
+  "Returns the options of an Output view's webview, which can run the command `command-uri`, and open the
+   settings, as the note on accessibility support does."
   [command-uri]
   (let [opts #js {:enableScripts true
-                  :enableCommandUris #js [command-uri]
+                  :enableCommandUris #js [command-uri "workbench.action.openSettings"]
                   :localResourceRoots (local-resource-roots)}]
     opts))
 

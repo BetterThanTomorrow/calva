@@ -58,8 +58,8 @@
             button (.querySelector pre "button")]
         (is (= 1 (.-childElementCount output))
             "Stdout of the same category continues its block")
-        (is (= ["hello\n" "again\n"] (map #(.-textContent %) (rest (.-children pre))))
-            "The text follows the copy button")
+        (is (= ["hello\nagain\n"] (map #(.-textContent %) (rest (.-children pre))))
+            "The text follows the copy button, in one text node")
         (ui/on-output-click #js {:target button})
         (is (= [[:output/ax.copy-stdout button]] @dispatched)
             "A click on the copy button dispatches its action with the button")))))

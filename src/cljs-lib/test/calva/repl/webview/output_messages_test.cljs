@@ -1,7 +1,17 @@
 (ns calva.repl.webview.output-messages-test
   (:require
    [calva.repl.webview.output-messages :as sut]
+   [calva.repl.webview.printed-brackets :as printed-brackets]
    [cljs.test :refer-macros [deftest testing is]]))
+
+(deftest folded-result-message-test
+  (with-redefs [printed-brackets/settings #(throw (js/Error. "A folded result needs no colors"))]
+    (let [text (apply str (repeat 6000 "y"))
+          message (sut/output-message {} "show-result" "evalResults" text)]
+      (is (= {:command/name "show-result" :output-category "evalResults" :output text :output/folded? true} message)
+          "A result longer than 5,000 characters, without the setting, is marked folded and posted without highlighting, which is asked for when it is unfolded"))
+    (is (thrown? js/Error (sut/output-message {} "show-result" "clojure" (apply str (repeat 6000 "y"))))
+        "Other Clojure output isn't folded, so it gets its colors as before")))
 
 (deftest options->meta-test
   (testing "Given nil options, should return nil"

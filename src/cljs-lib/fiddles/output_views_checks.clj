@@ -35,7 +35,9 @@
         (runtime-ids)))
 
 (def ^:private requires
-  '(require '[calva.repl.webview.stacktrace :as stacktrace]
+  '(require '[calva.repl.webview.near-colors :as near-colors]
+            '[calva.repl.webview.viewport-observer :as viewport-observer]
+            '[calva.repl.webview.stacktrace :as stacktrace]
             '[calva.repl.webview.stacktrace-fixtures :as stacktrace-fixtures]
             '[calva.repl.webview.ui :as ui]
             '[clojure.string :as str]))
@@ -46,6 +48,17 @@
      (defn ovc-attribute-value [attribute-name value]
        (cond
          (= "nonce" attribute-name) "<nonce>"
+         (= "data-folded-id" attribute-name) "<folded-id>"
+         (= "data-code-id" attribute-name) "<code-id>"
+         ;; VS Code's theme variables and classes, which follow VS Code and the theme, and scroll anchoring,
+         ;; which is off for a second after output arrives
+         (= "class" attribute-name) (str/join " " (remove (fn [c] (str/starts-with? c "vscode-")) (str/split value #" ")))
+         (= "style" attribute-name) (->> (str/split value #";")
+                                         (map str/trim)
+                                         (remove (fn [d] (or (str/blank? d)
+                                                              (str/starts-with? d "--vscode-")
+                                                              (str/starts-with? d "overflow-anchor"))))
+                                         (str/join "; "))
          (= "content" attribute-name) (str/replace value #"'nonce-[^']+'" "'nonce-<nonce>'")
          :else value))
 
@@ -55,15 +68,31 @@
              (when-not (str/blank? text) text))
          1 (let [tag (keyword (str/lower-case (.-tagName node)))
                  attributes (into (sorted-map)
-                                  (for [attribute (array-seq (.-attributes node))]
-                                    [(.-name attribute) (ovc-attribute-value (.-name attribute) (.-value attribute))]))]
-             (if (.contains (.-classList node) "cm-editor")
-               [tag attributes :codemirror]
-               (into [tag attributes] (keep ovc-node) (array-seq (.-childNodes node)))))
+                                  (for [attribute (array-seq (.-attributes node))
+                                        :let [attribute-name (.-name attribute)
+                                              value (ovc-attribute-value attribute-name (.-value attribute))]
+                                        ;; Scroll anchoring leaves an empty style, and VS Code gives a hovered
+                                        ;; link its address as its title
+                                        :when (not (or (and (= "style" attribute-name) (str/blank? value))
+                                                       (and (= "title" attribute-name)
+                                                            (= value (.getAttribute node "href")))))]
+                                    [attribute-name value]))]
+             (cond
+               (.contains (.-classList node) "cm-editor") [tag attributes :codemirror]
+               ;; It holds the text of the control last hovered
+               (= "output-tooltip" (.-id node)) [tag attributes :tooltip]
+               :else (into [tag attributes] (keep ovc-node) (array-seq (.-childNodes node)))))
          nil))
 
      (defn ovc-dom []
-       (pr-str (ovc-node js/document.documentElement)))
+       ;; Code far from the view is drawn without its spans, so every block gets its colors first, as when
+       ;; the reader scrolls to it. Observing the blocks again afterwards takes the spans of the far ones.
+       (let [output (js/document.getElementById "output")]
+         (run! (fn [block] (near-colors/set-near! block true))
+               (array-seq (.-children output)))
+         (let [dom (pr-str (ovc-node js/document.documentElement))]
+           (viewport-observer/restart! output)
+           dom)))
      :installed))
 
 (def ^:private style-readers
@@ -125,6 +154,10 @@
           {:command/name "show-stdout" :output-category "otherErr" :output "WARNING: something\n"}
           {:command/name "show-result" :output-category "evalResults" :output (str "\"" ovc-png "\"") :meta clj}
           {:command/name "show-result" :output-category "evalResults" :output "{:a 1, :b [2 3], :c \"four\"}" :meta cljs}
+          {:command/name "show-result" :output-category "evalResults" :output/folded? true :meta clj
+           :output (str "[" (str/join "\n " (map (fn [i] (str "{:id " i " :name \"item-" i "\"}")) (range 300))) "]")}
+          {:command/name "show-stdout" :output-category "evalOut" :meta clj
+           :output (str/join (map (fn [i] (str "line " i " " (apply str (repeat 60 "x")) "\n")) (range 200)))}
           {:command/name "show-error" :id "ovc-runtime-error" :error/category "evalErr" :error/unfolded? true
            :error/text "Execution error (ExceptionInfo) at user/eval1 (REPL:1).\nboom"
            :error/causes (mapv stacktrace/cause-data stacktrace-fixtures/runtime-chain) :meta clj}

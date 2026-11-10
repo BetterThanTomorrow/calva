@@ -49,9 +49,15 @@
   "Gives the element `el` the methods that find, add and remove elements around it, and returns it."
   [^js el]
   (js/Object.defineProperty el "lastElementChild" #js {:get #(last (child-elements el))})
+  (js/Object.defineProperty el "lastChild" #js {:get #(last (.-children el))})
   (js/Object.defineProperty el "textContent"
                             #js {:get #(apply str (map (fn [^js child] (.-textContent child)) (.-children el)))
                                  :set #(.splice (.-children el) 0 (.-length (.-children el)) #js {:nodeType 3 :textContent %})})
+  (js/Object.defineProperty el "parentElement" #js {:get #(.-parentNode el)})
+  (js/Object.defineProperty el "previousElementSibling"
+                            #js {:get #(when-let [parent (.-parentNode el)]
+                                         (last (take-while (fn [child] (not (identical? child el)))
+                                                           (child-elements parent))))})
   (js/Object.defineProperty el "nextElementSibling"
                             #js {:get #(when-let [parent (.-parentNode el)]
                                          (second (drop-while (fn [child] (not (identical? child el)))
@@ -61,7 +67,11 @@
                          (set! (.-parentNode sibling) parent)
                          (.splice (.-children parent) (inc (.indexOf (.-children parent) el)) 0 sibling))))
   (set! (.-remove el) (fn [] (some-> ^js (.-parentNode el) (.removeChild el))))
+  (set! (.-replaceChildren el) (fn [& nodes]
+                                 (set! (.-innerHTML el) "")
+                                 (run! #(.appendChild el %) nodes)))
   (set! (.-matches el) (fn [selector] (matches? el selector)))
+  (set! (.-contains el) (fn [node] (boolean (some #(identical? node %) (cons el (descendant-elements el))))))
   (set! (.-closest el) (fn [selector]
                          (first (filter #(matches? % selector)
                                         (take-while some? (iterate #(.-parentNode ^js %) el))))))
@@ -87,13 +97,23 @@
                                           (.splice children 0 (.-length children)))})
     (set! (.-tagName el) (.toUpperCase tag))
     (set! (.-classList el) #js {:names class-names
-                                :add (fn [& names] (run! #(.push class-names %) names))})
+                                :add (fn [& names] (run! #(.push class-names %) names))
+                                :contains (fn [class-name] (.includes class-names class-name))
+                                :remove (fn [& names]
+                                          (run! #(when (.includes class-names %)
+                                                   (.splice class-names (.indexOf class-names %) 1))
+                                                names))})
     (set! (.-attributes el) attributes)
     (set! (.-style el) style)
     (set! (.-dataset el) #js {})
     (set! (.-children el) children)
     (set! (.-setAttribute el) (fn [k v] (set-attribute! el attributes k v)))
     (set! (.-getAttribute el) (fn [k] (aget attributes k)))
+    (set! (.-hasAttribute el) (fn [k] (js-in k attributes)))
+    (set! (.-removeAttribute el) (fn [k]
+                                   (js-delete attributes k)
+                                   (when (string/starts-with? k "data-")
+                                     (js-delete (.-dataset el) (dataset-key k)))))
     (set! (.-appendChild el) (fn [child]
                                (set! (.-parentNode child) el)
                                (.push children child)
@@ -113,7 +133,9 @@
 
 (defn- text-node
   [text]
-  #js {:nodeType 3 :textContent text})
+  (let [node #js {:nodeType 3 :textContent text}]
+    (set! (.-appendData node) (fn [data] (set! (.-textContent node) (str (.-textContent node) data))))
+    node))
 
 (defn- hiccup-children
   [children]
@@ -156,7 +178,7 @@
              :getElementById (fn [_])
              :createElement create-element
              :createElementNS (fn [_ tag] (create-element tag))
-             :createTextNode (fn [text] #js {:nodeType 3 :textContent text})
+             :createTextNode text-node
              :addEventListener (fn [& _])
              :querySelectorAll (fn [_sel]
                                  (this-as this
@@ -164,11 +186,43 @@
                                      (throw (js/TypeError. "Illegal invocation")))
                                    #js []))}))
 
+(defn- fake-observer
+  "Returns a constructor of observers that keep their `callback` and `options`, and record what they
+   observe in `observed`, and whether they were disconnected."
+  []
+  (fn [callback options]
+    (this-as ^js this
+      (let [observed #js []]
+        (set! (.-callback this) callback)
+        (set! (.-options this) options)
+        (set! (.-observed this) observed)
+        (set! (.-disconnected this) false)
+        (set! (.-observe this) (fn [el _] (.push observed el)))
+        (set! (.-unobserve this) (fn [el] (when-let [i (some #(when (identical? el (aget observed %)) %) (range (.-length observed)))]
+                                            (.splice observed i 1))))
+        (set! (.-disconnect this) (fn [] (set! (.-disconnected this) true)))
+        this))))
+
+(when-not (exists? js/IntersectionObserver)
+  (set! js/globalThis.IntersectionObserver (fake-observer)))
+
+(when-not (exists? js/MutationObserver)
+  (set! js/globalThis.MutationObserver (fake-observer)))
+
 (when-not (.-body js/document)
   (set! (.-body js/document) (create-element "body")))
 
 (when-not (.-documentElement js/document)
   (set! (.-documentElement js/document) (create-element "html")))
+
+(when-not (exists? js/CSSStyleSheet)
+  (set! js/globalThis.CSSStyleSheet (fn []
+                                      (this-as ^js this
+                                        (let [rules #js []]
+                                          (set! (.-cssRules this) rules)
+                                          (set! (.-insertRule this) (fn [rule i] (.splice rules i 0 rule)))
+                                          this))))
+  (set! (.-adoptedStyleSheets js/document) #js []))
 
 (when-not (fn? (.-querySelectorAll js/document))
   (set! (.-querySelectorAll js/document)

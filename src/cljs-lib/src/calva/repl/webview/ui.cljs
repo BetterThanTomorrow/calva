@@ -6,13 +6,19 @@
    [calva.repl.webview.code-highlight :as code-highlight]
    [calva.repl.webview.copy-button :as copy-button]
    [calva.repl.webview.error-element :as error-element]
+   [calva.repl.webview.folded-result :as folded-result]
    [calva.repl.webview.html :as html]
    [calva.repl.webview.images :as images]
    [calva.repl.webview.input.highlight :as highlight]
    [calva.repl.webview.keybindings-note :as keybindings-note]
+   [calva.repl.webview.near-colors :as near-colors]
+   [calva.repl.webview.output-cap :as output-cap]
    [calva.repl.webview.printed-code.editor :as printed-code-editor]
    [calva.repl.webview.spinner :as spinner]
+   [calva.repl.webview.stdout :as stdout]
+   [calva.repl.webview.throttle :as throttle]
    [calva.repl.webview.tooltip :as tooltip]
+   [calva.repl.webview.viewport-observer :as viewport-observer]
    [cljs.reader :as reader]
    [clojure.string :as str]
    [clojure.walk :as walk]
@@ -30,29 +36,8 @@
     (callback)
     (js/document.addEventListener "DOMContentLoaded" callback #js {:once true})))
 
-(defn throttle-fn
-  "Returns a throttled version of the function, which will only be called at most once every `wait`
-   milliseconds with the arguments passed in the latest call.
-
-   If the throttled function is called again during the wait period, it will not execute until the wait period has
-   passed, after which it will only be called once, no matter how many times it was called during the wait.
-   If the throttled function is called again after the wait period, it will execute immediately."
-  [f wait]
-  (let [timeout (atom nil)
-        called-during-timeout? (atom false)]
-    (fn [& args]
-      (if-not @timeout
-        (do (apply f args)
-            (reset! timeout (js/setTimeout (fn []
-                                             (reset! timeout nil)
-                                             (when @called-during-timeout?
-                                               (reset! called-during-timeout? false)
-                                               (apply f args)))
-                                           wait)))
-        (reset! called-during-timeout? true)))))
-
 ;; This can be adjusted if needed to avoid performance issues with too frequent scrolling.
-(def throttled-scroll-to-bottom (throttle-fn auto-scroll/follow! 0))
+(def throttled-scroll-to-bottom (throttle/throttle-fn auto-scroll/follow! 0))
 
 (defn output-appended-event
   "Creates a custom event to signal that output has been appended to the output DOM element.
@@ -110,31 +95,25 @@
       (.then #(some-> button show-copied!))
       (.catch #(js/console.error "Cannot copy to the clipboard:" %))))
 
-(defn- copy-stdout!
-  "Copies the text of the stdout block of the Copy output `button`."
-  [^js button]
-  (copy-text! button (.. button -parentElement -textContent)))
-
-(defn stdout-element
-  "Returns the hiccup of a stdout block of `category`, with its Copy output button before `text`."
-  [text category]
-  [:pre {:class ["output-stdout"] :data-output-element-type category}
-   [copy-button/button {:class ["output-stdout-copy"]
-                        :copy/label "Copy output"
-                        :copy/actions [[:output/ax.copy-stdout :event/target]]}]
-   text])
-
 (defn append-stdout
-  "Appends stdout content to the given DOM element, unless the last element is already a stdout element with the same category,
-   in which case it appends the content to that element instead."
+  "Appends stdout `output` of `category` to `dom-element`: to its last block, while that is stdout of the same
+   category with room left, and in new blocks of up to `stdout/stdout-chunk-size` characters after it."
   [^js dom-element output category]
   (let [category (or category "evalOut")
-        text (strip-ansi output)
-        ^js last-output-element (.-lastElementChild dom-element)
-        element (if (= category (some-> last-output-element (.getAttribute "data-output-element-type")))
-                  (doto last-output-element (.appendChild (js/document.createTextNode text)))
-                  (insert-hiccup! dom-element "beforeend" (stdout-element text category)))]
-    (.. dom-element (dispatchEvent (output-appended-event element)))))
+        ^js last-block (.-lastElementChild dom-element)
+        run-block (when (= category (some-> last-block (.getAttribute "data-output-element-type"))) last-block)
+        room (if run-block (max 0 (- stdout/stdout-chunk-size (count (.-textContent run-block)))) 0)
+        [fitting & more] (stdout/stdout-chunks (strip-ansi output) room)]
+    (when (seq fitting)
+      (let [^js last-text (.-lastChild run-block)]
+        (if (= 3 (.-nodeType last-text))
+          (.appendData last-text fitting)
+          (.appendChild run-block (js/document.createTextNode fitting)))))
+    (let [element (reduce (fn [previous chunk]
+                            (insert-hiccup! dom-element "beforeend" (stdout/element chunk category (some? previous))))
+                          run-block
+                          more)]
+      (.. dom-element (dispatchEvent (output-appended-event (or element last-block)))))))
 
 (defonce vscode-api
   (when (exists? js/acquireVsCodeApi)
@@ -262,10 +241,11 @@
           (array-seq (js/document.querySelectorAll "code[data-code-id]")))))
 
 (defn- set-spans!
-  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`."
+  "Sets the children of the `code` element to its text colored with `ranges` and marked with `marks`, when
+   it is near the view or kept colored, and remembers the colors for when it comes near."
   [^js code ranges marks]
   (printed-code-editor/drawn! code {:ranges ranges :marks marks})
-  (code-highlight/set-spans! code (.-textContent code) ranges marks))
+  (near-colors/set-spans! code ranges marks))
 
 (defn- color-with-grammar!
   "Colors the `code` element with the grammar's `colors`, `{:ranges :marks}`, and asks for its semantic
@@ -412,6 +392,7 @@
   (append-code! dom-element
                 (fn [{:keys [ranges marks]}] (clojure-code-element result ranges marks))
                 {:ranges ranges :marks (code-brackets/mark-ranges brackets)}))
+
 
 (defn copy-image!
   "Writes the image to the clipboard as PNG. Must run in the click handler: the clipboard write
@@ -691,6 +672,7 @@
   (reset! !semantic-keys {})
   (reset! !pending-local-images [])
   (clear-local-image-lookups!)
+  (folded-result/clear!)
   (set! (.-innerHTML output-dom-element) ""))
 
 (defonce ^:private !frame-name-sheet (atom nil))
@@ -795,6 +777,40 @@
 
 (declare dispatch!)
 
+(defn- forget-blocks!
+  "Drops what the page keeps for the removed output `blocks`: colors and semantic tokens of their code, raw
+   forms and image lookups of their images."
+  [blocks]
+  (let [{:keys [removed? code-ids folded-ids]} (output-cap/removed-state blocks)]
+    (swap! !grammar-colors output-cap/without-keys code-ids)
+    (swap! !semantic-keys output-cap/without-keys code-ids)
+    (swap! !semantic-requests output-cap/without-code-requests code-ids)
+    (swap! !lazy-raw-entries output-cap/without-removed removed? first)
+    (swap! !pending-local-images output-cap/without-removed removed? :img)
+    (swap! !local-image-lookups output-cap/without-removed-waiters removed?)
+    (folded-result/forget! folded-ids)))
+
+(defn trim-output!
+  "Removes the oldest output blocks of `output-element` while its text is over `cap` characters, keeping at
+   least the newest block and the result unfolded last, and drops what the page keeps for them."
+  [^js output-element cap]
+  (let [blocks (vec (array-seq (.-children output-element)))
+        [removed oldest-kept] (output-cap/removed-blocks blocks cap (folded-result/just-unfolded))]
+    (when (seq removed)
+      (when (output-cap/holds-focus? removed)
+        (some-> (js/document.getElementById "output-scroller") (.focus #js {:preventScroll true})))
+      (printed-code-editor/unmount-in! dispatch! removed)
+      (doseq [^js block removed]
+        (.remove block))
+      (some-> ^js (get blocks oldest-kept) (.removeAttribute "data-continues"))
+      (forget-blocks! removed)
+      (when-let [ids (seq (output-cap/error-ids removed))]
+        (dispatch! [:output/ax.errors-removed {:error/ids (vec ids)}]))
+      (auto-scroll/follow!))))
+
+(def ^:private throttled-trim-output!
+  (throttle/throttle-fn #(trim-output! % (output-cap/current-output-cap)) 250))
+
 (defn exec-effect!
   [^js output-dom-element [fx-type & args :as effect]]
   (case fx-type
@@ -812,15 +828,32 @@
     :fx/render-error (render-error! output-dom-element (first args))
     :fx/post-to-host (post-to-host! (first args))
     :fx/copy-error-text (copy-error-text! output-dom-element (first args))
-    :fx/copy-stdout (copy-stdout! (first args))
+    :fx/copy-stdout (copy-text! (first args) (stdout/run-text (.-parentElement ^js (first args))))
     :fx/copy-text (let [{:copy/keys [button text]} (first args)] (copy-text! button text))
     :fx/copy-image (copy-image-of-button! (first args))
     :fx/clear-dom (clear-output-dom output-dom-element)
     :fx/set-frame-name-color (set-frame-name-color! (first args))
     :fx/set-word-wrap (set-word-wrap! (first args))
     :fx/set-image-display (set-image-display! (first args))
+    :fx/set-accessibility-support (viewport-observer/set-accessibility-support! output-dom-element
+                                                              (js/document.getElementById "output-hidden-note")
+                                                              (update (first args) :accessibility-note
+                                                                      #(some-> % html/render)))
+    :fx/set-max-output-characters (.. js/document -body (setAttribute "data-max-output-characters" (str (first args))))
+    :fx/trim-output (trim-output! output-dom-element (output-cap/current-output-cap))
+    :fx/append-folded-result (->> (folded-result/append! output-dom-element (first args) insert-hiccup! @!context)
+                                  output-appended-event
+                                  (.dispatchEvent output-dom-element))
+    :fx/unfold-result (when (folded-result/unfold! (first args) {:insert! insert-hiccup!
+                                                                 :code-element clojure-code-element
+                                                                 :request-colors! request-missing-highlighting!})
+                        ;; The reader reads the result, so the view stays where it is
+                        (auto-scroll/stop-following!))
+    :fx/copy-folded-result (some->> (folded-result/text (first args)) (copy-text! (first args)))
     :fx/scroll-to-end (auto-scroll/reveal-end!)
-    :fx/set-font-scale (set-font-scale! (first args))
+    :fx/release-kept-colors (near-colors/release-kept!)
+    :fx/set-font-scale (do (set-font-scale! (first args))
+                           (viewport-observer/restart! output-dom-element))
     :fx/render-keybindings-note (render-keybindings-note! (first args))
     (if-let [handler (get @!effect-handlers (namespace fx-type))]
       (handler dispatch! effect)
@@ -855,6 +888,7 @@
          "adjust-font-size"     (dispatch! [:msg/adjust-font-size message-data])
          "reset-font-size"      (dispatch! [:msg/reset-font-size message-data])
          "set-image-display"    (dispatch! [:msg/set-image-display message-data])
+         ("set-accessibility-support" "set-max-output-characters") (dispatch! [(keyword "msg" command-name) message-data])
          "scroll-to-end"        (dispatch! [:msg/scroll-to-end])
          "keybindings-note"     (dispatch! [:keybindings-note/ax.set-note message-data])
          "local-image-resolved" (deliver-host-request! (:id message-data) message-data)
@@ -889,7 +923,8 @@
          (js/console.error "No handler for message" (str command-name)))))))
 
 (defn handle-output-appended
-  [^js _event]
+  [^js event]
+  (throttled-trim-output! (.-currentTarget event))
   (throttled-scroll-to-bottom))
 
 (defn- ends-selection?
@@ -923,4 +958,6 @@
 
 (defn ^:export main []
   (add-event-listeners output-dom-element)
-  (auto-scroll/listen!))
+  (auto-scroll/listen!)
+  (js/document.addEventListener "selectionchange" near-colors/release-kept!)
+  (viewport-observer/start! output-dom-element (viewport-observer/page-root-margin)))

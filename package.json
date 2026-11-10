@@ -358,6 +358,33 @@
             "default": "follow-editor",
             "description": "Word wrap setting for Output views. \"follow-editor\" follows the editor.wordWrap setting."
           },
+          "calva.outputViews.accessibilitySupport": {
+            "type": "string",
+            "enum": [
+              "follow-editor",
+              "on",
+              "off"
+            ],
+            "enumDescriptions": [
+              "On when editor.accessibilitySupport is \"on\", off otherwise.",
+              "Screen readers can read the output on screen and near it.",
+              "The output is hidden from screen readers."
+            ],
+            "default": "follow-editor",
+            "markdownDescription": "Shows the Output views' output to screen readers when on, and hides it from them when off. The default, `follow-editor`, is on when `#editor.accessibilitySupport#` is `on`. When on, screen readers can read the output on screen and `#editor.accessibilityPageSize#` lines above and below it. See [#3336](https://github.com/BetterThanTomorrow/calva/issues/3336)."
+          },
+          "calva.outputViews.foldResultsLongerThan": {
+            "type": "number",
+            "default": 5000,
+            "minimum": 0,
+            "markdownDescription": "Results longer than this many characters arrive folded in the Output views: one line with an Unfold result button, the start of the result, and its size. `0` turns folding off. Results with images are not folded. Applies to results printed after the change."
+          },
+          "calva.outputViews.maxOutputCharacters": {
+            "type": "number",
+            "default": 1000000,
+            "minimum": 0,
+            "markdownDescription": "How many characters of output each Output view keeps. The oldest output leaves the top as new output arrives. `0` keeps all output, which makes VS Code sluggish over a long session when a screen reader or another accessibility client runs. See [#3336](https://github.com/BetterThanTomorrow/calva/issues/3336)."
+          },
           "calva.outputViews.replInput": {
             "type": "object",
             "properties": {

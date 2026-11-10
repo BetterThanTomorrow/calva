@@ -137,6 +137,13 @@
     (.destroy view)
     (dispatch! [:printed-code/ax.unmounted])))
 
+(defn unmount-in!
+  "Draws the printed code block again in place of the editor, when the editor is in one of `elements`."
+  [dispatch! elements]
+  (when-let [code (:code @!editor)]
+    (when (some #(.contains ^js % code) elements)
+      (unmount! dispatch!))))
+
 (defn- leave-to-output!
   "When the editor `view` has one cursor and no selection, draws the block again in place of it and gives the
    focus to the output, so the keys that scroll scroll it, and returns true. Otherwise Escape is left to
@@ -228,6 +235,16 @@
   (.set !drawn-colors code colors)
   (when-let [^js view (when (= code (:code @!editor)) (:view @!editor))]
     (highlighting/set-layer! view :grammar ranges)))
+
+(defn drawn-colors
+  "Returns the colors the printed `code` element was last drawn with, `{:ranges :marks}`, or nil."
+  [^js code]
+  (.get !drawn-colors code))
+
+(defn open-code
+  "Returns the printed code element the editor stands in for, or nil when no editor is open."
+  []
+  (:code @!editor))
 
 (defn- set-line-wrapping!
   [wrap?]
