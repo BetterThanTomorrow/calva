@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.610] - 2026-11-10
+
 - [Output views get sluggish and consume a lot of ram and resources when output grows large](https://github.com/BetterThanTomorrow/calva/issues/3336)
 
 ## [2.0.609] - 2026-11-02
