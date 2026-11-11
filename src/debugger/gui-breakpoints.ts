@@ -592,7 +592,7 @@ async function syncSourceBreakpointLocations(locations: BreakpointLocation[]): P
   );
 }
 
-export function registerSourceBreakpointInstrumentation(
+export function registerGuiSourceBreakpointInstrumentation(
   context: vscode.ExtensionContext,
   evaluator?: BreakpointCodeEvaluator
 ): void {
