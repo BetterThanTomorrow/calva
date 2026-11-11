@@ -9,6 +9,7 @@ export type InitializeResponseBody = Partial<debugProtocol.DebugProtocol.Capabil
   InitializeCapabilities;
 
 const initializeCapabilities: InitializeCapabilities = {
+  // These are false by DAP default, but Calva implements and relies on all three.
   supportsStepInRequest: true,
   supportsStepOutRequest: true,
 };
