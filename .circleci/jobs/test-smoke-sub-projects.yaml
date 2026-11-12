@@ -16,7 +16,7 @@ steps:
 
 - !:cmd
   - Apt install missing dependencies
-  - sudo apt update && sudo apt install -y libnss3
+  - sudo wget -q -O /etc/apt/trusted.gpg.d/google.asc https://dl.google.com/linux/linux_signing_key.pub && sudo apt update && sudo apt install -y libnss3
 
 - !:cmd
   - Run VSIX Smoke Tests for test-data/projects/smoke-sub-projects
