@@ -395,6 +395,7 @@ export function setReplWindowSession(sessionKey: string): boolean {
     return false;
   }
   outputWindow.setSession(session, undefined, sessionKey);
+  sessionRouting.notifyRoutingChanged();
   void output.replWindowForceAppendPrompt();
   status.update();
   return true;
@@ -504,6 +505,7 @@ export async function showReplSessionsMenu(): Promise<void> {
           const sessionMeta = sessionRegistry.getSessionMetadata(item.sessionKey);
           const target = sessionMeta?.isSecondary ? 'secondary' : 'primary';
           clientRegistry.setCljcTargetForConnection(clientKey, target);
+          sessionRouting.notifyRoutingChanged();
           status.update();
           // Refresh the menu items to reflect the change
           qp.items = buildMenuItems();

@@ -12,6 +12,38 @@ describe('session registry', () => {
     sessionNameSuffix.resetPool();
   });
 
+  describe('session change events', () => {
+    const createSession = (clientKey: string): nrepl.NReplSession =>
+      ({ client: { clientKey } } as unknown as nrepl.NReplSession);
+
+    it('notifies listeners when sessions are registered, unregistered, and renamed', () => {
+      const events: sessionRegistry.SessionChangeEvent[] = [];
+      const disposable = sessionRegistry.onDidChangeSessions((event) => events.push(event));
+
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
+      sessionRegistry.renameSession('alpha', 'beta');
+      sessionRegistry.unregisterSession('beta');
+      disposable.dispose();
+
+      expectLib.expect(events).toEqual([
+        { type: 'registered', key: 'alpha' },
+        { type: 'renamed', oldKey: 'alpha', newKey: 'beta' },
+        { type: 'unregistered', key: 'beta' },
+      ]);
+    });
+
+    it('does not notify disposed listeners or unregister missing sessions', () => {
+      const events: sessionRegistry.SessionChangeEvent[] = [];
+      const disposable = sessionRegistry.onDidChangeSessions((event) => events.push(event));
+
+      disposable.dispose();
+      sessionRegistry.registerSession('alpha', createSession('client-a'), {});
+      sessionRegistry.unregisterSession('missing');
+
+      expectLib.expect(events).toEqual([]);
+    });
+  });
+
   describe('resolveSessionKey', () => {
     it('returns the metadata key when available', () => {
       const session = { replType: 'clj' } as unknown as nrepl.NReplSession;
