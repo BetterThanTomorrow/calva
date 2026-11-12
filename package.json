@@ -4634,7 +4634,6 @@
     "oxlint": "1.89.0",
     "oxlint-tsgolint": "7.0.2004",
     "prettier": "2.5.1",
-    "screenshot-desktop": "^1.15.8",
     "shadow-cljs": "^3.5.8",
     "source-map-support": "^0.5.16",
     "ts-loader": "^8.0.18",
