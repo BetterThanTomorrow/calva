@@ -26,25 +26,32 @@
   "A result with images, or with data URLs replaced by markers, is appended as both forms:
    `:text` for the image form and the original text as `:raw`. `meta` is kept so relative
    local paths resolve against the producing session's root. Other results are appended colored with
-   `ranges`, the extension's highlighting of the text."
-  [output meta ranges brackets]
+   `ranges`, the extension's highlighting of the text. A result the extension marks `:output/folded?` is appended
+   folded."
+  [{ranges :output/highlighting brackets :output/brackets folded? :output/folded? :keys [output meta]}]
   (let [{:keys [text images] :as extracted} (if (string? output)
                                                (images/extract-images output)
                                                {:text output :images []})]
-    (if (or (seq images)
-            (not= text output))
+    (cond
+      (or (seq images)
+          (not= text output))
       [[:fx/append-result-with-images (cond-> (assoc extracted :raw output)
                                         meta (assoc :meta meta))]]
+
+      folded?
+      [[:fx/append-folded-result output]]
+
+      :else
       [[:fx/append-result output ranges brackets]])))
 
 (defn- message-fxs
   [{command-name :command/name ranges :output/highlighting brackets :output/brackets evaluation-id :meta/evaluation-id
-    :keys [output meta]} category]
+    :keys [output meta] :as payload} category]
   (case command-name
     "show-stdout" (if (seq output)
                     [[:fx/append-stdout output category]]
                     [])
-    "show-result" (result-fxs output meta ranges brackets)
+    "show-result" (result-fxs payload)
     "show-evaluated-code" [[:fx/append-evaluated-code {:code output
                                                        :ranges ranges
                                                        :brackets brackets
@@ -180,7 +187,24 @@
   "The effect of each copy action, which gets the action's payload."
   {:output/ax.copy-stdout :fx/copy-stdout
    :output/ax.copy-image :fx/copy-image
-   :output/ax.copy-code :fx/copy-code})
+   :output/ax.copy-code :fx/copy-code
+   :output/ax.copy-folded-result :fx/copy-folded-result})
+
+(defn- handle-output-block-action
+  "Returns what a control of an output block, or the output cap removing blocks, leads to: copying, unfolding a
+   folded result and trimming to the cap, or forgetting the errors of removed blocks."
+  [db action-type payload]
+  (case action-type
+    :output/ax.unfold-result
+    {:uf/db db
+     :uf/fxs [[:fx/unfold-result payload]
+              [:fx/trim-output]]}
+
+    :output/ax.errors-removed
+    {:uf/db (update db :output/errors #(apply dissoc % (:error/ids payload)))}
+
+    {:uf/db db
+     :uf/fxs [[(copy-effects action-type) payload]]}))
 
 (defn handle-action
   [db [action-type payload :as action]]
@@ -204,9 +228,9 @@
      :error/ax.open-frame :error/ax.open-java-frame :error/ax.copy)
     (handle-error-action db action-type payload)
 
-    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code)
-    {:uf/db db
-     :uf/fxs [[(copy-effects action-type) payload]]}
+    (:output/ax.copy-stdout :output/ax.copy-image :output/ax.copy-code :output/ax.copy-folded-result
+     :output/ax.unfold-result :output/ax.errors-removed)
+    (handle-output-block-action db action-type payload)
 
     :msg/output-highlighting
     {:uf/db db
@@ -219,6 +243,16 @@
     :msg/set-image-display
     {:uf/db db
      :uf/fxs [[:fx/set-image-display (:image-display payload)]]}
+
+    :msg/set-accessibility-support
+    {:uf/db db
+     :uf/fxs [[:fx/set-accessibility-support (select-keys payload [:accessibility-support? :accessibility-page-size
+                                                                   :accessibility-note])]]}
+
+    :msg/set-max-output-characters
+    {:uf/db db
+     :uf/fxs [[:fx/set-max-output-characters (:max-output-characters payload)]
+              [:fx/trim-output]]}
 
     :msg/scroll-to-end
     {:uf/db db

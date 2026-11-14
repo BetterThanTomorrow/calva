@@ -206,6 +206,8 @@
        (.of keymap commands/keymap)
        (.of line-wrapping-compartment (line-wrapping (output-word-wrap?)))
        (.of (.-cspNonce EditorView) (or (some-> (js/document.querySelector "script[nonce]") .-nonce) ""))
+       ;; Describes the REPL Input with the note that says the output is hidden from screen readers
+       (.of (.-contentAttributes EditorView) #js {"aria-describedby" "output-hidden-note"})
        (.of (.-updateListener EditorView)
             (fn [^js update]
               (when (or (.-docChanged update) (.-selectionSet update))

@@ -106,6 +106,8 @@ async function activate(context: vscode.ExtensionContext) {
   });
   cljsLib.initReplOutputWordWrap();
   cljsLib.initOutputViewImageDisplay();
+  cljsLib.initOutputViewsAccessibilitySupport();
+  cljsLib.initOutputViewsMaxOutputCharacters();
   cljsLib.initOutputViewsCodeTheme();
   cljsLib.initReplOutputFontSizeScale();
   cljsLib.setJavaSourceLookup(javaSource.javaSourceUrl);
@@ -386,6 +388,13 @@ async function activate(context: vscode.ExtensionContext) {
         context,
         'cljs browse',
         `${drams.dramUrl('calva_getting_started')}`
+      );
+    },
+    startStandaloneHelloReplPtBr: () => {
+      return drams.createAndOpenDram(
+        context,
+        'Primeiros Passos',
+        `${drams.dramUrl('calva_getting_started_pt_br')}`
       );
     },
     createTryClojureProject: () => {

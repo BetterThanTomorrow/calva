@@ -50,10 +50,41 @@
     (js/scrollTo 0 js/document.documentElement.scrollHeight)
     (swap! !tops assoc scroller (.-scrollTop scroller) js/document js/window.scrollY)))
 
+(defn set-anchoring!
+  "Turns the browser's scroll anchoring off while the view is `following?` arriving output, and on otherwise.
+   Blocks above the view change size when they leave the always-laid-out tail of `content-visibility`, and
+   anchoring's adjustments would read as scrolling up. Otherwise anchoring keeps the reader's place while
+   blocks leave the top, and the view's place while a block unfolds or folds in place."
+  [following?]
+  (let [value (if following? "none" "")]
+    (some-> (js/document.getElementById "output-scroller") .-style (aset "overflowAnchor" value))
+    (some-> js/document.documentElement .-style (aset "overflowAnchor" value))))
+
+(def ^:private anchoring-pause-ms
+  "How long scroll anchoring stays off after the view last followed arriving output."
+  1000)
+
+(defonce ^:private !anchoring-timer (atom nil))
+
+(defn- resume-anchoring!
+  []
+  (some-> @!anchoring-timer js/clearTimeout)
+  (reset! !anchoring-timer nil)
+  (set-anchoring! false))
+
+(defn- pause-anchoring!
+  "Turns scroll anchoring off, and on again `anchoring-pause-ms` after the last call."
+  []
+  (set-anchoring! true)
+  (some-> @!anchoring-timer js/clearTimeout)
+  (reset! !anchoring-timer (js/setTimeout resume-anchoring! anchoring-pause-ms)))
+
 (defn follow!
-  "Scrolls the output to its end while auto scrolling is on."
+  "Scrolls the output to its end while auto scrolling is on, with scroll anchoring off until output has
+   stopped arriving for a while."
   []
   (when @!on?
+    (pause-anchoring!)
     (scroll-to-end!)))
 
 (defn reveal-end!
@@ -61,6 +92,11 @@
   []
   (reset! !on? true)
   (scroll-to-end!))
+
+(defn stop-following!
+  "Turns auto scrolling off, so the view stays where it is as output arrives."
+  []
+  (reset! !on? false))
 
 (defn- on-scroll
   [^js end ^js event]
@@ -71,8 +107,12 @@
                                   :end-visible? (end-visible? end)})))))
 
 (defn listen!
-  "Turns auto scrolling on when the end of the output comes into view, and follows the user's scrolling."
+  "Turns auto scrolling on when the end of the output comes into view, and follows the user's scrolling.
+   Scroll anchoring comes back as soon as auto scrolling turns off."
   []
+  (add-watch !on? ::anchoring (fn [_ _ was-on? on?]
+                                (when (and was-on? (not on?))
+                                  (resume-anchoring!))))
   (when-let [end (js/document.getElementById end-id)]
     (.observe (js/IntersectionObserver. (fn [entries]
                                           (when (some #(.-isIntersecting ^js %) entries)
