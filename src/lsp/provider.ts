@@ -279,7 +279,10 @@ export const createClientProvider = (params: CreateClientProviderParams) => {
             }
             case config.AutoStartBehaviour.FirstWorkspace: {
               const folder = vscode.workspace.workspaceFolders?.[0];
-              if (folder && auto_start.isClojureDocument(document)) {
+              if (
+                folder &&
+                auto_start.isClojureDocumentInFolder({ folder_path: folder.uri.fsPath, document })
+              ) {
                 void provisionClient(folder.uri).catch((err) => console.error(err));
               }
               return;

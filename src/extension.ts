@@ -390,6 +390,13 @@ async function activate(context: vscode.ExtensionContext) {
         `${drams.dramUrl('calva_getting_started')}`
       );
     },
+    startStandaloneHelloReplPtBr: () => {
+      return drams.createAndOpenDram(
+        context,
+        'Primeiros Passos',
+        `${drams.dramUrl('calva_getting_started_pt_br')}`
+      );
+    },
     createTryClojureProject: () => {
       return drams.createAndOpenDram(context, 'Try Clojure', `${drams.dramUrl('try_clojure')}`);
     },
