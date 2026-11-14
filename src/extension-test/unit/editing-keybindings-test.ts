@@ -276,6 +276,19 @@ describe('Calva editing keybindings and the REPL Input', () => {
     expect(missing).toEqual([]);
   });
 
+  it('the keybindings of the kill-sexp-backward command do not hold with the cursor in a comment', () => {
+    const holdingInComment = manifestKeybindings
+      .filter(({ command }) => command === 'paredit.killSexpBackward')
+      .filter(({ when }) => {
+        const expr = parseWhen(when);
+        const context = new Map([...atomsOf(expr)].map((atom) => [atom, true] as const));
+        context.set('calva:cursorInComment', true);
+        return evaluate(expr, context);
+      })
+      .map(({ key, mac }) => `${mac ?? key}`);
+    expect(holdingInComment).toEqual([]);
+  });
+
   it('only Calva editing and evaluation commands are bound for the REPL Input, and only through the clause', () => {
     const elsewhere = replInputBindings
       .filter(

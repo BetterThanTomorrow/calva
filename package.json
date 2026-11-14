@@ -3409,7 +3409,7 @@
       {
         "command": "paredit.killSexpBackward",
         "key": "ctrl+alt+backspace",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
       },
       {
         "command": "paredit.killListForward",
