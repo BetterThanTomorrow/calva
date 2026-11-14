@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [clojure-lsp starts in a non-Clojure first workspace root when a Clojure file outside the workspace is opened](https://github.com/BetterThanTomorrow/calva/issues/3339)
 - Add Portuguese (Brazil) Getting Started REPL project: new menu entry and command `calva.startStandaloneHelloReplPtBr`
 
 ## [2.0.610] - 2026-11-10
