@@ -19,6 +19,8 @@ Calva comes with a powerful expression-based debugger, inspired by [Cider](https
 * Instrument functions for debugging with `ctrl+alt+c i`
 * Instrument a function manually with `#dbg` (as opposed to the above command)
 * Set individual breakpoints with `#break`
+* Set breakpoints by clicking the editor gutter
+;Copilot: Added the gutter breakpoints line.
 * Continue to next breakpoint
 * Step over form
 * Step into form
@@ -39,7 +41,9 @@ The debugger itself relies pretty heavily on [cider-nrepl](https://github.com/cl
 
 ## Using the Debugger
 
-If you're new to Clojure or expression-based debuggers, this debugger may function differently than what you're used to. Instead of placing breakpoints in the side margin and then hitting F5 to start debugging, you instead use Clojure reader tags, `#break` and `#dbg`, to denote breakpoints anywhere in a Clojure form. When you evaluate a call to a function that has been evaluated with that reader tag, the debugger will start when execution reaches the first breakpoint. There's also a convenience command to instrument functions. Read below about both options.
+If you're new to Clojure or expression-based debuggers, this debugger may function differently than what you're used to. Instead of placing breakpoints in the side margin and then hitting F5 to start debugging, you instead use Clojure reader tags, `#break` and `#dbg`, to denote breakpoints anywhere in a Clojure form. When you evaluate a call to a function that has been evaluated with that reader tag, the debugger will start when execution reaches the first breakpoint. There's also a convenience command to instrument functions. Read below about both options. You can also click the gutter to set a breakpoint, and it too takes effect when you evaluate the form that holds it.
+
+;Copilot: Added the last sentence, since the paragraph contrasts the debugger with side margin breakpoints. Maybe the "Instead of placing breakpoints in the side margin…" sentence wants rewording too; I left it.
 
 !!! note
     The debugger is not configured via a `launch.json` file, and is not started in the same way as you may be used to when working with other languages in VS Code. The debugger is used by way of the REPL. If you are new to Clojure, please visit the [Getting Started](getting-started.md) section of the documentation and get familiar with evaluating code using the REPL before using the debugger.
@@ -61,6 +65,19 @@ You can insert a breakpoint manually into any code by placing a `#break` in fron
 !!! note
     Code will be executed up to and *including* the form after the breakpoint.
 
+### Setting Breakpoints in the Gutter
+
+In `.clj` and `.cljc` files you can set a breakpoint by clicking the editor gutter next to a line, or with `F9`. The breakpoint takes effect the next time you evaluate the form that holds it, with any of the evaluate commands, such as `alt+enter`. Calva then places a `#break` in front of the form on that line, as if you had typed it there. When you evaluate a call to this code, the debugger stops at the breakpoint, and stepping works as it does from a `#break`.
+
+* A breakpoint on the first line of a function, like `(defn f [x]`, stops at the function's first body form.
+* A line with nothing to stop at, like a line with only closing brackets or a line inside a docstring, gets no breakpoint.
+* Adding, removing or changing a gutter breakpoint doesn't evaluate anything. Evaluate the form again to apply the change.
+* Loading the file, the REPL window and the REPL Input don't apply gutter breakpoints.
+* In a REPL without cider-nrepl's debugger, such as a ClojureScript or a Babashka REPL, Calva evaluates the form without the breakpoints and tells you once.
+* VS Code's "Deactivate Breakpoints" doesn't reach Calva, so remove the breakpoints when you don't want them applied.
+
+;Copilot: New section. The text is my draft, and the bullets may be more than the page needs. The contributor's `visual-stepping.gif` is gone, since it showed stepping form by form from a gutter stop, which a gutter breakpoint doesn't do. A short gif of click, evaluate, call, stop would fit here.
+
 ### Conditional Breakpoints
 
 You can set conditional breakpoints by adding metadata before the form that the `#break` applies to.
@@ -71,6 +88,12 @@ You can set conditional breakpoints by adding metadata before the form that the 
     #break ^{:break/when (= i 7)} ;; This breakpoint will only be hit when i equals 7
     (prn i)))
 ```
+
+For a breakpoint in the gutter, right-click it, choose **Edit Breakpoint...**, and enter a Clojure expression as the condition. Evaluate the form again to apply it. Hit counts and log messages aren't supported.
+
+![Stepping through a conditional gutter breakpoint](images/debugger/visual-conditional-breakpoint.gif "Stepping through a conditional gutter breakpoint")
+
+;Copilot: Added the gutter paragraph and the contributor's gif. I haven't watched the gif; it was recorded with the PR's version, which evaluated forms when breakpoints changed, so it may show a form being evaluated on its own.
 
 ### Instrumenting a Form with `#dbg`
 
@@ -112,6 +135,8 @@ You can use VS Code's debugger UI to advance execution while debugging.
 
 !!! note
     Clicking restart does nothing, since this functionality does not make sense for our debugger.
+
+;Copilot: Left as it is. Pressing Restart while paused actually leaves the debug session running after the evaluation ends, until a window reload, and during that time evaluations go to the debugger. Dev answers Restart the same way, so dev very likely has this too. If you open an issue, this note may change with it.
 
 * **Continue** - Continues without stopping for the current breakpoint
 * **Step over** - Continues to the next breakpoint
@@ -169,6 +194,10 @@ It's likely that your breakpoint is in a place that cider-nrepl does not see as 
 (defn simple [x]
   (+ 1 #break 1)) ;; This breakpoint will not be hit
 ```
+
+A breakpoint set in the gutter needs the form that holds it to be evaluated after the breakpoint was set, with one of the evaluate commands. Loading the file doesn't apply it.
+
+;Copilot: Added the paragraph above.
 
 Another possible issue is that you're loading the file again after setting breakpoints, which unsets them when you're using `nREPL` versions older than 1.5.0 or `cider-nrepl` versions older than 0.58.0. See [Loading the File and "Eval On Save"](#loading-the-file-and-eval-on-save) under Caveats for more details and how newer versions preserve breakpoints.
 
