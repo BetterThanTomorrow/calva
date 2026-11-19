@@ -63,7 +63,7 @@
   <span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div><div class="admonition warning"><p class="admonition-title">Security: binding to all interfaces</p><p>Setting <code>webSocketHost</code> to <code>&quot;0.0.0.0&quot;</code> exposes the nREPL WebSocket server to your network. Only do this when you need remote access and understand the implications.</p>
-</div><p>The built-in <strong>scittle</strong> and <strong>epupp</strong> connect sequences come with WebSocket enabled by default:</p>
+</div><p>The built-in <strong>scittle</strong> and <strong>epupp</strong> connect sequences come with WebSocket enabled by default, and prompt for the port when you connect. The prompt is pre-filled with the port the sequence last used in the workspace, or else with a default port for the project type:</p>
 <table>
 <thead>
 <tr>
@@ -82,8 +82,8 @@
 </tr>
 </tbody>
 </table>
-<p>For most setups, this works out of the box — just make sure the browser-side client is configured to connect to the same port.</p>
-<p>To use a different port, override <code>webSocketPort</code> in your connect sequence:</p>
+<p>Make sure the browser-side client is configured to connect to the same port.</p>
+<p>To skip the prompt, set <code>webSocketPort</code> to a port number in your connect sequence:</p>
 <div class="highlight"><pre><code><span class="p">{</span>
   <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
@@ -100,13 +100,13 @@
 <h3 id="using-with-scittle">Using with Scittle<a href="#using-with-scittle" title="Permanent link" class="headerlink">#</a></h3>
 <p><a href="https://github.com/babashka/scittle">Scittle</a> provides an nREPL server that runs in the browser. See the <a href="https://github.com/babashka/scittle/tree/main/doc/nrepl">Scittle nREPL docs</a> for how to add nREPL to your page. Once set up:</p>
 <ol>
-<li>Connect in Calva using the <strong>scittle</strong> connect sequence (starts the WebSocket server on port 1340)</li>
+<li>Connect in Calva using the <strong>scittle</strong> connect sequence, and enter the port (starts the WebSocket server on that port)</li>
 <li>Load your page in the browser — the Scittle nREPL client connects automatically</li>
 </ol>
 <h3 id="using-with-epupp">Using with Epupp<a href="#using-with-epupp" title="Permanent link" class="headerlink">#</a></h3>
 <p><a href="https://github.com/PEZ/epupp">Epupp</a> lets you connect an nREPL to any web page. With WebSocket connections in Calva, the setup is:</p>
 <ol>
-<li>Connect in Calva using the <strong>epupp</strong> connect sequence (starts the WebSocket server on port 3340)</li>
+<li>Connect in Calva using the <strong>epupp</strong> connect sequence, and enter the port (starts the WebSocket server on that port)</li>
 <li>In Epupp, set the WebSocket port to match and click Connect</li>
 </ol>
 <h2 id="auto-select-project-type-and-project-root">Auto-select Project Type and Project Root<a href="#auto-select-project-type-and-project-root" title="Permanent link" class="headerlink">#</a></h2>
