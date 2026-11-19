@@ -6,7 +6,6 @@ import * as getText from '../util/get-text';
 import * as replSession from '../nrepl/repl-session';
 import * as sessionRegistry from '../nrepl/session-registry';
 import * as sessionEvents from '../nrepl/session-events';
-import * as sessionRouting from '../nrepl/session-routing';
 import * as debugDecorations from './decorations';
 import * as debugUtil from './util';
 import { reconcileDebuggerSession } from './session-lifecycle';
@@ -761,7 +760,6 @@ export function registerGuiSourceBreakpointInstrumentation(
         reconcileActiveSession();
       }
     }),
-    sessionRouting.onDidChangeRouting(reconcileActiveSession),
     vscode.window.onDidChangeActiveTextEditor(reconcileActiveSession)
   );
   reconcileActiveSession();
