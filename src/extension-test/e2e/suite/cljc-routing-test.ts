@@ -244,8 +244,8 @@ suite('CLJC Routing suite', function () {
     }
   });
 
-  test('With the REPL Input focused and locked on another file, the API, the status bar and alt+enter route to the same session', async function () {
-    testUtil.log(suiteName, 'Testing: Routing while the REPL Input has the focus');
+  test('Routing without a document follows the current file, as the REPL Input’s source file while it has the focus, and agrees with routing that file', async function () {
+    testUtil.log(suiteName, 'Testing: Routing without a document follows the current file');
 
     const lockedCljFile = path.join(projectDir, 'src', 'hello_world', 'locked.clj');
     await testUtil.openFile(cljsFile);
