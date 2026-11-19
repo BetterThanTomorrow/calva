@@ -16,7 +16,6 @@ import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import * as sessionRegistry from '../nrepl/session-registry';
 import { sendInitializeResponse } from './initialize-capabilities';
-import { handleRestartRequest } from './request-handlers';
 import { requestSourceBreakpoints, setGutterBreakpointContext } from './gui-breakpoints';
 import { supportsDebuggerOps, formatInstrumentUnsupportedMessage } from './debugger-ops';
 
@@ -95,12 +94,18 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     this.sendDebugInputUntilNextStop(response, ':continue');
   }
 
+  /**
+   * An evaluation paused at a breakpoint has nothing to restart, so Restart ends the debugging,
+   * as Stop does.
+   */
   protected restartRequest(
     response: debugProtocol.DebugProtocol.RestartResponse,
     args: debugProtocol.DebugProtocol.RestartArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    handleRestartRequest(response, (result) => this.sendResponse(result));
+    quitDebuggedEvaluation();
+    this.sendResponse(response);
+    this.sendEvent(new debugAdapter.TerminatedEvent());
   }
 
   protected nextRequest(
@@ -335,13 +340,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.DisconnectArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-    const debugResponse = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-
-    if (session && debugResponse) {
-      void session.sendDebugInput(':quit', debugResponse.id, debugResponse.key);
-    }
-
+    quitDebuggedEvaluation();
     this.sendResponse(response);
   }
 
@@ -459,6 +458,16 @@ let runningCalvaDebugSession: vscode.DebugSession | undefined;
 
 function isCalvaDebugSessionRunning(): boolean {
   return runningCalvaDebugSession !== undefined;
+}
+
+/** Sends :quit for the stop the debugger is paused at, if there is one. */
+function quitDebuggedEvaluation(): void {
+  const session = replSession.getSession();
+  const debugResponse = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
+
+  if (session && debugResponse) {
+    void session.sendDebugInput(':quit', debugResponse.id, debugResponse.key);
+  }
 }
 
 function onNreplMessage(data: any): void {

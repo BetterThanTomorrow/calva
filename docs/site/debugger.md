@@ -129,13 +129,13 @@ You can use VS Code's debugger UI to advance execution while debugging.
 ![VS Code's debugger navigation buttons](images/debugger/navigation-buttons.png "VS Code's debugger navigation buttons")
 
 !!! note
-    Clicking restart does nothing, since this functionality does not make sense for our debugger.
+    Clicking restart works like disconnect, since restarting does not make sense for our debugger.
 
 * **Continue** - Continues without stopping for the current breakpoint
 * **Step over** - Continues to the next breakpoint
 * **Step in** - Steps in to the function about to be called. If the next breakpoint is not around a function call, does the same as next. Note that not all functions can be stepped in to - only normal functions stored in vars, for which cider-nrepl can find the source. You cannot currently step in to multimethods, protocol functions, or functions in clojure.core (although multimethods and protocols can be instrumented manually).
 * **Step out** - Steps to the next breakpoint that is outside of the current sexp
-* **Restart** - Does nothing. To restart debugging, you can hit disconnect or continue execution through the final result, then re-evaluate the expression that started the debugger.
+* **Restart** - Works like disconnect. To restart debugging, disconnect or continue execution through the final result, then re-evaluate the expression that started the debugger.
 * **Disconnect** - Disconnects the debugger
 
 ## Caveats
