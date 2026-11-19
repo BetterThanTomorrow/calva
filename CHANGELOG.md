@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.612] - 2026-11-19
+
 - [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)
 - Bump deps-clj to v1.12.7.1681
 - [Remove default ports for bundled connect sequences](https://github.com/BetterThanTomorrow/calva/issues/3348)
