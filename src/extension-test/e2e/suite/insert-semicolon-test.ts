@@ -94,15 +94,7 @@ suite(suiteName, () => {
 
   mocha.it(
     'undo once restores pre-command state for structure-preserving insertSemiColon',
-    async function (this: Mocha.Context) {
-      if (!vscode.window.state.focused) {
-        testUtil.log(
-          suiteName,
-          'Skipping undo assertion because the VS Code window is not focused'
-        );
-        this.skip();
-      }
-
+    async () => {
       const editor = vscode.window.activeTextEditor;
       const initialState = '(defn foo []•  |(println "test"))';
       const expectedAfterInsert = '(defn foo []•  ;|(println "test")•  )';

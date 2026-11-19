@@ -33,10 +33,7 @@ suite('Name Suffix suite', () => {
     nameSuffix.resetPool();
   });
 
-  mocha.beforeEach(async function () {
-    // CircleCI retries a jack-in up to three times. Each attempt can wait for
-    // the client and its sessions, with cleanup between attempts.
-    this.timeout(480_000);
+  mocha.beforeEach(async () => {
     await outputWindow.clearReplWindowDoc();
     jackInHarness.reset();
     await ensureBaseConnection();
