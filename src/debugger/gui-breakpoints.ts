@@ -14,6 +14,8 @@ import type * as nrepl from '../nrepl';
 import {
   reconcileBreakpointLocations,
   affectedBreakpointLocations,
+  enabledBreakpoints,
+  updateBreakpointEnabledState,
   type BreakpointLocation,
 } from './source-breakpoint-sync';
 import {
@@ -28,7 +30,13 @@ import {
   isClojureFamilySourcePath,
   supportsDebuggerOps,
 } from './debugger-ops';
-import { shouldExposeSourceBreakpointStop } from './source-breakpoint-stop';
+import {
+  consumeDisabledSourceBreakpointStopTarget,
+  retireDisabledSourceBreakpointStopTargetsForForm,
+  registerSourceBreakpointChangeListener,
+  mergeSourceBreakpointStopTargets,
+  routeGuiBreakpointStopForSession,
+} from './source-breakpoint-stop';
 
 export type BreakpointCodeEvaluator = (
   code: string,
@@ -47,29 +55,77 @@ type BreakpointEvaluationOptions = {
 type DocumentTokenCursor = ReturnType<ReturnType<typeof docMirror.getDocument>['getTokenCursor']>;
 let breakpointCodeEvaluator: BreakpointCodeEvaluator | undefined;
 let sourceBreakpointStepTargets:
-  | { file: string; formStart: number; endOffset: number }[]
+  | {
+      file: string;
+      formStart: number;
+      endOffset: number;
+      enabled: boolean;
+      breakpointId: string;
+    }[]
   | undefined;
-const previousBreakpointLocations = new WeakMap<vscode.SourceBreakpoint, BreakpointLocation>();
+const previousBreakpointLocations = new Map<string, BreakpointLocation>();
+const breakpointEnabledById = new Map<string, boolean>();
 let breakpointReconciliation = Promise.resolve();
+let breakpointChangeGeneration = 0;
 let warnUnsupported: (session?: nrepl.NReplSession) => void = () => undefined;
 let initializeDebugger: (session: nrepl.NReplSession) => void = () => undefined;
+let breakpointDisabled: (breakpoint: vscode.SourceBreakpoint) => void = () => undefined;
 
 export function guiBreakpointStepTargets():
   | readonly { file: string; formStart: number; endOffset: number }[]
   | undefined {
+  // Changed events update these targets synchronously. Do not refresh them from
+  // vscode.debug.breakpoints here: its snapshot can still be stale while the
+  // changed event is being delivered and would undo a disable before reevaluation.
+  return sourceBreakpointStepTargets?.filter((target) => target.enabled);
+}
+
+function guiBreakpointStopTargets() {
+  // Stop routing may consume a stale disabled target after advancing past a
+  // pause produced by code that was instrumented before the toggle. Keep the
+  // original array here so that consumption also clears the shared state.
   return sourceBreakpointStepTargets;
 }
 
-export async function shouldExposeGuiBreakpointStop(response: {
+export async function routeGuiBreakpointStop(
+  response: {
+    file: string;
+    line: number;
+    column: number;
+  },
+  hasActiveDebugSession: boolean,
+  isContinuing: boolean,
+  isCalvaDebugSession: boolean,
+  expose: () => void,
+  advance: () => void
+): Promise<void> {
+  return routeGuiBreakpointStopForSession(
+    hasActiveDebugSession,
+    isContinuing,
+    isCalvaDebugSession,
+    {
+      getTargets: guiBreakpointStopTargets,
+      getGeneration: () => breakpointChangeGeneration,
+      mapStop: () => mapGuiBreakpointStop(response),
+      consumeDisabled: (stop) =>
+        consumeDisabledSourceBreakpointStopTarget(
+          guiBreakpointStopTargets(),
+          stop.file,
+          stop.formStart,
+          stop.stopOffset
+        ),
+    },
+    expose,
+    advance
+  );
+}
+
+async function mapGuiBreakpointStop(response: {
   file: string;
   line: number;
   column: number;
-}): Promise<boolean> {
+}): Promise<{ file: string; formStart: number | undefined; stopOffset: number } | undefined> {
   try {
-    const targets = guiBreakpointStepTargets();
-    if (!targets?.length) {
-      return true;
-    }
     const uri = sourceLocationUri(response.file);
     const document = await vscode.workspace.openTextDocument(uri);
     const offset = document.offsetAt(
@@ -78,12 +134,11 @@ export async function shouldExposeGuiBreakpointStop(response: {
     const cursor = docMirror.getDocument(document).getTokenCursor(offset);
     const responseFormRange = cursor.rangeForDefun(offset);
     debugUtil.moveTokenCursorToBreakpoint(cursor, response);
-    return shouldExposeSourceBreakpointStop(
-      targets.map((target) => ({ ...target, file: vscode.Uri.file(target.file).toString() })),
-      uri.toString(),
-      responseFormRange?.[0],
-      cursor.offsetStart
-    );
+    return {
+      file: uri.toString(),
+      formStart: responseFormRange?.[0],
+      stopOffset: cursor.offsetStart,
+    };
   } catch (error) {
     console.error(
       'Calva debugger: could not map an auto-step location to the GUI breakpoint',
@@ -91,7 +146,7 @@ export async function shouldExposeGuiBreakpointStop(response: {
     );
     // If source mapping fails, expose the stop so the debugger does not hide a
     // legitimate pause indefinitely.
-    return true;
+    return undefined;
   }
 }
 
@@ -107,9 +162,11 @@ function oneBasedToZeroBased(n: number): number {
 export function configureGuiBreakpointDebugger(callbacks: {
   warnUnsupported: (session?: nrepl.NReplSession) => void;
   initializeDebugger: (session: nrepl.NReplSession) => void;
+  breakpointDisabled?: (breakpoint: vscode.SourceBreakpoint) => void;
 }): void {
   warnUnsupported = callbacks.warnUnsupported;
   initializeDebugger = callbacks.initializeDebugger;
+  breakpointDisabled = callbacks.breakpointDisabled ?? (() => undefined);
 }
 
 function shouldReconcileDebuggerSession(eventType: string): boolean {
@@ -132,7 +189,8 @@ function isClojureSourceBreakpoint(
   );
 }
 function existingClojureSourceBreakpoints(): vscode.SourceBreakpoint[] {
-  return vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
+  const snapshot = vscode.debug.breakpoints.filter(isClojureSourceBreakpoint);
+  return enabledBreakpoints(snapshot, breakpointEnabledById);
 }
 export function breakpointLocationsForRange(
   document: vscode.TextDocument,
@@ -379,18 +437,6 @@ function injectBreakpoints(
     }))
     .filter((scope) => scope.start >= 0 && scope.end <= code.length);
 
-  // Remember the actual target forms. The adapter uses these locations to
-  // auto-step through the synthetic #dbg stops until the gutter breakpoint is
-  // reached, then presents that stop to VS Code.
-  sourceBreakpointStepTargets = absoluteTargets.flatMap((targetOffset) => {
-    const cursor = docMirror.getDocument(document).getTokenCursor(targetOffset);
-    const targetRange = cursor.rangeForCurrentForm(targetOffset);
-    const formRange = cursor.rangeForDefun(targetOffset);
-    return targetRange && formRange
-      ? [{ file: document.fileName, formStart: formRange[0], endOffset: targetRange[1] }]
-      : [];
-  });
-
   const wrappedCode = insertDebugScopes(code, scopes);
   return insertBreakpointForms(
     wrappedCode,
@@ -404,15 +450,46 @@ function injectBreakpoints(
   );
 }
 
-export function instrumentCodeWithSourceBreakpoints(
+function sourceBreakpointStopTargetsForSelection(
+  document: vscode.TextDocument,
+  breakpoints: readonly vscode.SourceBreakpoint[]
+): {
+  file: string;
+  formStart: number;
+  endOffset: number;
+  enabled: boolean;
+  breakpointId: string;
+}[] {
+  const absoluteTargets = breakpoints.map((breakpoint) =>
+    breakpointTargetOffset(document, breakpoint)
+  );
+  return absoluteTargets.flatMap((targetOffset) => {
+    const cursor = docMirror.getDocument(document).getTokenCursor(targetOffset);
+    const targetRange = cursor.rangeForCurrentForm(targetOffset);
+    const formRange = cursor.rangeForDefun(targetOffset);
+    return targetRange && formRange
+      ? breakpoints
+          .filter((breakpoint) => breakpointTargetOffset(document, breakpoint) === targetOffset)
+          .map((breakpoint) => ({
+            file: document.uri.toString(),
+            formStart: formRange[0],
+            endOffset: targetRange[1],
+            enabled: true,
+            breakpointId: breakpoint.id,
+          }))
+      : [];
+  });
+}
+
+function sourceBreakpointsForSelection(
   document: vscode.TextDocument,
   selection: vscode.Selection,
-  code: string,
-  session?: nrepl.NReplSession,
-  sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
-): string {
-  const breakpoints = sourceBreakpoints
-    .filter(isClojureSourceBreakpoint)
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[]
+): vscode.SourceBreakpoint[] {
+  return enabledBreakpoints(
+    sourceBreakpoints.filter(isClojureSourceBreakpoint),
+    breakpointEnabledById
+  )
     .filter(
       (breakpoint) => !breakpointPositionIsInComment(document, breakpoint.location.range.start)
     )
@@ -421,7 +498,16 @@ export function instrumentCodeWithSourceBreakpoints(
         breakpoint.location.uri.toString() === document.uri.toString() &&
         selection.contains(breakpointTargetPosition(document, breakpoint))
     );
+}
 
+export function instrumentCodeWithSourceBreakpoints(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  code: string,
+  session?: nrepl.NReplSession,
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
+): string {
+  const breakpoints = sourceBreakpointsForSelection(document, selection, sourceBreakpoints);
   if (breakpoints.length > 0 && !supportsDebuggerOps(session)) {
     warnUnsupported(session);
   }
@@ -473,6 +559,10 @@ async function evaluateBreakpointForm(
   sourceBreakpoints: readonly vscode.SourceBreakpoint[] = existingClojureSourceBreakpoints()
 ): Promise<void> {
   const [ns, nsForm] = namespace.getNamespace(document, selection.end);
+  const formStart = docMirror
+    .getDocument(document)
+    .getTokenCursor(document.offsetAt(selection.start))
+    .rangeForDefun(document.offsetAt(selection.start))?.[0];
   const codeToEvaluate = instrumentCodeWithSourceBreakpoints(
     document,
     selection,
@@ -483,10 +573,34 @@ async function evaluateBreakpointForm(
 
   try {
     await evaluateBreakpointCode(document, selection, codeToEvaluate, ns, nsForm, session);
+    recordCurrentBreakpointStopTargets(document, selection, session, sourceBreakpoints);
+    if (formStart !== undefined) {
+      sourceBreakpointStepTargets = retireDisabledSourceBreakpointStopTargetsForForm(
+        sourceBreakpointStepTargets,
+        document.uri.toString(),
+        formStart
+      );
+    }
     debugDecorations.triggerUpdateAndRenderDecorations();
   } catch (e) {
     void vscode.window.showWarningMessage(`Failed instrumenting breakpoint: ${e.message ?? e}`);
   }
+}
+
+function recordCurrentBreakpointStopTargets(
+  document: vscode.TextDocument,
+  selection: vscode.Selection,
+  session: nrepl.NReplSession,
+  sourceBreakpoints: readonly vscode.SourceBreakpoint[]
+): void {
+  if (!supportsDebuggerOps(session)) {
+    return;
+  }
+  const breakpoints = sourceBreakpointsForSelection(document, selection, sourceBreakpoints);
+  sourceBreakpointStepTargets = mergeSourceBreakpointStopTargets(
+    sourceBreakpointStepTargets,
+    sourceBreakpointStopTargetsForSelection(document, breakpoints)
+  );
 }
 
 async function evaluateBreakpointCode(
@@ -532,14 +646,28 @@ function breakpointLocation(breakpoint: vscode.SourceBreakpoint): BreakpointLoca
 
 function rememberBreakpointLocations(): void {
   for (const breakpoint of existingClojureSourceBreakpoints()) {
-    previousBreakpointLocations.set(breakpoint, breakpointLocation(breakpoint));
+    previousBreakpointLocations.set(breakpoint.id, breakpointLocation(breakpoint));
   }
 }
 
 function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): void {
+  breakpointChangeGeneration += 1;
+  const sourceEvent = {
+    ...event,
+    added: event.added.filter(isClojureSourceBreakpoint),
+    changed: event.changed.filter(isClojureSourceBreakpoint),
+    removed: event.removed.filter(isClojureSourceBreakpoint),
+  };
+  updateBreakpointEnabledState(sourceEvent, breakpointEnabledById, (breakpoint) => breakpoint.id);
+  for (const breakpoint of sourceEvent.changed) {
+    if (!breakpoint.enabled) {
+      breakpointDisabled(breakpoint);
+    }
+  }
   const affectedLocations = affectedBreakpointLocations(
-    event,
+    sourceEvent,
     previousBreakpointLocations,
+    (breakpoint) => breakpoint.id,
     breakpointLocation,
     isClojureSourceBreakpoint
   );
@@ -549,6 +677,16 @@ function syncChangedSourceBreakpoints(event: vscode.BreakpointsChangeEvent): voi
     .catch((error) => {
       console.error('Failed reconciling source breakpoints', error);
     });
+}
+
+export function registerGuiBreakpointChangeListener<TDisposable>(
+  register: (handler: (event: vscode.BreakpointsChangeEvent) => void) => TDisposable
+): TDisposable {
+  return registerSourceBreakpointChangeListener<vscode.BreakpointsChangeEvent, TDisposable>(
+    register,
+    () => sourceBreakpointStepTargets,
+    syncChangedSourceBreakpoints
+  );
 }
 
 async function syncSourceBreakpoints(breakpoints: vscode.SourceBreakpoint[]): Promise<void> {
@@ -598,6 +736,11 @@ export function registerGuiSourceBreakpointInstrumentation(
 ): void {
   breakpointCodeEvaluator = evaluator;
   rememberBreakpointLocations();
+  updateBreakpointEnabledState(
+    { added: existingClojureSourceBreakpoints(), changed: [], removed: [] },
+    breakpointEnabledById,
+    (breakpoint) => breakpoint.id
+  );
   let activeDebuggerSession: nrepl.NReplSession | undefined;
   const reconcileActiveSession = () => {
     activeDebuggerSession = reconcileDebuggerSession(
@@ -623,8 +766,6 @@ export function registerGuiSourceBreakpointInstrumentation(
   );
   reconcileActiveSession();
   context.subscriptions.push(
-    vscode.debug.onDidChangeBreakpoints((event) => {
-      void syncChangedSourceBreakpoints(event);
-    })
+    registerGuiBreakpointChangeListener((handler) => vscode.debug.onDidChangeBreakpoints(handler))
   );
 }

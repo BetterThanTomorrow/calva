@@ -6,9 +6,45 @@ export type BreakpointsChangeEvent<TBreakpoint> = {
 
 export type BreakpointLocation = { uri: string; line: number; character: number };
 
+export function enabledBreakpoints<TBreakpoint extends { enabled: boolean; id?: string }>(
+  breakpoints: readonly TBreakpoint[],
+  enabledById?: ReadonlyMap<string, boolean>
+): TBreakpoint[] {
+  return breakpoints.filter((breakpoint) => isBreakpointEnabled(breakpoint, enabledById));
+}
+
+export function updateBreakpointEnabledState<TBreakpoint extends { enabled: boolean }>(
+  event: BreakpointsChangeEvent<TBreakpoint>,
+  enabledById: Map<string, boolean>,
+  idFor: (breakpoint: TBreakpoint) => string
+): void {
+  for (const breakpoint of event.removed) {
+    enabledById.delete(idFor(breakpoint));
+  }
+  for (const breakpoint of [...event.added, ...event.changed]) {
+    enabledById.set(idFor(breakpoint), breakpoint.enabled);
+  }
+}
+
+export function applyBreakpointEnabledState<TBreakpoint extends { id: string; enabled: boolean }>(
+  breakpoints: readonly TBreakpoint[],
+  enabledById: ReadonlyMap<string, boolean>
+): TBreakpoint[] {
+  return enabledBreakpoints(breakpoints, enabledById);
+}
+
+function isBreakpointEnabled<TBreakpoint extends { enabled: boolean; id?: string }>(
+  breakpoint: TBreakpoint,
+  enabledById?: ReadonlyMap<string, boolean>
+): boolean {
+  const rememberedState = breakpoint.id ? enabledById?.get(breakpoint.id) : undefined;
+  return rememberedState ?? breakpoint.enabled;
+}
+
 export function affectedBreakpointLocations<TBreakpoint>(
   event: BreakpointsChangeEvent<TBreakpoint>,
-  previousLocations: WeakMap<object, BreakpointLocation>,
+  previousLocations: Map<string, BreakpointLocation>,
+  idFor: (breakpoint: TBreakpoint) => string,
   locationFor: (breakpoint: TBreakpoint) => BreakpointLocation,
   isSyncable: (breakpoint: TBreakpoint) => boolean
 ): BreakpointLocation[] {
@@ -17,7 +53,7 @@ export function affectedBreakpointLocations<TBreakpoint>(
     if (!isSyncable(breakpoint)) {
       continue;
     }
-    const key = breakpoint as object;
+    const key = idFor(breakpoint);
     const previous = previousLocations.get(key);
     if (previous) {
       locations.push(previous);

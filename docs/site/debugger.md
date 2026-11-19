@@ -227,6 +227,16 @@ When debugging handler functions for Ring, Pedestal, or similar web frameworks, 
 
 **For Pedestal:** Routes may need to be re-evaluated after instrumenting a handler. If your routes are defined with `defroutes`, evaluate the `defroutes` form again after instrumenting the handler function, then call the endpoint.
 
+Some running callbacks capture a function value when they are created. For example, an Aleph server may retain the handler passed to `serve-client`. Redefining the handler Var with an instrumented version does not change a function value that the running callback already captured, so requests can continue to use the old, uninstrumented function and miss the breakpoint.
+
+To refresh a breakpoint in this situation:
+
+1. Set the breakpoint in the handler.
+2. Evaluate the handler's containing top-level form with **Evaluate current top-level form** (`alt+enter`). This installs the instrumented definition in the REPL.
+3. Restart or recreate the server process (or other callback owner) that captured the previous function value, using your application's normal process controls. Then call the endpoint again.
+
+Evaluating the definition alone does not replace the value already held by the running callback. Make sure the code you evaluate is the actual top-level definition: a form inside `(comment ...)` is not executed when that comment form is evaluated, and a line-commented form is ignored. Keep any executable reload code outside comments, or restart the process through its normal controls.
+
 Also note these limitations when debugging web handlers:
 
 - The debugger session does not automatically disconnect after the HTTP response is returned — you must disconnect manually.

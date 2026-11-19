@@ -2,15 +2,244 @@ import * as expectLib from 'expect';
 import {
   affectedBreakpointLocations,
   breakpointsToSync,
+  enabledBreakpoints,
   reconcileBreakpointLocations,
+  updateBreakpointEnabledState,
   uniqueByKey,
 } from '../../../../src/debugger/source-breakpoint-sync';
 import { insertBreakpointForms } from '../../../../src/debugger/breakpoint-encoding';
+import {
+  consumeDisabledSourceBreakpointStopTarget,
+  mergeSourceBreakpointStopTargets,
+  routeMappedSourceBreakpointStop,
+  updateBreakpointStopTargets,
+} from '../../../../src/debugger/source-breakpoint-stop';
 
 const oldUri = 'file:///old.clj';
 const newUri = 'file:///new.clj';
 
+async function verifyActiveSessionBreakpointToggleLifecycle(): Promise<void> {
+  const breakpoint = {
+    id: 'gui',
+    enabled: true,
+    offset: 0,
+    condition: undefined as string | undefined,
+  };
+  const target = {
+    file: oldUri,
+    formStart: 10,
+    endOffset: 24,
+    enabled: true,
+    breakpointId: breakpoint.id,
+  };
+  const targets = [target];
+  const enabledById = new Map([[breakpoint.id, true]]);
+  let debuggerInitialized = false;
+  const evaluations: string[] = [];
+  const reconcile = () =>
+    reconcileBreakpointLocations(
+      [{ uri: oldUri, line: 2, character: 4 }],
+      (location) => Promise.resolve({ location }),
+      () => 'sample',
+      () => enabledBreakpoints([breakpoint], enabledById),
+      (_form, activeBreakpoints) => {
+        if (activeBreakpoints.length > 0 && !debuggerInitialized) {
+          debuggerInitialized = true;
+          evaluations.push('initialize-debugger');
+        }
+        const code = insertBreakpointForms(
+          '(sample)',
+          activeBreakpoints.map((item) => ({ offset: item.offset, condition: item.condition }))
+        );
+        evaluations.push(code);
+        if (activeBreakpoints.length > 0) {
+          mergeSourceBreakpointStopTargets(targets, [target]);
+        }
+        return Promise.resolve();
+      },
+      (error) => {
+        throw error;
+      }
+    );
+
+  breakpoint.enabled = false;
+  updateBreakpointEnabledState(
+    { added: [], changed: [breakpoint], removed: [] },
+    enabledById,
+    (item) => item.id
+  );
+  updateBreakpointStopTargets(targets, [breakpoint], []);
+  await reconcile();
+
+  expectLib.expect(evaluations).toEqual(['(sample)']);
+  expectLib
+    .expect(
+      await routeMappedSourceBreakpointStop({
+        getTargets: () => targets,
+        getGeneration: () => 1,
+        mapStop: () => Promise.resolve({ file: oldUri, formStart: 10, stopOffset: 24 }),
+        consumeDisabled: (stop) =>
+          consumeDisabledSourceBreakpointStopTarget(
+            targets,
+            stop.file,
+            stop.formStart,
+            stop.stopOffset
+          ),
+      })
+    )
+    .toBe(false);
+
+  breakpoint.enabled = true;
+  updateBreakpointEnabledState(
+    { added: [], changed: [breakpoint], removed: [] },
+    enabledById,
+    (item) => item.id
+  );
+  updateBreakpointStopTargets(targets, [breakpoint], []);
+  await reconcile();
+
+  expectLib.expect(evaluations).toEqual(['(sample)', 'initialize-debugger', '#break (sample)']);
+  expectLib.expect(debuggerInitialized).toBe(true);
+  expectLib
+    .expect(
+      await routeMappedSourceBreakpointStop({
+        getTargets: () => targets,
+        getGeneration: () => 2,
+        mapStop: () => Promise.resolve({ file: oldUri, formStart: 10, stopOffset: 24 }),
+      })
+    )
+    .toBe(true);
+}
+
 describe('source breakpoint sync', () => {
+  it('filters disabled breakpoints from the active snapshot and restores them when enabled', () => {
+    const breakpoint = { id: 'gui', enabled: false };
+    expectLib.expect(enabledBreakpoints([breakpoint])).toEqual([]);
+
+    breakpoint.enabled = true;
+    expectLib.expect(enabledBreakpoints([breakpoint])).toEqual([breakpoint]);
+  });
+
+  it('uses changed-event enabled state when the VS Code snapshot is stale', () => {
+    const snapshot = [{ id: 'gui', enabled: true }];
+    const currentState = new Map<string, boolean>([['gui', true]]);
+
+    updateBreakpointEnabledState(
+      { added: [], changed: [{ id: 'gui', enabled: false }], removed: [] },
+      currentState,
+      (breakpoint) => breakpoint.id
+    );
+    expectLib.expect(enabledBreakpoints(snapshot, currentState)).toEqual([]);
+
+    updateBreakpointEnabledState(
+      { added: [], changed: [{ id: 'gui', enabled: true }], removed: [] },
+      currentState,
+      (breakpoint) => breakpoint.id
+    );
+    const staleSnapshot = [{ id: 'gui', enabled: false }];
+    const activeSnapshot = enabledBreakpoints(staleSnapshot, currentState);
+    expectLib.expect(activeSnapshot).toHaveLength(1);
+    expectLib.expect(activeSnapshot[0]).toBe(staleSnapshot[0]);
+  });
+
+  it('preserves breakpoint instances while applying remembered enabled state', () => {
+    class Breakpoint {
+      constructor(public id: string, public enabled: boolean) {}
+    }
+    const breakpoint = new Breakpoint('gui', true);
+    const state = new Map([[breakpoint.id, false]]);
+
+    expectLib.expect(enabledBreakpoints([breakpoint], state)).toEqual([]);
+    state.set(breakpoint.id, true);
+    const activeBreakpoints = enabledBreakpoints([breakpoint], state);
+
+    expectLib.expect(activeBreakpoints[0]).toBeInstanceOf(Breakpoint);
+    expectLib.expect(activeBreakpoints[0]).toBe(breakpoint);
+  });
+
+  it('reconciles an enabled-state change using the latest active breakpoint snapshot', async () => {
+    const breakpoint = {
+      id: 'gui',
+      enabled: true,
+      form: 'sample',
+      offset: 0,
+      condition: undefined as string | undefined,
+    };
+    const previous = new Map<string, { uri: string; line: number; character: number }>();
+    previous.set(breakpoint.id, { uri: oldUri, line: 2, character: 4 });
+    const locations = affectedBreakpointLocations(
+      { added: [], changed: [breakpoint], removed: [] },
+      previous,
+      (item) => item.id,
+      () => ({ uri: oldUri, line: 2, character: 4 }),
+      () => true
+    );
+    breakpoint.enabled = false;
+    const snapshots: string[][] = [];
+    const instrumented: string[] = [];
+
+    const reconcile = () =>
+      reconcileBreakpointLocations(
+        locations,
+        (location) => Promise.resolve({ location }),
+        () => 'sample',
+        () => enabledBreakpoints([breakpoint]),
+        (_target, breakpoints) => {
+          snapshots.push(breakpoints.map((item) => item.id));
+          instrumented.push(
+            insertBreakpointForms(
+              '(sample)',
+              breakpoints.map((item) => ({ offset: item.offset, condition: item.condition }))
+            )
+          );
+          return Promise.resolve();
+        },
+        (error) => {
+          throw error;
+        }
+      );
+
+    await reconcile();
+
+    expectLib.expect(locations).toEqual([
+      { uri: oldUri, line: 2, character: 4 },
+      { uri: oldUri, line: 2, character: 4 },
+    ]);
+    expectLib.expect(snapshots).toEqual([[]]);
+    expectLib.expect(instrumented).toEqual(['(sample)']);
+
+    breakpoint.enabled = true;
+    await reconcile();
+    expectLib.expect(snapshots.slice(1)).toEqual([['gui']]);
+    expectLib.expect(instrumented.slice(1)).toEqual(['#break (sample)']);
+  });
+
+  it(
+    'disables a stale stop and restores instrumentation after initializing on re-enable',
+    verifyActiveSessionBreakpointToggleLifecycle
+  );
+
+  it('reevaluates the remembered location when VS Code replaces a changed breakpoint object', () => {
+    const previous = new Map<string, { uri: string; line: number; character: number }>([
+      ['gui', { uri: oldUri, line: 2, character: 4 }],
+    ]);
+    const changedBreakpoint = { id: 'gui', enabled: false, uri: oldUri, line: 2, character: 4 };
+
+    const locations = affectedBreakpointLocations(
+      { added: [], changed: [changedBreakpoint], removed: [] },
+      previous,
+      (breakpoint) => breakpoint.id,
+      (breakpoint) => ({ uri: breakpoint.uri, line: breakpoint.line, character: 4 }),
+      () => true
+    );
+
+    expectLib.expect(locations).toEqual([
+      { uri: oldUri, line: 2, character: 4 },
+      { uri: oldUri, line: 2, character: 4 },
+    ]);
+    expectLib.expect(previous.get('gui')).toEqual({ uri: oldUri, line: 2, character: 4 });
+  });
+
   it('reconciles added, changed, and removed breakpoints', () => {
     const addedBreakpoint = { id: 'added', syncable: true };
     const changedBreakpoint = { id: 'changed', syncable: true };
@@ -55,19 +284,21 @@ describe('source breakpoint sync', () => {
   });
 
   it('reevaluates the saved location on removal and both locations on a move', () => {
-    const breakpoint: { uri: string; line: number; character: number } = {
+    const breakpoint: { id: string; uri: string; line: number; character: number } = {
+      id: 'gui',
       uri: oldUri,
       line: 2,
       character: 4,
     };
-    const previous = new WeakMap<object, { uri: string; line: number; character: number }>();
-    previous.set(breakpoint, { ...breakpoint });
+    const previous = new Map<string, { uri: string; line: number; character: number }>();
+    previous.set(breakpoint.id, { uri: oldUri, line: 2, character: 4 });
 
     breakpoint.uri = newUri;
     breakpoint.line = 8;
     const moved = affectedBreakpointLocations(
       { added: [], changed: [breakpoint], removed: [] },
       previous,
+      (item) => item.id,
       (item) => ({ uri: item.uri, line: item.line, character: item.character }),
       () => true
     );
@@ -79,25 +310,33 @@ describe('source breakpoint sync', () => {
     const removed = affectedBreakpointLocations(
       { added: [], changed: [], removed: [breakpoint] },
       previous,
+      (item) => item.id,
       () => ({ uri: 'unused', line: 0, character: 0 }),
       () => true
     );
     expectLib.expect(removed).toEqual([{ uri: newUri, line: 8, character: 4 }]);
-    expectLib.expect(previous.has(breakpoint)).toBe(false);
+    expectLib.expect(previous.has(breakpoint.id)).toBe(false);
   });
 
   it('ignores non-Clojure breakpoints and keeps the remembered location for a removal', () => {
-    const breakpoint = { uri: 'file:///x.txt', line: 0, character: 0, syncable: false };
-    const previous = new WeakMap<object, { uri: string; line: number; character: number }>();
-    previous.set(breakpoint, { uri: oldUri, line: 1, character: 0 });
+    const breakpoint = {
+      id: 'other',
+      uri: 'file:///x.txt',
+      line: 0,
+      character: 0,
+      syncable: false,
+    };
+    const previous = new Map<string, { uri: string; line: number; character: number }>();
+    previous.set(breakpoint.id, { uri: oldUri, line: 1, character: 0 });
     const locations = affectedBreakpointLocations(
       { added: [], changed: [], removed: [breakpoint] },
       previous,
+      (item) => item.id,
       () => ({ uri: breakpoint.uri, line: breakpoint.line, character: breakpoint.character }),
       (item) => item.syncable
     );
     expectLib.expect(locations).toEqual([]);
-    expectLib.expect(previous.has(breakpoint)).toBe(true);
+    expectLib.expect(previous.has(breakpoint.id)).toBe(true);
   });
 
   it('reevaluates removed and moved forms using one current breakpoint snapshot', async () => {
