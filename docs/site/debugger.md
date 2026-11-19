@@ -75,7 +75,7 @@ In `.clj` and `.cljc` files you can set a breakpoint by clicking the editor gutt
 
 ### Inline Breakpoints
 
-Inline breakpoints ar supported and will have Clojure expression/form semantics. I.e. instrument the form they are in front of, equivalent to typing in `#break` where the inline breakpoint is placed.
+Inline breakpoints are supported and have Clojure expression/form semantics. I.e. they instrument the form they are in front of, equivalent to typing in `#break` where the inline breakpoint is placed.
 
 ### Conditional Breakpoints
 
@@ -89,8 +89,6 @@ You can set conditional breakpoints by adding metadata before the form that the 
 ```
 
 For a breakpoint in the gutter, right-click it, choose **Edit Breakpoint...**, and enter a Clojure expression as the condition. Evaluate the form again to apply it. Hit counts and log messages aren't supported.
-
-;Copilot: The gif that was here (visual-conditional-breakpoint.gif) showed stepping form by form from a gutter stop, which gutter breakpoints no longer do, so it and its image file are removed. A new recording of a conditional gutter breakpoint stopping could go here. ;PEZ: I'm fine without a gif for now
 
 ### Instrumenting a Form with `#dbg`
 
