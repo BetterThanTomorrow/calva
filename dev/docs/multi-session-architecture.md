@@ -47,7 +47,7 @@ A **Connect Sequence** describes how Calva should connect to a project. It refer
 | `replSessionNames` | Optional: Override project type's default session names |
 | `replSessionFilePatterns` | Optional: Override project type's default file routing patterns |
 | `nReplPortFile` | Optional: Override project type's default port file location |
-| `fallbackPort` | Optional: Override project type's default fallback port |
+| `fallbackPort` | Optional: Port to use when no port file exists |
 
 A connect sequence typically results in one **Primary Session** (usually Clojure) and optionally one **Secondary Session** (usually ClojureScript).
 
@@ -65,11 +65,13 @@ A **Project Type** provides default configuration for connect sequences:
 | `defaultReplSessionNames` | Default session names (e.g., `{ primary: "bb" }` for Babashka) |
 | `defaultFilePatterns` | Default glob patterns for session routing |
 | `defaultNReplPortFile` | Default location of nREPL port file |
-| `defaultFallbackPort` | Default port when no port file exists |
+| `prefilledPort` | Port pre-filled in the host:port prompt when no port file exists |
+| `defaultWebSocketPort` | WebSocket transport default (`true` prompts for the port) |
+| `prefilledWebSocketPort` | Port pre-filled in the WebSocket port prompt, unless the sequence has a remembered port |
 | `commandLine` | Function to build jack-in command line |
 | `useWhenExists` | Files that identify this project type |
 
-**Configuration Resolution:** When a connect sequence doesn't specify a property, it falls back to the project type's default. This three-tier hierarchy applies to session names, file patterns, port files, and fallback ports:
+**Configuration Resolution:** When a connect sequence doesn't specify a property, it falls back to the project type's default. This three-tier hierarchy applies to session names, file patterns, port files, and the WebSocket port:
 
 1. **Connect sequence** (highest priority) - user/sequence-specific overrides
 2. **Project type** - sensible defaults for the REPL runtime
@@ -793,7 +795,7 @@ The system supports lookups in both directions, which is intentional:
 
 | File | Purpose |
 |------|---------|
-| `src/nrepl/project-types.ts` | Project type definitions with default configuration (session names, file patterns, port files, fallback ports) |
+| `src/nrepl/project-types.ts` | Project type definitions with default configuration (session names, file patterns, port files, pre-filled ports) |
 | `src/nrepl/session-role-utils.ts` | Derive session keys and glob maps using three-tier fallback: sequence config → project type defaults → generic defaults |
 | `src/nrepl/session-name-resolver.ts` | Session name conflict resolution with suffixes |
 | `src/nrepl/name-suffix.ts` | Suffix pool management for automatic session name suffixing |
@@ -880,7 +882,7 @@ classDiagram
         +defaultReplSessionNames?: map
         +defaultFilePatterns?: map
         +defaultNReplPortFile: string[]
-        +defaultFallbackPort?: number
+        +prefilledPort?: number
     }
 
     NReplClient "1" -- "*" NReplSession : owns
