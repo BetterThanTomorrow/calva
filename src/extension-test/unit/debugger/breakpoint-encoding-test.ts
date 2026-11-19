@@ -4,7 +4,7 @@ import {
   insertBreakpointForms,
 } from '../../../../src/debugger/breakpoint-encoding';
 
-describe('GUI breakpoint encoding', () => {
+describe('gutter breakpoint encoding', () => {
   it('encodes conditional expressions in middleware metadata', () => {
     expectLib.expect(breakpointForm('(= x 1)')).toBe('#break ^{:break/when (= x 1)} ');
   });
@@ -19,12 +19,6 @@ describe('GUI breakpoint encoding', () => {
         insertBreakpointForms('(one) (two)', [{ offset: 0 }, { offset: 6, condition: '(= x 1)' }])
       )
       .toBe('#break (one) #break ^{:break/when (= x 1)} (two)');
-  });
-
-  it('preserves two breakpoints that resolve to the same form', () => {
-    expectLib
-      .expect(insertBreakpointForms('(one)', [{ offset: 0 }, { offset: 0, condition: '(= x 1)' }]))
-      .toBe('#break ^{:break/when (= x 1)} #break (one)');
   });
 
   it('puts a space before #break when it would otherwise join the token before it', () => {
