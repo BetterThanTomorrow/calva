@@ -52,7 +52,7 @@ function buildCandidatePaths(uri: vscode.Uri): string[] {
   return globPaths.buildGlobCandidatePaths(fsPath, folders);
 }
 
-function findSessionKeyForDocument(
+function findSessionKeyForUri(
   uri?: vscode.Uri
 ): { sessionKey: string; tier: globs.SessionGlobTier; matchingPattern: string } | undefined {
   if (!uri) {
@@ -75,10 +75,7 @@ function findSessionKeyForDocument(
  * This applies to all project-fallback files (.cljc, .fiddle, and any other unclaimed types)
  * since they all benefit from user-controlled routing between primary and secondary sessions.
  */
-function resolveCljcWithinConnection(
-  winningSessionKey: string,
-  _doc?: vscode.TextDocument
-): string | undefined {
+function resolveCljcWithinConnection(winningSessionKey: string): string | undefined {
   const clientKey = sessionRegistry.getClientKeyForSession(winningSessionKey);
   if (!clientKey) {
     return undefined;
@@ -111,77 +108,75 @@ function resolveCljcWithinConnection(
 /**
  * Determines the appropriate session key and why it was selected.
  * Returns detailed routing information for UI display.
+ *
+ * @param doc - The document to route (defaults to the current file)
  */
-function getRoutingInfo(document?: vscode.TextDocument): RoutingResult | undefined {
-  const doc = utilities.tryToGetDocument(document ?? {});
+function getRoutingInfo(doc?: vscode.TextDocument): RoutingResult | undefined {
   return getRoutingInfoForUri(doc?.uri ?? currentFile.currentFileUri());
 }
 
-/** Determines routing for a file URI without requiring the document to be open. */
-function getRoutingInfoForUri(uri?: vscode.Uri): RoutingResult | undefined {
-  return (
-    getPinnedRoutingInfo() ??
-    getReplWindowRoutingInfo(uri) ??
-    getGlobRoutingInfo(uri) ??
-    getFirstAvailableRoutingInfo()
-  );
+/**
+ * Determines the session key for the file at `uri`, and why, from its path, so that a file routes
+ * without being opened. Without a `uri`, routes without a document.
+ */
+function getRoutingInfoForUri(uri: vscode.Uri | undefined): RoutingResult | undefined {
+  return pinnedRouting() ?? replWindowRouting(uri) ?? globRouting(uri) ?? firstAvailableRouting();
 }
 
-function getPinnedRoutingInfo(): RoutingResult | undefined {
-  const sessionKey = sessionRouting.resolvePinnedSession();
-  return sessionKey && sessionRegistry.getSession(sessionKey)
-    ? { sessionKey, reason: { type: 'pinned' } }
+function connectedSessionKey(sessionKey: string | undefined): string | undefined {
+  return sessionKey && sessionRegistry.getSession(sessionKey) ? sessionKey : undefined;
+}
+
+function cljcRouting(sessionKey: string): RoutingResult | undefined {
+  const cljcResolved = resolveCljcWithinConnection(sessionKey);
+  return cljcResolved
+    ? { sessionKey: cljcResolved, reason: { type: 'cljc-within-connection' } }
     : undefined;
 }
 
-function getReplWindowRoutingInfo(uri?: vscode.Uri): RoutingResult | undefined {
-  if (!outputWindow.isReplWindowUri(uri)) {
-    return undefined;
-  }
-  const sessionKey = outputWindow.getSessionType();
-  return sessionKey && sessionRegistry.getSession(sessionKey)
-    ? { sessionKey, reason: { type: 'repl-window' } }
-    : undefined;
+// 1. Pinned session takes priority
+function pinnedRouting(): RoutingResult | undefined {
+  const sessionKey = connectedSessionKey(sessionRouting.resolvePinnedSession());
+  return sessionKey ? { sessionKey, reason: { type: 'pinned' } } : undefined;
 }
 
-function getGlobRoutingInfo(uri?: vscode.Uri): RoutingResult | undefined {
-  const globMatch = findSessionKeyForDocument(uri);
-  if (!globMatch || !sessionRegistry.getSession(globMatch.sessionKey)) {
-    return undefined;
-  }
-  const cljcRouting =
-    globMatch.tier === 'project-fallback' ? getCljcRoutingInfo(globMatch.sessionKey) : undefined;
-  if (cljcRouting) {
-    return cljcRouting;
-  }
-  return {
-    sessionKey: globMatch.sessionKey,
-    reason: {
-      type: 'glob-match',
-      tier: globMatch.tier,
-      matchingPattern: globMatch.matchingPattern,
-    },
-  };
+// 2. Repl window doc has its own session setting
+function replWindowRouting(uri: vscode.Uri | undefined): RoutingResult | undefined {
+  const sessionKey =
+    outputWindow.isReplWindowUri(uri) && connectedSessionKey(outputWindow.getSessionType());
+  return sessionKey ? { sessionKey, reason: { type: 'repl-window' } } : undefined;
 }
 
-function getFirstAvailableRoutingInfo(): RoutingResult | undefined {
-  const sessionKey = sessionRegistry.listSessions()[0]?.key;
-  if (!sessionKey) {
+// 3. Glob pattern matching
+function globRouting(uri: vscode.Uri | undefined): RoutingResult | undefined {
+  const globMatch = findSessionKeyForUri(uri);
+  if (!globMatch || !connectedSessionKey(globMatch.sessionKey)) {
     return undefined;
   }
+  // For files landing in project-fallback, apply per-connection cljc preference
+  // This includes .cljc, .fiddle, and any other unclaimed file types
+  const cljcResolved =
+    globMatch.tier === 'project-fallback' ? cljcRouting(globMatch.sessionKey) : undefined;
   return (
-    getCljcRoutingInfo(sessionKey) ?? {
-      sessionKey,
-      reason: { type: 'first-available' },
+    cljcResolved ?? {
+      sessionKey: globMatch.sessionKey,
+      reason: {
+        type: 'glob-match',
+        tier: globMatch.tier,
+        matchingPattern: globMatch.matchingPattern,
+      },
     }
   );
 }
 
-function getCljcRoutingInfo(sessionKey: string): RoutingResult | undefined {
-  const cljcSessionKey = resolveCljcWithinConnection(sessionKey);
-  return cljcSessionKey
-    ? { sessionKey: cljcSessionKey, reason: { type: 'cljc-within-connection' } }
-    : undefined;
+// 4. First available session with cljc preference applied
+// Even when no globs match, respect the user's cljc target preference
+function firstAvailableRouting(): RoutingResult | undefined {
+  const sessionKey = sessionRegistry.listSessions()[0]?.key;
+  if (!sessionKey) {
+    return undefined;
+  }
+  return cljcRouting(sessionKey) ?? { sessionKey, reason: { type: 'first-available' } };
 }
 
 /**
@@ -191,13 +186,15 @@ function getCljcRoutingInfo(sessionKey: string): RoutingResult | undefined {
  * 3. Glob pattern matching
  * 4. CLJC session preference (fallback for unclaimed files)
  * 5. First available session (defensive fallback)
+ *
+ * @param doc - The document to route (defaults to the current file)
  */
-function getSessionKey(document?: vscode.TextDocument): string | undefined {
-  return getRoutingInfo(document)?.sessionKey;
+function getSessionKey(doc?: vscode.TextDocument): string | undefined {
+  return getRoutingInfo(doc)?.sessionKey;
 }
 
-function getSession(document?: vscode.TextDocument): nrepl.NReplSession {
-  const sessionKey = getSessionKey(document);
+function getSession(doc?: vscode.TextDocument): nrepl.NReplSession {
+  const sessionKey = getSessionKey(doc);
 
   // Try getting from registry first
   if (sessionKey) {
@@ -208,7 +205,7 @@ function getSession(document?: vscode.TextDocument): nrepl.NReplSession {
   }
 
   // Fallback for REPL window session
-  if (outputWindow.isReplWindowDoc(document ?? utilities.tryToGetDocument({}))) {
+  if (outputWindow.isReplWindowUri(doc?.uri ?? currentFile.currentFileUri())) {
     return outputWindow.getSession();
   }
 
@@ -229,20 +226,20 @@ function getReplSessionTypeFromState() {
  * VS Code wrapper around the pure determineSessionLabelContext function.
  *
  * @param options.isPinned - Whether the session is pinned (pinned sessions don't get context prefixes)
- * @param options.doc - The document to check for context (defaults to active document)
+ * @param options.uri - The file to check for context (defaults to the current file)
  * @returns The context type for the session label
  */
 function getSessionLabelContext(options?: {
   isPinned?: boolean;
-  doc?: vscode.TextDocument;
+  uri?: vscode.Uri;
 }): sessionLabel.SessionLabelContext {
-  const { isPinned = false, doc = utilities.tryToGetDocument({}) } = options ?? {};
-  const routingInfo = getRoutingInfo(doc);
-  const fileType = utilities.getFileType(doc?.uri);
+  const { isPinned = false, uri = currentFile.currentFileUri() } = options ?? {};
+  const routingInfo = getRoutingInfoForUri(uri);
+  const fileType = utilities.getFileType(uri);
 
   return sessionLabel.determineSessionLabelContext({
     isPinned,
-    isReplWindow: outputWindow.isReplWindowDoc(doc),
+    isReplWindow: outputWindow.isReplWindowUri(uri),
     isCljcRouting: routingInfo?.reason.type === 'cljc-within-connection',
     fileExtension: fileType,
   });
