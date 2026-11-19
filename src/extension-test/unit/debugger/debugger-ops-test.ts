@@ -5,6 +5,7 @@ import {
   instrumentSourceCodeWhenSupported,
   supportsDebuggerOps,
   formatUnsupportedDebuggerMessage,
+  formatInstrumentUnsupportedMessage,
 } from '../../../../src/debugger/debugger-ops';
 
 const DEBUG_INPUT = 'debug-input';
@@ -47,6 +48,14 @@ describe('debugger ops', () => {
     expectLib
       .expect(formatUnsupportedDebuggerMessage('legacy', { replType: 'clj' } as nrepl.NReplSession))
       .toContain(`(${INIT_DEBUGGER}, ${DEBUG_INPUT})`);
+  });
+
+  it('says that instrumenting needs cider-nrepl and that nothing was evaluated', () => {
+    expectLib
+      .expect(formatInstrumentUnsupportedMessage('bb'))
+      .toBe(
+        "Can't instrument the form for debugging: the bb session's nREPL server doesn't have cider-nrepl's debugger. Nothing was evaluated."
+      );
   });
 
   it('recognizes Clojure-family source paths including ClojureScript', () => {

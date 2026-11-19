@@ -3,7 +3,7 @@ import { sendInitializeResponse } from '../../../../src/debugger/initialize-capa
 import type * as debugProtocol from '@vscode/debugprotocol';
 
 describe('debugger initialize capabilities', () => {
-  it('advertises Step In and Step Out as supported', () => {
+  it('advertises Step In, Step Out and Restart as supported', () => {
     const response: { body?: Partial<debugProtocol.DebugProtocol.Capabilities> } = {
       body: { supportsConfigurationDoneRequest: true },
     };
@@ -16,6 +16,7 @@ describe('debugger initialize capabilities', () => {
     expectLib.expect(responseBody).toMatchObject({
       supportsStepInRequest: true,
       supportsStepOutRequest: true,
+      supportsRestartRequest: true,
       supportsConfigurationDoneRequest: true,
       supportsConditionalBreakpoints: true,
       supportsBreakpointLocationsRequest: true,

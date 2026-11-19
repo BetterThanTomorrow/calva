@@ -8,108 +8,9 @@ import {
   uniqueByKey,
 } from '../../../../src/debugger/source-breakpoint-sync';
 import { insertBreakpointForms } from '../../../../src/debugger/breakpoint-encoding';
-import {
-  consumeDisabledSourceBreakpointStopTarget,
-  mergeSourceBreakpointStopTargets,
-  routeMappedSourceBreakpointStop,
-  updateBreakpointStopTargets,
-} from '../../../../src/debugger/source-breakpoint-stop';
 
 const oldUri = 'file:///old.clj';
 const newUri = 'file:///new.clj';
-
-async function verifyActiveSessionBreakpointToggleLifecycle(): Promise<void> {
-  const breakpoint = {
-    id: 'gui',
-    enabled: true,
-    offset: 0,
-    condition: undefined as string | undefined,
-  };
-  const target = {
-    file: oldUri,
-    formStart: 10,
-    endOffset: 24,
-    enabled: true,
-    breakpointId: breakpoint.id,
-  };
-  const targets = [target];
-  const enabledById = new Map([[breakpoint.id, true]]);
-  let debuggerInitialized = false;
-  const evaluations: string[] = [];
-  const reconcile = () =>
-    reconcileBreakpointLocations(
-      [{ uri: oldUri, line: 2, character: 4 }],
-      (location) => Promise.resolve({ location }),
-      () => 'sample',
-      () => enabledBreakpoints([breakpoint], enabledById),
-      (_form, activeBreakpoints) => {
-        if (activeBreakpoints.length > 0 && !debuggerInitialized) {
-          debuggerInitialized = true;
-          evaluations.push('initialize-debugger');
-        }
-        const code = insertBreakpointForms(
-          '(sample)',
-          activeBreakpoints.map((item) => ({ offset: item.offset, condition: item.condition }))
-        );
-        evaluations.push(code);
-        if (activeBreakpoints.length > 0) {
-          mergeSourceBreakpointStopTargets(targets, [target]);
-        }
-        return Promise.resolve();
-      },
-      (error) => {
-        throw error;
-      }
-    );
-
-  breakpoint.enabled = false;
-  updateBreakpointEnabledState(
-    { added: [], changed: [breakpoint], removed: [] },
-    enabledById,
-    (item) => item.id
-  );
-  updateBreakpointStopTargets(targets, [breakpoint], []);
-  await reconcile();
-
-  expectLib.expect(evaluations).toEqual(['(sample)']);
-  expectLib
-    .expect(
-      await routeMappedSourceBreakpointStop({
-        getTargets: () => targets,
-        getGeneration: () => 1,
-        mapStop: () => Promise.resolve({ file: oldUri, formStart: 10, stopOffset: 24 }),
-        consumeDisabled: (stop) =>
-          consumeDisabledSourceBreakpointStopTarget(
-            targets,
-            stop.file,
-            stop.formStart,
-            stop.stopOffset
-          ),
-      })
-    )
-    .toBe(false);
-
-  breakpoint.enabled = true;
-  updateBreakpointEnabledState(
-    { added: [], changed: [breakpoint], removed: [] },
-    enabledById,
-    (item) => item.id
-  );
-  updateBreakpointStopTargets(targets, [breakpoint], []);
-  await reconcile();
-
-  expectLib.expect(evaluations).toEqual(['(sample)', 'initialize-debugger', '#break (sample)']);
-  expectLib.expect(debuggerInitialized).toBe(true);
-  expectLib
-    .expect(
-      await routeMappedSourceBreakpointStop({
-        getTargets: () => targets,
-        getGeneration: () => 2,
-        mapStop: () => Promise.resolve({ file: oldUri, formStart: 10, stopOffset: 24 }),
-      })
-    )
-    .toBe(true);
-}
 
 describe('source breakpoint sync', () => {
   it('filters disabled breakpoints from the active snapshot and restores them when enabled', () => {
@@ -213,11 +114,6 @@ describe('source breakpoint sync', () => {
     expectLib.expect(snapshots.slice(1)).toEqual([['gui']]);
     expectLib.expect(instrumented.slice(1)).toEqual(['#break (sample)']);
   });
-
-  it(
-    'disables a stale stop and restores instrumentation after initializing on re-enable',
-    verifyActiveSessionBreakpointToggleLifecycle
-  );
 
   it('reevaluates the remembered location when VS Code replaces a changed breakpoint object', () => {
     const previous = new Map<string, { uri: string; line: number; character: number }>([

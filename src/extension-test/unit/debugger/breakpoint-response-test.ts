@@ -2,7 +2,6 @@ import * as expectLib from 'expect';
 import {
   buildBreakpointResponse,
   COMMENT_BREAKPOINT_MESSAGE,
-  RESTART_UNAVAILABLE_MESSAGE,
 } from '../../../../src/debugger/breakpoint-response';
 
 const UNSUPPORTED_MESSAGE = 'unsupported';
@@ -33,16 +32,5 @@ describe('breakpoint responses', () => {
         )
       )
       .toEqual([{ verified: false, message: UNSUPPORTED_MESSAGE, line: 1, column: undefined }]);
-  });
-
-  it('keeps restart explicitly unavailable with its established message', () => {
-    const response: { success?: boolean; message?: string } = {};
-    response.success = false;
-    response.message = RESTART_UNAVAILABLE_MESSAGE;
-
-    expectLib.expect(response).toEqual({
-      success: false,
-      message: 'Restart is not available in Calva. Use Continue to resume execution.',
-    });
   });
 });

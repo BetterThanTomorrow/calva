@@ -2,8 +2,6 @@ import type { DebugProtocol } from '@vscode/debugprotocol';
 
 export const COMMENT_BREAKPOINT_MESSAGE =
   'Breakpoints cannot be set on comments or commented-out code.';
-export const RESTART_UNAVAILABLE_MESSAGE =
-  'Restart is not available in Calva. Use Continue to resume execution.';
 
 function breakpointMessage(
   isSupported: boolean,

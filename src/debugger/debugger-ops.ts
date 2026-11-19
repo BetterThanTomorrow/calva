@@ -32,6 +32,10 @@ export function formatUnsupportedDebuggerMessage(
   )}). Calva will evaluate requested forms without breakpoint instrumentation for this session.`;
 }
 
+export function formatInstrumentUnsupportedMessage(sessionKey: string): string {
+  return `Can't instrument the form for debugging: the ${sessionKey} session's nREPL server doesn't have cider-nrepl's debugger. Nothing was evaluated.`;
+}
+
 export function instrumentSourceCodeWhenSupported(
   code: string,
   session: nrepl.NReplSession | undefined,

@@ -1,6 +1,5 @@
 export interface DebuggerSessionLifecycleHandlers<T> {
   isSupported(session: T): boolean;
-  initialize(session: T): void;
   synchronizeBreakpoints(session: T): void;
 }
 
@@ -15,7 +14,6 @@ export function reconcileDebuggerSession<T>(
   }
 
   if (nextSession && handlers.isSupported(nextSession)) {
-    handlers.initialize(nextSession);
     handlers.synchronizeBreakpoints(nextSession);
   }
 
