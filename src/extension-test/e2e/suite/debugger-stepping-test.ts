@@ -1,5 +1,7 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
 import * as mocha from 'mocha';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as jackIn from '../../../nrepl/jack-in';
@@ -38,7 +40,7 @@ async function currentStop(): Promise<StopLocation | undefined> {
 // The step and continue requests go straight to the debug adapter. VS Code's
 // debug commands act on the focused thread, which VS Code sets some time after
 // the stop, so they could arrive before it and do nothing.
-async function sendToDebugAdapter(command: 'next' | 'continue'): Promise<void> {
+async function sendToDebugAdapter(command: 'next' | 'continue' | 'restart'): Promise<void> {
   await calvaDebugSession().customRequest(command, { threadId: 1 });
 }
 
@@ -90,6 +92,37 @@ async function waitForDebugSessionToEnd(): Promise<void> {
     50,
     'Timed out waiting for the debug session to end'
   );
+}
+
+const OTHER_SESSION_NAME = 'Idle Node program';
+
+/** Starts a Node debug session that stays running, the way an Extension Development Host does. */
+async function startOtherDebugSession(): Promise<vscode.DebugSession> {
+  const program = path.join(os.tmpdir(), 'calva-e2e-idle-debuggee.js');
+  fs.writeFileSync(program, 'setInterval(() => {}, 1000);\n');
+  let otherSession: vscode.DebugSession | undefined;
+  const listener = vscode.debug.onDidStartDebugSession((session) => {
+    if (session.configuration.name === OTHER_SESSION_NAME) {
+      otherSession = session;
+    }
+  });
+  try {
+    const started = await vscode.debug.startDebugging(undefined, {
+      type: 'node',
+      request: 'launch',
+      name: OTHER_SESSION_NAME,
+      program,
+    });
+    assert.ok(started, 'The Node debug session starts');
+    return await testUtil.waitForValue(
+      () => otherSession,
+      10_000,
+      50,
+      'Timed out waiting for the Node debug session to start'
+    );
+  } finally {
+    listener.dispose();
+  }
 }
 
 suite(suiteName, () => {
@@ -176,6 +209,35 @@ suite(suiteName, () => {
       await waitForDebugSessionToEnd();
     } finally {
       vscode.debug.removeBreakpoints([breakpoint]);
+    }
+  });
+
+  test('a stop starts the Calva debug session while another debug session runs, and Restart ends it', async function () {
+    this.timeout(60_000);
+    const otherSession = await startOtherDebugSession();
+    try {
+      const editor = await testUtil.openFile(testFilePath);
+      await vscode.commands.executeCommand('calva.loadFile');
+      const session = replSession.getSession(editor.document);
+      await markDefinitionStale(session);
+      editor.selection = new vscode.Selection(3, 4, 3, 4);
+      await vscode.commands.executeCommand('calva.debug.instrument');
+      await waitForNewDefinition(session);
+
+      const result = session.eval('(debugger-stepping/g 1)', 'user').value;
+      result.catch(() => undefined);
+
+      await waitForStop(result);
+      await sendToDebugAdapter('restart');
+      assert.strictEqual(await result, 'QUIT', 'Restart quits the paused call');
+      await waitForDebugSessionToEnd();
+      assert.strictEqual(
+        await session.eval('(+ 1 2)', 'user').value,
+        '3',
+        'An evaluation answers after the Calva debug session has ended'
+      );
+    } finally {
+      await vscode.debug.stopDebugging(otherSession);
     }
   });
 });
