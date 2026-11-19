@@ -79,6 +79,9 @@
       {
         "type": "clojure",
         "label": "Calva Debug",
+        "languages": [
+          "clojure"
+        ],
         "program": "./out/debugAdapter.js",
         "runtime": "node"
       }
