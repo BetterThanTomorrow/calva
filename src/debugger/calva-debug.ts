@@ -16,7 +16,7 @@ import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
 import { sendInitializeResponse } from './initialize-capabilities';
 import { handleRestartRequest } from './request-handlers';
-import { requestSourceBreakpoints } from './gui-breakpoints';
+import { requestSourceBreakpoints, setGutterBreakpointContext } from './gui-breakpoints';
 import { supportsDebuggerOps, formatInstrumentUnsupportedMessage } from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
@@ -538,6 +538,7 @@ export {
   handleNeedDebugInput,
   initializeDebugger,
   onNreplMessage,
+  setGutterBreakpointContext,
   showInstrumentUnsupportedError,
   supportsDebuggerOps,
   terminateDebugSession,

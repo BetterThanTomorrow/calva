@@ -17,6 +17,26 @@ export function requestSourceBreakpoints(): void {
   void vscode.debug.breakpoints;
 }
 
+const GUTTER_BREAKPOINT_FILE_EXTENSIONS = ['.clj', '.cljc'];
+let gutterBreakpointsAllowed: boolean | undefined;
+
+/**
+ * Sets `calva:gutterBreakpointsAllowed`, which the `breakpoints` contribution's `when` clause
+ * reads, from the file type of `editor`. VS Code evaluates that clause in the window's root
+ * context, where `resourceExtname` isn't set. The value stays while no text editor is active.
+ */
+export function setGutterBreakpointContext(editor: vscode.TextEditor | undefined): void {
+  if (!editor) {
+    return;
+  }
+  const path = editor.document.uri.path;
+  const allowed = GUTTER_BREAKPOINT_FILE_EXTENSIONS.some((extension) => path.endsWith(extension));
+  if (allowed !== gutterBreakpointsAllowed) {
+    gutterBreakpointsAllowed = allowed;
+    void vscode.commands.executeCommand('setContext', 'calva:gutterBreakpointsAllowed', allowed);
+  }
+}
+
 /** The warning about a session without the debugger shows once per VS Code window. */
 let hasWarnedAboutMissingDebugger = false;
 

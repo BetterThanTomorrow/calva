@@ -604,6 +604,7 @@ async function activate(context: vscode.ExtensionContext) {
         status.update();
         onDidChangeEditorOrSelection(editor);
         contextSettingOnChangeActiveTextEditor(editor);
+        debug.setGutterBreakpointContext(editor);
       },
       changeTextEditorSelection: (event) => {
         onDidChangeEditorOrSelection(event.textEditor);
@@ -643,6 +644,7 @@ async function activate(context: vscode.ExtensionContext) {
   if ('dispose' in factory) {
     context.subscriptions.push(factory);
   }
+  debug.setGutterBreakpointContext(vscode.window.activeTextEditor);
   context.subscriptions.push(
     vscode.workspace.registerNotebookSerializer(
       'calva-clojure-notebook',

@@ -85,7 +85,8 @@
     ],
     "breakpoints": [
       {
-        "language": "clojure"
+        "language": "clojure",
+        "when": "calva:gutterBreakpointsAllowed"
       }
     ],
     "languages": [
