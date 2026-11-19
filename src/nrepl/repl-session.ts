@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as minimatchLib from 'minimatch';
 import type * as globs from './globs';
 import type * as nrepl from '.';
 import * as utilities from '../utilities';
@@ -10,6 +9,7 @@ import * as sessionRouting from './session-routing';
 import * as clientRegistry from './client-registry';
 import * as globPaths from './glob-paths';
 import * as sessionLabel from './session-label';
+import * as globSelection from './glob-selection';
 
 // Re-export for consumers
 export { formatSessionLabel, type SessionLabelContext } from './session-label';
@@ -52,14 +52,6 @@ function buildCandidatePaths(uri: vscode.Uri): string[] {
   return globPaths.buildGlobCandidatePaths(fsPath, folders);
 }
 
-interface GlobMatchResult {
-  sessionKey: string;
-  tier: globs.SessionGlobTier;
-  matchingPattern: string;
-  score: number;
-  order: number;
-}
-
 function findSessionKeyForDocument(
   uri?: vscode.Uri
 ): { sessionKey: string; tier: globs.SessionGlobTier; matchingPattern: string } | undefined {
@@ -72,87 +64,7 @@ function findSessionKeyForDocument(
     return undefined;
   }
 
-  const sessions = sessionRegistry.listSessions();
-  const isBetterMatch = (
-    current: GlobMatchResult | undefined,
-    candidate: GlobMatchResult
-  ): boolean => {
-    if (!current) {
-      return true;
-    }
-    if (candidate.score !== current.score) {
-      return candidate.score > current.score;
-    }
-    return candidate.order < current.order;
-  };
-
-  let bestAlwaysClaim: GlobMatchResult | undefined;
-  let bestFallback: GlobMatchResult | undefined;
-  let bestProjectFallback: GlobMatchResult | undefined;
-
-  sessions.forEach((session, index) => {
-    const specs = session.globSpecs ?? [];
-    if (specs.length === 0) {
-      return;
-    }
-
-    for (const spec of specs) {
-      const normalizedPattern = spec.normalizedPattern || globPaths.toPosixPath(spec.pattern);
-      const matched = candidatePaths.some((candidate) =>
-        minimatchLib.minimatch(candidate, normalizedPattern, { dot: true })
-      );
-      if (!matched) {
-        continue;
-      }
-      const candidate: GlobMatchResult = {
-        sessionKey: session.key,
-        tier: spec.tier,
-        matchingPattern: spec.displayPattern || spec.pattern,
-        score: spec.score,
-        order: index,
-      };
-      if (spec.tier === 'always-claim') {
-        if (isBetterMatch(bestAlwaysClaim, candidate)) {
-          bestAlwaysClaim = candidate;
-        }
-      } else if (spec.tier === 'is-fallback-for') {
-        if (isBetterMatch(bestFallback, candidate)) {
-          bestFallback = candidate;
-        }
-      } else if (spec.tier === 'project-fallback') {
-        if (isBetterMatch(bestProjectFallback, candidate)) {
-          bestProjectFallback = candidate;
-        }
-      }
-    }
-  });
-
-  // Priority: always-claim > is-fallback-for > project-fallback
-  if (bestAlwaysClaim) {
-    return {
-      sessionKey: bestAlwaysClaim.sessionKey,
-      tier: bestAlwaysClaim.tier,
-      matchingPattern: bestAlwaysClaim.matchingPattern,
-    };
-  }
-
-  if (bestFallback) {
-    return {
-      sessionKey: bestFallback.sessionKey,
-      tier: bestFallback.tier,
-      matchingPattern: bestFallback.matchingPattern,
-    };
-  }
-
-  if (bestProjectFallback) {
-    return {
-      sessionKey: bestProjectFallback.sessionKey,
-      tier: bestProjectFallback.tier,
-      matchingPattern: bestProjectFallback.matchingPattern,
-    };
-  }
-
-  return undefined;
+  return globSelection.selectGlobMatch(candidatePaths, sessionRegistry.listSessions());
 }
 
 /**
