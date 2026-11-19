@@ -30,6 +30,7 @@ import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as clientRegistry from './nrepl/client-registry';
 import * as replInputStdin from './repl-input-stdin';
 import * as debug from './debugger/calva-debug';
+import * as gutterBreakpoints from './debugger/gui-breakpoints';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -545,23 +546,25 @@ function isInActivePreviewTab(doc: vscode.TextDocument) {
   );
 }
 
-/** Returns the selection and code that `selectionFn` picks in `editor`, and the column the code starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
+/** Returns the selection and code that `selectionFn` picks in `editor`, the column the code starts at, and the document offset it starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
 function pickedCodeAndSelection(
   editor: vscode.TextEditor,
   doc: vscode.TextDocument,
   selectionFn: (editor: vscode.TextEditor) => getText.SelectionAndText
-): [vscode.Selection, string, number] {
+): [vscode.Selection, string, number, number] {
   const [picked, code] = selectionFn(editor);
   if (picked) {
     const pickedCode = editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code;
-    const codeStart = doc.positionAt(doc.offsetAt(picked.start) + code.length - pickedCode.length);
-    return [picked, pickedCode, codeStart.character];
+    const codeStartOffset = doc.offsetAt(picked.start) + code.length - pickedCode.length;
+    const codeStart = doc.positionAt(codeStartOffset);
+    return [picked, pickedCode, codeStart.character, codeStartOffset];
   }
   const wholeDocument =
     !replWindow.isReplWindowFile(doc) && getText.currentTopLevelFormText(doc, doc.positionAt(0))[0];
   return [
     select.selectionFromOffsetRange(doc, [0, doc.getText().length]),
     wholeDocument ? code : '',
+    0,
     0,
   ];
 }
@@ -580,7 +583,7 @@ async function evaluateConnectedSelection(document, options): Promise<void> {
     options.selectionFn;
   const editor = util.getActiveTextEditor();
   const doc = util.textDocumentOr(document, editor.document);
-  const [codeSelection, code, dedent] = pickedCodeAndSelection(editor, doc, selectionFn);
+  const [codeSelection, code, dedent, codeStart] = pickedCodeAndSelection(editor, doc, selectionFn);
   ensureEvaluationDocumentIsNotPreview(doc);
   const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
   const line = codeSelection.start.line;
@@ -588,13 +591,14 @@ async function evaluateConnectedSelection(document, options): Promise<void> {
   const filePath = doc.fileName;
   const session = replSession.getSession(doc);
 
+  if (code.length === 0 || refuseUnsupportedDebugEvaluation(options, session)) {
+    return;
+  }
   await evaluateSelectedCode(
     editor,
-    doc,
     codeSelection,
-    code,
-    { ...options, ns, nsForm, line, column, dedent, filePath, session },
-    session
+    evaluationCodeWithDebugSupport(options, doc, codeStart, code, session),
+    { ...options, ns, nsForm, line, column, dedent, filePath, session }
   );
 }
 
@@ -606,16 +610,10 @@ function ensureEvaluationDocumentIsNotPreview(document: vscode.TextDocument): vo
 
 async function evaluateSelectedCode(
   editor: vscode.TextEditor,
-  doc: vscode.TextDocument,
   codeSelection: vscode.Selection,
-  code: string,
-  options,
-  session: nrepl.NReplSession
+  codeToEvaluate: string,
+  options
 ): Promise<void> {
-  if (code.length === 0 || refuseUnsupportedDebugEvaluation(options, session)) {
-    return;
-  }
-  const codeToEvaluate = evaluationCodeWithDebugSupport(options, doc, codeSelection, code, session);
   annotations.decorateSelection(
     '',
     codeSelection,
@@ -639,13 +637,13 @@ function refuseUnsupportedDebugEvaluation(options, session: nrepl.NReplSession):
 function evaluationCodeWithDebugSupport(
   options,
   document: vscode.TextDocument,
-  selection: vscode.Selection,
+  codeStart: number,
   code: string,
   session: nrepl.NReplSession
 ): string {
   return options.debug
     ? '#dbg\n' + code
-    : debug.instrumentCodeWithSourceBreakpoints(document, selection, code, session);
+    : gutterBreakpoints.codeWithSourceBreakpoints(document, codeStart, code, session);
 }
 
 async function prepareOutputWindowForEvaluation(): Promise<void> {
@@ -1261,7 +1259,6 @@ export {
   evaluateInNamespace,
   withoutIgnoreMarker,
   interruptAllEvaluations,
-  evaluateCodeUpdatingUI,
   loadDocument,
   loadFileCommand,
   loadFile,

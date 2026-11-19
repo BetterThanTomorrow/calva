@@ -2,7 +2,6 @@ import * as expectLib from 'expect';
 import {
   breakpointForm,
   insertBreakpointForms,
-  isBreakpointSupported,
 } from '../../../../src/debugger/breakpoint-encoding';
 
 describe('GUI breakpoint encoding', () => {
@@ -28,9 +27,20 @@ describe('GUI breakpoint encoding', () => {
       .toBe('#break ^{:break/when (= x 1)} #break (one)');
   });
 
-  it('marks breakpoints supported only for Clojure sources with debugger operations', () => {
-    expectLib.expect(isBreakpointSupported(true, true)).toBe(true);
-    expectLib.expect(isBreakpointSupported(true, false)).toBe(false);
-    expectLib.expect(isBreakpointSupported(false, true)).toBe(false);
+  it('puts a space before #break when it would otherwise join the token before it', () => {
+    expectLib
+      .expect(insertBreakpointForms('(+ x(inc y))', [{ offset: 4 }]))
+      .toBe('(+ x #break (inc y))');
+    expectLib
+      .expect(insertBreakpointForms('(cond :else(foo))', [{ offset: 11 }]))
+      .toBe('(cond :else #break (foo))');
+  });
+
+  it('puts no space before #break after whitespace, a comma or an opening bracket', () => {
+    expectLib
+      .expect(
+        insertBreakpointForms('[(a) ,(b) {:c (d)}]', [{ offset: 1 }, { offset: 6 }, { offset: 14 }])
+      )
+      .toBe('[#break (a) ,#break (b) {:c #break (d)}]');
   });
 });

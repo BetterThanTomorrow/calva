@@ -14,27 +14,10 @@ import * as debugDecorations from './decorations';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
-import {
-  breakpointLocationsForRange,
-  breakpointTargetPosition,
-  instrumentCodeWithSourceBreakpoints,
-  registerGuiSourceBreakpointInstrumentation,
-  configureGuiBreakpointDebugger,
-  breakpointPositionIsInComment,
-  type BreakpointCodeEvaluator,
-} from './gui-breakpoints';
-import { UnsupportedWarningState } from './unsupported-warning-state';
-import { isBreakpointSupported } from './breakpoint-encoding';
 import { sendInitializeResponse } from './initialize-capabilities';
-import { buildBreakpointResponse } from './breakpoint-response';
-import { DebugRequestAdapter } from './debug-request-adapter';
-import {
-  DEBUGGER_OPS,
-  isClojureFamilySourcePath,
-  supportsDebuggerOps,
-  formatUnsupportedDebuggerMessage,
-  formatInstrumentUnsupportedMessage,
-} from './debugger-ops';
+import { handleRestartRequest } from './request-handlers';
+import { requestSourceBreakpoints } from './gui-breakpoints';
+import { supportsDebuggerOps, formatInstrumentUnsupportedMessage } from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
@@ -68,50 +51,6 @@ type ExtractedStructure = {
   originalStrings: string[];
 };
 
-const unsupportedWarningState = new UnsupportedWarningState<nrepl.NReplSession>();
-
-function sourceBreakpointsSupported(
-  sourcePath: string | undefined,
-  session: nrepl.NReplSession | undefined
-): boolean {
-  return isBreakpointSupported(
-    Boolean(sourcePath && isClojureFamilySourcePath(sourcePath)),
-    supportsDebuggerOps(session)
-  );
-}
-
-async function openBreakpointSource(
-  sourcePath: string | undefined,
-  supported: boolean,
-  convertPath: (sourcePath: string) => string
-): Promise<vscode.TextDocument | undefined> {
-  if (!supported || !sourcePath) {
-    return undefined;
-  }
-  try {
-    return await vscode.workspace.openTextDocument(convertPath(sourcePath));
-  } catch (error) {
-    console.warn('Calva debugger: could not open breakpoint source for validation', error);
-    return undefined;
-  }
-}
-
-function isCommentBreakpoint(
-  document: vscode.TextDocument | undefined,
-  breakpoint: DebugProtocol.SourceBreakpoint,
-  convertLine: (line: number) => number,
-  convertColumn: (column: number) => number
-): boolean {
-  if (!document) {
-    return false;
-  }
-  const position = new vscode.Position(
-    convertLine(breakpoint.line),
-    breakpoint.column ? convertColumn(breakpoint.column) : 0
-  );
-  return breakpointPositionIsInComment(document, position);
-}
-
 class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   // We don't support multiple threads, so we can use a hardcoded ID for the default thread
   static THREAD_ID = 1;
@@ -138,77 +77,6 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     sendInitializeResponse(response, (initializeResponse) => this.sendResponse(initializeResponse));
   }
 
-  protected async breakpointLocationsRequest(
-    response: DebugProtocol.BreakpointLocationsResponse,
-    args: DebugProtocol.BreakpointLocationsArguments,
-    request?: DebugProtocol.Request
-  ): Promise<void> {
-    return new DebugRequestAdapter(
-      (sourcePath) =>
-        vscode.workspace.openTextDocument(this.convertClientPathToDebugger(sourcePath)),
-      (document, requestArgs) => this._breakpointLocationsForRequest(document, requestArgs),
-      (result) => this.sendResponse(result)
-    ).breakpointLocationsRequest(response, args);
-  }
-
-  private _breakpointLocationsForRequest(
-    document: vscode.TextDocument,
-    args: DebugProtocol.BreakpointLocationsArguments
-  ): DebugProtocol.BreakpointLocation[] {
-    const startLine = this.convertClientLineToDebugger(args.line);
-    const startColumn = args.column ? this.convertClientColumnToDebugger(args.column) : 0;
-    const endLine = args.endLine ? this.convertClientLineToDebugger(args.endLine) : startLine;
-    const endColumn = args.endColumn
-      ? this.convertClientColumnToDebugger(args.endColumn)
-      : document.lineAt(endLine).range.end.character;
-
-    return breakpointLocationsForRange(
-      document,
-      new vscode.Range(startLine, startColumn, endLine, endColumn)
-    ).map((location) => ({
-      line: this.convertDebuggerLineToClient(location.range.start.line),
-      column: this.convertDebuggerColumnToClient(location.range.start.character),
-      endLine: this.convertDebuggerLineToClient(location.range.end.line),
-      endColumn: this.convertDebuggerColumnToClient(location.range.end.character),
-    }));
-  }
-
-  protected setBreakPointsRequest(
-    response: DebugProtocol.SetBreakpointsResponse,
-    args: DebugProtocol.SetBreakpointsArguments,
-    request?: DebugProtocol.Request
-  ): void {
-    void this.resolveSourceBreakpoints(response, args);
-  }
-
-  private async resolveSourceBreakpoints(
-    response: DebugProtocol.SetBreakpointsResponse,
-    args: DebugProtocol.SetBreakpointsArguments
-  ): Promise<void> {
-    const session = replSession.getSession();
-    const supported = sourceBreakpointsSupported(args.source.path, session);
-    const document = await openBreakpointSource(args.source.path, supported, (path) =>
-      this.convertClientPathToDebugger(path)
-    );
-
-    response.body = {
-      breakpoints: buildBreakpointResponse(
-        args.breakpoints ?? [],
-        supported,
-        (breakpoint) =>
-          isCommentBreakpoint(
-            document,
-            breakpoint,
-            (line) => this.convertClientLineToDebugger(line),
-            (column) => this.convertClientColumnToDebugger(column)
-          ),
-        () => breakpointSupportMessage(args.source.path, session)
-      ),
-    };
-
-    this.sendResponse(response);
-  }
-
   protected attachRequest(
     response: DebugProtocol.AttachResponse,
     args: DebugProtocol.AttachRequestArguments
@@ -231,7 +99,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: DebugProtocol.RestartArguments,
     request?: DebugProtocol.Request
   ): void {
-    DebugRequestAdapter.restartRequest(response, (result) => this.sendResponse(result));
+    handleRestartRequest(response, (result) => this.sendResponse(result));
   }
 
   protected nextRequest(
@@ -513,19 +381,6 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
   }
 }
 
-function breakpointSupportMessage(
-  sourcePath: string | undefined,
-  session: nrepl.NReplSession
-): string {
-  if (!sourcePath) {
-    return 'Breakpoint source path is unavailable.';
-  }
-  if (!isClojureFamilySourcePath(sourcePath)) {
-    return 'Calva GUI breakpoints require a Clojure-family source file.';
-  }
-  return unsupportedDebuggerMessage(session);
-}
-
 CalvaDebugSession.run(CalvaDebugSession);
 
 class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -649,27 +504,15 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
-function unsupportedDebuggerMessage(session?: nrepl.NReplSession): string {
-  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
-  return formatUnsupportedDebuggerMessage(sessionKey, session);
-}
-
-function warnUnsupportedDebugger(session?: nrepl.NReplSession): void {
-  const missingOps = DEBUGGER_OPS.filter((op) => !session?.supports(op)).join(',');
-  if (!unsupportedWarningState.shouldWarn(session, missingOps)) {
-    return;
-  }
-  void vscode.window.showWarningMessage(unsupportedDebuggerMessage(session));
-}
-
 function showInstrumentUnsupportedError(session?: nrepl.NReplSession): void {
-  const sessionKey = session ? sessionRegistry.resolveSessionKey(session) : 'current';
+  const sessionKey = sessionRegistry.resolveSessionKey(session, 'current');
   void vscode.window.showErrorMessage(formatInstrumentUnsupportedMessage(sessionKey));
 }
 
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
   cljSession.initDebugger();
   debugDecorations.activate();
+  requestSourceBreakpoints();
 }
 
 function terminateDebugSession(): void {
@@ -683,14 +526,6 @@ function terminateDebugSession(): void {
   debugDecorations.triggerUpdateAndRenderDecorations();
 }
 
-function registerSourceBreakpointInstrumentation(
-  context: vscode.ExtensionContext,
-  evaluator?: BreakpointCodeEvaluator
-): void {
-  configureGuiBreakpointDebugger({ warnUnsupported: warnUnsupportedDebugger });
-  registerGuiSourceBreakpointInstrumentation(context, evaluator);
-}
-
 export {
   CALVA_DEBUG_CONFIGURATION,
   DEBUG_ANALYTICS,
@@ -702,13 +537,8 @@ export {
   CalvaDebugAdapterDescriptorFactory,
   handleNeedDebugInput,
   initializeDebugger,
-  instrumentCodeWithSourceBreakpoints,
-  breakpointTargetPosition,
-  breakpointLocationsForRange,
   onNreplMessage,
-  registerSourceBreakpointInstrumentation,
   showInstrumentUnsupportedError,
   supportsDebuggerOps,
-  warnUnsupportedDebugger,
   terminateDebugSession,
 };

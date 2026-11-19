@@ -19,7 +19,19 @@ describe('debugger initialize capabilities', () => {
       supportsRestartRequest: true,
       supportsConfigurationDoneRequest: true,
       supportsConditionalBreakpoints: true,
-      supportsBreakpointLocationsRequest: true,
     });
+  });
+
+  it('advertises neither breakpoint locations, logpoints nor hit counts', () => {
+    const response: { body?: Partial<debugProtocol.DebugProtocol.Capabilities> } = {};
+    let responseBody: typeof response.body;
+
+    sendInitializeResponse(response, (initializeResponse) => {
+      responseBody = initializeResponse.body;
+    });
+
+    expectLib.expect(responseBody.supportsBreakpointLocationsRequest).toBeUndefined();
+    expectLib.expect(responseBody.supportsLogPoints).toBeUndefined();
+    expectLib.expect(responseBody.supportsHitConditionalBreakpoints).toBeUndefined();
   });
 });

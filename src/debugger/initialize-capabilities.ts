@@ -22,7 +22,6 @@ export function buildInitializeResponseBody(
     ...body,
     ...initializeCapabilities,
     supportsConditionalBreakpoints: true,
-    supportsBreakpointLocationsRequest: true,
   };
 }
 

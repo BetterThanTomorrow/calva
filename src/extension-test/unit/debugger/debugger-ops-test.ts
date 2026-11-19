@@ -1,10 +1,9 @@
 import * as expectLib from 'expect';
 import type * as nrepl from '../../../../src/nrepl';
 import {
-  isClojureFamilySourcePath,
-  instrumentSourceCodeWhenSupported,
+  canDebug,
+  formatBreakpointsLeftOutMessage,
   supportsDebuggerOps,
-  formatUnsupportedDebuggerMessage,
   formatInstrumentUnsupportedMessage,
 } from '../../../../src/debugger/debugger-ops';
 
@@ -30,24 +29,30 @@ describe('debugger ops', () => {
     expectLib.expect(supportsDebuggerOps(createSession([INIT_DEBUGGER, DEBUG_INPUT]))).toBe(true);
   });
 
-  it('formats unsupported debugger messages with the session key and required operations', () => {
+  it('can debug only in a clj session that has both debugger operations', () => {
+    const withOps = (replType: 'clj' | 'cljs') =>
+      ({ ...createSession([INIT_DEBUGGER, DEBUG_INPUT]), replType } as nrepl.NReplSession);
+    expectLib.expect(canDebug(withOps('clj'))).toBe(true);
+    expectLib.expect(canDebug(withOps('cljs'))).toBe(false);
     expectLib
-      .expect(formatUnsupportedDebuggerMessage('my-clj'))
-      .toContain('The my-clj nREPL session does not report support for debugger operations');
+      .expect(
+        canDebug({ ...createSession([INIT_DEBUGGER]), replType: 'clj' } as nrepl.NReplSession)
+      )
+      .toBe(false);
+    expectLib.expect(canDebug(undefined)).toBe(false);
+  });
+
+  it('says why Calva left out the gutter breakpoints', () => {
     expectLib
-      .expect(formatUnsupportedDebuggerMessage())
-      .toContain('The current nREPL session does not report support for debugger operations');
+      .expect(formatBreakpointsLeftOutMessage('bb', false))
+      .toBe(
+        "Calva evaluated the form without its gutter breakpoints: the bb session's nREPL server doesn't have cider-nrepl's debugger."
+      );
     expectLib
-      .expect(formatUnsupportedDebuggerMessage())
-      .toContain(`${INIT_DEBUGGER}, ${DEBUG_INPUT}`);
-    expectLib.expect(formatUnsupportedDebuggerMessage()).not.toContain('JVM');
-    expectLib.expect(formatUnsupportedDebuggerMessage()).toContain('evaluate requested forms');
-    expectLib
-      .expect(formatUnsupportedDebuggerMessage('partial', createSession(['init-debugger'])))
-      .toContain(`(${DEBUG_INPUT})`);
-    expectLib
-      .expect(formatUnsupportedDebuggerMessage('legacy', { replType: 'clj' } as nrepl.NReplSession))
-      .toContain(`(${INIT_DEBUGGER}, ${DEBUG_INPUT})`);
+      .expect(formatBreakpointsLeftOutMessage('cljs', true))
+      .toBe(
+        "Calva evaluated the form without its gutter breakpoints: cider-nrepl's debugger works in Clojure sessions only, and cljs is a ClojureScript session."
+      );
   });
 
   it('says that instrumenting needs cider-nrepl and that nothing was evaluated', () => {
@@ -56,36 +61,5 @@ describe('debugger ops', () => {
       .toBe(
         "Can't instrument the form for debugging: the bb session's nREPL server doesn't have cider-nrepl's debugger. Nothing was evaluated."
       );
-  });
-
-  it('recognizes Clojure-family source paths including ClojureScript', () => {
-    expectLib.expect(isClojureFamilySourcePath('/project/src/main/core.clj')).toBe(true);
-    expectLib.expect(isClojureFamilySourcePath('/project/src/main/core.cljs')).toBe(true);
-    expectLib.expect(isClojureFamilySourcePath('/project/src/main/core.cljc')).toBe(true);
-    expectLib.expect(isClojureFamilySourcePath('/project/deps.edn')).toBe(false);
-    expectLib.expect(isClojureFamilySourcePath('/project/src/main/core.js')).toBe(false);
-  });
-
-  it('recognizes dialect sources without excluding them by extension', () => {
-    for (const path of ['core.clj', 'core.cljs', 'core.cljc', 'core.cljd', 'core.cljr']) {
-      expectLib.expect(isClojureFamilySourcePath(`/project/src/main/${path}`)).toBe(true);
-    }
-  });
-
-  it('keeps breakpoint evaluation source unchanged when debugger ops are unavailable', () => {
-    const source = '(println :ordinary-evaluation)';
-    let instrumentCalled = false;
-    const result = instrumentSourceCodeWhenSupported(
-      source,
-      createSession([INIT_DEBUGGER]),
-      true,
-      (code) => {
-        instrumentCalled = true;
-        return `#break ${code}`;
-      }
-    );
-
-    expectLib.expect(result).toBe(source);
-    expectLib.expect(instrumentCalled).toBe(false);
   });
 });
