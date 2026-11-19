@@ -46,37 +46,6 @@ describe('connect-sequence-inheritance', () => {
     });
   });
 
-  describe('effectiveFallbackPort', () => {
-    it('prefers the explicit connect sequence fallback port', () => {
-      expectLib
-        .expect(
-          connectSequenceInheritance.effectiveFallbackPort(
-            { fallbackPort: 4444 },
-            { defaultFallbackPort: 3339 }
-          )
-        )
-        .toBe(4444);
-    });
-
-    it('inherits the project type fallback port when sequence does not override it', () => {
-      expectLib
-        .expect(connectSequenceInheritance.effectiveFallbackPort({}, { defaultFallbackPort: 3339 }))
-        .toBe(3339);
-    });
-
-    it('returns undefined when neither sequence nor project type provides a fallback port', () => {
-      expectLib
-        .expect(connectSequenceInheritance.effectiveFallbackPort({}, undefined))
-        .toBeUndefined();
-    });
-
-    it('does not treat zero as undefined', () => {
-      expectLib
-        .expect(connectSequenceInheritance.effectiveFallbackPort({ fallbackPort: 0 }, undefined))
-        .toBe(0);
-    });
-  });
-
   describe('effectiveSelectedPortBehaviour', () => {
     it('prefers the explicit connect sequence selected port behaviour', () => {
       expectLib

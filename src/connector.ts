@@ -87,6 +87,44 @@ interface ConnectResult {
   clientKey?: string;
 }
 
+const LAST_WEBSOCKET_PORTS_KEY = 'lastWebSocketPorts';
+
+function lastWebSocketPorts(): Record<string, number> {
+  return state.extensionContext.workspaceState.get<Record<string, number>>(
+    LAST_WEBSOCKET_PORTS_KEY,
+    {}
+  );
+}
+
+function rememberWebSocketPort(sequenceName: string, port: number) {
+  void state.extensionContext.workspaceState.update(LAST_WEBSOCKET_PORTS_KEY, {
+    ...lastWebSocketPorts(),
+    [sequenceName]: port,
+  });
+}
+
+/**
+ * Asks for the WebSocket port, pre-filled with the port this connect sequence
+ * last used in this workspace, or else with the project type's pre-filled port.
+ */
+async function promptForWebSocketPort(
+  connectSequence: connectSequences.ReplConnectSequence
+): Promise<number | undefined> {
+  const prefilledPort =
+    lastWebSocketPorts()[connectSequence.name] ??
+    projectTypes.getProjectTypeForName(connectSequence.projectType)?.prefilledWebSocketPort;
+  const portStr = await vscode.window.showInputBox({
+    prompt: 'Enter WebSocket port for browser REPL',
+    value: prefilledPort !== undefined ? String(prefilledPort) : '',
+    ignoreFocusOut: true,
+    validateInput: (v) => {
+      const n = parseInt(v);
+      return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
+    },
+  });
+  return portStr === undefined ? undefined : parseInt(portStr);
+}
+
 /**
  * Connect via a WebSocket server that the browser REPL connects to.
  * Starts a WS server, waits for browser connection, then registers sessions.
@@ -158,6 +196,7 @@ async function connectViaWebSocket(
       }
     }
 
+    rememberWebSocketPort(connectSequence.name, currentPort);
     output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
     output.appendLineOtherOut('Waiting for browser REPL to connect...');
 
@@ -1452,24 +1491,11 @@ export async function connect(
       projectTypes.getProjectTypeForName(connectSequence.projectType)
     );
     if (wsPort !== undefined && wsPort !== false) {
-      let resolvedWsPort: number;
-      if (wsPort === true) {
-        const portStr = await vscode.window.showInputBox({
-          prompt: 'Enter WebSocket port for browser REPL',
-          value: '3340',
-          ignoreFocusOut: true,
-          validateInput: (v) => {
-            const n = parseInt(v);
-            return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
-          },
-        });
-        if (portStr === undefined) {
-          output.appendLineOtherOut('Connect aborted.');
-          return { connected: false };
-        }
-        resolvedWsPort = parseInt(portStr);
-      } else {
-        resolvedWsPort = wsPort;
+      const resolvedWsPort =
+        wsPort === true ? await promptForWebSocketPort(connectSequence) : wsPort;
+      if (resolvedWsPort === undefined) {
+        output.appendLineOtherOut('Connect aborted.');
+        return { connected: false };
       }
       const wsHost = connectSequence.webSocketHost || '127.0.0.1';
       result = await connectViaWebSocket(resolvedWsPort, wsHost, connectSequence, {
@@ -1488,13 +1514,12 @@ export async function connect(
         port = new TextDecoder('utf-8').decode(bytes);
         selectedPortSource = 'port-file';
       } catch {
-        const defaultPort = connectSequenceInheritance.effectiveFallbackPort(
-          connectSequence,
-          projectTypes.getProjectTypeForName(connectSequence.projectType)
-        );
-        if (defaultPort !== undefined) {
-          output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
-          port = String(defaultPort);
+        const { fallbackPort } = connectSequence;
+        if (fallbackPort !== undefined) {
+          output.appendLineOtherOut(
+            `No nrepl port file found, using fallback port: ${fallbackPort}`
+          );
+          port = String(fallbackPort);
           selectedPortSource = 'fallback';
         } else {
           console.info('No nrepl port found');
@@ -1565,10 +1590,18 @@ export async function connect(
       }
     } else {
       output.appendLineOtherOut('No nrepl port file found.');
-      result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, {
-        projectRootUri,
-        reason: 'no-port-file',
-      });
+      const prefilledPort = projectTypes.getProjectTypeForName(
+        connectSequence.projectType
+      )?.prefilledPort;
+      result = await promptForNreplUrlAndConnect(
+        undefined,
+        prefilledPort?.toString(),
+        connectSequence,
+        {
+          projectRootUri,
+          reason: 'no-port-file',
+        }
+      );
     }
     status.update();
   } catch (e) {

@@ -34,6 +34,7 @@
 		}
 	],
 	"settings": {
+		"debug.focusWindowOnBreak": false,
 		"calva.customREPLCommandSnippets": [
 			{
 				"name": "Double current",

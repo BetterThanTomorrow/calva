@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as mocha from 'mocha';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
@@ -15,6 +16,8 @@ import { CalvaCompletionItemProvider } from '../../../providers/completion';
 import * as state from '../../../state';
 import * as replWindow from '../../../repl-window/repl-window-doc';
 import * as whoTracking from '../../../api/who-tracking';
+import * as replApi from '../../../api/repl-v1';
+import * as currentFile from '../../../current-file';
 
 const suiteName = 'CLJC Routing';
 
@@ -238,6 +241,53 @@ suite('CLJC Routing suite', function () {
           file
         )} should be the document, route to ${sessionKey}, and have the project root`
       );
+    }
+  });
+
+  test('Routing without a document follows the current file, as the REPL Input’s source file while it has the focus, and agrees with routing that file', async function () {
+    testUtil.log(suiteName, 'Testing: Routing without a document follows the current file');
+
+    const lockedCljFile = path.join(projectDir, 'src', 'hello_world', 'locked.clj');
+    await testUtil.openFile(cljsFile);
+    const panel = vscode.window.createWebviewPanel('calva-e2e-repl-input', 'REPL Input', {
+      viewColumn: vscode.ViewColumn.Beside,
+      preserveFocus: false,
+    });
+    try {
+      await testUtil.waitForCondition(
+        () => vscode.window.activeTextEditor === undefined,
+        4000,
+        20,
+        'Timed out waiting for the webview to take the focus'
+      );
+      // A test can't focus the REPL Input's CodeMirror, and the cljs-lib exports that
+      // current-file.ts reads for it can't be stubbed, so the current file answers here as it
+      // does while the REPL Input has the focus: with the source file of its lock.
+      for (const [lock, sourceFile] of [
+        ['a .clj file', vscode.Uri.file(lockedCljFile)],
+        ['no source file', undefined],
+      ] as const) {
+        const currentFileUri = sinon.stub(currentFile, 'currentFileUri').returns(sourceFile);
+        try {
+          // What the REPL Input's alt+enter evaluates in: repl-input.ts routes its source file
+          const altEnterSessionKey = replSession.getRoutingInfoForUri(sourceFile)?.sessionKey;
+          assert.deepStrictEqual(
+            {
+              currentSessionKey: replApi.currentSessionKey(),
+              statusBarSessionKey: replSession.getRoutingInfo()?.sessionKey,
+            },
+            { currentSessionKey: altEnterSessionKey, statusBarSessionKey: altEnterSessionKey },
+            `With a lock on ${lock} and a .cljs editor last active, the API and the status bar should route as alt+enter does, to ${altEnterSessionKey}`
+          );
+          if (sourceFile) {
+            assert.strictEqual(altEnterSessionKey, 'clj', 'The .clj lock should route to clj');
+          }
+        } finally {
+          currentFileUri.restore();
+        }
+      }
+    } finally {
+      panel.dispose();
     }
   });
 

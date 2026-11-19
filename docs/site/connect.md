@@ -113,16 +113,16 @@ By default, the WebSocket server binds to `127.0.0.1` (localhost only). To accep
 !!! Warning "Security: binding to all interfaces"
     Setting `webSocketHost` to `"0.0.0.0"` exposes the nREPL WebSocket server to your network. Only do this when you need remote access and understand the implications.
 
-The built-in **scittle** and **epupp** connect sequences come with WebSocket enabled by default:
+The built-in **scittle** and **epupp** connect sequences come with WebSocket enabled by default, and prompt for the port when you connect. The prompt is pre-filled with the port the sequence last used in the workspace, or else with a default port for the project type:
 
 | Project type | WebSocket port |
 |---|---|
 | scittle | 1340 |
 | epupp | 3340 |
 
-For most setups, this works out of the box — just make sure the browser-side client is configured to connect to the same port.
+Make sure the browser-side client is configured to connect to the same port.
 
-To use a different port, override `webSocketPort` in your connect sequence:
+To skip the prompt, set `webSocketPort` to a port number in your connect sequence:
 
 ```json
 {
@@ -146,14 +146,14 @@ WebSocket ports are shared across the OS. If the port is already in use (by anot
 
 [Scittle](https://github.com/babashka/scittle) provides an nREPL server that runs in the browser. See the [Scittle nREPL docs](https://github.com/babashka/scittle/tree/main/doc/nrepl) for how to add nREPL to your page. Once set up:
 
-1. Connect in Calva using the **scittle** connect sequence (starts the WebSocket server on port 1340)
+1. Connect in Calva using the **scittle** connect sequence, and enter the port (starts the WebSocket server on that port)
 2. Load your page in the browser — the Scittle nREPL client connects automatically
 
 ### Using with Epupp
 
 [Epupp](https://github.com/PEZ/epupp) lets you connect an nREPL to any web page. With WebSocket connections in Calva, the setup is:
 
-1. Connect in Calva using the **epupp** connect sequence (starts the WebSocket server on port 3340)
+1. Connect in Calva using the **epupp** connect sequence, and enter the port (starts the WebSocket server on that port)
 2. In Epupp, set the WebSocket port to match and click Connect
 
 ## Auto-select Project Type and Project Root

@@ -746,7 +746,7 @@ export class NReplSession {
   private _createEvalOperationMessage(code: string, ns: string, opts: any) {
     const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
     const theNS = ns || opts['ns'] || 'user';
-    if (debugResponse && vscode.debug.activeDebugSession && this.replType === 'clj') {
+    if (debugResponse && debug.isCalvaDebugSessionRunning() && this.replType === 'clj') {
       return {
         id: debugResponse.id,
         ns: theNS,

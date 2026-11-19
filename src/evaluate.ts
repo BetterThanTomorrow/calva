@@ -29,6 +29,8 @@ import * as evaluatedCode from './results-output/evaluated-code';
 import * as shadowCljsRuntime from './shadow-cljs-runtime';
 import * as clientRegistry from './nrepl/client-registry';
 import * as replInputStdin from './repl-input-stdin';
+import * as debug from './debugger/calva-debug';
+import * as gutterBreakpoints from './debugger/gui-breakpoints';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
@@ -544,17 +546,18 @@ function isInActivePreviewTab(doc: vscode.TextDocument) {
   );
 }
 
-/** Returns the selection and code that `selectionFn` picks in `editor`, and the column the code starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
+/** Returns the selection and code that `selectionFn` picks in `editor`, the column the code starts at, and the document offset it starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
 function pickedCodeAndSelection(
   editor: vscode.TextEditor,
   doc: vscode.TextDocument,
   selectionFn: (editor: vscode.TextEditor) => getText.SelectionAndText
-): [vscode.Selection, string, number] {
+): [vscode.Selection, string, number, number] {
   const [picked, code] = selectionFn(editor);
   if (picked) {
     const pickedCode = editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code;
-    const codeStart = doc.positionAt(doc.offsetAt(picked.start) + code.length - pickedCode.length);
-    return [picked, pickedCode, codeStart.character];
+    const codeStartOffset = doc.offsetAt(picked.start) + code.length - pickedCode.length;
+    const codeStart = doc.positionAt(codeStartOffset);
+    return [picked, pickedCode, codeStart.character, codeStartOffset];
   }
   const wholeDocument =
     !replWindow.isReplWindowFile(doc) && getText.currentTopLevelFormText(doc, doc.positionAt(0))[0];
@@ -562,55 +565,93 @@ function pickedCodeAndSelection(
     select.selectionFromOffsetRange(doc, [0, doc.getText().length]),
     wholeDocument ? code : '',
     0,
+    0,
   ];
 }
 
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
+  if (!cljsLib.getStateValue('connected')) {
+    void vscode.window.showErrorMessage('Not connected to a REPL');
+    return;
+  }
+  await evaluateConnectedSelection(document, options);
+}
 
+async function evaluateConnectedSelection(document, options): Promise<void> {
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =
     options.selectionFn;
+  const editor = util.getActiveTextEditor();
+  const doc = util.textDocumentOr(document, editor.document);
+  const [codeSelection, code, dedent, codeStart] = pickedCodeAndSelection(editor, doc, selectionFn);
+  ensureEvaluationDocumentIsNotPreview(doc);
+  const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
+  const line = codeSelection.start.line;
+  const column = codeSelection.start.character;
+  const filePath = doc.fileName;
+  const session = replSession.getSession(doc);
 
-  if (cljsLib.getStateValue('connected')) {
-    const editor = util.getActiveTextEditor();
-    const doc = util.textDocumentOr(document, editor.document);
-    const [codeSelection, pickedCode, dedent] = pickedCodeAndSelection(editor, doc, selectionFn);
-    let code = pickedCode;
-    if (isInActivePreviewTab(doc)) {
-      void vscode.window.showTextDocument(doc, { preview: false });
-    }
-    const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
-    const line = codeSelection.start.line;
-    const column = codeSelection.start.character;
-    const filePath = doc.fileName;
-    const session = replSession.getSession(doc);
+  if (code.length === 0 || refuseUnsupportedDebugEvaluation(options, session)) {
+    return;
+  }
+  await evaluateSelectedCode(
+    editor,
+    codeSelection,
+    evaluationCodeWithDebugSupport(options, doc, codeStart, code, session),
+    { ...options, ns, nsForm, line, column, dedent, filePath, session }
+  );
+}
 
-    if (code.length > 0) {
-      if (options.debug) {
-        code = '#dbg\n' + code;
-      }
-      annotations.decorateSelection(
-        '',
-        codeSelection,
-        editor,
-        undefined,
-        annotations.AnnotationStatus.PENDING
-      );
-      if (
-        state.extensionContext.workspaceState.get('outputWindowActive') &&
-        !(await replWindow.lastLineIsEmpty())
-      ) {
-        replWindow.appendLine();
-      }
-      await evaluateCodeUpdatingUI(
-        code,
-        { ...options, ns, nsForm, line, column, dedent, filePath, session },
-        codeSelection
-      );
-      void output.replWindowAppendPrompt();
-    }
-  } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL');
+function ensureEvaluationDocumentIsNotPreview(document: vscode.TextDocument): void {
+  if (isInActivePreviewTab(document)) {
+    void vscode.window.showTextDocument(document, { preview: false });
+  }
+}
+
+async function evaluateSelectedCode(
+  editor: vscode.TextEditor,
+  codeSelection: vscode.Selection,
+  codeToEvaluate: string,
+  options
+): Promise<void> {
+  annotations.decorateSelection(
+    '',
+    codeSelection,
+    editor,
+    undefined,
+    annotations.AnnotationStatus.PENDING
+  );
+  await prepareOutputWindowForEvaluation();
+  await evaluateCodeUpdatingUI(codeToEvaluate, options, codeSelection);
+  void output.replWindowAppendPrompt();
+}
+
+function refuseUnsupportedDebugEvaluation(options, session: nrepl.NReplSession): boolean {
+  if (options.debug && !debug.supportsDebuggerOps(session)) {
+    debug.showInstrumentUnsupportedError(session);
+    return true;
+  }
+  return false;
+}
+
+function evaluationCodeWithDebugSupport(
+  options,
+  document: vscode.TextDocument,
+  codeStart: number,
+  code: string,
+  session: nrepl.NReplSession
+): string {
+  return options.debug
+    ? '#dbg\n' + code
+    : gutterBreakpoints.codeWithSourceBreakpoints(document, codeStart, code, session);
+}
+
+async function prepareOutputWindowForEvaluation(): Promise<void> {
+  if (
+    state.extensionContext.workspaceState.get('outputWindowActive') &&
+    !(await replWindow.lastLineIsEmpty())
+  ) {
+    replWindow.appendLine();
   }
 }
 

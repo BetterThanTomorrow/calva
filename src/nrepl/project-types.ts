@@ -42,8 +42,9 @@ export type ProjectType = {
   startFunction?: (projectRootUri: vscode.Uri) => Thenable<boolean | void>;
   defaultFilePatterns?: connectSequences.SessionFilePatternsConfig;
   defaultReplSessionNames?: connectSequences.SessionNamesConfig;
-  defaultFallbackPort?: number;
+  prefilledPort?: number;
   defaultWebSocketPort?: number | boolean;
+  prefilledWebSocketPort?: number;
 };
 
 function nreplPortFileRelativePath(connectSequence: connectSequences.ReplConnectSequence): string {
@@ -631,7 +632,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     defaultNReplPortFile: ['bb', '.nrepl-port'],
     defaultReplSessionNames: { primary: 'bb' },
-    defaultFallbackPort: 1667,
+    prefilledPort: 1667,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.bb', 'bb/*.clj', 'scripts/*.clj', 'bb.edn'],
@@ -787,8 +788,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     useWhenExists: [],
     defaultNReplPortFile: ['.scittle-nrepl-port'],
     defaultReplSessionNames: { primary: 'scittle' },
-    defaultFallbackPort: 1339,
-    defaultWebSocketPort: 1340,
+    prefilledPort: 1339,
+    defaultWebSocketPort: true,
+    prefilledWebSocketPort: 1340,
     defaultFilePatterns: {
       primary: {
         'always-claim': ['*.cljs'],
@@ -804,7 +806,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: ['squint.edn'],
-    defaultFallbackPort: 1888,
+    prefilledPort: 1888,
     defaultNReplPortFile: ['.nrepl-port'],
     defaultReplSessionNames: { primary: 'squint' },
     defaultFilePatterns: {
@@ -831,8 +833,9 @@ const projectTypes: { [id: string]: ProjectType } = {
     processShellUnix: true,
     processShellWin: true,
     useWhenExists: [],
-    defaultFallbackPort: 3339,
-    defaultWebSocketPort: 3340,
+    prefilledPort: 3339,
+    defaultWebSocketPort: true,
+    prefilledWebSocketPort: 3340,
     defaultNReplPortFile: ['.epupp-nrepl-port'],
     defaultReplSessionNames: { primary: 'epupp' },
     defaultFilePatterns: {

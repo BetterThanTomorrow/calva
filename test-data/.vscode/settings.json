@@ -173,5 +173,6 @@
   },
   "calva.jackInDependencyVersions": {
     "cider-nrepl": "0.62.0"
-  }
+  },
+  "debug.focusWindowOnBreak": false
 }

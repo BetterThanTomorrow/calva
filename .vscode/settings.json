@@ -261,6 +261,7 @@
     "titleBar.inactiveForeground": "#13172299"
   },
   "json.format.enable": false,
+  "debug.focusWindowOnBreak": false,
   "files.exclude": {
     "junit/": true,
     "repl-output-ui/js/": true
