@@ -89,6 +89,13 @@
         "when": "calva:gutterBreakpointsAllowed"
       }
     ],
+    "viewsWelcome": [
+      {
+        "view": "workbench.debug.welcome",
+        "contents": "NB: Run and Debug and launch.json aren't used for Clojure.\n\nCalva's Clojure debugger starts when code you evaluate reaches a breakpoint, which can be a `#break` in the code, a function you instrumented for debugging, or a breakpoint you set in the gutter of a .clj or .cljc file. These take effect once you have evaluated the form containing the breakpoint.\n[Read about Calva's debugger](https://calva.io/debugger/)",
+        "when": "calva:activated"
+      }
+    ],
     "languages": [
       {
         "id": "clojure",
