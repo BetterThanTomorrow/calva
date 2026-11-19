@@ -1,9 +1,10 @@
 import * as assert from 'assert';
-import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as mocha from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import getPort = require('get-port');
+import * as babashkaServer from './babashka-server';
 import * as connector from '../../../connector';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
@@ -11,26 +12,42 @@ import * as testUtil from './util';
 
 suite('Auto-connect suite', () => {
   const suiteName = 'Auto-connect';
+  const autoConnectReplSetting = 'autoConnectRepl';
   let originalAutoConnectRepl: boolean | undefined;
   let originalCustomSequences: any;
-  let bbProcess: cp.ChildProcessWithoutNullStreams | undefined;
+  let bbProcess: import('child_process').ChildProcessWithoutNullStreams | undefined;
 
   const bbMiniDir = path.join(testUtil.testDataDir, 'bb-mini');
   const bbPortFile = path.join(bbMiniDir, '.nrepl-port');
   const bbMini2Dir = path.join(testUtil.testDataDir, 'bb-mini2');
   const bbPortFile2 = path.join(bbMini2Dir, '.nrepl-port');
   const workspaceRoot = testUtil.testDataDir;
+  const twoAutoConnectSequences = [
+    {
+      name: 'First AutoConnect Seq',
+      projectType: 'babashka',
+      autoSelectForConnect: true,
+      projectRootPath: ['integration-test', 'bb-mini'],
+      nReplPortFile: ['.nrepl-port'],
+      cljsType: 'none',
+    },
+    {
+      name: 'Second AutoConnect Seq',
+      projectType: 'babashka',
+      autoSelectForConnect: true,
+      projectRootPath: ['integration-test', 'bb-mini2'],
+      nReplPortFile: ['.nrepl-port'],
+      cljsType: 'none',
+    },
+  ];
 
   async function stopBbProcess(): Promise<void> {
-    if (bbProcess && !bbProcess.killed) {
-      bbProcess.kill();
-      await testUtil.waitForCondition(
-        () => bbProcess === undefined || bbProcess.killed || bbProcess.exitCode !== null,
-        5000,
-        50,
-        'Timed out waiting for bbProcess to exit'
-      );
-      bbProcess = undefined;
+    if (bbProcess) {
+      const processToStop = bbProcess;
+      await babashkaServer.stopBabashkaProcess(processToStop);
+      if (bbProcess === processToStop) {
+        bbProcess = undefined;
+      }
     }
   }
 
@@ -46,10 +63,23 @@ suite('Auto-connect suite', () => {
     }
   }
 
+  async function startBabashkaServer(cwd: string): Promise<string> {
+    cleanPortFiles();
+    const bbExe = testUtil.getExecutablePath('bb');
+    const started = await babashkaServer.startBabashkaServer({
+      executable: bbExe ?? undefined,
+      cwd,
+      getPort,
+      canConnect: testUtil.canConnectToPort,
+    });
+    bbProcess = started.process;
+    return String(started.port);
+  }
+
   mocha.before(() => {
     testUtil.showMessage(suiteName, 'suite starting!');
     const config = vscode.workspace.getConfiguration('calva');
-    originalAutoConnectRepl = config.inspect<boolean>('autoConnectRepl')?.globalValue;
+    originalAutoConnectRepl = config.inspect<boolean>(autoConnectReplSetting)?.globalValue;
     originalCustomSequences = config.inspect('replConnectSequences')?.globalValue;
   });
 
@@ -58,7 +88,7 @@ suite('Auto-connect suite', () => {
     cleanPortFiles();
     const config = vscode.workspace.getConfiguration('calva');
     await config.update(
-      'autoConnectRepl',
+      autoConnectReplSetting,
       originalAutoConnectRepl,
       vscode.ConfigurationTarget.Global
     );
@@ -82,9 +112,9 @@ suite('Auto-connect suite', () => {
     await connector.disconnect({ disconnectAll: true });
   });
 
-  test('shouldAutoConnect is false when autoConnectRepl is disabled', async () => {
+  test('shouldAutoConnect is false when the setting is disabled', async () => {
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', false, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, false, vscode.ConfigurationTarget.Global);
 
     const shouldAuto = await connector.shouldAutoConnect();
     assert.strictEqual(
@@ -94,9 +124,9 @@ suite('Auto-connect suite', () => {
     );
   });
 
-  test('shouldAutoConnect is false when autoConnectRepl is true but no port file exists', async () => {
+  test('shouldAutoConnect is false when enabled but no port file exists', async () => {
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, true, vscode.ConfigurationTarget.Global);
 
     const shouldAuto = await connector.shouldAutoConnect();
     assert.strictEqual(
@@ -108,7 +138,7 @@ suite('Auto-connect suite', () => {
 
   test('shouldAutoConnect ignores port files of inapplicable project types (issue #3278)', async () => {
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, true, vscode.ConfigurationTarget.Global);
 
     // Create a foreign port file (e.g. .joyride/.nrepl-port) in workspace root
     const foreignDir = path.join(workspaceRoot, '.joyride');
@@ -133,10 +163,8 @@ suite('Auto-connect suite', () => {
   test('shouldAutoConnect is true when port file exists for autoSelectForConnect sequence and connects without prompt', async function () {
     this.timeout(30_000);
 
-    const bbExe = testUtil.getExecutablePath('bb') || 'bb';
-    const knownPort = '16688';
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, true, vscode.ConfigurationTarget.Global);
     await config.update(
       'replConnectSequences',
       [
@@ -152,29 +180,11 @@ suite('Auto-connect suite', () => {
       vscode.ConfigurationTarget.Global
     );
 
-    // Start a Babashka REPL server on a known port
-    let serverStarted = false;
-    bbProcess = cp.spawn(bbExe, ['nrepl-server', knownPort], {
-      cwd: bbMiniDir,
-      stdio: 'pipe',
-    });
-
-    bbProcess.stdout.on('data', (chunk: Buffer) => {
-      if (chunk.toString().includes(`Started nREPL server at`)) {
-        serverStarted = true;
-      }
-    });
+    // Start a Babashka REPL server on an available port.
+    const knownPort = await startBabashkaServer(bbMiniDir);
 
     // Write the port file for the test
     fs.writeFileSync(bbPortFile, knownPort);
-
-    // Wait for the bb server to be listening
-    await testUtil.waitForCondition(
-      () => serverStarted,
-      5000,
-      50,
-      'Timed out waiting for Babashka nREPL server to start'
-    );
 
     const shouldAuto = await connector.shouldAutoConnect();
     assert.strictEqual(
@@ -205,27 +215,10 @@ suite('Auto-connect suite', () => {
 
   test('multiple autoSelectForConnect sequences: shouldAutoConnect checks the auto-selected sequence', async () => {
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, true, vscode.ConfigurationTarget.Global);
     await config.update(
       'replConnectSequences',
-      [
-        {
-          name: 'First AutoConnect Seq',
-          projectType: 'babashka',
-          autoSelectForConnect: true,
-          projectRootPath: ['integration-test', 'bb-mini'],
-          nReplPortFile: ['.nrepl-port'],
-          cljsType: 'none',
-        },
-        {
-          name: 'Second AutoConnect Seq',
-          projectType: 'babashka',
-          autoSelectForConnect: true,
-          projectRootPath: ['integration-test', 'bb-mini2'],
-          nReplPortFile: ['.nrepl-port'],
-          cljsType: 'none',
-        },
-      ],
+      twoAutoConnectSequences,
       vscode.ConfigurationTarget.Global
     );
 
@@ -255,47 +248,16 @@ suite('Auto-connect suite', () => {
   test('auto-connect connects to the project of the active editor when its port file exists', async function () {
     this.timeout(30_000);
 
-    const bbExe = testUtil.getExecutablePath('bb') || 'bb';
-    const knownPort = '16689';
     const config = vscode.workspace.getConfiguration('calva');
-    await config.update('autoConnectRepl', true, vscode.ConfigurationTarget.Global);
+    await config.update(autoConnectReplSetting, true, vscode.ConfigurationTarget.Global);
     await config.update(
       'replConnectSequences',
-      [
-        {
-          name: 'First AutoConnect Seq',
-          projectType: 'babashka',
-          autoSelectForConnect: true,
-          projectRootPath: ['integration-test', 'bb-mini'],
-          nReplPortFile: ['.nrepl-port'],
-          cljsType: 'none',
-        },
-        {
-          name: 'Second AutoConnect Seq',
-          projectType: 'babashka',
-          autoSelectForConnect: true,
-          projectRootPath: ['integration-test', 'bb-mini2'],
-          nReplPortFile: ['.nrepl-port'],
-          cljsType: 'none',
-        },
-      ],
+      twoAutoConnectSequences,
       vscode.ConfigurationTarget.Global
     );
 
-    let serverStarted = false;
-    bbProcess = cp.spawn(bbExe, ['nrepl-server', knownPort], { cwd: bbMini2Dir, stdio: 'pipe' });
-    bbProcess.stdout.on('data', (chunk: Buffer) => {
-      if (chunk.toString().includes('Started nREPL server at')) {
-        serverStarted = true;
-      }
-    });
+    const knownPort = await startBabashkaServer(bbMini2Dir);
     fs.writeFileSync(bbPortFile2, knownPort);
-    await testUtil.waitForCondition(
-      () => serverStarted,
-      5000,
-      50,
-      'Timed out waiting for Babashka nREPL server to start'
-    );
     await testUtil.openFile(path.join(bbMini2Dir, 'test.clj'));
 
     assert.strictEqual(await connector.shouldAutoConnect(), true);
