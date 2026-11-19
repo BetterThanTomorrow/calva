@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Bump deps-clj to v1.12.7.1681
+
 ## [2.0.611] - 2026-11-14
 
 - Fix: [clojure-lsp starts in a non-Clojure first workspace root when a Clojure file outside the workspace is opened](https://github.com/BetterThanTomorrow/calva/issues/3339)
