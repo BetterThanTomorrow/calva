@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import * as jackIn from '../../../nrepl/jack-in';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as replSession from '../../../nrepl/repl-session';
+import type { NReplSession } from '../../../nrepl';
 import * as testUtil from './util';
 
 const suiteName = 'Debugger Stepping';
@@ -63,6 +64,24 @@ async function waitForStop(call: Promise<unknown>, previous?: StopLocation): Pro
   return Promise.race([stopped, ended]);
 }
 
+// The evaluate and instrument commands resolve before their evaluation reaches the REPL.
+// A new definition of `g` replaces its var's metadata, so a mark on the var is gone once it lands.
+const STALE_MARK = ':debugger-stepping/stale';
+
+async function markDefinitionStale(session: NReplSession): Promise<void> {
+  await session.eval(`(alter-meta! #'debugger-stepping/g assoc ${STALE_MARK} true)`, 'user').value;
+}
+
+async function waitForNewDefinition(session: NReplSession): Promise<void> {
+  await testUtil.waitForCondition(
+    async () =>
+      (await session.eval(`(${STALE_MARK} (meta #'debugger-stepping/g))`, 'user').value) === 'nil',
+    30_000,
+    100,
+    'Timed out waiting for the evaluation to define debugger-stepping/g again'
+  );
+}
+
 async function waitForDebugSessionToEnd(): Promise<void> {
   // The adapter ends the session when the evaluation's value arrives
   await testUtil.waitForCondition(
@@ -106,10 +125,12 @@ suite(suiteName, () => {
     this.timeout(60_000);
     const editor = await testUtil.openFile(testFilePath);
     await vscode.commands.executeCommand('calva.loadFile');
+    const session = replSession.getSession(editor.document);
+    await markDefinitionStale(session);
     editor.selection = new vscode.Selection(3, 4, 3, 4);
     await vscode.commands.executeCommand('calva.debug.instrument');
+    await waitForNewDefinition(session);
 
-    const session = replSession.getSession(editor.document);
     const result = session.eval('(debugger-stepping/g 1)', 'user').value;
     // A failed assertion below ends the evaluation when after() quits; keep that rejection handled
     result.catch(() => undefined);
@@ -139,10 +160,12 @@ suite(suiteName, () => {
     );
     vscode.debug.addBreakpoints([breakpoint]);
     try {
+      const session = replSession.getSession(editor.document);
+      await markDefinitionStale(session);
       editor.selection = new vscode.Selection(2, 1, 2, 1);
       await vscode.commands.executeCommand('calva.evaluateCurrentTopLevelForm');
+      await waitForNewDefinition(session);
 
-      const session = replSession.getSession(editor.document);
       const result = session.eval('(debugger-stepping/g 1)', 'user').value;
       result.catch(() => undefined);
 
