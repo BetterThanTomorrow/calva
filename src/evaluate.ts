@@ -612,7 +612,7 @@ async function evaluateSelectedCode(
   options,
   session: nrepl.NReplSession
 ): Promise<void> {
-  if (code.length === 0 || warnForUnsupportedDebugEvaluation(options, session)) {
+  if (code.length === 0 || refuseUnsupportedDebugEvaluation(options, session)) {
     return;
   }
   const codeToEvaluate = evaluationCodeWithDebugSupport(options, doc, codeSelection, code, session);
@@ -628,9 +628,9 @@ async function evaluateSelectedCode(
   void output.replWindowAppendPrompt();
 }
 
-function warnForUnsupportedDebugEvaluation(options, session: nrepl.NReplSession): boolean {
+function refuseUnsupportedDebugEvaluation(options, session: nrepl.NReplSession): boolean {
   if (options.debug && !debug.supportsDebuggerOps(session)) {
-    debug.warnUnsupportedDebugger(session);
+    debug.showInstrumentUnsupportedError(session);
     return true;
   }
   return false;
