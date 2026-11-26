@@ -3017,6 +3017,142 @@ describe('paredit', () => {
           });
         });
 
+        describe('dragging forward and then backward', () => {
+          const expectRestored = async (first: 'forward' | 'backward', code: string) => {
+            const doc = textNotation.docFromTextNotation(dedent(code));
+            const original = textNotation.textNotationFromDoc(doc, true);
+            const [there, back] =
+              first === 'forward'
+                ? [paredit.dragSexprForward, paredit.dragSexprBackward]
+                : [paredit.dragSexprBackward, paredit.dragSexprForward];
+            await there(doc);
+            expectLib.expect(textNotation.textNotationFromDoc(doc, true)).not.toEqual(original);
+            await back(doc);
+            expectLib.expect(textNotation.textNotationFromDoc(doc, true)).toEqual(original);
+          };
+
+          it('restores a form with a leading comment, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                ; a
+                :a|
+                :b
+                )
+              `
+            );
+          });
+
+          it('restores two forms with leading comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                ; a
+                :a|
+                ; b
+                :b
+                )
+              `
+            );
+          });
+
+          it('restores a form with a leading comment, dragged backward', async () => {
+            await expectRestored(
+              'backward',
+              `
+              (comment
+                :a
+                ; b
+                :b|
+                )
+              `
+            );
+          });
+
+          it('restores forms with trailing comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                :a| ; a
+                :b ; b
+                :c
+                )
+              `
+            );
+          });
+
+          it('restores forms with trailing comments, dragged backward', async () => {
+            await expectRestored(
+              'backward',
+              `
+              (comment
+                :a ; a
+                :b ; b
+                :c|
+                )
+              `
+            );
+          });
+
+          it('restores forms with result comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                :a|
+                ;=> a
+                :b
+                ;=> b
+                )
+              `
+            );
+          });
+
+          it('restores forms with result comments, dragged backward', async () => {
+            await expectRestored(
+              'backward',
+              `
+              (comment
+                :a
+                ;=> a
+                :b|
+                ;=> b
+                )
+              `
+            );
+          });
+
+          it('restores a form with comments above and beside it', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                ;; about a
+                :a| ; a
+                :b
+                ;; about c
+                :c
+                )
+              `
+            );
+          });
+
+          it('restores a binding with comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (let [a 1 ; one
+                    b| 2 ; two
+                    c 3]
+                a)
+              `
+            );
+          });
+        });
+
         describe('cursor in a comment with no attached form', () => {
           it('does not drag unrelated forms backward when the comment is separated by blank lines', async () => {
             await expectDragBackward(
