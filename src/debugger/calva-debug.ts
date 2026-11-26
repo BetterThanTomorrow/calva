@@ -14,6 +14,10 @@ import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 import * as TokenCursor from '../cursor-doc/token-cursor';
 import * as cursorUtil from '../cursor-doc/utilities';
+import * as sessionRegistry from '../nrepl/session-registry';
+import { sendInitializeResponse } from './initialize-capabilities';
+import { requestSourceBreakpoints, setGutterBreakpointContext } from './gui-breakpoints';
+import { supportsDebuggerOps, formatInstrumentUnsupportedMessage } from './debugger-ops';
 
 const CALVA_DEBUG_CONFIGURATION: vscode.DebugConfiguration = {
   type: 'clojure',
@@ -70,12 +74,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
 
     // Build and return the capabilities of this debug adapter
-    response.body = {
-      ...response.body,
-      supportsRestartRequest: true,
-    };
-
-    this.sendResponse(response);
+    sendInitializeResponse(response, (initializeResponse) => this.sendResponse(initializeResponse));
   }
 
   protected attachRequest(
@@ -92,27 +91,21 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.ContinueArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':continue', id, key).then((response) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-      });
-    } else {
-      response.success = false;
-    }
-
-    this.sendResponse(response);
+    this.sendDebugInputUntilNextStop(response, ':continue');
   }
 
+  /**
+   * An evaluation paused at a breakpoint has nothing to restart, so Restart ends the debugging,
+   * as Stop does.
+   */
   protected restartRequest(
     response: debugProtocol.DebugProtocol.RestartResponse,
     args: debugProtocol.DebugProtocol.RestartArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    response.success = false;
+    quitDebuggedEvaluation();
     this.sendResponse(response);
+    this.sendEvent(new debugAdapter.TerminatedEvent());
   }
 
   protected nextRequest(
@@ -120,18 +113,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.NextArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':next', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-      });
-    } else {
-      response.success = false;
-    }
-
-    this.sendResponse(response);
+    this.sendDebugInputUntilNextStop(response, ':next');
   }
 
   protected stepInRequest(
@@ -139,18 +121,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.StepInArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':in', id, key).then((_) => {
-        this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-      });
-    } else {
-      response.success = false;
-    }
-
-    this.sendResponse(response);
+    this.sendDebugInputUntilNextStop(response, ':in');
   }
 
   protected stepOutRequest(
@@ -158,11 +129,22 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.StepOutArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
+    this.sendDebugInputUntilNextStop(response, ':out');
+  }
+
+  /**
+   * Sends `input` for the stored stop. cider-nrepl answers with the next stop,
+   * which `handleNeedDebugInput` stores before the stopped event is sent.
+   */
+  private sendDebugInputUntilNextStop(
+    response: debugProtocol.DebugProtocol.Response,
+    input: ':continue' | ':next' | ':in' | ':out'
+  ): void {
     const session = replSession.getSession();
 
     if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':out', id, key).then((_) => {
+      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY) ?? {};
+      void session.sendDebugInput(input, id, key).then((_) => {
         this.sendEvent(new debugAdapter.StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
       });
     } else {
@@ -358,13 +340,7 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
     args: debugProtocol.DebugProtocol.DisconnectArguments,
     request?: debugProtocol.DebugProtocol.Request
   ): void {
-    const session = replSession.getSession();
-
-    if (session) {
-      const { id, key } = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
-      void session.sendDebugInput(':quit', id, key);
-    }
-
+    quitDebuggedEvaluation();
     this.sendResponse(response);
   }
 
@@ -405,22 +381,38 @@ class CalvaDebugSession extends debugAdapter.LoggingDebugSession {
 
 CalvaDebugSession.run(CalvaDebugSession);
 
+const DEBUGGER_DOCS_URL = 'https://calva.io/debugger/';
+const RUN_AND_DEBUG_MESSAGE =
+  "Calva's debugger doesn't start from Run and Debug. It starts when code you evaluate reaches a breakpoint: a #break in the code, a function you instrumented for debugging, or a gutter breakpoint in a .clj or .cljc file. Evaluate the form with the breakpoint, then call the code.";
+const READ_ABOUT_DEBUGGER = "Read about Calva's debugger";
+
+async function showRunAndDebugMessage(): Promise<void> {
+  const choice = await vscode.window.showInformationMessage(
+    RUN_AND_DEBUG_MESSAGE,
+    READ_ABOUT_DEBUGGER
+  );
+  if (choice === READ_ABOUT_DEBUGGER) {
+    await vscode.env.openExternal(vscode.Uri.parse(DEBUGGER_DOCS_URL));
+  }
+}
+
+function isEmptyConfiguration(config: vscode.DebugConfiguration): boolean {
+  return !config.type && !config.request && !config.name;
+}
+
 class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   /**
-   * Massage a debug configuration just before a debug session is being launched,
-   * e.g. add all missing attributes to the debug configuration.
+   * Run and Debug (F5) without a launch.json comes here with an empty configuration.
+   * Calva's debug session starts from a debugger stop, so explain that and start nothing.
    */
   resolveDebugConfiguration(
     folder: vscode.WorkspaceFolder | undefined,
     config: vscode.DebugConfiguration,
     token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
-    // If launch.json is missing or empty
-    if (!config.type && !config.request && !config.name) {
-      const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'clojure') {
-        config = { ...config, ...CALVA_DEBUG_CONFIGURATION };
-      }
+    if (isEmptyConfiguration(config)) {
+      void showRunAndDebugMessage();
+      return undefined;
     }
 
     return config;
@@ -458,29 +450,61 @@ function calvaDebugSession(session: vscode.DebugSession) {
   return session?.type === CALVA_DEBUG_CONFIGURATION.type;
 }
 
-function onNreplMessage(data: any): void {
-  if (!calvaDebugSession(vscode.debug.activeDebugSession)) {
-    return;
-  }
+/**
+ * The running Calva Debug session. Other debug sessions, such as an Extension Development Host,
+ * can run at the same time, so the active debug session isn't necessarily this one.
+ */
+let runningCalvaDebugSession: vscode.DebugSession | undefined;
 
-  if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
+function isCalvaDebugSessionRunning(): boolean {
+  return runningCalvaDebugSession !== undefined;
+}
+
+/** Sends :quit for the stop the debugger is paused at, if there is one. */
+function quitDebuggedEvaluation(): void {
+  const session = replSession.getSession();
+  const debugResponse = cljsLib.getStateValue(DEBUG_RESPONSE_KEY);
+
+  if (session && debugResponse) {
+    void session.sendDebugInput(':quit', debugResponse.id, debugResponse.key);
+  }
+}
+
+function onNreplMessage(data: any): void {
+  if (runningCalvaDebugSession && (data['value'] || data['err'])) {
     annotations.clearAllEvaluationDecorations();
-    void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+    void runningCalvaDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
   } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
     handleNeedDebugInput(data);
   }
 }
 
-function handleNeedDebugInput(response: any): void {
-  // Make sure the form exists in the editor and was not instrumented in the repl window
-  if (
+type DebugInputResponse = {
+  file?: unknown;
+  column?: unknown;
+  line?: unknown;
+  id?: string;
+  key?: string;
+};
+
+function hasSourceLocation(response: DebugInputResponse): response is DebugInputResponse & {
+  file: string;
+  column: number;
+  line: number;
+} {
+  return (
     typeof response.file === 'string' &&
     typeof response.column === 'number' &&
     typeof response.line === 'number'
-  ) {
+  );
+}
+
+function handleNeedDebugInput(response: DebugInputResponse): void {
+  // Make sure the form exists in the editor and was not instrumented in the repl window
+  if (hasSourceLocation(response)) {
     cljsLib.setStateValue(DEBUG_RESPONSE_KEY, response);
 
-    if (!vscode.debug.activeDebugSession) {
+    if (!runningCalvaDebugSession) {
       void vscode.debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
     }
   } else {
@@ -492,10 +516,17 @@ function handleNeedDebugInput(response: any): void {
   }
 }
 
+vscode.debug.onDidTerminateDebugSession((session) => {
+  if (session.id === runningCalvaDebugSession?.id) {
+    runningCalvaDebugSession = undefined;
+  }
+});
+
 vscode.debug.onDidStartDebugSession((session) => {
   if (!calvaDebugSession(session)) {
     return;
   }
+  runningCalvaDebugSession = session;
 
   // We only start debugger sessions when a breakpoint is hit
   void session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {
@@ -508,19 +539,23 @@ function convertOneBasedToZeroBased(n: number): number {
   return n === 0 ? n : n - 1;
 }
 
+function showInstrumentUnsupportedError(session?: nrepl.NReplSession): void {
+  const sessionKey = sessionRegistry.resolveSessionKey(session, 'current');
+  void vscode.window.showErrorMessage(formatInstrumentUnsupportedMessage(sessionKey));
+}
+
 function initializeDebugger(cljSession: nrepl.NReplSession): void {
   cljSession.initDebugger();
   debugDecorations.activate();
+  requestSourceBreakpoints();
 }
 
 function terminateDebugSession(): void {
-  if (!calvaDebugSession(vscode.debug.activeDebugSession)) {
+  if (!runningCalvaDebugSession) {
     return;
   }
 
-  if (vscode.debug.activeDebugSession) {
-    void vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
-  }
+  void runningCalvaDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
   debugDecorations.triggerUpdateAndRenderDecorations();
 }
 
@@ -535,6 +570,10 @@ export {
   CalvaDebugAdapterDescriptorFactory,
   handleNeedDebugInput,
   initializeDebugger,
+  isCalvaDebugSessionRunning,
   onNreplMessage,
+  setGutterBreakpointContext,
+  showInstrumentUnsupportedError,
+  supportsDebuggerOps,
   terminateDebugSession,
 };

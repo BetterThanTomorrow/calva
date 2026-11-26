@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as util from './utilities';
+import * as currentFile from './current-file';
 import * as string from './util/string';
 import open = require('open');
 import * as status from './status';
@@ -86,6 +87,44 @@ interface ConnectResult {
   clientKey?: string;
 }
 
+const LAST_WEBSOCKET_PORTS_KEY = 'lastWebSocketPorts';
+
+function lastWebSocketPorts(): Record<string, number> {
+  return state.extensionContext.workspaceState.get<Record<string, number>>(
+    LAST_WEBSOCKET_PORTS_KEY,
+    {}
+  );
+}
+
+function rememberWebSocketPort(sequenceName: string, port: number) {
+  void state.extensionContext.workspaceState.update(LAST_WEBSOCKET_PORTS_KEY, {
+    ...lastWebSocketPorts(),
+    [sequenceName]: port,
+  });
+}
+
+/**
+ * Asks for the WebSocket port, pre-filled with the port this connect sequence
+ * last used in this workspace, or else with the project type's pre-filled port.
+ */
+async function promptForWebSocketPort(
+  connectSequence: connectSequences.ReplConnectSequence
+): Promise<number | undefined> {
+  const prefilledPort =
+    lastWebSocketPorts()[connectSequence.name] ??
+    projectTypes.getProjectTypeForName(connectSequence.projectType)?.prefilledWebSocketPort;
+  const portStr = await vscode.window.showInputBox({
+    prompt: 'Enter WebSocket port for browser REPL',
+    value: prefilledPort !== undefined ? String(prefilledPort) : '',
+    ignoreFocusOut: true,
+    validateInput: (v) => {
+      const n = parseInt(v);
+      return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
+    },
+  });
+  return portStr === undefined ? undefined : parseInt(portStr);
+}
+
 /**
  * Connect via a WebSocket server that the browser REPL connects to.
  * Starts a WS server, waits for browser connection, then registers sessions.
@@ -95,13 +134,15 @@ async function connectViaWebSocket(
   wsPort: number,
   wsHost: string,
   connectSequence: connectSequences.ReplConnectSequence,
-  isJackIn = false
+  launch: { projectRootUri: vscode.Uri; isJackIn?: boolean }
 ): Promise<ConnectResult> {
+  const { projectRootUri, isJackIn = false } = launch;
   let activeClient: nrepl.NReplClient | undefined;
+  let trackedWsServer: nReplWsServer.NReplWsServer | undefined;
   let preservedRenames: Partial<sessionRoleUtils.SessionRoleKeys> | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-  const projectRootPath = state.getProjectRootUri().fsPath;
-  const projectRoot = state.getProjectRootUri().toString();
+  const projectRootPath = projectRootUri.fsPath;
+  const projectRoot = projectRootUri.toString();
   const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
   // WebSocket connections skip reconnection candidate detection entirely.
@@ -155,11 +196,13 @@ async function connectViaWebSocket(
       }
     }
 
+    rememberWebSocketPort(connectSequence.name, currentPort);
     output.appendLineOtherOut(`WebSocket server listening on ws://${wsHost}:${currentPort}/_nrepl`);
     output.appendLineOtherOut('Waiting for browser REPL to connect...');
 
     const sessionKeyValues = Object.values(sessionRoleKeys).filter(Boolean) as string[];
     nReplWsServer.trackServer(server, connectSequence.name, projectRoot, sessionKeyValues);
+    trackedWsServer = server;
 
     // Track first connection to resolve the initial await
     let resolveFirstConnection: (() => void) | null = null;
@@ -326,6 +369,7 @@ async function connectViaWebSocket(
         preservedRenames = clientRegistry.getConnectionState(clientKey)?.renamedSessionNames;
 
         // Clean up client and sessions but keep server alive
+        activeClient.dropEvaluations();
         clientTeardown.releaseClientSuffix(clientKey);
         const wasRegistered = clientRegistry.unregisterClient(clientKey);
         if (wasRegistered) {
@@ -394,6 +438,10 @@ async function connectViaWebSocket(
       return { connected: false };
     }
   } catch (e) {
+    if (trackedWsServer?.isListening()) {
+      nReplWsServer.untrackServer(trackedWsServer);
+      await trackedWsServer.stop();
+    }
     return cleanUpAfterError(e, {
       clientKey: activeClient?.clientKey,
       suffix: resolution.suffix,
@@ -408,14 +456,15 @@ async function connectToHost(
   hostname: string,
   port: number,
   connectSequence: connectSequences.ReplConnectSequence,
-  silent = false,
-  isJackIn = false
+  projectRootUri: vscode.Uri,
+  options: { silent?: boolean; isJackIn?: boolean } = {}
 ): Promise<ConnectResult> {
+  const { silent = false, isJackIn = false } = options;
   let mainSession: nrepl.NReplSession;
   let localClient: nrepl.NReplClient | undefined;
   const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-  const projectRootPath = state.getProjectRootUri().fsPath;
-  const projectRoot = state.getProjectRootUri().toString();
+  const projectRootPath = projectRootUri.fsPath;
+  const projectRoot = projectRootUri.toString();
   const useSecondarySession = secondarySession.shouldUseSecondarySession(connectSequence);
 
   const resolution = sessionNameResolver.resolveSessionNames(
@@ -464,8 +513,7 @@ async function connectToHost(
       port: +port,
       onError: (e) => {
         output.appendLineOtherErr(`nREPL connection failed, port ${port}: ${e}`);
-        const scheme = state.getProjectRootUri().scheme;
-        if (scheme === 'vsls') {
+        if (liveShareSupport.isLiveShareGuest()) {
           output.appendLineOtherOut('Did the host share the nREPL port?');
         }
         // Clean up acquired suffix since client wasn't registered
@@ -610,7 +658,7 @@ async function connectToHost(
         );
       }
       if (useSecondarySession && isShadowCljsConnector(connectSequence.cljsType)) {
-        await shadowCljsRuntime.initializeShadowRemoteNotifications();
+        await shadowCljsRuntime.initializeShadowRemoteNotifications(localClient.clientKey);
       }
     } catch (e) {
       output.appendLineOtherErr('Error while connecting cljs REPL: ' + e);
@@ -625,6 +673,8 @@ async function connectToHost(
       silent,
     });
   }
+
+  throwWhenClosed(localClient);
 
   void liveShareSupport.didConnectRepl(port);
 
@@ -656,6 +706,16 @@ async function connectToHost(
   }
 
   return { connected: true, clientKey: localClient.clientKey };
+}
+
+/**
+ * Throws when `client` was disconnected while connecting, e.g. while its cljs REPL started, which
+ * stops the connect without setting up the closed sessions or prompting for another connection.
+ */
+function throwWhenClosed(client: nrepl.NReplClient) {
+  if (!clientRegistry.getClient(client.clientKey)) {
+    throw new Error(`The connection ${client.clientKey} closed while connecting`);
+  }
 }
 
 /**
@@ -722,9 +782,7 @@ async function setUpCljsRepl(
 ) {
   const globMetadata = getSessionGlobMetadata(cljsKey, globMap);
   // Use project root from owning client to avoid stamping wrong root when multiple connections exist
-  const projectRoot =
-    clientRegistry.getRegisteredClient(clientKey)?.projectRoot ??
-    state.getProjectRootUri().toString();
+  const projectRoot = clientRegistry.getRegisteredClient(clientKey)?.projectRoot;
   sessionRegistry.registerSession(cljsKey, session, {
     projectRoot,
     globs: globMetadata.globs,
@@ -770,8 +828,8 @@ async function setUpCljsRepl(
   replSession.updateReplSessionType();
 }
 
-async function getFigwheelMainBuilds(projectRootUri?: vscode.Uri) {
-  const effectiveRoot = projectRootUri ?? state.getProjectRootUri();
+async function getFigwheelMainBuilds(projectRootUri: vscode.Uri) {
+  const effectiveRoot = projectRootUri;
   const res = await vscode.workspace.fs.readDirectory(effectiveRoot);
   const builds = res
     .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
@@ -804,6 +862,10 @@ type connectFn = (
   checkSuccess: checkConnectedFn
 ) => Promise<boolean | undefined>;
 
+/**
+ * Evaluates the connect `code` in `newCljsSession` and resolves with what `checkSuccess` says of
+ * the result. Rejects when the session closes before the evaluation finished.
+ */
 async function evalConnectCode(
   newCljsSession: nrepl.NReplSession,
   code: string,
@@ -832,6 +894,9 @@ async function evalConnectCode(
       pprintOptions: printer.disabledPrettyPrinter,
     });
   const valueResult = await result.value.catch((reason) => {
+    if (result.dropped) {
+      throw reason;
+    }
     console.error('Error evaluating connect form: ', reason);
   });
   return await checkSuccess(valueResult, out, err);
@@ -847,7 +912,7 @@ export interface CljsReplConnector {
 
 async function figwheelOrShadowBuilds(
   cljsTypeName: string,
-  projectRootUri?: vscode.Uri
+  projectRootUri: vscode.Uri
 ): Promise<string[] | undefined> {
   if (cljsTypeName.includes('Figwheel Main')) {
     return await getFigwheelMainBuilds(projectRootUri);
@@ -889,10 +954,10 @@ async function getActiveBuilds(
  */
 async function selectCljsBuild(
   cljsTypeName: string,
-  projectRootUri?: vscode.Uri,
+  projectRootUri: vscode.Uri,
   session?: nrepl.NReplSession
 ): Promise<string | null> {
-  const effectiveProjectRoot = projectRootUri ?? state.getProjectRootUri();
+  const effectiveProjectRoot = projectRootUri;
   const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, effectiveProjectRoot);
   if (!allBuilds || allBuilds.length === 0) {
     return null;
@@ -944,9 +1009,10 @@ function createCljsReplConnector(
   }
 
   // Get project root from client registry to avoid using global state
-  const clientProjectRoot =
-    clientRegistry.getRegisteredClient(clientKey)?.projectRoot ??
-    state.getProjectRootUri().toString();
+  const clientProjectRoot = clientRegistry.getRegisteredClient(clientKey)?.projectRoot;
+  if (!clientProjectRoot) {
+    throw new Error('Connection has no project root');
+  }
   const clientProjectRootUri = vscode.Uri.parse(clientProjectRoot);
 
   const projectTypeName: string = connectSequence.name,
@@ -1025,9 +1091,11 @@ function createCljsReplConnector(
   const connector: CljsReplConnector = {
     name: cljsTypeName,
     connect: async (session, name, checkFn) => {
+      const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
       // Store hasBuilds in per-connection state
       clientRegistry.setConnectionState(clientKey, {
         hasBuilds: cljsType.buildsRequired,
+        availableBuilds: allBuilds,
       });
       let initCode = cljsType.connectCode;
       let build: string = null;
@@ -1040,11 +1108,10 @@ function createCljsReplConnector(
         useDefaultBuild = false;
       } else {
         if (typeof initCode === 'object' || initCode.includes('%BUILD%')) {
-          const allBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
           const availableBuilds = startedBuilds
             ? [
                 ...startedBuilds,
-                ...allBuilds.filter((b) => ['node-repl', 'browser-repl'].includes(b)),
+                ...(allBuilds || []).filter((b) => ['node-repl', 'browser-repl'].includes(b)),
               ]
             : allBuilds;
           const buildItem = await util.quickPickSingle({
@@ -1102,7 +1169,7 @@ function createCljsReplConnector(
       return runtimes && parseInt(runtimes) > 0;
     };
     return new Promise<boolean>((resolve, reject) => {
-      void vscode.window.withProgress(
+      const waiting = vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Waiting for shadow-cljs runtimes...',
@@ -1126,6 +1193,8 @@ function createCljsReplConnector(
           }
         }
       );
+      // The wait fails when the session closes while it asks for runtimes
+      void waiting.then(undefined, reject);
     });
   }
 
@@ -1154,9 +1223,13 @@ function createCljsReplConnector(
       if (!hasStarted) {
         if (startCode.includes('%BUILDS')) {
           let builds: string[];
-          const allBuilds = (
-            await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri)
-          ).filter((build) => !['browser-repl', 'node-repl'].includes(build));
+          const rawBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
+          clientRegistry.setConnectionState(clientKey, {
+            availableBuilds: rawBuilds,
+          });
+          const allBuilds = (rawBuilds || []).filter(
+            (build) => !['browser-repl', 'node-repl'].includes(build)
+          );
 
           // Helper to normalize build keys for comparison
           const normalizeBuildKey = (build: string) =>
@@ -1235,6 +1308,10 @@ function createCljsReplConnector(
           }
         } else {
           output.appendLineOtherOut('Starting cljs repl for: ' + projectTypeName + '...');
+          const rawBuilds = await figwheelOrShadowBuilds(cljsTypeName, clientProjectRootUri);
+          clientRegistry.setConnectionState(clientKey, {
+            availableBuilds: rawBuilds,
+          });
           return evalConnectCode(
             session,
             startCode,
@@ -1324,8 +1401,9 @@ async function promptForNreplUrlAndConnect(
   hostname: string | undefined,
   port: string | undefined,
   connectSequence: connectSequences.ReplConnectSequence,
-  reason: PromptReason = 'manual'
+  launch: { projectRootUri: vscode.Uri; reason?: PromptReason }
 ): Promise<ConnectResult> {
+  const { projectRootUri, reason = 'manual' } = launch;
   let currentHost = hostname ?? 'localhost';
   let currentPort = port;
   let currentReason = reason;
@@ -1367,7 +1445,15 @@ async function promptForNreplUrlAndConnect(
       continue;
     }
 
-    const result = await connectToHost(parsedHostname, parsedPort, connectSequence, true, false);
+    const result = await connectToHost(
+      parsedHostname,
+      parsedPort,
+      connectSequence,
+      projectRootUri,
+      {
+        silent: true,
+      }
+    );
 
     if (result.connected) {
       return result;
@@ -1383,13 +1469,14 @@ async function promptForNreplUrlAndConnect(
 export async function connect(
   connectSequence: connectSequences.ReplConnectSequence,
   isAutoConnect: boolean,
-  hostname?: string,
-  port?: string,
-  isJackIn = false
+  projectRootUri: vscode.Uri,
+  details: { hostname?: string; port?: string; isJackIn?: boolean } = {}
 ): Promise<ConnectResult> {
+  let { hostname, port } = details;
+  const isJackIn = details.isJackIn ?? false;
   const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
-  const portFile = projectTypes.nreplPortFileUri(connectSequence);
+  const portFile = projectTypes.nreplPortFileUri(connectSequence, projectRootUri);
   void state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
   void state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
   // Used to decide whether to suppress auto-connect when a matching connection already exists.
@@ -1404,27 +1491,17 @@ export async function connect(
       projectTypes.getProjectTypeForName(connectSequence.projectType)
     );
     if (wsPort !== undefined && wsPort !== false) {
-      let resolvedWsPort: number;
-      if (wsPort === true) {
-        const portStr = await vscode.window.showInputBox({
-          prompt: 'Enter WebSocket port for browser REPL',
-          value: '3340',
-          ignoreFocusOut: true,
-          validateInput: (v) => {
-            const n = parseInt(v);
-            return isNaN(n) || n < 1 || n > 65535 ? 'Enter a valid port number' : undefined;
-          },
-        });
-        if (portStr === undefined) {
-          output.appendLineOtherOut('Connect aborted.');
-          return { connected: false };
-        }
-        resolvedWsPort = parseInt(portStr);
-      } else {
-        resolvedWsPort = wsPort;
+      const resolvedWsPort =
+        wsPort === true ? await promptForWebSocketPort(connectSequence) : wsPort;
+      if (resolvedWsPort === undefined) {
+        output.appendLineOtherOut('Connect aborted.');
+        return { connected: false };
       }
       const wsHost = connectSequence.webSocketHost || '127.0.0.1';
-      result = await connectViaWebSocket(resolvedWsPort, wsHost, connectSequence, isJackIn);
+      result = await connectViaWebSocket(resolvedWsPort, wsHost, connectSequence, {
+        projectRootUri,
+        isJackIn,
+      });
       status.update();
       return result;
     }
@@ -1437,13 +1514,12 @@ export async function connect(
         port = new TextDecoder('utf-8').decode(bytes);
         selectedPortSource = 'port-file';
       } catch {
-        const defaultPort = connectSequenceInheritance.effectiveFallbackPort(
-          connectSequence,
-          projectTypes.getProjectTypeForName(connectSequence.projectType)
-        );
-        if (defaultPort !== undefined) {
-          output.appendLineOtherOut(`No nrepl port file found, using default port: ${defaultPort}`);
-          port = String(defaultPort);
+        const { fallbackPort } = connectSequence;
+        if (fallbackPort !== undefined) {
+          output.appendLineOtherOut(
+            `No nrepl port file found, using fallback port: ${fallbackPort}`
+          );
+          port = String(fallbackPort);
           selectedPortSource = 'fallback';
         } else {
           console.info('No nrepl port found');
@@ -1456,7 +1532,7 @@ export async function connect(
       // Suppress auto-connect when a matching connection already exists,
       // UNLESS explicit host:port was provided or this is a jack-in.
       const baseSessionNames = sessionRoleUtils.deriveSessionRoleKeys(connectSequence);
-      const projectRoot = state.getProjectRootUri().toString();
+      const projectRoot = projectRootUri.toString();
       const hasExistingMatch =
         !portWasExplicitlyProvided &&
         !isJackIn &&
@@ -1477,41 +1553,55 @@ export async function connect(
           selectedPortBehaviour === 'connect' && !hasExistingMatch;
 
         if (shouldAutoConnectSelectedPort) {
-          result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
+          result = await connectToHost(hostname, parseInt(port), connectSequence, projectRootUri, {
+            silent: true,
+            isJackIn,
+          });
           if (!result.connected) {
             output.appendLineOtherOut('Prompting for nREPL connection...');
-            result = await promptForNreplUrlAndConnect(
-              hostname,
-              port,
-              connectSequence,
-              'connection-failed'
-            );
+            result = await promptForNreplUrlAndConnect(hostname, port, connectSequence, {
+              projectRootUri,
+              reason: 'connection-failed',
+            });
           }
         } else {
-          result = await promptForNreplUrlAndConnect(
-            hostname,
-            port,
-            connectSequence,
-            selectedPortPromptReason[selectedPortSource]
-          );
+          result = await promptForNreplUrlAndConnect(hostname, port, connectSequence, {
+            projectRootUri,
+            reason: selectedPortPromptReason[selectedPortSource],
+          });
         }
       } else if (effectiveAutoConnect) {
-        result = await connectToHost(hostname, parseInt(port), connectSequence, true, isJackIn);
+        result = await connectToHost(hostname, parseInt(port), connectSequence, projectRootUri, {
+          silent: true,
+          isJackIn,
+        });
         if (!result.connected && !isJackIn) {
           output.appendLineOtherOut('Prompting for nREPL connection...');
-          result = await promptForNreplUrlAndConnect(
-            hostname,
-            port,
-            connectSequence,
-            'connection-failed'
-          );
+          result = await promptForNreplUrlAndConnect(hostname, port, connectSequence, {
+            projectRootUri,
+            reason: 'connection-failed',
+          });
         }
       } else {
-        result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'manual');
+        result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, {
+          projectRootUri,
+          reason: 'manual',
+        });
       }
     } else {
       output.appendLineOtherOut('No nrepl port file found.');
-      result = await promptForNreplUrlAndConnect(undefined, port, connectSequence, 'no-port-file');
+      const prefilledPort = projectTypes.getProjectTypeForName(
+        connectSequence.projectType
+      )?.prefilledPort;
+      result = await promptForNreplUrlAndConnect(
+        undefined,
+        prefilledPort?.toString(),
+        connectSequence,
+        {
+          projectRootUri,
+          reason: 'no-port-file',
+        }
+      );
     }
     status.update();
   } catch (e) {
@@ -1525,10 +1615,11 @@ export async function connect(
 
 async function standaloneConnect(
   connectSequence: connectSequences.ReplConnectSequence,
+  projectRootUri: vscode.Uri,
   hostname?: string,
   port?: string
 ) {
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   inspector.revealOnConnect();
   await outputWindow.openReplWindowDoc();
 
@@ -1540,29 +1631,45 @@ async function standaloneConnect(
     return connect(
       connectSequence,
       config.getConfig().autoSelectNReplPortFromPortFile,
-      hostname,
-      port
+      projectRootUri,
+      { hostname, port }
     );
   } else {
     output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
   }
 }
 
-async function nReplPortFileExists() {
-  const sequences = connectSequences.getConnectSequences(projectTypes.getAllProjectTypes());
-  const portFiles = sequences.map((sequence) => projectTypes.nreplPortFileUri(sequence));
-  let fileExists = false;
-  await Promise.all(
-    portFiles.map(async (portFile) => {
-      try {
-        await vscode.workspace.fs.stat(portFile);
-        fileExists = true;
-      } catch {
-        // do nothing, file does not exist
-      }
-    })
-  );
-  return fileExists;
+async function fileExists(uri: vscode.Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function sequencesToTryForAutoConnect(
+  decided: state.DecidedRoot
+): Promise<connectSequences.ReplConnectSequence[]> {
+  if (decided.sequence) {
+    return [decided.sequence];
+  }
+  const candidateTypes = await projectTypes.detectProjectCandidates(decided.root);
+  return candidateTypes.length > 0 ? connectSequences.getConnectSequences(candidateTypes) : [];
+}
+
+/**
+ * Returns the root and connect sequence to auto-connect with: the root decision
+ * without a menu, and the first sequence whose nREPL port file exists for that root.
+ */
+async function findAutoConnectTarget(): Promise<Required<state.DecidedRoot> | undefined> {
+  const decided = await state.decideRootWithoutMenu(connectTypes.ConnectType.Connect);
+  for (const sequence of await sequencesToTryForAutoConnect(decided)) {
+    if (await fileExists(projectTypes.nreplPortFileUri(sequence, decided.root))) {
+      return { root: decided.root, sequence };
+    }
+  }
+  return undefined;
 }
 
 function handleConnectError(error: unknown): boolean {
@@ -1733,7 +1840,7 @@ async function disconnectClientByKey(
   if (client) {
     client['silent'] = true;
     try {
-      if (state.getProjectRootUri().scheme === 'vsls') {
+      if (liveShareSupport.isLiveShareGuest()) {
         client.disconnect();
       } else {
         await client.close();
@@ -1767,14 +1874,15 @@ async function stopWsServer(server: nReplWsServer.NReplWsServer): Promise<void> 
 }
 
 export async function connectNonProjectREPLCommand(context: vscode.ExtensionContext) {
-  await state.setOrCreateNonProjectRoot(context, true);
+  const projectRootUri = state.nonProjectRootUri();
   const connectSequence = await connectSequences.askForConnectSequence(
     projectTypes.getAllProjectTypes(),
     connectTypes.ConnectType.Connect,
-    undefined
+    undefined,
+    projectRootUri
   );
   inspector.revealOnConnect();
-  await outputWindow.initReplWindowDoc();
+  await outputWindow.initReplWindowDoc(projectRootUri);
   await outputWindow.openReplWindowDoc();
 
   if (connectSequence) {
@@ -1782,7 +1890,11 @@ export async function connectNonProjectREPLCommand(context: vscode.ExtensionCont
     void state.analytics().logGA4Pageview('/connect-initiated');
     void state.analytics().logGA4Pageview('/connect-initiated/external-repl-connect');
 
-    return connect(connectSequence, false);
+    return connect(
+      connectSequence,
+      false,
+      connectSequences.rootForSequence(connectSequence, projectRootUri)
+    );
   } else {
     output.appendLineOtherErr('Aborting connect, error determining connect sequence.');
   }
@@ -1804,18 +1916,24 @@ export async function connectCommand(options?: {
   } else if (options && options.connectSequence) {
     connectSequence = options.connectSequence as connectSequences.ReplConnectSequence;
   }
-  await state
-    .initProjectDir(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
+  const decided = await state
+    .decideFlowRoot(connectTypes.ConnectType.Connect, connectSequence, options?.disableAutoSelect)
     .catch((e) => {
-      void vscode.window.showErrorMessage('Failed initializing project root directory: ', e);
+      void vscode.window.showErrorMessage(`Failed initializing project root directory: ${e}`);
+      return undefined;
     });
-  const cljTypes = await projectTypes.detectProjectTypes();
+  if (!decided) {
+    return;
+  }
+  const projectRootUri = decided.root;
+  const cljTypes = await projectTypes.detectProjectTypes(projectRootUri);
   if (!connectSequence) {
     try {
       connectSequence = await connectSequences.askForConnectSequence(
         cljTypes,
         connectTypes.ConnectType.Connect,
-        options?.disableAutoSelect
+        decided.sequence,
+        projectRootUri
       );
     } catch (e) {
       output.appendLineOtherErr(`${e}\nAborting connect.`);
@@ -1826,18 +1944,42 @@ export async function connectCommand(options?: {
   await liveShareSupport.setupLiveShareListener().catch((e) => {
     console.error('Error initializing LiveShare support: ', e);
   });
-  return standaloneConnect(connectSequence, host, port).catch((e) => {
+  const sequenceRootUri = connectSequence
+    ? connectSequences.rootForSequence(connectSequence, projectRootUri)
+    : projectRootUri;
+  return standaloneConnect(connectSequence, sequenceRootUri, host, port).catch((e) => {
     void vscode.window.showErrorMessage('Failed connecting to REPL: ', e);
   });
 }
 
-export async function shouldAutoConnect() {
-  return config.getConfig().autoConnectRepl && nReplPortFileExists();
+export async function shouldAutoConnect(): Promise<boolean> {
+  return config.getConfig().autoConnectRepl && (await findAutoConnectTarget()) !== undefined;
+}
+
+/**
+ * Connects to the REPL whose nREPL port file the startup check finds, without menus.
+ */
+export async function autoConnect(): Promise<void> {
+  if (!config.getConfig().autoConnectRepl) {
+    return;
+  }
+  const target = await findAutoConnectTarget();
+  if (!target) {
+    return;
+  }
+  await liveShareSupport.setupLiveShareListener().catch((e) => {
+    console.error('Error initializing LiveShare support: ', e);
+  });
+  void standaloneConnect(target.sequence, target.root).catch((e) => {
+    void vscode.window.showErrorMessage(`Failed connecting to REPL: ${e}`);
+  });
 }
 
 export function disconnect(
   options: {
     clientKey?: string;
+    host?: string;
+    port?: number;
     wsServerPort?: number;
     disconnectAll?: boolean;
     preserveSuffix?: boolean;
@@ -1869,6 +2011,15 @@ export function disconnect(
       targetWsServer = [...nReplWsServer.getActiveServers()].find(
         (s) => s.port === options.wsServerPort
       );
+    }
+
+    if (!targetClientKey && options?.host !== undefined && options?.port !== undefined) {
+      const match = clients.find(
+        (client) => client.host === options.host && client.port === options.port
+      );
+      if (match) {
+        targetClientKey = match.key;
+      }
     }
 
     if (!disconnectAll && !targetClientKey && !targetWsServer) {
@@ -1980,9 +2131,9 @@ export async function selectCljcTarget(target?: 'primary' | 'secondary') {
     },
   ];
 
-  const activeDoc = vscode.window.activeTextEditor?.document;
-  const activeFilePath = activeDoc
-    ? projectRootUtil.getPathRelativeToWorkspace(activeDoc.uri)
+  const fileUri = currentFile.currentFileUri();
+  const activeFilePath = fileUri
+    ? projectRootUtil.getPathRelativeToWorkspace(fileUri)
     : 'no file selected';
 
   const selection = await vscode.window.showQuickPick(items, {
@@ -2022,7 +2173,11 @@ export async function switchCljsBuild() {
     sessionRoleKeys: roleKeys,
     sessionGlobMap: globMap,
   } = connectionStateData;
-  const projectRootUri = projectRoot ? vscode.Uri.parse(projectRoot) : state.getProjectRootUri();
+  if (!projectRoot) {
+    output.appendLineOtherErr('Cannot switch build: connection has no project root');
+    return;
+  }
+  const projectRootUri = vscode.Uri.parse(projectRoot);
 
   if (!roleKeys?.secondary || !globMap) {
     output.appendLineOtherErr(

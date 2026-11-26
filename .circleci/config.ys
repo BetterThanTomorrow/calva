@@ -24,15 +24,17 @@
 # contain the associated definition:
 job-names =::
 - checkout
-- build
-- test-grammar
+- build-cljslib
+- package-vsix
 - prettier-check
-- eslint-check
-- test-cljslib
+- ts-lint
+- renamed-props-check
+- test-cljs-unit
 - test-ts-unit
 - test-e2e
 - test-smoke
 - test-smoke-sub-projects
+- test-docs-builder
 - github-release
 - marketplace-publish
 - marketplace-preview-publish
@@ -63,7 +65,23 @@ workflows-map =::
 # Note: The 2 different coding styles used for 'jobs' and 'workflows' is just
 # an example of different ways to express code in YAMLScript.
 
-version: 2
+version: 2.1
+
+# Reusable steps, used by name in the jobs:
+commands:
+  # Node comes from nodejs.org, which some runs wait on for half a minute
+  install-node:
+    steps:
+    - restore_cache:
+        name: Restore Node download
+        keys:
+        - node-v1-{{ checksum ".nvmrc" }}
+    - !:bin Install Node
+    - save_cache:
+        name: Save Node download
+        key: node-v1-{{ checksum ".nvmrc" }}
+        paths:
+        - ~/node-download
 
 # Generate 'jobs' section:
 jobs::

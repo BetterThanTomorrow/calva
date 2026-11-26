@@ -1,0 +1,4 @@
+{:paths ["." "src" "test" "scripts"]
+ :deps {org.clojure/clojurescript {:mvn/version "1.12.134"}}
+ :aliases {:joyride {:extra-deps {joyride/workspace {:local/root ".joyride"}}}
+           :scittle {:extra-paths ["resources/scittle"]}}}

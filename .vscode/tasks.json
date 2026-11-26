@@ -45,9 +45,33 @@
         "kind": "build",
         "isDefault": false
       },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(~never~)$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "nREPL server started"
+        }
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "defaultCalva"
+      }
+    },
+    {
+      "label": "Calva REPL",
+      "type": "shell",
+      "command": "echo ${input:connectCalvaRepl}",
+      "dependsOn": ["Calva Watch CLJS"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "never",
+        "close": true
       }
     },
     {
@@ -120,7 +144,7 @@
       "label": "Calva Watch Lint",
       "type": "shell",
       "command": "npm",
-      "args": ["run", "eslint-watch"],
+      "args": ["run", "lint-watch"],
       "isBackground": true,
       "osx": {
         "options": {
@@ -130,11 +154,32 @@
           }
         }
       },
+      "runOptions": {
+        "instanceLimit": 1
+      },
       "group": {
         "kind": "build",
         "isDefault": false
       },
-      "problemMatcher": "$eslint-compact",
+      "problemMatcher": {
+        "owner": "oxlint",
+        "source": "Oxlint",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+): (.*) \\[(Error|Warning)/(.+)\\]$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4,
+          "severity": 5,
+          "code": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[lint\\] START$",
+          "endsPattern": "^\\[lint\\] END"
+        }
+      },
       "presentation": {
         "panel": "dedicated",
         "group": "defaultCalva"
@@ -171,7 +216,7 @@
       "dependsOn": [
         "Calva Watch TS Format",
         "Calva Watch TS",
-        "Calva Watch CLJS",
+        "Calva REPL",
         "Calva Watch Test TS",
         "Calva Watch Lint"
       ]
@@ -179,8 +224,10 @@
     {
       "label": "Calva Watch Docs",
       "type": "shell",
-      "command": "npm",
-      "args": ["run", "watch-docs"],
+      "command": "clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.5.1\"} cider/cider-nrepl {:mvn/version \"0.58.0\"}}}' -M:dev -e '(require (quote calva.docs.serve)) (calva.docs.serve/start!)' -m nrepl.cmdline --middleware '[cider.nrepl/cider-middleware]'",
+      "options": {
+        "cwd": "${workspaceFolder}/docs-builder"
+      },
       "isBackground": true,
       "osx": {
         "options": {
@@ -194,9 +241,43 @@
         "kind": "build",
         "isDefault": false
       },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(~never~)$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "nREPL server started"
+        }
+      },
       "presentation": {
-        "panel": "dedicated"
+        "panel": "dedicated",
+        "group": "calvaDocs"
       }
+    },
+    {
+      "label": "Calva Docs",
+      "type": "shell",
+      "command": "echo ${input:connectDocsRepl}",
+      "dependsOn": ["Calva Watch Docs"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "never",
+        "close": true
+      }
+    },
+    {
+      "label": "Calva Compile and Watch",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "dependsOrder": "sequence",
+      "dependsOn": ["Calva Compile", "Calva Watchers"]
     },
     {
       "label": "Calva Dev",
@@ -204,8 +285,21 @@
         "kind": "build",
         "isDefault": true
       },
-      "dependsOrder": "sequence",
-      "dependsOn": ["Calva Compile", "Calva Watchers"]
+      "dependsOn": ["Calva Compile and Watch", "Calva Docs"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "connectCalvaRepl",
+      "type": "command",
+      "command": "joyride.runCode",
+      "args": "(require '[\"vscode\" :as vscode]) (vscode/commands.executeCommand \"calva.connect\" #js {:connectSequence \"Calva\"}) \"connecting\""
+    },
+    {
+      "id": "connectDocsRepl",
+      "type": "command",
+      "command": "joyride.runCode",
+      "args": "(require '[\"vscode\" :as vscode]) (vscode/commands.executeCommand \"calva.connect\" #js {:connectSequence \"Calva docs\"}) \"connecting\""
     }
   ]
 }

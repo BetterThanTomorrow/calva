@@ -1,6 +1,7 @@
 import type * as connectSequence from './connectSequence';
 import type * as nrepl from './index';
 import type * as sessionRoleUtils from './session-role-utils';
+import * as sessionEvents from './session-events';
 
 export type CljcTargetRole = 'primary' | 'secondary';
 
@@ -12,6 +13,7 @@ export interface ConnectionState {
   cljsBuild: string | null;
   cljsTypeName: string | null;
   hasBuilds: boolean;
+  availableBuilds?: string[];
   sessionRoleKeys?: sessionRoleUtils.SessionRoleKeys;
   sessionGlobMap?: sessionRoleUtils.SessionGlobMap;
   connectSequence?: connectSequence.ReplConnectSequence;
@@ -63,6 +65,11 @@ export function registerClient(
 
   registeredClients.set(entry.key, entry);
 
+  sessionEvents.fireSessionsChanged({
+    type: 'connection-added',
+    clientKey: entry.key,
+  });
+
   return entry;
 }
 
@@ -73,6 +80,11 @@ export function unregisterClient(clientKey: string): RegisteredClient | undefine
   }
 
   registeredClients.delete(clientKey);
+
+  sessionEvents.fireSessionsChanged({
+    type: 'connection-removed',
+    clientKey,
+  });
 
   return entry;
 }

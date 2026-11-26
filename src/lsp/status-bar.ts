@@ -35,3 +35,34 @@ export const updateStatusBar = (item: vscode.StatusBarItem, status: definitions.
     }
   }
 };
+
+type StatusInput = {
+  statuses: definitions.LspStatus[];
+  downloadFailed: boolean;
+  currentFileIsClojure: boolean;
+  currentFileClientStatus: definitions.LspStatus | undefined;
+};
+
+/**
+ * Returns the status to show for the clients with `statuses`: the status of the current file's
+ * client, Stopped without one. When the current file isn't a Clojure file, the status of the only
+ * client, Unknown with several or none. Starting while a client starts, and DownloadFailed when
+ * the download failed and there are no clients.
+ */
+export const statusFor = ({
+  statuses,
+  downloadFailed,
+  currentFileIsClojure,
+  currentFileClientStatus,
+}: StatusInput): definitions.LspStatus => {
+  if (statuses.includes(definitions.LspStatus.Starting)) {
+    return definitions.LspStatus.Starting;
+  }
+  if (downloadFailed && statuses.length === 0) {
+    return definitions.LspStatus.DownloadFailed;
+  }
+  if (!currentFileIsClojure) {
+    return statuses.length === 1 ? statuses[0] : definitions.LspStatus.Unknown;
+  }
+  return currentFileClientStatus ?? definitions.LspStatus.Stopped;
+};

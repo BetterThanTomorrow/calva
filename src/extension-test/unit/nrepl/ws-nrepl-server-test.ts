@@ -130,4 +130,24 @@ describe('ws-nrepl-server', () => {
     await server.stop(); // second stop should not throw
     server = undefined;
   });
+
+  it('stopAllActiveWsServers stops all tracked servers', async () => {
+    const server1 = await wsServer.startNReplWsServer(0);
+    const server2 = await wsServer.startNReplWsServer(0);
+    wsServer.trackServer(server1);
+    wsServer.trackServer(server2);
+    expectLib.expect(wsServer.getActiveServers().size).toBe(2);
+
+    await wsServer.stopAllActiveWsServers();
+
+    expectLib.expect(wsServer.getActiveServers().size).toBe(0);
+    expectLib.expect(server1.isListening()).toBe(false);
+    expectLib.expect(server2.isListening()).toBe(false);
+  });
+
+  it('stopAllActiveWsServers is idempotent on empty set', async () => {
+    await wsServer.stopAllActiveWsServers();
+    await wsServer.stopAllActiveWsServers();
+    expectLib.expect(wsServer.getActiveServers().size).toBe(0);
+  });
 });

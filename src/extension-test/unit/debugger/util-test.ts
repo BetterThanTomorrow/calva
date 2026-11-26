@@ -2,6 +2,8 @@ import * as expectLib from 'expect';
 import * as util from '../../../debugger/util';
 import * as model from '../../../cursor-doc/model';
 
+model.initScanner(20000);
+
 function getCoordinates(text: string): (string | number)[] {
   return text
     .split('\n')[0]

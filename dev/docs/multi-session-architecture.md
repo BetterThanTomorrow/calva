@@ -16,6 +16,11 @@ Familiarity with the most relevant documenation relating to this feature is a re
 * [Connect](../../docs/site/connect.md)
 * [Connect Sequences](../../docs/site/connect-sequences.md)
 
+## Related architecture docs
+
+* [Output Views Architecture](output-views-architecture.md): the Output View and the Output Sidebar
+* [REPL Input Architecture](repl-input-architecture.md): the REPL Input, which routes through the file it follows
+
 ## Document Structure
 
 - [Core Concepts](#core-concepts) - Key terminology and relationships
@@ -42,7 +47,7 @@ A **Connect Sequence** describes how Calva should connect to a project. It refer
 | `replSessionNames` | Optional: Override project type's default session names |
 | `replSessionFilePatterns` | Optional: Override project type's default file routing patterns |
 | `nReplPortFile` | Optional: Override project type's default port file location |
-| `fallbackPort` | Optional: Override project type's default fallback port |
+| `fallbackPort` | Optional: Port to use when no port file exists |
 
 A connect sequence typically results in one **Primary Session** (usually Clojure) and optionally one **Secondary Session** (usually ClojureScript).
 
@@ -60,11 +65,13 @@ A **Project Type** provides default configuration for connect sequences:
 | `defaultReplSessionNames` | Default session names (e.g., `{ primary: "bb" }` for Babashka) |
 | `defaultFilePatterns` | Default glob patterns for session routing |
 | `defaultNReplPortFile` | Default location of nREPL port file |
-| `defaultFallbackPort` | Default port when no port file exists |
+| `prefilledPort` | Port pre-filled in the host:port prompt when no port file exists |
+| `defaultWebSocketPort` | WebSocket transport default (`true` prompts for the port) |
+| `prefilledWebSocketPort` | Port pre-filled in the WebSocket port prompt, unless the sequence has a remembered port |
 | `commandLine` | Function to build jack-in command line |
 | `useWhenExists` | Files that identify this project type |
 
-**Configuration Resolution:** When a connect sequence doesn't specify a property, it falls back to the project type's default. This three-tier hierarchy applies to session names, file patterns, port files, and fallback ports:
+**Configuration Resolution:** When a connect sequence doesn't specify a property, it falls back to the project type's default. This three-tier hierarchy applies to session names, file patterns, port files, and the WebSocket port:
 
 1. **Connect sequence** (highest priority) - user/sequence-specific overrides
 2. **Project type** - sensible defaults for the REPL runtime
@@ -129,7 +136,7 @@ The **REPL window** is a special `.calva-repl` file that serves as an interactiv
 | **REPL window targeting** | Which session the REPL window sends evaluations to. Changed via "Select REPL Window Session" command. |
 | **Session pinning** | User override that forces ALL evaluations (from any file) to use a specific session. Independent of REPL window targeting. |
 
-The REPL window's targeted session is used during routing only when the active editor is the REPL window itself.
+The REPL window's targeted session is used during routing only when the file being routed is the REPL window itself.
 
 ### Session Name Resolution
 
@@ -495,10 +502,11 @@ This section describes how various Calva features interact with the session syst
 1. User triggers evaluation in a file
 2. `replSession.getSession()` is called (no parameters needed)
 3. Routing logic resolves session based on current context (see [Session Routing Details](#session-routing-details))
-4. Code is sent to the resolved session via nREPL `eval` op
-5. Results displayed inline and/or in output destination
+4. `evaluateInNamespace` evaluates the file's `ns` form in the resolved session first, unless that session last evaluated in the file's namespace, in the runtime it has now. The REPL window keeps the namespace each session last evaluated in (`getSessionNs` and `sessionHasNs` in `repl-window-doc.ts`), so a cljc target switch or a pin sends the `ns` form to the session that lacks it. A build switch makes a new session, and a runtime change makes the cljs session set up its namespace again
+5. Code is sent to the resolved session via nREPL `eval` op
+6. Results displayed inline and/or in output destination
 
-**Design principle:** The routing logic uses the current editor context (active document, results window state) to determine the appropriate session. Callers don't need to specify file types.
+**Design principle:** The routing logic routes the document a feature was asked about, such as hover or completion, or else the current file (`currentFileUri` in `src/current-file.ts`): the active editor, the last active one while a webview has the focus, or the REPL Input's source file while it is the current editor. Callers don't need to specify file types.
 
 ### ClojureDocs Lookup
 
@@ -546,7 +554,7 @@ ClojureDocs lookups use a **dedicated session** that is probed for ClojureDocs s
 4. Evaluate shadow-cljs API calls on the **Primary Session**:
    - `(shadow.cljs.devtools.api/repl-runtimes :build-id)`
    - `(shadow.cljs.devtools.api/repl-runtime-select :build-id runtime-id)`
-5. Update connection state with selected runtime
+5. Update connection state with selected runtime (`updateRuntimeState`), which makes the connection's cljs session evaluate its `ns` form again before its next evaluation, since the new runtime may lack the namespace
 
 **Why primary session?** Shadow-cljs API calls must be evaluated in the CLJ session (the watch process context), not the CLJS runtime.
 
@@ -556,6 +564,22 @@ function getPrimarySessionForCurrentConnection() {
   return sessionRegistry.findPrimarySessionForConnection(routedSessionKey);
 }
 ```
+
+#### Evaluating in a chosen runtime
+
+**Files involved:** `shadow-cljs-runtime-sessions.ts`, `api/repl-v1.ts`, `shadow-cljs-runtime.ts`
+
+The API's `evaluate` takes a `targetRuntimeId`. shadow-cljs ignores any runtime option on an nREPL eval message. It takes the runtime from the session, set by `(shadow.cljs.devtools.api/repl build {:runtime-id n})`. The cljs session has none, so shadow-cljs runs each of its evals in the build's default runtime at that moment, and sends that eval every print from the runtime while it runs. That default can differ from the runtime Calva shows as selected (`:runtime-select :latest`, or another client calling `repl-runtime-select`), so `evaluate` asks shadow-cljs for it:
+
+1. `getShadowRuntimesAllBuilds`, which `evaluate` uses to find the target's build, also reads the `:default-runtime-id` of each active build from shadow-cljs. `getEvalSessionForRuntime` gets the one for the target's build. When the target is that runtime and its build is the cljs session's build, the eval goes to the cljs session, so evals in that runtime share one queue and shadow-cljs gives each its own prints.
+2. Otherwise it uses the session for the runtime: a clone of the **Primary Session** that has evaluated `(shadow.cljs.devtools.api/repl <build> {:runtime-id <n>})`. There is one such session per connection and runtime, created on first use, outside the session registry. Output keeps the cljs session's key.
+3. shadow-cljs sends an eval the runtime's prints only when it picked the runtime itself, so the Primary Session also sends `{:op :runtime-print-sub :to <n>}` on its shadow-remote connection when it sets up a session for a runtime. A `node-repl` runtime is left out, since shadow-cljs sends every eval on that build the node process's stdout.
+4. `handleShadowRemoteMessage` hands `:runtime-print` messages to `handleRuntimePrint`. A print goes to the oldest unfinished tracked evaluation in that runtime (`trackEvaluation`), which is the one running, since a session evaluates one message at a time. Without one, it goes to the Output view, tagged with the runtime. A print from the selected runtime while the cljs session evaluates is skipped, since shadow-cljs sends it to that eval.
+5. A `runtime-disconnected` event closes the session for that runtime. The connection closing closes it with the rest of the client's sessions.
+
+The default runtime can change between the question in step 1 and the eval, for example when a new runtime connects with `:runtime-select :latest`, and then the eval runs in the new default. The skip rule in step 4 uses Calva's selected runtime, which is shadow-cljs's default since Calva selects with `repl-runtime-select`. If shadow-cljs changes its default on its own, prints from that runtime can show twice, and prints from the selected one can go missing while the cljs session evaluates.
+
+An id that isn't connected makes `evaluate` throw. The prints and the eval's value reach Calva on separate paths, so a print can arrive after the value, and then goes to the next evaluation queued in that runtime, or to the Output view. Without shadow-remote (shadow-cljs before 3.2.1), evals still reach the runtime, but its prints stay in the runtime, and no `runtime-disconnected` events close the sessions for runtimes that went away, so they stay open until the connection closes.
 
 ### CLJS Build Switching
 
@@ -626,7 +650,7 @@ The `getSessionKey()` function checks in this order:
 1. Pinned Session (user override)
    └─► sessionRouting.resolvePinnedSession() returns pinned key if mode is 'pinned'
 
-2. REPL Window Session (when active editor is REPL window)
+2. REPL Window Session (when the routed file is the REPL window)
    └─► outputWindow.getSessionType() - the explicitly targeted session for the REPL window
 
 3. Glob Pattern Matching (CLJC target only applied for project-fallback tier)
@@ -771,7 +795,7 @@ The system supports lookups in both directions, which is intentional:
 
 | File | Purpose |
 |------|---------|
-| `src/nrepl/project-types.ts` | Project type definitions with default configuration (session names, file patterns, port files, fallback ports) |
+| `src/nrepl/project-types.ts` | Project type definitions with default configuration (session names, file patterns, port files, pre-filled ports) |
 | `src/nrepl/session-role-utils.ts` | Derive session keys and glob maps using three-tier fallback: sequence config → project type defaults → generic defaults |
 | `src/nrepl/session-name-resolver.ts` | Session name conflict resolution with suffixes |
 | `src/nrepl/name-suffix.ts` | Suffix pool management for automatic session name suffixing |
@@ -796,6 +820,7 @@ The system supports lookups in both directions, which is intentional:
 | `src/debugger/decorations.ts` | Debug decorations |
 | `src/shadow-cljs-runtime.ts` | Runtime selection (high-level) |
 | `src/shadow-cljs-runtime-core.ts` | Runtime API calls (low-level) |
+| `src/shadow-cljs-runtime-sessions.ts` | Sessions for evaluating in a chosen runtime |
 | `src/providers/completion.ts` | Code completion |
 | `src/providers/definition.ts` | Go to definition |
 | `src/providers/hover.ts` | Hover information |
@@ -857,7 +882,7 @@ classDiagram
         +defaultReplSessionNames?: map
         +defaultFilePatterns?: map
         +defaultNReplPortFile: string[]
-        +defaultFallbackPort?: number
+        +prefilledPort?: number
     }
 
     NReplClient "1" -- "*" NReplSession : owns
@@ -952,7 +977,7 @@ sequenceDiagram
 flowchart TD
     A[Request Session for File] --> B{Pinned Session?}
     B -- Yes --> C[Return Pinned Session]
-    B -- No --> D{Active Editor is REPL Window?}
+    B -- No --> D{Routed File is REPL Window?}
     D -- Yes --> E[Return REPL Window Session]
     D -- No --> F[Glob Pattern Match]
     F --> G{Found 'always-claim' match?}

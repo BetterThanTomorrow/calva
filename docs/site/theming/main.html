@@ -1,8 +1,0 @@
-{% extends "base.html" %}
-
-{% block libs %}
-  {{ super() }}
-  {% if config.extra.mkdocs_env == 'production' %}
-    <script defer data-domain="calva.io" src="https://plausible.io/js/script.js"></script>
-  {% endif %}
-{% endblock %}

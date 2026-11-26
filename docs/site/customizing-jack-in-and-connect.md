@@ -40,8 +40,6 @@ The `calva.jackIn` command takes an optional options argument defined like so:
 
 Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the jack-in menus to be provided even if a custom connect sequence is set to be autoSelected.
 
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
 Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
 
 ```json
@@ -86,8 +84,6 @@ The `calva.connect` command takes an optional options argument defined like so:
 
 Where `ReplConnectSequence` is a [Connect Sequences](connect-sequences.md). If you provide a string it needs to match against a built-in or custom connect sequence. With `disableAutoSelect` you can force the connect menus to be provided even if a custom connect sequence is set to be autoSelected.
 
-You can provide these options from keyboard shortcuts or from [Joyride](https://github.com/BetterThanTomorrow/joyride) scripts.
-
 Here's a keyboard shortcut for connecting to a running REPL bypassing any connect sequence with `autoSelectForConnect`.
 
 ```json
@@ -102,6 +98,34 @@ A Joyride command for connecting to a REPL on port 55555, without being asked fo
 
 ```clojure
 (vscode/commands.executeCommand "calva.connect" (clj->js {:port "55555" :connectSequence "Generic"}))
+```
+
+#### Options for the Disconnect Command
+
+The `calva.disconnect` command takes an optional options argument defined like so:
+
+```typescript
+  options?: {
+    clientKey?: string;
+    host?: string;
+    port?: number;
+    wsServerPort?: number;
+    disconnectAll?: boolean;
+  }
+```
+
+`clientKey` disconnects one connection, using the key from connection events or [`repl.listConnections()`](api.md#repllistconnections). `host` and `port` together disconnect by nREPL address. `wsServerPort` disconnects a WebSocket nREPL server. `disconnectAll` disconnects every connection and WebSocket server. An unknown target, or more than one target, shows an information message and does nothing. With no options the disconnect picker opens.
+
+```json
+    {
+        "command": "calva.disconnect",
+        "args": {"disconnectAll": true},
+        "key": "ctrl+alt+c shift+d",
+    },
+```
+
+```clojure
+(vscode/commands.executeCommand "calva.disconnect" (clj->js {:clientKey "nrepl-client-1"}))
 ```
 
 ## Auto-evaluate Code on Connect
@@ -120,7 +144,7 @@ Set either of these to `null` to disable the feature for that REPL type. (The Se
 
 !!! Note "For Clojure this is in addition to `afterPrimaryReplConnectedCode`"
 
-  There are two mechanisms for evaluating code when a Clojure REPL is connected. The `afterPrimaryReplConnectedCode` setting of custom connect sequences, and this `calva.autoEvaluateCode.onConnect.clj` setting. There is no _fundamental_ difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run *before* the connect sequence after-Jack-in code.
+    There are two mechanisms for evaluating code when a Clojure REPL is connected. The `afterPrimaryReplConnectedCode` setting of custom connect sequences, and this `calva.autoEvaluateCode.onConnect.clj` setting. There is no _fundamental_ difference between them. This one has a default function of auto-refering in the Clojure REPL utilities. And it will be run *before* the connect sequence after-Jack-in code.
 
 !!! Note "All configured code is concatenated"
     If you configure this both in User/global settings and in a Workspace, the workspace configured code will be concatenated on the user level code. Meaning both code snippets will be evaluated, first the User level code, then the Workspace level code. Also `null` disables the feature:

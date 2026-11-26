@@ -2,6 +2,7 @@ import type * as globs from './globs';
 import type * as nrepl from './index';
 import * as clientRegistry from './client-registry';
 import * as sessionNameSuffix from './session-name-suffix';
+import * as sessionEvents from './session-events';
 
 export interface SessionMetadata {
   key: string;
@@ -30,6 +31,12 @@ export function registerSession(
   registeredSessions.set(key, session);
 
   (session as any)._calvaSessionMetadata = fullMetadata;
+
+  sessionEvents.fireSessionsChanged({
+    type: 'session-added',
+    sessionKey: key,
+    clientKey: computedOwnerId,
+  });
 }
 
 export function getSession(key: string): nrepl.NReplSession | undefined {
@@ -37,7 +44,17 @@ export function getSession(key: string): nrepl.NReplSession | undefined {
 }
 
 export function unregisterSession(key: string): void {
+  const session = registeredSessions.get(key);
+  const metadata = (session as any)?._calvaSessionMetadata as SessionMetadata | undefined;
+  const clientKey = metadata?.connectionOwnerId ?? session?.client?.clientKey;
+
   registeredSessions.delete(key);
+
+  sessionEvents.fireSessionsChanged({
+    type: 'session-removed',
+    sessionKey: key,
+    clientKey,
+  });
 }
 
 export function listSessions(): SessionMetadata[] {
@@ -224,6 +241,13 @@ export function renameSession(oldKey: string, newKey: string): boolean {
   if (suffix) {
     sessionNameSuffix.releaseSuffix(suffix);
   }
+
+  sessionEvents.fireSessionsChanged({
+    type: 'session-renamed',
+    sessionKey: newKey,
+    previousSessionKey: oldKey,
+    clientKey,
+  });
 
   return true;
 }

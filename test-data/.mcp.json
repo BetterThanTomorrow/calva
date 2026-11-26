@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "backseat-driver": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${HOME}/.config/calva/backseat-driver/calva-mcp-server.js",
+        "${HOME}/.config/vscode-mcp/port-files/calva-backseat-driver-ws-a40848.port",
+        "127.0.0.1"
+      ]
+    },
+    "joyride": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${HOME}/.config/joyride/joyride-mcp-server.js",
+        "${HOME}/.config/vscode-mcp/port-files/joyride-ws-a40848.port",
+        "127.0.0.1"
+      ]
+    }
+  }
+}

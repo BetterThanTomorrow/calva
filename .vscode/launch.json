@@ -10,6 +10,7 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceRoot}", "${workspaceFolder}/test-data"],
+      "noDebug": true,
       "sourceMaps": true,
       "env": {
         "IS_DEBUG": "true",
@@ -213,7 +214,7 @@
         "DEBUG": "no-debug-universal-analytics"
       },
       "args": [
-        "${workspaceRoot}/test-data",
+        "${workspaceRoot}/test-fixtures",
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/out/extension-test/e2e/suite"

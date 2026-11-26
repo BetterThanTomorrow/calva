@@ -24,7 +24,7 @@ A connect sequence configures the following:
 * `autoSelectForConnect`: A boolean. If true, this sequence will be automatically selected at **Connect**, suppressing the Project Type menu. Use together with `projectRootPath` to also suppress the Project Root menu. If you have more than one sequence with `autoSelectForConnect` set to true, Calva will use the sequence with its `projectRootPath` closest to the currently active editor file. And if there is no such closest file, the first sequence will be used.
 * `projectRootPath`: An array of path segments leading to the root of the project to which this connect sequence corresponds. Use together with `autoSelectForJackIn`/`autoSelectForConnect` to suppress the Project Root menu. The path can be absolute or relative to the workspace root. If there are several Workspace Folders, the workspace root is the path of the first folder, so relative paths will only work for this first folder.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
-* `fallbackPort`: A fallback port number to use when the `nReplPortFile` is missing (for example the built-in Babashka sequence uses `1667`, and the Scittle sequence uses `1339`). This lets Calva attempt an immediate connection instead of prompting for host/port when the port file is not present.
+* `fallbackPort`: A fallback port number to use when the `nReplPortFile` is missing. This lets Calva attempt an immediate connection instead of prompting for host/port when the port file is not present. Without it, Calva prompts for host/port, pre-filled with a default port for the project type when it has one (for example `1667` for Babashka).
 * `selectedPortBehaviour`: Either `"connect"` or `"prompt"`. When Calva has selected the port of the nREPL server (for example from the nREPL port file or from `fallbackPort`), should it automatically connect or prompt you so that you can edit the `host:port`?
 * `webSocketPort`: Connect to a browser-based nREPL server ([Scittle](https://github.com/babashka/scittle), [Epupp](https://github.com/PEZ/epupp), or any [sci.nrepl.browser-server](https://github.com/babashka/scittle/tree/main/doc/nrepl) compatible runtime) over WebSocket instead of TCP. See [WebSocket Connections](connect.md#websocket-connections-browser-repls).
 * `webSocketHost`: The address the WebSocket server binds to. Defaults to `"127.0.0.1"`.
@@ -95,7 +95,7 @@ The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/
     1. User settings
 
 !!! Note "Force the project type menu to show"
-    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](connect.md#options-for-the-jack-in-command) and [Options for the Jack-in Command](connect.md#options-for-the-connect-command) for more on this.
+    The convenience of `autoSelectForJackIn/Connect` can be an inconvenience when you want to use another project type/sequence for a project. For this reason, the `calva.connect` and `calva.jackIn` can be provided with an option `disableAutoSelect`, which forces the project root and project type menus to show. See [Options for the Connect Command](customizing-jack-in-and-connect.md#options-for-the-connect-command) and [Options for the Jack-in Command](customizing-jack-in-and-connect.md#options-for-the-jack-in-command) for more on this.
 
 !!! Note "Path segments"
     `projectRootPath` and `nReplPortFile` both take an array of path segments. This is to make the paths work cross-platform. If you can't be bothered splitting up the path in segments, put the whole path in the first segment, though please note that if you use Windows path separators, these will not work for users with Linux or macOS.
@@ -190,7 +190,6 @@ This script doesn't actually start a REPL, it's provided more for giving you an 
 
 (when (= *file* (System/getProperty "babashka.file"))
   (process-args parsed-args))
-
 ```
 
 It's written in Babashka to encourage you to write your shell scripts in a civilized language. 😀 See the article [Changing my mind: Converting a script from bash to Babashka](https://blog.agical.se/en/posts/changing-my-mind--converting-a-script-from-bash-to-babashka/) for a small success-story about this mindset. See also [bash2bb](https://github.com/pesterhazy/bash2bb).

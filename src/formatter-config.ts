@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as filesCache from './files-cache';
 import * as cljsLib from '../out/cljs-lib/cljs-lib.js';
 import * as lsp from './lsp';
+import * as currentFile from './current-file';
 
 const defaultCljfmtContent =
   '\
@@ -58,9 +59,7 @@ function getConfigPath(workspaceConfig: vscode.WorkspaceConfiguration): string |
 
 export type FormatterConfig = Partial<Awaited<ReturnType<typeof getConfig>>>;
 
-export async function getConfig(
-  document: vscode.TextDocument = vscode.window.activeTextEditor?.document
-): Promise<{
+export async function getConfig(document?: vscode.TextDocument): Promise<{
   'format-as-you-type': boolean;
   'keep-comment-forms-trail-paren-on-own-line?': boolean;
   'cljfmt-options-string': string;
@@ -69,9 +68,10 @@ export async function getConfig(
   const workspaceConfig = vscode.workspace.getConfiguration('calva.fmt');
   const configPath: string | undefined = getConfigPath(workspaceConfig);
 
-  if (configPath === LSP_CONFIG_KEY && document) {
+  const uri = document?.uri ?? currentFile.currentFileUri();
+  if (configPath === LSP_CONFIG_KEY && uri) {
     const clientProvider = lsp.getClientProvider();
-    const client = clientProvider.getClientForDocumentUri(document.uri);
+    const client = clientProvider.getClientForDocumentUri(uri);
     if (client && client.isRunning) {
       lspFormatConfig = await lsp.api.getCljFmtConfig(client);
       if (!lspFormatConfig) {
@@ -90,9 +90,7 @@ export async function getConfig(
  * @param document
  * @returns FormatterConfig, possibly with cached or default LSP information
  */
-export function getConfigNow(
-  document: vscode.TextDocument = vscode.window.activeTextEditor?.document
-): FormatterConfig {
+export function getConfigNow(document?: vscode.TextDocument): FormatterConfig {
   // Begin async update from LSP if stale:
   if (Date.now() - lspFormatDate > lspFormatTTLms) {
     void getConfig(document);

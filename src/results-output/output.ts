@@ -9,8 +9,13 @@ import ansiRegex = require('ansi-regex');
 import * as printer from '../printer';
 import * as cljsLib from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
-import * as jackInVersions from '../nrepl/jack-in-dependency-versions';
+import * as cider from '../nrepl/cider';
 import * as evaluatedCode from './evaluated-code';
+import * as errorOutput from './error-output';
+import * as infoLine from './info-line';
+import { isWebviewOutputDestination } from './output-destinations';
+
+export { nextEvaluationId } from './info-line';
 
 const customChalk = new chalk.Instance({ level: 3 });
 
@@ -20,6 +25,8 @@ export interface SubscriberOutputMessage {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 }
 
 type Listener = (msg: SubscriberOutputMessage) => void;
@@ -63,6 +70,12 @@ type AppendOptions = {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
+  evaluationId?: number;
+  // The causes of the error the message is about, for the Output views
+  causes?: cider.Causes;
+  unfolded?: boolean;
 };
 
 export type AppendClojureOptions = {
@@ -71,6 +84,10 @@ export type AppendClojureOptions = {
   outputCategory?: OutputCategory;
   who?: string;
   description?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
+  // Numbers each evaluation, so that each evaluation's output starts with an info line
+  evaluationId?: number;
 };
 
 export type AppendEvaluatedCodeOptions = {
@@ -82,6 +99,9 @@ export type AppendEvaluatedCodeOptions = {
   ns?: string;
   replSessionType?: string;
   who?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
+  evaluationId?: number;
 };
 
 const lightTheme = {
@@ -141,6 +161,23 @@ export const defaultDestinationConfiguration: OutputDestinationConfiguration = {
   otherOutput: 'repl-window',
 };
 
+let outputPTY: OutputTerminal | undefined;
+let outputTerminal: vscode.Terminal | undefined;
+
+function forgetOutputTerminal(pty?: OutputTerminal) {
+  if (pty !== undefined && outputPTY !== pty) {
+    return;
+  }
+  outputPTY = undefined;
+  outputTerminal = undefined;
+}
+
+function isOutputTerminalLive() {
+  return Boolean(
+    outputTerminal && !outputTerminal.exitStatus && vscode.window.terminals.includes(outputTerminal)
+  );
+}
+
 class OutputTerminal implements vscode.Pseudoterminal {
   private writeEmitter = new vscode.EventEmitter<string>();
   onDidWrite: vscode.Event<string> = this.writeEmitter.event;
@@ -159,11 +196,7 @@ To reveal this terminal, use the command ${customChalk.bgWhiteBright.black(
         ' Calva: Show/Open the Calva Output Terminal '
       )}.
 
-See also the Calva Inspector: https://calva.io/inspector
-
-${jackInVersions.formatEffectiveVersionsReport()}
-
-${jackInVersions.formatLatestVersionsReport()}
+See Calva Output Destinations: https://calva.io/ouput
 
 Please consider sponsoring Calva: https://calva.io/sponsors ♥️
 
@@ -174,23 +207,29 @@ Please consider sponsoring Calva: https://calva.io/sponsors ♥️
     this.writeEmitter.fire(message.replace(/\r?\n/g, '\r\n'));
   }
   close(): void {
-    outputPTY = undefined;
-    outputTerminal = undefined;
-    // TODO: Decide if we should just recreate the terminal like this
-    // getOutputPTY();
-    // It would still be emptied, so the win isn't that big.
+    forgetOutputTerminal(this);
   }
 }
 
-let outputPTY: OutputTerminal;
-let outputTerminal: vscode.Terminal;
-
 function getOutputPTY() {
+  if (outputPTY && !isOutputTerminalLive()) {
+    forgetOutputTerminal(outputPTY);
+  }
   if (!outputPTY) {
     outputPTY = new OutputTerminal();
     outputTerminal = vscode.window.createTerminal({ name: 'Calva Output', pty: outputPTY });
   }
   return outputPTY;
+}
+
+export function registerOutputTerminalLifecycle(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.window.onDidCloseTerminal((term) => {
+      if (term === outputTerminal) {
+        forgetOutputTerminal();
+      }
+    })
+  );
 }
 
 let outputChannel: vscode.OutputChannel;
@@ -203,10 +242,8 @@ export function showOutputChannel(preserveFocus = true) {
 }
 
 export function showOutputTerminal(preserveFocus = true) {
-  if (!outputTerminal) {
-    getOutputPTY();
-  }
-  outputTerminal.show(preserveFocus);
+  getOutputPTY();
+  outputTerminal?.show(preserveFocus);
 }
 
 export function showResultOutputDestination(preserveFocus = true) {
@@ -215,9 +252,13 @@ export function showResultOutputDestination(preserveFocus = true) {
   if (!first) {
     return;
   }
-  if (isFilePathDestination(first)) {
+  return revealResultDestination(first, preserveFocus);
+}
+
+function revealResultDestination(destination: string, preserveFocus: boolean) {
+  if (isFilePathDestination(destination)) {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const resolvedPath = resolveOutputFilePath(first, workspaceRoot);
+    const resolvedPath = resolveOutputFilePath(destination, workspaceRoot);
     if (resolvedPath) {
       return vscode.window.showTextDocument(vscode.Uri.file(resolvedPath), {
         preserveFocus,
@@ -226,16 +267,41 @@ export function showResultOutputDestination(preserveFocus = true) {
     }
     return;
   }
-  if (first === 'output-channel') {
-    return showOutputChannel(preserveFocus);
+  const revealers: Record<string, (preserveFocus: boolean) => unknown> = {
+    'output-channel': showOutputChannel,
+    terminal: showOutputTerminal,
+    'output-view': cljsLib.showReplOutputWebviewPanel,
+    'output-sidebar': cljsLib.showReplOutputSidebar,
+  };
+  const revealer = revealers[destination];
+  return revealer ? revealer(preserveFocus) : outputWindow.revealReplWindowDoc(preserveFocus);
+}
+
+function writeToWebview(options: AppendOptions, message: string, after?: AfterAppendCallback) {
+  if (options.causes !== undefined) {
+    errorOutput.writeErrorToWebview(options, message, after);
+    return;
   }
-  if (first === 'terminal') {
-    return showOutputTerminal(preserveFocus);
+  if (options.outputCategory === 'evaluatedCode') {
+    evaluatedCode.showWhileRunning(options.evaluationId, options.destination);
   }
-  if (first === 'output-view') {
-    return cljsLib.showReplOutputWebviewPanel(preserveFocus);
+  if (options.destination === 'output-sidebar') {
+    cljsLib.appendToReplOutputSidebar(options, message);
+  } else {
+    cljsLib.appendToReplOutputWebview(options, message);
   }
-  return outputWindow.revealReplWindowDoc(preserveFocus);
+  if (after) {
+    after(undefined, undefined);
+  }
+}
+
+// Tells the Output views that show the evaluation's code that it ended
+export function endEvaluation(evaluationId: number | undefined) {
+  evaluatedCode.endEvaluation(evaluationId, (view, id) =>
+    view === 'output-sidebar'
+      ? cljsLib.endEvaluationInReplOutputSidebar(id)
+      : cljsLib.endEvaluationInReplOutputWebview(id)
+  );
 }
 
 export function getDestinationConfiguration(): OutputDestinationConfiguration {
@@ -289,6 +355,7 @@ const didLastOutputTerminateLine = new Map<string, boolean>([
   ['output-channel', true],
   ['terminal', true],
   ['output-view', true],
+  ['output-sidebar', true],
 ]);
 
 let havePrintedLegacyReplWindowOutputMessage = false;
@@ -308,38 +375,31 @@ export function maybePrintLegacyREPLWindowOutputMessage() {
   }
 }
 
-const lastInfoLineData = new Map<string, AppendClojureOptions>([
-  ['repl-window', {}],
-  ['output-channel', {}],
-  ['terminal', {}],
-  ['output-view', {}],
-]);
-
-function saveLastInfoLineData(destination: string, options: AppendClojureOptions) {
-  const { ns, replSessionType, who } = options;
-  if (ns) {
-    lastInfoLineData.set(destination, { ns, replSessionType, who });
-  }
-}
-
 function nsInfoLine(destination: string, options: AppendClojureOptions) {
-  const last = lastInfoLineData.get(destination) ?? {};
-  const key = `${options.who || ''}:${options.replSessionType}:${options.ns}`;
-  const lastKey = `${last.who || ''}:${last.replSessionType}:${last.ns}`;
-  if (!options.ns || key === lastKey) {
+  if (!options.ns || !infoLine.isInfoLineDue(destination, options)) {
     return '\n';
   }
   const whoBadge =
     options.who && options.who !== 'ui'
       ? themedChalk().evalSeparatorWho(' ' + options.who + ' ')
       : '';
+  let sessionTypeStr = options.replSessionType || '';
+  if (options.shadowBuild) {
+    sessionTypeStr += ` ${options.shadowBuild}`;
+  }
+  if (options.shadowRuntimeId !== undefined) {
+    sessionTypeStr += ` ${options.shadowRuntimeId}`;
+  }
   return `\n;${whoBadge}${themedChalk().evalSeparatorSessionType(
-    ' ' + options.replSessionType + ' '
+    ' ' + sessionTypeStr + ' '
   )}${themedChalk().evalSeparatorNs(' ' + options.ns + ' ')}\n`;
 }
 
 function emitClojureMessage(
-  options: Pick<AppendClojureOptions, 'ns' | 'replSessionType' | 'who'> & {
+  options: Pick<
+    AppendClojureOptions,
+    'ns' | 'replSessionType' | 'who' | 'shadowBuild' | 'shadowRuntimeId'
+  > & {
     outputCategory: OutputCategory;
   },
   message: string,
@@ -352,6 +412,8 @@ function emitClojureMessage(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -397,11 +459,8 @@ function writeClojure(
     if (after) {
       after(undefined, undefined);
     }
-  } else if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, message);
-    if (after) {
-      after(undefined, undefined);
-    }
+  } else if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, message, after);
   }
 }
 
@@ -422,7 +481,7 @@ function appendClojure(
   }
   emitClojureMessage(options, message, didLastTerminateLine);
   writeClojure(options, message, didLastTerminateLine, after);
-  saveLastInfoLineData(destination, options);
+  infoLine.saveLastContext(destination, options);
 }
 
 export function appendEvaluatedCode(
@@ -435,7 +494,7 @@ export function appendEvaluatedCode(
     additionalDestinations = [],
     sinkDestination = destination,
     writeVisible = true,
-    visibleOutputCategory = 'evalResults',
+    visibleOutputCategory = 'evaluatedCode',
     ...metadataOptions
   } = options;
   const normalizedDestination = normalizeDestinations(destination);
@@ -471,6 +530,8 @@ export function appendEvaluatedCode(
     who: metadataOptions.who,
     ns: metadataOptions.ns,
     replSessionKey: metadataOptions.replSessionType,
+    shadowBuild: metadataOptions.shadowBuild,
+    shadowRuntimeId: metadataOptions.shadowRuntimeId,
     visibleOutputCategory,
     emit: (message) => {
       try {
@@ -502,7 +563,7 @@ export function appendEvaluatedCode(
   });
 
   visibleDestinations.forEach((visibleDestination) => {
-    saveLastInfoLineData(visibleDestination, metadataOptions);
+    infoLine.saveLastContext(visibleDestination, metadataOptions);
   });
 }
 
@@ -530,6 +591,8 @@ export function appendClojureEval(
       who: options.who,
       ns: options.ns,
       replSessionType: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   }
   destinations.forEach((destination, index) => {
@@ -545,7 +608,7 @@ export function appendClojureEval(
       didLastTerminateLine,
       isLast ? after : undefined
     );
-    saveLastInfoLineData(destination, options);
+    infoLine.saveLastContext(destination, options);
   });
 }
 
@@ -577,8 +640,35 @@ export function appendClojureOther(message: string, after?: AfterAppendCallback)
       didLastTerminateLine,
       isLast ? after : undefined
     );
-    saveLastInfoLineData(destination, {});
+    infoLine.saveLastContext(destination, {});
   });
+}
+
+type Write = (options: AppendOptions, message: string, after?: AfterAppendCallback) => void;
+
+// Destinations without a stacktrace UI get an error's whole stacktrace as text after its message
+function withStacktraceText(write: Write): Write {
+  return (options, message, after) => {
+    const { destination, causes } = options;
+    if (causes === undefined || !isTextDestination(destination)) {
+      return write(options, message, after);
+    }
+    write({ ...options, causes: undefined }, message, after);
+    cider.withCauses(causes, (causes) => appendStacktraceText(options, causes));
+  };
+}
+
+function appendStacktraceText(options: AppendOptions, causes?: cider.StacktraceCause[]) {
+  if (cider.hasFrames(causes)) {
+    const lineStart = didLastOutputTerminateLine.get(options.destination) ?? true ? '' : '\n';
+    writeAppend({ ...options, causes: undefined }, `${lineStart}${cider.stacktraceText(causes)}\n`);
+  }
+}
+
+// The Output Channel, the terminal and output files. The REPL window and the Output views draw
+// stacktraces and the evaluation context themselves.
+function isTextDestination(destination: string) {
+  return destination !== 'repl-window' && !isWebviewOutputDestination(destination);
 }
 
 function writeAppend(options: AppendOptions, message: string, after?: AfterAppendCallback) {
@@ -594,7 +684,7 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
         ? message
         : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
-    outputWindow.append(decoratedMessage, after);
+    outputWindow.append(decoratedMessage, errorOutput.withStacktraceLink(options.causes, after));
     return;
   }
   if (destination === 'output-channel') {
@@ -611,8 +701,8 @@ function writeAppend(options: AppendOptions, message: string, after?: AfterAppen
     }
     return;
   }
-  if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, message);
+  if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, message);
   }
 }
 
@@ -624,6 +714,8 @@ function append(options: AppendOptions, message: string, after?: AfterAppendCall
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionKey,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -656,6 +748,8 @@ export function appendEvalOut(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -673,6 +767,9 @@ export function appendEvalOut(
         who: options.who,
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -685,11 +782,15 @@ export function appendEvalOut(
  * Use for stderr messages related to an evaluation
  * @param message The message to append
  * @param after Optional callback to run after the append
+ * @param causes The causes of the error the message is about. The Output views show the message
+ * and the causes as one error, the REPL window links the stacktrace, and the other destinations
+ * print the whole stacktrace after the message.
  */
 export function appendEvalErr(
   message: string,
   options: AppendClojureOptions,
-  after?: AfterAppendCallback
+  after?: AfterAppendCallback,
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
   if (!destinations.length) {
@@ -707,6 +808,8 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -718,6 +821,8 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -733,11 +838,14 @@ export function appendEvalErr(
       who: options.who,
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
+      evaluationId: options.evaluationId,
     };
-    writeAppend(evalErrOptions, nsInfoLine(destination, options));
     const isLast = index === destinations.length - 1;
-    writeAppend(evalErrOptions, coloredMessage, isLast ? after : undefined);
-    saveLastInfoLineData(destination, options);
+    writeNsInfoLine(evalErrOptions, options);
+    writeAppendError({ ...evalErrOptions, causes }, coloredMessage, isLast ? after : undefined);
+    infoLine.saveLastContext(destination, options);
   });
 }
 
@@ -767,6 +875,8 @@ export function appendOtherOut(
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -784,6 +894,8 @@ export function appendOtherOut(
         who: options.who ?? 'ui',
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -817,6 +929,8 @@ export function appendOtherErr(
       who: options.who ?? 'ui',
       ns: options.ns,
       replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -834,6 +948,8 @@ export function appendOtherErr(
         who: options.who ?? 'ui',
         ns: options.ns,
         replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
       },
       coloredMessage,
       isLast ? after : undefined
@@ -854,7 +970,10 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
       options.outputCategory === 'evalOut' && config.getConfig().legacyPrintBareReplWindowOutput
         ? message
         : `${didLastTerminateLine ? '; ' : ''}${asClojureLineComments(util.stripAnsi(message))}`;
-    outputWindow.appendLine(decoratedMessage, after);
+    outputWindow.appendLine(
+      decoratedMessage,
+      errorOutput.withStacktraceLink(options.causes, after)
+    );
     return;
   }
   if (destination === 'output-channel') {
@@ -865,8 +984,18 @@ function writeAppendLine(options: AppendOptions, message: string, after?: AfterA
     writeAppend(options, message + '\r\n', after);
     return;
   }
-  if (destination === 'output-view') {
-    cljsLib.appendToReplOutputWebview(options, '\n\n' + message);
+  if (isWebviewOutputDestination(destination)) {
+    writeToWebview(options, '\n\n' + message);
+  }
+}
+
+const writeAppendError = withStacktraceText(writeAppend);
+const writeAppendLineError = withStacktraceText(writeAppendLine);
+
+// The text destinations show the evaluation context in an info line
+function writeNsInfoLine(options: AppendOptions, clojureOptions: AppendClojureOptions) {
+  if (isTextDestination(options.destination)) {
+    writeAppend(options, nsInfoLine(options.destination, clojureOptions));
   }
 }
 
@@ -909,6 +1038,10 @@ export function appendLineEvalOut(
       category: 'evalOut',
       text: util.stripAnsi(message),
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -920,7 +1053,16 @@ export function appendLineEvalOut(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'evalOut', who: options.who },
+      {
+        destination,
+        outputCategory: 'evalOut',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -951,6 +1093,10 @@ export function appendLineEvalErr(
       category: 'evalErr',
       text: util.stripAnsi(message),
       who: options.who,
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -962,7 +1108,16 @@ export function appendLineEvalErr(
         : message;
     const isLast = index === destinations.length - 1;
     writeAppendLine(
-      { destination, outputCategory: 'evalErr', who: options.who },
+      {
+        destination,
+        outputCategory: 'evalErr',
+        who: options.who,
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+        evaluationId: options.evaluationId,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -975,11 +1130,15 @@ export function appendLineEvalErr(
  * (e.g. out of band messages)
  * @param message The message to append
  * @param after Optional callback to run after the append
+ * @param causes The causes of the error the message is about. The Output views show the message
+ * and the causes as one error, the REPL window links the stacktrace, and the other destinations
+ * print the whole stacktrace after the message.
  */
 export function appendLineOtherOut(
   message: string,
   options: AppendClojureOptions = {},
-  after?: AfterAppendCallback
+  after?: AfterAppendCallback,
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
@@ -993,6 +1152,10 @@ export function appendLineOtherOut(
       category: 'otherOut',
       text: util.stripAnsi(message),
       who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -1003,8 +1166,17 @@ export function appendLineOtherOut(
         ? themedChalk().otherOut(message)
         : message;
     const isLast = index === destinations.length - 1;
-    writeAppendLine(
-      { destination, outputCategory: 'otherOut', who: options.who ?? 'ui' },
+    writeAppendLineError(
+      {
+        destination,
+        outputCategory: 'otherOut',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+        causes,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -1017,11 +1189,15 @@ export function appendLineOtherOut(
  * (e.g. out of band messages)
  * @param message The message to append
  * @param after Optional callback to run after the append
+ * @param causes The causes of the error the message is about. The Output views show the message
+ * and the causes as one error, the REPL window links the stacktrace, and the other destinations
+ * print the whole stacktrace after the message.
  */
 export function appendLineOtherErr(
   message: string,
   options: AppendClojureOptions = {},
-  after?: AfterAppendCallback
+  after?: AfterAppendCallback,
+  causes?: cider.Causes
 ) {
   const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
@@ -1035,6 +1211,10 @@ export function appendLineOtherErr(
       category: 'otherErr',
       text: util.stripAnsi(message),
       who: options.who ?? 'ui',
+      ns: options.ns,
+      replSessionKey: options.replSessionType,
+      shadowBuild: options.shadowBuild,
+      shadowRuntimeId: options.shadowRuntimeId,
     });
   } catch (e) {
     console.error('Calva output-sink listener error', e.message);
@@ -1045,8 +1225,17 @@ export function appendLineOtherErr(
         ? themedChalk().otherErr(message)
         : message;
     const isLast = index === destinations.length - 1;
-    writeAppendLine(
-      { destination, outputCategory: 'otherErr', who: options.who ?? 'ui' },
+    writeAppendLineError(
+      {
+        destination,
+        outputCategory: 'otherErr',
+        who: options.who ?? 'ui',
+        ns: options.ns,
+        replSessionKey: options.replSessionType,
+        shadowBuild: options.shadowBuild,
+        shadowRuntimeId: options.shadowRuntimeId,
+        causes,
+      },
       coloredMessage,
       isLast ? after : undefined
     );
@@ -1071,42 +1260,38 @@ export async function replWindowForceAppendPrompt() {
   await outputWindow.forceAppendPrompt();
 }
 
-function formatStacktrace(stacktrace: any[]) {
-  return stacktrace
-    .filter((entry) => {
-      return (
-        !entry.flags.includes('dup') &&
-        !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class)
-      );
-    })
-    .map((entry) => {
-      const name = entry.var || entry.name;
-      return `${name} (${entry.file}:${entry.line})`;
-    })
-    .join('\n');
-}
-
-function printStackTrace(stacktrace: any[]) {
+function printStackTrace(causes: cider.StacktraceCause[]) {
+  const stacktrace = cider.stacktraceText(causes);
   const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
   for (const destination of destinations) {
     if (isFilePathDestination(destination)) {
-      writeToFileDestination(destination, '\n' + formatStacktrace(stacktrace) + '\n');
+      writeToFileDestination(destination, '\n' + stacktrace + '\n');
+      continue;
+    }
+    if (isWebviewOutputDestination(destination)) {
+      errorOutput.writeErrorToWebview(
+        {
+          destination,
+          outputCategory: 'evalErr',
+          unfolded: true,
+          causes,
+        },
+        cider.causeHeading(causes[0])
+      );
       continue;
     }
     switch (destination) {
       case 'repl-window':
+        outputWindow.saveStacktrace(cider.outermostCauseFrames(causes));
         outputWindow.printLastStacktrace();
         void replWindowAppendPrompt();
         break;
-      case 'output-view':
-        cljsLib.appendStackTraceToReplOutputWebview(stacktrace);
-        break;
       case 'output-channel':
         outputChannel.appendLine('');
-        outputChannel.appendLine(formatStacktrace(stacktrace));
+        outputChannel.appendLine(stacktrace);
         break;
       case 'terminal':
-        getOutputPTY().write('\n' + formatStacktrace(stacktrace) + '\n');
+        getOutputPTY().write('\n' + stacktrace + '\n');
         break;
       default:
         console.error(
@@ -1122,9 +1307,9 @@ export function printLastStacktrace() {
   const session = replSession.getSession();
   session
     .stacktrace()
-    .then((stacktrace) => {
-      if (stacktrace.stacktrace) {
-        printStackTrace(stacktrace.stacktrace);
+    .then((causes) => {
+      if (cider.outermostCauseFrames(causes)) {
+        printStackTrace(causes);
       }
     })
     .catch((e) => {

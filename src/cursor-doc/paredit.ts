@@ -785,6 +785,42 @@ export function rewrapSexpr(
   return doc.model.edit(editsToApply, {});
 }
 
+function enclosingListRange(doc: EditableDocument, start: number) {
+  const cursor = doc.getTokenCursor(start);
+  cursor.backwardList();
+  const open = cursor.getPrevToken();
+  const innerStart = cursor.offsetStart;
+  if (open.type == 'open') {
+    cursor.forwardList();
+    const close = cursor.getToken();
+    const innerEnd = cursor.offsetStart;
+    if (close.type == 'close' && clojureLexer.validPair(open.raw, close.raw)) {
+      return {
+        outerStart: innerStart - open.raw.length,
+        innerStart,
+        innerEnd,
+        outerEnd: innerEnd + close.raw.length,
+      };
+    }
+  }
+}
+
+export async function squeezeSexpr(
+  doc: EditableDocument,
+  onRange: (doc: EditableDocument, range: [number, number]) => Promise<void>,
+  start = doc.selections[0].active
+) {
+  const range = enclosingListRange(doc, start);
+  if (range) {
+    await onRange(doc, [range.innerStart, range.innerEnd]);
+
+    return doc.model.edit(
+      [new ModelEdit('changeRange', [range.outerStart, range.outerEnd, ''])],
+      {}
+    );
+  }
+}
+
 export async function splitSexp(doc: EditableDocument, start: number = doc.selections[0].active) {
   const cursor = doc.getTokenCursor(start);
   if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
@@ -844,25 +880,16 @@ export async function spliceSexp(
   start: number = doc.selections[0].active,
   undoStopBefore = true
 ): Promise<Thenable<boolean>> {
-  const cursor = doc.getTokenCursor(start);
   // TODO: this should unwrap the string, not the enclosing list.
-
-  cursor.backwardList();
-  const open = cursor.getPrevToken();
-  const beginning = cursor.offsetStart;
-  if (open.type == 'open') {
-    cursor.forwardList();
-    const close = cursor.getToken();
-    const end = cursor.offsetStart;
-    if (close.type == 'close' && clojureLexer.validPair(open.raw, close.raw)) {
-      return doc.model.edit(
-        [
-          new ModelEdit('changeRange', [end, end + close.raw.length, '']),
-          new ModelEdit('changeRange', [beginning - open.raw.length, beginning, '']),
-        ],
-        { undoStopBefore, selections: [new ModelEditSelection(start - 1)] }
-      );
-    }
+  const range = enclosingListRange(doc, start);
+  if (range) {
+    return doc.model.edit(
+      [
+        new ModelEdit('changeRange', [range.innerEnd, range.outerEnd, '']),
+        new ModelEdit('changeRange', [range.outerStart, range.innerStart, '']),
+      ],
+      { undoStopBefore, selections: [new ModelEditSelection(start - 1)] }
+    );
   }
 }
 
@@ -2579,6 +2606,9 @@ export async function dragSexprBackward(
     formAttachedToCommentAt(doc, right) ??
     formOnTrailingCommentLineAt(doc, right) ??
     currentSexpsRange(doc, cursor, right, usePairs, config);
+  if (!baseRange) {
+    return;
+  }
   const initialCurrentRange = extendRangeOverAttachedComments(doc, baseRange);
   const backCursor = doc.getTokenCursor(baseRange[0]);
   backCursor.backwardSexp();
@@ -2653,6 +2683,9 @@ export async function dragSexprForward(
     formAttachedToCommentAt(doc, right) ??
     formOnTrailingCommentLineAt(doc, right) ??
     currentSexpsRange(doc, cursor, right, usePairs, config);
+  if (!baseRange) {
+    return;
+  }
   const currentRange = extendRangeOverAttachedComments(doc, baseRange);
   const forwardCursor = doc.getTokenCursor(baseRange[1]);
   forwardCursor.forwardWhitespace();

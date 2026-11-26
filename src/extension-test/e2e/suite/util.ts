@@ -3,7 +3,6 @@ import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as which from 'which';
-import screenshot = require('screenshot-desktop');
 import * as state from '../../../state';
 import * as projectRoot from '../../../project-root';
 import * as clientRegistry from '../../../nrepl/client-registry';
@@ -14,18 +13,18 @@ import * as output from '../../../results-output/output';
 import * as outputDestinations from '../../../results-output/output-destinations';
 import * as docMirror from '../../../doc-mirror';
 import * as connector from '../../../connector';
+import * as utilities from '../../../utilities';
+import * as replSession from '../../../nrepl/repl-session';
+import { ConnectType } from '../../../nrepl/connect-types';
 
 export const testDataDir = path.join(
   __dirname,
   ...['..', '..', '..', '..'],
-  'test-data',
+  'test-fixtures',
   'integration-test'
 );
 
 export const isCircleCI = process.env.CIRCLECI === 'true';
-
-// The top level directory where screenshots will be stored.
-const screenshotsDir = path.join(__dirname, '../screenshots');
 
 export async function openFile(filePath: string) {
   const uri = vscode.Uri.file(filePath);
@@ -40,6 +39,31 @@ export async function openFile(filePath: string) {
   );
 
   return editor;
+}
+
+export async function showInColumn(filePath: string, column: vscode.ViewColumn) {
+  const document = await vscode.workspace.openTextDocument(filePath);
+  await vscode.window.showTextDocument(document, column);
+  await waitForCondition(
+    () => vscode.window.activeTextEditor?.document === document,
+    4000,
+    20,
+    `Timed out waiting for ${filePath} to be the active editor`
+  );
+  return document;
+}
+
+/**
+ * Returns what Calva answers for the file the user is in: the path of its document, the session
+ * it routes to, and the project root closest to it.
+ */
+export async function currentFileAnswers() {
+  const { input } = await state.gatherRootDecision(ConnectType.JackIn, undefined, false);
+  return {
+    document: utilities.tryToGetDocument({})?.uri.fsPath,
+    sessionKey: replSession.getRoutingInfo()?.sessionKey,
+    closestRoot: input.closestRoot,
+  };
 }
 
 export function sleep(ms: number): Promise<void> {
@@ -62,35 +86,6 @@ export function getExecutablePath(executablePathMaybe: string) {
   } catch (_e) {
     return null;
   }
-}
-
-// Captures a screenshot and saves it to
-// <screenshotsDir>/SUITE/TESTNAME.png. Waits DELAYMS milliseconds
-// before capturing. Returns the file path or null on error.
-export async function captureScreenshot(
-  suite: string,
-  testName: string,
-  delayMs: number
-): Promise<string> {
-  let outputPath = path.join(screenshotsDir, suite, `${testName}.png`);
-
-  try {
-    const dir = path.dirname(outputPath);
-    fs.mkdirSync(dir, { recursive: true });
-
-    if (delayMs > 0) {
-      await sleep(delayMs);
-    }
-
-    const imageBuffer = await screenshot();
-
-    fs.writeFileSync(outputPath, new Uint8Array(imageBuffer));
-    log(suite, `Screenshot saved to ${outputPath}`);
-  } catch (error) {
-    log(suite, 'Error capturing screenshot:', error);
-    outputPath = null;
-  }
-  return outputPath;
 }
 
 // Attempts to creates a wrapper around all functions and properties

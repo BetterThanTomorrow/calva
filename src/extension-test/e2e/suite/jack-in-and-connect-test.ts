@@ -12,7 +12,6 @@ import * as docMirror from '../../../doc-mirror';
 import * as projectRoot from '../../../project-root';
 import * as state from '../../../state';
 import * as connector from '../../../connector';
-import * as connectTypes from '../../../nrepl/connect-types';
 import * as connectSequence from '../../../nrepl/connectSequence';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as projectTypes from '../../../nrepl/project-types';
@@ -121,6 +120,295 @@ suite('Jack-in and Connect suite', () => {
     );
   });
 
+  test('disableAutoSelect without a sequence shows the Project Root menu', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'disableAutoSelect without a sequence');
+
+    const testFilePath = path.join(testUtil.testDataDir, 'bb-mini/test.clj');
+    await testUtil.openFile(testFilePath);
+
+    const candidateRoots = await projectRoot.findProjectRoots();
+    const closestRoot = projectRoot.findClosestParent(
+      vscode.window.activeTextEditor?.document.uri,
+      candidateRoots
+    );
+    assert.ok(closestRoot, 'bb-mini/test.clj should sit in a project root');
+    assert.ok(
+      closestRoot.fsPath.endsWith(`${path.sep}bb-mini`),
+      `expected the bb-mini root, got ${closestRoot.fsPath}`
+    );
+
+    await state.extensionContext.workspaceState.update(
+      `qps-${closestRoot.toString()}/jack-in-type`,
+      {
+        label: 'Babashka',
+      }
+    );
+
+    let settled = false;
+    const jackInDone = Promise.resolve(
+      vscode.commands.executeCommand('calva.jackIn', { disableAutoSelect: true })
+    ).finally(() => {
+      settled = true;
+    });
+
+    const deadline = Date.now() + 25_000;
+    while (!settled && Date.now() < deadline) {
+      try {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+      } catch {
+        // The menu is not open yet.
+      }
+      await testUtil.sleep(200);
+    }
+
+    await jackInDone;
+    assert.ok(settled, 'jack-in did not finish after the menus were accepted');
+
+    const clientKey = await waitForNextClient(suite);
+    await waitForJackInCompletion(suite);
+    await waitForSessionsReady(suite, clientKey);
+
+    const client = clientRegistry.getRegisteredClient(clientKey);
+    assert.ok(client, 'jack-in should connect a client');
+    assert.strictEqual(client.projectRoot, closestRoot.toString());
+    assert.strictEqual(client.connectSequenceName, 'Babashka');
+
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('Escape on the Project Root menu cancels', async function () {
+    this.timeout(60_000);
+    testUtil.log(suite, 'Escape on the Project Root menu');
+
+    await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    await vscode.env.clipboard.writeText('');
+
+    let settled = false;
+    const copied = Promise.resolve(
+      vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
+        connectSequence: {
+          name: 'cancelled copy',
+          projectType: connectSequenceTypes.ProjectTypes['babashka'],
+          cljsType: connectSequenceTypes.CljsTypes.none,
+        },
+        disableAutoSelect: true,
+      })
+    ).finally(() => {
+      settled = true;
+    });
+    const deadline = Date.now() + 25_000;
+    while (!settled && Date.now() < deadline) {
+      await testUtil.sleep(300);
+      await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
+    }
+    await copied;
+
+    assert.ok(settled, 'closing the Project Root menu should end the command');
+    assert.strictEqual(await vscode.env.clipboard.readText(), '');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('a picked sequence with a root for another project jacks in at its own root', async function () {
+    this.timeout(60_000);
+    testUtil.log(suite, 'picked sequence with another relative root');
+
+    const calvaConfig = vscode.workspace.getConfiguration('calva');
+    const originalSequences = calvaConfig.inspect('replConnectSequences')?.globalValue;
+    await calvaConfig.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'relative bb-mini2',
+          projectType: 'babashka',
+          projectRootPath: ['integration-test', 'bb-mini2'],
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    try {
+      await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+      const bbMiniRoot = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini'));
+      await state.extensionContext.workspaceState.update(
+        `qps-${bbMiniRoot.toString()}/jack-in-type`,
+        { label: 'relative bb-mini2' }
+      );
+
+      let settled = false;
+      const jackedIn = Promise.resolve(
+        vscode.commands.executeCommand('calva.jackIn', { disableAutoSelect: true })
+      ).finally(() => {
+        settled = true;
+      });
+      const deadline = Date.now() + 25_000;
+      while (!settled && Date.now() < deadline) {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+        await testUtil.sleep(200);
+      }
+      await jackedIn;
+
+      const clientKey = await waitForNextClient(suite);
+      await waitForSessionsReady(suite, clientKey);
+      const bbMini2Root = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini2'));
+      assert.strictEqual(
+        clientRegistry.getRegisteredClient(clientKey)?.projectRoot,
+        bbMini2Root.toString()
+      );
+      const precedenceNote = 'Connect sequence "relative bb-mini2" names the project root';
+      let replWindowText = '';
+      await testUtil
+        .waitForCondition(
+          async () => {
+            replWindowText = (await outputWindow.openReplWindowDoc()).getText();
+            return replWindowText.includes(precedenceNote);
+          },
+          10_000,
+          100
+        )
+        .catch(() => undefined);
+      const replWindowTail = replWindowText.slice(-1500);
+      assert.ok(
+        replWindowText.includes(precedenceNote),
+        `the REPL window should say that the sequence root is used, it ends with:\n${replWindowTail}`
+      );
+    } finally {
+      await calvaConfig.update(
+        'replConnectSequences',
+        originalSequences,
+        vscode.ConfigurationTarget.Global
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
+  });
+
+  test('a passed sequence without a root ignores auto-select sequences', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'passed sequence without a root');
+
+    const calvaConfig = vscode.workspace.getConfiguration('calva');
+    const originalSequences = calvaConfig.inspect('replConnectSequences')?.globalValue;
+    await calvaConfig.update(
+      'replConnectSequences',
+      [
+        {
+          name: 'auto bb-mini2',
+          projectType: 'babashka',
+          autoSelectForJackIn: true,
+          projectRootPath: [path.join(testUtil.testDataDir, 'bb-mini2')],
+        },
+      ],
+      vscode.ConfigurationTarget.Global
+    );
+
+    try {
+      await testUtil.openFile(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+      const bbMiniRoot = vscode.Uri.file(path.join(testUtil.testDataDir, 'bb-mini')).toString();
+
+      let settled = false;
+      const jackInDone = Promise.resolve(
+        vscode.commands.executeCommand('calva.jackIn', {
+          connectSequence: {
+            name: 'passed without root',
+            projectType: connectSequenceTypes.ProjectTypes['babashka'],
+            cljsType: connectSequenceTypes.CljsTypes.none,
+          },
+        })
+      ).finally(() => {
+        settled = true;
+      });
+      const deadline = Date.now() + 25_000;
+      while (!settled && Date.now() < deadline) {
+        await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+        await testUtil.sleep(200);
+      }
+      await jackInDone;
+
+      const clientKey = await waitForNextClient(suite);
+      await waitForSessionsReady(suite, clientKey);
+      assert.strictEqual(clientRegistry.getRegisteredClient(clientKey)?.projectRoot, bbMiniRoot);
+    } finally {
+      await calvaConfig.update(
+        'replConnectSequences',
+        originalSequences,
+        vscode.ConfigurationTarget.Global
+      );
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
+  });
+
+  test('overlapping jack-ins keep the root each one was started for', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'overlapping jack-ins');
+
+    const bbMiniRoot = path.dirname(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    const bbMini2Root = path.dirname(path.join(testUtil.testDataDir, 'bb-mini2/test.clj'));
+
+    const slowSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Slow bb-mini',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [bbMiniRoot],
+      customJackInCommandLine: 'sleep 3; bb --nrepl-server JACK-IN-NREPL-PORT',
+    };
+    const fastSequence: connectSequenceTypes.ReplConnectSequence = {
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Fast bb-mini2',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [bbMini2Root],
+    };
+
+    const slowStarted = Promise.resolve(
+      vscode.commands.executeCommand('calva.jackIn', {
+        connectSequence: slowSequence,
+        disableAutoSelect: true,
+      })
+    );
+
+    const registerDeadline = Date.now() + 20_000;
+    while (
+      !jackIn
+        .listJackInProcesses()
+        .some((entry) => entry.connectSequence.name === 'Slow bb-mini') &&
+      Date.now() < registerDeadline
+    ) {
+      await testUtil.sleep(50);
+    }
+    assert.ok(
+      jackIn.listJackInProcesses().some((entry) => entry.connectSequence.name === 'Slow bb-mini'),
+      'the slow jack-in should be registered before the second one starts'
+    );
+
+    await vscode.commands.executeCommand('calva.jackIn', {
+      connectSequence: fastSequence,
+      disableAutoSelect: true,
+    });
+    await slowStarted;
+
+    const clientsDeadline = Date.now() + 30_000;
+    const rootsOf = () => clientRegistry.listClients().map((client) => client.projectRoot ?? '');
+    while (
+      !(
+        rootsOf().some((root) => root.endsWith('/bb-mini')) &&
+        rootsOf().some((root) => root.endsWith('/bb-mini2'))
+      ) &&
+      Date.now() < clientsDeadline
+    ) {
+      await testUtil.sleep(200);
+    }
+
+    const roots = rootsOf();
+    assert.strictEqual(roots.length, 2, `expected two clients, got ${roots.join(', ')}`);
+    assert.ok(
+      roots.some((root) => root.endsWith('/bb-mini')),
+      `expected a bb-mini client, got ${roots.join(', ')}`
+    );
+    assert.ok(
+      roots.some((root) => root.endsWith('/bb-mini2')),
+      `expected a bb-mini2 client, got ${roots.join(', ')}`
+    );
+  });
+
   test('Jack-in works with auto-selected project type', async () => {
     testUtil.log(suite, 'Reconnect: auto-selected project type');
 
@@ -155,6 +443,36 @@ suite('Jack-in and Connect suite', () => {
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, 'test.clj closed');
+  });
+
+  test('Copy Jack-in command line substitutes JACK-IN-PROJECT-ROOT-PATH', async function () {
+    testUtil.log(suite, 'Copy Jack-in command line substitutes the project root');
+
+    const projectRootPath = path.dirname(path.join(testUtil.testDataDir, 'bb-mini/test.clj'));
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      name: 'copy-project-root',
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [projectRootPath],
+      customJackInCommandLine: 'echo JACK-IN-PROJECT-ROOT-PATH',
+    };
+
+    await vscode.env.clipboard.writeText('');
+    await vscode.commands.executeCommand('calva.copyJackInCommandToClipboard', {
+      connectSequence,
+      disableAutoSelect: true,
+    });
+
+    const cmdLine = await vscode.env.clipboard.readText();
+    testUtil.log(suite, 'substituted cmdLine', cmdLine);
+    assert.ok(
+      cmdLine.includes(projectRootPath),
+      `expected the project root in the copied command, got ${cmdLine}`
+    );
+    assert.ok(
+      !cmdLine.includes('JACK-IN-PROJECT-ROOT-PATH'),
+      `expected the placeholder to be replaced, got ${cmdLine}`
+    );
   });
 
   test('Copy Jack-in command line for projectless project (no deps.edn) #2976', async function () {
@@ -335,10 +653,10 @@ suite('Jack-in and Connect suite', () => {
       ...sequence1,
       projectRootPath: [firstProjectRootPath],
     };
-    await state.initProjectDir(connectTypes.ConnectType.Connect, reconnectSequence, true);
-
-    // Connect directly using the same sequence, host, and port as the first jack-in
-    await connector.connect(reconnectSequence, true, firstClientHost, String(firstClientPort));
+    await connector.connect(reconnectSequence, true, vscode.Uri.file(firstProjectRootPath), {
+      hostname: firstClientHost,
+      port: String(firstClientPort),
+    });
     const reconnectedClientKey = await waitForNextClient(suite);
     await waitForSessionsReady(suite, reconnectedClientKey);
 
@@ -375,6 +693,71 @@ suite('Jack-in and Connect suite', () => {
 
     testUtil.log(suite, 'Manual reconnect test completed successfully - REPL still functional');
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  });
+
+  test('Re-Jack-In restarts the picked REPL and leaves the other one running', async function () {
+    this.timeout(120_000);
+    testUtil.log(suite, 'Re-Jack-In with two projects');
+    await jackIn.calvaJackout({ force: true });
+    await testUtil.waitForJackOutComplete(suite);
+
+    const sequenceFor = (dir: string): connectSequenceTypes.ReplConnectSequence => ({
+      projectType: connectSequenceTypes.ProjectTypes['babashka'],
+      name: 'Re-Jack-In bb',
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      projectRootPath: [path.join(testUtil.testDataDir, dir)],
+    });
+    const connectedProcesses = () =>
+      jackIn
+        .listJackInProcesses()
+        .filter((p) => p.connected && p.connectSequence.name === 'Re-Jack-In bb');
+
+    for (const dir of ['bb-mini', 'bb-mini2']) {
+      await vscode.commands.executeCommand('calva.jackIn', {
+        connectSequence: sequenceFor(dir),
+        disableAutoSelect: true,
+      });
+    }
+    await testUtil.waitForCondition(
+      () => connectedProcesses().length === 2,
+      30_000,
+      100,
+      'both jack-ins should connect'
+    );
+    const [first, second] = connectedProcesses();
+    assert.ok(first.projectRootUri.endsWith('/bb-mini'), `got ${first.projectRootUri}`);
+    assert.ok(second.projectRootUri.endsWith('/bb-mini2'), `got ${second.projectRootUri}`);
+
+    let settled = false;
+    const restarted = Promise.resolve(vscode.commands.executeCommand('calva.reJackIn')).finally(
+      () => {
+        settled = true;
+      }
+    );
+    const deadline = Date.now() + 10_000;
+    while (!settled && Date.now() < deadline) {
+      await testUtil.sleep(200);
+      await vscode.commands.executeCommand('workbench.action.acceptSelectedQuickOpenItem');
+    }
+    await restarted;
+
+    await testUtil.waitForCondition(
+      () =>
+        connectedProcesses().some(
+          (p) =>
+            p.id !== first.id && p.id !== second.id && p.projectRootUri === first.projectRootUri
+        ),
+      30_000,
+      100,
+      'the picked REPL should come back in its own folder'
+    );
+    const processIds = jackIn.listJackInProcesses().map((p) => p.id);
+    assert.ok(!processIds.includes(first.id), 'the picked process should be replaced');
+    assert.ok(processIds.includes(second.id), 'the other process should keep running');
+    assert.ok(
+      clientRegistry.getRegisteredClient(second.clientKey),
+      'the other client should stay connected'
+    );
   });
 });
 
@@ -513,7 +896,9 @@ async function reconnectAndAssert(
     connectSequenceOverride
   );
 
-  await connector.connect(connectSequence, true);
+  const projectRootPath = connectSequence.projectRootPath?.[0];
+  assert.ok(projectRootPath, 'connect sequence should name a project root');
+  await connector.connect(connectSequence, true, vscode.Uri.file(projectRootPath));
 
   await loadAndAssert(suite, testFilePath, needle, { waitForJackInOutput: false });
   await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

@@ -10,6 +10,8 @@ import * as testUtil from './util';
 import * as sessionRouting from '../../../nrepl/session-routing';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as globs from '../../../nrepl/globs';
+import * as utilities from '../../../utilities';
+import * as vscode from 'vscode';
 
 const { describe, before, beforeEach, afterEach, it } = Mocha;
 
@@ -246,6 +248,97 @@ describe(`${suiteName} suite`, () => {
         sessionA,
         'file outside all project roots should route to first available session'
       );
+    });
+  });
+
+  describe('the file the user is in', () => {
+    const projectARoot = testUtil.testDataDir;
+    const projectBRoot = path.join(testUtil.testDataDir, 'test-files');
+    const projectAFile = path.join(projectARoot, 'test.clj');
+    const projectBFile = path.join(projectBRoot, 'javascript-code.js');
+
+    beforeEach(() => {
+      for (const [sessionKey, projectRoot] of [
+        ['project-a-clj', projectARoot],
+        ['project-b-clj', projectBRoot],
+      ]) {
+        sessionRegistry.registerSession(sessionKey, createSession('clj'), {
+          projectRoot: `file://${projectRoot}`,
+          globSpecs: buildProjectGlobSpecs(projectRoot),
+          globs: ['*.clj', '*.edn', '*.cljc', '**/*'],
+        });
+      }
+    });
+
+    it('answers with the focused file’s document, session and project root', async () => {
+      const workspaceRoot = path.join(testUtil.testDataDir, '..');
+      for (const [file, sessionKey] of [
+        [projectAFile, 'project-a-clj'],
+        [projectBFile, 'project-b-clj'],
+      ]) {
+        await testUtil.openFile(file);
+        assert.deepStrictEqual(
+          await testUtil.currentFileAnswers(),
+          { document: file, sessionKey, closestRoot: workspaceRoot },
+          `${path.basename(
+            file
+          )} should be the document, route to ${sessionKey}, and have the workspace root`
+        );
+      }
+    });
+
+    it('stays with the last active split while a webview has the focus, and falls back to the first visible editor when its tab closes', async () => {
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+      await testUtil.showInColumn(projectAFile, vscode.ViewColumn.One);
+      await testUtil.showInColumn(projectBFile, vscode.ViewColumn.Two);
+      const panel = vscode.window.createWebviewPanel('calva-e2e-current-file', 'Current file', {
+        viewColumn: vscode.ViewColumn.Three,
+        preserveFocus: false,
+      });
+      try {
+        await testUtil.waitForCondition(
+          () => vscode.window.activeTextEditor === undefined,
+          4000,
+          20,
+          'Timed out waiting for the webview to take the focus'
+        );
+        assert.strictEqual(
+          replSession.getSessionKey(),
+          'project-b-clj',
+          'Routing should follow the last active split'
+        );
+        assert.strictEqual(
+          utilities.tryToGetDocument({})?.uri.fsPath,
+          projectBFile,
+          'The document should be the last active split’s'
+        );
+
+        const projectBTab = vscode.window.tabGroups.all
+          .flatMap((group) => group.tabs)
+          .find(
+            ({ input }) => input instanceof vscode.TabInputText && input.uri.fsPath === projectBFile
+          );
+        await vscode.window.tabGroups.close(projectBTab);
+        await testUtil.waitForCondition(
+          () => replSession.getSessionKey() === 'project-a-clj',
+          4000,
+          20,
+          'Timed out waiting for routing to follow the first visible editor'
+        );
+        assert.strictEqual(
+          vscode.window.activeTextEditor,
+          undefined,
+          'The webview should still have the focus'
+        );
+        assert.strictEqual(
+          utilities.tryToGetDocument({})?.uri.fsPath,
+          projectAFile,
+          'The document should be the first visible editor’s'
+        );
+      } finally {
+        panel.dispose();
+        await vscode.commands.executeCommand('workbench.action.joinAllGroups');
+      }
     });
   });
 

@@ -239,7 +239,18 @@
         "cljsDefaultBuild": ":calva-lib",
         "cljsLaunchBuilds": [":calva-lib", ":repl-output-ui", ":test"]
       },
-      "projectRootPath": ["."]
+      "projectRootPath": ["."],
+      "selectedPortBehaviour": "connect"
+    },
+    {
+      "name": "Calva docs",
+      "projectType": "deps.edn",
+      "replSessionNames": { "primary": "docs" },
+      "projectRootPath": ["docs-builder"],
+      "selectedPortBehaviour": "connect",
+      "menuSelections": {
+        "cljAliases": [":dev"]
+      }
     }
   ],
   "workbench.colorCustomizations": {
@@ -250,6 +261,7 @@
     "titleBar.inactiveForeground": "#13172299"
   },
   "json.format.enable": false,
+  "debug.focusWindowOnBreak": false,
   "files.exclude": {
     "junit/": true,
     "repl-output-ui/js/": true

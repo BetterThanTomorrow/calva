@@ -2,6 +2,9 @@ import * as expectLib from 'expect';
 import * as textNotation from '../common/text-notation';
 import * as nsFormUtil from '../../../util/ns-form';
 import * as assert from 'assert';
+import * as model from '../../../cursor-doc/model';
+
+model.initScanner(20000);
 
 describe('ns-form util', () => {
   describe('isPrefix', function () {

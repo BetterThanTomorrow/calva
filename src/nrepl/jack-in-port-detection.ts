@@ -13,6 +13,21 @@ const replStartedPattern = /Started nREPL server|nREPL server started/i;
 const replPortPattern =
   /(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/i;
 const maxBufferedChars = 4096;
+const portInUsePatterns = [
+  /Failed to bind to \S*?:(\d{1,5})\b/i,
+  /EADDRINUSE\b[^\r\n]*?:(\d{1,5})\b/,
+  /\bPort (\d{1,5}) is already in use\b/i,
+];
+
+export function parsePortInUse(output: string): number | undefined {
+  for (const pattern of portInUsePatterns) {
+    const port = Number(output.match(pattern)?.[1]);
+    if (Number.isInteger(port) && port > 0 && port <= 65535) {
+      return port;
+    }
+  }
+  return undefined;
+}
 
 function trimBuffer(buffer: string): string {
   return buffer.length > maxBufferedChars ? buffer.slice(-maxBufferedChars) : buffer;

@@ -124,8 +124,7 @@ export function printTextToRichCommentCommand(args: { [x: string]: string }) {
 }
 
 async function printTextToRichComment(text: string, position?: number) {
-  const doc = util.getDocument({});
-  const mirrorDoc = docMirror.getDocument(doc);
+  const mirrorDoc = docMirror.getDocument(util.getActiveTextEditor().document);
   return paredit.addRichComment(
     mirrorDoc,
     position ? position : mirrorDoc.selections[0].active,
@@ -241,13 +240,14 @@ async function clojureDocsLookup(
   d?: vscode.TextDocument,
   p?: vscode.Position
 ): Promise<DocsEntry | undefined> {
-  const doc = d ? d : util.getDocument({});
-  const position = p ? p : util.getActiveTextEditor().selections[0].active;
+  const editor = d && p ? undefined : util.getActiveTextEditor();
+  const doc = d ?? editor.document;
+  const position = p ?? editor.selections[0].active;
   const symbol = util.getWordAtPosition(doc, position);
   const [ns, _] = namespace.getNamespace(doc, p);
 
   // Use the current session to resolve the symbol (handles aliases)
-  const currentSession = replSession.getSession();
+  const currentSession = replSession.getSession(doc);
   const resolved = currentSession ? await currentSession.info(ns, symbol) : null;
   const resolvedNs = resolved?.ns
     ? typeof resolved.ns === 'string'

@@ -6,6 +6,10 @@
   :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/published/drams/v2/calva_getting_started",
   :description "An interactive guide introducing you to Calva and Clojure.",
   :extraDetail "Requires Java"}
+ {:title "Criar um projeto REPL ”Primeiros Passos” (pt-BR)",
+  :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/published/drams/v2/calva_getting_started_pt_br",
+  :description "Um guia interativo que apresenta o Calva e o Clojure, em português.",
+  :extraDetail "Requer Java"}
  {:title "Create a ”ClojureScript Quick Start” Browser Project",
   :src "https://raw.githubusercontent.com/BetterThanTomorrow/dram/published/drams/v2/calva_cljs_browser_quick_start",
   :extraDetail "Requires Java"}

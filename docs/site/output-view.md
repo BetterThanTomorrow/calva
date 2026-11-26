@@ -1,47 +1,141 @@
 ---
-title: The Output View
-description: A read-only webview for REPL output.
+title: The Output Views
+description: Read-only webviews for REPL output.
 ---
 
-The output view is a read-only view for REPL output. It's more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
+The `output-view` editor tab and `output-sidebar` sidebar are separate destinations that share the same read-only webview page. They are more performant than [the editor-based REPL window](repl-window.md). To see a feature comparison of all output destinations, see [Output Destinations Feature Comparison](output.md#output-destinations-feature-comparison).
+
+The output views are two, performant, custom web views which can be configured as [Output Destinations](output.md). They largely share features (and implementation), the main difference being their placement in the VS Code UI.
+
+* `output-view` is an editor tab, which can be placed anywhere an editor can be placed.
+* `output-sidebar` is a sidebar/panel view, which can be placed in the sidebars, or in the Panel view container.
 
 ![The output view, post jack-in](images/output-view/post-jack-in.png)
 
-## Show the Output View
+## Show the Output Views
 
-Run the Calva command "Show/Open the REPL Output View."
+Run **Calva: Show/Open the REPL output view** for the editor tab or **Calva: Show/Open the REPL output sidebar** for the sidebar.
 
-## Clear the Output View
+## Font Size and Scaling
 
-Run the Calva command "Clear REPL Output View."
+The output views follow the editor font family (`editor.fontFamily`) and editor font size (`editor.fontSize`).
+
+You can adjust the scale of the font size in the output views relative to the editor font size using the setting `calva.outputViews.fontSizeScale` (default `1.0`, range `0.5` to `1.5`).
+
+You can also adjust the font size in-session, across both views using commands:
+
+* **Calva: Increase Output View Font Size**
+* **Calva: Decrease Output View Font Size**
+* **Calva: Reset Output View Font Size**
+
+The sidebar view has **Zoom Out** and **Zoom In** title bar buttons for quick adjustments.
+
+## Wrap Evaluated Code and Results
+
+Word wrapping for evaluated code and results in the output views can be configured via the `calva.outputViews.wordWrap` setting. It accepts:
+
+* `"follow-editor"` (default) – follows VS Code's `editor.wordWrap` setting.
+* `"on"` – always wraps output in the output views.
+* `"off"` – disables word wrapping in the output views.
+
+There is also a command for toggling word wrap in-session across both views: **Calva: Toggle REPL Output Word Wrap**. This in-session toggle is not persisted. The sidebar view has a title bar button for issuing the command.
+
+## Images
+
+When an evaluation result contains an image data URL, image URL, or image file path as a complete string value, the output views show the image as a thumbnail.
+
+To copy an image, hover your cursor over its thumbnail (or tab to it). A "Copy image" button will appear in the top right corner of the thumbnail. Click it to copy the image to your clipboard, as a PNG.
+
+How the output views show images can be configured via the `calva.outputViewImageDisplay` setting. It accepts:
+
+* `"images"` (default) – data URLs and local files are rendered as images. Remote URLs stay as text, with no network request.
+* `"raw"` – no images are rendered.
+* `"images-including-remote-urls"` – Images are rendered for data URLs, local files, and remote URLs.
+
+The command: **Calva: Cycle Output View Image Display** cycles in-session between the different display modes, if issued with no argument.
+
+The output window, output file and terminal always show the raw text.
+
+## Errors and Stacktraces
+
+When an evaluation, a file load, or a test throws, the output views show the error folded. Unfold it to see the stacktrace. You can show all frames, only your project's frames, or a filtered set, where you choose to hide Clojure, Java, REPL, tooling, and duplicate frames. The view start with showing a trace filtered from `Tooling` and `Duplicates`.
+
+Click a frame to open its file at the line linked. This works for Java frames too. If a library's Java sources aren't on your machine, Calva downloads them first (this happens once per library).
+
+To paste an error somewhere, hover it and click its copy button. It copies the error with the frames your filter shows, so to copy the whole stacktrace, unfold the error and choose **All frames** first.
+
+## Large Results
+
+A result longer than 5,000 characters is initially folded.
+
+The `calva.outputViews.foldResultsLongerThan` setting specifies how many characters a result can have before it folds. `0` turns folding off.
+
+Only evaluation results fold. Results with images, printed output, and other Clojure data/code output.
+
+## Clear Output
+
+Use the commands **Calva: Clear Output View** and **Calva: Clear Output Sidebar** to clear the respective view. The sidebar view also has a title clear button.
+
+## Control How Much Output the Views Keep
+
+Each view keeps the latest million characters of output. The oldest output leaves the top as new output arrives.
+
+The `calva.outputViews.maxOutputCharacters` setting changes how much each view keeps. `0` keeps all output, which can make VS Code sluggish over a long session.
+
+## Search/Find
+
+The find widget (<kbd>cmd/ctrl</kbd>+<kbd>f</kbd>) is only available in the editor tab. Because ([vscode#173643](https://github.com/microsoft/vscode/issues/173643)).
+
+## Scroll to the Bottom
+
+The views scroll new output into view as it prints, unless you have scrolled up, in which case auto-scroll is disabled. It enables again if you scroll to the bottom.
+
+There's a command for scrolling to the bottom: `calva.scrollOutputViewToEnd`. As there are two views, the command pops up a quickpick for you to select which view you want to scroll. You can configure keybindings to provide an view-id as an argument. E.g.:
+
+```jsonc
+{
+  "key": "ctrl+alt+o end",
+  "command": "calva.scrollOutputViewToEnd",
+  "args": "output-sidebar"
+}
+```
 
 ## Copy Code Snippets
 
-To copy code in the output view, hover your cursor over the code snippet you want to copy. A "copy" button will appear in the top right corner of the code snippet. Click this button to copy the code to your clipboard.
+To copy code or printed output in the output views, hover your cursor over the code snippet or output you want to copy. A "copy" button will appear in its top right corner. Click it to copy the text to your clipboard.
 
 ![Copy button appearing and being clicked, then changing to Copied](images/output-view/copy-button.gif)
 
+## Navigate, Select, and Fold Code and Data
+
+Click into printed code (a result, evaluated code, or the ex-data of an error) to navigate and select in it with Paredit, just as in a Clojure file. Forms spanning several lines can be folded: hover the left edge to reveal the chevrons, or use VS Code's fold keys. Press <kbd>Escape</kbd> to leave the code, and keep scrolling the output with the keyboard.
+
+## Custom Keybindings
+
+Your own keybindings for Calva's commands work in the Output views when their `when` clause targets correctly. If some of your keybindings miss to target the Output views, a section at the top of the view says which, and lets you copy the `when` clause that Calva uses. Use this to update your keybindings. A button **Check keybindings** let's you check after you have updated keybindings.
+
 ## Theming
 
-The output view uses [highlight.js](https://highlightjs.org/) for syntax highlighting of code blocks. The theming of other output is controlled by VS Code. As you change the VS Code theme, the syntax hightlighting of code blocks will change to one of four different themes, one for each VS Code [ColorThemeKind](https://code.visualstudio.com/api/references/vscode-api#ColorThemeKind):
+Theming should generally just work.
 
-| ColorThemeKind | hightlight.js theme |
-| -------------- | ------------------- |
-| Dark | github-dark |
-| Light | github |
-| HighContrast | windows-high-contrast |
-| HighContrastLight | windows-high-contrast-light |
+## Screen Readers
 
-![The output view code highlight theme changes as the VS Code theme changes](images/output-view/theme-changing.gif)
+Screen reader support in the output views is configured via the `calva.outputViews.accessibilitySupport` setting. It accepts:
 
-## Why is it read-only?
+* `"follow-editor"` (default) – on when VS Code's `editor.accessibilitySupport` is `"on"`.
+* `"on"` – screen readers can read the output.
+* `"off"` – the output is hidden from screen readers.
 
-Calva actually had a read+write webview for REPL output in the past, but trying to emulate a terminal REPL that allowed input in a webview was a pain to maintain. Removing the input features and making the view just about _seeing the output_ makes development maintenance much simpler.
+With support on, screen readers read the output on screen and `editor.accessibilityPageSize` lines above and below it, as in VS Code's editors.
 
-You may be used to typing "into the REPL," meaning typing into a terminal REPL or the [the editor-based REPL window](repl-window.md), but it's really not necessary or even really a great workflow. With Clojure and Calva, we can evaluate code directly from code files. This is the preferred method for some Clojurians. Using `comment` forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.
+With support off, a note at the top of the views says that the output is hidden from screen readers, and links the setting. If you use a screen reader, turn on [screen reader mode](https://code.visualstudio.com/docs/configure/accessibility/accessibility#_screen-reader-mode) in VS Code, or set `calva.outputViews.accessibilitySupport` to `"on"`. VS Code's default for `editor.accessibilitySupport`, `"auto"`, counts as off in the output views. Not only screen readers use the screen readder when it is on. Apps such as macOS Zoom or window switchers, also us it and VS Code can get slow from it.
+
+## It's readonly
+
+You may be used to typing "into the REPL," meaning typing into a terminal REPL or the [the editor-based REPL window](repl-window.md). But with Clojure and Calva, we can evaluate code directly from code files. Using `comment` forms (Rich Comments) to evaluate code, we not only don't have to leave the file our cursor is currently in, but we have all the history of code we've evaluated right in a file, which we can save and commit, or remove later if we want.
 
 !!! Tip "Quickly create Rich Comments with a Calva command"
     Use the Calva command "Add Rich Comment," which will add a `comment` form right below the form your cursor is currently at. Memorize the keyboard shortcut for this, and you can very easily create Rich Comments near the code you're working on to try out code in the REPL before adding it to your actual code.
 
 !!! Note "Don't like adding scratch code to code files?"
-    If you prefer not to leave scratch code in your code files or prefer not to have to remove it later, then create a separate scratch code file. This file can be your own personal scratch file, which you can commit, giving you a versioned history of all your scratch work, which may come in handy later. You may also want to use [fiddle files](fiddle-files.md).
+    If you prefer not to leave scratch code in your code files or prefer not to have to remove it later, then create a separate scratch code file. This file can be your own personal scratch file, which you can commit, giving you a versioned history of all your scratch work, which may come in handy later. Calva has rich support for this, via the [Fiddle files](fiddle-files.md) feature.

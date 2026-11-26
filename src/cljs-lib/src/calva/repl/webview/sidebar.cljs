@@ -1,0 +1,242 @@
+(ns calva.repl.webview.sidebar
+  (:require
+   [calva.repl.input.host :as input-host]
+   [calva.repl.input.messages :as input-messages]
+   [calva.repl.webview.core :as core]
+   [calva.repl.webview.greeting :as greeting]
+   [calva.repl.webview.html :as html]
+   [calva.repl.webview.image-host :as image-host]
+   [calva.repl.webview.output-log :as output-log]
+   [calva.repl.webview.output-messages :as output-messages]
+   [calva.repl.webview.styles :as styles]
+   [calva.trail :as trail]
+   [calva.util :as util]))
+
+(defonce output-sidebar-webview-view (atom nil))
+(defonce output-sidebar-showing-output-log? (atom false))
+
+(defn current-output-destinations
+  []
+  (.. ^js @util/vscode -workspace (getConfiguration "calva") (get "outputDestinations")))
+
+(defn output-sidebar-in-setting?
+  [destinations]
+  (let [destinations (js->clj destinations :keywordize-keys true)]
+    (boolean
+     (some (fn [destination]
+             (if (sequential? destination)
+               (some #(= "output-sidebar" %) destination)
+               (= "output-sidebar" destination)))
+           (vals destinations)))))
+
+(defn help-page
+  "Returns the Output Sidebar's help page, as hiccup."
+  [csp-source]
+  (let [style-nonce (.randomUUID (js/require "crypto"))]
+    [:html {:lang "en"}
+     [:head
+      [:meta {:charset "UTF-8"}]
+      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+      [:meta {:http-equiv "Content-Security-Policy"
+              :content (str "default-src 'none'; style-src " csp-source " 'nonce-" style-nonce "'")}]
+      [:style {:nonce style-nonce :innerHTML (styles/help-css)}]]
+     [:body
+      [:h1 "REPL Output"]
+      [:p "REPL results, evaluated code, and other output can be sent to this view with the "
+       [:code "output-sidebar"] " " [:strong "Output destination"] "."]
+      (greeting/destinations-config (current-output-destinations))]]))
+
+(defn set-sidebar-help!
+  [^js webview-view]
+  (trail/log! "output-sidebar help page set")
+  (reset! output-sidebar-showing-output-log? false)
+  (set! (.. webview-view -webview -html)
+        (html/document (help-page (.. webview-view -webview -cspSource)))))
+
+(defn sidebar-context
+  []
+  {:env/is-debug (:is-debug util/env)
+   :vscode/vscode @util/vscode
+   :vscode/context @util/vscode-context})
+
+(defn show-sidebar-output-log!
+  [^js webview-view]
+  (reset! output-sidebar-showing-output-log? true)
+  (core/set-webview-html! (sidebar-context) {:webview-panel webview-view
+                                             :view-kind :output-sidebar})
+  (core/set-code-theme! (sidebar-context)
+                        {:color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)
+                         :webview-panel webview-view}))
+
+(defn post-output-sidebar-log!
+  []
+  (run! #(core/post-message-to-webview @output-sidebar-webview-view %)
+        (output-log/messages "output-sidebar")))
+
+(defn apply-sidebar-help-or-output-log!
+  [^js webview-view]
+  (let [destination? (output-sidebar-in-setting? (current-output-destinations))]
+    (if (input-host/enabled? "output-sidebar")
+      (input-host/view-page-set! "output-sidebar")
+      (input-host/view-disposed! "output-sidebar"))
+    (set! (.-title webview-view) (input-host/view-title "output-sidebar"))
+    (if (or destination? (input-host/enabled? "output-sidebar"))
+      (do
+        (show-sidebar-output-log! webview-view)
+        (post-output-sidebar-log!))
+      (set-sidebar-help! webview-view))
+    (when-not destination?
+      (output-log/clear! "output-sidebar"))))
+
+(defn add-output-sidebar-message!
+  "Posts `message` to the Output Sidebar, and logs it for a page that shows the log later."
+  [message]
+  (when (output-sidebar-in-setting? (current-output-destinations))
+    (output-log/log! "output-sidebar" message)
+    (when @output-sidebar-webview-view
+      (core/post-message-to-webview @output-sidebar-webview-view message))))
+
+(defn add-context-subscription!
+  [subscription]
+  (.. ^js @util/vscode-context -subscriptions (push subscription)))
+
+(defn- output-destinations-changed!
+  "Shows the help or the output log in the Output Sidebar `webview-view` for the changed Output Destinations.
+   Leaves the page as it is while it shows the output log and the sidebar stays a destination."
+  [^js webview-view]
+  (when-not (and @output-sidebar-showing-output-log?
+                 (output-sidebar-in-setting? (current-output-destinations)))
+    (apply-sidebar-help-or-output-log! webview-view)))
+
+(defn create-output-destinations-change-listener
+  []
+  (.. ^js @util/vscode -workspace
+      (onDidChangeConfiguration
+       (fn [^js event]
+         (when (and (.affectsConfiguration event "calva.outputDestinations")
+                    @output-sidebar-webview-view)
+           (output-destinations-changed! @output-sidebar-webview-view))))))
+
+(defn ^:export create-repl-output-sidebar-provider
+  []
+  (let [provider
+        #js {:resolveWebviewView
+             (fn [^js webview-view _context _token]
+               (trail/log! (str "output-sidebar resolved, REPL Input " (input-host/on-or-off "output-sidebar")))
+               (reset! output-sidebar-webview-view webview-view)
+               (core/register-webview! webview-view)
+               (image-host/listen-for-webview-messages! webview-view)
+               (input-messages/listen-for-messages! webview-view)
+               (core/listen-for-page-loaded! webview-view "output-sidebar")
+               (core/listen-for-highlighting-requests! webview-view)
+               (set! (.. webview-view -webview -options)
+                     (image-host/webview-options "calva.showReplOutputSidebar"))
+               (apply-sidebar-help-or-output-log! webview-view)
+               (let [ws-folders-disposable (image-host/listen-for-workspace-folder-changes! webview-view)]
+                 (add-context-subscription!
+                  (.. webview-view
+                      (onDidDispose (fn []
+                                      (when ws-folders-disposable
+                                        (.dispose ^js ws-folders-disposable))
+                                      (reset! output-sidebar-webview-view nil)
+                                      (core/unregister-webview! webview-view)
+                                      (input-host/view-disposed! "output-sidebar"))))))
+               (add-context-subscription!
+                (.. webview-view
+                    (onDidChangeVisibility
+                     (fn []
+                       (cond
+                         (not (.. webview-view -visible))
+                         (input-host/view-hidden! "output-sidebar")
+
+                         @output-sidebar-showing-output-log?
+                         (core/set-code-theme! (sidebar-context)
+                                               {:color-theme-kind (.. ^js @util/vscode -window -activeColorTheme -kind)
+                                                :webview-panel webview-view})))))))}]
+    (add-context-subscription! (create-output-destinations-change-listener))
+    provider))
+
+(def ^:private output-view-destinations
+  "The Output Destination ids of the Output views."
+  ["output-view" "output-sidebar"])
+
+(defn- output-view-host
+  "Returns the webview host of the Output view `destination`, an Output Destination id, when it is open."
+  [destination]
+  (case destination
+    "output-view" @core/output-view-webview-panel
+    "output-sidebar" @output-sidebar-webview-view
+    nil))
+
+(defn- output-view-visible?
+  [destination]
+  (some-> ^js (output-view-host destination) .-visible))
+
+(def ^:private output-view-picks
+  "The quick pick items of the Output views, with their Output Destination ids."
+  [{:label "Output View - Editor Panel" :description "output-view" :destination "output-view"}
+   {:label "Output View - Sidebar Panel" :description "output-sidebar" :destination "output-sidebar"}])
+
+(defn- post-scroll-to-end!
+  [destination]
+  (some-> (output-view-host destination) (core/post-message-to-webview {:command/name "scroll-to-end"})))
+
+(defn ^:export scroll-to-end
+  "Scrolls the output of the Output view `destination`, an Output Destination id, to its end, and turns its
+   auto scrolling on. Without one of the Output views' ids, asks which Output view in a quick pick. Returns a
+   promise of when that is done."
+  [destination]
+  (if (some #{destination} output-view-destinations)
+    (js/Promise.resolve (post-scroll-to-end! destination))
+    (-> (.. ^js @util/vscode -window
+            (showQuickPick (clj->js output-view-picks)
+                           #js {:placeHolder "Scroll which Output view to the end?"}))
+        (.then #(some-> % (unchecked-get "destination") post-scroll-to-end!)))))
+
+(defn ^:export some-output-view-visible?
+  "True when an Output view among `destinations`, an output destination value as configured, is open
+   and visible."
+  [destinations]
+  (boolean (some output-view-visible? (if (string? destinations) [destinations] destinations))))
+
+(defn ^:export show-repl-output-sidebar
+  [preserve-focus?]
+  (if-let [webview-view @output-sidebar-webview-view]
+    (.show webview-view preserve-focus?)
+    (.. ^js @util/vscode -commands
+        (executeCommand (if preserve-focus?
+                          "workbench.view.extension.calva"
+                          "calva.output-sidebar.focus")))))
+
+(defn ^:export append
+  [^js options message]
+  (let [output-category (if (map? options) (:outputCategory options) (.-outputCategory options))
+        command-name (get output-messages/output-category->command-name output-category)]
+    (if command-name
+      (add-output-sidebar-message! (output-messages/output-message options command-name output-category message))
+      (util/log-to-console
+       :error
+       (str "Cannot append output to output sidebar. No outputCategory matches \"" output-category "\"")))))
+
+(defn ^:export append-error
+  [^js options text ^js causes error-id]
+  (add-output-sidebar-message! (output-messages/error-message options text causes error-id)))
+
+(defn ^:export attach-error-causes
+  [error-id ^js causes]
+  (add-output-sidebar-message! (output-messages/causes-message error-id causes)))
+
+(defn ^:export end-evaluation
+  "Tells the Output Sidebar that the evaluation `evaluation-id` ended, also after the sidebar stopped being
+   an Output Destination while the evaluation ran."
+  [evaluation-id]
+  (let [message (output-messages/evaluation-ended-message evaluation-id)]
+    (if (output-sidebar-in-setting? (current-output-destinations))
+      (add-output-sidebar-message! message)
+      (core/post-message-to-webview @output-sidebar-webview-view message))))
+
+(defn ^:export clear-output-sidebar
+  []
+  (output-log/clear! "output-sidebar")
+  (when @output-sidebar-webview-view
+    (core/post-message-to-webview @output-sidebar-webview-view {:command/name "clear-output-view"})))

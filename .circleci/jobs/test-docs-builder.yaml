@@ -1,0 +1,16 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.12.6-openjdk-21.0
+
+steps:
+- checkout
+
+- !:cmd
+  - Install fontconfig for the social cards
+  - sudo apt-get update
+    && sudo apt-get install -y fontconfig
+
+- !:cmd
+  - Run docs builder tests
+  - cd docs-builder && clojure -M:test

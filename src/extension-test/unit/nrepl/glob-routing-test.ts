@@ -1,55 +1,14 @@
 import * as expectLib from 'expect';
-import * as minimatchLib from 'minimatch';
+import * as globSelection from '../../../../src/nrepl/glob-selection';
 import * as sessionRegistry from '../../../../src/nrepl/session-registry';
 import * as globs from '../../../../src/nrepl/globs';
 import type * as nrepl from '../../../../src/nrepl';
 
-/**
- * Pure glob matching logic extracted for testing.
- * This mirrors the logic in repl-session.ts findSessionKeyForDocument
- * but without VS Code dependencies.
- */
 function findSessionKeyByGlob(
   candidatePath: string,
   sessions: Array<{ key: string; globSpecs: globs.SessionGlobSpec[] }>
 ): string | undefined {
-  const isBetterMatch = (
-    current: { score: number; order: number } | undefined,
-    candidate: { score: number; order: number }
-  ) => {
-    if (!current) {
-      return true;
-    }
-    if (candidate.score !== current.score) {
-      return candidate.score > current.score;
-    }
-    return candidate.order < current.order;
-  };
-
-  let bestAlwaysClaim: { sessionKey: string; score: number; order: number } | undefined;
-  let bestFallback: { sessionKey: string; score: number; order: number } | undefined;
-
-  sessions.forEach((session, index) => {
-    const specs = session.globSpecs ?? [];
-    for (const spec of specs) {
-      const matched = minimatchLib.minimatch(candidatePath, spec.normalizedPattern, { dot: true });
-      if (!matched) {
-        continue;
-      }
-      const candidate = { sessionKey: session.key, score: spec.score, order: index };
-      if (spec.tier === 'always-claim') {
-        if (isBetterMatch(bestAlwaysClaim, candidate)) {
-          bestAlwaysClaim = candidate;
-        }
-      } else {
-        if (isBetterMatch(bestFallback, candidate)) {
-          bestFallback = candidate;
-        }
-      }
-    }
-  });
-
-  return bestAlwaysClaim?.sessionKey ?? bestFallback?.sessionKey;
+  return globSelection.selectGlobMatch([candidatePath], sessions)?.sessionKey;
 }
 
 describe('glob-based session routing', () => {

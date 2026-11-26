@@ -10,7 +10,7 @@
    {:html [:html
            [:head
             [:script (str "var SCITTLE_NREPL_WEBSOCKET_PORT = " port ";
-                      var SCITTLE_NREPL_WEBSOCKET_HOST = '127.0.0.1';")]
+                      var SCITTLE_NREPL_WEBSOCKET_HOST = 'localhost';")]
             [:script {:src (project-path "resources/scittle/dist/scittle.js")
                       :type "application/javascript"}]
             [:script {:src (project-path "resources/scittle/dist/scittle.nrepl.js")
@@ -39,5 +39,5 @@
     :title "Greetings, Professor Falken."}))
 
 (comment
-  (replicant-ttt 1340)
+  (replicant-ttt 1344)
   :rcf)

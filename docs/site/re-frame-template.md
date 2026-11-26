@@ -9,11 +9,11 @@ The [re-frame template](https://github.com/day8/re-frame-template) creates a `sh
 
 1. `npm install`
 2. From VS Code, issue the command **Calva: Start a Project REPL and Connect (a.k.a Jack-in)**, `ctrl+alt+c ctrl+alt+j`.
-   * Calva will auto-detect that this is a `shadow-cljs` project and ask for which build to compile.
-   * Calva's output destination will open and log some progress information.
+    * Calva will auto-detect that this is a `shadow-cljs` project and ask for which build to compile.
+    * Calva's output destination will open and log some progress information.
 3. When prompted for which build to start, select `:app`.
-   * `:app` is the only configured build, but the VS Code menu for this is a bit strange so _make sure the `:app` checkbox is really ticked before proceeding_.
-   * This will start the app, so in this workflow you don't do the **Run application** steps outlined below.
+    * `:app` is the only configured build, but the VS Code menu for this is a bit strange so _make sure the `:app` checkbox is really ticked before proceeding_.
+    * This will start the app, so in this workflow you don't do the **Run application** steps outlined below.
 4. When prompted for which build to connect to, select `:app`.
     * In the **View** menu of VS Code, you can tell it to show the **Terminal** view, where you see which command the jack-in process is started with, and it's output. `Ctrl+C` in this pane will kill your app and free up all resources it has allocated.
 5. When the app is compiled

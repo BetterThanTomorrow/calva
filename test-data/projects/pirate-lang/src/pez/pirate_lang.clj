@@ -22,6 +22,8 @@
 
 (defn to-pirate-talk
   [text language]
+  (def text text)
+  (def language language)
   (let [{:keys [pirate-char pirates]} (configure language)]
     (apply str (mapcat (fn [c]
                          (if (pirates (first (string/upper-case c)))

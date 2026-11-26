@@ -88,30 +88,9 @@ CMD echo "Nothing to do here" # All actions run at image build time
 
 
 ################################################################################
-# Grammar tests step
-################################################################################
-FROM arcanemagus/atom-docker-ci as step-test-grammar
-
-USER atom
-WORKDIR /home/atom/calva
-
-# copy base dir
-COPY --chown=atom . .
-# restore deps
-COPY --chown=atom --from=step-install-deps /home/circleci/calva/node_modules /home/circleci/calva/node_modules
-# restore build
-COPY --chown=atom --from=step-build /home/circleci/calva/out/ /home/circleci/calva/out
-
-CMD bash -c " \
-  /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR &\
-  cd src/calva-fmt/atom-language-clojure; \
-  ./run-grammar-tests.sh"
-
-
-################################################################################
 # Prettier check step
 ################################################################################
-FROM cimg/node:22.16.0 as step-prettier-check
+FROM cimg/node:22.23.4 as step-prettier-check
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -120,16 +99,14 @@ WORKDIR /home/circleci/calva
 COPY --chown=circleci . .
 # restore deps
 COPY --chown=circleci --from=step-install-deps /home/circleci/calva/node_modules /home/circleci/calva/node_modules
-# restore build
-COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci/calva/out
 
 CMD npm run prettier-check
 
 
 ################################################################################
-# Eslint check step
+# Oxlint check step
 ################################################################################
-FROM cimg/node:22.16.0 as step-eslint-check
+FROM cimg/node:22.23.4 as step-ts-lint
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -138,16 +115,14 @@ WORKDIR /home/circleci/calva
 COPY --chown=circleci . .
 # restore deps
 COPY --chown=circleci --from=step-install-deps /home/circleci/calva/node_modules /home/circleci/calva/node_modules
-# restore build
-COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci/calva/out
 
-CMD npm run eslint
+CMD npm run lint && npm run test-lint-watch
 
 
 ################################################################################
 # CLJSlib test step
 ################################################################################
-FROM cimg/node:22.16.0 as step-test-cljslib
+FROM cimg/node:22.23.4 as step-test-cljslib
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -165,7 +140,7 @@ CMD npm run calva-lib-test
 ################################################################################
 # TS unit test step
 ################################################################################
-FROM cimg/node:22.16.0 as step-test-ts-unit
+FROM cimg/node:22.23.4 as step-test-ts-unit
 
 USER circleci
 WORKDIR /home/circleci/calva
@@ -202,7 +177,7 @@ COPY --chown=circleci --from=step-build /home/circleci/calva/out/ /home/circleci
 
 RUN npm run compile-test
 
-CMD npm run e2e-test
+CMD npm run e2e-test -- --local
 
 
 ################################################################################

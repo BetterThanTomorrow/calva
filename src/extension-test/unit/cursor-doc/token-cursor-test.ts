@@ -1,6 +1,9 @@
 import * as expectLib from 'expect';
+import * as model from '../../../cursor-doc/model';
 import * as tokenCursor from '../../../cursor-doc/token-cursor';
 import * as textNotation from '../common/text-notation';
+
+model.initScanner(20000);
 
 describe('Token Cursor', () => {
   describe('backwardWhitespace', () => {

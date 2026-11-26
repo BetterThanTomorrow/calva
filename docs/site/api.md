@@ -75,35 +75,161 @@ Use `repl.currentSessionKey()` find out which REPL/session Calva's REPL is curre
     const sessionKey = calva.repl.currentSessionKey()
     ```
 
+### `repl.listConnections()`
+
+Use `repl.listConnections()` to inspect every registered Calva nREPL connection. It returns a collection/array of objects with the following shape:
+
+* `clientKey` (`string`, required): Opaque connection key. Pass `{clientKey}` to `calva.disconnect`, or match a session from `repl.listSessions()`.
+* `host` (`string`, optional): nREPL host.
+* `port` (`number`, optional): nREPL port, or for a WebSocket connection the WebSocket server port.
+* `projectRoot` (`string`, optional): Full URI string of the project root (for example `file:///…`).
+* `replSessionKeys` (`string[]`, required): Session keys on this connection (for example `clj`, `cljs`). Empty while connecting.
+
+=== "Joyride"
+
+    ```clojure
+    (def connections (calva/repl.listConnections))
+    ```
+
 ### `repl.listSessions()`
 
 Use `repl.listSessions()` to inspect every registered Calva REPL session, including secondary or custom session roles. It returns a collection/array of metadata objects with the following shape:
 
 * `replSessionKey` (`string`, required): The session key you can pass to other Calva APIs such as `evaluateCode`.
-* `projectRoot` (`string`, optional): A URI string describing the project/workspace that owns the session.
+* `clientKey` (`string`, optional): Connection key of the connection that owns this session (same as in `repl.listConnections()`).
+* `projectRoot` (`string`, optional): Workspace-relative path of the session's project root (folder-prefixed in a multi-root workspace).
 * `lastActivity` (`number`, optional): Milliseconds since Unix epoch for the latest known activity on the session.
 * `globs` (`string[]`, optional): The set of file globs that the session declared it can handle. Calva iterates sessions in connection order and picks the first one whose globs match the active file.
+* `replType` (`'clj' | 'cljs'`, required): Describes whether this is a Clojure or ClojureScript session.
+* `hasBuilds` (`boolean`, required): Tells if the session has ClojureScript builds available.
+* `supportsRuntimes` (`boolean`, required): Tells if the session supports JS runtimes targeting (currently true for shadow-cljs).
+* `availableBuilds` (`string[]`, optional): List of all builds defined for this connection.
+* `currentlyConnectedCljsBuild` (`string`, optional): The currently connected ClojureScript build name (e.g. `":app"`).
+* `currentlyConnectedRuntimeId` (`number`, optional): The currently connected shadow-cljs runtime ID, if any.
 
 === "Joyride"
 
-  ```clojure
-  (def sessions (calva/repl.listSessions))
-  (println "Session keys:" (map :replSessionKey sessions))
-  ```
-
-=== "ClojureScript"
-
-  ```clojure
-  (def list-sessions (get-in [:repl :listSessions] calvaApi))
-  (def session-keys (map :replSessionKey (list-sessions)))
-  ```
+    ```clojure
+    (def sessions (calva/repl.listSessions))
+    (println "Session keys:" (map :replSessionKey sessions))
+    ```
 
 === "JavaScript"
 
-  ```javascript
-  const sessions = calva.repl.listSessions();
-  const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
-  ```
+    ```javascript
+    const sessions = calva.repl.listSessions();
+    const secondary = sessions.find((s) => s.replSessionKey === 'cljs');
+    ```
+
+### `repl.listSessionsAndRuntimes()`
+
+Use `repl.listSessionsAndRuntimes()` to asynchronously inspect every registered Calva REPL session, including secondary or custom session roles, and query all builds and connected runtimes. It returns a Promise resolving to a collection/array of metadata objects with the same shape as `repl.listSessions()`, plus an additional nested `builds` property:
+
+* `builds` (`ShadowBuildInfo[]`, optional): For shadow-cljs connections, lists all builds and their connected runtimes. Each build has the following properties:
+    * `buildId` (`string`): The name of the build (e.g. `":app"`, `":test"`).
+    * `isActive` (`boolean`): Whether the build is currently active/compiled.
+    * `isCurrentlyConnected` (`boolean`): Whether this build is Calva's currently selected CLJS REPL target in the editor (Note: This is a misnomer. It describes Calva's active editor target, not whether a Shadow client process is connected).
+    * `runtimes` (`ShadowRuntimeInfo[]`): An array of connected runtime metadata objects, sorted by most recent evaluation activity first:
+        * `runtimeId` (`number`): The unique ID of the runtime.
+        * `description` (`string`): Description of the runtime (e.g. Browser User-Agent, Node.js process info).
+        * `buildId` (`string`): The shadow-cljs build name that this runtime is associated with.
+        * `host` (`string`): The hostname/IP of the runtime connection.
+        * `workerId` (`number`): The worker ID in the shadow-cljs ecosystem.
+        * `sinceInst` (`number`): Unix timestamp for when the runtime connected.
+        * `sinceDescription` (`string`): Human-readable relative or absolute date description of when the runtime connected.
+        * `lastActivity` (`number`, optional): Unix timestamp for the last time Calva evaluated code on this runtime. Absent if no evaluation has been performed on this runtime during this session.
+
+=== "Joyride"
+
+    ```clojure
+    (let [sessions (await (calva/repl.listSessionsAndRuntimes))]
+      (doseq [s sessions]
+        (println "Session key:" (:replSessionKey s))
+        (doseq [b (:builds s)]
+          (println "  Build:" (:buildId b) "Active?" (:isActive b))
+          (doseq [r (:runtimes b)]
+            (println "    Runtime:" (:runtimeId r) (:description r))))))
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const sessions = await calva.repl.listSessionsAndRuntimes();
+    const cljsSession = sessions.find(s => s.replType === 'cljs');
+    if (cljsSession && cljsSession.builds) {
+      for (const b of cljsSession.builds) {
+        console.log(`Build ${b.buildId} is active: ${b.isActive}`);
+        console.log("Runtimes:", b.runtimes.map(r => r.runtimeId));
+      }
+    }
+    ```
+
+### `repl.onSessionsChanged()`
+
+Subscribe to real-time REPL session, connection, and runtime lifecycle changes. Calva fires notifications immediately whenever a connection is established or closed, sessions are registered, unregistered, or renamed, or Shadow-cljs runtimes connect or disconnect.
+
+Returns a `vscode.Disposable` that you should dispose when you no longer need updates. (Push it onto `context.subscriptions` for automatic cleanup).
+
+Event payloads are intentionally lightweight notifications. To inspect full project roots, globs, available builds, or runtime trees, query [`repl.listSessionsAndRuntimes()`](#repllistsessionsandruntimes) when receiving an event.
+
+TypeScript signature:
+
+```typescript
+export function onSessionsChanged(
+  listener: (event: SessionsChangedEvent) => void
+): vscode.Disposable;
+
+export type SessionsChangedEventType =
+  | 'session-added'
+  | 'session-removed'
+  | 'session-renamed'
+  | 'runtime-connected'
+  | 'runtime-disconnected'
+  | 'connection-added'
+  | 'connection-removed';
+
+export interface SessionsChangedEvent {
+  type: SessionsChangedEventType;
+  clientKey?: string;
+  sessionKey?: string;
+  previousSessionKey?: string; // Present only on 'session-renamed'
+  runtime?: ShadowRuntimeInfo; // Present on 'runtime-connected' / 'runtime-disconnected'
+}
+```
+
+#### Event Types
+
+* `'connection-added'` / `'connection-removed'` — An nREPL client connected or disconnected (`clientKey` provided).
+* `'session-added'` / `'session-removed'` — A session was registered or unregistered (`sessionKey` and `clientKey` provided).
+* `'session-renamed'` — A session was renamed (`sessionKey` is the new key, `previousSessionKey` is the old key).
+* `'runtime-connected'` / `'runtime-disconnected'` — A Shadow-cljs runtime connected or disconnected (`runtime` provides the [`ShadowRuntimeInfo`](#repllistsessionsandruntimes) object).
+
+#### Examples
+
+=== "Joyride"
+
+    ```clojure
+    (def sub
+      (calva/repl.onSessionsChanged
+       (fn [e]
+         (println "Session event:" (.-type e) (.-sessionKey e)))))
+
+    ;; When done:
+    ;; (.dispose sub)
+    ```
+
+=== "JavaScript"
+
+    ```javascript
+    const disposable = calva.repl.onSessionsChanged((event) => {
+      console.log(`Session change: ${event.type}`, event);
+      if (event.type === 'runtime-connected') {
+        console.log(`New runtime connected on ${event.sessionKey}:`, event.runtime?.description);
+      }
+    });
+
+    // context.subscriptions.push(disposable);
+    ```
 
 ### `repl.evaluate()`
 
@@ -122,6 +248,7 @@ export async function evaluate(
     nReplOptions?: Record<string, unknown>;
     who?: string;
     description?: string;
+    targetRuntimeId?: number;
   }
 ): Promise<Result>;
 ```
@@ -139,6 +266,8 @@ type Result = {
   otherWhosSinceLast?: string[];  // Other who values that evaluated since this who's last evaluation
   error?: string;            // Error message, if any
   stacktrace?: any;          // Raw nrepl stacktrace object, if error
+  shadowBuild?: string;      // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number;  // (shadow-cljs only) Connected runtime ID, if applicable
 };
 ```
 
@@ -148,6 +277,7 @@ type Result = {
 * `ns` — The namespace to evaluate in. Defaults to `"user"`.
 * `output` — Optional stdout/stderr handlers, same as `evaluateCode()`.
 * `nReplOptions` — Additional nREPL evaluation options.
+* `targetRuntimeId` — (shadow-cljs only) Optional JS runtime ID to target for the evaluation. Allows evaluating statelessly on a specific browser tab or node worker without changing the active editor/status bar runtime target.
 * `who` — A freeform string identifying who is evaluating. Defaults to `"api"`. This appears as a badge in Calva's REPL output, helping users distinguish between different agents or tools.
 * `description` — An optional description that is output before the evaluated code, providing context about why the evaluation is happening.
 
@@ -330,9 +460,11 @@ export type OutputCategory =
 export interface OutputMessage {
   category: OutputCategory;
   text: string;
-  who?: string;            // Present when the output was triggered by an identified who
-  ns?: string;             // The namespace the output is associated with, when applicable
-  replSessionKey?: string; // The REPL session key (e.g. "clj", "cljs"), when applicable
+  who?: string;             // Present when the output was triggered by an identified who
+  ns?: string;              // The namespace the output is associated with, when applicable
+  replSessionKey?: string;  // The REPL session key (e.g. "clj", "cljs"), when applicable
+  shadowBuild?: string;     // (shadow-cljs only) Connected build name, if applicable
+  shadowRuntimeId?: number; // (shadow-cljs only) Connected runtime ID, if applicable
 }
 ```
 

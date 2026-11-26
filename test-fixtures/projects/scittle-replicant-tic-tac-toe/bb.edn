@@ -1,0 +1,24 @@
+{:paths ["." "src" "test" "scripts"]
+ :deps {io.github.babashka/sci.nrepl {:mvn/version "0.0.2"}
+        org.babashka/http-server {:mvn/version "0.1.14"}
+        org.babashka/cli {:mvn/version "0.2.23"}}
+ :tasks
+ {:requires ([babashka.cli :as cli]
+             [tasks])
+
+  serve {:doc "Serve static assets"
+         :task (tasks/serve (cli/parse-opts *command-line-args*
+                                            {:coerce {:port :int}}))}
+
+  prn {:task (let [opts (cli/parse-opts *command-line-args*
+                                        {:coerce {:headers :edn}})]
+               (clojure "-X clojure.core/prn" opts))}
+
+  browser-nrepl {:doc "Start browser nREPL"
+                 :task (tasks/browser-nrepl (cli/parse-opts *command-line-args*
+                                                            {:coerce {:nrepl-port :int
+                                                                      :websocket-port :int}}))}
+
+  -dev {:depends [browser-nrepl prn]}
+
+  dev {:task (run '-dev {:parallel true})}}}

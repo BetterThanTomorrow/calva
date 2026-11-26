@@ -6,6 +6,7 @@ import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as connector from '../../../connector';
+import * as nReplWsServer from '../../../nrepl/nrepl-ws-server';
 import * as connectSequenceTypes from '../../../nrepl/connect-sequence-types';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as docMirror from '../../../doc-mirror';
@@ -13,6 +14,7 @@ import * as docMirror from '../../../doc-mirror';
 const WS_PORT_EVAL = 51340;
 const WS_PORT_LOAD = 51341;
 const WS_PORT_RENAME = 51342;
+const WS_PORT_SHUTDOWN = 51343;
 
 /**
  * Create a scittle webview via Joyride flare.
@@ -93,7 +95,7 @@ suite('WebSocket nREPL Connect suite', function () {
     // We need to trigger the webview AFTER the WS server starts listening,
     // so we kick off the connect (which will block on firstConnectionPromise)
     // and then open the webview.
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
     testUtil.log(suite, `[TIMING] connector.connect kicked off: ${elapsed()}`);
 
     // Wait for the WS server to be accepting connections
@@ -220,7 +222,7 @@ suite('WebSocket nREPL Connect suite', function () {
       projectRootPath: [projectDir],
     };
 
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
 
     // Wait for the WS server to be accepting connections
     await testUtil.waitForCondition(
@@ -244,20 +246,46 @@ suite('WebSocket nREPL Connect suite', function () {
       'Timed out waiting for sessions'
     );
 
+    // Wait for initial scripts (game.cljs, ui.cljs) to finish loading in Scittle
+    const session = sessionRegistry.getSession(sessionRegistry.listSessions()[0].key);
+    assert.ok(session, 'Should get session');
+    await testUtil.waitForCondition(
+      async () => {
+        try {
+          const r = await session.eval(
+            "(try (boolean (find-ns 'replicant-tictactoe.game)) (catch :default _ false))",
+            'user'
+          ).value;
+          return r === 'true';
+        } catch {
+          return false;
+        }
+      },
+      5_000,
+      20,
+      'Timed out waiting for initial scittle namespaces to load'
+    );
+
     // Load the core.cljs file
     await vscode.commands.executeCommand('calva.loadFile', { path: coreFile });
     testUtil.log(suite, 'Load file command executed');
 
-    // Verify eval result appears in repl output
+    // Verify namespace var was defined in Scittle session after loadFile
     await testUtil.waitForCondition(
       async () => {
-        const replWindowDoc = await outputWindow.openReplWindowDoc();
-        const text = docMirror.getDocument(replWindowDoc).document.getText();
-        return text.includes('nil');
+        try {
+          const r = await session.eval(
+            "(try (boolean (resolve 'replicant-tictactoe.core/start-new-game)) (catch :default _ false))",
+            'user'
+          ).value;
+          return r === 'true';
+        } catch {
+          return false;
+        }
       },
-      2_000,
+      5_000,
       20,
-      'Timed out waiting for load-file result in REPL window'
+      'Timed out waiting for loaded file to define start-new-game in session'
     );
 
     testUtil.log(suite, `[TIMING] Test 2 complete: ${elapsed()}`);
@@ -285,7 +313,7 @@ suite('WebSocket nREPL Connect suite', function () {
     };
 
     // 1. Connect via WebSocket
-    const connectPromise = connector.connect(connectSequence, true);
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
 
     await testUtil.waitForCondition(
       () => testUtil.canConnectToPort(WS_PORT_RENAME),
@@ -360,5 +388,56 @@ suite('WebSocket nREPL Connect suite', function () {
 
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     testUtil.log(suite, `[TIMING] Test 3 complete: ${elapsed()}`);
+  });
+
+  test('WebSocket port is released on extension shutdown path', async function () {
+    const t0 = Date.now();
+    const elapsed = () => `${Date.now() - t0}ms`;
+    testUtil.log(suite, 'WebSocket port released on shutdown path');
+
+    const projectDir = path.join(
+      testUtil.testDataDir,
+      '..',
+      'projects',
+      'scittle-replicant-tic-tac-toe'
+    );
+
+    const connectSequence: connectSequenceTypes.ReplConnectSequence = {
+      name: 'scittle-ws-shutdown-test',
+      projectType: connectSequenceTypes.ProjectTypes['scittle'],
+      cljsType: connectSequenceTypes.CljsTypes.none,
+      webSocketPort: WS_PORT_SHUTDOWN,
+      projectRootPath: [projectDir],
+    };
+
+    const connectPromise = connector.connect(connectSequence, true, vscode.Uri.file(projectDir));
+
+    await testUtil.waitForCondition(
+      () => testUtil.canConnectToPort(WS_PORT_SHUTDOWN),
+      5_000,
+      20,
+      `WS server not listening on port ${WS_PORT_SHUTDOWN}`
+    );
+    assert.ok(
+      nReplWsServer.getActiveServers().size > 0,
+      'Expected tracked WebSocket server while waiting for browser'
+    );
+    testUtil.log(suite, `[TIMING] WS server listening: ${elapsed()}`);
+
+    // Same shutdown as extension deactivate() on window reload (#3237).
+    // Full Developer: Reload Window is not automatable in @vscode/test-electron.
+    await nReplWsServer.stopAllActiveWsServers();
+
+    await testUtil.waitForCondition(
+      async () => !(await testUtil.canConnectToPort(WS_PORT_SHUTDOWN)),
+      5_000,
+      20,
+      `Port ${WS_PORT_SHUTDOWN} still bound after stopAllActiveWsServers`
+    );
+    assert.strictEqual(nReplWsServer.getActiveServers().size, 0);
+
+    const result = await connectPromise;
+    assert.ok(!result.connected, 'Connect should end after server shutdown');
+    testUtil.log(suite, `[TIMING] Shutdown path complete: ${elapsed()}`);
   });
 });

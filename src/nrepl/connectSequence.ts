@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as state from '../state';
 import * as utilities from '../utilities';
-import * as fileArg from '../util/resolve-file-arg';
 import * as config from '../config';
 import * as connectTypes from './connect-types';
 import * as output from '../results-output/output';
-import * as projectRoot from '../project-root';
 import * as csTypes from './connect-sequence-types';
+import { overridingSequenceRoot, sequenceRootPath } from '../project-root-decision';
 
 // Project types that only support connect (not jack-in)
 // These have no commandLine and no startFunction in project-types.ts
@@ -404,61 +402,75 @@ function getDefaultCljsType(cljsType: string): csTypes.CljsTypeConfig {
   return defaultCljsTypes[cljsType];
 }
 
-async function getUserSpecifiedSequence(
+/**
+ * Returns the sequence among `sequences` that the root decision auto-selected.
+ */
+function autoSelectedSequence(
   sequences: csTypes.ReplConnectSequence[],
-  connectType: connectTypes.ConnectType,
-  disableAutoSelect: boolean
-): Promise<csTypes.ReplConnectSequence | undefined> {
-  const autoSelectedSequences = disableAutoSelect
-    ? []
-    : sequences.filter((s) =>
-        connectType === connectTypes.ConnectType.Connect
-          ? s.autoSelectForConnect
-          : s.autoSelectForJackIn
-      );
-  const candidatePaths = await projectRoot.findProjectRoots();
-  const active_uri = vscode.window.activeTextEditor?.document.uri;
-  const closestRootPath: vscode.Uri = active_uri
-    ? projectRoot.findClosestParent(active_uri, candidatePaths)
-    : undefined;
-  const autoSelectedSequence =
-    autoSelectedSequences.find(
-      (s) =>
-        s.projectRootPath &&
-        vscode.workspace.asRelativePath(path.join(...s.projectRootPath)) ===
-          vscode.workspace.asRelativePath(closestRootPath)
-    ) || autoSelectedSequences.shift();
-  const userSpecifiedProjectType = autoSelectedSequence?.name;
-
-  if (userSpecifiedProjectType) {
-    const builtInSequence = sequences.find(
-      (s) => s.name.toLocaleLowerCase() === userSpecifiedProjectType.toLocaleLowerCase()
-    );
-
-    if (builtInSequence) {
-      output.appendLineOtherOut(
-        [
-          `Auto-selecting project type "${builtInSequence.name}".`,
-          `You can change this from settings:`,
-          connectSequencesDocLink,
-          '\n',
-        ].join('\n')
-      );
-
-      return builtInSequence;
-    } else {
-      output.appendLineOtherErr(`Project type "${userSpecifiedProjectType}" not found.`);
-      output.appendLineOtherOut(
-        [`You need to update the auto-select setting.`, connectSequencesDocLink, '\n'].join('\n')
-      );
-    }
+  autoSelected: csTypes.ReplConnectSequence | undefined
+): csTypes.ReplConnectSequence | undefined {
+  const decidedName = autoSelected?.name;
+  if (!decidedName) {
+    return undefined;
   }
+  const builtInSequence = sequences.find(
+    (s) => s.name.toLocaleLowerCase() === decidedName.toLocaleLowerCase()
+  );
+  if (builtInSequence) {
+    output.appendLineOtherOut(
+      [
+        `Auto-selecting project type "${builtInSequence.name}".`,
+        `You can change this from settings:`,
+        connectSequencesDocLink,
+        '\n',
+      ].join('\n')
+    );
+    return builtInSequence;
+  }
+  output.appendLineOtherErr(`Project type "${decidedName}" not found.`);
+  output.appendLineOtherOut(
+    [`You need to update the auto-select setting.`, connectSequencesDocLink, '\n'].join('\n')
+  );
+  return undefined;
+}
+
+function workspaceFolderPaths(): string[] {
+  return (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
+}
+
+/**
+ * Returns the sequence's root as the project type menu shows it, or `undefined`
+ * for a sequence without `projectRootPath`.
+ */
+function sequenceRootDescription(sequence: csTypes.ReplConnectSequence): string | undefined {
+  const root = sequenceRootPath(sequence, workspaceFolderPaths());
+  return root ? vscode.workspace.asRelativePath(vscode.Uri.file(root)) : undefined;
+}
+
+/**
+ * Returns the root `sequence` runs in: its `projectRootPath` when it names
+ * another folder than `chosenRoot`, else `chosenRoot`. When the sequence's root wins,
+ * an error-styled line in the REPL output says so.
+ */
+function rootForSequence(
+  sequence: csTypes.ReplConnectSequence,
+  chosenRoot: vscode.Uri
+): vscode.Uri {
+  const sequenceRoot = overridingSequenceRoot(sequence, chosenRoot.fsPath, workspaceFolderPaths());
+  if (!sequenceRoot) {
+    return chosenRoot;
+  }
+  output.appendLineOtherErr(
+    `Connect sequence "${sequence.name}" names the project root ${sequenceRoot}, which differs from the chosen root ${chosenRoot.fsPath}. The connect sequence takes precedence.`
+  );
+  return vscode.Uri.file(sequenceRoot);
 }
 
 async function askForConnectSequence(
   cljTypes: string[],
   connectType: connectTypes.ConnectType,
-  disableAutoSelect: boolean
+  autoSelected: csTypes.ReplConnectSequence | undefined,
+  projectRootUri: vscode.Uri
 ): Promise<csTypes.ReplConnectSequence> {
   const [saveAs, logLabel, menuTitleType] =
     connectType === connectTypes.ConnectType.Connect
@@ -466,10 +478,9 @@ async function askForConnectSequence(
       : ['jack-in-type', 'JackInInterrupted', 'Jack-in'];
   const sequences: csTypes.ReplConnectSequence[] = getConnectSequences(cljTypes);
 
-  const projectRootUri = state.getProjectRootUri();
-  const saveAsPath = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
+  const saveAsPath = `${projectRootUri.toString()}/${saveAs}`;
 
-  const builtInSequence = await getUserSpecifiedSequence(sequences, connectType, disableAutoSelect);
+  const builtInSequence = autoSelectedSequence(sequences, autoSelected);
 
   let projectConnectSequenceName = builtInSequence?.name;
 
@@ -494,7 +505,10 @@ async function askForConnectSequence(
         : sequences;
     const pickedSequence = await utilities.quickPickSingle({
       title: `${menuTitleType}: Project Type/Connect Sequence`,
-      values: filteredSequences.map((s) => s.name).map((a) => ({ label: a })),
+      values: filteredSequences.map((s) => ({
+        label: s.name,
+        description: sequenceRootDescription(s),
+      })),
       placeHolder: 'Please select a project type',
       saveAs: saveAsPath,
       autoSelect: true,
@@ -512,20 +526,6 @@ async function askForConnectSequence(
   }
   const sequence = sequences.find((seq) => seq.name === projectConnectSequenceName);
 
-  const currentProjectRootUri = state.getProjectRootUri();
-  const sequenceRootPath = fileArg.resolveFilePath(sequence.projectRootPath, undefined);
-  const sequenceRootUri = sequenceRootPath ? state.resolvePath(sequenceRootPath) : undefined;
-  if (
-    sequence.projectRootPath &&
-    currentProjectRootUri &&
-    sequenceRootUri &&
-    currentProjectRootUri.fsPath !== sequenceRootUri.fsPath
-  ) {
-    throw new Error(
-      `The connect sequence "${sequence.name}" is configured for project root "${sequenceRootPath}". Please select a different connect sequence or change the project root setting for the sequence.`
-    );
-  }
-
   void state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
   return sequence;
 }
@@ -533,6 +533,7 @@ async function askForConnectSequence(
 export {
   getCustomConnectSequences,
   askForConnectSequence,
+  rootForSequence,
   getConnectSequences,
   getDefaultCljsType,
   genericBuiltIns,

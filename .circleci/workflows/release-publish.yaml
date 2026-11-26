@@ -11,75 +11,46 @@
           'release':    '/^v\d+\.\d+\.\d+$/'
           else: die("Unexpected filter type '$type'")
 
-jobs:
-- checkout:
-    filters:: filters()
+  build-test-jobs =: load('build-test.yaml').jobs
 
-- build:
-    requires: [checkout]
-    filters:: filters()
+  not-in-release =: set(['test-docs-builder' 'marketplace-preview-publish'])
 
-- prettier-check:
-    requires: [build]
-    filters:: filters()
+  # A release first builds and checks like build-test does. CircleCI
+  # needs the tag filter on every job a tag-filtered job waits for.
+  release-checks =:
+    (for [job build-test-jobs
+          :let [[name opts] (if (map? job) (first job) [job {}])]
+          :when (not (not-in-release name))]
+      {name (assoc opts "filters" (filters))})
 
-- eslint-check:
-    requires: [build]
-    filters:: filters()
+  # The release waits for what a preview publish would wait for
+  checks-passed =:
+    some _ build-test-jobs:
+      fn(job): get-in(job ["marketplace-preview-publish" "requires"])
 
-- test-grammar:
-    requires: [build]
-    filters:: filters()
+jobs::
+  concat release-checks::
+  - github-release:
+      requires:: checks-passed
+      filters:: filters()
+      context: Calva
 
-- test-cljslib:
-    requires: [build]
-    filters:: filters()
+  - marketplace-publish:
+      requires: [github-release]
+      filters:: filters('release')
+      context: Calva
 
-- test-e2e:
-    requires: [build]
-    filters:: filters()
+  - open-vsx-publish:
+      requires: [github-release]
+      filters:: filters('release')
+      context: Calva
 
-- test-smoke:
-    requires: [build]
-    filters:: filters()
+  - merge-dev-into-published:
+      requires: [marketplace-publish]
+      filters:: filters('release')
+      context: Calva
 
-- test-smoke-sub-projects:
-    requires: [build]
-    filters:: filters()
-
-- test-ts-unit:
-    requires: [build]
-    filters:: filters()
-
-- github-release:
-    requires:
-    - prettier-check
-    - eslint-check
-    - test-grammar
-    - test-cljslib
-    - test-e2e
-    - test-smoke
-    - test-smoke-sub-projects
-    - test-ts-unit
-    filters:: filters()
-    context: Calva
-
-- marketplace-publish:
-    requires: [github-release]
-    filters:: filters('release')
-    context: Calva
-
-- open-vsx-publish:
-    requires: [github-release]
-    filters:: filters('release')
-    context: Calva
-
-- merge-dev-into-published:
-    requires: [marketplace-publish]
-    filters:: filters('release')
-    context: Calva
-
-- bump-dev-version:
-    requires: [merge-dev-into-published]
-    filters:: filters('release')
-    context: Calva
+  - bump-dev-version:
+      requires: [merge-dev-into-published]
+      filters:: filters('release')
+      context: Calva

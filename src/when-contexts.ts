@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as objectUtil from './util/object';
 import * as docMirror from './doc-mirror';
 import * as context from './cursor-doc/cursor-context';
 import * as util from './utilities';
 import * as namespace from './namespace';
 import * as session from './nrepl/repl-session';
+import * as sessionRegistry from './nrepl/session-registry';
 import * as state from './state';
 
 /* Determining the "calva:ns" cursor context takes time,
@@ -36,7 +38,8 @@ const setNsCursorContextSoon = (function () {
     }
     nsCursorContextTimer = setTimeout(function () {
       const newEditor = util.tryToGetActiveTextEditor();
-      if (baselineEditor === newEditor) {
+      // While the REPL Input is the current editor, `calva:ns` is its context's namespace
+      if (baselineEditor === newEditor && !cljsLib.replInputFocused()) {
         if (baselineDocument === newEditor.document) {
           if (baselineVersion == newEditor.document.version) {
             if (baselinePosition == newEditor.selections[0].active) {
@@ -67,8 +70,47 @@ export function setCursorContextIfChanged(editor: vscode.TextEditor): boolean {
   setNsCursorContextSoon(editor, editor.document, editor.selections[0].active);
   const sessionType = session.getSessionKey();
   void vscode.commands.executeCommand('setContext', 'calva:replSessionType', sessionType);
+  setProjectRootContext();
   setCljsTypeContext();
   return true;
+}
+
+/**
+ * Sets `calva:projectRoot` to the project root, as an fsPath, of the session the
+ * active editor routes to. Unset when no session is routed.
+ */
+export function setProjectRootContext() {
+  const sessionKey = session.getSessionKey();
+  const projectRoot = sessionKey
+    ? sessionRegistry.getSessionMetadata(sessionKey)?.projectRoot
+    : undefined;
+  void vscode.commands.executeCommand(
+    'setContext',
+    'calva:projectRoot',
+    projectRoot ? vscode.Uri.parse(projectRoot).fsPath : undefined
+  );
+}
+
+/**
+ * Sets `calva:ns`, `calva:replSessionType` and `calva:projectRoot` for the current editor: the
+ * REPL Input, with its context's namespace `replInputNs`, while it is the current editor, else the
+ * active editor.
+ */
+export function setCurrentEditorContexts(replInputNs: string | null) {
+  void vscode.commands.executeCommand(
+    'setContext',
+    'calva:replSessionType',
+    session.getSessionKey()
+  );
+  setProjectRootContext();
+  if (replInputNs !== null) {
+    void vscode.commands.executeCommand('setContext', 'calva:ns', replInputNs);
+    return;
+  }
+  const editor = util.tryToGetActiveTextEditor();
+  if (editor?.document.languageId === 'clojure') {
+    setNsCursorContextSoon(editor, editor.document, editor.selections[0].active);
+  }
 }
 
 function determineCursorContexts(

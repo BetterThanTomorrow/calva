@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as state from '../state';
 import * as utilities from '../utilities';
 import * as fiddleFiles from '../fiddle-files';
 import * as joyride from '../joyride';
@@ -12,7 +11,7 @@ import * as nReplWsServer from './nrepl-ws-server';
 type MenuSlug = { prefix: string; suffix: string };
 
 export function menuSlugForProjectRoot(): MenuSlug {
-  const prefix = state.getProjectRootUri() ? state.getProjectRootUri().toString() : 'no-folder';
+  const prefix = vscode.workspace.workspaceFolders?.[0]?.uri.toString() ?? 'no-folder';
   const suffix = shouldShowConnectedMenu()
     ? 'connect-repl-menu-connected'
     : 'connect-repl-menu-not-connected';

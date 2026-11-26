@@ -8,6 +8,17 @@ import * as sessionRegistry from '../nrepl/session-registry';
 import * as whoTracking from './who-tracking';
 import * as outputDestinations from '../results-output/output-destinations';
 import * as logUtil from './log-util';
+import * as clientRegistry from '../nrepl/client-registry';
+import {
+  listConnections as listConnectionsFromRegistry,
+  type ReplConnectionInfo,
+} from '../nrepl/list-connections';
+import { buildReplSessionInfo, type ReplSessionInfo } from '../nrepl/repl-session-info';
+import * as shadowCljsRuntime from '../shadow-cljs-runtime';
+import * as runtimeSessions from '../shadow-cljs-runtime-sessions';
+import * as sessionEvents from '../nrepl/session-events';
+
+export type { ReplConnectionInfo, ReplSessionInfo };
 
 type Result = {
   result: string;
@@ -19,14 +30,12 @@ type Result = {
   otherWhosSinceLast?: string[];
   error?: string;
   stacktrace?: any;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 };
 
-export interface ReplSessionInfo {
-  replSessionKey: string;
-  projectRoot?: string;
-  lastActivity?: number;
-  globs?: string[];
-  currentRoutedTarget?: boolean;
+export interface ReplSessionAndRuntimesInfo extends ReplSessionInfo {
+  builds?: ShadowBuildInfo[];
 }
 
 export const evaluate = async (
@@ -41,6 +50,7 @@ export const evaluate = async (
     nReplOptions?: Record<string, unknown>;
     who?: string;
     description?: string;
+    targetRuntimeId?: number;
   }
 ): Promise<Result> => {
   const {
@@ -50,6 +60,7 @@ export const evaluate = async (
     nReplOptions = {},
     who: rawWho,
     description,
+    targetRuntimeId,
   } = options || {};
 
   const resolvedWho = rawWho || 'api';
@@ -74,10 +85,43 @@ export const evaluate = async (
   const effectiveSessionKey =
     sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
 
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  const isShadow = connState?.cljsTypeName === 'shadow-cljs';
+  const sessionSupportsRuntimes =
+    isShadow &&
+    (session?.replType === 'cljs' || sessionRegistry.isSessionSecondary(effectiveSessionKey));
+  let shadowBuild =
+    sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
+  const shadowRuntimeId =
+    sessionSupportsRuntimes && connState
+      ? targetRuntimeId !== undefined
+        ? targetRuntimeId
+        : connState.shadowCljsRuntimeId
+      : undefined;
+
+  let evalSession = session;
+  if (sessionSupportsRuntimes && clientKey && targetRuntimeId !== undefined) {
+    const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+    const targetRuntime = allBuildsData?.runtimes?.find((r) => r.runtimeId === targetRuntimeId);
+    if (!targetRuntime) {
+      throw new Error(`No shadow-cljs runtime with id ${targetRuntimeId} on this connection`);
+    }
+    shadowBuild = targetRuntime.buildId;
+    evalSession = await runtimeSessions.getEvalSessionForRuntime(
+      { clientKey, buildId: targetRuntime.buildId, runtimeId: targetRuntimeId },
+      allBuildsData.defaultRuntimeIds[targetRuntime.buildId],
+      session
+    );
+  }
+
   const evalOptions: resultOutput.AppendClojureOptions = {
     ns,
     replSessionType: effectiveSessionKey,
     who: resolvedWho,
+    shadowBuild,
+    shadowRuntimeId,
+    evaluationId: resultOutput.nextEvaluationId(),
   };
 
   if (description) {
@@ -85,6 +129,8 @@ export const evaluate = async (
       who: resolvedWho,
       ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     });
   }
 
@@ -102,16 +148,28 @@ export const evaluate = async (
     }
   };
 
-  const evaluation = session.eval(code, ns, {
+  const evaluationOptions: any = {
     stdout,
     stderr,
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplOptions,
-  });
+  };
+
+  const evaluation = evalSession.eval(code, ns, evaluationOptions);
+  if (evalSession !== session) {
+    runtimeSessions.trackEvaluation(clientKey, targetRuntimeId, evaluation);
+  }
 
   sessionRegistry.updateSessionActivity(effectiveSessionKey);
   whoTracking.recordEvaluation(effectiveSessionKey, resolvedWho);
-  whoTracking.setCurrentWho(session.sessionId, resolvedWho);
+  whoTracking.setCurrentWho(evalSession.sessionId, resolvedWho);
+
+  // Track runtime activity for the effective runtime
+  const effectiveRuntimeId =
+    targetRuntimeId ?? shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+  if (effectiveRuntimeId !== undefined) {
+    shadowCljsRuntime.recordRuntimeActivity(effectiveRuntimeId);
+  }
 
   resultOutput.appendEvaluatedCode(code, {
     destination: resultOutput.getDestinationConfiguration().evalResults,
@@ -129,12 +187,14 @@ export const evaluate = async (
       sessionKey: effectiveSessionKey,
       who: resolvedWho,
       otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
+      shadowBuild,
+      shadowRuntimeId,
     };
     resultOutput.appendClojureEval(evaluationResult, evalOptions);
   } catch (evalError) {
     let stacktrace;
     try {
-      stacktrace = await session.stacktrace();
+      [stacktrace] = (await evalSession.stacktrace()) ?? [];
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {
@@ -148,9 +208,13 @@ export const evaluate = async (
         otherWhosSinceLast: whoTracking.getOtherWhosSinceLast(effectiveSessionKey, resolvedWho),
         error: `${evalError}`,
         stacktrace,
+        shadowBuild,
+        shadowRuntimeId,
       };
       resultOutput.appendClojureEval('nil', evalOptions);
     }
+  } finally {
+    resultOutput.endEvaluation(evalOptions.evaluationId);
   }
   return result;
 };
@@ -183,9 +247,28 @@ export const evaluateCode = async (
   }
   const effectiveSessionKey =
     sessionKey || ((session as any)?._calvaSessionMetadata?.key as string | undefined) || 'unknown';
+
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  const isShadow = connState?.cljsTypeName === 'shadow-cljs';
+  const sessionSupportsRuntimes =
+    isShadow &&
+    (session?.replType === 'cljs' || sessionRegistry.isSessionSecondary(effectiveSessionKey));
+  const shadowBuild =
+    sessionSupportsRuntimes && connState ? connState.cljsBuild || undefined : undefined;
+  const shadowRuntimeId =
+    sessionSupportsRuntimes && connState ? connState.shadowCljsRuntimeId : undefined;
+  const evaluationId = resultOutput.nextEvaluationId();
+
   // Always send to Calva destinations AND call custom handlers if provided
   const stdout = (m: string) => {
-    resultOutput.appendEvalOut(m);
+    resultOutput.appendEvalOut(m, {
+      ns,
+      replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
+      evaluationId,
+    });
 
     if (output?.stdout) {
       output.stdout(m);
@@ -196,6 +279,9 @@ export const evaluateCode = async (
     resultOutput.appendEvalErr(m, {
       ns: ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
+      evaluationId,
     });
 
     if (output?.stderr) {
@@ -223,6 +309,9 @@ export const evaluateCode = async (
         ns,
         replSessionType: effectiveSessionKey,
         outputCategory: 'evaluatedCode',
+        shadowBuild,
+        shadowRuntimeId,
+        evaluationId,
       });
     }
   }
@@ -236,17 +325,22 @@ export const evaluateCode = async (
       output: evaluation.outPut,
       errorOutput: evaluation.errorOutput,
       sessionKey: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
     };
 
     // Always display results in Calva destination
     resultOutput.appendClojureEval(evaluationResult, {
       ns: evaluation.ns,
       replSessionType: effectiveSessionKey,
+      shadowBuild,
+      shadowRuntimeId,
+      evaluationId,
     });
   } catch (evalError) {
     let stacktrace;
     try {
-      stacktrace = await session.stacktrace();
+      [stacktrace] = (await session.stacktrace()) ?? [];
     } catch (fetchStacktraceError) {
       console.error(`Calva API eval: failed to output stacktrace. ${fetchStacktraceError}`);
     } finally {
@@ -258,13 +352,20 @@ export const evaluateCode = async (
         sessionKey: effectiveSessionKey,
         error: `${evalError}`,
         stacktrace,
+        shadowBuild,
+        shadowRuntimeId,
       };
 
       resultOutput.appendClojureEval('nil', {
         ns: evaluation.ns,
         replSessionType: effectiveSessionKey,
+        shadowBuild,
+        shadowRuntimeId,
+        evaluationId,
       });
     }
+  } finally {
+    resultOutput.endEvaluation(evaluationId);
   }
   return result;
 };
@@ -273,18 +374,125 @@ export const currentSessionKey = () => {
   return replSession.getSessionKey();
 };
 
+export const listConnections = (): ReplConnectionInfo[] => {
+  return listConnectionsFromRegistry();
+};
+
 export const listSessions = (): ReplSessionInfo[] => {
   const currentSessionKey = replSession.getSessionKey();
-  return sessionRegistry.listSessions().map((session) => ({
-    replSessionKey: session.key,
-    projectRoot: session.projectRoot
-      ? vscode.workspace.asRelativePath(session.projectRoot)
-      : undefined,
-    lastActivity: session.lastActivity,
-    globs: session.globs,
-    currentRoutedTarget: session.key === currentSessionKey,
-  }));
+  return sessionRegistry.listSessions().map((session) => {
+    const clientKey = session.connectionOwnerId;
+    const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+    return buildReplSessionInfo(
+      session,
+      currentSessionKey,
+      session.projectRoot ? vscode.workspace.asRelativePath(session.projectRoot) : undefined,
+      connState
+    );
+  });
 };
+
+export const listSessionsAndRuntimes = async (): Promise<ReplSessionAndRuntimesInfo[]> => {
+  const currentSessionKey = replSession.getSessionKey();
+  const sessionInfoList: ReplSessionAndRuntimesInfo[] = [];
+
+  for (const session of sessionRegistry.listSessions()) {
+    const clientKey = session.connectionOwnerId;
+    const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+    const sessionInfo = buildReplSessionInfo(
+      session,
+      currentSessionKey,
+      session.projectRoot ? vscode.workspace.asRelativePath(session.projectRoot) : undefined,
+      connState
+    );
+
+    let builds: ShadowBuildInfo[] | undefined;
+
+    if (sessionInfo.supportsRuntimes && clientKey && connState) {
+      const allBuildsData = await shadowCljsRuntime.getShadowRuntimesAllBuilds(clientKey);
+      if (allBuildsData) {
+        const { activeBuilds, runtimes } = allBuildsData;
+
+        const buildKeyMap = new Map<string, string>();
+        const addKey = (k: string) => {
+          const norm = k.startsWith(':') ? k.substring(1) : k;
+          if (!buildKeyMap.has(norm)) {
+            const canonical = shadowCljsRuntime.canonicalBuildId(k);
+            if (canonical) {
+              buildKeyMap.set(norm, canonical);
+            }
+          }
+        };
+
+        activeBuilds.forEach(addKey);
+        runtimes.forEach((r) => addKey(r.buildId));
+        if (connState.availableBuilds) {
+          connState.availableBuilds.forEach(addKey);
+        }
+        if (connState.cljsBuild) {
+          addKey(connState.cljsBuild);
+        }
+
+        const currentConnectedBuildNorm = connState.cljsBuild
+          ? connState.cljsBuild.startsWith(':')
+            ? connState.cljsBuild.substring(1)
+            : connState.cljsBuild
+          : undefined;
+
+        const normalizedActiveBuilds = activeBuilds.map((b) =>
+          b.startsWith(':') ? b.substring(1) : b
+        );
+
+        builds = Array.from(buildKeyMap.entries()).map(([norm, originalKey]) => {
+          const isActive = normalizedActiveBuilds.includes(norm);
+          const isCurrentlyConnected = norm === currentConnectedBuildNorm;
+          const buildRuntimes = (runtimes || [])
+            .filter((r) => {
+              const rNorm = r.buildId.startsWith(':') ? r.buildId.substring(1) : r.buildId;
+              return rNorm === norm;
+            })
+            .map((r) => ({
+              ...r,
+              lastActivity: shadowCljsRuntime.getRuntimeLastActivity(r.runtimeId),
+            }))
+            .sort((a, b) => (b.lastActivity ?? 0) - (a.lastActivity ?? 0));
+
+          return {
+            buildId: originalKey,
+            isActive,
+            isCurrentlyConnected,
+            runtimes: buildRuntimes,
+          };
+        });
+      }
+    }
+
+    sessionInfoList.push({
+      ...sessionInfo,
+      builds,
+    });
+  }
+
+  return sessionInfoList;
+};
+
+export interface ShadowRuntimeInfo {
+  runtimeId: number;
+  description: string;
+  buildId: string;
+  host: string;
+  workerId: number;
+  sinceInst: number;
+  sinceDescription: string;
+  lastActivity?: number;
+}
+
+export interface ShadowBuildInfo {
+  buildId: string;
+  isActive: boolean;
+  isCurrentlyConnected: boolean;
+  runtimes: ShadowRuntimeInfo[];
+}
 
 //// OUTPUT ////
 
@@ -302,6 +510,8 @@ export interface OutputMessage {
   who?: string;
   ns?: string;
   replSessionKey?: string;
+  shadowBuild?: string;
+  shadowRuntimeId?: number;
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -321,6 +531,8 @@ export function log(message: OutputMessage): void {
     who: message.who,
     ns: message.ns,
     replSessionKey: message.replSessionKey,
+    shadowBuild: message.shadowBuild,
+    shadowRuntimeId: message.shadowRuntimeId,
   });
 }
 
@@ -334,10 +546,60 @@ export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.D
         who: m.who,
         ns: m.ns,
         replSessionKey: m.replSessionKey,
+        shadowBuild: m.shadowBuild,
+        shadowRuntimeId: m.shadowRuntimeId,
       });
     } catch (error) {
       console.log('API onOutputLogged callback failed', error.message);
     }
   });
   return new vscode.Disposable(unsubscribe);
+}
+
+export type SessionsChangedEventType =
+  | 'session-added'
+  | 'session-removed'
+  | 'session-renamed'
+  | 'runtime-connected'
+  | 'runtime-disconnected'
+  | 'connection-added'
+  | 'connection-removed';
+
+export interface SessionsChangedEvent {
+  type: SessionsChangedEventType;
+  clientKey?: string;
+  sessionKey?: string;
+  previousSessionKey?: string;
+  runtime?: ShadowRuntimeInfo;
+}
+
+export function onSessionsChanged(
+  listener: (event: SessionsChangedEvent) => void
+): vscode.Disposable {
+  const disposable = sessionEvents.onSessionsChanged((event) => {
+    try {
+      const publicEvent: SessionsChangedEvent = {
+        type: event.type,
+        clientKey: event.clientKey,
+        sessionKey: event.sessionKey,
+        previousSessionKey: event.previousSessionKey,
+        runtime: event.runtime
+          ? {
+              runtimeId: event.runtime.runtimeId,
+              description: event.runtime.description,
+              buildId: event.runtime.buildId,
+              host: event.runtime.host,
+              workerId: event.runtime.workerId,
+              sinceInst: event.runtime.sinceInst,
+              sinceDescription: event.runtime.sinceDescription,
+              lastActivity: event.runtime.lastActivity,
+            }
+          : undefined,
+      };
+      listener(publicEvent);
+    } catch (error) {
+      console.log('API onSessionsChanged callback failed', (error as Error).message);
+    }
+  });
+  return new vscode.Disposable(() => disposable.dispose());
 }

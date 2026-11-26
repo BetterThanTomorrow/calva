@@ -137,8 +137,7 @@ function triggerUpdateAndRenderDecorations() {
     if (editor) {
       timeout = setTimeout(() => {
         const clientProvider = lsp.getClientProvider();
-        // Use the routed session for the current file
-        const session = replSession.getSession();
+        const session = replSession.getSession(editor.document);
         const lspClient = clientProvider.getClientForDocumentUri(editor.document.uri);
         void update(editor, session, lspClient).then(renderInAllVisibleEditors);
       }, 50);

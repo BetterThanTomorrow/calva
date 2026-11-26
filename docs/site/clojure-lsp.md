@@ -8,7 +8,7 @@ description: Learn about how Calva leverages clojure-lsp for a lot of the featur
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)
 
 !!! Note "Which clojure-lsp does Calva use?"
-    Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info.
+    Calva defaults to using the `latest` clojure-lsp released. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp) to the installed binary in your settings**. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info.
 
 ## The LSP server lifecycle
 
@@ -23,7 +23,7 @@ Calva is able to automatically start the clojure-lsp server for you and can be c
 
 #### "always-use-first-workspace-root" [default]
 
-When set to `"always-use-first-workspace-root"` Calva will attempt to start the clojure-lsp in the root of the first workspace folder if it is a valid clojure project. If it is not a valid clojure project it will fall back to starting the [fallback server](#fallback-server).
+When set to `"always-use-first-workspace-root"` Calva will attempt to start the clojure-lsp in the root of the first workspace folder if that folder holds a Clojure project (or an open Clojure file). If it does not, Calva skips auto-start so that non-Clojure workspaces are not littered with `.lsp` and `.clj-kondo` folders.
 
 This is the default auto-start behaviour.
 

@@ -4,7 +4,159 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- [Dragging sexps with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
+- Fix: [Dragging sexps with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
+
+## [2.0.612] - 2026-11-19
+
+- [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)
+- Bump deps-clj to v1.12.7.1681
+- [Remove default ports for bundled connect sequences](https://github.com/BetterThanTomorrow/calva/issues/3348)
+
+## [2.0.611] - 2026-11-14
+
+- Fix: [clojure-lsp starts in a non-Clojure first workspace root when a Clojure file outside the workspace is opened](https://github.com/BetterThanTomorrow/calva/issues/3339)
+- Add Portuguese (Brazil) Getting Started REPL project: new menu entry and command `calva.startStandaloneHelloReplPtBr`
+
+## [2.0.610] - 2026-11-10
+
+- [Output views get sluggish and consume a lot of ram and resources when output grows large](https://github.com/BetterThanTomorrow/calva/issues/3336)
+
+## [2.0.609] - 2026-11-02
+
+- [Autoconfigure custom keybindings that the output view should handle](https://github.com/BetterThanTomorrow/calva/issues/3331)
+- [Support folding of Clojure data  in output view](https://github.com/BetterThanTomorrow/calva/issues/3330)
+- Fix: [Some ex-data not showing in output](https://github.com/BetterThanTomorrow/calva/issues/3332)
+- Ouput views: Make ex-data in error output Clojure code blocks (supporting navigation, folding, etc)
+- Output views: Make `escape` exit navigated output, allowing for keybindings to scroll the view.
+- Output views: Add command for scrolling to bottom: `calva.scrollOutputViewToEnd`
+- [Keep Output View (Editor area) output when closing and reopening it again](https://github.com/BetterThanTomorrow/calva/issues/3334)
+
+## [2.0.608] - 2026-11-02
+
+- Fix: [Evaluating with `targetRuntimeId` runs in the selected shadow-cljs runtime instead of the target](https://github.com/BetterThanTomorrow/calva/issues/3327)
+
+## [2.0.607] - 2026-11-01
+
+- [Make the output views use Semantic Tokens from clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/3320)
+- Highlight grammar now styles keywords matching clojure-lsp's semantic tokens
+- [Support Calva rainbow brackets in the output view](https://github.com/BetterThanTomorrow/calva/issues/3321)
+- [Support Calva rainbow indent guides in the output views](https://github.com/BetterThanTomorrow/calva/issues/3322)
+- [Support paredit navigation and selection in the output views](https://github.com/BetterThanTomorrow/calva/issues/3323)
+- [Don't auto-scroll the output view when user has scrolled up](https://github.com/BetterThanTomorrow/calva/issues/2869)
+- [Make load file error popup not occur when webview is output destination and it's visible](https://github.com/BetterThanTomorrow/calva/issues/2841)
+- [Format evaluated code in output view](https://github.com/BetterThanTomorrow/calva/issues/2838)
+- [Add paredit squeeze command to remove parentheses from current form](https://github.com/BetterThanTomorrow/calva/issues/2892)
+
+## [2.0.606] - 2026-10-29
+
+- [Make Calva's notion about the current file consistent](https://github.com/BetterThanTomorrow/calva/issues/3309)
+- Fix: `$editor-ns` is empty in custom REPL commands
+- Fix: Go to definition sometimes land one column off
+- Fix: Interrupt doesn't stop an evaluation that hasn't replied yet
+- Fix: The Output Sidebar loses its output when the Output Destinations change
+- Fix: Code in the Output views isn't highlighted when offline
+- Calva Development QoL: CI build-and-test pipeline now runs in 8 minutes, down from 18 minutes
+- Fix: [Jacking-in fails with a nrepl-middleware error](https://github.com/BetterThanTomorrow/calva/issues/3319)
+- Fix: [Jack-in silently misses project servers when their port is already in use](https://github.com/BetterThanTomorrow/calva/issues/3312)
+
+## [2.0.605] - 2026-10-27
+
+- Fix: [Exceptions abbreviated in REPL output view with `cider-nrepl` >= 0.61](https://github.com/BetterThanTomorrow/calva/issues/3265)
+- [Add clickable stack traces](https://github.com/BetterThanTomorrow/calva/issues/2853)
+- Fix: [Go to definition only sometimes works for Java sources](https://github.com/BetterThanTomorrow/calva/issues/1436)
+- Fix: `extraNReplMiddleware` not applied when jacking in to Leiningen projects
+- Fix: Leiningen jack-in never applied Calva's nREPL middleware (malformed `update-in` key path)
+
+## [2.0.604] - 2026-10-26
+
+- [Add syntax highlighting in output view that matches editor syntax highlighting](https://github.com/BetterThanTomorrow/calva/issues/2842)
+
+## [2.0.603] - 2026-10-23
+
+- [Calva Development QOL: Remove stateful project root](https://github.com/BetterThanTomorrow/calva/issues/3295)
+  - Not just for Calva Development... A host of race conditions and misbehavior gets fixed too
+  - Closes [Fix duplicate findProjectRootUri functions](https://github.com/BetterThanTomorrow/calva/issues/1557)
+
+## [2.0.602] - 2026-10-23
+
+- Bump rewrite-clj to v1.3.59
+
+## [2.0.601] - 2026-10-18
+
+- Fix: [Calva adds `.lsp` and `.clj-kondo` folders to non-Clojure projects](https://github.com/BetterThanTomorrow/calva/issues/2610)
+  - Don't auto-start clojure-lsp in the first workspace root unless that folder holds a Clojure project or an open Clojure file
+  - Activate on `onDebugResolve:clojure` (was mistakenly `onDebugResolve:type`) and on `bb.edn`
+- Development: Building https://calva.io with a custom, Clojure, builder, instead of MkDocs, Material, Python, etc.
+
+## [2.0.600] - 2026-10-12
+
+- [Output-view: Display images in the results](https://github.com/BetterThanTomorrow/calva/issues/3287)
+- Fix: [Bencode/nrepl: Requests go out with unsorted dict keys](https://github.com/BetterThanTomorrow/calva/issues/3293)
+- Fix: [The `calva.disconnect` command ignores its argument](https://github.com/BetterThanTomorrow/calva/issues/3294)
+
+## [2.0.599] - 2026-09-23
+
+- Fix: [autoConnectRepl tried to connect even if no .nrepl-port present](https://github.com/BetterThanTomorrow/calva/issues/3278)
+
+## [2.0.598] - 2026-09-07
+
+- Bump deps-clj to v1.12.6.1673
+- Fix: [ns not working in customREPLCommandSnippet](https://github.com/BetterThanTomorrow/calva/issues/3283)
+
+
+## [2.0.597] - 2026-08-27
+
+- Fix: [api: Shadow client list changes do not notify `repl.onSessionsChanged`](https://github.com/BetterThanTomorrow/calva/issues/3279)
+
+## [2.0.596] - 2026-08-25
+
+- Fix: [Inconsistency in how the Output views follow editor font size](https://github.com/BetterThanTomorrow/calva/issues/3276)
+- Add settings: `calva.outputViews.fontSizeScale`, and `calva.outputViews.wordWrap`
+- [Add API for subscribing to REPL session updates (connect/disconnect, etc)](https://github.com/BetterThanTomorrow/calva/issues/3274)
+
+## [2.0.595] - 2026-08-24
+
+- Add: [REPL output sidebar destination (Output view, but for sidebar placement)](https://github.com/BetterThanTomorrow/calva/issues/2813)
+  - Update default output destinations to all be `["terminal", "output-sidebar"]` (from `"terminal"`)
+- Output views (both variants): wrap **evalOutput** at view width, avoiding horizontal scroll of the view.
+- Output views (both variants): Add wrap toggle command for evaluated code and results
+- Fix: [The Output view isn't displaying evaluation meta](https://github.com/BetterThanTomorrow/calva/issues/3270)
+- Fix: [Terrible performance with large-ish numbers of cursors and
+  paredit](https://github.com/BetterThanTomorrow/calva/issues/3268)
+- Fix: More stable way to recreate the Calva Output terminal after the tab is closed. Mitigation for [Output terminal stops outputting in Cursor](https://github.com/BetterThanTomorrow/calva/issues/3267)
+- Bump deps-clj to v1.12.5.1664
+- Doc site: Let the Calva User Guide follow the system light/dark preference,
+  with a manual theme toggle and a Calva-branded dark palette.
+- Fix: [Documentation bug: incorrect settings description for Jack-in dependency versions](https://github.com/BetterThanTomorrow/calva/issues/3266)
+- Internal: Replace dependency on **extract-zip** for **jszip** (`npm audit` clean for now)
+
+## [2.0.594] - 2026-07-14
+
+- Fix: [Download produces a corrupted binary on NodeJS ≥24.16.0](https://github.com/BetterThanTomorrow/calva/issues/3248)
+
+## [2.0.593] - 2026-06-22
+
+- Add: [Add clojure-lsp startup progress in status bar](https://github.com/BetterThanTomorrow/calva/issues/1303)
+
+## [2.0.592] - 2026-06-21
+
+- [Support targeting shadow-cljs runtimes via the repl API](https://github.com/BetterThanTomorrow/calva/issues/3244)
+  - Also tag output from shadow-cljs evaluations with build and runtime IDs
+
+## [2.0.591] - 2026-06-04
+
+- Fix: [WebSocket nREPL servers not stopped on VS Code window reload](https://github.com/BetterThanTomorrow/calva/issues/3237)
+- Internal: Ditching `atom-language-clojure` for Clojure TextMate grammar and using (`clojure.tmLanguage.json`) as the source of truth
+  - Unit tests (and watcher) are now covering the grammar (utilizing `vscode-textmate`)
+
+## [2.0.590] - 2026-06-03
+
+- Fix: [Negative number values in `def`s are not highlighted as numbers](https://github.com/BetterThanTomorrow/calva/issues/3233)
+- Bump deps.clj to v1.12.5.1654
+
+## [2.0.589] - 2026-05-31
+
+- Fix: [debugging stops working](https://github.com/BetterThanTomorrow/calva/issues/3224)
 
 ## [2.0.588] - 2026-05-15
 

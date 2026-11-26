@@ -33,6 +33,6 @@
   (testing "Should return first form if input is multiple top level forms"
     (is (= :a (parse-clj-edn ":a {:foo ['bar] :bar 'foo}"))))
   (testing "Should parse edn regexp as js regexp"
-    (is (= js/RegExp (type (parse-clj-edn "#\"^foo.*bar$\"")))))
+    (is (regexp? (parse-clj-edn "#\"^foo.*bar$\""))))
   (testing "Should return string representation of regexp as string"
     (is (= "/^foo.*bar$/" (str (parse-clj-edn "#\"^foo.*bar$\""))))))

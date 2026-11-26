@@ -3,12 +3,12 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as highlightExtension from '../highlight/src/extension';
 import * as nrepl from '../nrepl';
+import * as cider from '../nrepl/cider';
 import * as util from '../utilities';
-import * as select from '../select';
+import * as getText from '../util/get-text';
 import * as formatter from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
 import * as config from '../config';
-import type * as configTypes from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index';
 import * as codelense from '../providers/codelense';
@@ -66,8 +66,8 @@ export const CLJS_CONNECT_GREETINGS = [
   '   (Click the session indicator in the status bar to open it)',
 ].join(`\n`);
 
-function computeDocUri(): vscode.Uri {
-  const projectRoot = state.getProjectRootUri();
+function computeDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
+  const projectRoot = projectRootUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
   util.assertIsDefined(projectRoot, 'Expected there to be a project root!');
   try {
     return vscode.Uri.joinPath(projectRoot, '.calva', REPL_DOC_NAME);
@@ -77,10 +77,15 @@ function computeDocUri(): vscode.Uri {
 }
 
 let _docUri: vscode.Uri | undefined;
+let isInitialized = false;
 
-function getDocUri(): vscode.Uri {
+/**
+ * Returns the REPL window document. The first call decides where it lives:
+ * in `projectRootUri`, else in the first workspace folder.
+ */
+function getDocUri(projectRootUri?: vscode.Uri): vscode.Uri {
   if (!_docUri) {
-    _docUri = computeDocUri();
+    _docUri = computeDocUri(projectRootUri);
   }
   return _docUri;
 }
@@ -92,9 +97,11 @@ function getDocDir(): vscode.Uri {
 type SessionInfo = {
   ns?: string;
   session?: nrepl.NReplSession;
+  /** False when `session` may lack `ns`: a new session, or one that switched runtime, until it evaluates in a namespace. */
+  hasNs?: boolean;
 };
 
-let _sessionType: configTypes.ReplSessionType = 'clj';
+let _sessionType: config.ReplSessionType = 'clj';
 const _sessionInfo: Record<string, SessionInfo> = {
   clj: {},
   cljs: {},
@@ -116,7 +123,7 @@ function ensureSessionEntries(sessionType: string) {
 function resolveSessionType(
   session?: nrepl.NReplSession,
   override?: string
-): configTypes.ReplSessionType {
+): config.ReplSessionType {
   if (override) {
     return override;
   }
@@ -146,7 +153,7 @@ export function getNs(): string | undefined {
   return _sessionInfo[_sessionType].ns;
 }
 
-export function getSessionType(): configTypes.ReplSessionType {
+export function getSessionType(): config.ReplSessionType {
   return _sessionType;
 }
 
@@ -160,19 +167,50 @@ export function setSession(session: nrepl.NReplSession, newNs?: string, sessionK
   ensureSessionEntries(resolvedType);
   _sessionType = resolvedType;
 
-  if (session) {
-    _sessionInfo[resolvedType].session = session;
+  const info = _sessionInfo[resolvedType];
+  if (session && session !== info.session) {
+    info.session = session;
+    info.hasNs = false;
   }
   if (newNs) {
-    _sessionInfo[resolvedType].ns = newNs;
+    info.ns = newNs;
+    info.hasNs = true;
+  }
+}
+
+function sessionInfoOf(session: nrepl.NReplSession): SessionInfo | undefined {
+  const info = _sessionInfo[resolveSessionType(session)];
+  return info?.session === session ? info : undefined;
+}
+
+/** Returns the namespace `session` last evaluated in, or undefined when the REPL window hasn't seen `session`. */
+export function getSessionNs(session: nrepl.NReplSession): string | undefined {
+  return sessionInfoOf(session)?.ns;
+}
+
+/** True when `session` last evaluated in `ns`, and hasn't switched runtime since. */
+export function sessionHasNs(session: nrepl.NReplSession, ns: string): boolean {
+  const info = sessionInfoOf(session);
+  return !!info?.hasNs && info.ns === ns;
+}
+
+/** Forgets that `session` has its namespace, as after a switch to a runtime that may lack it. */
+export function forgetSessionNs(session: nrepl.NReplSession): void {
+  const info = sessionInfoOf(session);
+  if (info) {
+    info.hasNs = false;
   }
 }
 
 export function isReplWindowDoc(doc?: vscode.TextDocument): boolean {
-  if (!doc || !_docUri) {
+  return isReplWindowUri(doc?.uri);
+}
+
+export function isReplWindowUri(uri?: vscode.Uri): boolean {
+  if (!uri || !_docUri) {
     return false;
   }
-  return doc.uri.toString() === _docUri.toString();
+  return uri.toString() === _docUri.toString();
 }
 
 /**
@@ -184,11 +222,21 @@ function looksLikeReplWindowFile(doc?: vscode.TextDocument): boolean {
     return false;
   }
   const fileName = doc.fileName;
-  const looksLikeCurrentReplWindowFile = fileName.endsWith(`${path.sep}.calva/${REPL_DOC_NAME}`);
+  const looksLikeCurrentReplWindowFile = fileName.endsWith(
+    `${path.sep}.calva${path.sep}${REPL_DOC_NAME}`
+  );
   const looksLikeLegacyReplWindowFile = fileName.endsWith(
     `${path.sep}.calva${path.sep}output-window${path.sep}output.calva-repl`
   );
   return looksLikeCurrentReplWindowFile || looksLikeLegacyReplWindowFile;
+}
+
+/**
+ * Checks if `doc` is the REPL window, or a file that looks like a REPL window file, which it can be
+ * before a connect has given the REPL window its URI.
+ */
+export function isReplWindowFile(doc?: vscode.TextDocument): boolean {
+  return isReplWindowDoc(doc) || looksLikeReplWindowFile(doc);
 }
 
 // Track which files have been warned to avoid repeated warnings
@@ -250,6 +298,7 @@ export function maybePrintResultsInOtherDestinationMessage(): void {
     'output-channel': 'Output Channel',
     terminal: 'Output Terminal',
     'output-view': 'Output View',
+    'output-sidebar': 'Output Sidebar',
   };
   const destinationName =
     destinations.map((d) => destinationNames[d] || d).join(' and ') || 'unknown';
@@ -332,6 +381,7 @@ export function registerOutputWindowActiveWatcher(context: vscode.ExtensionConte
 }
 
 export async function clearReplWindowDoc() {
+  resultsBuffer = [];
   const docUri = getDocUri();
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
@@ -341,15 +391,27 @@ export async function clearReplWindowDoc() {
     await util.writeTextToFile(docUri, '');
     doc = await vscode.workspace.openTextDocument(docUri);
   }
-  const edit = new vscode.WorkspaceEdit();
-  const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
-  edit.replace(docUri, fullRange, '');
-  await vscode.workspace.applyEdit(edit);
-  await doc.save();
+
+  let success = false;
+  let attempts = 0;
+  while (!success && attempts < 50) {
+    attempts++;
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(Infinity));
+    edit.replace(docUri, fullRange, '');
+    success = await vscode.workspace.applyEdit(edit);
+    if (success) {
+      await doc.save();
+    } else {
+      // Re-load the document to obtain the latest version/state
+      doc = await vscode.workspace.openTextDocument(docUri);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
 }
 
-export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
-  const docUri = getDocUri();
+export async function initReplWindowDoc(projectRootUri?: vscode.Uri): Promise<vscode.TextDocument> {
+  const docUri = getDocUri(projectRootUri);
   await vscode.workspace.fs.createDirectory(getDocDir());
   let doc: vscode.TextDocument;
   try {
@@ -368,7 +430,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   if (config.getConfig().autoOpenResultOutputDestination) {
     void output.showResultOutputDestination(true);
   }
-  if (_docUri) {
+  if (isInitialized) {
     return doc;
   }
 
@@ -391,6 +453,7 @@ export async function initReplWindowDoc(): Promise<vscode.TextDocument> {
   );
 
   replHistory.resetState();
+  isInitialized = true;
   return doc;
 }
 
@@ -422,9 +485,11 @@ export async function revealReplWindowDocForCurrentNS(preserveFocus = true) {
 
 export function setNamespaceFromCurrentFile() {
   const session = replSession.getSession();
+  const document = util.tryToGetDocument({});
+  const editor = util.tryToGetActiveTextEditor();
   const [ns, _] = namespace.getNamespace(
-    util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selections[0]?.active
+    document,
+    editor?.document === document ? editor.selections[0].active : undefined
   );
   setSession(session, ns);
   replSession.updateReplSessionType();
@@ -432,17 +497,17 @@ export function setNamespaceFromCurrentFile() {
 }
 
 function appendFormGrabbingSessionAndNS(topLevel: boolean): void {
-  const session = replSession.getSession();
-  const [ns, _] = namespace.getNamespace(
-    util.tryToGetDocument({}),
-    vscode.window.activeTextEditor?.selections[0]?.active
-  );
   const editor = util.getActiveTextEditor();
   const doc = editor.document;
   const selection = editor.selections[0];
+  const session = replSession.getSession(doc);
+  const [ns, _] = namespace.getNamespace(doc, selection.active);
   let code = '';
   if (selection.isEmpty) {
-    const formSelection = select.getFormSelection(doc, selection.active, topLevel);
+    const [formSelection] = (topLevel ? getText.currentTopLevelFormText : getText.currentFormText)(
+      doc,
+      selection.active
+    );
     code = formatter.formatCode(doc.getText(formSelection), doc.eol);
   } else {
     code = formatter.formatCode(doc.getText(selection), doc.eol);
@@ -584,11 +649,6 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
   return _stacktraceEntries[key];
 }
 
-function stackEntryString(entry: any): string {
-  const name = entry.var || entry.name;
-  return `${name} (${entry.file}:${entry.line})`;
-}
-
 export function saveStacktrace(stacktrace: any[]): void {
   if (stacktrace === undefined || stacktrace.length === 0) {
     return;
@@ -602,7 +662,7 @@ export function saveStacktrace(stacktrace: any[]): void {
       );
     })
     .forEach((entry) => {
-      entry.string = stackEntryString(entry);
+      entry.string = cider.frameLine(entry);
       _lastStacktrace.push(entry);
       const fileUrl = entry['file-url'];
       if (typeof fileUrl === 'string') {

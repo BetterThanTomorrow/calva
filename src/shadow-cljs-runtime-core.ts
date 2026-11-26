@@ -5,8 +5,10 @@
  * This module is VS Code-free and operates solely on data structures.
  */
 
+import { buildRequiresWatcher } from './connector-cljs-builds';
+
 export interface RuntimeInfo {
-  clientId: number;
+  runtimeId: number;
   description: string;
   buildId: string;
   host: string;
@@ -50,15 +52,27 @@ export function formatSinceDescription(since: Date | undefined): string {
   });
 }
 
+export function canonicalBuildId(build: string | null | undefined): string | undefined {
+  if (!build) {
+    return undefined;
+  }
+  if (!buildRequiresWatcher(build)) {
+    return build.startsWith(':') ? build.substring(1) : build;
+  }
+  return build.startsWith(':') ? build : `:${build}`;
+}
+
 export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo {
   const sinceDate = apiInfo.since;
   const sinceInst = sinceDate ? sinceDate.getTime() : 0;
   const sinceDescription = formatSinceDescription(sinceDate);
 
+  const buildId = canonicalBuildId(apiInfo['build-id']) || '';
+
   return {
-    clientId: apiInfo['client-id'],
+    runtimeId: apiInfo['client-id'],
     description: apiInfo.desc || apiInfo['user-agent'] || 'No description',
-    buildId: apiInfo['build-id'],
+    buildId,
     host: apiInfo.host,
     workerId: apiInfo['worker-id'],
     sinceInst,
@@ -67,8 +81,13 @@ export function normalizeRuntimeInfo(apiInfo: ShadowApiRuntimeInfo): RuntimeInfo
 }
 
 export type MessageAction =
-  | { type: 'runtime-disconnected'; clientId: number }
-  | { type: 'runtime-connected'; clientId: number; runtimeInfo: RuntimeInfo }
+  | { type: 'runtime-disconnected'; runtimeId: number }
+  | { type: 'runtime-connected'; runtimeId: number; runtimeInfo: RuntimeInfo }
+  | { type: 'no-action' };
+
+export type LifecycleEventAction =
+  | { type: 'runtime-connected'; runtimeId: number; runtimeInfo: RuntimeInfo }
+  | { type: 'runtime-disconnected'; runtimeId: number; runtimeInfo?: RuntimeInfo }
   | { type: 'no-action' };
 
 export interface NotifyMessageData {
@@ -79,6 +98,37 @@ export interface NotifyMessageData {
 }
 
 /**
+ * Pure decision function for deciding lifecycle notifications from shadow-remote messages.
+ * Fires for all connecting and disconnecting Shadow clients, regardless of editor target.
+ */
+export function decideLifecycleEvent(data: NotifyMessageData): LifecycleEventAction {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
+    return { type: 'no-action' };
+  }
+
+  const runtimeId = data['client-id'];
+  const eventOp = data['event-op'];
+
+  if (eventOp === 'client-connect' && data['client-info']) {
+    const runtimeInfo = normalizeRuntimeInfo(data['client-info']);
+    runtimeInfo.runtimeId = runtimeId;
+    return { type: 'runtime-connected', runtimeId, runtimeInfo };
+  }
+
+  if (eventOp === 'client-disconnect') {
+    const clientInfo = data['client-info'];
+    let runtimeInfo: RuntimeInfo | undefined;
+    if (clientInfo) {
+      runtimeInfo = normalizeRuntimeInfo(clientInfo);
+      runtimeInfo.runtimeId = runtimeId;
+    }
+    return { type: 'runtime-disconnected', runtimeId, runtimeInfo };
+  }
+
+  return { type: 'no-action' };
+}
+
+/**
  * Pure decision function for handling shadow-remote notification messages.
  * Returns the action to take based on the message and current state.
  */
@@ -86,23 +136,23 @@ export function decideMessageAction(
   data: NotifyMessageData,
   currentRuntimeId: number | undefined
 ): MessageAction {
-  if (data.op !== 'notify' || !data['client-id']) {
+  if (data.op !== 'notify' || data['client-id'] === undefined || data['client-id'] === null) {
     return { type: 'no-action' };
   }
 
-  const clientId = data['client-id'];
+  const runtimeId = data['client-id'];
   const eventOp = data['event-op'];
 
-  if (eventOp === 'client-disconnect' && clientId === currentRuntimeId) {
-    return { type: 'runtime-disconnected', clientId };
+  if (eventOp === 'client-disconnect' && runtimeId === currentRuntimeId) {
+    return { type: 'runtime-disconnected', runtimeId };
   }
 
   if (eventOp === 'client-connect' && !currentRuntimeId) {
     const clientInfo = data['client-info'];
     if (clientInfo) {
       const runtimeInfo = normalizeRuntimeInfo(clientInfo);
-      runtimeInfo.clientId = clientId; // Notification infos lack client id
-      return { type: 'runtime-connected', clientId, runtimeInfo };
+      runtimeInfo.runtimeId = runtimeId; // Notification infos lack client id
+      return { type: 'runtime-connected', runtimeId, runtimeInfo };
     }
   }
 

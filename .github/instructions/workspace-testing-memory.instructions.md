@@ -19,7 +19,7 @@ Choose the appropriate layer based on scope: unit for logic, E2E for VS Code-dep
 
 **Use `get_task_output` with the test watcher task—never run tests separately.**
 
-The 'Calva Watch Test TS' task continuously runs the full unit test suite on every file change. When you see output like '1076 passing', that IS the current test status. There is no need to run tests via terminal commands or `runTests`—the watcher has already done it.
+The 'Calva Watch Test TS' task continuously runs the full unit test suite on every file change under `src/` and on saves to `clojure.tmLanguage.json`. When you see output like '1076 passing', that IS the current test status. There is no need to run tests via terminal commands or `runTests`—the watcher has already done it.
 
 **Why this matters:**
 - `runTests` may return '0/0' due to VS Code test discovery limitations
@@ -41,3 +41,13 @@ This passes the filter as a command line argument accessible via `process.argv`,
 ## E2E Test Invariant: Poll instead of Sleep
 
 The E2E test suite has helpers for witing for conditions without using fixed sleeps.
+
+## Test Invariant: Leave No State Behind
+
+Every test leaves Calva and VS Code as it found them, also when an assertion fails. Put cleanup in `teardown` or in a `finally` that runs after the assertions.
+
+- **Settings, tabs and webviews:** restore every setting the test changes, and close the editors, panels and views it opens.
+- **Connections and sessions:** close the sessions a test creates (`session.close()` also after `disconnect()`, so they leave `NReplSession.Instances`), unregister the sessions it registered, and clear their who-tracking (`clearSessionTracking`, `clearCurrentWho`).
+- **The REPL window:** restore its session and namespace when the test moves them.
+- **Fake sessions:** give a fake session its own `_calvaSessionMetadata.key`. Without one it resolves to `clj`, and evaluating through it records activity for the real clj session.
+- **Files:** load and open committed fixture files instead of writing temp files. VS Code can't close a text document that no editor shows, so a deleted temp file can stay open as a document.

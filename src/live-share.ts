@@ -12,6 +12,14 @@ let connectedPort: number = null;
 let jackedIn = false;
 const sharedPorts: Map<number, vscode.Disposable> = new Map();
 
+/**
+ * Returns true when this window is a Live Share guest: its workspace folder
+ * is served by the host.
+ */
+export function isLiveShareGuest(): boolean {
+  return vscode.workspace.workspaceFolders?.[0]?.uri.scheme === 'vsls';
+}
+
 export async function setupLiveShareListener() {
   if (liveShareListener !== null) {
     return;

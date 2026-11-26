@@ -6,6 +6,7 @@ RUN apt-get update && \
     apt-get install -y curl gnupg && \
     curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs && \
+    npm install -g npm@latest && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -46,3 +47,11 @@ RUN apt-get update && apt-get install -y \
     libsecret-1-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# The e2e suite also uses this image (src/extension-test/e2e/run-containerized.sh)
+# Babashka for the bb jack-in tests
+RUN curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install && \
+    chmod +x install && \
+    ./install && \
+    rm install && \
+    bb --version

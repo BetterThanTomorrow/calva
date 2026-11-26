@@ -29,7 +29,7 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
     $ code my-luminus-shadow
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
-   * Select to start **my-luminus-shadow Server + Client**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
+    * Select to start **my-luminus-shadow Server + Client**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
 0. Open [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
 
 !!! Note

@@ -11,14 +11,35 @@ Calva takes care of syntax highlighting, and also provides some features not ava
 
 When using Calva, you are also using its [TMLanguage grammar](https://macromates.com/manual/en/language_grammars) (the core mechanism VS Code uses for syntax highlighting).
 
-Our grammar tokenizes Clojure keywords as `constant.keyword.clojure`. Since it is pretty uncommon with keyword constants in the programming languages out there, your theme might not have a highlight defined for this scope. Try find a grammar that highlights keywords! If you are very fond of some theme lacking this, you can help it with a setting:
+### Keywords
 
+Our grammar tokenizes a Clojure keyword in parts. For `:foo/bar`:
+
+| Part | Scope |
+| --- | --- |
+| The whole keyword, and the colons | `constant.keyword.clojure` |
+| The namespace, `foo` | `entity.name.type.keyword.namespace.clojure` |
+| The slash | `variable.other.event.keyword.separator.clojure` |
+| The name, `bar` | `keyword.control.keyword.name.clojure` |
+
+These are the scopes VS Code colors clojure-lsp's semantic tokens for keywords with. So keywords look the same in files that get semantic tokens from clojure-lsp, and in files that don't, like files outside your source paths, or files opened before clojure-lsp has started.
+
+With semantic highlighting on, the color of a keyword in a file comes from clojure-lsp's `keyword` semantic token, which a TextMate rule doesn't reach. To give keywords a color of your own, set it for both the semantic token and the grammar's scopes:
+
+    "editor.semanticTokenColorCustomizations": {
+        "[Default Dark+]": {
+            "rules": {
+                "keyword:clojure": "#6fbfff"
+            }
+        }
+    },
     "editor.tokenColorCustomizations": {
         "[Default Dark+]": {
             "textMateRules": [
                 {
                     "scope": [
-                        "constant.keyword.clojure"
+                        "constant.keyword.clojure",
+                        "keyword.control.keyword.name.clojure"
                     ],
                     "settings": {
                         "foreground": "#6fbfff"

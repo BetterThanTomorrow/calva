@@ -1,0 +1,38 @@
+!YS-v0:
+
+docker:
+- image: cimg/clojure:1.12.0-openjdk-21.0-node
+
+working_directory: ~/calva
+
+# The vsix's prepublish script runs `npm run release`, whose prerelease hook
+# would reinstall, clean out/ and redo the CLJS release the build-cljslib job just did
+environment:
+  npm_config_ignore_scripts: 'true'
+
+steps:
+- !:attach-workspace /tmp
+
+- !:cmd
+  - Restore build
+  - rmdir ~/calva && cp -r /tmp/build ~/calva
+
+- install-node
+
+- !:cmd
+  - Create artifacts workspace
+  - mkdir /tmp/artifacts
+
+- !:bin Package vsix
+
+- !:cmd
+  - Copy vsix
+  - cp *.vsix /tmp/artifacts/
+
+- !:store
+    artifacts: /tmp/artifacts
+
+- persist_to_workspace:
+    root: /tmp
+    paths:
+    - artifacts

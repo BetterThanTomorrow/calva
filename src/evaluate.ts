@@ -6,15 +6,16 @@ import * as util from './utilities';
 import * as nrepl from './nrepl';
 import * as statusbar from './statusbar';
 import type * as printerTypes from './printer';
+import * as cljsErrorCauses from './nrepl/cljs-error-causes';
 import * as replWindow from './repl-window/repl-window-doc';
 import * as namespace from './namespace';
 import * as replHistory from './repl-window/repl-history';
-import * as resultsOutputUtil from './results-output/util';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import * as calvaConfig from './config';
 import * as replSession from './nrepl/repl-session';
 import * as sessionRegistry from './nrepl/session-registry';
 import * as getText from './util/get-text';
+import * as select from './select';
 import * as customSnippets from './custom-snippets';
 import * as output from './results-output/output';
 import * as inspector from './providers/inspector';
@@ -24,12 +25,55 @@ import * as flareHandler from './flare-handler';
 import * as evaluateUtils from './evaluate-utils';
 import * as whoTracking from './api/who-tracking';
 import * as outputDestinations from './results-output/output-destinations';
+import * as evaluatedCode from './results-output/evaluated-code';
+import * as shadowCljsRuntime from './shadow-cljs-runtime';
+import * as clientRegistry from './nrepl/client-registry';
+import * as replInputStdin from './repl-input-stdin';
+import * as debug from './debugger/calva-debug';
+import * as gutterBreakpoints from './debugger/gui-breakpoints';
 
 let inspectorDataProvider: inspector.InspectorDataProvider;
 
 function initInspectorDataProvider() {
   inspectorDataProvider = new inspector.InspectorDataProvider();
   return inspectorDataProvider;
+}
+
+// Asks for the causes of the session's last error. A failed request gives no causes.
+function lastErrorCauses(session: nrepl.NReplSession) {
+  return session.stacktrace().catch((e) => {
+    console.error(`Failed fetching stacktrace: ${e.message}`);
+    return undefined;
+  });
+}
+
+// The causes the debugger reported with the evaluation, none for an interrupted evaluation, whose
+// `*e` is an older error, or a dropped one, whose session is gone, else the session's last error
+function evaluationErrorCauses(evaluation: nrepl.NReplEvaluation, session: nrepl.NReplSession) {
+  if (evaluation.interrupted || evaluation.dropped) {
+    return undefined;
+  }
+  return evaluation.causes ?? lastErrorCauses(session);
+}
+
+function asErrorLine(error: unknown) {
+  const text = String(error);
+  return text.endsWith('\n') ? text : `${text}\n`;
+}
+
+function getShadowInfo(session: any) {
+  if (session?.replType !== 'cljs' && !session?.isSecondary) {
+    return {};
+  }
+  const clientKey = session?.client?.clientKey;
+  const connState = clientKey ? clientRegistry.getConnectionState(clientKey) : undefined;
+  if (connState?.cljsTypeName === 'shadow-cljs') {
+    return {
+      shadowBuild: connState.cljsBuild || undefined,
+      shadowRuntimeId: connState.shadowCljsRuntimeId,
+    };
+  }
+  return {};
 }
 
 async function getJavaVersion(session: nrepl.NReplSession): Promise<number | null> {
@@ -124,7 +168,294 @@ async function addAsComment(
   highlightExtension.highlight(editor);
 }
 
-// TODO: Clean up this mess
+type EvaluationOptions = {
+  code: string;
+  session: nrepl.NReplSession;
+  ns: string;
+  filePath: string;
+  // Zero-based, as in a vscode.Position
+  line: number;
+  column: number;
+  // The column the code starts at in the file it was picked from, which the echoed code's lines after
+  // the first drop from their indentation
+  dedent?: number;
+  pprintOptions: printerTypes.PrettyPrintingOptions;
+  // Empty sends the code only to the output subscribers
+  echoDestinations: outputDestinations.OutputDestinationValue[];
+  showResult?: boolean;
+  showErrorMessage?: boolean;
+  who?: string;
+  // Without it, the evaluation reads stdin from an input box
+  stdin?: () => Promise<string>;
+};
+
+type EvaluationHooks = {
+  onResultAppended?: (value: string) => unknown;
+  // Called after a failed evaluation's error is written to the eval output destinations
+  onFailure?: (message: string) => unknown;
+  evaluateFlareCode?: (code: string) => Promise<string | null>;
+  onEvaluationSent?: (evaluation: nrepl.NReplEvaluation) => unknown;
+};
+
+// `dropped` when the evaluation ended because its REPL session closed
+type Evaluation = { ns: string } & ({ value: string } | { error: string; dropped: boolean });
+
+function valueOf(evaluation: Evaluation): string | null {
+  return 'value' in evaluation ? evaluation.value : null;
+}
+
+function recordEvaluationActivity(session: nrepl.NReplSession, sessionKey: string, who: string) {
+  sessionRegistry.updateSessionActivity(sessionKey);
+  whoTracking.recordEvaluation(sessionKey, who);
+  whoTracking.setCurrentWho(session.sessionId, who);
+
+  const runtimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+  if (runtimeId !== undefined) {
+    shadowCljsRuntime.recordRuntimeActivity(runtimeId);
+  }
+}
+
+function sendEvaluation(options: EvaluationOptions) {
+  const { code, session, ns, filePath, line, column, pprintOptions, stdin, who = 'ui' } = options;
+  const sessionKey = sessionRegistry.resolveSessionKey(session);
+  const outputOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...getShadowInfo(session),
+  };
+  const err: string[] = [];
+
+  const evaluation: nrepl.NReplEvaluation = session.eval(code, ns, {
+    file: filePath,
+    line: line + 1,
+    column: column + 1,
+    stdout: (m) => output.appendEvalOut(m, outputOptions),
+    stderr: (m) => err.push(m),
+    stdin,
+    pprintOptions,
+  });
+  recordEvaluationActivity(session, sessionKey, who);
+
+  return { evaluation, err, outputOptions };
+}
+
+function echoEvaluatedCode(
+  { code, dedent = 0, echoDestinations }: EvaluationOptions,
+  outputOptions: output.AppendClojureOptions
+) {
+  const evalResultsDestination = output.getDestinationConfiguration().evalResults;
+  const [echoDestination = evalResultsDestination, ...additionalEchoDestinations] =
+    echoDestinations;
+  output.appendEvaluatedCode(evaluatedCode.dedent(code, dedent), {
+    destination: echoDestination,
+    additionalDestinations: additionalEchoDestinations,
+    sinkDestination: evalResultsDestination,
+    writeVisible: echoDestinations.length > 0,
+    visibleOutputCategory: 'evaluatedCode',
+    ...outputOptions,
+  });
+}
+
+function flareEvaluator(options: EvaluationOptions, hooks: EvaluationHooks) {
+  return (
+    hooks.evaluateFlareCode ??
+    ((code: string) => evaluateToOutputDestinations({ ...options, code }, hooks).then(valueOf))
+  );
+}
+
+function appendResult(
+  value: string,
+  outputOptions: output.AppendClojureOptions,
+  hooks: EvaluationHooks
+) {
+  const { ns, replSessionType } = outputOptions;
+  inspectorDataProvider.addItem(value, false, `[${replSessionType}] ${ns}`);
+  output.appendClojureEval(
+    value,
+    outputOptions,
+    hooks.onResultAppended && (() => hooks.onResultAppended(value))
+  );
+}
+
+function appendStderrAfterResult(
+  err: string[],
+  value: string,
+  evaluation: nrepl.NReplEvaluation,
+  outputOptions: output.AppendClojureOptions
+) {
+  if (err.length > 0) {
+    const causes = cljsErrorCauses.errorCauses(evaluation, value, outputOptions.ns);
+    output.appendEvalErr(err.join('\n'), outputOptions, undefined, causes);
+  }
+}
+
+function appendFailure(
+  message: string,
+  evaluation: nrepl.NReplEvaluation,
+  session: nrepl.NReplSession,
+  outputOptions: output.AppendClojureOptions,
+  hooks: EvaluationHooks
+) {
+  output.appendEvalErr(
+    asErrorLine(message),
+    outputOptions,
+    undefined,
+    evaluationErrorCauses(evaluation, session)
+  );
+  hooks.onFailure?.(message);
+}
+
+async function outputOutcome(
+  { evaluation, err, outputOptions }: ReturnType<typeof sendEvaluation>,
+  options: EvaluationOptions,
+  hooks: EvaluationHooks
+) {
+  const { code, session, showResult = true, showErrorMessage = true } = options;
+  try {
+    echoEvaluatedCode(options, outputOptions);
+    const rawValue = await evaluation.value;
+    const value = util.stripAnsi(evaluation.pprintOut || rawValue);
+    flareHandler.inspect(value, flareEvaluator(options, hooks));
+    if (showResult) {
+      appendResult(value, outputOptions, hooks);
+      appendStderrAfterResult(err, value, evaluation, outputOptions);
+    }
+    return { value };
+  } catch (e) {
+    const message: string = err.length ? err.join('\n') : String(e);
+    if (showErrorMessage) {
+      appendFailure(message, evaluation, session, outputOptions, hooks);
+    }
+    return { error: message, dropped: evaluation.dropped };
+  } finally {
+    output.endEvaluation(outputOptions.evaluationId);
+  }
+}
+
+async function evaluateToOutputDestinations(
+  options: EvaluationOptions,
+  hooks: EvaluationHooks = {}
+): Promise<Evaluation> {
+  const sent = sendEvaluation(options);
+  hooks.onEvaluationSent?.(sent.evaluation);
+  const outcome = await outputOutcome(sent, options, hooks);
+  return { ...outcome, ns: sent.evaluation.ns || options.ns };
+}
+
+function replWindowEchoDestinations(): outputDestinations.OutputDestinationValue[] {
+  return ['repl-window', output.getDestinationConfiguration().evalResults];
+}
+
+type UiContext = {
+  editor: vscode.TextEditor;
+  selection?: vscode.Selection;
+  options;
+};
+
+function isFileEditor(editor: vscode.TextEditor) {
+  return !!editor?.document && !replWindow.isReplWindowDoc(editor.document);
+}
+
+function decorateFileEditor(
+  text: string,
+  status: annotations.AnnotationStatus,
+  cursorPosition: vscode.Position,
+  { editor, selection, options }: UiContext
+) {
+  if (!isFileEditor(editor)) {
+    return;
+  }
+  annotations.decorateSelection(text, selection, editor, cursorPosition, status);
+  if (!options.comment) {
+    annotations.decorateResults(
+      text,
+      status === annotations.AnnotationStatus.ERROR,
+      selection,
+      editor
+    );
+  }
+}
+
+function replaceSelectionWithResult(
+  value: string,
+  editor: vscode.TextEditor,
+  selection: vscode.Selection
+) {
+  const indent = `${' '.repeat(selection.start.character)}`,
+    edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
+    wsEdit = new vscode.WorkspaceEdit();
+  wsEdit.set(editor.document.uri, [edit]);
+  void vscode.workspace.applyEdit(wsEdit);
+}
+
+async function updateUiWithResult(value: string, ui: UiContext) {
+  const { editor, selection, options } = ui;
+  if (editor && replWindow.isReplWindowDoc(editor.document)) {
+    replWindow.maybePrintResultsInOtherDestinationMessage();
+  }
+  if (!selection || !editor) {
+    return;
+  }
+  if (options.replace) {
+    replaceSelectionWithResult(value, editor, selection);
+    return;
+  }
+  if (options.comment) {
+    await addAsComment(value, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  decorateFileEditor(value, annotations.AnnotationStatus.SUCCESS, editor.selections[0].active, ui);
+}
+
+async function updateEditorWithError(editorError: string, ui: UiContext) {
+  const { editor, selection, options } = ui;
+  const currentCursorPos = editor.selections[0].active;
+  if (options.comment) {
+    await addAsComment(editorError, selection, editor, editor.selections[0], options.commentStyle);
+  }
+  decorateFileEditor(editorError, annotations.AnnotationStatus.ERROR, currentCursorPos, ui);
+}
+
+/** Returns the stdin of an evaluation from `editor`: the stdin input of the REPL Input that `stdinViewId` picks, else the input box. */
+function stdinFor(
+  editor: vscode.TextEditor | undefined,
+  sentEvaluation: () => nrepl.NReplEvaluation
+): (() => Promise<string>) | undefined {
+  const viewId = replInputStdin.stdinViewId(
+    vscode.workspace.getConfiguration('calva').get('outputViews.replInput'),
+    replWindow.isReplWindowDoc(editor?.document)
+  );
+  return viewId && (() => cljsLib.replInputReadLine(sentEvaluation(), viewId));
+}
+
+type EvaluationNamespace = {
+  session: nrepl.NReplSession;
+  ns: string;
+  nsForm: string;
+  showResult?: boolean;
+};
+
+/**
+ * Runs `evaluate`, after evaluating `nsForm` in `session` unless `session` last evaluated in `ns`
+ * in the runtime it has now. When `showResult`, the default, leaves the REPL window in `session`
+ * and the namespace the evaluation ended in. An evaluation that isn't shown, or that `dropped`
+ * because its session closed, leaves the REPL window as it was.
+ */
+async function evaluateInNamespace<E extends { ns?: string; dropped?: boolean }>(
+  { session, ns, nsForm, showResult = true }: EvaluationNamespace,
+  evaluate: () => Promise<E>
+): Promise<E> {
+  if (!replWindow.sessionHasNs(session, ns)) {
+    await session.evaluateInNs(nsForm, replWindow.getSessionNs(session) ?? replWindow.getNs());
+  }
+  const evaluation = await evaluate();
+  if (showResult && !evaluation.dropped) {
+    replWindow.setSession(session, evaluation.ns);
+  }
+  return evaluation;
+}
+
 async function evaluateCodeUpdatingUI(
   code: string,
   options,
@@ -140,14 +471,7 @@ async function evaluateCodeUpdatingUI(
     (options.addToHistory === undefined || options.addToHistory === true) &&
     (evaluationSendCodeToOutputWindow ||
       state.extensionContext.workspaceState.get('outputWindowActive'));
-  const showErrorMessage =
-    options.showErrorMessage === undefined || options.showErrorMessage === true;
-  const showResult = options.showResult === undefined || options.showResult === true;
-  const line = options.line;
-  const column = options.column;
-  const filePath = options.filePath;
   const session: nrepl.NReplSession = options.session;
-  const sessionKey = sessionRegistry.resolveSessionKey(session);
   const ns = options.ns;
   let editor: vscode.TextEditor;
   try {
@@ -155,262 +479,179 @@ async function evaluateCodeUpdatingUI(
   } catch (error) {
     console.log('No active editor');
   }
-  let result = null;
 
-  if (code.length > 0) {
-    if (addToHistory) {
-      replHistory.addToReplHistory(sessionKey, code);
-      replHistory.resetState();
-    }
-
-    const err: string[] = [];
-
-    if (replWindow.getNs() !== ns) {
-      await session.evaluateInNs(options.nsForm, replWindow.getNs());
-    }
-
-    const context: nrepl.NReplEvaluation = session.eval(code, ns, {
-      file: filePath,
-      line: line + 1,
-      column: column + 1,
-      stdout: (m) => {
-        output.appendEvalOut(m, { ns, replSessionType: sessionKey, who: 'ui' });
-      },
-      stderr: (m) => err.push(m),
-      pprintOptions: pprintOptions,
-    });
-
-    sessionRegistry.updateSessionActivity(sessionKey);
-    whoTracking.recordEvaluation(sessionKey, 'ui');
-    whoTracking.setCurrentWho(session.sessionId, 'ui');
-
-    try {
-      const evalResultsDestination = output.getDestinationConfiguration().evalResults;
-      const shouldWriteVisibleEvaluatedCode =
-        evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
-
-      output.appendEvaluatedCode(code, {
-        destination: shouldWriteVisibleEvaluatedCode ? 'repl-window' : evalResultsDestination,
-        additionalDestinations:
-          shouldWriteVisibleEvaluatedCode &&
-          !outputDestinations.normalizeDestinations(evalResultsDestination).includes('repl-window')
-            ? [evalResultsDestination]
-            : [],
-        sinkDestination: evalResultsDestination,
-        writeVisible: shouldWriteVisibleEvaluatedCode,
-        ns,
-        replSessionType: sessionKey,
-        visibleOutputCategory: 'evaluatedCode',
-        who: 'ui',
-      });
-
-      let value = await context.value;
-      value = util.stripAnsi(context.pprintOut || value);
-
-      result = value;
-
-      flareHandler.inspect(value, (code) => evaluateCodeUpdatingUI(code, options, selection));
-
-      if (showResult) {
-        inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-        output.appendClojureEval(
-          value,
-          { ns, replSessionType: sessionKey, who: 'ui' },
-          async () => {
-            if (editor && replWindow.isReplWindowDoc(editor.document)) {
-              replWindow.maybePrintResultsInOtherDestinationMessage();
-            }
-            if (selection) {
-              const c = selection.start.character;
-              if (editor && options.replace) {
-                const indent = `${' '.repeat(c)}`,
-                  edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, '\n' + indent)),
-                  wsEdit = new vscode.WorkspaceEdit();
-                wsEdit.set(editor.document.uri, [edit]);
-                void vscode.workspace.applyEdit(wsEdit);
-              } else {
-                if (editor && options.comment) {
-                  await addAsComment(
-                    value,
-                    selection,
-                    editor,
-                    editor.selections[0],
-                    options.commentStyle
-                  );
-                }
-                if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-                  annotations.decorateSelection(
-                    value,
-                    selection,
-                    editor,
-                    editor.selections[0].active,
-                    annotations.AnnotationStatus.SUCCESS
-                  );
-                  if (!options.comment) {
-                    annotations.decorateResults(value, false, selection, editor);
-                  }
-                }
-              }
-            }
-          }
-        );
-        // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
-        if (err.length > 0) {
-          const errMsg = err.join('\n');
-          if (context.stacktrace) {
-            replWindow.saveStacktrace(context.stacktrace);
-            replWindow.appendLine(
-              resultsOutputUtil.formatAsLineComments(errMsg),
-              (_, afterResultLocation) => {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-              }
-            );
-            if (
-              !outputDestinations
-                .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-                .includes('repl-window')
-            ) {
-              output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
-            }
-          } else {
-            output.appendEvalErr(errMsg, { ns, replSessionType: sessionKey, who: 'ui' });
-          }
-        }
-      }
-    } catch (e) {
-      if (showErrorMessage) {
-        const outputWindowError = err.length
-          ? resultsOutputUtil.formatAsLineComments(err.join('\n'))
-          : resultsOutputUtil.formatAsLineComments(e);
-        replWindow.appendLine(outputWindowError, async (resultLocation, afterResultLocation) => {
-          if (selection) {
-            const editorError = util.stripAnsi(err.length ? err.join('\n') : e);
-            const currentCursorPos = editor.selections[0].active;
-            if (editor && options.comment) {
-              await addAsComment(
-                editorError,
-                selection,
-                editor,
-                editor.selections[0],
-                options.commentStyle
-              );
-            }
-            if (editor && editor.document && !replWindow.isReplWindowDoc(editor.document)) {
-              annotations.decorateSelection(
-                editorError,
-                selection,
-                editor,
-                currentCursorPos,
-                annotations.AnnotationStatus.ERROR
-              );
-              if (!options.comment) {
-                annotations.decorateResults(editorError, true, selection, editor);
-              }
-            }
-          }
-          session
-            .stacktrace()
-            .then((stacktrace) => {
-              if (stacktrace && stacktrace.stacktrace) {
-                replWindow.markLastStacktraceRange(afterResultLocation);
-                replWindow.saveStacktrace(stacktrace.stacktrace);
-              }
-            })
-            .catch((e) => {
-              console.error(`Failed fetching stacktrace: ${e.message}`);
-            });
-        });
-        if (
-          !outputDestinations
-            .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-            .includes('repl-window')
-        ) {
-          output.appendEvalErr(err.length ? err.join('\n') : e, {
-            ns,
-            replSessionType: sessionKey,
-            who: 'ui',
-          });
-          if (
-            outputDestinations
-              .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-              .includes('output-view')
-          ) {
-            session
-              .stacktrace()
-              .then((stacktrace) => {
-                if (stacktrace && stacktrace.stacktrace) {
-                  cljsLib.appendStackTraceToReplOutputWebview(stacktrace.stacktrace);
-                }
-              })
-              .catch((e) => {
-                console.error(`Failed fetching stacktrace: ${e.message}`);
-              });
-          }
-        }
-      }
-    }
-    replWindow.setSession(session, context.ns || ns);
-    replSession.updateReplSessionType();
+  if (code.length === 0) {
+    return null;
+  }
+  if (addToHistory) {
+    replHistory.addToReplHistory(sessionRegistry.resolveSessionKey(session), code);
+    replHistory.resetState();
   }
 
-  return result;
+  const ui: UiContext = { editor, selection, options };
+  const echoCode =
+    evaluationSendCodeToOutputWindow && !replWindow.isReplWindowDoc(editor?.document);
+  const showResult = options.showResult === undefined || options.showResult === true;
+  const evaluationNamespace = { session, ns, nsForm: options.nsForm, showResult };
+  let sentEvaluation: nrepl.NReplEvaluation;
+  const evaluation = await evaluateInNamespace(evaluationNamespace, () =>
+    evaluateToOutputDestinations(
+      {
+        code,
+        session,
+        ns,
+        filePath: options.filePath,
+        line: options.line,
+        column: options.column,
+        dedent: options.dedent,
+        pprintOptions,
+        echoDestinations: echoCode ? replWindowEchoDestinations() : [],
+        showResult,
+        showErrorMessage:
+          options.showErrorMessage === undefined || options.showErrorMessage === true,
+        stdin: stdinFor(editor, () => sentEvaluation),
+      },
+      {
+        onResultAppended: (value) => updateUiWithResult(value, ui),
+        onFailure: (message) => {
+          if (ui.selection && ui.editor) {
+            void updateEditorWithError(util.stripAnsi(message), ui);
+          }
+        },
+        evaluateFlareCode: (code) =>
+          evaluateCodeUpdatingUI(code, { ...options, dedent: 0 }, selection),
+        onEvaluationSent: (sent) => {
+          sentEvaluation = sent;
+        },
+      }
+    )
+  );
+  replSession.updateReplSessionType();
+
+  return valueOf(evaluation);
+}
+
+/** Returns `code` without a leading `#_` and the whitespace after it, so that `#_(form)` at the cursor evaluates `(form)`. */
+function withoutIgnoreMarker(code: string) {
+  return code.replace(/^#_\s*/, '');
+}
+
+/** True when the active tab is a preview of `doc`, which an output channel's document never is. */
+function isInActivePreviewTab(doc: vscode.TextDocument) {
+  const activeTab = vscode.window.tabGroups?.activeTabGroup?.activeTab;
+  return (
+    !!activeTab?.isPreview &&
+    activeTab.input instanceof vscode.TabInputText &&
+    activeTab.input.uri.toString() === doc.uri.toString()
+  );
+}
+
+/** Returns the selection and code that `selectionFn` picks in `editor`, the column the code starts at, and the document offset it starts at. A pick without a range is all of `doc`, taken as it is, and only when `doc` has a form and isn't the REPL window. */
+function pickedCodeAndSelection(
+  editor: vscode.TextEditor,
+  doc: vscode.TextDocument,
+  selectionFn: (editor: vscode.TextEditor) => getText.SelectionAndText
+): [vscode.Selection, string, number, number] {
+  const [picked, code] = selectionFn(editor);
+  if (picked) {
+    const pickedCode = editor.selections[0].isEmpty ? withoutIgnoreMarker(code) : code;
+    const codeStartOffset = doc.offsetAt(picked.start) + code.length - pickedCode.length;
+    const codeStart = doc.positionAt(codeStartOffset);
+    return [picked, pickedCode, codeStart.character, codeStartOffset];
+  }
+  const wholeDocument =
+    !replWindow.isReplWindowFile(doc) && getText.currentTopLevelFormText(doc, doc.positionAt(0))[0];
+  return [
+    select.selectionFromOffsetRange(doc, [0, doc.getText().length]),
+    wholeDocument ? code : '',
+    0,
+    0,
+  ];
 }
 
 async function evaluateSelection(document = {}, options) {
   void state.analytics().logGA4Pageview('/evaluated-form');
+  if (!cljsLib.getStateValue('connected')) {
+    void vscode.window.showErrorMessage('Not connected to a REPL');
+    return;
+  }
+  await evaluateConnectedSelection(document, options);
+}
 
+async function evaluateConnectedSelection(document, options): Promise<void> {
   const selectionFn: (editor: vscode.TextEditor) => [vscode.Selection, string] =
     options.selectionFn;
+  const editor = util.getActiveTextEditor();
+  const doc = util.textDocumentOr(document, editor.document);
+  const [codeSelection, code, dedent, codeStart] = pickedCodeAndSelection(editor, doc, selectionFn);
+  ensureEvaluationDocumentIsNotPreview(doc);
+  const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
+  const line = codeSelection.start.line;
+  const column = codeSelection.start.character;
+  const filePath = doc.fileName;
+  const session = replSession.getSession(doc);
 
-  if (cljsLib.getStateValue('connected')) {
-    const editor = util.getActiveTextEditor();
-    const selection = selectionFn(editor);
-    const codeSelection: vscode.Selection = selection[0];
-    let code = selection[1];
-    [codeSelection, code]; //TODO: What's this doing here?
+  if (code.length === 0 || refuseUnsupportedDebugEvaluation(options, session)) {
+    return;
+  }
+  await evaluateSelectedCode(
+    editor,
+    codeSelection,
+    evaluationCodeWithDebugSupport(options, doc, codeStart, code, session),
+    { ...options, ns, nsForm, line, column, dedent, filePath, session }
+  );
+}
 
-    // Strip leading #_ and optional whitespace so that
-    // evaluating with the cursor at the end of #_(form) sends just (form)
-    // to the REPL instead of the silently-discarded #_(form).
-    if (editor.selections[0].isEmpty) {
-      code = code.replace(/^#_\s*/, '');
-    }
-    const doc = util.getDocument(document);
-    if (vscode.window.tabGroups?.activeTabGroup?.activeTab?.isPreview) {
-      void vscode.window.showTextDocument(doc, { preview: false });
-    }
-    const [ns, nsForm] = namespace.getNamespace(doc, codeSelection.end);
-    const line = codeSelection.start.line;
-    const column = codeSelection.start.character;
-    const filePath = doc.fileName;
-    const session = replSession.getSession();
+function ensureEvaluationDocumentIsNotPreview(document: vscode.TextDocument): void {
+  if (isInActivePreviewTab(document)) {
+    void vscode.window.showTextDocument(document, { preview: false });
+  }
+}
 
-    if (code.length > 0) {
-      if (options.debug) {
-        code = '#dbg\n' + code;
-      }
-      annotations.decorateSelection(
-        '',
-        codeSelection,
-        editor,
-        undefined,
-        annotations.AnnotationStatus.PENDING
-      );
-      if (
-        state.extensionContext.workspaceState.get('outputWindowActive') &&
-        !(await replWindow.lastLineIsEmpty())
-      ) {
-        replWindow.appendLine();
-      }
-      await evaluateCodeUpdatingUI(
-        code,
-        { ...options, ns, nsForm, line, column, filePath, session },
-        codeSelection
-      );
-      void output.replWindowAppendPrompt();
-    }
-  } else {
-    void vscode.window.showErrorMessage('Not connected to a REPL');
+async function evaluateSelectedCode(
+  editor: vscode.TextEditor,
+  codeSelection: vscode.Selection,
+  codeToEvaluate: string,
+  options
+): Promise<void> {
+  annotations.decorateSelection(
+    '',
+    codeSelection,
+    editor,
+    undefined,
+    annotations.AnnotationStatus.PENDING
+  );
+  await prepareOutputWindowForEvaluation();
+  await evaluateCodeUpdatingUI(codeToEvaluate, options, codeSelection);
+  void output.replWindowAppendPrompt();
+}
+
+function refuseUnsupportedDebugEvaluation(options, session: nrepl.NReplSession): boolean {
+  if (options.debug && !debug.supportsDebuggerOps(session)) {
+    debug.showInstrumentUnsupportedError(session);
+    return true;
+  }
+  return false;
+}
+
+function evaluationCodeWithDebugSupport(
+  options,
+  document: vscode.TextDocument,
+  codeStart: number,
+  code: string,
+  session: nrepl.NReplSession
+): string {
+  return options.debug
+    ? '#dbg\n' + code
+    : gutterBreakpoints.codeWithSourceBreakpoints(document, codeStart, code, session);
+}
+
+async function prepareOutputWindowForEvaluation(): Promise<void> {
+  if (
+    state.extensionContext.workspaceState.get('outputWindowActive') &&
+    !(await replWindow.lastLineIsEmpty())
+  ) {
+    replWindow.appendLine();
   }
 }
 
@@ -641,9 +882,9 @@ async function loadDocument(
   ) {
     void vscode.window.showTextDocument(doc, { preview: false });
   }
-  const fileType = util.getFileType(doc);
+  const fileType = util.getFileType(doc.uri);
   const [ns, nsForm] = namespace.getNamespace(doc, doc.positionAt(0));
-  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession();
+  const session = sessionKey ? sessionRegistry.getSession(sessionKey) : replSession.getSession(doc);
 
   if (
     doc &&
@@ -656,7 +897,20 @@ async function loadDocument(
       : doc.uri;
     const filePath = docUri.path;
     sessionRegistry.updateSessionActivity(session);
-    return await loadFile(filePath, ns, nsForm, pprintOptions, fileType, silent, sessionKey, who);
+    const loadFileRuntimeId = shadowCljsRuntime.getSelectedRuntimeId(session?.client?.clientKey);
+    if (loadFileRuntimeId !== undefined) {
+      shadowCljsRuntime.recordRuntimeActivity(loadFileRuntimeId);
+    }
+    return await loadFile(
+      filePath,
+      ns,
+      nsForm,
+      pprintOptions,
+      fileType,
+      silent,
+      sessionKey ?? replSession.getSessionKey(doc),
+      who
+    );
   }
 }
 
@@ -722,88 +976,134 @@ async function loadFile(
     ? sessionRegistry.getSession(targetSessionKey)
     : replSession.getSession();
   const sessionKey = sessionRegistry.resolveSessionKey(session, targetSessionKey);
+  const shadowInfo = getShadowInfo(session);
 
-  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who });
+  output.appendLineOtherOut(`Evaluating file: ${fileName}`, { who, ...shadowInfo });
   whoTracking.recordEvaluation(sessionKey, who);
   whoTracking.setCurrentWho(session.sessionId, who);
 
   const errorMessages = [];
+  const evalOptions = {
+    ns,
+    replSessionType: sessionKey,
+    who,
+    evaluationId: output.nextEvaluationId(),
+    ...shadowInfo,
+  };
   const res = session.loadFile(fileContents, {
     fileName,
     filePath,
-    stdout: (m) => output.appendEvalOut(m, { ns, replSessionType: sessionKey, who }),
+    stdout: (m) => output.appendEvalOut(m, evalOptions),
     stderr: (m) => {
-      output.appendEvalErr(m, { ns, replSessionType: sessionKey, who });
+      output.appendEvalErr(m, evalOptions);
       errorMessages.push(m);
     },
     pprintOptions: pprintOptions,
   });
+  const outputOptions = { who, ...shadowInfo };
   try {
     const value = await res.value;
     if (value) {
       inspectorDataProvider.addItem(value, false, `[${sessionKey}] ${ns}`);
-      output.appendClojureEval(value, { ns, replSessionType: sessionKey, who });
+      output.appendClojureEval(value, evalOptions);
     } else {
-      output.appendLineEvalOut('No results from file evaluation.', { who });
+      output.appendLineEvalOut('No results from file evaluation.', { who, ...shadowInfo });
     }
     return value;
   } catch (e) {
-    replWindow.appendLine(
-      `; Evaluation of file ${fileName} failed: ${e}`,
-      (_location, nextLocation) => {
-        if (res.stacktrace) {
-          replWindow.saveStacktrace(res.stacktrace.stacktrace);
-          replWindow.markLastStacktraceRange(nextLocation);
-        }
-      }
-    );
-    if (
-      !outputDestinations
-        .normalizeDestinations(output.getDestinationConfiguration().evalOutput)
-        .includes('repl-window')
-    ) {
-      output.appendLineOtherErr(`Evaluation of file ${fileName} failed: ${e}`, { who });
-    }
-    if (silent) {
-      throw new Error(`Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`);
-    }
-    if (
-      !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
-        replWindow.isReplWindowDoc(editor.document)
-      )
-    ) {
-      void vscode.window
-        .showErrorMessage(
-          `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${e}`,
-          'Show output'
-        )
-        .then((choice) => {
-          if (choice === 'Show output') {
-            void output.showResultOutputDestination(true);
-          }
-        });
+    const failure = { fileName, evaluation: res, errorMessages, silent, outputOptions };
+    if (res.dropped) {
+      reportStoppedLoad(e, failure);
+    } else {
+      reportFailedLoad(e, failure);
     }
   } finally {
-    replWindow.setSession(session, ns);
-    replSession.updateReplSessionType();
-    if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
-      output.appendLineOtherOut(`Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``, {
-        who,
-      });
-      const context = customSnippets.makeContext(
-        vscode.window.activeTextEditor,
-        ns,
-        ns,
-        nsForm,
-        fileType
-      );
-      await customSnippets.evaluateSnippet(
-        util.getActiveTextEditor(),
-        calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType],
-        context,
-        {}
-      );
+    if (!res.dropped) {
+      await afterFileLoaded({ session, ns, nsForm, fileType, outputOptions });
     }
+  }
+}
+
+type LoadFileFailure = {
+  fileName: string;
+  evaluation: nrepl.NReplEvaluation;
+  errorMessages: string[];
+  silent: boolean;
+  outputOptions: output.AppendClojureOptions;
+};
+
+/** Says in the output that loading the file stopped because its REPL session closed. Throws when `silent`, as a failed load does. */
+function reportStoppedLoad(error: unknown, { fileName, silent, outputOptions }: LoadFileFailure) {
+  const message = `Evaluation of file ${fileName} stopped: ${error}`;
+  output.appendLineOtherOut(message, outputOptions);
+  if (silent) {
+    throw new Error(message);
+  }
+}
+
+/**
+ * Says that loading the file failed with `error`: in the output, with the error's causes, and in an
+ * error message when neither a REPL window nor an Output view it went to shows. Throws instead of
+ * showing the message when `silent`.
+ */
+function reportFailedLoad(
+  error: unknown,
+  { fileName, evaluation, errorMessages, silent, outputOptions }: LoadFileFailure
+) {
+  output.appendLineOtherErr(
+    `Evaluation of file ${fileName} failed: ${error}`,
+    outputOptions,
+    undefined,
+    evaluationErrorCauses(evaluation, evaluation.session)
+  );
+  const message = `Evaluation of file ${fileName} failed: ${errorMessages.join(' ')} - ${error}`;
+  if (silent) {
+    throw new Error(message);
+  }
+  if (
+    !vscode.window.visibleTextEditors.find((editor: vscode.TextEditor) =>
+      replWindow.isReplWindowDoc(editor.document)
+    ) &&
+    !cljsLib.isSomeOutputViewVisible(output.getDestinationConfiguration().otherOutput)
+  ) {
+    void vscode.window.showErrorMessage(message, 'Show output').then((choice) => {
+      if (choice === 'Show output') {
+        void output.showResultOutputDestination(true);
+      }
+    });
+  }
+}
+
+type LoadedFile = {
+  session: nrepl.NReplSession;
+  ns: string;
+  nsForm: string;
+  fileType: string;
+  outputOptions: output.AppendClojureOptions;
+};
+
+/** Leaves the REPL window in `session` and `ns`, and evaluates `autoEvaluateCode.onFileLoaded` for `fileType`. */
+async function afterFileLoaded({ session, ns, nsForm, fileType, outputOptions }: LoadedFile) {
+  replWindow.setSession(session, ns);
+  replSession.updateReplSessionType();
+  if (calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType]) {
+    output.appendLineOtherOut(
+      `Evaluating \`autoEvaluateCode.onFileLoaded.${fileType}\``,
+      outputOptions
+    );
+    const context = customSnippets.makeContext(
+      vscode.window.activeTextEditor,
+      ns,
+      ns,
+      nsForm,
+      fileType
+    );
+    await customSnippets.evaluateSnippet(
+      util.getActiveTextEditor(),
+      calvaConfig.getConfig().autoEvaluateCode.onFileLoaded[fileType],
+      context,
+      {}
+    );
   }
 }
 
@@ -824,12 +1124,13 @@ async function evaluateUser(code: string) {
 async function requireREPLUtilitiesCommand() {
   if (util.getConnectedState()) {
     const chan = state.outputChannel(),
-      [ns, _nsForm] = namespace.getDocumentNamespace(util.tryToGetDocument({})),
-      session = replSession.getSession();
+      doc = util.tryToGetDocument({}),
+      [ns, _nsForm] = namespace.getDocumentNamespace(doc),
+      session = replSession.getSession(doc);
 
     if (session) {
       try {
-        await namespace.createNamespaceFromDocumentIfNotExists(util.tryToGetDocument({}));
+        await namespace.createNamespaceFromDocumentIfNotExists(doc);
         await session.requireREPLUtilities(ns);
         chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
       } catch (e) {
@@ -954,6 +1255,9 @@ async function evaluateInCurrentEditor(
 }
 
 export {
+  evaluateToOutputDestinations,
+  evaluateInNamespace,
+  withoutIgnoreMarker,
   interruptAllEvaluations,
   loadDocument,
   loadFileCommand,

@@ -5,11 +5,12 @@ import * as testUtil from './util';
 import * as clientRegistry from '../../../nrepl/client-registry';
 import * as sessionRegistry from '../../../nrepl/session-registry';
 import * as replSession from '../../../nrepl/repl-session';
+import * as sessionRouting from '../../../nrepl/session-routing';
 import * as outputWindow from '../../../repl-window/repl-window-doc';
 import * as replSessionsMenu from '../../../repl-sessions-menu';
-import * as jackIn from '../../../nrepl/jack-in';
+import * as cljsLib from '../../../../out/cljs-lib/cljs-lib';
 import * as vscode from 'vscode';
-import * as connector from '../../../connector';
+import type * as nrepl from '../../../nrepl';
 
 const suiteName = 'REPL Window Targeting';
 
@@ -17,6 +18,14 @@ const suiteName = 'REPL Window Targeting';
 const projectDir = path.join(testUtil.testDataDir, '..', 'projects', 'cljs-only');
 const cljsFile = path.join(projectDir, 'src', 'hello_world', 'core.cljs');
 const cljcFile = path.join(projectDir, 'src', 'hello_world', 'core.cljc');
+
+const clientKey = 'test-client-targeting';
+
+const createSession = (replType: string, clientKey?: string): nrepl.NReplSession =>
+  ({
+    replType,
+    client: clientKey ? { clientKey } : undefined,
+  } as nrepl.NReplSession);
 
 async function waitForReplWindowRouting(expectedSessionKey?: string): Promise<void> {
   await testUtil.waitForCondition(
@@ -36,61 +45,66 @@ async function waitForReplWindowRouting(expectedSessionKey?: string): Promise<vo
 }
 
 suite('REPL Window Targeting suite', function () {
-  // Increase timeout for the entire suite since we jack-in once
-  this.timeout(180_000);
-
-  let clientKey: string;
+  let initialConnectionState: boolean | undefined;
+  let initialCurrentSessionType: string | undefined;
+  let initialOutputSessionType: string | undefined;
+  let initialOutputNamespace: string | undefined;
 
   mocha.before(async () => {
     testUtil.showMessage(suiteName, `suite starting!`);
     await testUtil.ensureOutputDir(testUtil.testDataDir);
 
-    // Clean up any stale clients
-    const existingClients = clientRegistry.listClients();
-    for (const client of existingClients) {
-      try {
-        await connector.disconnect({ clientKey: client.key });
-      } catch {
-        // Ignore errors during cleanup
-      }
-    }
-
-    // Jack-in once for all tests
-    await jackInToClojureScriptProject();
-
-    // Verify we have both clj and cljs sessions
-    const clients = clientRegistry.listClients();
-    assert.strictEqual(clients.length, 1, 'Should have one client after jack-in');
-    clientKey = clients[0].key;
-
-    const sessions = sessionRegistry.listSessionsByClient(clientKey);
-    const sessionKeys = sessions.map((s) => s.key);
-    testUtil.log(suiteName, 'Session keys:', sessionKeys);
-
-    assert.ok(sessionKeys.includes('clj'), 'Should have clj session');
-    assert.ok(sessionKeys.includes('cljs'), 'Should have cljs session');
+    initialConnectionState = cljsLib.getStateValue('connected');
+    initialCurrentSessionType = cljsLib.getStateValue('current-session-type');
+    initialOutputSessionType = outputWindow.getSessionType();
+    initialOutputNamespace = outputWindow.getNs();
+    await outputWindow.initReplWindowDoc();
   });
 
-  mocha.after(async () => {
+  mocha.after(() => {
     testUtil.showMessage(suiteName, `suite done!`);
-
-    // Kill jack-in processes to prevent orphaned Java processes
-    testUtil.log(suiteName, 'Suite cleanup: killing all jack-in processes');
-    await jackIn.calvaJackout({ force: true });
-    await testUtil.waitForJackOutComplete(suiteName);
-
-    // Disconnect after all tests
-    const clients = clientRegistry.listClients();
-    for (const client of clients) {
-      try {
-        await connector.disconnect({ clientKey: client.key });
-      } catch {
-        // Ignore errors during cleanup
-      }
-    }
+    sessionRegistry._testUtility_registeredSessions.clear();
+    clientRegistry._testUtility_registeredClients.clear();
+    sessionRouting.resetRouting();
+    cljsLib.setStateValue('connected', initialConnectionState);
+    cljsLib.setStateValue('current-session-type', initialCurrentSessionType);
+    const fallbackSessionType = initialOutputSessionType ?? 'clj';
+    const fallbackNamespace = initialOutputNamespace ?? 'user';
+    outputWindow.setSession(
+      createSession(fallbackSessionType),
+      fallbackNamespace,
+      fallbackSessionType
+    );
   });
 
   mocha.beforeEach(async () => {
+    sessionRegistry._testUtility_registeredSessions.clear();
+    clientRegistry._testUtility_registeredClients.clear();
+    sessionRouting.resetRouting();
+    cljsLib.setStateValue('connected', true);
+    cljsLib.setStateValue('current-session-type', undefined);
+
+    const stubClient = {
+      clientKey,
+    } as unknown as nrepl.NReplClient;
+
+    clientRegistry.registerClient(stubClient, {
+      connectSequenceName: 'Test Connection Targeting',
+    });
+
+    const projectUri = vscode.Uri.file(projectDir).toString();
+
+    sessionRegistry.registerSession('clj', createSession('clj', clientKey), {
+      projectRoot: projectUri,
+      globs: ['**/*.clj', '**/*.cljc', '**/*.edn'],
+      isSecondary: false,
+    });
+    sessionRegistry.registerSession('cljs', createSession('cljs', clientKey), {
+      projectRoot: projectUri,
+      globs: ['**/*.cljs', '**/*.cljc'],
+      isSecondary: true,
+    });
+
     // Reset REPL window to clj session before each test
     replSessionsMenu.setReplWindowSession('clj');
     await testUtil.waitForCondition(
@@ -249,26 +263,4 @@ suite('REPL Window Targeting suite', function () {
     assert.strictEqual(result, true, 'Should return true for valid session');
     assert.strictEqual(outputWindow.getSessionType(), 'cljs', 'Session should be updated');
   });
-
-  async function jackInToClojureScriptProject(): Promise<void> {
-    const { clientKey: key } = await testUtil.withJackInRetry(
-      suiteName,
-      async () => {
-        await testUtil.openFile(cljsFile);
-        testUtil.log(suiteName, `Opened file for jack-in: ${cljsFile}`);
-        await vscode.commands.executeCommand('calva.jackIn', {
-          connectSequence: {
-            name: 'repl-window-targeting-test-cljs-node',
-            projectType: 'deps.edn',
-            cljsType: 'ClojureScript built-in for node',
-            projectRootPath: [projectDir],
-          },
-          disableAutoSelect: true,
-        });
-      },
-      { expectedSessionKeys: ['clj', 'cljs'] }
-    );
-    clientKey = key;
-    testUtil.log(suiteName, 'Jack-in complete');
-  }
 });

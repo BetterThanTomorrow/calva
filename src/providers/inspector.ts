@@ -3,7 +3,7 @@ import * as cursorUtil from '../cursor-doc/utilities';
 import * as tokenCursor from '../cursor-doc/token-cursor';
 import * as state from '../state';
 import * as printer from '../printer';
-import * as select from '../select';
+import * as getText from '../util/get-text';
 import * as config from '../config';
 
 // Used to represent a key-value pair, and keys in the tree data.
@@ -191,7 +191,7 @@ export function addToInspector(arg: string | { value?: string; info: string } | 
     return;
   }
   if (document && selection) {
-    const currentFormSelection = select.getFormSelection(document, selection.active, false);
+    const [currentFormSelection] = getText.currentFormText(document, selection.active);
     this.addItem(document.getText(currentFormSelection), true, info);
   }
 }
