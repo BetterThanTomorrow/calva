@@ -2633,13 +2633,17 @@ describe('paredit', () => {
               (+ 2 3)
 
               (+ 1 2)|
-              ;=> 3
+              ; note
+
+              (+ 4 5)
               `,
               `
               (+ 1 2)|
-              ;=> 3
+              ; note
 
               (+ 2 3)
+
+              (+ 4 5)
               `
             );
           });
@@ -2648,7 +2652,7 @@ describe('paredit', () => {
             await expectDragForward(
               `
               (+ 1 2)|
-              ;=> 3
+              ; note
 
               (+ 2 3)
               `,
@@ -2656,7 +2660,7 @@ describe('paredit', () => {
               (+ 2 3)
 
               (+ 1 2)|
-              ;=> 3
+              ; note
               `
             );
           });
