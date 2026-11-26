@@ -2577,6 +2577,35 @@ describe('paredit', () => {
           });
         });
 
+        describe('cursor in a comment with no attached form', () => {
+          it('does not drag unrelated forms backward when the comment is separated by blank lines', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('does not drag unrelated forms forward when the comment is separated by blank lines', async () => {
+            const a = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
+            const b = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('does not drag unrelated top level forms when the comment is separated by blank lines', async () => {
+            const a = textNotation.docFromTextNotation(`(a)••;; lo|ne••(b)`);
+            const b = textNotation.docFromTextNotation(`(a)••;; lo|ne••(b)`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
+
         describe('closing delimiter and a line comment on the last form', () => {
           it('drag backward: vector closer and its trailing comment follow the last form', async () => {
             const a = textNotation.docFromTextNotation(

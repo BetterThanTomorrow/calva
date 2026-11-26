@@ -2597,6 +2597,30 @@ function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number
   return null;
 }
 
+/**
+ * The range of the form(s) to drag from `offset`: the form a comment under the
+ * cursor is attached to, the form on a line with a trailing comment under the
+ * cursor, or else the current form(s). Returns `null` when the cursor is on a
+ * comment line that has no attached form, so that such a comment never makes
+ * a drag move unrelated forms around.
+ */
+function dragBaseRange(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  text: string,
+  offset: number,
+  usePairs: boolean,
+  config?: PareditConfig
+): [number, number] | null {
+  return (
+    formAttachedToCommentAt(doc, offset) ??
+    formOnTrailingCommentLineAt(doc, offset) ??
+    (isCommentLine(lineInfoAt(text, offset))
+      ? null
+      : currentSexpsRange(doc, cursor, offset, usePairs, config))
+  );
+}
+
 export async function dragSexprBackward(
   doc: EditableDocument,
   left = doc.selections[0].anchor,
@@ -2606,10 +2630,7 @@ export async function dragSexprBackward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
-  const baseRange =
-    formAttachedToCommentAt(doc, right) ??
-    formOnTrailingCommentLineAt(doc, right) ??
-    currentSexpsRange(doc, cursor, right, usePairs, config);
+  const baseRange = dragBaseRange(doc, cursor, text, right, usePairs, config);
   if (!baseRange) {
     return;
   }
@@ -2683,10 +2704,7 @@ export async function dragSexprForward(
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
-  const baseRange =
-    formAttachedToCommentAt(doc, right) ??
-    formOnTrailingCommentLineAt(doc, right) ??
-    currentSexpsRange(doc, cursor, right, usePairs, config);
+  const baseRange = dragBaseRange(doc, cursor, text, right, usePairs, config);
   if (!baseRange) {
     return;
   }

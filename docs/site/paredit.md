@@ -178,6 +178,7 @@ Drag forward/backward also treats certain line comments as attached to forms:
 - Tight result comments such as `;=>` and `;;=>` are attached to the form immediately above them, and move with that form when it is dragged.
 - When the cursor is on an attached comment line, dragging acts on the
   associated form-comment pair rather than on the comment line by itself.
+- When the cursor is on a comment line with no attached form, for instance a comment surrounded by blank lines, dragging does nothing.
 - A same-line comment after the closing bracket(s) of the last form in a list is attached to that form. The closing bracket(s) stay at the end of the list, so they are never moved into, or hidden by, a comment.
 
 ## Toggle Comment Behavior
