@@ -2954,6 +2954,33 @@ describe('paredit', () => {
               `
             );
           });
+
+          it('drags the last form of a threading macro with its trailing comment', async () => {
+            await expectDragBackward(
+              String.raw`
+              (defn- clean-list-content
+                "Clean content but don't double-indent nested lists that are already indented"
+                [content indent-spaces]
+                (let [indent (apply str (repeat indent-spaces " "))]
+                  (-> content
+                      (.replace #"^\n+" "")                       ; remove leading newlines
+                      (.replace #"\n+$" "\n")                     ; keep single trailing newline
+                      ;; Only indent lines that don't already start with spaces (nested lists)
+                      |(.replace #"\n(?! )" (str "\n" indent)))))  ; indent nested content with single space
+              `,
+              String.raw`
+              (defn- clean-list-content
+                "Clean content but don't double-indent nested lists that are already indented"
+                [content indent-spaces]
+                (let [indent (apply str (repeat indent-spaces " "))]
+                  (-> content
+                      (.replace #"^\n+" "")                       ; remove leading newlines
+                      ;; Only indent lines that don't already start with spaces (nested lists)
+                      |(.replace #"\n(?! )" (str "\n" indent))  ; indent nested content with single space
+                      (.replace #"\n+$" "\n"))))                     ; keep single trailing newline
+              `
+            );
+          });
         });
 
         describe('pairs with comments', () => {
