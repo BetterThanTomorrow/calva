@@ -2428,14 +2428,12 @@ type StructuralTrailing = {
 };
 
 /**
- * Detects an enclosing list's closing delimiter(s) (`)`, `]` or `}`) on the
- * line where `formEnd` sits, when they need to be treated as structural during
- * a drag. That is when they are followed by a same-line trailing comment, which
- * then is "attached" to the form ending at `formEnd` even though it sits past
- * the delimiter(s), or when `partnerEndsInComment` is true, because the form
- * swapped into last place ends with a line comment that would otherwise swallow
- * the delimiter(s). The delimiter(s) must stay with whichever form ends up
- * being last in the enclosing list after a drag.
+ * Finds the closing delimiters (`)`, `]`, `}`) that follow the form ending at
+ * `formEnd` on its line, when a drag has to move them. It moves them when a
+ * comment follows them, because that comment belongs to the form, or when
+ * `partnerEndsInComment` is true, because the form swapped into last place ends
+ * with a line comment that would comment them out. The delimiters go after
+ * whichever form ends up last in the list.
  */
 function findStructuralTrailing(
   text: string,
@@ -2598,11 +2596,10 @@ function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number
 }
 
 /**
- * The range of the form(s) to drag from `offset`: the form a comment under the
- * cursor is attached to, the form on a line with a trailing comment under the
- * cursor, or else the current form(s). Returns `null` when the cursor is on a
- * comment line that has no attached form, so that such a comment never makes
- * a drag move unrelated forms around.
+ * Returns the range to drag from `offset`: the form that owns the comment under
+ * the cursor, else the form on the line with the trailing comment under the
+ * cursor, else the current form(s). Returns `null` when the cursor is in a
+ * comment that no form owns, so a drag never moves unrelated forms.
  */
 function dragBaseRange(
   doc: EditableDocument,
@@ -2641,9 +2638,8 @@ export async function dragSexprBackward(
   if (backBase[0] !== baseRange[0]) {
     const backRange = extendRangeOverAttachedComments(doc, backBase);
 
-    // When the form ends with enclosing-list paren(s) followed by a same-line
-    // trailing comment, treat that comment as attached to the form and let the
-    // paren(s) stay with whichever form ends up being last after the drag.
+    // Closing delimiters after the form stay with whichever form ends up last.
+    // A comment after them belongs to the form and moves with it.
     const structural = findStructuralTrailing(text, baseRange[1], backRange[1] > backBase[1]);
     const currentRange: [number, number] = structural
       ? [initialCurrentRange[0], structural.end]
@@ -2732,9 +2728,8 @@ export async function dragSexprForward(
   if (forwardBase[0] !== baseRange[0]) {
     const initialForwardRange = extendRangeOverAttachedComments(doc, forwardBase);
 
-    // When the next form is followed by enclosing-list paren(s) and a same-line
-    // trailing comment, treat that comment as attached to it and let the
-    // paren(s) stay with whichever form ends up being last after the drag.
+    // Closing delimiters after the next form stay with whichever form ends up
+    // last. A comment after them belongs to the next form and moves with it.
     const structural = findStructuralTrailing(text, forwardBase[1], currentRange[1] > baseRange[1]);
     const forwardRange: [number, number] = structural
       ? [initialForwardRange[0], structural.end]
