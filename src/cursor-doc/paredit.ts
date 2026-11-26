@@ -2424,33 +2424,37 @@ function extendRangeToLineIndent(text: string, [start, end]: [number, number]): 
 type StructuralTrailing = {
   parensStart: number;
   parensEnd: number;
-  commentStart: number;
-  commentEnd: number;
+  end: number;
 };
 
 /**
- * Detects an enclosing list's closing paren(s) followed by a same-line trailing
- * comment, on the line where `formEnd` sits. When present, the trailing comment
- * is "attached" to the form ending at `formEnd` even though it sits past the
- * enclosing-list paren(s). The paren(s) are structural and must stay with
- * whichever form ends up being last in the enclosing list after a drag.
+ * Detects an enclosing list's closing delimiter(s) (`)`, `]` or `}`) on the
+ * line where `formEnd` sits, when they need to be treated as structural during
+ * a drag. That is when they are followed by a same-line trailing comment, which
+ * then is "attached" to the form ending at `formEnd` even though it sits past
+ * the delimiter(s), or when `partnerEndsInComment` is true, because the form
+ * swapped into last place ends with a line comment that would otherwise swallow
+ * the delimiter(s). The delimiter(s) must stay with whichever form ends up
+ * being last in the enclosing list after a drag.
  */
-function findStructuralTrailing(text: string, formEnd: number): StructuralTrailing | null {
+function findStructuralTrailing(
+  text: string,
+  formEnd: number,
+  partnerEndsInComment: boolean
+): StructuralTrailing | null {
   const endLine = lineInfoAt(text, formEnd);
   const after = text.substring(formEnd, endLine.end);
-  const match = after.match(/^(\s*)(\)+)(\s*)(;.*)$/);
+  const match = after.match(/^(\s*)([)\]}]+)\s*(;.*)?$/);
   if (!match) {
     return null;
   }
-  const wsBefore = match[1].length;
-  const parens = match[2];
-  const wsAfter = match[3].length;
-  return {
-    parensStart: formEnd + wsBefore,
-    parensEnd: formEnd + wsBefore + parens.length,
-    commentStart: formEnd + wsBefore + parens.length + wsAfter,
-    commentEnd: endLine.end,
-  };
+  const [, wsBefore, delimiters, comment] = match;
+  if (!comment && !partnerEndsInComment) {
+    return null;
+  }
+  const parensStart = formEnd + wsBefore.length;
+  const parensEnd = parensStart + delimiters.length;
+  return { parensStart, parensEnd, end: comment ? endLine.end : parensEnd };
 }
 
 function normalizeSwapRangesForLeadingComments(
@@ -2619,9 +2623,9 @@ export async function dragSexprBackward(
     // When the form ends with enclosing-list paren(s) followed by a same-line
     // trailing comment, treat that comment as attached to the form and let the
     // paren(s) stay with whichever form ends up being last after the drag.
-    const structural = findStructuralTrailing(text, baseRange[1]);
+    const structural = findStructuralTrailing(text, baseRange[1], backRange[1] > backBase[1]);
     const currentRange: [number, number] = structural
-      ? [initialCurrentRange[0], structural.commentEnd]
+      ? [initialCurrentRange[0], structural.end]
       : initialCurrentRange;
 
     const [normalizedCurrentRange, normalizedBackRange] = normalizeSwapRangesForLeadingComments(
@@ -2713,9 +2717,9 @@ export async function dragSexprForward(
     // When the next form is followed by enclosing-list paren(s) and a same-line
     // trailing comment, treat that comment as attached to it and let the
     // paren(s) stay with whichever form ends up being last after the drag.
-    const structural = findStructuralTrailing(text, forwardBase[1]);
+    const structural = findStructuralTrailing(text, forwardBase[1], currentRange[1] > baseRange[1]);
     const forwardRange: [number, number] = structural
-      ? [initialForwardRange[0], structural.commentEnd]
+      ? [initialForwardRange[0], structural.end]
       : initialForwardRange;
 
     const [normalizedCurrentRange, normalizedForwardRange] = normalizeSwapRangesForLeadingComments(

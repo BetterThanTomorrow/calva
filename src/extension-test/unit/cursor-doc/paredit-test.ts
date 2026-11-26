@@ -2576,6 +2576,88 @@ describe('paredit', () => {
               .toEqual(textNotation.textAndSelection(b));
           });
         });
+
+        describe('closing delimiter and a line comment on the last form', () => {
+          it('drag backward: vector closer and its trailing comment follow the last form', async () => {
+            const a = textNotation.docFromTextNotation(
+              `[:a ; a same line• ; b line before • |:b] ; b same line`
+            );
+            const b = textNotation.docFromTextNotation(
+              `[ ; b line before • |:b ; b same line•:a] ; a same line`
+            );
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag forward: vector closer and its trailing comment follow the last form', async () => {
+            const a = textNotation.docFromTextNotation(
+              `[|:a ; a same line• ; b line before • :b] ; b same line`
+            );
+            const b = textNotation.docFromTextNotation(
+              `[ ; b line before • :b ; b same line•|:a] ; a same line`
+            );
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward: map closer follows the last form', async () => {
+            const a = textNotation.docFromTextNotation(`{:a 1 ; a•  |:b 2} ; m`);
+            const b = textNotation.docFromTextNotation(`{|:b 2 ; m•  :a 1} ; a`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward: closer is not commented out by the trailing comment of the form dragged past it', async () => {
+            const a = textNotation.docFromTextNotation(`[:a ; a•|:b]`);
+            const b = textNotation.docFromTextNotation(`[|:b•:a] ; a`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag forward: closer is not commented out by the trailing comment of the dragged form', async () => {
+            const a = textNotation.docFromTextNotation(`[|:a ; a• :b]`);
+            const b = textNotation.docFromTextNotation(`[:b• |:a] ; a`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward: closers of nested lists move before the trailing comment of the form dragged past', async () => {
+            const a = textNotation.docFromTextNotation(`(f [:a ; a•  |:b])`);
+            const b = textNotation.docFromTextNotation(`(f [|:b•  :a]) ; a`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag backward: closer is not commented out by a result comment below the form dragged past', async () => {
+            const a = textNotation.docFromTextNotation(`[:a•  ;=> a•  |:b]`);
+            const b = textNotation.docFromTextNotation(`[|:b•  :a]•  ;=> a`);
+            await paredit.dragSexprBackward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+
+          it('drag forward: closer is not commented out by a result comment below the dragged form', async () => {
+            const a = textNotation.docFromTextNotation(`[|:a•  ;=> a•  :b]`);
+            const b = textNotation.docFromTextNotation(`[:b•  |:a]•  ;=> a`);
+            await paredit.dragSexprForward(a);
+            expectLib
+              .expect(textNotation.textAndSelection(a))
+              .toEqual(textNotation.textAndSelection(b));
+          });
+        });
       });
     });
 
