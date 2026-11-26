@@ -171,15 +171,14 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
-Drag forward/backward also treats certain line comments as attached to forms:
+Drag forward/backward moves a form together with the comments that belong to it:
 
-- Contiguous comment lines immediately above a form move with that form.
-- Trailing same-line comments move with the form on that line.
-- Tight result comments such as `;=>` and `;;=>` are attached to the form immediately above them, and move with that form when it is dragged.
-- When the cursor is on an attached comment line, dragging acts on the
-  associated form-comment pair rather than on the comment line by itself.
-- When the cursor is on a comment line with no attached form, for instance a comment surrounded by blank lines, dragging does nothing.
-- A same-line comment after the closing bracket(s) of the last form in a list is attached to that form. The closing bracket(s) stay at the end of the list, so they are never moved into, or hidden by, a comment.
+- Comment lines directly above a form, with no blank line between, move with the form.
+- A comment at the end of the form's line moves with it. When the form is the last in its list, this includes a comment after the closing brackets. The closing brackets stay at the end of the list.
+- Comment lines below a form move with it when a blank line follows them.
+- A result comment like `;=>` or `;;=>` belongs to the form above it, even when the next form follows with no blank line.
+
+With the cursor in one of these comments, drag moves the form and its comments. With the cursor in a comment that belongs to no form, for instance one with blank lines around it, drag does nothing.
 
 ## Toggle Comment Behavior
 
