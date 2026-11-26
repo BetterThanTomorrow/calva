@@ -2958,30 +2958,68 @@ describe('paredit', () => {
 
         describe('cursor in a comment with no attached form', () => {
           it('does not drag unrelated forms backward when the comment is separated by blank lines', async () => {
-            const a = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
-            const b = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
-            await paredit.dragSexprBackward(a);
-            expectLib
-              .expect(textNotation.textAndSelection(a))
-              .toEqual(textNotation.textAndSelection(b));
+            await expectDragBackward(
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `,
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `
+            );
           });
 
           it('does not drag unrelated forms forward when the comment is separated by blank lines', async () => {
-            const a = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
-            const b = textNotation.docFromTextNotation(`(comment•  :a••  ;; lo|ne••  :b•  )`);
-            await paredit.dragSexprForward(a);
-            expectLib
-              .expect(textNotation.textAndSelection(a))
-              .toEqual(textNotation.textAndSelection(b));
+            await expectDragForward(
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `,
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `
+            );
           });
 
           it('does not drag unrelated top level forms when the comment is separated by blank lines', async () => {
-            const a = textNotation.docFromTextNotation(`(a)••;; lo|ne••(b)`);
-            const b = textNotation.docFromTextNotation(`(a)••;; lo|ne••(b)`);
-            await paredit.dragSexprForward(a);
-            expectLib
-              .expect(textNotation.textAndSelection(a))
-              .toEqual(textNotation.textAndSelection(b));
+            await expectDragForward(
+              `
+              (a)
+
+              ;; lo|ne
+
+              (b)
+              `,
+              `
+              (a)
+
+              ;; lo|ne
+
+              (b)
+              `
+            );
           });
         });
 
