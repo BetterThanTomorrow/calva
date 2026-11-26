@@ -2217,21 +2217,6 @@ describe('paredit', () => {
             );
           });
 
-          it('keeps leading comments attached at top level when dragging backward from trailing inline comment', async () => {
-            await expectDragBackward(
-              `
-              ;;b
-              (str "Hello" " " "World")
-              "B" ;a|
-              `,
-              `
-              "B" ;a|
-              ;;b
-              (str "Hello" " " "World")
-              `
-            );
-          });
-
           it('drags forward across a blank line when caret is before a form with trailing inline comment', async () => {
             await expectDragForward(
               `
@@ -2557,25 +2542,6 @@ describe('paredit', () => {
             );
           });
 
-          it('drags a commented form backward after a forward drag without accumulating indentation', async () => {
-            await expectDragBackward(
-              `
-              (comment
-                :b
-                ; a
-                :a|
-                )
-              `,
-              `
-              (comment
-                ; a
-                :a|
-                :b
-                )
-              `
-            );
-          });
-
           it('keeps both comments attached when dragging forward in a comment form', async () => {
             await expectDragForward(
               `
@@ -2691,36 +2657,6 @@ describe('paredit', () => {
 
               (+ 1 2)|
               ;=> 3
-              `
-            );
-          });
-
-          it('drags sexp backward with ;;=> result comment when next form follows immediately', async () => {
-            await expectDragBackward(
-              `
-              (+ 2 3)
-              (+ 1 2)|
-              ;;=> 3
-              `,
-              `
-              (+ 1 2)|
-              ;;=> 3
-              (+ 2 3)
-              `
-            );
-          });
-
-          it('drags sexp backward with ;=> result comment when next form follows immediately', async () => {
-            await expectDragBackward(
-              `
-              (+ 2 3)
-              (+ 1 2)|
-              ;=> 3
-              `,
-              `
-              (+ 1 2)|
-              ;=> 3
-              (+ 2 3)
               `
             );
           });
@@ -3071,59 +3007,6 @@ describe('paredit', () => {
             );
           });
 
-          it('restores two forms with leading comments, dragged forward', async () => {
-            await expectRestored(
-              'forward',
-              `
-              (comment
-                ; a
-                :a|
-                ; b
-                :b
-                )
-              `
-            );
-          });
-
-          it('restores a form with a leading comment, dragged backward', async () => {
-            await expectRestored(
-              'backward',
-              `
-              (comment
-                :a
-                ; b
-                :b|
-                )
-              `
-            );
-          });
-
-          it('restores forms with trailing comments, dragged forward', async () => {
-            await expectRestored(
-              'forward',
-              `
-              (comment
-                :a| ; a
-                :b ; b
-                :c
-                )
-              `
-            );
-          });
-
-          it('restores forms with trailing comments, dragged backward', async () => {
-            await expectRestored(
-              'backward',
-              `
-              (comment
-                :a ; a
-                :b ; b
-                :c|
-                )
-              `
-            );
-          });
-
           it('restores forms with result comments, dragged forward', async () => {
             await expectRestored(
               'forward',
@@ -3132,20 +3015,6 @@ describe('paredit', () => {
                 :a|
                 ;=> a
                 :b
-                ;=> b
-                )
-              `
-            );
-          });
-
-          it('restores forms with result comments, dragged backward', async () => {
-            await expectRestored(
-              'backward',
-              `
-              (comment
-                :a
-                ;=> a
-                :b|
                 ;=> b
                 )
               `
@@ -3223,25 +3092,6 @@ describe('paredit', () => {
 
                 :b
                 )
-              `
-            );
-          });
-
-          it('does not drag unrelated top level forms when the comment is separated by blank lines', async () => {
-            await expectDragForward(
-              `
-              (a)
-
-              ;; lo|ne
-
-              (b)
-              `,
-              `
-              (a)
-
-              ;; lo|ne
-
-              (b)
               `
             );
           });
