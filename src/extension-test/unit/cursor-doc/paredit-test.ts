@@ -2956,6 +2956,67 @@ describe('paredit', () => {
           });
         });
 
+        describe('pairs with comments', () => {
+          it('drags a binding with its trailing comment backward', async () => {
+            await expectDragBackward(
+              `
+              (let [a 1 ; one
+                    b| 2 ; two
+                    c 3] ; three
+                (+ a b c))
+              `,
+              `
+              (let [b| 2 ; two
+                    a 1 ; one
+                    c 3] ; three
+                (+ a b c))
+              `
+            );
+          });
+
+          it('drags a binding with its leading comment forward', async () => {
+            await expectDragForward(
+              `
+              (let [a 1
+                    ;; the b
+                    b| 2
+                    ;; the c
+                    c 3]
+                (+ a b c))
+              `,
+              `
+              (let [a 1
+                    ;; the c
+                    c 3
+                    ;; the b
+                    b| 2]
+                (+ a b c))
+              `
+            );
+          });
+
+          it('drags a cond test and its result with the comment above them', async () => {
+            await expectDragBackward(
+              `
+              (cond
+                ;; first
+                (= x 1) :one
+                ;; second
+                |(= x 2) :two
+                :else :other)
+              `,
+              `
+              (cond
+                ;; second
+                |(= x 2) :two
+                ;; first
+                (= x 1) :one
+                :else :other)
+              `
+            );
+          });
+        });
+
         describe('cursor in a comment with no attached form', () => {
           it('does not drag unrelated forms backward when the comment is separated by blank lines', async () => {
             await expectDragBackward(
