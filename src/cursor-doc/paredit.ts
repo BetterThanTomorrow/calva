@@ -2472,12 +2472,13 @@ function normalizeSwapRangesForLeadingComments(
 }
 
 /**
- * Extends a form's range to include its attached line comments:
- * - Backward: contiguous comment lines immediately above the form (only when
- *   the form's line has nothing but whitespace before the form).
- * - Forward: a trailing `;…` on the form's last line, plus comment lines
- *   below that are NOT leading a following form (terminated by a blank line
- *   or EOF).
+ * Extends a form's range over the comments that belong to it:
+ * - Above: the comment lines directly above the form, unless they are a `;=>`
+ *   result comment, which belongs to the form above. Only when whitespace
+ *   alone precedes the form on its line.
+ * - Same line: a comment after the form.
+ * - Below: a `;=>` result comment, and comment lines followed by a blank line
+ *   or the end of the document.
  */
 function extendRangeOverAttachedComments(
   doc: EditableDocument,
@@ -2523,10 +2524,9 @@ function extendRangeOverAttachedComments(
 }
 
 /**
- * If `offset` sits inside a trailing same-line comment on a form line (e.g.
- * `(form)  ; trail|ing`) — i.e. the cursor is past the line's `;` but the line
- * itself isn't a comment line — returns the range of the form whose body
- * starts on that line. Returns `null` otherwise.
+ * When `offset` is inside a comment at the end of a line that has code
+ * (`(form)  ; trail|ing`), returns the range of the form that starts that line.
+ * Returns `null` otherwise.
  */
 function formOnTrailingCommentLineAt(
   doc: EditableDocument,
@@ -2547,11 +2547,11 @@ function formOnTrailingCommentLineAt(
 }
 
 /**
- * If `offset` is on a line-comment line, returns the range of the form that
- * comment is attached to: the form immediately below when contiguous (no
- * blank line between), else the form immediately above when the comment is a
- * trailing annotation. Returns `null` when the cursor isn't on a comment, or
- * when no form is attached.
+ * When `offset` is on a comment line, returns the range of the form that owns
+ * the comment. A `;=>` result comment belongs to the form above. Any other
+ * comment belongs to the form below it, or, when a blank line or the end of
+ * the document follows, to the form above. Returns `null` when the line is not
+ * a comment, or when no form owns it.
  */
 function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number, number] | null {
   const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
