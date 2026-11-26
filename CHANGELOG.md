@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-- Fix: [Dragging sexps with adjacent comments](https://github.com/BetterThanTomorrow/calva/issues/3073)
+- Fix: [Drag Sexp Backward/Forward moves a form together with the comments that belong to it](https://github.com/BetterThanTomorrow/calva/issues/3073)
 
 ## [2.0.612] - 2026-11-19
 
