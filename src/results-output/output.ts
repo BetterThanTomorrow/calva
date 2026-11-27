@@ -88,6 +88,8 @@ export type AppendClojureOptions = {
   shadowRuntimeId?: number;
   // Numbers each evaluation, so that each evaluation's output starts with an info line
   evaluationId?: number;
+  // The destinations to write to, instead of the ones configured for the output's category
+  destinations?: string[];
 };
 
 export type AppendEvaluatedCodeOptions = {
@@ -579,7 +581,8 @@ export function appendClojureEval(
   options: AppendClojureOptions,
   after?: AfterAppendCallback
 ) {
-  const destinations = normalizeDestinations(getDestinationConfiguration().evalResults);
+  const destinations =
+    options.destinations ?? normalizeDestinations(getDestinationConfiguration().evalResults);
   if (!destinations.length) {
     if (after) {
       after(undefined, undefined);
@@ -734,7 +737,8 @@ export function appendEvalOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  const destinations =
+    options.destinations ?? normalizeDestinations(getDestinationConfiguration().evalOutput);
   if (!destinations.length) {
     if (after) {
       after(undefined, undefined);
@@ -792,7 +796,8 @@ export function appendEvalErr(
   after?: AfterAppendCallback,
   causes?: cider.Causes
 ) {
-  const destinations = normalizeDestinations(getDestinationConfiguration().evalOutput);
+  const destinations =
+    options.destinations ?? normalizeDestinations(getDestinationConfiguration().evalOutput);
   if (!destinations.length) {
     if (after) {
       after(undefined, undefined);
@@ -861,7 +866,8 @@ export function appendOtherOut(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  const destinations =
+    options.destinations ?? normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
     if (after) {
       after(undefined, undefined);
@@ -915,7 +921,8 @@ export function appendOtherErr(
   options: AppendClojureOptions = {},
   after?: AfterAppendCallback
 ) {
-  const destinations = normalizeDestinations(getDestinationConfiguration().otherOutput);
+  const destinations =
+    options.destinations ?? normalizeDestinations(getDestinationConfiguration().otherOutput);
   if (!destinations.length) {
     if (after) {
       after(undefined, undefined);
