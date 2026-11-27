@@ -1,0 +1,95 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "testProjectStart",
+      "type": "command",
+      "command": "joyride.runCode",
+      "args": "(require '[test-project] :reload) (test-project/start!) \"ok\""
+    },
+    {
+      "id": "testProjectStop",
+      "type": "command",
+      "command": "joyride.runCode",
+      "args": "(require '[test-project] :reload) (test-project/stop!) \"ok\""
+    }
+  ],
+  "tasks": [
+    {
+      "label": "test project: start",
+      "detail": "Start the clj and bb nREPL servers and connect Calva to them, jack in to Joyride, and open the tic-tac-toe Flare with Calva connected to its Scittle REPL",
+      "type": "shell",
+      "command": "echo ${input:testProjectStart}",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "test project: stop",
+      "detail": "Close the tic-tac-toe Flare, disconnect the four sessions, stop Joyride's nREPL server, and stop the clj and bb nREPL servers",
+      "type": "shell",
+      "command": "echo ${input:testProjectStop}",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "clj nREPL",
+      "detail": "JVM Clojure nREPL server with cider-nrepl, in repls/clj",
+      "type": "shell",
+      "command": "clojure -M:nrepl",
+      "options": { "cwd": "${workspaceFolder}/repls/clj" },
+      "isBackground": true,
+      "runOptions": { "instanceLimit": 1 },
+      "problemMatcher": {
+        "owner": "clj-nrepl",
+        "pattern": { "regexp": "^(~never~)(.*)$", "file": 1, "message": 2 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "nREPL server started"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "repls",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "bb nREPL",
+      "detail": "Babashka nREPL server, in repls/bb",
+      "type": "shell",
+      "command": "bb nrepl",
+      "options": { "cwd": "${workspaceFolder}/repls/bb" },
+      "isBackground": true,
+      "runOptions": { "instanceLimit": 1 },
+      "problemMatcher": {
+        "owner": "bb-nrepl",
+        "pattern": { "regexp": "^(~never~)(.*)$", "file": 1, "message": 2 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "nREPL server started"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "repls",
+        "showReuseMessage": false
+      }
+    }
+  ]
+}
