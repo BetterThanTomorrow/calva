@@ -283,7 +283,7 @@
       "label": "Calva Dev",
       "group": {
         "kind": "build",
-        "isDefault": true
+        "isDefault": false
       },
       "dependsOn": ["Calva Compile and Watch", "Calva Docs"]
     }
