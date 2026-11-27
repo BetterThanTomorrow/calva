@@ -291,6 +291,7 @@ The `who` field identifies which API caller triggered an evaluation. It is inclu
 * The `Result` object returned by the promise (always the resolved value)
 * `OutputMessage` objects delivered to `onOutputLogged()` subscribers
 * A badge in the REPL output, shown before the session type and namespace
+* The `eval` message to the nREPL server, as a `who` key, so the server can tell who evaluated. Servers that don't read it ignore it. A defaulted `"api"` isn't sent.
 
 ```
 ; my-agent  clj  user

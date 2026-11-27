@@ -151,6 +151,7 @@ export const evaluate = async (
   const evaluationOptions: any = {
     stdout,
     stderr,
+    who: resolvedWho,
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplOptions,
   };
