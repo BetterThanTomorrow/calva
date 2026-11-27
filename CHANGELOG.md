@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: [Drag Sexp Backward/Forward moves a form together with the comments that belong to it](https://github.com/BetterThanTomorrow/calva/issues/3073)
+
 ## [2.0.612] - 2026-11-19
 
 - [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)

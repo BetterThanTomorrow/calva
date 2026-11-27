@@ -171,6 +171,15 @@ And like so (wait for it):
 
 ![](images/paredit/drag-pairs-in-maps.gif)
 
+Drag forward/backward moves a form together with the comments that belong to it:
+
+- Comment lines directly above a form, with no blank line between, move with the form.
+- A comment at the end of the form's line moves with it. When the form is the last in its list, this includes a comment after the closing brackets. The closing brackets stay at the end of the list.
+- Comment lines below a form move with it when a blank line follows them.
+- A result comment like `;=>` or `;;=>` belongs to the form above it, even when the next form follows with no blank line.
+
+With the cursor in one of these comments, drag moves the form and its comments. With the cursor in a comment that belongs to no form, for instance one with blank lines around it, drag does nothing.
+
 ## Toggle Comment Behavior
 
 The **Toggle Comment** command (`ctrl+/` / `cmd+/`) behavior when there is no text selected and the cursor is not in a line comment is controlled by the `calva.paredit.toggleCommentBehavior` setting:

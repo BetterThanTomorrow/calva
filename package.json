@@ -3361,22 +3361,22 @@
       {
         "command": "paredit.dragSexprBackward",
         "key": "ctrl+shift+alt+b",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.dragSexprForward",
         "key": "ctrl+shift+alt+f",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/"
       },
       {
         "command": "paredit.dragSexprBackward",
         "key": "alt+up",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults"
       },
       {
         "command": "paredit.dragSexprForward",
         "key": "alt+down",
-        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
+        "when": "calva:keybindingsEnabled && (editorLangId == clojure && editorTextFocus || calva:replInputFocused) && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults"
       },
       {
         "command": "paredit.dragSexprBackwardUp",
@@ -3600,12 +3600,12 @@
       {
         "command": "calva.replInput.moveLinesUp",
         "key": "alt+up",
-        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment)"
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults)"
       },
       {
         "command": "calva.replInput.moveLinesDown",
         "key": "alt+down",
-        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment)"
+        "when": "calva:replInputFocused && !(calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults)"
       },
       {
         "command": "calva.replInput.copyLinesUp",

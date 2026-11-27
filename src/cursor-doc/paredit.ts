@@ -2364,6 +2364,260 @@ export function currentSexpsRange(
   return currentSingleRange;
 }
 
+type LineInfo = {
+  start: number;
+  end: number;
+  content: string;
+  trimmed: string;
+};
+
+function lineInfoAt(text: string, offset: number): LineInfo {
+  const start = text.lastIndexOf('\n', Math.max(0, offset - 1)) + 1;
+  const nl = text.indexOf('\n', offset);
+  const end = nl === -1 ? text.length : nl;
+  const content = text.substring(start, end);
+  return { start, end, content, trimmed: content.trimStart() };
+}
+
+const prevLine = (text: string, lineStart: number) =>
+  lineStart > 0 ? lineInfoAt(text, lineStart - 1) : null;
+
+const nextLine = (text: string, lineEnd: number) =>
+  lineEnd < text.length ? lineInfoAt(text, lineEnd + 1) : null;
+
+const isCommentLine = (line: LineInfo) => line.trimmed.startsWith(';');
+const isBlankLine = (line: LineInfo) => line.trimmed === '';
+const isResultCommentStartLine = (line: LineInfo) => /^;{1,2}=>/.test(line.trimmed);
+
+function isResultCommentBlock(lines: LineInfo[]): boolean {
+  if (!lines.length || !isResultCommentStartLine(lines[0])) {
+    return false;
+  }
+
+  const semicolonPrefix = lines[0].trimmed.startsWith(';;=>') ? ';;' : ';';
+  return lines.slice(1).every((line) => line.trimmed.startsWith(`${semicolonPrefix}   `));
+}
+
+function trailingResultCommentBlockEnd(text: string, fromLineEnd: number): number | null {
+  const first = nextLine(text, fromLineEnd);
+  if (!first || !isResultCommentStartLine(first)) {
+    return null;
+  }
+
+  const semicolonPrefix = first.trimmed.startsWith(';;=>') ? ';;' : ';';
+  let end = first.end;
+  let line = nextLine(text, first.end);
+  while (line && isCommentLine(line) && line.trimmed.startsWith(`${semicolonPrefix}   `)) {
+    end = line.end;
+    line = nextLine(text, line.end);
+  }
+  return end;
+}
+
+function extendRangeToLineIndent(text: string, [start, end]: [number, number]): [number, number] {
+  const startLine = lineInfoAt(text, start);
+  return text.substring(startLine.start, start).trim() === ''
+    ? [startLine.start, end]
+    : [start, end];
+}
+
+type StructuralTrailing = {
+  parensStart: number;
+  parensEnd: number;
+  end: number;
+};
+
+/**
+ * Finds the closing delimiters (`)`, `]`, `}`) that follow the form ending at
+ * `formEnd` on its line, when a drag has to move them. It moves them when a
+ * comment follows them, because that comment belongs to the form, or when
+ * `partnerEndsInComment` is true, because the form swapped into last place ends
+ * with a line comment that would comment them out. The delimiters go after
+ * whichever form ends up last in the list.
+ */
+function findStructuralTrailing(
+  text: string,
+  formEnd: number,
+  partnerEndsInComment: boolean
+): StructuralTrailing | null {
+  const endLine = lineInfoAt(text, formEnd);
+  const after = text.substring(formEnd, endLine.end);
+  const match = after.match(/^(\s*)([)\]}]+)\s*(;.*)?$/);
+  if (!match) {
+    return null;
+  }
+  const [, wsBefore, delimiters, comment] = match;
+  if (!comment && !partnerEndsInComment) {
+    return null;
+  }
+  const parensStart = formEnd + wsBefore.length;
+  const parensEnd = parensStart + delimiters.length;
+  return { parensStart, parensEnd, end: comment ? endLine.end : parensEnd };
+}
+
+function normalizeSwapRangesForLeadingComments(
+  text: string,
+  leftRange: [number, number],
+  rightRange: [number, number]
+): [[number, number], [number, number]] {
+  const leftStartsWithComment = isCommentLine(lineInfoAt(text, leftRange[0]));
+  const rightStartsWithComment = isCommentLine(lineInfoAt(text, rightRange[0]));
+
+  return [
+    rightStartsWithComment ? extendRangeToLineIndent(text, leftRange) : leftRange,
+    leftStartsWithComment ? extendRangeToLineIndent(text, rightRange) : rightRange,
+  ];
+}
+
+/**
+ * Extends a form's range over the comments that belong to it:
+ * - Above: the comment lines directly above the form, unless they are a `;=>`
+ *   result comment, which belongs to the form above. Only when whitespace
+ *   alone precedes the form on its line.
+ * - Same line: a comment after the form.
+ * - Below: a `;=>` result comment, and comment lines followed by a blank line
+ *   or the end of the document.
+ */
+function extendRangeOverAttachedComments(
+  doc: EditableDocument,
+  [start, end]: [number, number]
+): [number, number] {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+
+  let lo = start;
+  const startLine = lineInfoAt(text, start);
+  if (text.substring(startLine.start, start).trim() === '') {
+    const leadingCommentLines: LineInfo[] = [];
+    for (let line = prevLine(text, startLine.start); line && isCommentLine(line); ) {
+      leadingCommentLines.unshift(line);
+      line = prevLine(text, line.start);
+    }
+    if (leadingCommentLines.length && !isResultCommentBlock(leadingCommentLines)) {
+      lo = leadingCommentLines[0].start;
+    }
+  }
+
+  let hi = end;
+  const endLine = lineInfoAt(text, end);
+  if (/^\s*;/.test(text.substring(end, endLine.end))) {
+    hi = endLine.end;
+  }
+
+  const resultCommentsEnd = trailingResultCommentBlockEnd(text, endLine.end);
+  if (resultCommentsEnd !== null) {
+    hi = resultCommentsEnd;
+  }
+
+  const trailingEnds: number[] = [];
+  let below = nextLine(text, endLine.end);
+  while (below && isCommentLine(below)) {
+    trailingEnds.push(below.end);
+    below = nextLine(text, below.end);
+  }
+  if (trailingEnds.length && (!below || isBlankLine(below))) {
+    hi = trailingEnds[trailingEnds.length - 1];
+  }
+
+  return [lo, hi];
+}
+
+/**
+ * When `offset` is inside a comment at the end of a line that has code
+ * (`(form)  ; trail|ing`), returns the range of the form that starts that line.
+ * Returns `null` otherwise.
+ */
+function formOnTrailingCommentLineAt(
+  doc: EditableDocument,
+  offset: number
+): [number, number] | null {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const here = lineInfoAt(text, offset);
+  if (isCommentLine(here)) {
+    return null;
+  }
+  const beforeCursor = here.content.substring(0, offset - here.start);
+  if (beforeCursor.lastIndexOf(';') < 0) {
+    return null;
+  }
+  const indentLen = here.content.length - here.trimmed.length;
+  const formStart = here.start + indentLen;
+  return doc.getTokenCursor(formStart).rangeForCurrentForm(formStart);
+}
+
+/**
+ * When `offset` is on a comment line, returns the range of the form that owns
+ * the comment. A `;=>` result comment belongs to the form above. Any other
+ * comment belongs to the form below it, or, when a blank line or the end of
+ * the document follows, to the form above. Returns `null` when the line is not
+ * a comment, or when no form owns it.
+ */
+function formAttachedToCommentAt(doc: EditableDocument, offset: number): [number, number] | null {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const here = lineInfoAt(text, offset);
+  if (!isCommentLine(here)) {
+    return null;
+  }
+
+  if (isResultCommentStartLine(here)) {
+    let above = prevLine(text, here.start);
+    while (above && isCommentLine(above)) {
+      above = prevLine(text, above.start);
+    }
+    if (above && !isBlankLine(above)) {
+      const formEnd = above.start + above.content.trimEnd().length;
+      const cursor = doc.getTokenCursor(formEnd);
+      cursor.backwardSexp();
+      return cursor.rangeForCurrentForm(cursor.offsetStart);
+    }
+    return null;
+  }
+
+  let below = nextLine(text, here.end);
+  while (below && isCommentLine(below)) {
+    below = nextLine(text, below.end);
+  }
+  if (below && !isBlankLine(below)) {
+    const formStart = below.start + (below.content.length - below.trimmed.length);
+    return doc.getTokenCursor(formStart).rangeForCurrentForm(formStart);
+  }
+
+  let above = prevLine(text, here.start);
+  while (above && isCommentLine(above)) {
+    above = prevLine(text, above.start);
+  }
+  if (above && !isBlankLine(above)) {
+    const formEnd = above.start + above.content.trimEnd().length;
+    const cursor = doc.getTokenCursor(formEnd);
+    cursor.backwardSexp();
+    return cursor.rangeForCurrentForm(cursor.offsetStart);
+  }
+
+  return null;
+}
+
+/**
+ * Returns the range to drag from `offset`: the form that owns the comment under
+ * the cursor, else the form on the line with the trailing comment under the
+ * cursor, else the current form(s). Returns `null` when the cursor is in a
+ * comment that no form owns, so a drag never moves unrelated forms.
+ */
+function dragBaseRange(
+  doc: EditableDocument,
+  cursor: LispTokenCursor,
+  text: string,
+  offset: number,
+  usePairs: boolean,
+  config?: PareditConfig
+): [number, number] | null {
+  return (
+    formAttachedToCommentAt(doc, offset) ??
+    formOnTrailingCommentLineAt(doc, offset) ??
+    (isCommentLine(lineInfoAt(text, offset))
+      ? null
+      : currentSexpsRange(doc, cursor, offset, usePairs, config))
+  );
+}
+
 export async function dragSexprBackward(
   doc: EditableDocument,
   left = doc.selections[0].anchor,
@@ -2372,24 +2626,67 @@ export async function dragSexprBackward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
-  if (!currentRange) {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const baseRange = dragBaseRange(doc, cursor, text, right, usePairs, config);
+  if (!baseRange) {
     return;
   }
-  const newPosOffset = right - currentRange[0];
-  const backCursor = doc.getTokenCursor(currentRange[0]);
+  const initialCurrentRange = extendRangeOverAttachedComments(doc, baseRange);
+  const backCursor = doc.getTokenCursor(baseRange[0]);
   backCursor.backwardSexp();
-  const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
-  if (backRange[0] !== currentRange[0]) {
-    // there is a sexp to the left
-    const leftText = doc.model.getText(backRange[0], backRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+  const backBase = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs, config);
+  if (backBase[0] !== baseRange[0]) {
+    const backRange = extendRangeOverAttachedComments(doc, backBase);
+
+    // Closing delimiters after the form stay with whichever form ends up last.
+    // A comment after them belongs to the form and moves with it.
+    const structural = findStructuralTrailing(text, baseRange[1], backRange[1] > backBase[1]);
+    const currentRange: [number, number] = structural
+      ? [initialCurrentRange[0], structural.end]
+      : initialCurrentRange;
+
+    const [normalizedCurrentRange, normalizedBackRange] = normalizeSwapRangesForLeadingComments(
+      text,
+      currentRange,
+      backRange
+    );
+    const backText = doc.model.getText(normalizedBackRange[0], normalizedBackRange[1]);
+    const currentText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
+
+    let leftText = backText;
+    let newCurrentText = currentText;
+    const cursorOffsetInCurrent = right - normalizedCurrentRange[0];
+    let cursorOffsetInNewCurrent = cursorOffsetInCurrent;
+    if (structural) {
+      const parens = text.substring(structural.parensStart, structural.parensEnd);
+      const stripFrom = structural.parensStart - normalizedCurrentRange[0];
+      const stripTo = structural.parensEnd - normalizedCurrentRange[0];
+      newCurrentText = currentText.substring(0, stripFrom) + currentText.substring(stripTo);
+      const insertAt = backBase[1] - normalizedBackRange[0];
+      leftText = backText.substring(0, insertAt) + parens + backText.substring(insertAt);
+      if (cursorOffsetInCurrent >= stripTo) {
+        cursorOffsetInNewCurrent -= parens.length;
+      } else if (cursorOffsetInCurrent > stripFrom) {
+        cursorOffsetInNewCurrent = stripFrom;
+      }
+    }
+
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
-        new ModelEdit('changeRange', [backRange[0], backRange[1], currentText]),
+        new ModelEdit('changeRange', [
+          normalizedCurrentRange[0],
+          normalizedCurrentRange[1],
+          leftText,
+        ]),
+        new ModelEdit('changeRange', [
+          normalizedBackRange[0],
+          normalizedBackRange[1],
+          newCurrentText,
+        ]),
       ],
-      { selections: [new ModelEditSelection(backRange[0] + newPosOffset)] }
+      {
+        selections: [new ModelEditSelection(normalizedBackRange[0] + cursorOffsetInNewCurrent)],
+      }
     );
   }
 }
@@ -2402,35 +2699,84 @@ export async function dragSexprForward(
 ) {
   const cursor = doc.getTokenCursor(right);
   const usePairs = isInPairsList(cursor, config);
-  const currentRange = currentSexpsRange(doc, cursor, right, usePairs, config);
-  if (!currentRange) {
+  const text = doc.model.getText(0, Number.MAX_SAFE_INTEGER);
+  const baseRange = dragBaseRange(doc, cursor, text, right, usePairs, config);
+  if (!baseRange) {
     return;
   }
-  const newPosOffset = currentRange[1] - right;
-  const forwardCursor = doc.getTokenCursor(currentRange[1]);
-  forwardCursor.forwardSexp();
-  const forwardRange = currentSexpsRange(
+  const currentRange = extendRangeOverAttachedComments(doc, baseRange);
+  const forwardCursor = doc.getTokenCursor(baseRange[1]);
+  forwardCursor.forwardWhitespace();
+  let forwardBase = currentSexpsRange(
     doc,
     forwardCursor,
     forwardCursor.offsetStart,
     usePairs,
     config
   );
-  if (forwardRange[0] !== currentRange[0]) {
-    // there is a sexp to the right
-    const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
-    const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+  if (forwardBase[0] === baseRange[0]) {
+    forwardCursor.forwardSexp();
+    forwardCursor.forwardWhitespace();
+    forwardBase = currentSexpsRange(
+      doc,
+      forwardCursor,
+      forwardCursor.offsetStart,
+      usePairs,
+      config
+    );
+  }
+  if (forwardBase[0] !== baseRange[0]) {
+    const initialForwardRange = extendRangeOverAttachedComments(doc, forwardBase);
+
+    // Closing delimiters after the next form stay with whichever form ends up
+    // last. A comment after them belongs to the next form and moves with it.
+    const structural = findStructuralTrailing(text, forwardBase[1], currentRange[1] > baseRange[1]);
+    const forwardRange: [number, number] = structural
+      ? [initialForwardRange[0], structural.end]
+      : initialForwardRange;
+
+    const [normalizedCurrentRange, normalizedForwardRange] = normalizeSwapRangesForLeadingComments(
+      text,
+      currentRange,
+      forwardRange
+    );
+    const currentText = doc.model.getText(normalizedCurrentRange[0], normalizedCurrentRange[1]);
+    const forwardText = doc.model.getText(normalizedForwardRange[0], normalizedForwardRange[1]);
+
+    let leftText = currentText;
+    let newForwardText = forwardText;
+    const cursorOffsetInCurrent = right - normalizedCurrentRange[0];
+    let cursorOffsetInLeft = cursorOffsetInCurrent;
+    if (structural) {
+      const parens = text.substring(structural.parensStart, structural.parensEnd);
+      const stripFrom = structural.parensStart - normalizedForwardRange[0];
+      const stripTo = structural.parensEnd - normalizedForwardRange[0];
+      newForwardText = forwardText.substring(0, stripFrom) + forwardText.substring(stripTo);
+      const insertAt = baseRange[1] - normalizedCurrentRange[0];
+      leftText = currentText.substring(0, insertAt) + parens + currentText.substring(insertAt);
+      if (cursorOffsetInCurrent > insertAt) {
+        cursorOffsetInLeft += parens.length;
+      }
+    }
+
+    const newCursorPos =
+      normalizedForwardRange[0] + (newForwardText.length - currentText.length) + cursorOffsetInLeft;
+
     return doc.model.edit(
       [
-        new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], currentText]),
-        new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText]),
+        new ModelEdit('changeRange', [
+          normalizedForwardRange[0],
+          normalizedForwardRange[1],
+          leftText,
+        ]),
+        new ModelEdit('changeRange', [
+          normalizedCurrentRange[0],
+          normalizedCurrentRange[1],
+          newForwardText,
+        ]),
       ],
       {
-        selections: [
-          new ModelEditSelection(
-            currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset
-          ),
-        ],
+        selections: [new ModelEditSelection(newCursorPos)],
       }
     );
   }

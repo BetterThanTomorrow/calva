@@ -2158,6 +2158,1063 @@ describe('paredit', () => {
           .expect(textNotation.textAndSelection(a))
           .toEqual(textNotation.textAndSelection(b));
       });
+
+      describe('with attached comments', () => {
+        // Cases are written the way the code looks in the editor. `dedent` removes
+        // the indentation that the test code adds to the template literals.
+        const dedent = (text: string): string => {
+          const lines = text.split('\n');
+          if (lines[0].trim() === '') {
+            lines.shift();
+          }
+          if (lines.length > 0 && lines[lines.length - 1].trim() === '') {
+            lines.pop();
+          }
+          const indent = Math.min(
+            ...lines
+              .filter((line) => line.trim() !== '')
+              .map((line) => line.length - line.trimStart().length)
+          );
+          return lines.map((line) => line.slice(indent)).join('\n');
+        };
+
+        const expectDrag = async (
+          drag: (doc: model.EditableDocument) => Promise<unknown>,
+          before: string,
+          after: string
+        ) => {
+          const doc = textNotation.docFromTextNotation(dedent(before));
+          const expected = textNotation.docFromTextNotation(dedent(after));
+          await drag(doc);
+          expectLib
+            .expect(textNotation.textNotationFromDoc(doc, true))
+            .toEqual(textNotation.textNotationFromDoc(expected, true));
+        };
+
+        const expectDragForward = (before: string, after: string) =>
+          expectDrag(paredit.dragSexprForward, before, after);
+
+        const expectDragBackward = (before: string, after: string) =>
+          expectDrag(paredit.dragSexprBackward, before, after);
+
+        describe('form-comment pairs', () => {
+          it('keeps leading comments attached when dragging from trailing inline comment', async () => {
+            await expectDragBackward(
+              `
+              (do
+              ;;b
+              (str "Hello" " " "World")
+              "B" ;a|
+              )
+              `,
+              `
+              (do
+              "B" ;a|
+              ;;b
+              (str "Hello" " " "World")
+              )
+              `
+            );
+          });
+
+          it('drags forward across a blank line when caret is before a form with trailing inline comment', async () => {
+            await expectDragForward(
+              `
+              |"B" ;a
+
+              ;;b
+              (str "Hello" " " "World")
+              `,
+              `
+              ;;b
+              (str "Hello" " " "World")
+
+              |"B" ;a
+              `
+            );
+          });
+
+          it('drags forward across a blank line when caret is after trailing inline comment', async () => {
+            await expectDragForward(
+              `
+              "B" ;a|
+
+              ;;b
+              (str "Hello" " " "World")
+              `,
+              `
+              ;;b
+              (str "Hello" " " "World")
+
+              "B" ;a|
+              `
+            );
+          });
+
+          it('drags forward across a blank line when caret is at start of trailing inline comment', async () => {
+            await expectDragForward(
+              `
+              "B" |;a
+
+              ;b
+              (str "Hello" " " "World")
+              `,
+              `
+              ;b
+              (str "Hello" " " "World")
+
+              "B" |;a
+              `
+            );
+          });
+
+          it('drags backward from end of trailing inline comment and keeps single-semicolon comment attached', async () => {
+            await expectDragBackward(
+              `
+              ;b
+              (str "Hello" " " "World")
+
+              "B" ;a|
+              `,
+              `
+              "B" ;a|
+
+              ;b
+              (str "Hello" " " "World")
+              `
+            );
+          });
+
+          it('drags backward when caret is in whitespace before trailing inline comment', async () => {
+            await expectDragBackward(
+              `
+              ;b
+              (str "Hello" " " "World")
+
+              "B" |;a
+              `,
+              `
+              "B" |;a
+
+              ;b
+              (str "Hello" " " "World")
+              `
+            );
+          });
+
+          it('keeps ;=> result comments attached to form under drag', async () => {
+            await expectDragBackward(
+              `
+              (+ 1 2)
+              ;=> 3
+
+              "B" ;a|
+              `,
+              `
+              "B" ;a|
+
+              (+ 1 2)
+              ;=> 3
+              `
+            );
+          });
+        });
+
+        describe('preceding line comments', () => {
+          it('drags sexp backward with its preceding comment', async () => {
+            await expectDragBackward(
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Bar
+              (do bar)
+
+              ;; Baz
+              (do baz)|
+              `,
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Baz
+              (do baz)|
+
+              ;; Bar
+              (do bar)
+              `
+            );
+          });
+
+          it('drags sexp forward with its preceding comment', async () => {
+            await expectDragForward(
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Bar
+              (do bar)|
+
+              ;; Baz
+              (do baz)
+              `,
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Baz
+              (do baz)
+
+              ;; Bar
+              (do bar)|
+              `
+            );
+          });
+
+          it('drags sexp backward without a preceding comment when there is a blank line', async () => {
+            // A blank line between a comment and a form breaks the association.
+            await expectDragBackward(
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Bar
+              (do bar)
+
+
+              (do baz)|
+              `,
+              `
+              ;; Foo
+              (do foo)
+
+              (do baz)|
+
+
+              ;; Bar
+              (do bar)
+              `
+            );
+          });
+
+          it('drags sexp forward without a preceding comment when there is a blank line', async () => {
+            await expectDragForward(
+              `
+              ;; Foo
+              (do foo)
+
+
+              ;; Bar
+              (do bar)|
+
+              ;; Baz
+              (do baz)
+              `,
+              `
+              ;; Foo
+              (do foo)
+
+
+              ;; Baz
+              (do baz)
+
+              ;; Bar
+              (do bar)|
+              `
+            );
+          });
+
+          it('drags sexp backward with multiple preceding comment lines', async () => {
+            await expectDragBackward(
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Bar
+              ;; Extra bar comment
+              (do bar)
+
+              ;; Baz
+              (do baz)|
+              `,
+              `
+              ;; Foo
+              (do foo)
+
+              ;; Baz
+              (do baz)|
+
+              ;; Bar
+              ;; Extra bar comment
+              (do bar)
+              `
+            );
+          });
+
+          it('drags sexp forward without comment when form has no preceding comment', async () => {
+            await expectDragForward(
+              `
+              (do foo)
+              (do bar)|
+
+              ;; Baz
+              (do baz)
+              `,
+              `
+              (do foo)
+              ;; Baz
+              (do baz)
+
+              (do bar)|
+              `
+            );
+          });
+
+          it('drags sexp backward when only preceding form has a comment', async () => {
+            await expectDragBackward(
+              `
+              ;; Foo
+              (do foo)
+              (do bar)|
+              `,
+              `
+              (do bar)|
+              ;; Foo
+              (do foo)
+              `
+            );
+          });
+
+          it('drags indented sexp backward with its preceding comment inside a container', async () => {
+            await expectDragBackward(
+              `
+              (do
+                ;; A
+                (form-a)
+                ;; B
+                (form-b)|)
+              `,
+              `
+              (do
+                ;; B
+                (form-b)|
+                ;; A
+                (form-a))
+              `
+            );
+          });
+
+          it('drags indented sexp forward with its preceding comment inside a container', async () => {
+            await expectDragForward(
+              `
+              (do
+                ;; A
+                (form-a)|
+                ;; B
+                (form-b))
+              `,
+              `
+              (do
+                ;; B
+                (form-b)
+                ;; A
+                (form-a)|)
+              `
+            );
+          });
+
+          it('drags a commented form forward in a comment form without adding indentation', async () => {
+            await expectDragForward(
+              `
+              (comment
+                ; a
+                :a|
+                :b
+                )
+              `,
+              `
+              (comment
+                :b
+                ; a
+                :a|
+                )
+              `
+            );
+          });
+
+          it('keeps both comments attached when dragging forward in a comment form', async () => {
+            await expectDragForward(
+              `
+              (comment
+                ; a
+                :a|
+                ; b
+                :b
+                )
+              `,
+              `
+              (comment
+                ; b
+                :b
+                ; a
+                :a|
+                )
+              `
+            );
+          });
+
+          it('drags comment-form pair backward when cursor is in the comment', async () => {
+            await expectDragBackward(
+              `
+              (str "a")
+
+              ;; b|
+              (str "Hello" " " "world")
+              `,
+              `
+              ;; b|
+              (str "Hello" " " "world")
+
+              (str "a")
+              `
+            );
+          });
+
+          it('drags comment-form pair forward when cursor is in the comment', async () => {
+            await expectDragForward(
+              `
+              (str "a")
+
+              ;; b|
+              (str "Hello" " " "world")
+
+              (str "z")
+              `,
+              `
+              (str "a")
+
+              (str "z")
+
+              ;; b|
+              (str "Hello" " " "world")
+              `
+            );
+          });
+
+          it('drags sexp backward with its trailing same-line comment', async () => {
+            await expectDragBackward(
+              `
+              (+ 2 3)
+              (+ 1 2)| ; => 3
+              `,
+              `
+              (+ 1 2)| ; => 3
+              (+ 2 3)
+              `
+            );
+          });
+
+          it('drags sexp forward with its trailing same-line comment', async () => {
+            await expectDragForward(
+              `
+              (+ 1 2)| ; => 3
+              (+ 2 3)
+              `,
+              `
+              (+ 2 3)
+              (+ 1 2)| ; => 3
+              `
+            );
+          });
+
+          it('drags sexp backward with a comment on the line below (before a blank)', async () => {
+            await expectDragBackward(
+              `
+              (+ 2 3)
+
+              (+ 1 2)|
+              ; note
+
+              (+ 4 5)
+              `,
+              `
+              (+ 1 2)|
+              ; note
+
+              (+ 2 3)
+
+              (+ 4 5)
+              `
+            );
+          });
+
+          it('drags sexp forward with a comment on the line below (before a blank)', async () => {
+            await expectDragForward(
+              `
+              (+ 1 2)|
+              ; note
+
+              (+ 2 3)
+              `,
+              `
+              (+ 2 3)
+
+              (+ 1 2)|
+              ; note
+              `
+            );
+          });
+
+          it('drags sexp forward with ;;=> result comment when next form follows immediately', async () => {
+            await expectDragForward(
+              `
+              (+ 1 2)|
+              ;;=> 3
+              (+ 2 3)
+              `,
+              `
+              (+ 2 3)
+              (+ 1 2)|
+              ;;=> 3
+              `
+            );
+          });
+
+          it('drags sexp forward with ;=> result comment when next form follows immediately', async () => {
+            await expectDragForward(
+              `
+              (+ 1 2)|
+              ;=> 3
+              (+ 2 3)
+              `,
+              `
+              (+ 2 3)
+              (+ 1 2)|
+              ;=> 3
+              `
+            );
+          });
+
+          it('drags a form forward with its tight result comment', async () => {
+            await expectDragForward(
+              `
+              (comment
+                :a
+                :b|
+                ;=> b
+                :c
+                )
+              `,
+              `
+              (comment
+                :a
+                :c
+                :b|
+                ;=> b
+                )
+              `
+            );
+          });
+
+          it('drags a form backward with its tight result comment', async () => {
+            await expectDragBackward(
+              `
+              (comment
+                :a
+                :b|
+                ;=> b
+                :c
+                )
+              `,
+              `
+              (comment
+                :b|
+                ;=> b
+                :a
+                :c
+                )
+              `
+            );
+          });
+
+          it('does not attach tight result comments to the following form on drag backward', async () => {
+            await expectDragBackward(
+              `
+              (comment
+                :a
+                ;=> a
+                :b
+                :c|
+                )
+              `,
+              `
+              (comment
+                :a
+                ;=> a
+                :c|
+                :b
+                )
+              `
+            );
+          });
+
+          it('does not move a tight result comment when dragging the following form forward', async () => {
+            await expectDragForward(
+              `
+              (comment
+                :a
+                ;=> a
+                :b|
+                :c
+                )
+              `,
+              `
+              (comment
+                :a
+                ;=> a
+                :c
+                :b|
+                )
+              `
+            );
+          });
+
+          it('drags forward when cursor is in a tight result comment line', async () => {
+            await expectDragForward(
+              `
+              (comment
+                :c
+                :b
+                ;=> b|
+                :a
+                )
+              `,
+              `
+              (comment
+                :c
+                :a
+                :b
+                ;=> b|
+                )
+              `
+            );
+          });
+        });
+
+        describe('closing parens and a comment after the last form', () => {
+          it('drag backward of last form: closing paren and trailing comment stay on the new last line', async () => {
+            await expectDragBackward(
+              `
+              (-> content
+                (r1) ; a
+                (r2) ; b
+                ;; lead
+                (r3)|) ; c
+              `,
+              `
+              (-> content
+                (r1) ; a
+                ;; lead
+                (r3)| ; c
+                (r2)) ; b
+              `
+            );
+          });
+
+          it('drag backward of last form, cursor on the leading ;; line', async () => {
+            await expectDragBackward(
+              `
+              (-> content
+                (r1) ; a
+                (r2) ; b
+                ;; |lead
+                (r3)) ; c
+              `,
+              `
+              (-> content
+                (r1) ; a
+                ;; |lead
+                (r3) ; c
+                (r2)) ; b
+              `
+            );
+          });
+
+          it('drag backward of last form, cursor in the trailing comment after closing paren', async () => {
+            await expectDragBackward(
+              `
+              (-> content
+                (r1) ; a
+                (r2) ; b
+                ;; lead
+                (r3)) ; |c
+              `,
+              `
+              (-> content
+                (r1) ; a
+                ;; lead
+                (r3) ; |c
+                (r2)) ; b
+              `
+            );
+          });
+
+          it('drag forward: closing paren follows the new last form', async () => {
+            await expectDragForward(
+              `
+              (-> content
+                (r1) ; a
+                (r2)| ; b
+                ;; lead
+                (r3)) ; c
+              `,
+              `
+              (-> content
+                (r1) ; a
+                ;; lead
+                (r3) ; c
+                (r2)|) ; b
+              `
+            );
+          });
+
+          it('drag backward with multiple structural closing parens', async () => {
+            await expectDragBackward(
+              `
+              (let [x 1]
+                (-> content
+                  (r1) ; a
+                  (r2)|)) ; b
+              `,
+              `
+              (let [x 1]
+                (-> content
+                  (r2)| ; b
+                  (r1))) ; a
+              `
+            );
+          });
+
+          it('drags the last form of a threading macro with its trailing comment', async () => {
+            await expectDragBackward(
+              String.raw`
+              (defn- clean-list-content
+                "Clean content but don't double-indent nested lists that are already indented"
+                [content indent-spaces]
+                (let [indent (apply str (repeat indent-spaces " "))]
+                  (-> content
+                      (.replace #"^\n+" "")                       ; remove leading newlines
+                      (.replace #"\n+$" "\n")                     ; keep single trailing newline
+                      ;; Only indent lines that don't already start with spaces (nested lists)
+                      |(.replace #"\n(?! )" (str "\n" indent)))))  ; indent nested content with single space
+              `,
+              String.raw`
+              (defn- clean-list-content
+                "Clean content but don't double-indent nested lists that are already indented"
+                [content indent-spaces]
+                (let [indent (apply str (repeat indent-spaces " "))]
+                  (-> content
+                      (.replace #"^\n+" "")                       ; remove leading newlines
+                      ;; Only indent lines that don't already start with spaces (nested lists)
+                      |(.replace #"\n(?! )" (str "\n" indent))  ; indent nested content with single space
+                      (.replace #"\n+$" "\n"))))                     ; keep single trailing newline
+              `
+            );
+          });
+        });
+
+        describe('pairs with comments', () => {
+          it('drags a binding with its trailing comment backward', async () => {
+            await expectDragBackward(
+              `
+              (let [a 1 ; one
+                    b| 2 ; two
+                    c 3] ; three
+                (+ a b c))
+              `,
+              `
+              (let [b| 2 ; two
+                    a 1 ; one
+                    c 3] ; three
+                (+ a b c))
+              `
+            );
+          });
+
+          it('drags a binding with its leading comment forward', async () => {
+            await expectDragForward(
+              `
+              (let [a 1
+                    ;; the b
+                    b| 2
+                    ;; the c
+                    c 3]
+                (+ a b c))
+              `,
+              `
+              (let [a 1
+                    ;; the c
+                    c 3
+                    ;; the b
+                    b| 2]
+                (+ a b c))
+              `
+            );
+          });
+
+          it('drags a cond test and its result with the comment above them', async () => {
+            await expectDragBackward(
+              `
+              (cond
+                ;; first
+                (= x 1) :one
+                ;; second
+                |(= x 2) :two
+                :else :other)
+              `,
+              `
+              (cond
+                ;; second
+                |(= x 2) :two
+                ;; first
+                (= x 1) :one
+                :else :other)
+              `
+            );
+          });
+        });
+
+        describe('dragging forward and then backward', () => {
+          const expectRestored = async (first: 'forward' | 'backward', code: string) => {
+            const doc = textNotation.docFromTextNotation(dedent(code));
+            const original = textNotation.textNotationFromDoc(doc, true);
+            const [there, back] =
+              first === 'forward'
+                ? [paredit.dragSexprForward, paredit.dragSexprBackward]
+                : [paredit.dragSexprBackward, paredit.dragSexprForward];
+            await there(doc);
+            expectLib.expect(textNotation.textNotationFromDoc(doc, true)).not.toEqual(original);
+            await back(doc);
+            expectLib.expect(textNotation.textNotationFromDoc(doc, true)).toEqual(original);
+          };
+
+          it('restores a form with a leading comment, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                ; a
+                :a|
+                :b
+                )
+              `
+            );
+          });
+
+          it('restores forms with result comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                :a|
+                ;=> a
+                :b
+                ;=> b
+                )
+              `
+            );
+          });
+
+          it('restores a form with comments above and beside it', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (comment
+                ;; about a
+                :a| ; a
+                :b
+                ;; about c
+                :c
+                )
+              `
+            );
+          });
+
+          it('restores a binding with comments, dragged forward', async () => {
+            await expectRestored(
+              'forward',
+              `
+              (let [a 1 ; one
+                    b| 2 ; two
+                    c 3]
+                a)
+              `
+            );
+          });
+        });
+
+        describe('cursor in a comment with no attached form', () => {
+          it('does not drag unrelated forms backward when the comment is separated by blank lines', async () => {
+            await expectDragBackward(
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `,
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `
+            );
+          });
+
+          it('does not drag unrelated forms forward when the comment is separated by blank lines', async () => {
+            await expectDragForward(
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `,
+              `
+              (comment
+                :a
+
+                ;; lo|ne
+
+                :b
+                )
+              `
+            );
+          });
+        });
+
+        describe('closing delimiter and a line comment on the last form', () => {
+          it('drag backward: vector closer and its trailing comment follow the last form', async () => {
+            await expectDragBackward(
+              `
+              [:a ; a same line
+               ; b line before
+               |:b] ; b same line
+              `,
+              `
+              [ ; b line before
+               |:b ; b same line
+              :a] ; a same line
+              `
+            );
+          });
+
+          it('drag forward: vector closer and its trailing comment follow the last form', async () => {
+            await expectDragForward(
+              `
+              [|:a ; a same line
+               ; b line before
+               :b] ; b same line
+              `,
+              `
+              [ ; b line before
+               :b ; b same line
+              |:a] ; a same line
+              `
+            );
+          });
+
+          it('drag backward: map closer follows the last form', async () => {
+            await expectDragBackward(
+              `
+              {:a 1 ; a
+                |:b 2} ; m
+              `,
+              `
+              {|:b 2 ; m
+                :a 1} ; a
+              `
+            );
+          });
+
+          it('drag backward: closer is not commented out by the trailing comment of the form dragged past it', async () => {
+            await expectDragBackward(
+              `
+              [:a ; a
+              |:b]
+              `,
+              `
+              [|:b
+              :a] ; a
+              `
+            );
+          });
+
+          it('drag forward: closer is not commented out by the trailing comment of the dragged form', async () => {
+            await expectDragForward(
+              `
+              [|:a ; a
+               :b]
+              `,
+              `
+              [:b
+               |:a] ; a
+              `
+            );
+          });
+
+          it('drag backward: closers of nested lists move before the trailing comment of the form dragged past', async () => {
+            await expectDragBackward(
+              `
+              (f [:a ; a
+                |:b])
+              `,
+              `
+              (f [|:b
+                :a]) ; a
+              `
+            );
+          });
+
+          it('drag backward: closer is not commented out by a result comment below the form dragged past', async () => {
+            await expectDragBackward(
+              `
+              [:a
+                ;=> a
+                |:b]
+              `,
+              `
+              [|:b
+                :a]
+                ;=> a
+              `
+            );
+          });
+
+          it('drag forward: closer is not commented out by a result comment below the dragged form', async () => {
+            await expectDragForward(
+              `
+              [|:a
+                ;=> a
+                :b]
+              `,
+              `
+              [:b
+                |:a]
+                ;=> a
+              `
+            );
+          });
+        });
+      });
     });
 
     describe('backwardUp - one line', () => {
