@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- Fix: API evaluations with print options but no width wrap short results one element per line
+- API: `repl.log()` now suppoort showing the output in Calva's output destinations
+- API: Send the evaluator's `who` to the nREPL server
+
 ## [2.0.612] - 2026-11-19
 
 - [Enable GUI breakpoints based on nREPL debugger support](https://github.com/BetterThanTomorrow/calva/issues/3234)

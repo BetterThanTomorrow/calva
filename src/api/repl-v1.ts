@@ -151,6 +151,7 @@ export const evaluate = async (
   const evaluationOptions: any = {
     stdout,
     stderr,
+    who: resolvedWho,
     pprintOptions: printer.disabledPrettyPrinter,
     ...nReplOptions,
   };
@@ -512,6 +513,18 @@ export interface OutputMessage {
   replSessionKey?: string;
   shadowBuild?: string;
   shadowRuntimeId?: number;
+  evaluationId?: number;
+}
+
+export interface LogOptions {
+  display?: boolean;
+  evaluation?: PromiseLike<unknown>;
+}
+
+export interface LogResult {
+  evaluationId?: number;
+  printedTo: string[];
+  skipped: string[];
 }
 
 const outputCategoryToApiCategory: Record<string, OutputCategory> = {
@@ -523,17 +536,75 @@ const outputCategoryToApiCategory: Record<string, OutputCategory> = {
   otherErr: 'otherErrorOutput',
 };
 
-export function log(message: OutputMessage): void {
-  const internalCategory = logUtil.validateLogMessage(message);
-  resultOutput.emitExternal({
-    category: internalCategory,
-    text: message.text,
-    who: message.who,
-    ns: message.ns,
-    replSessionKey: message.replSessionKey,
-    shadowBuild: message.shadowBuild,
-    shadowRuntimeId: message.shadowRuntimeId,
-  });
+const loggedEvaluations = logUtil.createEvaluationTracker(
+  resultOutput.nextEvaluationId,
+  resultOutput.endEvaluation
+);
+
+type Append = (text: string, options: resultOutput.AppendClojureOptions) => void;
+
+const appendByCategory: Record<logUtil.InternalOutputCategory, Append> = {
+  evaluatedCode: (text, { destinations, ...options }) =>
+    resultOutput.appendEvaluatedCode(text, { destination: destinations ?? [], ...options }),
+  evalResults: resultOutput.appendClojureEval,
+  evalOut: resultOutput.appendEvalOut,
+  evalErr: resultOutput.appendEvalErr,
+  otherOut: resultOutput.appendOtherOut,
+  otherErr: resultOutput.appendOtherErr,
+};
+
+function display(
+  category: logUtil.InternalOutputCategory,
+  message: OutputMessage,
+  evaluationId: number | undefined
+) {
+  const setting = logUtil.outputCategoryToDestinationSetting[category];
+  const { printedTo, skipped } = logUtil.splitDestinations(
+    outputDestinations.normalizeDestinations(resultOutput.getDestinationConfiguration()[setting])
+  );
+  if (printedTo.length) {
+    const { text, replSessionKey, who, ns, shadowBuild, shadowRuntimeId } = message;
+    appendByCategory[category](text, {
+      destinations: printedTo,
+      replSessionType: replSessionKey,
+      who,
+      ns,
+      shadowBuild,
+      shadowRuntimeId,
+      evaluationId,
+    });
+  }
+  return { printedTo, skipped };
+}
+
+/**
+ * Logs `message` to the output subscribers. With `display`, also writes it to the configured output
+ * destinations, except the REPL window, which the result lists as skipped for the caller to show.
+ */
+export function log(message: OutputMessage, options: LogOptions = {}): LogResult {
+  const category = logUtil.validateLogMessage(message);
+  if (options.display) {
+    logUtil.validateDisplayMessage(message);
+  }
+  const evaluationId =
+    category === 'evaluatedCode' && options.evaluation !== undefined
+      ? loggedEvaluations.begin(options.evaluation)
+      : loggedEvaluations.validId(message.evaluationId, category);
+  const { printedTo, skipped } = options.display
+    ? display(category, message, evaluationId)
+    : { printedTo: [], skipped: [] };
+  if (!printedTo.length) {
+    resultOutput.emitExternal({
+      category,
+      text: message.text,
+      who: message.who,
+      ns: message.ns,
+      replSessionKey: message.replSessionKey,
+      shadowBuild: message.shadowBuild,
+      shadowRuntimeId: message.shadowRuntimeId,
+    });
+  }
+  return { evaluationId, printedTo, skipped };
 }
 
 export function onOutputLogged(callback: (msg: OutputMessage) => void): vscode.Disposable {

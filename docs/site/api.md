@@ -291,6 +291,7 @@ The `who` field identifies which API caller triggered an evaluation. It is inclu
 * The `Result` object returned by the promise (always the resolved value)
 * `OutputMessage` objects delivered to `onOutputLogged()` subscribers
 * A badge in the REPL output, shown before the session type and namespace
+* The `eval` message to the nREPL server, as a `who` key, so the server can tell who evaluated. Servers that don't read it ignore it. A defaulted `"api"` isn't sent.
 
 ```
 ; my-agent  clj  user
@@ -409,21 +410,53 @@ An example:
 
 ### `repl.log()`
 
-Log a message to Calva's output subscriber bus without writing to Calva's own UI destinations (output channel, REPL window, terminal). This is intended for other extensions that have their own output UI but want their messages to appear in the Calva output subscriber stream — for example, so that [Backseat Driver](https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.calva-backseat-driver) can query them.
+Log a message to Calva's output subscriber bus, for extensions that evaluate Clojure code on their own. Subscribers such as [Backseat Driver](https://marketplace.visualstudio.com/items?itemName=BetterThanTomorrow.calva-backseat-driver) can then query the messages. With `display`, the message is also written to the user's [output destinations](output.md), except the REPL window.
 
 The signature in TypeScript:
 
 ```typescript
-export function log(message: OutputMessage): void;
+export function log(message: OutputMessage, options?: LogOptions): LogResult;
+
+export interface LogOptions {
+  display?: boolean;                 // Also write the message to the output destinations
+  evaluation?: PromiseLike<unknown>; // With an evaluatedCode message: the evaluation it shows
+}
+
+export interface LogResult {
+  evaluationId?: number; // The message's evaluation, when it has one
+  printedTo: string[];   // The destinations the message was written to
+  skipped: string[];     // The configured destinations it was not written to: 'repl-window'
+}
 ```
 
-The `OutputMessage` interface is the same one used by [`onOutputLogged()`](#replonoutputlogged).
+The `OutputMessage` interface is the one used by [`onOutputLogged()`](#replonoutputlogged), plus `evaluationId?: number`, which subscribers don't get.
+
+Without `display`, the message goes to the subscribers only, and both lists in the result are empty.
 
 #### Validation
 
 * `text` must be a non-empty string
 * `category` must be a valid `OutputCategory`
 * `who` follows the same rules as [`evaluate()`](#replevaluate) — the reserved values `"ui"` and `"api"` are rejected
+* With `display`, `who` is required
+
+#### Displaying output
+
+With `display`, the message is written to the destinations configured in `calva.outputDestinations` for its category, the way Calva writes its own output: `evalResults` for `evaluatedCode` and `evaluationResults`, `evalOutput` for `evaluationOutput` and `evaluationErrorOutput`, and `otherOutput` for the rest. The subscribers get the message the way they get Calva's own output of the category.
+
+The REPL window is left out, since its prompt belongs to Calva's REPL sessions, and is listed in `skipped`. When `printedTo` is empty and `skipped` isn't, the user wants the message in the REPL window only, so show it in your own output UI. When `printedTo` has destinations, the message is shown there. When both are empty, the user has configured no destination for the category.
+
+`who`, `replSessionKey` and `ns` are shown as badges on the line that starts each evaluation's output, and when they change.
+
+#### Evaluations
+
+To group an evaluation's code, output and result in the output destinations:
+
+1. Log the `evaluatedCode` message with the evaluation's promise as `options.evaluation`. The result has the evaluation's `evaluationId`. The Output views show a spinner on the code until the promise settles.
+2. Give that `evaluationId` to the `evaluationOutput`, `evaluationErrorOutput` and `evaluationResults` messages of the evaluation, also those logged after the promise has settled.
+3. Log output that comes after the evaluation is done, such as from a timer, as `otherOutput` or `otherErrorOutput`, without an `evaluationId` and an `ns`.
+
+An `evaluationId` that `log()` didn't return is left out, and the message is logged without it. An `evaluatedCode` message gets an `evaluationId` only while that evaluation runs.
 
 #### Example
 
@@ -436,6 +469,27 @@ calvaApi.v1.repl.log({
   who: "my-extension",
   ns: "user",
 });
+```
+
+An evaluation, displayed in the output destinations:
+
+```typescript
+const repl = calvaApi.v1.repl;
+const context = { who: "my-extension", ns: "user", replSessionKey: "my-runtime" };
+
+const evaluation = myRuntime.evaluate("(+ 1 2)");
+const { evaluationId } = repl.log(
+  { category: "evaluatedCode", text: "(+ 1 2)", ...context },
+  { display: true, evaluation }
+);
+const value = await evaluation;
+const { printedTo, skipped } = repl.log(
+  { category: "evaluationResults", text: String(value), evaluationId, ...context },
+  { display: true }
+);
+if (printedTo.length === 0 && skipped.length > 0) {
+  myOutput.appendLine(String(value));
+}
 ```
 
 ### `repl.onOutputLogged()`
