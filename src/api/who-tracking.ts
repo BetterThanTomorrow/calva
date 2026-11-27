@@ -56,6 +56,15 @@ export function getCurrentWho(sessionId: string): string | undefined {
   return currentWho.get(sessionId);
 }
 
+// The whos Calva gives evaluations nobody named: the user's own, and API callers that gave none
+const calvaWhos = ['ui', 'api'];
+
+// The `who` an nREPL message carries, so the server knows who evaluated. Calva's own whos stay off
+// the wire.
+export function nreplWho(who: string | undefined): { who?: string } {
+  return who && !calvaWhos.includes(who) ? { who } : {};
+}
+
 export function clearCurrentWho(sessionId: string): void {
   currentWho.delete(sessionId);
 }

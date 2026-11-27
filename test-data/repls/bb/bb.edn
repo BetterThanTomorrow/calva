@@ -1,0 +1,3 @@
+{:paths ["src"]
+ :tasks {nrepl {:doc "Start an nREPL server and write .nrepl-port"
+                :task (load-file "nrepl_server.clj")}}}

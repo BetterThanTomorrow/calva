@@ -789,6 +789,7 @@ export class NReplSession {
       stderr?: (x: string) => void;
       stdout?: (x: string) => void;
       stdin?: () => Promise<string>;
+      who?: string;
       pprintOptions: PrettyPrintingOptions;
     } = { pprintOptions: disabledPrettyPrinter }
   ) {
@@ -799,10 +800,11 @@ export class NReplSession {
       pprintOptions,
       this.ciderNreplVersion()
     );
-    const { stdout, stderr, stdin, ...cleanedOpts } = opts;
+    const { stdout, stderr, stdin, who, ...cleanedOpts } = opts;
     const opMsg = this._createEvalOperationMessage(code, ns, {
       ...extraOpts,
       ...cleanedOpts,
+      ...whoTracking.nreplWho(who),
     });
 
     const evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin);
@@ -855,6 +857,7 @@ export class NReplSession {
       filePath?: string;
       stderr?: (x: string) => void;
       stdout?: (x: string) => void;
+      who?: string;
       pprintOptions: PrettyPrintingOptions;
     } = {
       pprintOptions: disabledPrettyPrinter,
@@ -868,12 +871,13 @@ export class NReplSession {
       pprintOptions,
       this.ciderNreplVersion()
     );
-    const { stderr, stdout, ...optsLessOut } = opts;
+    const { stderr, stdout, who, ...optsLessOut } = opts;
     const evaluation = new NReplEvaluation(id, this, stderr, stdout, null);
     evaluation.send(
       {
         ...extraOpts,
         ...optsLessOut,
+        ...whoTracking.nreplWho(who),
         op: 'load-file',
         session: this.sessionId,
         file,

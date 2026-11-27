@@ -43,11 +43,17 @@ describe('bencode', () => {
       expectLib.expect(decode('i-3e')).toEqual([-3]);
     });
 
-    it('encodes null, undefined, and booleans as integers', () => {
+    it('encodes null and booleans as integers', () => {
       expectLib.expect(encode({ a: null })).toEqual('d1:ai0ee');
-      expectLib.expect(encode({ a: undefined })).toEqual('d1:ai0ee');
       expectLib.expect(encode({ a: false })).toEqual('d1:ai0ee');
       expectLib.expect(encode({ a: true })).toEqual('d1:ai1ee');
+    });
+
+    it('leaves out dict keys whose value is undefined', () => {
+      expectLib.expect(encode({ a: undefined })).toEqual('de');
+      expectLib
+        .expect(encode({ options: { 'right-margin': undefined, length: 50 } }))
+        .toEqual('d7:optionsd6:lengthi50eee');
     });
 
     it('encodes and decodes lists', () => {

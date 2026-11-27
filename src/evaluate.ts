@@ -234,6 +234,7 @@ function sendEvaluation(options: EvaluationOptions) {
     stdout: (m) => output.appendEvalOut(m, outputOptions),
     stderr: (m) => err.push(m),
     stdin,
+    who,
     pprintOptions,
   });
   recordEvaluationActivity(session, sessionKey, who);
@@ -998,6 +999,7 @@ async function loadFile(
       output.appendEvalErr(m, evalOptions);
       errorMessages.push(m);
     },
+    who,
     pprintOptions: pprintOptions,
   });
   const outputOptions = { who, ...shadowInfo };
