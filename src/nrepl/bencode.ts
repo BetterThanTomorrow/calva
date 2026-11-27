@@ -6,8 +6,19 @@
 import * as stream from 'stream';
 import * as buffer from 'buffer';
 
-/** Bencode the given JSON object. Dict keys use JavaScript string sort, which
- * matches bencode's byte order for the ASCII keys Calva sends. */
+/** Dict keys use JavaScript string sort, which matches bencode's byte order for
+ * the ASCII keys Calva sends. Like JSON, a dict leaves out the keys whose value
+ * is undefined. */
+const bencodeDict = (dict: object) =>
+  'd' +
+  Object.keys(dict)
+    .sort()
+    .filter((key) => dict[key] !== undefined)
+    .map((key) => bencode(key) + bencode(dict[key]))
+    .join('') +
+  'e';
+
+/** Bencode the given JSON object. */
 const bencode = (value) => {
   if (value === null || value === undefined) {
     value = 0;
@@ -24,11 +35,7 @@ const bencode = (value) => {
   if (value instanceof Array) {
     return 'l' + value.map(bencode).join('') + 'e';
   }
-  let out = 'd';
-  for (const prop of Object.keys(value).sort()) {
-    out += bencode(prop) + bencode(value[prop]);
-  }
-  return out + 'e';
+  return bencodeDict(value);
 };
 
 /** A transformation stream that takes a series of JSON objects and bencodes them. */
